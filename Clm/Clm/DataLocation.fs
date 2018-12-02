@@ -5,6 +5,14 @@ open System
 
 module DataLocation = 
 
+    [<Literal>]
+    let DefaultStartingFolder = __SOURCE_DIRECTORY__ + @"\..\Model\Models"
+
+
+    [<Literal>]
+    let DefaultAllModelsFile = __SOURCE_DIRECTORY__ + @"\..\Model\AllModels.fs"
+
+
     type ModelLocationInputData = 
         {
             startingFolder : string
@@ -15,10 +23,10 @@ module DataLocation =
 
         static member defaultValue = 
             {
-                startingFolder = @"C:\GitHub\CLM\Clm\Model\Models"
+                startingFolder = DefaultStartingFolder //@"C:\GitHub\CLM\Clm\Model\Models"
                 separator = "_"
                 padLength = 3
-                allModelsFile = @"C:\GitHub\CLM\Clm\Model\AllModels.fs"
+                allModelsFile = DefaultAllModelsFile //@"C:\GitHub\CLM\Clm\Model\AllModels.fs"
             }
 
 

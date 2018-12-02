@@ -10,11 +10,12 @@ let main argv =
     printfn "Input values: %A" argv
 
     let tEnd0 = 1.0
-    let y000 = 1.0
+    let y000 = 1000.0
 
     // This is a tough choice...
     //let y00 = y000 * (2.0 * (double modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length))
-    let y00 = y000 * 2.0
+    //let y00 = y000 * 2.0
+    let y00 = y000
 
     let tEnd, y0 = 
         match argv |> List.ofArray with 
@@ -31,6 +32,7 @@ let main argv =
             | false, _ -> tEnd0, y00
 
     printfn "Solving for n = %A, tEnd = %A, y0 = %A." numberOfSubstances tEnd y0
+    printfn "    If necessary specify run time as first parameter and initial concentration as second parameter."
     printfn "Starting at: %A" DateTime.Now
 
     let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None)

@@ -13,15 +13,15 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Model
 //===========================================================
-let updateAllModels = true
+let updateAllModels = false
 
-let n = NumberOfAminoAcids.NineAminoAcids
+let n = NumberOfAminoAcids.TwoAminoAcids
 let m = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = (new Random()).Next()
 let rnd = new Random(seed)
 //===========================================================
-let synthModel = ReactionRateProvider.defaultSynthesisModel rnd 0.001 0.01
+let synthModel = ReactionRateProvider.defaultSynthesisModel rnd 0.001 0.001
 //let synthModel = ReactionRateProvider.defaultSynthesisModel rnd (0.0001 / (double n.length)) 0.001
 let ligModel = ReactionRateProvider.defaultLigationModel rnd 0.001 0.001
 
@@ -36,9 +36,9 @@ let rates =
          synthModel |> SynthesisRateModel
          ligModel |> LigationRateModel
 
-         catSynthModel |> CatalyticSynthesisRateModel
-         catLigModel |> CatalyticLigationRateModel
-         sdModel |> SedimentationDirectRateModel
+         //catSynthModel |> CatalyticSynthesisRateModel
+         //catLigModel |> CatalyticLigationRateModel
+         //sdModel |> SedimentationDirectRateModel
 
          //saModel |> SedimentationAllRateModel
     ]

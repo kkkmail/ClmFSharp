@@ -21,14 +21,14 @@ let m = MaxPeptideLength.ThreeMax
 let seed = (new Random()).Next()
 let rnd = new Random(seed)
 //===========================================================
-let synthModel = ReactionRateProvider.defaultSynthesisModel rnd 0.001 0.001
+let synthModel = ReactionRateProvider.defaultSynthesisModel rnd 0.001 0.0001
 //let synthModel = ReactionRateProvider.defaultSynthesisModel rnd (0.0001 / (double n.length)) 0.001
-let ligModel = ReactionRateProvider.defaultLigationModel rnd 0.001 0.001
+let ligModel = ReactionRateProvider.defaultLigationModel rnd 0.001 0.0001
 
-let catSynthModel = ReactionRateProvider.defaultCatalyticSynthesisModel rnd synthModel (Some 0.0005) 10000.0
-let catLigModel = ReactionRateProvider.defaultCatalyticLigationModel rnd ligModel (Some 0.0001) 10000.0
+let catSynthModel = ReactionRateProvider.defaultCatalyticSynthesisModel rnd synthModel (Some 0.0005) 1000.0
+let catLigModel = ReactionRateProvider.defaultCatalyticLigationModel rnd ligModel (Some 0.0001) 1000.0
 
-let sdModel = ReactionRateProvider.defaultSedimentationDirectModel rnd 0.0001 1000.0
+let sdModel = ReactionRateProvider.defaultSedimentationDirectModel rnd 0.0001 100.0
 let saModel = ReactionRateProvider.defaultSedimentationAllModel rnd 0.1
 //===========================================================
 let rates = 

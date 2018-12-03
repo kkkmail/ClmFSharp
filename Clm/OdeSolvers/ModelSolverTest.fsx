@@ -12,7 +12,7 @@ open OdeSolvers.Visualization
 let useResultsFolder = true
 
 let y00 = 1000.0
-let tEnd = 1000.0
+let tEnd = 100.0
 //===========================================================
 //let y0 = y00 * (2.0 * (double modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length))
 let y0 = y00

@@ -54,6 +54,7 @@ module ReactionRates =
     type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) = 
         let rnd = new Random(seed)
         let rndBool = new Random(rnd.Next())
+
         let isDefined() = 
             match p.threshold with
             | Some t -> if rndBool.NextDouble() < t then true else false
@@ -73,10 +74,10 @@ module ReactionRates =
             | false -> None
 
 
-    type DeltaDistribution (p : DistributionParams) = 
-        inherit DistributionBase (0, p, fun _ -> 1.0)
+    type DeltaDistribution (seed : int, p : DistributionParams) = 
+        inherit DistributionBase (seed, p, fun _ -> 1.0)
 
-        member distr.toFSharpCode = "DeltaDistribution(" + p.toFSharpCode + ")"
+        member distr.toFSharpCode = "DeltaDistribution(" + seed.ToString() + ", " + p.toFSharpCode + ")"
 
 
     type UniformDistribution (seed : int, p : DistributionParams) = 
@@ -446,7 +447,7 @@ module ReactionRates =
 
         static member defaultSynthesisModel (rnd : Random) forward backward =
             {
-                synthesisDistribution = DeltaDistribution({ threshold = None }) |> Delta
+                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
                 //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward
@@ -467,7 +468,7 @@ module ReactionRates =
 
         static member defaultLigationModel (rnd : Random) forward backward =
             {
-                ligationDistribution = DeltaDistribution({ threshold = None }) |> Delta
+                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
                 //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward

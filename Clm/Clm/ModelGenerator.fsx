@@ -13,9 +13,9 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Model
 //===========================================================
-let updateAllModels = false
+let updateAllModels = true
 
-let n = NumberOfAminoAcids.TwoAminoAcids
+let n = NumberOfAminoAcids.NineAminoAcids
 let m = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = (new Random()).Next()

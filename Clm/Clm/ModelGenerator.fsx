@@ -28,7 +28,7 @@ let ligModel = ReactionRateProvider.defaultLigationModel rnd 0.001 0.0001
 let catSynthModel = ReactionRateProvider.defaultCatalyticSynthesisModel rnd synthModel (Some 0.0005) 1000.0
 let catLigModel = ReactionRateProvider.defaultCatalyticLigationModel rnd ligModel (Some 0.0001) 1000.0
 
-let sdModel = ReactionRateProvider.defaultSedimentationDirectModel rnd 0.0001 100.0
+let sdModel = ReactionRateProvider.defaultSedimentationDirectModel rnd 0.0001 1000.0
 let saModel = ReactionRateProvider.defaultSedimentationAllModel rnd 0.1
 //===========================================================
 let rates = 

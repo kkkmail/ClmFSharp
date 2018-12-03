@@ -13,6 +13,10 @@ module DataLocation =
     let DefaultAllModelsFile = __SOURCE_DIRECTORY__ + @"\..\Model\AllModels.fs"
 
 
+    [<Literal>]
+    let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results"
+
+
     type ModelLocationInputData = 
         {
             startingFolder : string
@@ -23,10 +27,10 @@ module DataLocation =
 
         static member defaultValue = 
             {
-                startingFolder = DefaultStartingFolder //@"C:\GitHub\CLM\Clm\Model\Models"
+                startingFolder = DefaultStartingFolder
                 separator = "_"
                 padLength = 3
-                allModelsFile = DefaultAllModelsFile //@"C:\GitHub\CLM\Clm\Model\AllModels.fs"
+                allModelsFile = DefaultAllModelsFile
             }
 
 
@@ -48,7 +52,7 @@ module DataLocation =
 
         static member defautlValue = 
             {
-                resultLocation =  @"C:\GitHub\CLM\Clm\Results"
+                resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
 
@@ -69,10 +73,6 @@ module DataLocation =
 
         let modelName = todayPrefix + i.separator + (todayMaxDirNumber + 1).ToString().PadLeft(i.padLength, '0')
         let fullNextDir = Path.Combine(i.startingFolder, modelName)
-
-        //printfn "todayMaxDirNumber = %A" todayMaxDirNumber
-        //printfn "nextDir = %A" nextDir
-        //printfn "fullNextDir = %A" fullNextDir
         Directory.CreateDirectory(fullNextDir) |> ignore
 
         {

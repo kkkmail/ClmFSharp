@@ -1,6 +1,7 @@
 ﻿open System
 open Microsoft.FSharp.Core
 open Clm.ModelParams
+open Clm.ModelInit
 open Model.ModelData
 open OdeSolvers.Solver
 open OdeSolvers.Visualization

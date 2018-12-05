@@ -43,9 +43,11 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Content Include="packages.config" />
+    <Compile Include="FSharpCodeExt.fs" />
+    <Compile Include="ClmModel.fs" />
     <None Include="References.fsx" />
     <None Include="ModelGenerator.fsx" />
-    <Compile Include="FSharpCodeExt.fs" />
+    <None Include="FileSystemTests.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

@@ -50,14 +50,8 @@
     <Compile Include="ReactionRates.fs" />
     <Compile Include="Reactions.fs" />
     <Compile Include="DataLocation.fs" />
-    <Compile Include="FSharpCodeExt.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
-    <Compile Include="ClmModel.fs" />
-    <None Include="References.fsx" />
-    <None Include="ModelGenerator.fsx" />
-    <None Include="MapPerformance.fsx" />
-    <None Include="FileSystemTests.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

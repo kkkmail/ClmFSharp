@@ -1,17 +1,17 @@
-﻿namespace Clm
+﻿namespace ClmGenerator
 
 open System
 open System.IO
 open FSharp.Collections
 
 open Clm.Distributions
-open Clm.FSharpCodeExt
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
+open ClmGenerator.FSharpCodeExt
 
 module ClmModel = 
 

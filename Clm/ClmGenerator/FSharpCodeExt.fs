@@ -1,4 +1,4 @@
-﻿namespace Clm
+﻿namespace ClmGenerator
 
 open Clm.Distributions
 open Clm.ReactionRates

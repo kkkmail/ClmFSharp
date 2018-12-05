@@ -1,11 +1,11 @@
-﻿namespace OdeSolvers
+﻿namespace OdeSolver
 
 open System
 open System.IO
 open Clm.Substances
 open Clm.ModelParams
 open Clm.DataLocation
-open OdeSolvers.Solver
+open OdeSolver.Solver
 open Microsoft.FSharp.Core
 open FSharp.Plotly
 

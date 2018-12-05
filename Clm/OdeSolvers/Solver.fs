@@ -1,4 +1,4 @@
-﻿namespace OdeSolvers
+﻿namespace OdeSolver
 
 open Microsoft.FSharp.Core
 open System

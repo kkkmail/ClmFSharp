@@ -79,7 +79,7 @@
       <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OdeSolvers\OdeSolver.fsproj">
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
       <Name>OdeSolver</Name>
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
       <Private>True</Private>

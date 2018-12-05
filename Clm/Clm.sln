@@ -9,7 +9,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Model", "Model\Model.fsproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlgLib", "AlgLib\AlgLib.csproj", "{5D23CBC1-D7C8-4942-B9C4-22993F4F5E30}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OdeSolver", "OdeSolvers\OdeSolver.fsproj", "{CABC1334-FA26-483E-AE65-9F93C86DCE2D}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OdeSolver", "OdeSolver\OdeSolver.fsproj", "{CABC1334-FA26-483E-AE65-9F93C86DCE2D}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SolverRunner", "SolverRunner\SolverRunner.fsproj", "{F0D4B13D-57AB-4EBF-AE90-4F758CF5741B}"
 EndProject

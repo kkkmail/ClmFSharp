@@ -65,7 +65,7 @@ module FSharpCodeExt =
             | Triangular d -> d.toFSharpCode + " |> Triangular"
 
 
-    type SyntethisParam
+    type SynthesisRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -74,6 +74,14 @@ module FSharpCodeExt =
             shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
             shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
             shift + "            }" + Nl
+
+
+    type SynthesisParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | SynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SynthRndParam" + Nl)
 
 
     type CatalyticSynthesisRandomParam
@@ -92,10 +100,10 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             match p with 
-            | CatalyticSynthesisRandomParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatalyticSynthesisRandomParam" + Nl)
+            | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthRndParam" + Nl)
 
 
-    type SedimentationDirectParam
+    type SedimentationDirectRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -105,7 +113,15 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type SedimentationAllParam
+    type SedimentationDirectParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | SedDirRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedDirRndParam" + Nl)
+
+
+    type SedimentationAllRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -115,7 +131,15 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type LigationParam
+    type SedimentationAllParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | SedAllRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedAllRndParam" + Nl)
+
+
+    type LigationRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -126,7 +150,15 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type CatalyticLigationParam
+    type LigationParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | LigRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "LigRndParam" + Nl)
+
+
+    type CatalyticLigationRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -135,6 +167,15 @@ module FSharpCodeExt =
             shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
             shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
             shift + "            }" + Nl
+
+
+    type CatalyticLigationParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | CatLigRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatLigRndParam" + Nl)
+
 
     type ReactionRateModelParam
         with

@@ -15,7 +15,7 @@ module VersionInfo =
     ///     For example, adding an extra layer for multpile DUs, which requires updating all affected DUs, qualifies as minor upgrade.
     ///
     /// Update major version, e.g. "*.0.0.0", when the changes are completely incompatible with previous version.
-    ///     Subsequently, it is not possible to update affected files at all (due to lack of information) or without extreme efforts.
+    ///     Subsequently, it is not possible to update affected files at all (due to lack of information) and / or without extreme efforts.
     [<Literal>]
     let FileStructureVersionNumber = "1.1.0.0"
 

@@ -76,7 +76,7 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type CatalyticSynthesisParam
+    type CatalyticSynthesisRandomParam
         with
 
         member p.toFSharpCode (shift : string) = 
@@ -85,6 +85,14 @@ module FSharpCodeExt =
             shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
             shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
             shift + "            }" + Nl
+
+
+    type CatalyticSynthesisParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | CatalyticSynthesisRandomParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatalyticSynthesisRandomParam" + Nl)
 
 
     type SedimentationDirectParam

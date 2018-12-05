@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1222687371
+    let seedValue = 1406940676
     let numberOfAminoAcids = NumberOfAminoAcids.OneAminoAcid
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 15
@@ -355,10 +355,10 @@ module ModelData =
                 {
                     modelInfo = 
                         {
-                            fileStructureVersionNumber = "1.0.0.0"
-                            versionNumber = "1.0.2.0"
+                            fileStructureVersionNumber = "1.1.0.0"
+                            versionNumber = "1.1.0.0"
                             seedValue = seedValue
-                            modelName = "20181204_004"
+                            modelName = "20181204_001"
                             numberOfSubstances = 15
                             numberOfAminoAcids = OneAminoAcid
                             maxPeptideLength = ThreeMax
@@ -367,35 +367,36 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(1451705797, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(925596215, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
                             |> SynthesisRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(2063667251, { threshold = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(1008469, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
                             |> LigationRateParam
 
                             {
-                                catSynthDistribution = TriangularDistribution(441589192, { threshold = Some 0.0005 }) |> Triangular
+                                catSynthDistribution = TriangularDistribution(1302307278, { threshold = Some 0.0005 }) |> Triangular
                                 multiplier = 1000.0
                                 maxEe = 0.05
                             }
+                            |> CatalyticSynthesisRandomParam
                             |> CatalyticSynthesisRateParam
 
                             {
-                                catLigationDistribution = TriangularDistribution(460022872, { threshold = Some 0.0001 }) |> Triangular
+                                catLigationDistribution = TriangularDistribution(1295939232, { threshold = Some 0.0001 }) |> Triangular
                                 multiplier = 1000.0
                                 maxEe = 0.05
                             }
                             |> CatalyticLigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(867240918, { threshold = Some 0.0001 }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(249096253, { threshold = Some 0.0001 }) |> Triangular
                                 forwardScale = Some 1000.0
                             }
                             |> SedimentationDirectRateParam

@@ -39,15 +39,6 @@ module ReactionTypes =
             output : list<Substance * int>
         }
 
-        //member info.enantiomer = 
-        //    let e (i : list<Substance * int>) = i |> List.map (fun (s, n) -> (s.enantiomer, n))
-
-        //    {
-        //        reactionName = info.reactionName
-        //        input = info.input |> e
-        //        output = info.output |> e
-        //    }
-
         member this.getName a = 
             let g (l : list<Substance * int>) = 
                 l

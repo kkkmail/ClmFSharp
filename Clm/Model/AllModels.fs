@@ -1,7 +1,8 @@
 ﻿namespace Model
 
 open Clm.Substances
-open Clm.Model
+open Clm.Distributions
+open Clm.ModelParams
 open Clm.ReactionRates
 
 module AllModels = 

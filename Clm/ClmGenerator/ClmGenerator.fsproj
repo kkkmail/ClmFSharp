@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>2cfc7e81-4fb4-46b4-9534-c1455e2c4c14</ProjectGuid>
+    <ProjectGuid>f91606ff-90b6-481f-a2ac-2f4fc54a228a</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Clm</RootNamespace>
-    <AssemblyName>Clm</AssemblyName>
+    <RootNamespace>ClmGenerator</RootNamespace>
+    <AssemblyName>ClmGenerator</AssemblyName>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Clm</Name>
+    <Name>ClmGenerator</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +23,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
-    <OtherFlags>--warnaserror+:25</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,30 +41,15 @@
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Distributions.fs" />
-    <Compile Include="Substances.fs" />
-    <Compile Include="ReactionTypes.fs" />
-    <Compile Include="ReactionRates.fs" />
-    <Compile Include="Reactions.fs" />
-    <Compile Include="DataLocation.fs" />
-    <Compile Include="FSharpCodeExt.fs" />
-    <Compile Include="ModelParams.fs" />
-    <Compile Include="ModelInit.fs" />
-    <Compile Include="ClmModel.fs" />
+    <Content Include="packages.config" />
     <None Include="References.fsx" />
     <None Include="ModelGenerator.fsx" />
-    <None Include="MapPerformance.fsx" />
-    <None Include="FileSystemTests.fsx" />
-    <Content Include="packages.config" />
+    <Compile Include="FSharpCodeExt.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Collections.ParallelSeq">
-      <HintPath>..\packages\FSharp.Collections.ParallelSeq.1.1.2\lib\net45\FSharp.Collections.ParallelSeq.dll</HintPath>
-    </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -74,6 +58,13 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

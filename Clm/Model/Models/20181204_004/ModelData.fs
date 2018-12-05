@@ -1,11 +1,9 @@
 namespace Model
 
 open Clm.Substances
-open Clm.Distributions
-open Clm.ModelParams
-open Clm.ReactionRates
+open Clm.Model
 open Clm.ReactionTypes
-
+open Clm.ReactionRates
 
 module ModelData = 
     let seedValue = 1442467769

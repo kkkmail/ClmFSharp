@@ -10,4 +10,4 @@ module VersionInfo =
 
     /// This is a version of the code.
     [<Literal>]
-    let VersionNumber = "1.0.1.4"
+    let VersionNumber = "1.0.2.0"

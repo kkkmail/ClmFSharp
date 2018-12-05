@@ -1,9 +1,10 @@
 ﻿open System
 open Microsoft.FSharp.Core
-open Clm.Model
+open Clm.ModelParams
 open Model.ModelData
 open OdeSolvers.Solver
 open OdeSolvers.Visualization
+
 
 [<EntryPoint>]
 let main argv = 

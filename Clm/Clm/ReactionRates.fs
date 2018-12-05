@@ -3,124 +3,14 @@
 open System
 open System.Collections.Generic
 open FSharp.Collections
+
+open Clm.Distributions
 open Clm.ReactionTypes
 
 module ReactionRates = 
 
-    [<Literal>]
-    let Nl = "\r\n"
-
-
-    let doubleFSharpString (d : double) = 
-        let s = d.ToString()
-        match s.Contains(".") with
-        | true -> s
-        | false -> s + ".0"
-
-
-    let toFloat (s : string) = 
-        match s.Contains(".") with 
-        | true -> s
-        | false -> 
-            match s.ToUpper().Contains("E+") || s.ToUpper().Contains("E-") with
-            | true -> s
-            | false -> s + ".0"
-
-
-    let doubleOptFSharpString (d : double option) = 
-        match d with 
-        | Some v -> "Some " + (v.ToString() |> toFloat)
-        | None -> "None"
-
-
     type ReactionRate = 
         | ReactionRate of double
-
-
-    type DistributionParams = 
-        {
-            threshold : double option
-        }
-
-        member this.toFSharpCode = "{ threshold = " + (doubleOptFSharpString this.threshold) + " }"
-
-        static member defaultValue = 
-            {
-                threshold = None
-            }
-
-
-    [<AbstractClass>]
-    type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) = 
-        let rnd = new Random(seed)
-        let rndBool = new Random(rnd.Next())
-
-        let isDefined() = 
-            match p.threshold with
-            | Some t -> if rndBool.NextDouble() < t then true else false
-            | None -> true
-
-        let nextDoubleImpl() = d(rnd)
-        let nextDoubleFromZeroToOneImpl() = rnd.NextDouble()
-
-        member __.seedValue = seed
-        member __.distributionParams = p
-        member __.nextDouble = nextDoubleImpl
-        member __.nextDoubleFromZeroToOne = nextDoubleFromZeroToOneImpl
-
-        member __.nextDoubleOpt() = 
-            match isDefined() with 
-            | true -> nextDoubleImpl() |> Some
-            | false -> None
-
-
-    type DeltaDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun _ -> 1.0)
-
-        member distr.toFSharpCode = "DeltaDistribution(" + seed.ToString() + ", " + p.toFSharpCode + ")"
-
-
-    type UniformDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun r -> r.NextDouble())
-
-        member distr.toFSharpCode = "UniformDistribution(" + seed.ToString() + ", " + p.toFSharpCode + ")"
-        new (seed : int) = UniformDistribution(seed, DistributionParams.defaultValue)
-
-
-    type TriangularDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase(seed, p, fun r -> 1.0 - sqrt(1.0 - r.NextDouble()))
-
-        member distr.toFSharpCode = "TriangularDistribution(" + seed.ToString() + ", " + p.toFSharpCode + ")"
-
-
-    type Distribution =
-        | Delta of DeltaDistribution
-        | Uniform of UniformDistribution
-        | Triangular of TriangularDistribution
-
-        member this.nextDouble = 
-            match this with
-            | Delta d -> d.nextDouble
-            | Uniform d -> d.nextDouble
-            | Triangular d -> d.nextDouble
-
-        member this.nextDoubleOpt = 
-            match this with
-            | Delta d -> d.nextDoubleOpt
-            | Uniform d -> d.nextDoubleOpt
-            | Triangular d -> d.nextDoubleOpt
-
-        member this.nextDoubleFromZeroToOne =
-            match this with
-            | Delta d -> d.nextDoubleFromZeroToOne
-            | Uniform d -> d.nextDoubleFromZeroToOne
-            | Triangular d -> d.nextDoubleFromZeroToOne
-
-        member this.toFSharpCode =
-            match this with
-            | Delta d -> d.toFSharpCode + " |> Delta"
-            | Uniform d -> d.toFSharpCode + " |> Uniform"
-            | Triangular d -> d.toFSharpCode + " |> Triangular"
 
 
     type RelatedReactions<'T> = 
@@ -150,8 +40,6 @@ module ReactionRates =
 
 
     let getRates (fo, rf) (bo, rb) = getRatesWithSimilar (fo, rf) (bo, rb) []
-
-
     let getForwardRates (fo, rf) = getRates (fo, rf) (None, None)
 
 
@@ -173,19 +61,19 @@ module ReactionRates =
             x.primary
 
 
+    let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
+        (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) = 
+        match mo with 
+        | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
+        | None -> (None, None)
+
+
     type SyntethisParam = 
         {
             synthesisDistribution : Distribution
             forwardScale : double option
             backwardScale : double option
         }
-
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                synthesisDistribution = " + p.synthesisDistribution.toFSharpCode + Nl +
-            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
-            shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
-            shift + "            }" + Nl
 
 
     type SyntethisModel (p : SyntethisParam) =
@@ -198,19 +86,13 @@ module ReactionRates =
         member __.getRates (r : SynthesisReaction) = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
+
     type CatalyticSynthesisParam = 
         {
             catSynthDistribution : Distribution
             multiplier : double
             maxEe : double
         }
-
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                catSynthDistribution = " + p.catSynthDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
-            shift + "            }" + Nl
 
 
     type CatalyticSynthesisParamWithModel = 
@@ -260,12 +142,6 @@ module ReactionRates =
             forwardScale : double option
         }
 
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                sedimentationDirectDistribution = " + p.sedimentationDirectDistribution.toFSharpCode + Nl +
-            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
-            shift + "            }" + Nl
-
 
     type SedimentationDirectModel (p : SedimentationDirectParam) =
         let rateDictionary = new Dictionary<SedimentationDirectReaction, (ReactionRate option * ReactionRate option)>()
@@ -279,12 +155,6 @@ module ReactionRates =
             sedimentationAllDistribution : Distribution
             forwardScale : double option
         }
-
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                sedimentationAllDistribution = " + p.sedimentationAllDistribution.toFSharpCode + Nl +
-            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
-            shift + "            }" + Nl
 
 
     type SedimentationAllModel (p : SedimentationAllParam) =
@@ -300,13 +170,6 @@ module ReactionRates =
             forwardScale : double option
             backwardScale : double option
         }
-
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                ligationDistribution = " + p.ligationDistribution.toFSharpCode + Nl +
-            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
-            shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
-            shift + "            }" + Nl
 
 
     type LigationModel (p : LigationParam) = 
@@ -326,13 +189,6 @@ module ReactionRates =
             multiplier : double
             maxEe : double
         }
-
-        member p.toFSharpCode (shift : string) = 
-            shift + "            {" + Nl +
-            shift + "                catLigationDistribution = " + p.catLigationDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
-            shift + "            }" + Nl
 
 
     type CatalyticLigationParamWithModel = 
@@ -384,15 +240,6 @@ module ReactionRates =
         | SedimentationDirectRateParam of SedimentationDirectParam
         | SedimentationAllRateParam of SedimentationAllParam
 
-        member rm.toFSharpCode (shift : string) = 
-            match rm with 
-            | SynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> SynthesisRateParam" + Nl
-            | CatalyticSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticSynthesisRateParam" + Nl
-            | LigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> LigationRateParam" + Nl
-            | CatalyticLigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticLigationRateParam" + Nl
-            | SedimentationDirectRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationDirectRateParam" + Nl
-            | SedimentationAllRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationAllRateParam" + Nl
-
 
     type ReactionRateModel = 
         | SynthesisRateModel of SyntethisModel
@@ -425,13 +272,6 @@ module ReactionRates =
         member p.tryFindSedimentationAllModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationAllRateModel m -> Some m | _ -> None)
 
 
-    let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
-        (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) = 
-        match mo with 
-        | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
-        | None -> (None, None)
-
-
     type ReactionRateProvider (p: ReactionRateProviderParams) =
         let getRatesImpl (a : Reaction) = 
             match a with 
@@ -442,8 +282,8 @@ module ReactionRates =
             | SedimentationDirect r -> getModelRates (p.tryFindSedimentationDirectModel()) r
             | SedimentationAll r -> getModelRates (p.tryFindSedimentationAllModel()) r
 
+        member __.providerParams = p
         member __.getRates (a : Reaction) = getRatesImpl a
-        member __.toParamFSharpCode shift = p.rateModels |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl
 
         static member defaultSynthesisModel (rnd : Random) forward backward =
             {

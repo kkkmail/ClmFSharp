@@ -3,7 +3,7 @@
 open System
 open System.IO
 open Clm.Substances
-open Clm.Model
+open Clm.ModelParams
 open Clm.DataLocation
 open OdeSolvers.Solver
 open Microsoft.FSharp.Core

@@ -1,11 +1,11 @@
-﻿#load "VersionInfo.fs"
-#load "Substances.fs"
-#load "ReactionTypes.fs"
-#load "Distributions.fs"
-#load "ReactionRates.fs"
-#load "Reactions.fs"
-#load "DataLocation.fs"
-#load "ModelParams.fs"
+﻿#load @"..\Clm\VersionInfo.fs"
+#load @"..\Clm\Substances.fs"
+#load @"..\Clm\ReactionTypes.fs"
+#load @"..\Clm\Distributions.fs"
+#load @"..\Clm\ReactionRates.fs"
+#load @"..\Clm\Reactions.fs"
+#load @"..\Clm\DataLocation.fs"
+#load @"..\Clm\ModelParams.fs"
 #load "FSharpCodeExt.fs"
 #load "ClmModel.fs"
 
@@ -14,7 +14,7 @@ open Clm.VersionInfo
 open Clm.Substances
 open Clm.ReactionRates
 open Clm.DataLocation
-open Clm.ClmModel
+open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 

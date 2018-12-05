@@ -11,6 +11,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
+
 open ClmGenerator.FSharpCodeExt
 
 module ClmModel = 
@@ -488,7 +489,8 @@ module ClmModel =
             [
                 "namespace Model" + nl
                 "open Clm.Substances"
-                "open Clm.Model"
+                "open Clm.Distributions"
+                "open Clm.ModelParams"
                 "open Clm.ReactionTypes"
                 "open Clm.ReactionRates" + nl
                 "module ModelData = "

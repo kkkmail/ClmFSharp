@@ -529,3 +529,57 @@ module AllModels =
                     ]
             }
         ]
+
+        @
+        [
+            {
+                modelInfo = 
+                    {
+                        fileStructureVersionNumber = "1.0.0.0"
+                        versionNumber = "1.0.1.4"
+                        seedValue = 1213832326
+                        modelName = "20181204_003"
+                        numberOfSubstances = 4681
+                        numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
+                        maxPeptideLength = MaxPeptideLength.FourMax
+                    }
+
+                allParams = 
+                    [
+                        {
+                            synthesisDistribution = DeltaDistribution(20871995, { threshold = None }) |> Delta
+                            forwardScale = Some 0.001
+                            backwardScale = Some 0.0001
+                        }
+                        |> SynthesisRateParam
+
+                        {
+                            ligationDistribution = DeltaDistribution(1929239561, { threshold = None }) |> Delta
+                            forwardScale = Some 0.001
+                            backwardScale = Some 0.0001
+                        }
+                        |> LigationRateParam
+
+                        {
+                            catSynthDistribution = TriangularDistribution(205068433, { threshold = Some 0.0005 }) |> Triangular
+                            multiplier = 1000.0
+                            maxEe = 0.05
+                        }
+                        |> CatalyticSynthesisRateParam
+
+                        {
+                            catLigationDistribution = TriangularDistribution(985585146, { threshold = Some 0.0001 }) |> Triangular
+                            multiplier = 1000.0
+                            maxEe = 0.05
+                        }
+                        |> CatalyticLigationRateParam
+
+                        {
+                            sedimentationDirectDistribution = TriangularDistribution(1849754752, { threshold = Some 0.0001 }) |> Triangular
+                            forwardScale = Some 1000.0
+                        }
+                        |> SedimentationDirectRateParam
+
+                    ]
+            }
+        ]

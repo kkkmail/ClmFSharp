@@ -15,8 +15,8 @@ open Clm.Model
 //===========================================================
 let updateAllModels = true
 
-let n = NumberOfAminoAcids.NineAminoAcids
-let m = MaxPeptideLength.ThreeMax
+let n = NumberOfAminoAcids.FourAminoAcids
+let m = MaxPeptideLength.FourMax
 //===========================================================
 let seed = (new Random()).Next()
 let rnd = new Random(seed)

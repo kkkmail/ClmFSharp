@@ -116,10 +116,10 @@ module Model =
         let allSubst = p.modelDataParams.allSubst
 
         let nextValue (s : Substance) = 
-            let n = p.modelDataParams.modelDataParams.modelInfo.numberOfAminoAcids.length
-            let noOfSubstOnLevel = pown (2 * n) s.atoms
-            //y0 * mult *p.distr.nextDouble() / (double p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances)
-            y0 * mult *p.distr.nextDouble() / (double noOfSubstOnLevel)
+            y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1))
+            //let n = p.modelDataParams.modelDataParams.modelInfo.numberOfAminoAcids.length
+            //let noOfSubstOnLevel = pown (2 * n) s.atoms
+            //y0 * mult *p.distr.nextDouble() / (double noOfSubstOnLevel)
 
         let nextEe() = multEe * (2.0 * p.distr.nextDoubleFromZeroToOne() - 1.0)
 
@@ -138,16 +138,11 @@ module Model =
             match s.isFood with 
             | true -> y0 - 2.0 * total
             | false ->
-                let len = s.atoms
                 match initValsMap.TryFind s, initValsMap.TryFind s.enantiomer with 
-                | Some _, Some _ -> 
-                    printfn "Duplicate init value for i: %A, substance: %A." i s.name
-                    0.0
+                | Some _, Some _ -> 0.0
                 | Some (v, e), None -> v * (1.0 + e)
                 | None, Some (v, e) -> v * (1.0 - e)
-                | None, None -> 
-                    printfn "Cannot find init value for i: %A, substance: %A." i s.name
-                    0.0
+                | None, None -> 0.0
 
         [| for i in 0..(p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1) -> getValue i |]
 

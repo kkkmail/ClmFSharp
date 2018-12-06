@@ -94,6 +94,11 @@ module FSharpCodeExt =
             shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
             shift + "            }" + Nl
 
+    type CatalyticSynthesisSimilarParam
+        with
+
+        member p.toFSharpCode (shift : string) = "(failwith \"\")"
+
 
     type CatalyticSynthesisParam
         with 
@@ -101,6 +106,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) = 
             match p with 
             | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthRndParam" + Nl)
+            | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthSimParam" + Nl)
 
 
     type SedimentationDirectRandomParam

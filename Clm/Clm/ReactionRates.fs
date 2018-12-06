@@ -8,6 +8,7 @@ open Clm.Distributions
 open Clm.ReactionTypes
 
 module ReactionRates = 
+    open Substances
 
     type ReactionRate = 
         | ReactionRate of double
@@ -41,6 +42,34 @@ module ReactionRates =
 
     let getRates (fo, rf) (bo, rb) = getRatesWithSimilar (fo, rf) (bo, rb) []
     let getForwardRates (fo, rf) = getRates (fo, rf) (None, None)
+    let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
+
+    let inline updatePrimaryReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (primary : (ReactionRate option * ReactionRate option))
+        (r : 'T) =
+
+        let enantiomer = getEnantiomer r
+        if d.ContainsKey r |> not then d.Add(r, primary)
+        if d.ContainsKey enantiomer |> not then d.Add(enantiomer, primary)
+
+
+    let inline updateSimilarReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (similar : list<'T * (ReactionRate option * ReactionRate option)>) =
+
+        similar |> List.map (fun (i, e) -> if d.ContainsKey i |> not then d.Add(i, e)) |> ignore
+        similar |> List.map (fun (i, e) -> if d.ContainsKey (getEnantiomer i) |> not then d.Add(getEnantiomer i, e)) |> ignore
+
+
+    let inline updateRelatedReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (x : RelatedReactions<'T>)
+        (r : 'T) =
+
+        updatePrimaryReactions d x.primary r
+        updateSimilarReactions d x.similar
+        x.primary
 
 
     let inline getRatesImpl<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
@@ -50,15 +79,7 @@ module ReactionRates =
 
         match d.TryGetValue r with 
         | true, rates -> rates
-        | false, _ -> 
-            let x = calculateRates r
-            let getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
-            let enantiomer = getEnantiomer r
-            d.Add(r, x.primary)
-            if d.ContainsKey enantiomer |> not then d.Add(enantiomer, x.primary)
-            x.similar |> List.map (fun (i, e) -> if d.ContainsKey i |> not then d.Add(i, e)) |> ignore
-            x.similar |> List.map (fun (i, e) -> if d.ContainsKey (getEnantiomer i) |> not then d.Add(getEnantiomer i, e)) |> ignore
-            x.primary
+        | false, _ -> updateRelatedReactions d (calculateRates r) r
 
 
     let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -114,69 +135,109 @@ module ReactionRates =
         }
 
 
+    type CatalyticSynthesisSimilarParam =
+        {
+            catSynthRndParam : CatalyticSynthesisRandomParam
+            aminoAcids : list<AminoAcid>
+            similarityDistribution : Distribution
+        }
+
+
     type CatalyticSynthesisParam = 
         | CatSynthRndParam of CatalyticSynthesisRandomParam
+        | CatSynthSimParam of CatalyticSynthesisSimilarParam
 
 
     type CatalyticSynthesisRandomParamWithModel = 
         {
-            catSynthParam : CatalyticSynthesisRandomParam
+            catSynthRndParam : CatalyticSynthesisRandomParam
+            synthesisModel : SynthesisModel
+        }
+
+    type CatalyticSynthesisSimilarParamWithModel = 
+        {
+            catSynthSimParam : CatalyticSynthesisSimilarParam
             synthesisModel : SynthesisModel
         }
 
 
     type CatalyticSynthesisParamWithModel = 
         | CatSynthRndParamWithModel of CatalyticSynthesisRandomParamWithModel
+        | CatSynthSimParamWithModel of CatalyticSynthesisSimilarParamWithModel
 
 
     type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) = 
-        let rateDictionary = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
+        let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
+        let distr = p.catSynthRndParam.catSynthDistribution
 
-        let calculateRates (CatalyticSynthesisReaction (s, c)) = 
-            let distr = p.catSynthParam.catSynthDistribution
+        let calculateCatSynthRatesImpl s (c : SynthCatalyst) k0 = 
+            let (sf0, sb0) = p.synthesisModel.getRates s
+            let ee = p.catSynthRndParam.maxEe * (distr.nextDoubleFromZeroToOne() - 0.5)
+            let k = k0 * p.catSynthRndParam.multiplier * (1.0 + ee)
+            let ke = k0 * p.catSynthRndParam.multiplier * (1.0 - ee)
+
+            let (rf, rfe) = 
+                match sf0 with
+                | Some (ReactionRate sf) -> (k * sf |> ReactionRate |> Some, ke * sf |> ReactionRate |> Some)
+                | None -> (None, None)
+
+            let (rb, rbe) = 
+                match sb0 with
+                | Some (ReactionRate sb) -> (k * sb |> ReactionRate |> Some, ke * sb |> ReactionRate |> Some)
+                | None -> (None, None)
+
+            let re = (s, c.enantiomer) |> CatalyticSynthesisReaction
+
+            {
+                primary = (rf, rb)
+                similar = [ (re, (rfe, rbe)) ]
+            }
+
+
+        let calculateRatesImpl (CatalyticSynthesisReaction (s, c)) = 
             match distr.nextDoubleOpt() with 
-            | Some k0 -> 
-                let (sf0, sb0) = p.synthesisModel.getRates s
-                let ee = p.catSynthParam.maxEe * (distr.nextDoubleFromZeroToOne() - 0.5)
-                let k = k0 * p.catSynthParam.multiplier * (1.0 + ee)
-                let ke = k0 * p.catSynthParam.multiplier * (1.0 - ee)
-
-                let (rf, rfe) = 
-                    match sf0 with
-                    | Some (ReactionRate sf) -> (k * sf |> ReactionRate |> Some, ke * sf |> ReactionRate |> Some)
-                    | None -> (None, None)
-
-                let (rb, rbe) = 
-                    match sb0 with
-                    | Some (ReactionRate sb) -> (k * sb |> ReactionRate |> Some, ke * sb |> ReactionRate |> Some)
-                    | None -> (None, None)
-
-                let re = (s, c.enantiomer) |> CatalyticSynthesisReaction
-
-                {
-                    primary = (rf, rb)
-                    similar = [ (re, (rfe, rbe)) ]
-                }
+            | Some k0 -> calculateCatSynthRatesImpl s c k0
             | None -> noRates
 
-        member __.getRates (r : CatalyticSynthesisReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates (r : CatalyticSynthesisReaction) = getRatesImpl rateDictionaryImpl calculateRatesImpl r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+        member __.calculateCatSynthRates = calculateCatSynthRatesImpl
+
+    //similar : list<'T * (ReactionRate option * ReactionRate option)>
+    type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) = 
+        let catSynthRndModel = CatalyticSynthesisRandomModel { catSynthRndParam = p.catSynthSimParam.catSynthRndParam; synthesisModel = p.synthesisModel }
+        let rateDictionaryImpl = catSynthRndModel.rateDictionary
+
+        let calculateRatesImpl (CatalyticSynthesisReaction (s, c)) = 
+            match catSynthRndModel.getRates (CatalyticSynthesisReaction (s, c)) with
+            | Some f, Some b -> failwith ""
+            | Some f, None -> failwith ""
+            | None, Some b -> failwith ""
+            | None, None -> failwith ""
+
+        member __.getRates (r : CatalyticSynthesisReaction) = getRatesImpl rateDictionaryImpl calculateRatesImpl r
         member __.inputParams = p
 
 
     type CatalyticSynthesisModel = 
         | CatSynthRndModel of CatalyticSynthesisRandomModel
+        | CatSynthSimModel of CatalyticSynthesisSimilarModel
 
         member model.getRates (r : CatalyticSynthesisReaction) = 
             match model with
             | CatSynthRndModel m -> m.getRates r
+            | CatSynthSimModel m -> m.getRates r
 
         member model.inputParams = 
             match model with
             | CatSynthRndModel m -> m.inputParams |> CatSynthRndParamWithModel
+            | CatSynthSimModel m -> m.inputParams |> CatSynthSimParamWithModel
 
         static member create (p : CatalyticSynthesisParamWithModel) = 
             match p with 
             | CatSynthRndParamWithModel q -> CatalyticSynthesisRandomModel(q) |> CatSynthRndModel
+            | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel(q) |> CatSynthSimModel
 
 
     type SedimentationDirectRandomParam = 
@@ -397,7 +458,8 @@ module ReactionRates =
             | SynthesisRateModel m -> m.inputParams |> SynthesisRateParam
             | CatalyticSynthesisRateModel v ->
                 match v with 
-                | CatSynthRndModel m -> m.inputParams.catSynthParam |> CatSynthRndParam |> CatalyticSynthesisRateParam
+                | CatSynthRndModel m -> m.inputParams.catSynthRndParam |> CatSynthRndParam |> CatalyticSynthesisRateParam
+                | CatSynthSimModel m -> m.inputParams.catSynthSimParam |> CatSynthSimParam |> CatalyticSynthesisRateParam
             | LigationRateModel m -> m.inputParams |> LigationRateParam
             | CatalyticLigationRateModel v -> 
                 match v with 
@@ -444,7 +506,7 @@ module ReactionRates =
 
         static member defaultCatalyticSynthesisModel (rnd : Random) m threshold mult =
             {
-                catSynthParam = 
+                catSynthRndParam = 
                     {
                         catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
                         multiplier  = mult

@@ -8,7 +8,7 @@ module VersionInfo =
     /// Update build number, e.g. "1.0.0.*", when the changes are cosmetic, like changing namespace(s) / open declarations 
     ///     OR if changes will be automatically picked up by compiler type inference.
     ///
-    /// Update revision number, e.g. "1.0.*.0", when the changes are small and the affected files can be easily updated by hands. 
+    /// Update revision number, e.g. "1.0.*.0", when the changes are small and the affected files can be easily updated by hands.
     ///     A single change to DU would qualify as revision update.
     ///
     /// Update minor number, e.g. "1.*.0.0", when the changes are manageable but painful.
@@ -23,4 +23,4 @@ module VersionInfo =
     /// This is a version of the Code Generator.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "1.1.0.0"
+    let VersionNumber = "1.1.1.0"

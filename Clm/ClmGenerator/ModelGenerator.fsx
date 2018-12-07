@@ -16,28 +16,27 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open ClmGenerator.ClmModel
 //===========================================================
-let updateAllModels = false
+let updateAllModels = true
 
-let n = NumberOfAminoAcids.TwoAminoAcids
+let n = NumberOfAminoAcids.FiveAminoAcids
 let m = MaxPeptideLength.ThreeMax
 //===========================================================
-//let seed = (new Random()).Next()
-let seed = 1088173389
+let seed = (new Random()).Next()
 let rnd = new Random(seed)
 let aminoAcids = AminoAcid.getAminoAcids n
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.0001)
 let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 
-//let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
-//let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (None, aminoAcids)
+let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
+//let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
+//let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
+let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.3, aminoAcids)
 
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.0001), 1000.0)
 
-let sdModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.0001, 1000.0)
-let saModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
+let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.0001, 1000.0)
+let sedAllModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 //===========================================================
 let rates = 
     [
@@ -46,9 +45,9 @@ let rates =
 
          catSynthModel |> CatalyticSynthesisRateModel
          //catLigModel |> CatalyticLigationRateModel
-         //sdModel |> SedimentationDirectRateModel
+         //sedDirModel |> SedimentationDirectRateModel
 
-         ////saModel |> SedimentationAllRateModel
+         ////sedAllModel |> SedimentationAllRateModel
     ]
 //===========================================================
 let modelGenerationParams = 
@@ -78,7 +77,8 @@ do model.generateCode()
 #time
 printfn "... completed."
 //===========================================================
-catSynthModel.rateDictionary
-|> Seq.toList
-|> List.filter (fun e -> match e.Value with | (None, None) -> false | _ -> true)
-|> List.map (fun e -> printfn "r: %A, v: %A" e.Key e.Value)
+//// TODO kk:20181206 This should be converted into a test to ensure that the dictionary contains proper data.
+//catSynthModel.rateDictionary
+//|> Seq.toList
+//|> List.filter (fun e -> match e.Value with | (None, None) -> false | _ -> true)
+//|> List.map (fun e -> printfn "r: %A, v: %A" e.Key e.Value)

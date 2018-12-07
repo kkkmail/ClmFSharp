@@ -9,10 +9,6 @@ module FSharpCodeExt =
     let Nl = "\r\n"
 
 
-    [<Literal>]
-    let AminoAcidsCode = "aminoAcids"
-
-
     let doubleFSharpString (d : double) = 
         let s = d.ToString()
         match s.Contains(".") with
@@ -101,20 +97,20 @@ module FSharpCodeExt =
     type CatalyticSynthesisSimilarParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
             shift + "            {" + Nl +
             shift + "                similarityDistribution = " + p.similarityDistribution.toFSharpCode + Nl +
-            shift + "                aminoAcids = " + AminoAcidsCode + Nl +
+            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
             shift + "            }" + Nl
 
 
     type CatalyticSynthesisParam
         with 
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
             match p with 
             | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthRndParam" + Nl)
-            | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthSimParam" + Nl)
+            | CatSynthSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatSynthSimParam" + Nl)
 
 
     type SedimentationDirectRandomParam
@@ -191,17 +187,25 @@ module FSharpCodeExt =
             | CatLigRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatLigRndParam" + Nl)
 
 
+    type FSharpCodeParams = 
+        {
+            shift : string
+            aminoAcidsCode : string
+        }
+
+
     type ReactionRateModelParam
         with
 
-        member rm.toFSharpCode (shift : string) = 
+        member rm.toFSharpCode (p : FSharpCodeParams) = 
             match rm with 
-            | SynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> SynthesisRateParam" + Nl
-            | CatalyticSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticSynthesisRateParam" + Nl
-            | LigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> LigationRateParam" + Nl
-            | CatalyticLigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticLigationRateParam" + Nl
-            | SedimentationDirectRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationDirectRateParam" + Nl
-            | SedimentationAllRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationAllRateParam" + Nl
+            | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
+            | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl
+            | LigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> LigationRateParam" + Nl
+            | CatalyticLigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticLigationRateParam" + Nl
+            | SedimentationDirectRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationDirectRateParam" + Nl
+            | SedimentationAllRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationAllRateParam" + Nl
+
 
     type ReactionRateProvider
         with

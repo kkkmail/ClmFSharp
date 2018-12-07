@@ -58,7 +58,7 @@ module ClmModel =
 
         let rateProviderParams = { rateModels = modelParams.reactionRateModels }
         let rateProvider = ReactionRateProvider rateProviderParams
-        let allParamsCode shift = rateProvider.toParamFSharpCode shift
+        let allParamsCode = rateProvider.toParamFSharpCode
 
         let aminoAcids = AminoAcid.getAminoAcids modelParams.numberOfAminoAcids
         let chiralAminoAcids = ChiralAminoAcid.getAminoAcids modelParams.numberOfAminoAcids
@@ -101,6 +101,7 @@ module ClmModel =
             (peptides |> List.map (fun p -> PeptideChain p))
 
         let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+        let aminoAcidsCode = "AminoAcid.getAminoAcids NumberOfAminoAcids." + modelParams.numberOfAminoAcids.ToString()
 
         let generateSubst() = 
             @"
@@ -351,7 +352,7 @@ module ClmModel =
                         String.Empty, d1
 
                 allSubst
-                |> List.map (fun s -> nl + (substComment s shift) + shift + "    let " + (g s) + " = " + nl + shift + "        [|" + nl + (getTotalSedReac s shift) + nl + (getReaction s) + shift + "        |]" + nl + shift + "        |> Array.sum" + nl)
+                |> List.map (fun s -> nl + (substComment s shift) + shift + "    let " + (g s) + " = " + nl + shift + "        [|" + (getTotalSedReac s shift) + nl + (getReaction s) + shift + "        |]" + nl + shift + "        |> Array.sum" + nl)
 
             let dArrayCode xPar = 
                 let shift, g = 
@@ -408,7 +409,7 @@ module ClmModel =
                         [
 " 
                         + 
-                        (allParamsCode "                ") + @"
+                        (allParamsCode { shift = "                "; aminoAcidsCode = aminoAcidsCode}) + @"
                         ]
                 }
 
@@ -519,7 +520,7 @@ module ClmModel =
                 allParams = 
                     [
 "
-                                + (allParamsCode "            ") + @"
+                                + (allParamsCode { shift = "            "; aminoAcidsCode = aminoAcidsCode }) + @"
                     ]
             }
         ]"

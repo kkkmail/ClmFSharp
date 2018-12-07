@@ -18,10 +18,11 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let n = NumberOfAminoAcids.OneAminoAcid
+let n = NumberOfAminoAcids.TwoAminoAcids
 let m = MaxPeptideLength.ThreeMax
 //===========================================================
-let seed = (new Random()).Next()
+//let seed = (new Random()).Next()
+let seed = 1088173389
 let rnd = new Random(seed)
 let aminoAcids = AminoAcid.getAminoAcids n
 //===========================================================
@@ -29,9 +30,9 @@ let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.0001)
 let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.05), 1000.0)
-//let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
-let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (None, aminoAcids)
+let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
+let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
+//let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (None, aminoAcids)
 
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.0001), 1000.0)
 
@@ -41,13 +42,13 @@ let saModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 let rates = 
     [
          synthModel |> SynthesisRateModel
-         ligModel |> LigationRateModel
+         //ligModel |> LigationRateModel
 
          catSynthModel |> CatalyticSynthesisRateModel
-         catLigModel |> CatalyticLigationRateModel
-         sdModel |> SedimentationDirectRateModel
+         //catLigModel |> CatalyticLigationRateModel
+         //sdModel |> SedimentationDirectRateModel
 
-         //saModel |> SedimentationAllRateModel
+         ////saModel |> SedimentationAllRateModel
     ]
 //===========================================================
 let modelGenerationParams = 
@@ -77,3 +78,7 @@ do model.generateCode()
 #time
 printfn "... completed."
 //===========================================================
+catSynthModel.rateDictionary
+|> Seq.toList
+|> List.filter (fun e -> match e.Value with | (None, None) -> false | _ -> true)
+|> List.map (fun e -> printfn "r: %A, v: %A" e.Key e.Value)

@@ -75,14 +75,13 @@ module ClmModel =
             |> List.distinct
 
         let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= modelParams.maxPeptideLength.length)
-
-        //do
-        //    ligationPairs
-        //    |> List.map (fun (a, b) -> printfn "a: %A, b: %A" a b)
-        //    |> ignore
-
         let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) synthCatalysts
         let catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) ligCatalysts
+
+        //do
+        //    catSynthPairs
+        //    |> List.map (fun (s, c) -> printfn "s: %A, c: %A" s c)
+        //    |> ignore
 
         let noOfRawReactions n = 
             match n with 

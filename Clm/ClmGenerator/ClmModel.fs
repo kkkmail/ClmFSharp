@@ -16,6 +16,9 @@ open ClmGenerator.FSharpCodeExt
 
 module ClmModel = 
 
+    let newSeed() = (new Random()).Next()
+
+
     type UpdateFuncType = 
         | UseArray
         | UseVariables

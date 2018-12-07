@@ -18,10 +18,10 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = true
 
-let n = NumberOfAminoAcids.FiveAminoAcids
+let n = NumberOfAminoAcids.NineAminoAcids
 let m = MaxPeptideLength.ThreeMax
 //===========================================================
-let seed = (new Random()).Next()
+let seed = newSeed()
 let rnd = new Random(seed)
 let aminoAcids = AminoAcid.getAminoAcids n
 //===========================================================
@@ -45,7 +45,7 @@ let rates =
 
          catSynthModel |> CatalyticSynthesisRateModel
          //catLigModel |> CatalyticLigationRateModel
-         //sedDirModel |> SedimentationDirectRateModel
+         sedDirModel |> SedimentationDirectRateModel
 
          ////sedAllModel |> SedimentationAllRateModel
     ]

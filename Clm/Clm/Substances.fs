@@ -196,6 +196,11 @@ module Substances =
             | L _ -> (1, 0)
             | R _ -> (0, 1)
 
+        member aminoAcid.createSameChirality a = 
+            match aminoAcid with 
+            | L _ -> L a
+            | R _ -> R a
+
 
     type Peptide = 
         | Peptide of list<ChiralAminoAcid>

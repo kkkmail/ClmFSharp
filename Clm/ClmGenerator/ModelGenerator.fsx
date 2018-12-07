@@ -23,16 +23,20 @@ let m = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = (new Random()).Next()
 let rnd = new Random(seed)
+let aminoAcids = AminoAcid.getAminoAcids n
 //===========================================================
-let synthModel = ReactionRateProvider.defaultSynthesisModel rnd 0.001 0.0001
-//let synthModel = ReactionRateProvider.defaultSynthesisModel rnd (0.0001 / (double n.length)) 0.001
-let ligModel = ReactionRateProvider.defaultLigationModel rnd 0.001 0.0001
+let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.0001)
+let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 
-let catSynthModel = ReactionRateProvider.defaultCatalyticSynthesisModel rnd synthModel (Some 0.0005) 1000.0
-let catLigModel = ReactionRateProvider.defaultCatalyticLigationModel rnd ligModel (Some 0.0001) 1000.0
+//let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
+let catSynthRndParams = (synthModel, (Some 0.05), 1000.0)
+//let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
+let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (None, aminoAcids)
 
-let sdModel = ReactionRateProvider.defaultSedimentationDirectModel rnd 0.0001 1000.0
-let saModel = ReactionRateProvider.defaultSedimentationAllModel rnd 0.1
+let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.0001), 1000.0)
+
+let sdModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.0001, 1000.0)
+let saModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 //===========================================================
 let rates = 
     [

@@ -9,6 +9,10 @@ module FSharpCodeExt =
     let Nl = "\r\n"
 
 
+    [<Literal>]
+    let AminoAcidsCode = "aminoAcids"
+
+
     let doubleFSharpString (d : double) = 
         let s = d.ToString()
         match s.Contains(".") with
@@ -97,7 +101,11 @@ module FSharpCodeExt =
     type CatalyticSynthesisSimilarParam
         with
 
-        member p.toFSharpCode (shift : string) = "(failwith \"\")"
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                similarityDistribution = " + p.similarityDistribution.toFSharpCode + Nl +
+            shift + "                aminoAcids = " + AminoAcidsCode + Nl +
+            shift + "            }" + Nl
 
 
     type CatalyticSynthesisParam

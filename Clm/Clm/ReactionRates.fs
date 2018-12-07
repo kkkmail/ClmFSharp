@@ -107,7 +107,7 @@ module ReactionRates =
             let d = p.synthesisDistribution
             getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
 
-        member __.getRates (r : SynthesisReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
 
@@ -124,7 +124,7 @@ module ReactionRates =
 
         static member create p = 
             match p with 
-            | SynthRndParam q -> SynthesisRandomModel(q) |> SynthRndModel
+            | SynthRndParam q -> SynthesisRandomModel q |> SynthRndModel
 
 
     type CatalyticSynthesisRandomParam = 
@@ -137,9 +137,8 @@ module ReactionRates =
 
     type CatalyticSynthesisSimilarParam =
         {
-            catSynthRndParam : CatalyticSynthesisRandomParam
-            aminoAcids : list<AminoAcid>
             similarityDistribution : Distribution
+            aminoAcids : list<AminoAcid>
         }
 
 
@@ -154,23 +153,11 @@ module ReactionRates =
             synthesisModel : SynthesisModel
         }
 
-    type CatalyticSynthesisSimilarParamWithModel = 
-        {
-            catSynthSimParam : CatalyticSynthesisSimilarParam
-            synthesisModel : SynthesisModel
-        }
-
-
-    type CatalyticSynthesisParamWithModel = 
-        | CatSynthRndParamWithModel of CatalyticSynthesisRandomParamWithModel
-        | CatSynthSimParamWithModel of CatalyticSynthesisSimilarParamWithModel
-
-
     type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) = 
         let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
         let distr = p.catSynthRndParam.catSynthDistribution
 
-        let calculateCatSynthRatesImpl s (c : SynthCatalyst) k0 = 
+        let calculateCatSynthRates s (c : SynthCatalyst) k0 = 
             let (sf0, sb0) = p.synthesisModel.getRates s
             let ee = p.catSynthRndParam.maxEe * (distr.nextDoubleFromZeroToOne() - 0.5)
             let k = k0 * p.catSynthRndParam.multiplier * (1.0 + ee)
@@ -194,29 +181,50 @@ module ReactionRates =
             }
 
 
-        let calculateRatesImpl (CatalyticSynthesisReaction (s, c)) = 
+        let calculateOptionalRatesImpl (CatalyticSynthesisReaction (s, c)) = 
             match distr.nextDoubleOpt() with 
-            | Some k0 -> calculateCatSynthRatesImpl s c k0
+            | Some k0 -> calculateCatSynthRates s c k0
             | None -> noRates
 
-        member __.getRates (r : CatalyticSynthesisReaction) = getRatesImpl rateDictionaryImpl calculateRatesImpl r
+        let calculatelRatesImpl (CatalyticSynthesisReaction (s, c)) = calculateCatSynthRates s c (distr.nextDouble())
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
         member __.inputParams = p
         member __.rateDictionary = rateDictionaryImpl
-        member __.calculateCatSynthRates = calculateCatSynthRatesImpl
+        member __.calculatelRates r = getRatesImpl rateDictionaryImpl calculatelRatesImpl r
 
-    //similar : list<'T * (ReactionRate option * ReactionRate option)>
+
+    type CatalyticSynthesisSimilarParamWithModel = 
+        {
+            catSynthSimParam : CatalyticSynthesisSimilarParam
+            catSynthModel : CatalyticSynthesisRandomModel
+        }
+
+
+    type CatalyticSynthesisParamWithModel = 
+        | CatSynthRndParamWithModel of CatalyticSynthesisRandomParamWithModel
+        | CatSynthSimParamWithModel of CatalyticSynthesisSimilarParamWithModel
+
+
     type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) = 
-        let catSynthRndModel = CatalyticSynthesisRandomModel { catSynthRndParam = p.catSynthSimParam.catSynthRndParam; synthesisModel = p.synthesisModel }
-        let rateDictionaryImpl = catSynthRndModel.rateDictionary
+        let catSynthRndModel = p.catSynthModel
 
-        let calculateRatesImpl (CatalyticSynthesisReaction (s, c)) = 
-            match catSynthRndModel.getRates (CatalyticSynthesisReaction (s, c)) with
-            | Some f, Some b -> failwith ""
-            | Some f, None -> failwith ""
-            | None, Some b -> failwith ""
-            | None, None -> failwith ""
+        let calculateSimilarRates (CatalyticSynthesisReaction ((SynthesisReaction a), c)) = 
+            p.catSynthSimParam.aminoAcids
+            |> List.map (fun e -> CatalyticSynthesisReaction (a.createSameChirality e |> SynthesisReaction, c))
+            |> List.filter (fun _ -> p.catSynthSimParam.similarityDistribution.isDefined())
+            |> List.map (fun r -> catSynthRndModel.calculatelRates r)
 
-        member __.getRates (r : CatalyticSynthesisReaction) = getRatesImpl rateDictionaryImpl calculateRatesImpl r
+        let calculateRatesImpl r = 
+            let rates = catSynthRndModel.getRates r
+
+            match rates with
+            | None, None -> ignore()
+            | _ -> calculateSimilarRates r |> ignore
+
+            rates
+
+        member __.getRates r = calculateRatesImpl r
         member __.inputParams = p
 
 
@@ -224,7 +232,7 @@ module ReactionRates =
         | CatSynthRndModel of CatalyticSynthesisRandomModel
         | CatSynthSimModel of CatalyticSynthesisSimilarModel
 
-        member model.getRates (r : CatalyticSynthesisReaction) = 
+        member model.getRates r = 
             match model with
             | CatSynthRndModel m -> m.getRates r
             | CatSynthSimModel m -> m.getRates r
@@ -234,10 +242,10 @@ module ReactionRates =
             | CatSynthRndModel m -> m.inputParams |> CatSynthRndParamWithModel
             | CatSynthSimModel m -> m.inputParams |> CatSynthSimParamWithModel
 
-        static member create (p : CatalyticSynthesisParamWithModel) = 
+        static member create p = 
             match p with 
-            | CatSynthRndParamWithModel q -> CatalyticSynthesisRandomModel(q) |> CatSynthRndModel
-            | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel(q) |> CatSynthSimModel
+            | CatSynthRndParamWithModel q -> CatalyticSynthesisRandomModel q |> CatSynthRndModel
+            | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel q |> CatSynthSimModel
 
 
     type SedimentationDirectRandomParam = 
@@ -254,7 +262,7 @@ module ReactionRates =
     type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
         let rateDictionary = new Dictionary<SedimentationDirectReaction, (ReactionRate option * ReactionRate option)>()
         let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationDirectDistribution.nextDoubleOpt())
-        member __.getRates (r : SedimentationDirectReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
 
@@ -271,7 +279,7 @@ module ReactionRates =
 
         static member create p = 
             match p with 
-            | SedDirRndParam q -> SedimentationDirectRandomModel(q) |> SedDirRndModel
+            | SedDirRndParam q -> SedimentationDirectRandomModel q |> SedDirRndModel
 
 
     type SedimentationAllRandomParam = 
@@ -288,7 +296,7 @@ module ReactionRates =
     type SedimentationRandomAllModel (p : SedimentationAllRandomParam) =
         let rateDictionary = new Dictionary<SedimentationAllReaction, (ReactionRate option * ReactionRate option)>()
         let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble() |> Some)
-        member __.getRates (r : SedimentationAllReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
 
@@ -305,7 +313,7 @@ module ReactionRates =
 
         static member create p = 
             match p with 
-            | SedAllRndParam q -> SedimentationRandomAllModel(q) |> SedAllRndModel
+            | SedAllRndParam q -> SedimentationRandomAllModel q |> SedAllRndModel
 
 
     type LigationRandomParam = 
@@ -327,7 +335,7 @@ module ReactionRates =
             let d = p.ligationDistribution
             getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
 
-        member __.getRates (r : LigationReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
 
@@ -344,7 +352,7 @@ module ReactionRates =
 
         static member create p = 
             match p with 
-            | LigRndParam q -> LigationRandomModel(q) |> LigRndModel
+            | LigRndParam q -> LigationRandomModel q |> LigRndModel
 
 
     type CatalyticLigationRandomParam = 
@@ -416,7 +424,7 @@ module ReactionRates =
                 }
             | None -> noRates
 
-        member __.getRates (r : CatalyticLigationReaction) = getRatesImpl rateDictionary calculateRates r
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
 
 
@@ -433,7 +441,7 @@ module ReactionRates =
 
         static member create p = 
             match p with 
-            | CatLigRndParamWithModel q -> CatalyticLigationRandomModel(q) |> CatLigRndModel
+            | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
 
 
     type ReactionRateModelParam = 
@@ -494,7 +502,7 @@ module ReactionRates =
         member __.providerParams = p
         member __.getRates (a : Reaction) = getRatesImpl a
 
-        static member defaultSynthesisModel (rnd : Random) forward backward =
+        static member defaultSynthRndModel (rnd : Random) (forward, backward) =
             {
                 synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
                 //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
@@ -504,7 +512,7 @@ module ReactionRates =
             |> SynthRndParam
             |> SynthesisModel.create
 
-        static member defaultCatalyticSynthesisModel (rnd : Random) m threshold mult =
+        static member defaultCatSynthRndParams (rnd : Random) (m, threshold, mult) =
             {
                 catSynthRndParam = 
                     {
@@ -514,11 +522,25 @@ module ReactionRates =
                     }
                 synthesisModel = m
             }
+
+        static member defaultCatSynthRndModel (rnd : Random) (m, threshold, mult) = 
+            ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult)
             |> CatSynthRndParamWithModel
             |> CatalyticSynthesisModel.create
 
+        static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, aa) =
+            {
+                catSynthSimParam = 
+                    {
+                        similarityDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        aminoAcids = aa
+                    }
+                catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
+            }
+            |> CatSynthSimParamWithModel
+            |> CatalyticSynthesisModel.create
 
-        static member defaultLigationModel (rnd : Random) forward backward =
+        static member defaultLigRndModel (rnd : Random) (forward, backward) =
             {
                 ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
                 //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
@@ -528,7 +550,7 @@ module ReactionRates =
             |> LigRndParam
             |> LigationModel.create
 
-        static member defaultCatalyticLigationModel (rnd : Random) m threshold mult =
+        static member defaultCatLigRndModel (rnd : Random) (m, threshold, mult) =
             {
                 catLigationParam = 
                     {
@@ -541,7 +563,7 @@ module ReactionRates =
             |> CatLigRndParamWithModel
             |> CatalyticLigationModel.create
 
-        static member defaultSedimentationDirectModel (rnd : Random) threshold mult =
+        static member defaultSedDirRndModel (rnd : Random) (threshold, mult) =
             {
                 sedimentationDirectDistribution = TriangularDistribution(rnd.Next(), { threshold = Some threshold }) |> Triangular
                 forwardScale = Some mult
@@ -549,7 +571,7 @@ module ReactionRates =
             |> SedDirRndParam
             |> SedimentationDirectModel.create
 
-        static member defaultSedimentationAllModel (rnd : Random) mult =
+        static member defaultSedAllRndModel (rnd : Random) mult =
             {
                 sedimentationAllDistribution = TriangularDistribution(rnd.Next(), { threshold = None }) |> Triangular
                 forwardScale = Some mult

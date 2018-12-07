@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1058436623
+    let seedValue = 129831345
     let numberOfAminoAcids = NumberOfAminoAcids.OneAminoAcid
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 15
@@ -356,7 +356,7 @@ module ModelData =
                     modelInfo = 
                         {
                             fileStructureVersionNumber = "1.1.0.0"
-                            versionNumber = "1.1.0.0"
+                            versionNumber = "1.1.1.0"
                             seedValue = seedValue
                             modelName = "20181206_001"
                             numberOfSubstances = 15
@@ -367,7 +367,7 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(99435141, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(1996012994, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -375,7 +375,7 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(1169684236, { threshold = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(1260752181, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -383,15 +383,14 @@ module ModelData =
                             |> LigationRateParam
 
                             {
-                                catSynthDistribution = TriangularDistribution(1990011247, { threshold = Some 0.0005 }) |> Triangular
-                                multiplier = 1000.0
-                                maxEe = 0.05
+                                similarityDistribution = UniformDistribution(1525946924, { threshold = None }) |> Uniform
+                                aminoAcids = aminoAcids
                             }
-                            |> CatSynthRndParam
+                            |> CatSynthSimParam
                             |> CatalyticSynthesisRateParam
 
                             {
-                                catLigationDistribution = TriangularDistribution(451494195, { threshold = Some 0.0001 }) |> Triangular
+                                catLigationDistribution = TriangularDistribution(103297017, { threshold = Some 0.0001 }) |> Triangular
                                 multiplier = 1000.0
                                 maxEe = 0.05
                             }
@@ -399,7 +398,7 @@ module ModelData =
                             |> CatalyticLigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(2010113691, { threshold = Some 0.0001 }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(414536646, { threshold = Some 0.0001 }) |> Triangular
                                 forwardScale = Some 1000.0
                             }
                             |> SedDirRndParam

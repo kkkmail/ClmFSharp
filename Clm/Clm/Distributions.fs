@@ -19,7 +19,7 @@ module Distributions =
         let rnd = new Random(seed)
         let rndBool = new Random(rnd.Next())
 
-        let isDefined() = 
+        let isDefinedImpl() = 
             match p.threshold with
             | Some t -> if rndBool.NextDouble() < t then true else false
             | None -> true
@@ -33,9 +33,11 @@ module Distributions =
         member __.nextDoubleFromZeroToOne = nextDoubleFromZeroToOneImpl
 
         member __.nextDoubleOpt() = 
-            match isDefined() with 
+            match isDefinedImpl() with 
             | true -> nextDoubleImpl() |> Some
             | false -> None
+
+        member __.isDefined = isDefinedImpl
 
 
     type DeltaDistribution (seed : int, p : DistributionParams) = 
@@ -74,3 +76,9 @@ module Distributions =
             | Delta d -> d.nextDoubleFromZeroToOne
             | Uniform d -> d.nextDoubleFromZeroToOne
             | Triangular d -> d.nextDoubleFromZeroToOne
+
+        member this.isDefined =
+            match this with
+            | Delta d -> d.isDefined
+            | Uniform d -> d.isDefined
+            | Triangular d -> d.isDefined

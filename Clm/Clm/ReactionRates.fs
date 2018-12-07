@@ -566,12 +566,14 @@ module ReactionRates =
             |> CatSynthRndParamWithModel
             |> CatalyticSynthesisModel.create
 
-        static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, aa) =
+        static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
+            let aminoAcids = AminoAcid.getAminoAcids n
+
             {
                 catSynthSimParam = 
                     {
                         similarityDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
-                        aminoAcids = aa
+                        aminoAcids = aminoAcids
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
             }

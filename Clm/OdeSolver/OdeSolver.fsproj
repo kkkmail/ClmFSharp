@@ -8,7 +8,7 @@
     <ProjectGuid>cabc1334-fa26-483e-ae65-9f93c86dce2d</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>OdeSolvers</RootNamespace>
-    <AssemblyName>OdeSolvers</AssemblyName>
+    <AssemblyName>OdeSolver</AssemblyName>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -48,7 +48,6 @@
     <None Include="References.fsx" />
     <None Include="SolverTest.fsx" />
     <Content Include="packages.config" />
-    <None Include="ModelSolverTest.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Collections.ParallelSeq">

@@ -52,6 +52,7 @@ module Visualization =
                 ]
                 |> String.concat i.resultInfo.separator
 
+            Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
 

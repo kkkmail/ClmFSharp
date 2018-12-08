@@ -34,7 +34,7 @@ let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.00005), 2000.0)
 //===========================================================
-let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00005, 2000.0)
+let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00002, 10000.0)
 let sedAllModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 //===========================================================
 let rates = 

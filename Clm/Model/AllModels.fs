@@ -284,3 +284,61 @@ module AllModels =
                     ]
             }
         ]
+
+        @
+        [
+            {
+                modelInfo = 
+                    {
+                        fileStructureVersionNumber = "1.1.0.0"
+                        versionNumber = "1.1.1.1"
+                        seedValue = 213829846
+                        modelName = "20181208_001"
+                        numberOfSubstances = 6175
+                        numberOfAminoAcids = NumberOfAminoAcids.NineAminoAcids
+                        maxPeptideLength = MaxPeptideLength.ThreeMax
+                    }
+
+                allParams = 
+                    [
+                        {
+                            synthesisDistribution = DeltaDistribution(441967545, { threshold = None }) |> Delta
+                            forwardScale = Some 0.001
+                            backwardScale = Some 0.0001
+                        }
+                        |> SynthRndParam
+                        |> SynthesisRateParam
+
+                        {
+                            similarityDistribution = UniformDistribution(1353216936, { threshold = Some 0.2 }) |> Uniform
+                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.NineAminoAcids
+                        }
+                        |> CatSynthSimParam
+                        |> CatalyticSynthesisRateParam
+
+                        {
+                            ligationDistribution = DeltaDistribution(1148980326, { threshold = None }) |> Delta
+                            forwardScale = Some 0.001
+                            backwardScale = Some 0.0001
+                        }
+                        |> LigRndParam
+                        |> LigationRateParam
+
+                        {
+                            catLigationDistribution = TriangularDistribution(883206885, { threshold = Some 5E-05 }) |> Triangular
+                            multiplier = 2000.0
+                            maxEe = 0.05
+                        }
+                        |> CatLigRndParam
+                        |> CatalyticLigationRateParam
+
+                        {
+                            sedimentationDirectDistribution = TriangularDistribution(2107879460, { threshold = Some 2E-05 }) |> Triangular
+                            forwardScale = Some 10000.0
+                        }
+                        |> SedDirRndParam
+                        |> SedimentationDirectRateParam
+
+                    ]
+            }
+        ]

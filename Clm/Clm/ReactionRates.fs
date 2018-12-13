@@ -115,6 +115,49 @@ module ReactionRates =
         | None -> (None, None)
 
 
+    type CatRatesInfo<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> = 
+        {
+            reaction : 'R
+            catalyst : 'C
+            distribution : Distribution
+            catReactionCreator : ('R * 'C) -> 'RC
+            rateCoeff : double option
+            getRates : 'R -> (ReactionRate option * ReactionRate option)
+            maxEe : double
+            multiplier : double
+        }
+
+
+    let inline calculateCatRates<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> (i : CatRatesInfo<'R, 'C, 'RC>) = 
+        let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
+
+        let rf, rb, rfe, rbe = 
+            match i.rateCoeff with 
+            | Some k0 ->
+                let (sf0, sb0) = i.getRates i.reaction
+                let ee = i.maxEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                let k = k0 * i.multiplier * (1.0 + ee)
+                let ke = k0 * i.multiplier * (1.0 - ee)
+
+                let (rf, rfe) = 
+                    match sf0 with
+                    | Some (ReactionRate sf) -> (k * sf |> ReactionRate |> Some, ke * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rb, rbe) = 
+                    match sb0 with
+                    | Some (ReactionRate sb) -> (k * sb |> ReactionRate |> Some, ke * sb |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rb, rfe, rbe)
+            | None -> (None, None, None, None)
+
+        {
+            primary = (rf, rb)
+            similar = [ (re, (rfe, rbe)) ]
+        }
+
+
     type SynthesisRandomParam = 
         {
             synthesisDistribution : Distribution
@@ -179,38 +222,23 @@ module ReactionRates =
             synthesisModel : SynthesisModel
         }
 
+
     type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) = 
         let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
         let distr = p.catSynthRndParam.catSynthDistribution
 
         let calculateCatSynthRates s (c : SynthCatalyst) k = 
-            let re = (s, c.enantiomer) |> CatalyticSynthesisReaction
-
-            let rf, rb, rfe, rbe = 
-                match k with 
-                | Some k0 ->
-                    let (sf0, sb0) = p.synthesisModel.getRates s
-                    let ee = p.catSynthRndParam.maxEe * (distr.nextDoubleFromZeroToOne() - 0.5)
-                    let k = k0 * p.catSynthRndParam.multiplier * (1.0 + ee)
-                    let ke = k0 * p.catSynthRndParam.multiplier * (1.0 - ee)
-
-                    let (rf, rfe) = 
-                        match sf0 with
-                        | Some (ReactionRate sf) -> (k * sf |> ReactionRate |> Some, ke * sf |> ReactionRate |> Some)
-                        | None -> (None, None)
-
-                    let (rb, rbe) = 
-                        match sb0 with
-                        | Some (ReactionRate sb) -> (k * sb |> ReactionRate |> Some, ke * sb |> ReactionRate |> Some)
-                        | None -> (None, None)
-
-                    (rf, rb, rfe, rbe)
-                | None -> (None, None, None, None)
-
             {
-                primary = (rf, rb)
-                similar = [ (re, (rfe, rbe)) ]
+                reaction = s
+                catalyst = c
+                distribution = distr
+                catReactionCreator = CatalyticSynthesisReaction
+                rateCoeff = k
+                getRates = p.synthesisModel.getRates
+                maxEe = p.catSynthRndParam.maxEe
+                multiplier = p.catSynthRndParam.multiplier
             }
+            |> calculateCatRates
 
         let calculateOptionalRatesImpl (CatalyticSynthesisReaction (s, c)) = calculateCatSynthRates s c (distr.nextDoubleOpt())
         let calculatelRatesImpl (CatalyticSynthesisReaction (s, c)) = calculateCatSynthRates s c (distr.nextDouble() |> Some)
@@ -432,33 +460,17 @@ module ReactionRates =
         let distr = p.catLigationParam.catLigationDistribution
 
         let calculateCatLigRates s (c : LigCatalyst) k = 
-            let re = (s, c.enantiomer) |> CatalyticLigationReaction
-
-            let rf, rb, rfe, rbe = 
-                match k with 
-                | Some k0 ->
-                    let (sf0, sb0) = p.ligationModel.getRates s
-                    let ee = p.catLigationParam.maxEe * (distr.nextDoubleFromZeroToOne() - 0.5)
-                    let k = k0 * p.catLigationParam.multiplier * (1.0 + ee)
-                    let ke = k0 * p.catLigationParam.multiplier * (1.0 - ee)
-
-                    let (rf, rfe) = 
-                        match sf0 with
-                        | Some (ReactionRate sf) -> (k * sf |> ReactionRate |> Some, ke * sf |> ReactionRate |> Some)
-                        | None -> (None, None)
-
-                    let (rb, rbe) = 
-                        match sb0 with
-                        | Some (ReactionRate sb) -> (k * sb |> ReactionRate |> Some, ke * sb |> ReactionRate |> Some)
-                        | None -> (None, None)
-
-                    (rf, rb, rfe, rbe)
-                | None -> (None, None, None, None)
-
             {
-                primary = (rf, rb)
-                similar = [ (re, (rfe, rbe)) ]
+                reaction = s
+                catalyst = c
+                distribution = distr
+                catReactionCreator = CatalyticLigationReaction
+                rateCoeff = k
+                getRates = p.ligationModel.getRates
+                maxEe = p.catLigationParam.maxEe
+                multiplier = p.catLigationParam.multiplier
             }
+            |> calculateCatRates
 
         let calculateOptionalRatesImpl (CatalyticLigationReaction (s, c)) = calculateCatLigRates s c (distr.nextDoubleOpt())
 

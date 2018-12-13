@@ -11,6 +11,8 @@ module ReactionTypes =
         | CatalyticLigationName
         | SedimentationDirectName
         | SedimentationAllName
+        | RacemizationName
+        | CatalyticRacemizationName
 
         member this.name =
             match this with 
@@ -20,6 +22,8 @@ module ReactionTypes =
             | CatalyticLigationName -> "catalytic ligation"
             | SedimentationDirectName -> "sedimentation direct"
             | SedimentationAllName -> "sedimentation all"
+            | RacemizationName -> "racemization"
+            | CatalyticRacemizationName -> "catalytic racemization"
 
         static member all = 
             [
@@ -29,6 +33,8 @@ module ReactionTypes =
                 CatalyticLigationName
                 SedimentationDirectName
                 SedimentationAllName
+                RacemizationName
+                CatalyticRacemizationName
             ]
 
 
@@ -162,6 +168,47 @@ module ReactionTypes =
         member r.enantiomer = r
 
 
+    type RacemizationReaction = 
+        | RacemizationReaction of ChiralAminoAcid
+
+        member r.info = 
+            let (RacemizationReaction a) = r
+            {
+                reactionName = ReactionName.RacemizationName
+                input = [ (Chiral a, 1) ]
+                output = [ (Chiral a.enantiomer, 1) ]
+            }
+
+        member r.enantiomer = 
+            let (RacemizationReaction a) = r
+            a.enantiomer |> RacemizationReaction
+
+
+    type RacemizationCatalyst = 
+        | RacemizationCatalyst of Peptide
+
+        member c.enantiomer = 
+            let (RacemizationCatalyst a) = c
+            a.enantiomer |> RacemizationCatalyst
+
+
+    type CatalyticRacemizationReaction = 
+        | CatalyticRacemizationReaction of (RacemizationReaction * RacemizationCatalyst)
+
+        member r.info = 
+            let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
+            let p = c |> PeptideChain
+            {
+                reactionName = ReactionName.CatalyticRacemizationName
+                input = [ (Chiral a, 1); (p, 1) ]
+                output = [ (Chiral a.enantiomer, 1); (p, 1) ]
+            }
+
+        member r.enantiomer = 
+            let (CatalyticRacemizationReaction (a, c)) = r
+            (a.enantiomer, c.enantiomer) |> CatalyticRacemizationReaction
+
+
     type Reaction = 
         | Synthesis of SynthesisReaction
         | CatalyticSynthesis of CatalyticSynthesisReaction
@@ -169,6 +216,8 @@ module ReactionTypes =
         | CatalyticLigation of CatalyticLigationReaction
         | SedimentationDirect of SedimentationDirectReaction
         | SedimentationAll of SedimentationAllReaction
+        | Racemization of RacemizationReaction
+        | CatalyticRacemization of CatalyticRacemizationReaction
 
         member r.name = 
             match r with 
@@ -178,6 +227,8 @@ module ReactionTypes =
             | CatalyticLigation _ -> CatalyticLigationName
             | SedimentationDirect _ -> SedimentationDirectName
             | SedimentationAll _ -> SedimentationAllName
+            | Racemization _ -> RacemizationName
+            | CatalyticRacemization _ -> CatalyticRacemizationName
 
         member r.info = 
             match r with 
@@ -187,6 +238,8 @@ module ReactionTypes =
             | CatalyticLigation r -> r.info
             | SedimentationDirect r -> r.info
             | SedimentationAll r -> r.info
+            | Racemization r -> r.info
+            | CatalyticRacemization r -> r.info
 
         member r.enantiomer = 
             match r with 
@@ -195,4 +248,6 @@ module ReactionTypes =
             | Ligation r -> r.enantiomer |> Ligation
             | CatalyticLigation r -> r.enantiomer |> CatalyticLigation
             | SedimentationDirect r -> r.enantiomer |> SedimentationDirect
-            | SedimentationAll r -> SedimentationAll r
+            | SedimentationAll r -> SedimentationAll r // There are no enantiomers here.
+            | Racemization r -> r.enantiomer |> Racemization
+            | CatalyticRacemization r -> r.enantiomer |> CatalyticRacemization

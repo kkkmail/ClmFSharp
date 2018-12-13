@@ -94,12 +94,13 @@ module FSharpCodeExt =
             shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
             shift + "            }" + Nl
 
+
     type CatalyticSynthesisSimilarParam
         with
 
         member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
             shift + "            {" + Nl +
-            shift + "                similarityDistribution = " + p.similarityDistribution.toFSharpCode + Nl +
+            shift + "                simSynthDistribution = " + p.simSynthDistribution.toFSharpCode + Nl +
             shift + "                aminoAcids = " + aminoAcidsCode + Nl +
             shift + "            }" + Nl
 
@@ -187,6 +188,55 @@ module FSharpCodeExt =
             | CatLigRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatLigRndParam" + Nl)
 
 
+    type RacemizationRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                racemizationDistribution = " + p.racemizationDistribution.toFSharpCode + Nl +
+            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
+            shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
+            shift + "            }" + Nl
+
+
+    type RacemizationParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | RacemRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "RacemRndParam" + Nl)
+
+
+    type CatalyticRacemizationRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                catRacemDistribution = " + p.catRacemDistribution.toFSharpCode + Nl +
+            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
+            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "            }" + Nl
+
+
+    type CatalyticRacemizationSimilarParam
+        with
+
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+            shift + "            {" + Nl +
+            shift + "                simRacemDistribution = " + p.simRacemDistribution.toFSharpCode + Nl +
+            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
+            shift + "            }" + Nl
+
+
+    type CatalyticRacemizationParam
+        with 
+
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+            match p with 
+            | CatRacemRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatRacemRndParam" + Nl)
+            | CatRacemSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatRacemSimParam" + Nl)
+
+
     type FSharpCodeParams = 
         {
             shift : string
@@ -205,6 +255,8 @@ module FSharpCodeExt =
             | CatalyticLigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticLigationRateParam" + Nl
             | SedimentationDirectRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationDirectRateParam" + Nl
             | SedimentationAllRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationAllRateParam" + Nl
+            | RacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> RacemizationRateParam" + Nl
+            | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
 
 
     type ReactionRateProvider

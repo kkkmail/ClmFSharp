@@ -44,6 +44,7 @@ module ReactionRates =
     let getForwardRates (fo, rf) = getRates (fo, rf) (None, None)
     let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
 
+
     let inline updatePrimaryReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
         (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
         (primary : (ReactionRate option * ReactionRate option))
@@ -165,6 +166,7 @@ module ReactionRates =
             backwardScale : double option
         }
 
+
     type SynthesisParam = 
         | SynthRndParam of SynthesisRandomParam
 
@@ -206,7 +208,7 @@ module ReactionRates =
 
     type CatalyticSynthesisSimilarParam =
         {
-            similarityDistribution : Distribution
+            simSynthDistribution : Distribution
             aminoAcids : list<AminoAcid>
         }
 
@@ -267,7 +269,7 @@ module ReactionRates =
         let calculateSimilarRates (CatalyticSynthesisReaction ((SynthesisReaction a), c)) = 
             p.catSynthSimParam.aminoAcids
             |> List.map (fun e -> CatalyticSynthesisReaction (a.createSameChirality e |> SynthesisReaction, c))
-            |> List.filter (fun _ -> p.catSynthSimParam.similarityDistribution.isDefined())
+            |> List.filter (fun _ -> p.catSynthSimParam.simSynthDistribution.isDefined())
             |> List.map (fun r -> catSynthRndModel.calculatelRates r)
 
         let calculateRatesImpl r = 
@@ -494,6 +496,166 @@ module ReactionRates =
             | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
 
 
+////////////////////////////////////////
+/////
+
+    type RacemizationRandomParam = 
+        {
+            racemizationDistribution : Distribution
+            forwardScale : double option
+            backwardScale : double option
+        }
+
+
+    type RacemizationParam = 
+        | RacemRndParam of RacemizationRandomParam
+
+
+    type RacemizationRandomModel (p : RacemizationRandomParam) =
+        let rateDictionary = new Dictionary<RacemizationReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateRates _ = 
+            let d = p.racemizationDistribution
+            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type RacemizationModel = 
+        | RacemRndModel of RacemizationRandomModel
+
+        member model.getRates r = 
+            match model with
+            | RacemRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | RacemRndModel m -> m.inputParams |> RacemRndParam
+
+        static member create p = 
+            match p with 
+            | RacemRndParam q -> RacemizationRandomModel q |> RacemRndModel
+
+
+    type CatalyticRacemizationRandomParam = 
+        {
+            catRacemDistribution : Distribution
+            multiplier : double
+            maxEe : double
+        }
+
+
+    type CatalyticRacemizationSimilarParam =
+        {
+            simRacemDistribution : Distribution
+            aminoAcids : list<AminoAcid>
+        }
+
+
+    type CatalyticRacemizationParam = 
+        | CatRacemRndParam of CatalyticRacemizationRandomParam
+        | CatRacemSimParam of CatalyticRacemizationSimilarParam
+
+
+    type CatalyticRacemizationRandomParamWithModel = 
+        {
+            catRacemRndParam : CatalyticRacemizationRandomParam
+            racemizationModel : RacemizationModel
+        }
+
+
+    type CatalyticRacemizationRandomModel (p : CatalyticRacemizationRandomParamWithModel) = 
+        let rateDictionaryImpl = new Dictionary<CatalyticRacemizationReaction, (ReactionRate option * ReactionRate option)>()
+        let distr = p.catRacemRndParam.catRacemDistribution
+
+        let calculateCatRacemRates s (c : RacemizationCatalyst) k = 
+            {
+                reaction = s
+                catalyst = c
+                distribution = distr
+                catReactionCreator = CatalyticRacemizationReaction
+                rateCoeff = k
+                getRates = p.racemizationModel.getRates
+                maxEe = p.catRacemRndParam.maxEe
+                multiplier = p.catRacemRndParam.multiplier
+            }
+            |> calculateCatRates
+
+        let calculateOptionalRatesImpl (CatalyticRacemizationReaction (s, c)) = calculateCatRacemRates s c (distr.nextDoubleOpt())
+        let calculatelRatesImpl (CatalyticRacemizationReaction (s, c)) = calculateCatRacemRates s c (distr.nextDouble() |> Some)
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+        member __.calculatelRates r = getRatesImpl rateDictionaryImpl calculatelRatesImpl r
+
+
+    type CatalyticRacemizationSimilarParamWithModel = 
+        {
+            catRacemSimParam : CatalyticRacemizationSimilarParam
+            catRacemModel : CatalyticRacemizationRandomModel
+        }
+
+
+    type CatalyticRacemizationParamWithModel = 
+        | CatRacemRndParamWithModel of CatalyticRacemizationRandomParamWithModel
+        | CatRacemSimParamWithModel of CatalyticRacemizationSimilarParamWithModel
+
+
+    type CatalyticRacemizationSimilarModel (p : CatalyticRacemizationSimilarParamWithModel) = 
+        let catRacemRndModel = p.catRacemModel
+
+        let calculateSimilarRates (CatalyticRacemizationReaction ((RacemizationReaction a), c)) = 
+            p.catRacemSimParam.aminoAcids
+            |> List.map (fun e -> CatalyticRacemizationReaction (a.createSameChirality e |> RacemizationReaction, c))
+            |> List.filter (fun _ -> p.catRacemSimParam.simRacemDistribution.isDefined())
+            |> List.map (fun r -> catRacemRndModel.calculatelRates r)
+
+        let calculateRatesImpl r = 
+            let rates = catRacemRndModel.getRates r
+
+            match rates with
+            | None, None -> ignore()
+            | _ -> calculateSimilarRates r |> ignore
+
+            rates
+
+        member __.getRates r = calculateRatesImpl r
+        member __.inputParams = p
+        member __.rateDictionary = catRacemRndModel.rateDictionary
+
+
+    type CatalyticRacemizationModel = 
+        | CatRacemRndModel of CatalyticRacemizationRandomModel
+        | CatRacemSimModel of CatalyticRacemizationSimilarModel
+
+        member model.getRates r = 
+            match model with
+            | CatRacemRndModel m -> m.getRates r
+            | CatRacemSimModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | CatRacemRndModel m -> m.inputParams |> CatRacemRndParamWithModel
+            | CatRacemSimModel m -> m.inputParams |> CatRacemSimParamWithModel
+
+        static member create p = 
+            match p with 
+            | CatRacemRndParamWithModel q -> CatalyticRacemizationRandomModel q |> CatRacemRndModel
+            | CatRacemSimParamWithModel q -> CatalyticRacemizationSimilarModel q |> CatRacemSimModel
+
+        member model.rateDictionary = 
+            match model with
+            | CatRacemRndModel m -> m.rateDictionary
+            | CatRacemSimModel m -> m.rateDictionary
+
+
+
+////
+///////////////////////////////////////
+
+
     type ReactionRateModelParam = 
         | SynthesisRateParam of SynthesisParam
         | CatalyticSynthesisRateParam of CatalyticSynthesisParam
@@ -501,6 +663,8 @@ module ReactionRates =
         | CatalyticLigationRateParam of CatalyticLigationParam
         | SedimentationDirectRateParam of SedimentationDirectParam
         | SedimentationAllRateParam of SedimentationAllParam
+        | RacemizationRateParam of RacemizationParam
+        | CatalyticRacemizationRateParam of CatalyticRacemizationParam
 
 
     type ReactionRateModel = 
@@ -510,6 +674,8 @@ module ReactionRates =
         | CatalyticLigationRateModel of CatalyticLigationModel
         | SedimentationDirectRateModel of SedimentationDirectModel
         | SedimentationAllRateModel of SedimentationAllModel
+        | RacemizationRateModel of RacemizationModel
+        | CatalyticRacemizationRateModel of CatalyticRacemizationModel
 
         member rm.inputParams = 
             match rm with
@@ -524,6 +690,11 @@ module ReactionRates =
                 | CatLigRndModel m -> m.inputParams.catLigationParam |> CatLigRndParam |> CatalyticLigationRateParam
             | SedimentationDirectRateModel m -> m.inputParams |> SedimentationDirectRateParam
             | SedimentationAllRateModel m -> m.inputParams |> SedimentationAllRateParam
+            | RacemizationRateModel m -> m.inputParams |> RacemizationRateParam
+            | CatalyticRacemizationRateModel v ->
+                match v with 
+                | CatRacemRndModel m -> m.inputParams.catRacemRndParam |> CatRacemRndParam |> CatalyticRacemizationRateParam
+                | CatRacemSimModel m -> m.inputParams.catRacemSimParam |> CatRacemSimParam |> CatalyticRacemizationRateParam
 
 
     type ReactionRateProviderParams = 
@@ -537,6 +708,8 @@ module ReactionRates =
         member p.tryFindCatalyticLigationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticLigationRateModel m -> Some m | _ -> None)
         member p.tryFindSedimentationDirectModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationDirectRateModel m -> Some m | _ -> None)
         member p.tryFindSedimentationAllModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationAllRateModel m -> Some m | _ -> None)
+        member p.tryFindRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | RacemizationRateModel m -> Some m | _ -> None)
+        member p.tryFindCatalyticRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateModel m -> Some m | _ -> None)
 
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
@@ -548,6 +721,8 @@ module ReactionRates =
             | CatalyticLigation r ->  getModelRates (p.tryFindCatalyticLigationModel()) r
             | SedimentationDirect r -> getModelRates (p.tryFindSedimentationDirectModel()) r
             | SedimentationAll r -> getModelRates (p.tryFindSedimentationAllModel()) r
+            | Racemization r -> getModelRates (p.tryFindRacemizationModel()) r
+            | CatalyticRacemization r -> getModelRates (p.tryFindCatalyticRacemizationModel()) r
 
         member __.providerParams = p
         member __.getRates (a : Reaction) = getRatesImpl a
@@ -584,7 +759,7 @@ module ReactionRates =
             {
                 catSynthSimParam = 
                     {
-                        similarityDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
                         aminoAcids = aminoAcids
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
@@ -630,3 +805,43 @@ module ReactionRates =
             }
             |> SedAllRndParam
             |> SedimentationAllModel.create
+
+        static member defaultRacemRndModel (rnd : Random) (forward, backward) =
+            {
+                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
+                //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                forwardScale = Some forward
+                backwardScale = Some backward
+            }
+            |> RacemRndParam
+            |> RacemizationModel.create
+
+        static member defaultCatRacemRndParams (rnd : Random) (m, threshold, mult) =
+            {
+                catRacemRndParam = 
+                    {
+                        catRacemDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
+                        multiplier  = mult
+                        maxEe = 0.05
+                    }
+                racemizationModel = m
+            }
+
+        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) = 
+            ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult)
+            |> CatRacemRndParamWithModel
+            |> CatalyticRacemizationModel.create
+
+        static member defaultCatRacemSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
+            let aminoAcids = AminoAcid.getAminoAcids n
+
+            {
+                catRacemSimParam = 
+                    {
+                        simRacemDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        aminoAcids = aminoAcids
+                    }
+                catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
+            }
+            |> CatRacemSimParamWithModel
+            |> CatalyticRacemizationModel.create

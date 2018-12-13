@@ -9,15 +9,15 @@ module VersionInfo =
     ///     OR if changes will be automatically picked up by compiler type inference.
     ///
     /// Update revision number, e.g. "1.0.*.0", when the changes are small and the affected files can be easily updated by hands.
-    ///     A single change to DU would qualify as revision update.
+    ///     A single change to DU or single renaming would qualify as revision update.
     ///
-    /// Update minor number, e.g. "1.*.0.0", when the changes are manageable but painful.
+    /// Update minor number, e.g. "1.*.0.0", when the changes are manually manageable but painful.
     ///     For example, adding an extra layer for multpile DUs, which requires updating all affected DUs, qualifies as minor upgrade.
     ///
     /// Update major version, e.g. "*.0.0.0", when the changes are completely incompatible with previous version.
     ///     Subsequently, it is not possible to update affected files at all (due to lack of information) and / or without extreme efforts.
     [<Literal>]
-    let FileStructureVersionNumber = "1.1.0.0"
+    let FileStructureVersionNumber = "1.1.1.0"
 
 
     /// This is a version of the Code Generator.

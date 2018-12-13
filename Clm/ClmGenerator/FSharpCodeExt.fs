@@ -195,7 +195,6 @@ module FSharpCodeExt =
             shift + "            {" + Nl +
             shift + "                racemizationDistribution = " + p.racemizationDistribution.toFSharpCode + Nl +
             shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
-            shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
             shift + "            }" + Nl
 
 

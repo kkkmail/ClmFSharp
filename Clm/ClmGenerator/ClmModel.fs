@@ -68,6 +68,7 @@ module ClmModel =
         let peptides = Peptide.getPeptides modelParams.maxPeptideLength modelParams.numberOfAminoAcids
         let synthCatalysts = peptides |> List.map (fun p -> SynthCatalyst p)
         let ligCatalysts = peptides |> List.map (fun p -> LigCatalyst p)
+        let racemCatalysts = peptides |> List.map (fun p -> RacemizationCatalyst p)
 
         let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
 
@@ -80,6 +81,7 @@ module ClmModel =
         let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= modelParams.maxPeptideLength.length)
         let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) synthCatalysts
         let catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) ligCatalysts
+        let catRacemPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> RacemizationReaction c)) racemCatalysts
 
         //do
         //    catSynthPairs
@@ -94,6 +96,8 @@ module ClmModel =
             | CatalyticLigationName -> catLigPairs.Length
             | SedimentationDirectName -> allPairs.Length
             | SedimentationAllName -> chiralAminoAcids.Length
+            | RacemizationName -> chiralAminoAcids.Length
+            | CatalyticRacemizationName -> catRacemPairs.Length
 
 
         let allSubst = 
@@ -138,6 +142,7 @@ module ClmModel =
 
         let synth = createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
         let lig = createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
+        let racem = createReactions (fun a -> RacemizationReaction a |> Racemization) chiralAminoAcids
 
         //do
         //    lig
@@ -147,9 +152,10 @@ module ClmModel =
         let sedDir = createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
         let catSynth = createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
         let catLig = createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
+        let catRacem = createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
         let allReac = 
-            synth @ catSynth @ lig @ catLig @ sedDir
+            synth @ catSynth @ lig @ catLig @ sedDir @ racem @ catRacem
             |> List.distinct
 
         let kW = 

@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="src\alglibinternal.cs" />
     <Compile Include="src\alglibmisc.cs" />
     <Compile Include="src\alglib_info.cs" />

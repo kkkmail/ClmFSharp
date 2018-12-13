@@ -16,9 +16,9 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open ClmGenerator.ClmModel
 //===========================================================
-let updateAllModels = true
+let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.NineAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -37,16 +37,25 @@ let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Som
 let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00002, 10000.0)
 let sedAllModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 //===========================================================
+let racemModel = ReactionRateProvider.defaultRacemRndModel rnd 0.001
+//let catRacemRndParams = (racemModel, (Some 0.0005), 1000.0)
+let catRacemRndParams = (racemModel, (Some 0.02), 1000.0)
+//let catRacemModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
+let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRndParams (Some 0.2, numberOfAminoAcids)
+//===========================================================
 let rates = 
     [
          synthModel |> SynthesisRateModel
-         catSynthModel |> CatalyticSynthesisRateModel
+         //catSynthModel |> CatalyticSynthesisRateModel
 
-         ligModel |> LigationRateModel
-         catLigModel |> CatalyticLigationRateModel
+         //ligModel |> LigationRateModel
+         //catLigModel |> CatalyticLigationRateModel
 
-         sedDirModel |> SedimentationDirectRateModel
+         //sedDirModel |> SedimentationDirectRateModel
          //sedAllModel |> SedimentationAllRateModel
+
+         racemModel |> RacemizationRateModel
+         catRacemModel |> CatalyticRacemizationRateModel
     ]
 //===========================================================
 let modelGenerationParams = 

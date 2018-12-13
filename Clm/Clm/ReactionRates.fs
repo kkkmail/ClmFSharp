@@ -496,14 +496,10 @@ module ReactionRates =
             | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
 
 
-////////////////////////////////////////
-/////
-
     type RacemizationRandomParam = 
         {
             racemizationDistribution : Distribution
             forwardScale : double option
-            backwardScale : double option
         }
 
 
@@ -516,7 +512,7 @@ module ReactionRates =
 
         let calculateRates _ = 
             let d = p.racemizationDistribution
-            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+            getRates (p.forwardScale, d.nextDouble() |> Some) (None, None)
 
         member __.getRates r = getRatesImpl rateDictionary calculateRates r
         member __.inputParams = p
@@ -649,11 +645,6 @@ module ReactionRates =
             match model with
             | CatRacemRndModel m -> m.rateDictionary
             | CatRacemSimModel m -> m.rateDictionary
-
-
-
-////
-///////////////////////////////////////
 
 
     type ReactionRateModelParam = 
@@ -806,12 +797,11 @@ module ReactionRates =
             |> SedAllRndParam
             |> SedimentationAllModel.create
 
-        static member defaultRacemRndModel (rnd : Random) (forward, backward) =
+        static member defaultRacemRndModel (rnd : Random) forward =
             {
                 racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
                 //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
-                backwardScale = Some backward
             }
             |> RacemRndParam
             |> RacemizationModel.create

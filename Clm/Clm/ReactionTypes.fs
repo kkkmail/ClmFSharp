@@ -5,6 +5,8 @@ open Substances
 module ReactionTypes = 
 
     type ReactionName = 
+        | FoodCreationName
+        | WasteRemovalName
         | SynthesisName
         | CatalyticSynthesisName
         | LigationName
@@ -16,6 +18,8 @@ module ReactionTypes =
 
         member this.name =
             match this with 
+            | FoodCreationName -> "food"
+            | WasteRemovalName -> "waste"
             | SynthesisName -> "synthesis"
             | CatalyticSynthesisName -> "catalytic synthesis"
             | LigationName -> "ligation"
@@ -27,6 +31,8 @@ module ReactionTypes =
 
         static member all = 
             [
+                FoodCreationName
+                WasteRemovalName
                 SynthesisName
                 CatalyticSynthesisName
                 LigationName
@@ -55,19 +61,44 @@ module ReactionTypes =
 
 
     type SynthesisReaction = 
-        | SynthesisReaction of ChiralAminoAcid
+        | SynthesisReact of ChiralAminoAcid
+        | DescructionReac of ChiralAminoAcid
+
+        member r.input = 
+            match r with 
+            | SynthesisReact a -> (Simple Food, 1)
+            | DescructionReac a -> (Chiral a, 1)
+
+        member r.output = 
+            match r with 
+            | SynthesisReact a -> (Chiral a, 1)
+            | DescructionReac a -> (Simple Waste, 1)
 
         member r.info = 
-            let (SynthesisReaction a) = r
             {
                 reactionName = ReactionName.SynthesisName
-                input = [ (Substance.food, 1) ]
-                output = [ (Chiral a, 1) ]
+                input = [ r.input ]
+                output = [ r.output ]
             }
 
+            //match r with 
+            //| SynthesisReact a -> 
+            //    {
+            //        reactionName = ReactionName.SynthesisName
+            //        input = [ (Simple Food, 1) ]
+            //        output = [ (Chiral a, 1) ]
+            //    }
+            //| DescructionReac a ->
+            //    {
+            //        reactionName = ReactionName.SynthesisName
+            //        input = [ (Chiral a, 1) ]
+            //        output = [ (Simple Waste, 1) ]
+            //    }
+
         member r.enantiomer = 
-            let (SynthesisReaction a) = r
-            a.enantiomer |> SynthesisReaction
+            match r with 
+            | SynthesisReact a -> a.enantiomer |> SynthesisReact
+            | DescructionReac a -> a.enantiomer |> DescructionReac
 
 
     type SynthCatalyst = 
@@ -82,12 +113,12 @@ module ReactionTypes =
         | CatalyticSynthesisReaction of (SynthesisReaction * SynthCatalyst)
 
         member r.info = 
-            let (CatalyticSynthesisReaction ((SynthesisReaction a), (SynthCatalyst c))) = r
+            let (CatalyticSynthesisReaction (a, (SynthCatalyst c))) = r
             let p = c |> PeptideChain
             {
                 reactionName = ReactionName.CatalyticSynthesisName
-                input = [ (Substance.food, 1); (p, 1) ]
-                output = [ (Chiral a, 1); (p, 1) ]
+                input = [ a.input; (p, 1) ]
+                output = [ a.output; (p, 1) ]
             }
 
         member r.enantiomer = 
@@ -147,7 +178,7 @@ module ReactionTypes =
             {
                 reactionName = ReactionName.SedimentationDirectName
                 input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
-                output = [ (FoodSubst.y |> Food, a.Length + b.Length) ]
+                output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
             }
 
         member r.enantiomer = 

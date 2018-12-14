@@ -266,9 +266,9 @@ module ReactionRates =
     type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) = 
         let catSynthRndModel = p.catSynthModel
 
-        let calculateSimilarRates (CatalyticSynthesisReaction ((SynthesisReaction a), c)) = 
+        let calculateSimilarRates (CatalyticSynthesisReaction ((SynthesisReaction (h, a)), c)) = 
             p.catSynthSimParam.aminoAcids
-            |> List.map (fun e -> CatalyticSynthesisReaction (a.createSameChirality e |> SynthesisReaction, c))
+            |> List.map (fun e -> CatalyticSynthesisReaction ((h, a.createSameChirality e) |> SynthesisReaction, c))
             |> List.filter (fun _ -> p.catSynthSimParam.simSynthDistribution.isDefined())
             |> List.map (fun r -> catSynthRndModel.calculatelRates r)
 

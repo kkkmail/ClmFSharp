@@ -54,14 +54,25 @@ module Substances =
             | FiveMax -> 5
 
 
-    type FoodSubst =
-        | FoodSubst
+    type AchiralSubst =
+        | Abundant
+        | Food
+        | Waste
 
         member __.length = 0
-        member __.name = "Y"
-        member __.atoms = 1
 
-        static member y = FoodSubst
+        member this.name = 
+            match this with 
+            | Abundant -> "X"
+            | Food -> "Y"
+            | Waste -> "Z"
+
+        member __.atoms = 1
+        member this.enantiomer = this
+
+        //static member abundant = Abundant
+        //static member food = Food
+        //static member waste = Waste
 
 
     type SumSubst = 
@@ -270,28 +281,28 @@ module Substances =
 
 
     type Substance = 
-        | Food of FoodSubst
+        | Simple of AchiralSubst
         | Chiral of ChiralAminoAcid
         | PeptideChain of Peptide
         | Sum of SumSubst
 
         member substance.enantiomer = 
             match substance with 
-            | Food f -> f |> Food
+            | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
             | Sum s -> s |> Sum
 
         member substance.name = 
             match substance with 
-            | Food f -> f.name
+            | Simple f -> f.name
             | Chiral c -> c.name
             | PeptideChain p -> p.name
             | Sum s -> s.name
 
         member substance.noOfAminoAcid a = 
             match substance with 
-            | Food _ -> None
+            | Simple _ -> None
             | Chiral c -> 
                 match c = a with 
                 | true -> Some 1
@@ -304,33 +315,34 @@ module Substances =
 
         member substance.isFood = 
             match substance with 
-            | Food _ -> true
+            | Simple _ -> true
             | Chiral _ -> false
             | PeptideChain _ -> false
             | Sum _ -> false
 
         member substance.atoms = 
             match substance with 
-            | Food f -> f.atoms
+            | Simple f -> f.atoms
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
             | Sum _ -> 0
 
         member substance.length = 
             match substance with 
-            | Food _ -> 0
+            | Simple _ -> 0
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
             | Sum _ -> 0
 
         member substance.aminoAcids = 
             match substance with 
-            | Food _ -> []
+            | Simple _ -> []
             | Chiral c -> [ c ]
             | PeptideChain p -> p.aminoAcids
             | Sum _ -> []
 
-        static member food = FoodSubst.y |> Food
+        static member food = AchiralSubst.Food |> Simple
+        static member waste = AchiralSubst.Waste |> Simple
         static member chiralL a = a |> L |> Chiral
 
         static member fromList (a : list<ChiralAminoAcid>) = 

@@ -79,7 +79,7 @@ module ClmModel =
             |> List.distinct
 
         let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= modelParams.maxPeptideLength.length)
-        let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) synthCatalysts
+        let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction (AchiralSubst.Food, c))) synthCatalysts
         let catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) ligCatalysts
         let catRacemPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> RacemizationReaction c)) racemCatalysts
 
@@ -90,6 +90,8 @@ module ClmModel =
 
         let noOfRawReactions n = 
             match n with 
+            | FoodCreationName -> failwith ""
+            | WasteRemovalName -> failwith ""
             | SynthesisName -> chiralAminoAcids.Length
             | CatalyticSynthesisName -> catSynthPairs.Length
             | LigationName -> ligationPairs.Length
@@ -140,7 +142,7 @@ module ClmModel =
             |> List.concat
 
 
-        let synth = createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
+        let synth = createReactions (fun a -> SynthesisReaction (AchiralSubst.Food, a) |> Synthesis) chiralAminoAcids
         let lig = createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
         let racem = createReactions (fun a -> RacemizationReaction a |> Racemization) chiralAminoAcids
 
@@ -337,7 +339,11 @@ module ClmModel =
                 match kW with
                 | Some (ReactionRate _) -> 
                     match s with 
-                    | Food _ -> shift + "            " + coeffSedAllName + " * (2.0 * " + xSumName + " * " + xSumNameN + " - " + xSumSquaredNameN + ")"
+                    | Simple h ->
+                        match h with 
+                        | Abundant -> String.Empty
+                        | Food -> String.Empty
+                        | Waste -> shift + "            " + coeffSedAllName + " * (2.0 * " + xSumName + " * " + xSumNameN + " - " + xSumSquaredNameN + ")"
                     | _ -> shift + "            " + "-" + coeffSedAllName + " * (2.0 * " + xSumName + " - " + (x s) + ") * " + (x s)
                 | None -> String.Empty
 

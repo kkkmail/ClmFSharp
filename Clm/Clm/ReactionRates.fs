@@ -4,11 +4,11 @@ open System
 open System.Collections.Generic
 open FSharp.Collections
 
+open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionTypes
 
 module ReactionRates = 
-    open Substances
 
     type ReactionRate = 
         | ReactionRate of double
@@ -42,7 +42,6 @@ module ReactionRates =
 
     let getRates (fo, rf) (bo, rb) = getRatesWithSimilar (fo, rf) (bo, rb) []
     let getForwardRates (fo, rf) = getRates (fo, rf) (None, None)
-    let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
 
 
     let inline updatePrimaryReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 

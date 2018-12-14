@@ -70,10 +70,6 @@ module Substances =
         member __.atoms = 1
         member this.enantiomer = this
 
-        //static member abundant = Abundant
-        //static member food = Food
-        //static member waste = Waste
-
 
     type SumSubst = 
         | SumSubst
@@ -365,3 +361,6 @@ module Substances =
             else 
                 if a <= b then (a, b)
                 else (b, a)
+
+
+    let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))

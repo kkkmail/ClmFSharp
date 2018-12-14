@@ -4,60 +4,60 @@ open Substances
 
 module ReactionTypes = 
 
-    type ReactionName = 
-        | FoodCreationName
-        | WasteRemovalName
-        | SynthesisName
-        | CatalyticSynthesisName
-        | LigationName
-        | CatalyticLigationName
-        | SedimentationDirectName
-        | SedimentationAllName
-        | RacemizationName
-        | CatalyticRacemizationName
+    //type ReactionName = 
+    //    | FoodCreationName
+    //    | WasteRemovalName
+    //    | SynthesisName
+    //    | CatalyticSynthesisName
+    //    | LigationName
+    //    | CatalyticLigationName
+    //    | SedimentationDirectName
+    //    | SedimentationAllName
+    //    | RacemizationName
+    //    | CatalyticRacemizationName
 
-        member this.name =
-            match this with 
-            | FoodCreationName -> "food"
-            | WasteRemovalName -> "waste"
-            | SynthesisName -> "synthesis"
-            | CatalyticSynthesisName -> "catalytic synthesis"
-            | LigationName -> "ligation"
-            | CatalyticLigationName -> "catalytic ligation"
-            | SedimentationDirectName -> "sedimentation direct"
-            | SedimentationAllName -> "sedimentation all"
-            | RacemizationName -> "racemization"
-            | CatalyticRacemizationName -> "catalytic racemization"
+    //    member this.name =
+    //        match this with 
+    //        | FoodCreationName -> "food"
+    //        | WasteRemovalName -> "waste"
+    //        | SynthesisName -> "synthesis"
+    //        | CatalyticSynthesisName -> "catalytic synthesis"
+    //        | LigationName -> "ligation"
+    //        | CatalyticLigationName -> "catalytic ligation"
+    //        | SedimentationDirectName -> "sedimentation direct"
+    //        | SedimentationAllName -> "sedimentation all"
+    //        | RacemizationName -> "racemization"
+    //        | CatalyticRacemizationName -> "catalytic racemization"
 
-        static member all = 
-            [
-                FoodCreationName
-                WasteRemovalName
-                SynthesisName
-                CatalyticSynthesisName
-                LigationName
-                CatalyticLigationName
-                SedimentationDirectName
-                SedimentationAllName
-                RacemizationName
-                CatalyticRacemizationName
-            ]
+    //    static member all = 
+    //        [
+    //            FoodCreationName
+    //            WasteRemovalName
+    //            SynthesisName
+    //            CatalyticSynthesisName
+    //            LigationName
+    //            CatalyticLigationName
+    //            SedimentationDirectName
+    //            SedimentationAllName
+    //            RacemizationName
+    //            CatalyticRacemizationName
+    //        ]
 
 
-    type ReactionInfo =
-        {
-            reactionName : ReactionName
-            input : list<Substance * int>
-            output : list<Substance * int>
-        }
+    //type ReactionInfo =
+    //    {
+    //        //reactionName : string
+    //        input : list<Substance * int>
+    //        output : list<Substance * int>
+    //    }
 
-        member this.getName a = 
-            let g (l : list<Substance * int>) = 
-                l
-                |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
-                |> String.concat " + "
+        //member this.getName a = 
+        //    let g (l : list<Substance * int>) = 
+        //        l
+        //        |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
+        //        |> String.concat " + "
 
-            this.reactionName.name + ": " + (g this.input) + a + (g this.output)
+        //    this.reactionName + ": " + (g this.input) + a + (g this.output)
 
 
     type SynthesisReaction = 
@@ -66,20 +66,20 @@ module ReactionTypes =
 
         member r.input = 
             match r with 
-            | SynthesisReact a -> (Simple Food, 1)
-            | DescructionReac a -> (Chiral a, 1)
+            | SynthesisReact _ -> [ (Simple Food, 1) ]
+            | DescructionReac a -> [ (Chiral a, 1) ]
 
         member r.output = 
             match r with 
-            | SynthesisReact a -> (Chiral a, 1)
-            | DescructionReac a -> (Simple Waste, 1)
+            | SynthesisReact a -> [ (Chiral a, 1) ]
+            | DescructionReac _ -> [ (Simple Waste, 1) ]
 
-        member r.info = 
-            {
-                reactionName = ReactionName.SynthesisName
-                input = [ r.input ]
-                output = [ r.output ]
-            }
+        //member r.info = 
+        //    {
+        //        //reactionName = ReactionName.SynthesisName
+        //        input = [ r.input ]
+        //        output = [ r.output ]
+        //    }
 
             //match r with 
             //| SynthesisReact a -> 
@@ -112,14 +112,23 @@ module ReactionTypes =
     type CatalyticSynthesisReaction = 
         | CatalyticSynthesisReaction of (SynthesisReaction * SynthCatalyst)
 
-        member r.info = 
+        member r.input = 
             let (CatalyticSynthesisReaction (a, (SynthCatalyst c))) = r
-            let p = c |> PeptideChain
-            {
-                reactionName = ReactionName.CatalyticSynthesisName
-                input = [ a.input; (p, 1) ]
-                output = [ a.output; (p, 1) ]
-            }
+            a.input @ [ (c |> PeptideChain, 1) ]
+
+        member r.output = 
+            let (CatalyticSynthesisReaction (a, (SynthCatalyst c))) = r
+            a.output @ [ (c |> PeptideChain, 1) ]
+
+
+        //member r.info = 
+        //    let (CatalyticSynthesisReaction (a, (SynthCatalyst c))) = r
+        //    let p = c |> PeptideChain
+        //    {
+        //        reactionName = ReactionName.CatalyticSynthesisName
+        //        input = [ a.input; (p, 1) ]
+        //        output = [ a.output; (p, 1) ]
+        //    }
 
         member r.enantiomer = 
             let (CatalyticSynthesisReaction (a, c)) = r
@@ -129,14 +138,22 @@ module ReactionTypes =
     type LigationReaction = 
         | LigationReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
 
-        member r.info = 
+        member r.input = 
             let (LigationReaction (a, b)) = r
+            [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
 
-            {
-                reactionName = ReactionName.LigationName
-                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
-                output = [ (Substance.fromList (a @ b), 1) ]
-            }
+        member r.output = 
+            let (LigationReaction (a, b)) = r
+            [ (Substance.fromList (a @ b), 1) ]
+
+        //member r.info = 
+        //    let (LigationReaction (a, b)) = r
+
+        //    {
+        //        reactionName = ReactionName.LigationName
+        //        input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
+        //        output = [ (Substance.fromList (a @ b), 1) ]
+        //    }
 
         member r.enantiomer = 
             let (LigationReaction (a, b)) = r
@@ -154,15 +171,24 @@ module ReactionTypes =
     type CatalyticLigationReaction = 
         | CatalyticLigationReaction of (LigationReaction * LigCatalyst)
 
-        member r.info = 
+        member r.input = 
             let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst c)) = r
+            [ (Substance.fromList a, 1); (Substance.fromList b, 1); (c |> PeptideChain, 1) ]
 
-            let p = c |> PeptideChain
-            {
-                reactionName = ReactionName.CatalyticLigationName
-                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (p, 1) ]
-                output = [ (Substance.fromList (a @ b), 1); (p, 1) ]
-            }
+        member r.output = 
+            let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst c)) = r
+            [ (Substance.fromList (a @ b), 1); (c |> PeptideChain, 1) ]
+
+
+        //member r.info = 
+        //    let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst c)) = r
+
+            //let p = c |> PeptideChain
+            //{
+            //    reactionName = ReactionName.CatalyticLigationName
+            //    input = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (p, 1) ]
+            //    output = [ (Substance.fromList (a @ b), 1); (p, 1) ]
+            //}
 
         member r.enantiomer = 
             let (CatalyticLigationReaction (l, c)) = r
@@ -172,14 +198,22 @@ module ReactionTypes =
     type SedimentationDirectReaction = 
         | SedimentationDirectReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
 
-        member r.info = 
+        member r.input = 
             let (SedimentationDirectReaction (a, b)) = r
+            [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
 
-            {
-                reactionName = ReactionName.SedimentationDirectName
-                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
-                output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
-            }
+        member r.output = 
+            let (SedimentationDirectReaction (a, b)) = r
+            [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
+
+        //member r.info = 
+        //    let (SedimentationDirectReaction (a, b)) = r
+
+        //    {
+        //        reactionName = ReactionName.SedimentationDirectName
+        //        input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
+        //        output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
+        //    }
 
         member r.enantiomer = 
             let (SedimentationDirectReaction (a, b)) = r
@@ -189,12 +223,15 @@ module ReactionTypes =
     type SedimentationAllReaction = 
         | SedimentationAllReaction
 
-        member r.info = 
-            {
-                reactionName = ReactionName.SedimentationAllName
-                input = []
-                output = []
-            }
+        member r.input : list<Substance * int> = []
+        member r.output : list<Substance * int> = []
+
+        //member r.info = 
+        //    {
+        //        reactionName = ReactionName.SedimentationAllName
+        //        input = []
+        //        output = []
+        //    }
 
         member r.enantiomer = r
 
@@ -202,13 +239,21 @@ module ReactionTypes =
     type RacemizationReaction = 
         | RacemizationReaction of ChiralAminoAcid
 
-        member r.info = 
+        member r.input = 
             let (RacemizationReaction a) = r
-            {
-                reactionName = ReactionName.RacemizationName
-                input = [ (Chiral a, 1) ]
-                output = [ (Chiral a.enantiomer, 1) ]
-            }
+            [ (Chiral a, 1) ]
+
+        member r.output = 
+            let (RacemizationReaction a) = r
+            [ (Chiral a.enantiomer, 1) ]
+
+        //member r.info = 
+        //    let (RacemizationReaction a) = r
+        //    {
+        //        reactionName = ReactionName.RacemizationName
+        //        input = [ (Chiral a, 1) ]
+        //        output = [ (Chiral a.enantiomer, 1) ]
+        //    }
 
         member r.enantiomer = 
             let (RacemizationReaction a) = r
@@ -226,18 +271,31 @@ module ReactionTypes =
     type CatalyticRacemizationReaction = 
         | CatalyticRacemizationReaction of (RacemizationReaction * RacemizationCatalyst)
 
-        member r.info = 
+        member r.input = 
             let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
-            let p = c |> PeptideChain
-            {
-                reactionName = ReactionName.CatalyticRacemizationName
-                input = [ (Chiral a, 1); (p, 1) ]
-                output = [ (Chiral a.enantiomer, 1); (p, 1) ]
-            }
+            [ (Chiral a, 1); (c |> PeptideChain, 1) ]
+
+        member r.output = 
+            let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
+            [ (Chiral a.enantiomer, 1); (c |> PeptideChain, 1) ]
+
+        //member r.info = 
+        //    let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
+        //    let p = c |> PeptideChain
+        //    {
+        //        reactionName = ReactionName.CatalyticRacemizationName
+        //        input = [ (Chiral a, 1); (p, 1) ]
+        //        output = [ (Chiral a.enantiomer, 1); (p, 1) ]
+        //    }
 
         member r.enantiomer = 
             let (CatalyticRacemizationReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticRacemizationReaction
+
+
+    let inline getName i = ((^T) : (member name : 'T) (i))
+    let inline getInput i = ((^T) : (member input : 'T) (i))
+    let inline getOutput i = ((^T) : (member output : 'T) (i))
 
 
     type Reaction = 
@@ -250,27 +308,27 @@ module ReactionTypes =
         | Racemization of RacemizationReaction
         | CatalyticRacemization of CatalyticRacemizationReaction
 
-        member r.name = 
-            match r with 
-            | Synthesis _ -> SynthesisName
-            | CatalyticSynthesis _ -> CatalyticSynthesisName
-            | Ligation _ -> LigationName
-            | CatalyticLigation _ -> CatalyticLigationName
-            | SedimentationDirect _ -> SedimentationDirectName
-            | SedimentationAll _ -> SedimentationAllName
-            | Racemization _ -> RacemizationName
-            | CatalyticRacemization _ -> CatalyticRacemizationName
+        //member r.name = 
+        //    match r with 
+        //    | Synthesis _ -> SynthesisName
+        //    | CatalyticSynthesis _ -> CatalyticSynthesisName
+        //    | Ligation _ -> LigationName
+        //    | CatalyticLigation _ -> CatalyticLigationName
+        //    | SedimentationDirect _ -> SedimentationDirectName
+        //    | SedimentationAll _ -> SedimentationAllName
+        //    | Racemization _ -> RacemizationName
+        //    | CatalyticRacemization _ -> CatalyticRacemizationName
 
-        member r.info = 
+        member r.input = 
             match r with 
-            | Synthesis r -> r.info
-            | CatalyticSynthesis r -> r.info
-            | Ligation r -> r.info
-            | CatalyticLigation r -> r.info
-            | SedimentationDirect r -> r.info
-            | SedimentationAll r -> r.info
-            | Racemization r -> r.info
-            | CatalyticRacemization r -> r.info
+            | Synthesis r -> r.input
+            | CatalyticSynthesis r -> r.input
+            | Ligation r -> r.input
+            | CatalyticLigation r -> r.input
+            | SedimentationDirect r -> r.input
+            | SedimentationAll r -> r.input
+            | Racemization r -> r.input
+            | CatalyticRacemization r -> r.input
 
         member r.enantiomer = 
             match r with 

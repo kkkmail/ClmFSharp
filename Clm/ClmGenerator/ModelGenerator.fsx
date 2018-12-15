@@ -24,6 +24,9 @@ let maxPeptideLength = MaxPeptideLength.ThreeMax
 let seed = newSeed()
 let rnd = new Random(seed)
 //===========================================================
+let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.1
+let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 0.1
+//===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.0001)
 let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
@@ -51,20 +54,23 @@ let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRnd
 //===========================================================
 let rates = 
     [
-         synthModel |> SynthesisRateModel
-         //catSynthModel |> CatalyticSynthesisRateModel
+        foodModel |> FoodCreationRateModel
+        wasteModel |> WasteRemovalRateModel
 
-         destrModel |> DestructionRateModel
-         //catDestrModel |> CatalyticDestructionRateModel
+        synthModel |> SynthesisRateModel
+        //catSynthModel |> CatalyticSynthesisRateModel
 
-         //ligModel |> LigationRateModel
-         //catLigModel |> CatalyticLigationRateModel
+        destrModel |> DestructionRateModel
+        //catDestrModel |> CatalyticDestructionRateModel
 
-         //sedDirModel |> SedimentationDirectRateModel
-         //sedAllModel |> SedimentationAllRateModel
+        //ligModel |> LigationRateModel
+        //catLigModel |> CatalyticLigationRateModel
 
-         //racemModel |> RacemizationRateModel
-         //catRacemModel |> CatalyticRacemizationRateModel
+        //sedDirModel |> SedimentationDirectRateModel
+        //sedAllModel |> SedimentationAllRateModel
+
+        //racemModel |> RacemizationRateModel
+        //catRacemModel |> CatalyticRacemizationRateModel
     ]
 //===========================================================
 let modelGenerationParams = 

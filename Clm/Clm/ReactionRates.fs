@@ -21,13 +21,6 @@ module ReactionRates =
         }
 
 
-    //let noRates = 
-    //    {
-    //        primary = (None, None)
-    //        similar = []
-    //    }
-
-
     let getRatesWithSimilar (fo, rf) (bo, rb) s = 
         let g so ro = 
             match so, ro with
@@ -156,6 +149,32 @@ module ReactionRates =
             primary = (rf, rb)
             similar = [ (re, (rfe, rbe)) ]
         }
+
+
+    type FoodCreationParam = 
+        {
+            foodCreationRate : double
+        }
+
+
+    type FoodCreationModel (p : FoodCreationParam) = 
+        let rateDictionary = new Dictionary<FoodCreationReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.foodCreationRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type WasteRemovalParam = 
+        {
+            wasteRemovalRate : double
+        }
+
+
+    type WasteRemovalModel (p : WasteRemovalParam) = 
+        let rateDictionary = new Dictionary<WasteRemovalReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.wasteRemovalRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
 
 
     type SynthesisRandomParam = 
@@ -799,6 +818,8 @@ module ReactionRates =
 
 
     type ReactionRateModelParam = 
+        | FoodCreationRateParam of FoodCreationParam
+        | WasteRemovalRateParam of WasteRemovalParam
         | SynthesisRateParam of SynthesisParam
         | DestructionRateParam of DestructionParam
         | CatalyticSynthesisRateParam of CatalyticSynthesisParam
@@ -812,6 +833,8 @@ module ReactionRates =
 
 
     type ReactionRateModel = 
+        | FoodCreationRateModel of FoodCreationModel
+        | WasteRemovalRateModel of WasteRemovalModel
         | SynthesisRateModel of SynthesisModel
         | DestructionRateModel of DestructionModel
         | CatalyticSynthesisRateModel of CatalyticSynthesisModel
@@ -825,6 +848,8 @@ module ReactionRates =
 
         member rm.inputParams = 
             match rm with
+            | FoodCreationRateModel m -> m.inputParams |> FoodCreationRateParam
+            | WasteRemovalRateModel m -> m.inputParams |> WasteRemovalRateParam
             | SynthesisRateModel m -> m.inputParams |> SynthesisRateParam
             | DestructionRateModel m -> m.inputParams |> DestructionRateParam
             | CatalyticSynthesisRateModel v ->
@@ -853,6 +878,8 @@ module ReactionRates =
             rateModels: list<ReactionRateModel>
         }
 
+        member p.tryFindSFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
+        member p.tryFindSWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
         member p.tryFindSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | SynthesisRateModel m -> Some m | _ -> None)
         member p.tryFindDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | DestructionRateModel m -> Some m | _ -> None)
         member p.tryFindCatalyticSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateModel m -> Some m | _ -> None)
@@ -868,6 +895,8 @@ module ReactionRates =
     type ReactionRateProvider (p: ReactionRateProviderParams) =
         let getRatesImpl (a : Reaction) = 
             match a with 
+            | FoodCreation r -> getModelRates (p.tryFindSFoodCreationModel()) r
+            | WasteRemoval r -> getModelRates (p.tryFindSWasteRemovalModel()) r
             | Synthesis r -> getModelRates (p.tryFindSynthesisModel()) r
             | Destruction r -> getModelRates (p.tryFindDestructionModel()) r
             | CatalyticSynthesis r -> getModelRates (p.tryFindCatalyticSynthesisModel()) r
@@ -881,6 +910,18 @@ module ReactionRates =
 
         member __.providerParams = p
         member __.getRates (a : Reaction) = getRatesImpl a
+
+        static member defaultFoodCreationModel forward =
+            {
+                foodCreationRate = forward
+            }
+            |> FoodCreationModel
+
+        static member defaultWasteRemovalModel forward =
+            {
+                wasteRemovalRate = forward
+            }
+            |> WasteRemovalModel
 
         static member defaultSynthRndModel (rnd : Random) (forward, backward) =
             {

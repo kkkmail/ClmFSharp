@@ -64,7 +64,7 @@ module ModelInit =
 
         let initVals =
             allSubst
-            |> List.filter (fun s -> s.isFood |> not)
+            |> List.filter (fun s -> not s.isSimple)
             |> List.map (fun s -> orderPairs (s.aminoAcids, s.enantiomer.aminoAcids) |> fst |> Substance.fromList)
             |> List.distinct
             |> List.map (fun s -> (s, (nextValue s, nextEe())))
@@ -74,9 +74,13 @@ module ModelInit =
 
         let getValue i = 
             let s = allIndRev.[i]
-            match s.isFood with 
-            | true -> y0 - 2.0 * total
-            | false ->
+            match s with 
+            | Simple i -> 
+                match i with 
+                | Abundant -> 1.0
+                | Food -> y0 - 2.0 * total
+                | Waste -> 0.0
+            | _ ->
                 match initValsMap.TryFind s, initValsMap.TryFind s.enantiomer with 
                 | Some _, Some _ -> 0.0
                 | Some (v, e), None -> v * (1.0 + e)

@@ -52,7 +52,6 @@ module ReactionTypes =
 
     type ReactionInfo =
         {
-            //reactionName : string
             input : list<Substance * int>
             output : list<Substance * int>
         }
@@ -63,22 +62,35 @@ module ReactionTypes =
                 |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
                 |> String.concat " + "
 
-            //this.reactionName + ": " + (g this.input) + a + (g this.output)
             n + ": " + (g this.input) + a + (g this.output)
+
+
+    type FoodCreationReaction = 
+        | FoodCreationReaction
+
+        member r.info = 
+            {
+                input = [ ]
+                output = [ (Simple Food, 1) ]
+            }
+
+        member r.enantiomer = r
+
+
+    type WasteRemovalReaction = 
+        | WasteRemovalReaction
+
+        member r.info = 
+            {
+                input = [ (Simple Waste, 1) ]
+                output = [  ]
+            }
+
+        member r.enantiomer = r
 
 
     type SynthesisReaction = 
         | SynthesisReaction of ChiralAminoAcid
-
-        //member r.input = 
-        //    match r with 
-        //    | SynthesisReact _ -> 
-        //    | DescructionReac a -> [ (Chiral a, 1) ]
-
-        //member r.output = 
-        //    match r with 
-        //    | SynthesisReact a -> 
-        //    | DescructionReac _ -> [ (Simple Waste, 1) ]
 
         member r.info = 
             let (SynthesisReaction a) = r
@@ -205,7 +217,6 @@ module ReactionTypes =
             let (SedimentationDirectReaction (a, b)) = r
 
             {
-                //reactionName = ReactionName.SedimentationDirectName
                 input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
                 output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
             }
@@ -220,7 +231,6 @@ module ReactionTypes =
 
         member r.info = 
             {
-                //reactionName = ReactionName.SedimentationAllName
                 input = []
                 output = []
             }
@@ -234,7 +244,6 @@ module ReactionTypes =
         member r.info = 
             let (RacemizationReaction a) = r
             {
-                //reactionName = ReactionName.RacemizationName
                 input = [ (Chiral a, 1) ]
                 output = [ (Chiral a.enantiomer, 1) ]
             }
@@ -259,7 +268,6 @@ module ReactionTypes =
             let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
             let p = c |> PeptideChain
             {
-                //reactionName = ReactionName.CatalyticRacemizationName
                 input = [ (Chiral a, 1); (p, 1) ]
                 output = [ (Chiral a.enantiomer, 1); (p, 1) ]
             }
@@ -274,6 +282,8 @@ module ReactionTypes =
 
 
     type Reaction = 
+        | FoodCreation of FoodCreationReaction
+        | WasteRemoval of WasteRemovalReaction
         | Synthesis of SynthesisReaction
         | Destruction of DestructionReaction
         | CatalyticSynthesis of CatalyticSynthesisReaction
@@ -287,6 +297,8 @@ module ReactionTypes =
 
         member r.name = 
             match r with 
+            | FoodCreation _ -> FoodCreationName
+            | WasteRemoval _ -> WasteRemovalName
             | Synthesis _ -> SynthesisName
             | Destruction _ -> DestructionName
             | CatalyticSynthesis _ -> CatalyticSynthesisName
@@ -300,6 +312,8 @@ module ReactionTypes =
 
         member r.info = 
             match r with 
+            | FoodCreation r -> r.info
+            | WasteRemoval r -> r.info
             | Synthesis r -> r.info
             | Destruction r -> r.info
             | CatalyticSynthesis r -> r.info
@@ -313,6 +327,8 @@ module ReactionTypes =
 
         member r.enantiomer = 
             match r with 
+            | FoodCreation r -> r.enantiomer |> FoodCreation
+            | WasteRemoval r -> r.enantiomer |> WasteRemoval
             | Synthesis r -> r.enantiomer |> Synthesis
             | Destruction r -> r.enantiomer |> Destruction
             | CatalyticSynthesis r -> r.enantiomer |> CatalyticSynthesis

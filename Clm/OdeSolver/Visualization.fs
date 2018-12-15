@@ -173,7 +173,7 @@ module Visualization =
 
 
             Chart.Combine(
-                    [ Chart.Line(totalData, Name = "Total"); Chart.Line(minData, Name = "Min"); Chart.Line(yData, Name = Substance.food.name) ]
+                    [ Chart.Line(totalData, Name = "Total"); Chart.Line(minData, Name = "Min"); Chart.Line(yData, Name = AchiralSubst.Food.name) ]
                     @ [ for level in 1..p.modelDataParams.modelInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) ]
                     )
             |> Chart.withX_AxisStyle("t", MinMax = (o.startTime, o.endTime))

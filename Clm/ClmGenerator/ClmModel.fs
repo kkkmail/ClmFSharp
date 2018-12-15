@@ -92,8 +92,8 @@ module ClmModel =
 
         let noOfRawReactions n = 
             match n with 
-            | FoodCreationName -> -1
-            | WasteRemovalName -> -1
+            | FoodCreationName -> 1
+            | WasteRemovalName -> 1
             | SynthesisName -> chiralAminoAcids.Length
             | DestructionName -> chiralAminoAcids.Length
             | CatalyticSynthesisName -> catSynthPairs.Length

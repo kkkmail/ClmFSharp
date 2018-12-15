@@ -114,6 +114,55 @@ module FSharpCodeExt =
             | CatSynthSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatSynthSimParam" + Nl)
 
 
+    type DestructionRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                destructionDistribution = " + p.destructionDistribution.toFSharpCode + Nl +
+            shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
+            shift + "                backwardScale = " + (doubleOptFSharpString p.backwardScale) + Nl +
+            shift + "            }" + Nl
+
+
+    type DestructionParam
+        with 
+
+        member p.toFSharpCode (shift : string) = 
+            match p with 
+            | DestrRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "DestrRndParam" + Nl)
+
+
+    type CatalyticDestructionRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                catDestrDistribution = " + p.catDestrDistribution.toFSharpCode + Nl +
+            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
+            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "            }" + Nl
+
+
+    type CatalyticDestructionSimilarParam
+        with
+
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+            shift + "            {" + Nl +
+            shift + "                simDestrDistribution = " + p.simDestrDistribution.toFSharpCode + Nl +
+            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
+            shift + "            }" + Nl
+
+
+    type CatalyticDestructionParam
+        with 
+
+        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+            match p with 
+            | CatDestrRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatDestrRndParam" + Nl)
+            | CatDestrSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatDestrSimParam" + Nl)
+
+
     type SedimentationDirectRandomParam
         with
 
@@ -249,7 +298,9 @@ module FSharpCodeExt =
         member rm.toFSharpCode (p : FSharpCodeParams) = 
             match rm with 
             | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
+            | DestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> DestructionRateParam" + Nl
             | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl
+            | CatalyticDestructionRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticDestructionRateParam" + Nl
             | LigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> LigationRateParam" + Nl
             | CatalyticLigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticLigationRateParam" + Nl
             | SedimentationDirectRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationDirectRateParam" + Nl

@@ -30,6 +30,12 @@ let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.2, numberOfAminoAcids)
 //===========================================================
+let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.0001)
+let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
+//let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
+//let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
+let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.2, numberOfAminoAcids)
+//===========================================================
 let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.00005), 2000.0)
@@ -48,14 +54,17 @@ let rates =
          synthModel |> SynthesisRateModel
          //catSynthModel |> CatalyticSynthesisRateModel
 
+         destrModel |> DestructionRateModel
+         //catDestrModel |> CatalyticDestructionRateModel
+
          //ligModel |> LigationRateModel
          //catLigModel |> CatalyticLigationRateModel
 
          //sedDirModel |> SedimentationDirectRateModel
          //sedAllModel |> SedimentationAllRateModel
 
-         racemModel |> RacemizationRateModel
-         catRacemModel |> CatalyticRacemizationRateModel
+         //racemModel |> RacemizationRateModel
+         //catRacemModel |> CatalyticRacemizationRateModel
     ]
 //===========================================================
 let modelGenerationParams = 

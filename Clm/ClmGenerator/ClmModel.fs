@@ -67,6 +67,7 @@ module ClmModel =
         let chiralAminoAcids = ChiralAminoAcid.getAminoAcids modelParams.numberOfAminoAcids
         let peptides = Peptide.getPeptides modelParams.maxPeptideLength modelParams.numberOfAminoAcids
         let synthCatalysts = peptides |> List.map (fun p -> SynthCatalyst p)
+        let destrCatalysts = peptides |> List.map (fun p -> DestrCatalyst p)
         let ligCatalysts = peptides |> List.map (fun p -> LigCatalyst p)
         let racemCatalysts = peptides |> List.map (fun p -> RacemizationCatalyst p)
 
@@ -79,7 +80,8 @@ module ClmModel =
             |> List.distinct
 
         let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= modelParams.maxPeptideLength.length)
-        let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction (AchiralSubst.Food, c))) synthCatalysts
+        let catSynthPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) synthCatalysts
+        let catDestrPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> DestructionReaction c)) destrCatalysts
         let catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) ligCatalysts
         let catRacemPairs = List.allPairs (chiralAminoAcids |> List.map (fun c -> RacemizationReaction c)) racemCatalysts
 
@@ -93,7 +95,9 @@ module ClmModel =
             | FoodCreationName -> failwith ""
             | WasteRemovalName -> failwith ""
             | SynthesisName -> chiralAminoAcids.Length
+            | DestructionName -> chiralAminoAcids.Length
             | CatalyticSynthesisName -> catSynthPairs.Length
+            | CatalyticDestructionName -> catDestrPairs.Length
             | LigationName -> ligationPairs.Length
             | CatalyticLigationName -> catLigPairs.Length
             | SedimentationDirectName -> allPairs.Length
@@ -142,7 +146,8 @@ module ClmModel =
             |> List.concat
 
 
-        let synth = createReactions (fun a -> SynthesisReaction (AchiralSubst.Food, a) |> Synthesis) chiralAminoAcids
+        let synth = createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
+        let destr = createReactions (fun a -> DestructionReaction a |> Destruction) chiralAminoAcids
         let lig = createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
         let racem = createReactions (fun a -> RacemizationReaction a |> Racemization) chiralAminoAcids
 
@@ -153,11 +158,12 @@ module ClmModel =
 
         let sedDir = createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
         let catSynth = createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
+        let catDestr = createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
         let catLig = createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
         let catRacem = createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
         let allReac = 
-            synth @ catSynth @ lig @ catLig @ sedDir @ racem @ catRacem
+            synth @ catSynth @ destr @ catDestr @ lig @ catLig @ sedDir @ racem @ catRacem
             |> List.distinct
 
         let kW = 

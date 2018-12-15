@@ -87,13 +87,13 @@ module Reactions =
             | Reversible r -> r.reaction.name
 
         member this.fullName = 
-            let a, i =
+            let a, i, n =
                 match this with
-                | Forward r -> " -> ", r.reaction
-                | Backward r -> " <- ", r.reaction
-                | Reversible r -> " <-> ", r.reaction
+                | Forward r -> " -> ", r.reaction, r.reaction.name.name
+                | Backward r -> " <- ", r.reaction, r.reaction.name.name
+                | Reversible r -> " <-> ", r.reaction, r.reaction.name.name
 
-            i.info.getName a
+            i.info.getName n a
 
         static member tryCreateReaction g i = 
             match ReversibleReaction.tryCreate g i with 

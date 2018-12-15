@@ -70,7 +70,7 @@ module ReactionTypes =
 
         member r.info = 
             {
-                input = [ ]
+                input = [ (Simple Abundant, 0) ]
                 output = [ (Simple Food, 1) ]
             }
 
@@ -83,7 +83,7 @@ module ReactionTypes =
         member r.info = 
             {
                 input = [ (Simple Waste, 1) ]
-                output = [  ]
+                output = []
             }
 
         member r.enantiomer = r

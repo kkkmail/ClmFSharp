@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1401787956
+    let seedValue = 924142308
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -325,7 +325,6 @@ module ModelData =
         |]
 
 
-
     // 0 - X
     let d0 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
@@ -344,6 +343,7 @@ module ModelData =
             -0.001 * x.[1] // Y | synthesis: Y <-> a
             0.0001 * x.[3] // A | synthesis: Y <-> A
             -0.001 * x.[1] // Y | synthesis: Y <-> A
+            0.1 * 1.0 // 0 X | food: 0 X -> Y
         |]
         |> Array.sum
 
@@ -359,6 +359,7 @@ module ModelData =
             0.001 * x.[5] // a | destruction: a <-> Z
             -0.0001 * x.[2] // Z | destruction: A <-> Z
             0.001 * x.[3] // A | destruction: A <-> Z
+            -0.1 * x.[2] // Z | waste: Z -> 
         |]
         |> Array.sum
 
@@ -1252,7 +1253,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.2.0.0"
                             versionNumber = "1.2.0.0"
                             seedValue = seedValue
-                            modelName = "20181214_004"
+                            modelName = "20181214_008"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1261,7 +1262,17 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(141917952, { threshold = None }) |> Delta
+                                foodCreationRate = 0.1
+                            }
+                            |> FoodCreationRateParam
+
+                            {
+                                wasteRemovalRate = 0.1
+                            }
+                            |> WasteRemovalRateParam
+
+                            {
+                                synthesisDistribution = DeltaDistribution(727167406, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -1269,7 +1280,7 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(2031911436, { threshold = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(119568534, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -1286,8 +1297,8 @@ module ModelData =
 
             allRawReactions = 
                 [
-                    (FoodCreationName, -1)
-                    (WasteRemovalName, -1)
+                    (FoodCreationName, 1)
+                    (WasteRemovalName, 1)
                     (SynthesisName, 4)
                     (DestructionName, 4)
                     (CatalyticSynthesisName, 320)
@@ -1302,6 +1313,8 @@ module ModelData =
 
             allReactions = 
                 [
+                    (FoodCreationName, 1)
+                    (WasteRemovalName, 1)
                     (SynthesisName, 4)
                     (DestructionName, 4)
                 ]

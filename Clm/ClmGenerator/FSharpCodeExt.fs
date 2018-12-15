@@ -65,6 +65,24 @@ module FSharpCodeExt =
             | Triangular d -> d.toFSharpCode + " |> Triangular"
 
 
+    type FoodCreationParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                foodCreationRate = " + (doubleFSharpString p.foodCreationRate) + Nl +
+            shift + "            }" + Nl
+
+
+    type WasteRemovalParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                wasteRemovalRate = " + (doubleFSharpString p.wasteRemovalRate) + Nl +
+            shift + "            }" + Nl
+
+
     type SynthesisRandomParam
         with
 
@@ -297,6 +315,8 @@ module FSharpCodeExt =
 
         member rm.toFSharpCode (p : FSharpCodeParams) = 
             match rm with 
+            | FoodCreationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> FoodCreationRateParam" + Nl
+            | WasteRemovalRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRemovalRateParam" + Nl
             | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
             | DestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> DestructionRateParam" + Nl
             | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl

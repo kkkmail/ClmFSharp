@@ -145,7 +145,9 @@ module ClmModel =
             |> List.choose id
             |> List.concat
 
-
+        let food = 
+            [ AnyReaction.tryCreateReaction rateProvider (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+        let waste = [ AnyReaction.tryCreateReaction rateProvider (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
         let synth = createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
         let destr = createReactions (fun a -> DestructionReaction a |> Destruction) chiralAminoAcids
         let lig = createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
@@ -163,7 +165,7 @@ module ClmModel =
         let catRacem = createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
         let allReac = 
-            synth @ catSynth @ destr @ catDestr @ lig @ catLig @ sedDir @ racem @ catRacem
+            food @ waste @ synth @ catSynth @ destr @ catDestr @ lig @ catLig @ sedDir @ racem @ catRacem
             |> List.distinct
 
         let kW = 
@@ -225,6 +227,7 @@ module ClmModel =
         let rate (l : list<Substance * int>) (ReactionRate r) = 
             let toPown s n = 
                 match n with 
+                | 0 -> "1.0"
                 | 1 -> x s
                 | _ -> "(pown " + (x s) + " " + n.ToString() + ")"
 

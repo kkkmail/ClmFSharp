@@ -92,8 +92,8 @@ module ClmModel =
 
         let noOfRawReactions n = 
             match n with 
-            | FoodCreationName -> failwith ""
-            | WasteRemovalName -> failwith ""
+            | FoodCreationName -> -1
+            | WasteRemovalName -> -1
             | SynthesisName -> chiralAminoAcids.Length
             | DestructionName -> chiralAminoAcids.Length
             | CatalyticSynthesisName -> catSynthPairs.Length
@@ -107,7 +107,7 @@ module ClmModel =
 
 
         let allSubst = 
-            [ Substance.food ]
+            Substance.allSimple
             @
             (chiralAminoAcids |> List.map (fun a -> Chiral a))
             @
@@ -123,7 +123,7 @@ module ClmModel =
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
     let allSubst = 
-        [ Substance.food ]
+        Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))
         @
@@ -297,7 +297,7 @@ module ClmModel =
             "    let getTotals (x : array<double>) = " + nl +
             "        [|" + nl +
             x +
-            "        |]" + nl
+            "        |]"
 
         let generateTotalSubst() = 
             let x =
@@ -395,13 +395,13 @@ module ClmModel =
 
             let sc = 
                 allSubst
-                |> List.filter (fun s -> not s.isFood)
+                |> List.filter (fun s -> not s.isSimple)
                 |> List.map (fun s -> "                " + (s.atoms.ToString()) + ".0 * " + (x s) + " // " + (substToString s))
                 |> String.concat nl
 
             let sc2 = 
                 allSubst
-                |> List.filter (fun s -> not s.isFood)
+                |> List.filter (fun s -> not s.isSimple)
                 |> List.map (fun s -> "                " + (s.atoms.ToString()) + ".0 * " + (x s) + " * " + (x s) + " // " + (substToString s))
                 |> String.concat nl
 

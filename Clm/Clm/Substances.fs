@@ -59,6 +59,13 @@ module Substances =
         | Food
         | Waste
 
+        static member all = 
+            [
+                Abundant
+                Food
+                Waste
+            ]
+
         member __.length = 0
 
         member this.name = 
@@ -309,7 +316,7 @@ module Substances =
                 | n -> Some n
             | Sum _ -> None
 
-        member substance.isFood = 
+        member substance.isSimple = 
             match substance with 
             | Simple _ -> true
             | Chiral _ -> false
@@ -337,8 +344,13 @@ module Substances =
             | PeptideChain p -> p.aminoAcids
             | Sum _ -> []
 
-        static member food = AchiralSubst.Food |> Simple
-        static member waste = AchiralSubst.Waste |> Simple
+        //static member food = AchiralSubst.Food |> Simple
+        //static member waste = AchiralSubst.Waste |> Simple
+
+        static member allSimple = 
+            AchiralSubst.all
+            |> List.map (fun e -> e |> Simple)
+
         static member chiralL a = a |> L |> Chiral
 
         static member fromList (a : list<ChiralAminoAcid>) = 

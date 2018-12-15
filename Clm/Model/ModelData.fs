@@ -7,17 +7,17 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1187743572
+    let seedValue = 1401787956
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
-    let numberOfSubstances = 85
+    let numberOfSubstances = 87
 
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
     let allSubst = 
-        [ Substance.food ]
+        Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))
         @
@@ -28,91 +28,93 @@ module ModelData =
 
     let getTotalSubst (x : array<double>) = 
         [|
-            x.[0] // Y
-            x.[1] // A
-            x.[2] // B
-            x.[3] // a
-            x.[4] // b
-            2.0 * x.[5] // AA
-            2.0 * x.[6] // AB
-            2.0 * x.[7] // Aa
-            2.0 * x.[8] // Ab
-            2.0 * x.[9] // BA
-            2.0 * x.[10] // BB
-            2.0 * x.[11] // Ba
-            2.0 * x.[12] // Bb
-            2.0 * x.[13] // aA
-            2.0 * x.[14] // aB
-            2.0 * x.[15] // aa
-            2.0 * x.[16] // ab
-            2.0 * x.[17] // bA
-            2.0 * x.[18] // bB
-            2.0 * x.[19] // ba
-            2.0 * x.[20] // bb
-            3.0 * x.[21] // AAA
-            3.0 * x.[22] // AAB
-            3.0 * x.[23] // AAa
-            3.0 * x.[24] // AAb
-            3.0 * x.[25] // ABA
-            3.0 * x.[26] // ABB
-            3.0 * x.[27] // ABa
-            3.0 * x.[28] // ABb
-            3.0 * x.[29] // AaA
-            3.0 * x.[30] // AaB
-            3.0 * x.[31] // Aaa
-            3.0 * x.[32] // Aab
-            3.0 * x.[33] // AbA
-            3.0 * x.[34] // AbB
-            3.0 * x.[35] // Aba
-            3.0 * x.[36] // Abb
-            3.0 * x.[37] // BAA
-            3.0 * x.[38] // BAB
-            3.0 * x.[39] // BAa
-            3.0 * x.[40] // BAb
-            3.0 * x.[41] // BBA
-            3.0 * x.[42] // BBB
-            3.0 * x.[43] // BBa
-            3.0 * x.[44] // BBb
-            3.0 * x.[45] // BaA
-            3.0 * x.[46] // BaB
-            3.0 * x.[47] // Baa
-            3.0 * x.[48] // Bab
-            3.0 * x.[49] // BbA
-            3.0 * x.[50] // BbB
-            3.0 * x.[51] // Bba
-            3.0 * x.[52] // Bbb
-            3.0 * x.[53] // aAA
-            3.0 * x.[54] // aAB
-            3.0 * x.[55] // aAa
-            3.0 * x.[56] // aAb
-            3.0 * x.[57] // aBA
-            3.0 * x.[58] // aBB
-            3.0 * x.[59] // aBa
-            3.0 * x.[60] // aBb
-            3.0 * x.[61] // aaA
-            3.0 * x.[62] // aaB
-            3.0 * x.[63] // aaa
-            3.0 * x.[64] // aab
-            3.0 * x.[65] // abA
-            3.0 * x.[66] // abB
-            3.0 * x.[67] // aba
-            3.0 * x.[68] // abb
-            3.0 * x.[69] // bAA
-            3.0 * x.[70] // bAB
-            3.0 * x.[71] // bAa
-            3.0 * x.[72] // bAb
-            3.0 * x.[73] // bBA
-            3.0 * x.[74] // bBB
-            3.0 * x.[75] // bBa
-            3.0 * x.[76] // bBb
-            3.0 * x.[77] // baA
-            3.0 * x.[78] // baB
-            3.0 * x.[79] // baa
-            3.0 * x.[80] // bab
-            3.0 * x.[81] // bbA
-            3.0 * x.[82] // bbB
-            3.0 * x.[83] // bba
-            3.0 * x.[84] // bbb
+            x.[0] // X
+            x.[1] // Y
+            x.[2] // Z
+            x.[3] // A
+            x.[4] // B
+            x.[5] // a
+            x.[6] // b
+            2.0 * x.[7] // AA
+            2.0 * x.[8] // AB
+            2.0 * x.[9] // Aa
+            2.0 * x.[10] // Ab
+            2.0 * x.[11] // BA
+            2.0 * x.[12] // BB
+            2.0 * x.[13] // Ba
+            2.0 * x.[14] // Bb
+            2.0 * x.[15] // aA
+            2.0 * x.[16] // aB
+            2.0 * x.[17] // aa
+            2.0 * x.[18] // ab
+            2.0 * x.[19] // bA
+            2.0 * x.[20] // bB
+            2.0 * x.[21] // ba
+            2.0 * x.[22] // bb
+            3.0 * x.[23] // AAA
+            3.0 * x.[24] // AAB
+            3.0 * x.[25] // AAa
+            3.0 * x.[26] // AAb
+            3.0 * x.[27] // ABA
+            3.0 * x.[28] // ABB
+            3.0 * x.[29] // ABa
+            3.0 * x.[30] // ABb
+            3.0 * x.[31] // AaA
+            3.0 * x.[32] // AaB
+            3.0 * x.[33] // Aaa
+            3.0 * x.[34] // Aab
+            3.0 * x.[35] // AbA
+            3.0 * x.[36] // AbB
+            3.0 * x.[37] // Aba
+            3.0 * x.[38] // Abb
+            3.0 * x.[39] // BAA
+            3.0 * x.[40] // BAB
+            3.0 * x.[41] // BAa
+            3.0 * x.[42] // BAb
+            3.0 * x.[43] // BBA
+            3.0 * x.[44] // BBB
+            3.0 * x.[45] // BBa
+            3.0 * x.[46] // BBb
+            3.0 * x.[47] // BaA
+            3.0 * x.[48] // BaB
+            3.0 * x.[49] // Baa
+            3.0 * x.[50] // Bab
+            3.0 * x.[51] // BbA
+            3.0 * x.[52] // BbB
+            3.0 * x.[53] // Bba
+            3.0 * x.[54] // Bbb
+            3.0 * x.[55] // aAA
+            3.0 * x.[56] // aAB
+            3.0 * x.[57] // aAa
+            3.0 * x.[58] // aAb
+            3.0 * x.[59] // aBA
+            3.0 * x.[60] // aBB
+            3.0 * x.[61] // aBa
+            3.0 * x.[62] // aBb
+            3.0 * x.[63] // aaA
+            3.0 * x.[64] // aaB
+            3.0 * x.[65] // aaa
+            3.0 * x.[66] // aab
+            3.0 * x.[67] // abA
+            3.0 * x.[68] // abB
+            3.0 * x.[69] // aba
+            3.0 * x.[70] // abb
+            3.0 * x.[71] // bAA
+            3.0 * x.[72] // bAB
+            3.0 * x.[73] // bAa
+            3.0 * x.[74] // bAb
+            3.0 * x.[75] // bBA
+            3.0 * x.[76] // bBB
+            3.0 * x.[77] // bBa
+            3.0 * x.[78] // bBb
+            3.0 * x.[79] // baA
+            3.0 * x.[80] // baB
+            3.0 * x.[81] // baa
+            3.0 * x.[82] // bab
+            3.0 * x.[83] // bbA
+            3.0 * x.[84] // bbB
+            3.0 * x.[85] // bba
+            3.0 * x.[86] // bbb
         |]
         |> Array.sum
 
@@ -122,100 +124,100 @@ module ModelData =
             // A
             (
                 [|
-                    x.[1] // A
-                    2.0 * x.[5] // AA
-                    x.[6] // AB
-                    x.[7] // Aa
-                    x.[8] // Ab
-                    x.[9] // BA
-                    x.[13] // aA
-                    x.[17] // bA
-                    3.0 * x.[21] // AAA
-                    2.0 * x.[22] // AAB
-                    2.0 * x.[23] // AAa
-                    2.0 * x.[24] // AAb
-                    2.0 * x.[25] // ABA
-                    x.[26] // ABB
-                    x.[27] // ABa
-                    x.[28] // ABb
-                    2.0 * x.[29] // AaA
-                    x.[30] // AaB
-                    x.[31] // Aaa
-                    x.[32] // Aab
-                    2.0 * x.[33] // AbA
-                    x.[34] // AbB
-                    x.[35] // Aba
-                    x.[36] // Abb
-                    2.0 * x.[37] // BAA
-                    x.[38] // BAB
-                    x.[39] // BAa
-                    x.[40] // BAb
-                    x.[41] // BBA
-                    x.[45] // BaA
-                    x.[49] // BbA
-                    2.0 * x.[53] // aAA
-                    x.[54] // aAB
-                    x.[55] // aAa
-                    x.[56] // aAb
-                    x.[57] // aBA
-                    x.[61] // aaA
-                    x.[65] // abA
-                    2.0 * x.[69] // bAA
-                    x.[70] // bAB
-                    x.[71] // bAa
-                    x.[72] // bAb
-                    x.[73] // bBA
-                    x.[77] // baA
-                    x.[81] // bbA
+                    x.[3] // A
+                    2.0 * x.[7] // AA
+                    x.[8] // AB
+                    x.[9] // Aa
+                    x.[10] // Ab
+                    x.[11] // BA
+                    x.[15] // aA
+                    x.[19] // bA
+                    3.0 * x.[23] // AAA
+                    2.0 * x.[24] // AAB
+                    2.0 * x.[25] // AAa
+                    2.0 * x.[26] // AAb
+                    2.0 * x.[27] // ABA
+                    x.[28] // ABB
+                    x.[29] // ABa
+                    x.[30] // ABb
+                    2.0 * x.[31] // AaA
+                    x.[32] // AaB
+                    x.[33] // Aaa
+                    x.[34] // Aab
+                    2.0 * x.[35] // AbA
+                    x.[36] // AbB
+                    x.[37] // Aba
+                    x.[38] // Abb
+                    2.0 * x.[39] // BAA
+                    x.[40] // BAB
+                    x.[41] // BAa
+                    x.[42] // BAb
+                    x.[43] // BBA
+                    x.[47] // BaA
+                    x.[51] // BbA
+                    2.0 * x.[55] // aAA
+                    x.[56] // aAB
+                    x.[57] // aAa
+                    x.[58] // aAb
+                    x.[59] // aBA
+                    x.[63] // aaA
+                    x.[67] // abA
+                    2.0 * x.[71] // bAA
+                    x.[72] // bAB
+                    x.[73] // bAa
+                    x.[74] // bAb
+                    x.[75] // bBA
+                    x.[79] // baA
+                    x.[83] // bbA
                 |]
                 |> Array.sum
                 ,
                 [|
-                    x.[3] // a
-                    x.[7] // Aa
-                    x.[11] // Ba
-                    x.[13] // aA
-                    x.[14] // aB
-                    2.0 * x.[15] // aa
-                    x.[16] // ab
-                    x.[19] // ba
-                    x.[23] // AAa
-                    x.[27] // ABa
-                    x.[29] // AaA
-                    x.[30] // AaB
-                    2.0 * x.[31] // Aaa
-                    x.[32] // Aab
-                    x.[35] // Aba
-                    x.[39] // BAa
-                    x.[43] // BBa
-                    x.[45] // BaA
-                    x.[46] // BaB
-                    2.0 * x.[47] // Baa
-                    x.[48] // Bab
-                    x.[51] // Bba
-                    x.[53] // aAA
-                    x.[54] // aAB
-                    2.0 * x.[55] // aAa
-                    x.[56] // aAb
-                    x.[57] // aBA
-                    x.[58] // aBB
-                    2.0 * x.[59] // aBa
-                    x.[60] // aBb
-                    2.0 * x.[61] // aaA
-                    2.0 * x.[62] // aaB
-                    3.0 * x.[63] // aaa
-                    2.0 * x.[64] // aab
-                    x.[65] // abA
-                    x.[66] // abB
-                    2.0 * x.[67] // aba
-                    x.[68] // abb
-                    x.[71] // bAa
-                    x.[75] // bBa
-                    x.[77] // baA
-                    x.[78] // baB
-                    2.0 * x.[79] // baa
-                    x.[80] // bab
-                    x.[83] // bba
+                    x.[5] // a
+                    x.[9] // Aa
+                    x.[13] // Ba
+                    x.[15] // aA
+                    x.[16] // aB
+                    2.0 * x.[17] // aa
+                    x.[18] // ab
+                    x.[21] // ba
+                    x.[25] // AAa
+                    x.[29] // ABa
+                    x.[31] // AaA
+                    x.[32] // AaB
+                    2.0 * x.[33] // Aaa
+                    x.[34] // Aab
+                    x.[37] // Aba
+                    x.[41] // BAa
+                    x.[45] // BBa
+                    x.[47] // BaA
+                    x.[48] // BaB
+                    2.0 * x.[49] // Baa
+                    x.[50] // Bab
+                    x.[53] // Bba
+                    x.[55] // aAA
+                    x.[56] // aAB
+                    2.0 * x.[57] // aAa
+                    x.[58] // aAb
+                    x.[59] // aBA
+                    x.[60] // aBB
+                    2.0 * x.[61] // aBa
+                    x.[62] // aBb
+                    2.0 * x.[63] // aaA
+                    2.0 * x.[64] // aaB
+                    3.0 * x.[65] // aaa
+                    2.0 * x.[66] // aab
+                    x.[67] // abA
+                    x.[68] // abB
+                    2.0 * x.[69] // aba
+                    x.[70] // abb
+                    x.[73] // bAa
+                    x.[77] // bBa
+                    x.[79] // baA
+                    x.[80] // baB
+                    2.0 * x.[81] // baa
+                    x.[82] // bab
+                    x.[85] // bba
                 |]
                 |> Array.sum
             )
@@ -223,100 +225,100 @@ module ModelData =
             // B
             (
                 [|
-                    x.[2] // B
-                    x.[6] // AB
-                    x.[9] // BA
-                    2.0 * x.[10] // BB
-                    x.[11] // Ba
-                    x.[12] // Bb
-                    x.[14] // aB
-                    x.[18] // bB
-                    x.[22] // AAB
-                    x.[25] // ABA
-                    2.0 * x.[26] // ABB
-                    x.[27] // ABa
-                    x.[28] // ABb
-                    x.[30] // AaB
-                    x.[34] // AbB
-                    x.[37] // BAA
-                    2.0 * x.[38] // BAB
-                    x.[39] // BAa
-                    x.[40] // BAb
-                    2.0 * x.[41] // BBA
-                    3.0 * x.[42] // BBB
-                    2.0 * x.[43] // BBa
-                    2.0 * x.[44] // BBb
-                    x.[45] // BaA
-                    2.0 * x.[46] // BaB
-                    x.[47] // Baa
-                    x.[48] // Bab
-                    x.[49] // BbA
-                    2.0 * x.[50] // BbB
-                    x.[51] // Bba
-                    x.[52] // Bbb
-                    x.[54] // aAB
-                    x.[57] // aBA
-                    2.0 * x.[58] // aBB
-                    x.[59] // aBa
-                    x.[60] // aBb
-                    x.[62] // aaB
-                    x.[66] // abB
-                    x.[70] // bAB
-                    x.[73] // bBA
-                    2.0 * x.[74] // bBB
-                    x.[75] // bBa
-                    x.[76] // bBb
-                    x.[78] // baB
-                    x.[82] // bbB
+                    x.[4] // B
+                    x.[8] // AB
+                    x.[11] // BA
+                    2.0 * x.[12] // BB
+                    x.[13] // Ba
+                    x.[14] // Bb
+                    x.[16] // aB
+                    x.[20] // bB
+                    x.[24] // AAB
+                    x.[27] // ABA
+                    2.0 * x.[28] // ABB
+                    x.[29] // ABa
+                    x.[30] // ABb
+                    x.[32] // AaB
+                    x.[36] // AbB
+                    x.[39] // BAA
+                    2.0 * x.[40] // BAB
+                    x.[41] // BAa
+                    x.[42] // BAb
+                    2.0 * x.[43] // BBA
+                    3.0 * x.[44] // BBB
+                    2.0 * x.[45] // BBa
+                    2.0 * x.[46] // BBb
+                    x.[47] // BaA
+                    2.0 * x.[48] // BaB
+                    x.[49] // Baa
+                    x.[50] // Bab
+                    x.[51] // BbA
+                    2.0 * x.[52] // BbB
+                    x.[53] // Bba
+                    x.[54] // Bbb
+                    x.[56] // aAB
+                    x.[59] // aBA
+                    2.0 * x.[60] // aBB
+                    x.[61] // aBa
+                    x.[62] // aBb
+                    x.[64] // aaB
+                    x.[68] // abB
+                    x.[72] // bAB
+                    x.[75] // bBA
+                    2.0 * x.[76] // bBB
+                    x.[77] // bBa
+                    x.[78] // bBb
+                    x.[80] // baB
+                    x.[84] // bbB
                 |]
                 |> Array.sum
                 ,
                 [|
-                    x.[4] // b
-                    x.[8] // Ab
-                    x.[12] // Bb
-                    x.[16] // ab
-                    x.[17] // bA
-                    x.[18] // bB
-                    x.[19] // ba
-                    2.0 * x.[20] // bb
-                    x.[24] // AAb
-                    x.[28] // ABb
-                    x.[32] // Aab
-                    x.[33] // AbA
-                    x.[34] // AbB
-                    x.[35] // Aba
-                    2.0 * x.[36] // Abb
-                    x.[40] // BAb
-                    x.[44] // BBb
-                    x.[48] // Bab
-                    x.[49] // BbA
-                    x.[50] // BbB
-                    x.[51] // Bba
-                    2.0 * x.[52] // Bbb
-                    x.[56] // aAb
-                    x.[60] // aBb
-                    x.[64] // aab
-                    x.[65] // abA
-                    x.[66] // abB
-                    x.[67] // aba
-                    2.0 * x.[68] // abb
-                    x.[69] // bAA
-                    x.[70] // bAB
-                    x.[71] // bAa
-                    2.0 * x.[72] // bAb
-                    x.[73] // bBA
-                    x.[74] // bBB
-                    x.[75] // bBa
-                    2.0 * x.[76] // bBb
-                    x.[77] // baA
-                    x.[78] // baB
-                    x.[79] // baa
-                    2.0 * x.[80] // bab
-                    2.0 * x.[81] // bbA
-                    2.0 * x.[82] // bbB
-                    2.0 * x.[83] // bba
-                    3.0 * x.[84] // bbb
+                    x.[6] // b
+                    x.[10] // Ab
+                    x.[14] // Bb
+                    x.[18] // ab
+                    x.[19] // bA
+                    x.[20] // bB
+                    x.[21] // ba
+                    2.0 * x.[22] // bb
+                    x.[26] // AAb
+                    x.[30] // ABb
+                    x.[34] // Aab
+                    x.[35] // AbA
+                    x.[36] // AbB
+                    x.[37] // Aba
+                    2.0 * x.[38] // Abb
+                    x.[42] // BAb
+                    x.[46] // BBb
+                    x.[50] // Bab
+                    x.[51] // BbA
+                    x.[52] // BbB
+                    x.[53] // Bba
+                    2.0 * x.[54] // Bbb
+                    x.[58] // aAb
+                    x.[62] // aBb
+                    x.[66] // aab
+                    x.[67] // abA
+                    x.[68] // abB
+                    x.[69] // aba
+                    2.0 * x.[70] // abb
+                    x.[71] // bAA
+                    x.[72] // bAB
+                    x.[73] // bAa
+                    2.0 * x.[74] // bAb
+                    x.[75] // bBA
+                    x.[76] // bBB
+                    x.[77] // bBa
+                    2.0 * x.[78] // bBb
+                    x.[79] // baA
+                    x.[80] // baB
+                    x.[81] // baa
+                    2.0 * x.[82] // bab
+                    2.0 * x.[83] // bbA
+                    2.0 * x.[84] // bbB
+                    2.0 * x.[85] // bba
+                    3.0 * x.[86] // bbb
                 |]
                 |> Array.sum
             )
@@ -324,636 +326,642 @@ module ModelData =
 
 
 
-    // 0 - Y
+    // 0 - X
     let d0 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            0.0001 * x.[4] // b | synthesis: Y <-> b
-            -0.001 * x.[0] // Y | synthesis: Y <-> b
-            0.0001 * x.[2] // B | synthesis: Y <-> B
-            -0.001 * x.[0] // Y | synthesis: Y <-> B
-            0.0001 * x.[3] // a | synthesis: Y <-> a
-            -0.001 * x.[0] // Y | synthesis: Y <-> a
-            0.0001 * x.[1] // A | synthesis: Y <-> A
-            -0.001 * x.[0] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
 
-    // 1 - A
+    // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            0.001 * x.[3] // a | racemization: a -> A
-            -0.001 * x.[1] // A | racemization: A -> a
-            -0.0001 * x.[1] // A | synthesis: Y <-> A
-            0.001 * x.[0] // Y | synthesis: Y <-> A
+            0.0001 * x.[6] // b | synthesis: Y <-> b
+            -0.001 * x.[1] // Y | synthesis: Y <-> b
+            0.0001 * x.[4] // B | synthesis: Y <-> B
+            -0.001 * x.[1] // Y | synthesis: Y <-> B
+            0.0001 * x.[5] // a | synthesis: Y <-> a
+            -0.001 * x.[1] // Y | synthesis: Y <-> a
+            0.0001 * x.[3] // A | synthesis: Y <-> A
+            -0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
 
-    // 2 - B
+    // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            0.210183646462902 * x.[4] * x.[42] // b + BBB | catalytic racemization: b + BBB -> B + BBB
-            -0.210183646462902 * x.[2] * x.[84] // B + bbb | catalytic racemization: B + bbb -> b + bbb
-            0.293117523965138 * x.[4] * x.[31] // b + Aaa | catalytic racemization: b + Aaa -> B + Aaa
-            -0.293117523965138 * x.[2] * x.[53] // B + aAA | catalytic racemization: B + aAA -> b + aAA
-            0.207843643371621 * x.[4] * x.[84] // b + bbb | catalytic racemization: b + bbb -> B + bbb
-            -0.207843643371621 * x.[2] * x.[42] // B + BBB | catalytic racemization: B + BBB -> b + BBB
-            0.285976142064811 * x.[4] * x.[53] // b + aAA | catalytic racemization: b + aAA -> B + aAA
-            -0.285976142064811 * x.[2] * x.[31] // B + Aaa | catalytic racemization: B + Aaa -> b + Aaa
-            0.001 * x.[4] // b | racemization: b -> B
-            -0.001 * x.[2] // B | racemization: B -> b
-            -0.0001 * x.[2] // B | synthesis: Y <-> B
-            0.001 * x.[0] // Y | synthesis: Y <-> B
+            -0.0001 * x.[2] // Z | destruction: b <-> Z
+            0.001 * x.[6] // b | destruction: b <-> Z
+            -0.0001 * x.[2] // Z | destruction: B <-> Z
+            0.001 * x.[4] // B | destruction: B <-> Z
+            -0.0001 * x.[2] // Z | destruction: a <-> Z
+            0.001 * x.[5] // a | destruction: a <-> Z
+            -0.0001 * x.[2] // Z | destruction: A <-> Z
+            0.001 * x.[3] // A | destruction: A <-> Z
         |]
         |> Array.sum
 
 
-    // 3 - a
+    // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.001 * x.[3] // a | racemization: a -> A
-            0.001 * x.[1] // A | racemization: A -> a
-            -0.0001 * x.[3] // a | synthesis: Y <-> a
-            0.001 * x.[0] // Y | synthesis: Y <-> a
+            0.0001 * x.[2] // Z | destruction: A <-> Z
+            -0.001 * x.[3] // A | destruction: A <-> Z
+            -0.0001 * x.[3] // A | synthesis: Y <-> A
+            0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
 
-    // 4 - b
+    // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.210183646462902 * x.[4] * x.[42] // b + BBB | catalytic racemization: b + BBB -> B + BBB
-            0.210183646462902 * x.[2] * x.[84] // B + bbb | catalytic racemization: B + bbb -> b + bbb
-            -0.293117523965138 * x.[4] * x.[31] // b + Aaa | catalytic racemization: b + Aaa -> B + Aaa
-            0.293117523965138 * x.[2] * x.[53] // B + aAA | catalytic racemization: B + aAA -> b + aAA
-            -0.207843643371621 * x.[4] * x.[84] // b + bbb | catalytic racemization: b + bbb -> B + bbb
-            0.207843643371621 * x.[2] * x.[42] // B + BBB | catalytic racemization: B + BBB -> b + BBB
-            -0.285976142064811 * x.[4] * x.[53] // b + aAA | catalytic racemization: b + aAA -> B + aAA
-            0.285976142064811 * x.[2] * x.[31] // B + Aaa | catalytic racemization: B + Aaa -> b + Aaa
-            -0.001 * x.[4] // b | racemization: b -> B
-            0.001 * x.[2] // B | racemization: B -> b
-            -0.0001 * x.[4] // b | synthesis: Y <-> b
-            0.001 * x.[0] // Y | synthesis: Y <-> b
+            0.0001 * x.[2] // Z | destruction: B <-> Z
+            -0.001 * x.[4] // B | destruction: B <-> Z
+            -0.0001 * x.[4] // B | synthesis: Y <-> B
+            0.001 * x.[1] // Y | synthesis: Y <-> B
         |]
         |> Array.sum
 
 
-    // 5 - AA
+    // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            0.0001 * x.[2] // Z | destruction: a <-> Z
+            -0.001 * x.[5] // a | destruction: a <-> Z
+            -0.0001 * x.[5] // a | synthesis: Y <-> a
+            0.001 * x.[1] // Y | synthesis: Y <-> a
         |]
         |> Array.sum
 
 
-    // 6 - AB
+    // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            0.0001 * x.[2] // Z | destruction: b <-> Z
+            -0.001 * x.[6] // b | destruction: b <-> Z
+            -0.0001 * x.[6] // b | synthesis: Y <-> b
+            0.001 * x.[1] // Y | synthesis: Y <-> b
         |]
         |> Array.sum
 
 
-    // 7 - Aa
+    // 7 - AA
     let d7 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 8 - Ab
+    // 8 - AB
     let d8 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 9 - BA
+    // 9 - Aa
     let d9 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 10 - BB
+    // 10 - Ab
     let d10 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 11 - Ba
+    // 11 - BA
     let d11 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 12 - Bb
+    // 12 - BB
     let d12 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 13 - aA
+    // 13 - Ba
     let d13 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 14 - aB
+    // 14 - Bb
     let d14 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 15 - aa
+    // 15 - aA
     let d15 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 16 - ab
+    // 16 - aB
     let d16 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 17 - bA
+    // 17 - aa
     let d17 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 18 - bB
+    // 18 - ab
     let d18 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 19 - ba
+    // 19 - bA
     let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 20 - bb
+    // 20 - bB
     let d20 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 21 - AAA
+    // 21 - ba
     let d21 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 22 - AAB
+    // 22 - bb
     let d22 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 23 - AAa
+    // 23 - AAA
     let d23 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 24 - AAb
+    // 24 - AAB
     let d24 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 25 - ABA
+    // 25 - AAa
     let d25 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 26 - ABB
+    // 26 - AAb
     let d26 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 27 - ABa
+    // 27 - ABA
     let d27 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 28 - ABb
+    // 28 - ABB
     let d28 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 29 - AaA
+    // 29 - ABa
     let d29 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 30 - AaB
+    // 30 - ABb
     let d30 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 31 - Aaa
+    // 31 - AaA
     let d31 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 32 - Aab
+    // 32 - AaB
     let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 33 - AbA
+    // 33 - Aaa
     let d33 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 34 - AbB
+    // 34 - Aab
     let d34 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 35 - Aba
+    // 35 - AbA
     let d35 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 36 - Abb
+    // 36 - AbB
     let d36 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 37 - BAA
+    // 37 - Aba
     let d37 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 38 - BAB
+    // 38 - Abb
     let d38 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 39 - BAa
+    // 39 - BAA
     let d39 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 40 - BAb
+    // 40 - BAB
     let d40 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 41 - BBA
+    // 41 - BAa
     let d41 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 42 - BBB
+    // 42 - BAb
     let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 43 - BBa
+    // 43 - BBA
     let d43 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 44 - BBb
+    // 44 - BBB
     let d44 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 45 - BaA
+    // 45 - BBa
     let d45 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 46 - BaB
+    // 46 - BBb
     let d46 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 47 - Baa
+    // 47 - BaA
     let d47 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 48 - Bab
+    // 48 - BaB
     let d48 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 49 - BbA
+    // 49 - Baa
     let d49 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 50 - BbB
+    // 50 - Bab
     let d50 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 51 - Bba
+    // 51 - BbA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 52 - Bbb
+    // 52 - BbB
     let d52 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 53 - aAA
+    // 53 - Bba
     let d53 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 54 - aAB
+    // 54 - Bbb
     let d54 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 55 - aAa
+    // 55 - aAA
     let d55 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 56 - aAb
+    // 56 - aAB
     let d56 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 57 - aBA
+    // 57 - aAa
     let d57 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 58 - aBB
+    // 58 - aAb
     let d58 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 59 - aBa
+    // 59 - aBA
     let d59 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 60 - aBb
+    // 60 - aBB
     let d60 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 61 - aaA
+    // 61 - aBa
     let d61 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 62 - aaB
+    // 62 - aBb
     let d62 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 63 - aaa
+    // 63 - aaA
     let d63 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 64 - aab
+    // 64 - aaB
     let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 65 - abA
+    // 65 - aaa
     let d65 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 66 - abB
+    // 66 - aab
     let d66 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 67 - aba
+    // 67 - abA
     let d67 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 68 - abb
+    // 68 - abB
     let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 69 - bAA
+    // 69 - aba
     let d69 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 70 - bAB
+    // 70 - abb
     let d70 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 71 - bAa
+    // 71 - bAA
     let d71 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 72 - bAb
+    // 72 - bAB
     let d72 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 73 - bBA
+    // 73 - bAa
     let d73 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 74 - bBB
+    // 74 - bAb
     let d74 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 75 - bBa
+    // 75 - bBA
     let d75 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 76 - bBb
+    // 76 - bBB
     let d76 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 77 - baA
+    // 77 - bBa
     let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 78 - baB
+    // 78 - bBb
     let d78 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 79 - baa
+    // 79 - baA
     let d79 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 80 - bab
+    // 80 - baB
     let d80 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 81 - bbA
+    // 81 - baa
     let d81 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 82 - bbB
+    // 82 - bab
     let d82 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 83 - bba
+    // 83 - bbA
     let d83 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
 
 
-    // 84 - bbb
+    // 84 - bbB
     let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
+        [|
+        |]
+        |> Array.sum
+
+
+    // 85 - bba
+    let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
+        [|
+        |]
+        |> Array.sum
+
+
+    // 86 - bbb
+    let d86 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
         |]
         |> Array.sum
@@ -967,180 +975,180 @@ module ModelData =
 
         let xSumN = 
             [|
-                1.0 * x.[1] // A
-                1.0 * x.[2] // B
-                1.0 * x.[3] // a
-                1.0 * x.[4] // b
-                2.0 * x.[5] // AA
-                2.0 * x.[6] // AB
-                2.0 * x.[7] // Aa
-                2.0 * x.[8] // Ab
-                2.0 * x.[9] // BA
-                2.0 * x.[10] // BB
-                2.0 * x.[11] // Ba
-                2.0 * x.[12] // Bb
-                2.0 * x.[13] // aA
-                2.0 * x.[14] // aB
-                2.0 * x.[15] // aa
-                2.0 * x.[16] // ab
-                2.0 * x.[17] // bA
-                2.0 * x.[18] // bB
-                2.0 * x.[19] // ba
-                2.0 * x.[20] // bb
-                3.0 * x.[21] // AAA
-                3.0 * x.[22] // AAB
-                3.0 * x.[23] // AAa
-                3.0 * x.[24] // AAb
-                3.0 * x.[25] // ABA
-                3.0 * x.[26] // ABB
-                3.0 * x.[27] // ABa
-                3.0 * x.[28] // ABb
-                3.0 * x.[29] // AaA
-                3.0 * x.[30] // AaB
-                3.0 * x.[31] // Aaa
-                3.0 * x.[32] // Aab
-                3.0 * x.[33] // AbA
-                3.0 * x.[34] // AbB
-                3.0 * x.[35] // Aba
-                3.0 * x.[36] // Abb
-                3.0 * x.[37] // BAA
-                3.0 * x.[38] // BAB
-                3.0 * x.[39] // BAa
-                3.0 * x.[40] // BAb
-                3.0 * x.[41] // BBA
-                3.0 * x.[42] // BBB
-                3.0 * x.[43] // BBa
-                3.0 * x.[44] // BBb
-                3.0 * x.[45] // BaA
-                3.0 * x.[46] // BaB
-                3.0 * x.[47] // Baa
-                3.0 * x.[48] // Bab
-                3.0 * x.[49] // BbA
-                3.0 * x.[50] // BbB
-                3.0 * x.[51] // Bba
-                3.0 * x.[52] // Bbb
-                3.0 * x.[53] // aAA
-                3.0 * x.[54] // aAB
-                3.0 * x.[55] // aAa
-                3.0 * x.[56] // aAb
-                3.0 * x.[57] // aBA
-                3.0 * x.[58] // aBB
-                3.0 * x.[59] // aBa
-                3.0 * x.[60] // aBb
-                3.0 * x.[61] // aaA
-                3.0 * x.[62] // aaB
-                3.0 * x.[63] // aaa
-                3.0 * x.[64] // aab
-                3.0 * x.[65] // abA
-                3.0 * x.[66] // abB
-                3.0 * x.[67] // aba
-                3.0 * x.[68] // abb
-                3.0 * x.[69] // bAA
-                3.0 * x.[70] // bAB
-                3.0 * x.[71] // bAa
-                3.0 * x.[72] // bAb
-                3.0 * x.[73] // bBA
-                3.0 * x.[74] // bBB
-                3.0 * x.[75] // bBa
-                3.0 * x.[76] // bBb
-                3.0 * x.[77] // baA
-                3.0 * x.[78] // baB
-                3.0 * x.[79] // baa
-                3.0 * x.[80] // bab
-                3.0 * x.[81] // bbA
-                3.0 * x.[82] // bbB
-                3.0 * x.[83] // bba
-                3.0 * x.[84] // bbb
+                1.0 * x.[3] // A
+                1.0 * x.[4] // B
+                1.0 * x.[5] // a
+                1.0 * x.[6] // b
+                2.0 * x.[7] // AA
+                2.0 * x.[8] // AB
+                2.0 * x.[9] // Aa
+                2.0 * x.[10] // Ab
+                2.0 * x.[11] // BA
+                2.0 * x.[12] // BB
+                2.0 * x.[13] // Ba
+                2.0 * x.[14] // Bb
+                2.0 * x.[15] // aA
+                2.0 * x.[16] // aB
+                2.0 * x.[17] // aa
+                2.0 * x.[18] // ab
+                2.0 * x.[19] // bA
+                2.0 * x.[20] // bB
+                2.0 * x.[21] // ba
+                2.0 * x.[22] // bb
+                3.0 * x.[23] // AAA
+                3.0 * x.[24] // AAB
+                3.0 * x.[25] // AAa
+                3.0 * x.[26] // AAb
+                3.0 * x.[27] // ABA
+                3.0 * x.[28] // ABB
+                3.0 * x.[29] // ABa
+                3.0 * x.[30] // ABb
+                3.0 * x.[31] // AaA
+                3.0 * x.[32] // AaB
+                3.0 * x.[33] // Aaa
+                3.0 * x.[34] // Aab
+                3.0 * x.[35] // AbA
+                3.0 * x.[36] // AbB
+                3.0 * x.[37] // Aba
+                3.0 * x.[38] // Abb
+                3.0 * x.[39] // BAA
+                3.0 * x.[40] // BAB
+                3.0 * x.[41] // BAa
+                3.0 * x.[42] // BAb
+                3.0 * x.[43] // BBA
+                3.0 * x.[44] // BBB
+                3.0 * x.[45] // BBa
+                3.0 * x.[46] // BBb
+                3.0 * x.[47] // BaA
+                3.0 * x.[48] // BaB
+                3.0 * x.[49] // Baa
+                3.0 * x.[50] // Bab
+                3.0 * x.[51] // BbA
+                3.0 * x.[52] // BbB
+                3.0 * x.[53] // Bba
+                3.0 * x.[54] // Bbb
+                3.0 * x.[55] // aAA
+                3.0 * x.[56] // aAB
+                3.0 * x.[57] // aAa
+                3.0 * x.[58] // aAb
+                3.0 * x.[59] // aBA
+                3.0 * x.[60] // aBB
+                3.0 * x.[61] // aBa
+                3.0 * x.[62] // aBb
+                3.0 * x.[63] // aaA
+                3.0 * x.[64] // aaB
+                3.0 * x.[65] // aaa
+                3.0 * x.[66] // aab
+                3.0 * x.[67] // abA
+                3.0 * x.[68] // abB
+                3.0 * x.[69] // aba
+                3.0 * x.[70] // abb
+                3.0 * x.[71] // bAA
+                3.0 * x.[72] // bAB
+                3.0 * x.[73] // bAa
+                3.0 * x.[74] // bAb
+                3.0 * x.[75] // bBA
+                3.0 * x.[76] // bBB
+                3.0 * x.[77] // bBa
+                3.0 * x.[78] // bBb
+                3.0 * x.[79] // baA
+                3.0 * x.[80] // baB
+                3.0 * x.[81] // baa
+                3.0 * x.[82] // bab
+                3.0 * x.[83] // bbA
+                3.0 * x.[84] // bbB
+                3.0 * x.[85] // bba
+                3.0 * x.[86] // bbb
             |]
             |> Array.sum
 
 
         let xSumSquaredN = 
             [|
-                1.0 * x.[1] * x.[1] // A
-                1.0 * x.[2] * x.[2] // B
-                1.0 * x.[3] * x.[3] // a
-                1.0 * x.[4] * x.[4] // b
-                2.0 * x.[5] * x.[5] // AA
-                2.0 * x.[6] * x.[6] // AB
-                2.0 * x.[7] * x.[7] // Aa
-                2.0 * x.[8] * x.[8] // Ab
-                2.0 * x.[9] * x.[9] // BA
-                2.0 * x.[10] * x.[10] // BB
-                2.0 * x.[11] * x.[11] // Ba
-                2.0 * x.[12] * x.[12] // Bb
-                2.0 * x.[13] * x.[13] // aA
-                2.0 * x.[14] * x.[14] // aB
-                2.0 * x.[15] * x.[15] // aa
-                2.0 * x.[16] * x.[16] // ab
-                2.0 * x.[17] * x.[17] // bA
-                2.0 * x.[18] * x.[18] // bB
-                2.0 * x.[19] * x.[19] // ba
-                2.0 * x.[20] * x.[20] // bb
-                3.0 * x.[21] * x.[21] // AAA
-                3.0 * x.[22] * x.[22] // AAB
-                3.0 * x.[23] * x.[23] // AAa
-                3.0 * x.[24] * x.[24] // AAb
-                3.0 * x.[25] * x.[25] // ABA
-                3.0 * x.[26] * x.[26] // ABB
-                3.0 * x.[27] * x.[27] // ABa
-                3.0 * x.[28] * x.[28] // ABb
-                3.0 * x.[29] * x.[29] // AaA
-                3.0 * x.[30] * x.[30] // AaB
-                3.0 * x.[31] * x.[31] // Aaa
-                3.0 * x.[32] * x.[32] // Aab
-                3.0 * x.[33] * x.[33] // AbA
-                3.0 * x.[34] * x.[34] // AbB
-                3.0 * x.[35] * x.[35] // Aba
-                3.0 * x.[36] * x.[36] // Abb
-                3.0 * x.[37] * x.[37] // BAA
-                3.0 * x.[38] * x.[38] // BAB
-                3.0 * x.[39] * x.[39] // BAa
-                3.0 * x.[40] * x.[40] // BAb
-                3.0 * x.[41] * x.[41] // BBA
-                3.0 * x.[42] * x.[42] // BBB
-                3.0 * x.[43] * x.[43] // BBa
-                3.0 * x.[44] * x.[44] // BBb
-                3.0 * x.[45] * x.[45] // BaA
-                3.0 * x.[46] * x.[46] // BaB
-                3.0 * x.[47] * x.[47] // Baa
-                3.0 * x.[48] * x.[48] // Bab
-                3.0 * x.[49] * x.[49] // BbA
-                3.0 * x.[50] * x.[50] // BbB
-                3.0 * x.[51] * x.[51] // Bba
-                3.0 * x.[52] * x.[52] // Bbb
-                3.0 * x.[53] * x.[53] // aAA
-                3.0 * x.[54] * x.[54] // aAB
-                3.0 * x.[55] * x.[55] // aAa
-                3.0 * x.[56] * x.[56] // aAb
-                3.0 * x.[57] * x.[57] // aBA
-                3.0 * x.[58] * x.[58] // aBB
-                3.0 * x.[59] * x.[59] // aBa
-                3.0 * x.[60] * x.[60] // aBb
-                3.0 * x.[61] * x.[61] // aaA
-                3.0 * x.[62] * x.[62] // aaB
-                3.0 * x.[63] * x.[63] // aaa
-                3.0 * x.[64] * x.[64] // aab
-                3.0 * x.[65] * x.[65] // abA
-                3.0 * x.[66] * x.[66] // abB
-                3.0 * x.[67] * x.[67] // aba
-                3.0 * x.[68] * x.[68] // abb
-                3.0 * x.[69] * x.[69] // bAA
-                3.0 * x.[70] * x.[70] // bAB
-                3.0 * x.[71] * x.[71] // bAa
-                3.0 * x.[72] * x.[72] // bAb
-                3.0 * x.[73] * x.[73] // bBA
-                3.0 * x.[74] * x.[74] // bBB
-                3.0 * x.[75] * x.[75] // bBa
-                3.0 * x.[76] * x.[76] // bBb
-                3.0 * x.[77] * x.[77] // baA
-                3.0 * x.[78] * x.[78] // baB
-                3.0 * x.[79] * x.[79] // baa
-                3.0 * x.[80] * x.[80] // bab
-                3.0 * x.[81] * x.[81] // bbA
-                3.0 * x.[82] * x.[82] // bbB
-                3.0 * x.[83] * x.[83] // bba
-                3.0 * x.[84] * x.[84] // bbb
+                1.0 * x.[3] * x.[3] // A
+                1.0 * x.[4] * x.[4] // B
+                1.0 * x.[5] * x.[5] // a
+                1.0 * x.[6] * x.[6] // b
+                2.0 * x.[7] * x.[7] // AA
+                2.0 * x.[8] * x.[8] // AB
+                2.0 * x.[9] * x.[9] // Aa
+                2.0 * x.[10] * x.[10] // Ab
+                2.0 * x.[11] * x.[11] // BA
+                2.0 * x.[12] * x.[12] // BB
+                2.0 * x.[13] * x.[13] // Ba
+                2.0 * x.[14] * x.[14] // Bb
+                2.0 * x.[15] * x.[15] // aA
+                2.0 * x.[16] * x.[16] // aB
+                2.0 * x.[17] * x.[17] // aa
+                2.0 * x.[18] * x.[18] // ab
+                2.0 * x.[19] * x.[19] // bA
+                2.0 * x.[20] * x.[20] // bB
+                2.0 * x.[21] * x.[21] // ba
+                2.0 * x.[22] * x.[22] // bb
+                3.0 * x.[23] * x.[23] // AAA
+                3.0 * x.[24] * x.[24] // AAB
+                3.0 * x.[25] * x.[25] // AAa
+                3.0 * x.[26] * x.[26] // AAb
+                3.0 * x.[27] * x.[27] // ABA
+                3.0 * x.[28] * x.[28] // ABB
+                3.0 * x.[29] * x.[29] // ABa
+                3.0 * x.[30] * x.[30] // ABb
+                3.0 * x.[31] * x.[31] // AaA
+                3.0 * x.[32] * x.[32] // AaB
+                3.0 * x.[33] * x.[33] // Aaa
+                3.0 * x.[34] * x.[34] // Aab
+                3.0 * x.[35] * x.[35] // AbA
+                3.0 * x.[36] * x.[36] // AbB
+                3.0 * x.[37] * x.[37] // Aba
+                3.0 * x.[38] * x.[38] // Abb
+                3.0 * x.[39] * x.[39] // BAA
+                3.0 * x.[40] * x.[40] // BAB
+                3.0 * x.[41] * x.[41] // BAa
+                3.0 * x.[42] * x.[42] // BAb
+                3.0 * x.[43] * x.[43] // BBA
+                3.0 * x.[44] * x.[44] // BBB
+                3.0 * x.[45] * x.[45] // BBa
+                3.0 * x.[46] * x.[46] // BBb
+                3.0 * x.[47] * x.[47] // BaA
+                3.0 * x.[48] * x.[48] // BaB
+                3.0 * x.[49] * x.[49] // Baa
+                3.0 * x.[50] * x.[50] // Bab
+                3.0 * x.[51] * x.[51] // BbA
+                3.0 * x.[52] * x.[52] // BbB
+                3.0 * x.[53] * x.[53] // Bba
+                3.0 * x.[54] * x.[54] // Bbb
+                3.0 * x.[55] * x.[55] // aAA
+                3.0 * x.[56] * x.[56] // aAB
+                3.0 * x.[57] * x.[57] // aAa
+                3.0 * x.[58] * x.[58] // aAb
+                3.0 * x.[59] * x.[59] // aBA
+                3.0 * x.[60] * x.[60] // aBB
+                3.0 * x.[61] * x.[61] // aBa
+                3.0 * x.[62] * x.[62] // aBb
+                3.0 * x.[63] * x.[63] // aaA
+                3.0 * x.[64] * x.[64] // aaB
+                3.0 * x.[65] * x.[65] // aaa
+                3.0 * x.[66] * x.[66] // aab
+                3.0 * x.[67] * x.[67] // abA
+                3.0 * x.[68] * x.[68] // abB
+                3.0 * x.[69] * x.[69] // aba
+                3.0 * x.[70] * x.[70] // abb
+                3.0 * x.[71] * x.[71] // bAA
+                3.0 * x.[72] * x.[72] // bAB
+                3.0 * x.[73] * x.[73] // bAa
+                3.0 * x.[74] * x.[74] // bAb
+                3.0 * x.[75] * x.[75] // bBA
+                3.0 * x.[76] * x.[76] // bBB
+                3.0 * x.[77] * x.[77] // bBa
+                3.0 * x.[78] * x.[78] // bBb
+                3.0 * x.[79] * x.[79] // baA
+                3.0 * x.[80] * x.[80] // baB
+                3.0 * x.[81] * x.[81] // baa
+                3.0 * x.[82] * x.[82] // bab
+                3.0 * x.[83] * x.[83] // bbA
+                3.0 * x.[84] * x.[84] // bbB
+                3.0 * x.[85] * x.[85] // bba
+                3.0 * x.[86] * x.[86] // bbb
             |]
             |> Array.sum
 
@@ -1230,6 +1238,8 @@ module ModelData =
             d82 x xSum xSumN xSumSquaredN
             d83 x xSum xSumN xSumSquaredN
             d84 x xSum xSumN xSumSquaredN
+            d85 x xSum xSumN xSumSquaredN
+            d86 x xSum xSumN xSumSquaredN
         |]
 
 
@@ -1239,11 +1249,11 @@ module ModelData =
                 {
                     modelInfo = 
                         {
-                            fileStructureVersionNumber = "1.1.1.0"
-                            versionNumber = "1.1.2.0"
+                            fileStructureVersionNumber = "1.2.0.0"
+                            versionNumber = "1.2.0.0"
                             seedValue = seedValue
-                            modelName = "20181213_001"
-                            numberOfSubstances = 85
+                            modelName = "20181214_004"
+                            numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
                         }
@@ -1251,7 +1261,7 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(1083333091, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(141917952, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -1259,18 +1269,12 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                racemizationDistribution = DeltaDistribution(125105949, { threshold = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(2031911436, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
+                                backwardScale = Some 0.0001
                             }
-                            |> RacemRndParam
-                            |> RacemizationRateParam
-
-                            {
-                                simRacemDistribution = UniformDistribution(1381698909, { threshold = Some 0.2 }) |> Uniform
-                                aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                            }
-                            |> CatRacemSimParam
-                            |> CatalyticRacemizationRateParam
+                            |> DestrRndParam
+                            |> DestructionRateParam
 
                         ]
                 }
@@ -1282,8 +1286,12 @@ module ModelData =
 
             allRawReactions = 
                 [
+                    (FoodCreationName, -1)
+                    (WasteRemovalName, -1)
                     (SynthesisName, 4)
+                    (DestructionName, 4)
                     (CatalyticSynthesisName, 320)
+                    (CatalyticDestructionName, 320)
                     (LigationName, 39)
                     (CatalyticLigationName, 3120)
                     (SedimentationDirectName, 2331)
@@ -1295,8 +1303,7 @@ module ModelData =
             allReactions = 
                 [
                     (SynthesisName, 4)
-                    (RacemizationName, 4)
-                    (CatalyticRacemizationName, 8)
+                    (DestructionName, 4)
                 ]
         }
 

@@ -57,6 +57,11 @@ module Visualization =
 
 
     type Plotter(i : PlotDataInfo, p : ModelDataParamsWithExtraData, o : OdeResult) =
+        let foodIdx = p.allInd.TryFind (AchiralSubst.Food |> Simple)
+        let wasteIdx = p.allInd.TryFind (AchiralSubst.Waste |> Simple)
+        let getFileName (ct : ChartType) = ct.getFileName i p o
+
+
         let description = 
             [
                 "Comleted at", sprintf "%A" (DateTime.Now)
@@ -79,9 +84,6 @@ module Visualization =
             match i.useTempFolder with 
             | true -> Chart.ShowWithDescription
             | false -> Chart.ShowFileWithDescription fileName
-
-
-        let getFileName (ct : ChartType) = ct.getFileName i p o
 
 
         let plotAllImpl (r : OdeResult) =
@@ -156,8 +158,10 @@ module Visualization =
         let plotTotalSubstImpl (r : OdeResult) =
             let tIdx = [ for i in 0..o.noOfOutputPoints -> i ]
             let totalData = tIdx |> List.map (fun t -> r.t.[t], p.getTotalSubst r.x.[t,*])
-            let yData = tIdx |> List.map (fun t -> r.t.[t], r.x.[t,0])
             let minData = tIdx |> List.map (fun t -> r.t.[t], r.x.[t,*] |> Array.min)
+
+            let foodData = Option.bind (fun i -> tIdx |> List.map (fun t -> r.t.[t], r.x.[t,i]) |> Some) foodIdx
+            let wasteData = Option.bind (fun i -> tIdx |> List.map (fun t -> r.t.[t], r.x.[t,i]) |> Some) wasteIdx
 
             let levelData level = 
                 let levelSubst = 
@@ -171,11 +175,15 @@ module Visualization =
 
                 tIdx |> List.map (fun t -> r.t.[t], xData t)
 
+            let charts = 
+                [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
+                @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
+                @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
+                @ [ for level in 1..p.modelDataParams.modelInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                |> List.choose id
 
-            Chart.Combine(
-                    [ Chart.Line(totalData, Name = "Total"); Chart.Line(minData, Name = "Min"); Chart.Line(yData, Name = AchiralSubst.Food.name) ]
-                    @ [ for level in 1..p.modelDataParams.modelInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) ]
-                    )
+
+            Chart.Combine(charts)
             |> Chart.withX_AxisStyle("t", MinMax = (o.startTime, o.endTime))
             |> showChart (getFileName PlotTotalSubst) description
 

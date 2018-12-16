@@ -58,10 +58,10 @@ let rates =
         wasteModel |> WasteRemovalRateModel
 
         synthModel |> SynthesisRateModel
-        //catSynthModel |> CatalyticSynthesisRateModel
+        catSynthModel |> CatalyticSynthesisRateModel
 
         destrModel |> DestructionRateModel
-        //catDestrModel |> CatalyticDestructionRateModel
+        catDestrModel |> CatalyticDestructionRateModel
 
         //ligModel |> LigationRateModel
         //catLigModel |> CatalyticLigationRateModel

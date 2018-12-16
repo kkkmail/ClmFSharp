@@ -9,6 +9,9 @@ module FSharpCodeExt =
     let Nl = "\r\n"
 
 
+    let increaseShift shift = shift + "    "
+
+
     let doubleFSharpString (d : double) = 
         let s = d.ToString()
         match s.Contains(".") with
@@ -65,6 +68,17 @@ module FSharpCodeExt =
             | Triangular d -> d.toFSharpCode + " |> Triangular"
 
 
+    type CatRatesEeParams
+        with 
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                eeDistribution = None" + Nl +
+            shift + "                maxForwardEe = " + (doubleFSharpString p.maxForwardEe) + Nl +
+            shift + "                maxBackwardEe = " + (doubleOptFSharpString p.maxBackwardEe) + Nl +
+            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
+            shift + "            }" + Nl
+
+
     type FoodCreationParam
         with
 
@@ -108,8 +122,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
             shift + "                catSynthDistribution = " + p.catSynthDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
@@ -157,8 +170,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
             shift + "                catDestrDistribution = " + p.catDestrDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
@@ -242,8 +254,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
             shift + "                catLigationDistribution = " + p.catLigationDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
@@ -279,8 +290,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
             shift + "                catRacemDistribution = " + p.catRacemDistribution.toFSharpCode + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
-            shift + "                maxEe = " + (doubleFSharpString p.maxEe) + Nl +
+            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 

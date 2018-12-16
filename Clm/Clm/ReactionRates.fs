@@ -108,6 +108,15 @@ module ReactionRates =
         | None -> (None, None)
 
 
+    type CatRatesEeParams = 
+        {
+            eeDistribution : EeDistribution option // If none, then parent distribution will be used.
+            maxForwardEe : double
+            maxBackwardEe : double option // If none, then the same value of generated forward ee is used.
+            multiplier : double
+        }
+
+
     type CatRatesInfo<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> = 
         {
             reaction : 'R
@@ -116,11 +125,19 @@ module ReactionRates =
             catReactionCreator : ('R * 'C) -> 'RC
             rateCoeff : double option
             getRates : 'R -> (ReactionRate option * ReactionRate option)
-            maxEe : double
-            multiplier : double
+            eeParams : CatRatesEeParams
         }
 
 
+    /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
+    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
+    /// If sf and sb are forward and backward rates of not catalyzed reaction, then
+    /// total forward and backward multiplers due to racemic mixture of catalysts must be the equal:
+    /// kf + kfe = kb + kbe, where
+    ///     kf -  is forward  multipler for a catalyst C
+    ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
+    ///     kb -  is backward multipler for a catalyst C
+    ///     kbe - is backward multipler for a catalyst E(C)
     let inline calculateCatRates<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> (i : CatRatesInfo<'R, 'C, 'RC>) = 
         let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
 
@@ -128,9 +145,48 @@ module ReactionRates =
             match i.rateCoeff with 
             | Some k0 ->
                 let (sf0, sb0) = i.getRates i.reaction
-                let ee = i.maxEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
-                let k = k0 * i.multiplier * (1.0 + ee)
-                let ke = k0 * i.multiplier * (1.0 - ee)
+                let fEe = i.eeParams.maxForwardEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+
+                let bEe = 
+                    match i.eeParams.maxBackwardEe with 
+                    | Some m -> m * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                    | None -> fEe
+
+                let kf = k0 * i.eeParams.multiplier * (1.0 + fEe)
+                let kfe = k0 * i.eeParams.multiplier * (1.0 - fEe)
+                let kb = k0 * i.eeParams.multiplier * (1.0 + bEe)
+                let kbe = k0 * i.eeParams.multiplier * (1.0 - bEe)
+
+                let (rf, rfe) = 
+                    match sf0 with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rb, rbe) = 
+                    match sb0 with
+                    | Some (ReactionRate sb) -> (kb * sb |> ReactionRate |> Some, kbe * sb |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rb, rfe, rbe)
+            | None -> (None, None, None, None)
+
+        {
+            primary = (rf, rb)
+            similar = [ (re, (rfe, rbe)) ]
+        }
+
+    /// Previous version.
+    let inline calculateCatRatesOld<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> (i : CatRatesInfo<'R, 'C, 'RC>) = 
+        let maxEe = i.eeParams.maxForwardEe
+        let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
+
+        let rf, rb, rfe, rbe = 
+            match i.rateCoeff with 
+            | Some k0 ->
+                let (sf0, sb0) = i.getRates i.reaction
+                let ee = maxEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                let k = k0 * i.eeParams.multiplier * (1.0 + ee)
+                let ke = k0 * i.eeParams.multiplier * (1.0 - ee)
 
                 let (rf, rfe) = 
                     match sf0 with
@@ -219,8 +275,7 @@ module ReactionRates =
     type CatalyticSynthesisRandomParam = 
         {
             catSynthDistribution : Distribution
-            multiplier : double
-            maxEe : double
+            eeParams : CatRatesEeParams
         }
 
 
@@ -255,8 +310,7 @@ module ReactionRates =
                 catReactionCreator = CatalyticSynthesisReaction
                 rateCoeff = k
                 getRates = p.synthesisModel.getRates
-                maxEe = p.catSynthRndParam.maxEe
-                multiplier = p.catSynthRndParam.multiplier
+                eeParams = p.catSynthRndParam.eeParams
             }
             |> calculateCatRates
 
@@ -371,8 +425,8 @@ module ReactionRates =
     type CatalyticDestructionRandomParam = 
         {
             catDestrDistribution : Distribution
-            multiplier : double
-            maxEe : double
+            eeParams : CatRatesEeParams
+
         }
 
 
@@ -407,8 +461,7 @@ module ReactionRates =
                 catReactionCreator = CatalyticDestructionReaction
                 rateCoeff = k
                 getRates = p.destructionModel.getRates
-                maxEe = p.catDestrRndParam.maxEe
-                multiplier = p.catDestrRndParam.multiplier
+                eeParams = p.catDestrRndParam.eeParams
             }
             |> calculateCatRates
 
@@ -591,8 +644,7 @@ module ReactionRates =
     type CatalyticLigationRandomParam = 
         {
             catLigationDistribution : Distribution
-            multiplier : double
-            maxEe : double
+            eeParams : CatRatesEeParams
         }
 
 
@@ -603,13 +655,9 @@ module ReactionRates =
             match p with 
             | CatLigRndParam q -> q.catLigationDistribution
 
-        member p.maxEe = 
+        member p.eeParams = 
             match p with 
-            | CatLigRndParam q -> q.maxEe
-
-        member p.multiplier = 
-            match p with 
-            | CatLigRndParam q -> q.multiplier
+            | CatLigRndParam q -> q.eeParams
 
 
     type CatalyticLigationRandomParamWithModel = 
@@ -639,8 +687,7 @@ module ReactionRates =
                 catReactionCreator = CatalyticLigationReaction
                 rateCoeff = k
                 getRates = p.ligationModel.getRates
-                maxEe = p.catLigationParam.maxEe
-                multiplier = p.catLigationParam.multiplier
+                eeParams = p.catLigationParam.eeParams
             }
             |> calculateCatRates
 
@@ -707,8 +754,7 @@ module ReactionRates =
     type CatalyticRacemizationRandomParam = 
         {
             catRacemDistribution : Distribution
-            multiplier : double
-            maxEe : double
+            eeParams : CatRatesEeParams
         }
 
 
@@ -743,8 +789,7 @@ module ReactionRates =
                 catReactionCreator = CatalyticRacemizationReaction
                 rateCoeff = k
                 getRates = p.racemizationModel.getRates
-                maxEe = p.catRacemRndParam.maxEe
-                multiplier = p.catRacemRndParam.multiplier
+                eeParams = p.catRacemRndParam.eeParams
             }
             |> calculateCatRates
 
@@ -947,8 +992,13 @@ module ReactionRates =
                 catSynthRndParam = 
                     {
                         catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
-                        multiplier  = mult
-                        maxEe = 0.05
+                        eeParams = 
+                            {
+                                eeDistribution = None
+                                multiplier  = mult
+                                maxForwardEe = 0.25
+                                maxBackwardEe = 0.25 |> Some
+                            }
                     }
                 synthesisModel = m
             }
@@ -977,8 +1027,13 @@ module ReactionRates =
                 catDestrRndParam = 
                     {
                         catDestrDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
-                        multiplier  = mult
-                        maxEe = 0.05
+                        eeParams = 
+                            {
+                                eeDistribution = None
+                                multiplier  = mult
+                                maxForwardEe = 0.25
+                                maxBackwardEe = 0.25 |> Some
+                            }
                     }
                 destructionModel = m
             }
@@ -1017,8 +1072,13 @@ module ReactionRates =
                 catLigationParam = 
                     {
                         catLigationDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
-                        multiplier  = mult
-                        maxEe = 0.05
+                        eeParams = 
+                            {
+                                eeDistribution = None
+                                multiplier  = mult
+                                maxForwardEe = 0.25
+                                maxBackwardEe = 0.25 |> Some
+                            }
                     }
                 ligationModel = m
             }
@@ -1055,8 +1115,13 @@ module ReactionRates =
                 catRacemRndParam = 
                     {
                         catRacemDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
-                        multiplier  = mult
-                        maxEe = 0.05
+                        eeParams = 
+                            {
+                                eeDistribution = None
+                                multiplier = mult
+                                maxForwardEe = 0.25
+                                maxBackwardEe = 0.25 |> Some
+                            }
                     }
                 racemizationModel = m
             }

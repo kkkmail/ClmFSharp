@@ -82,3 +82,10 @@ module Distributions =
             | Delta d -> d.isDefined
             | Uniform d -> d.isDefined
             | Triangular d -> d.isDefined
+
+
+    /// Specially formatted distributions to return values only between (-1 and 1).
+    type EeDistribution = 
+        | EeDistribution
+
+        member this.nextDouble() : double = failwith "EeDistribution.nextDouble is not yet implemented."

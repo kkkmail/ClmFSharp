@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 924142308
+    let seedValue = 1374721475
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1253,7 +1253,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.2.0.0"
                             versionNumber = "1.2.0.0"
                             seedValue = seedValue
-                            modelName = "20181214_008"
+                            modelName = "20181216_001"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1272,7 +1272,7 @@ module ModelData =
                             |> WasteRemovalRateParam
 
                             {
-                                synthesisDistribution = DeltaDistribution(727167406, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(484615118, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
@@ -1280,12 +1280,26 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(119568534, { threshold = None }) |> Delta
+                                simSynthDistribution = UniformDistribution(1252398144, { threshold = Some 0.2 }) |> Uniform
+                                aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
+                            }
+                            |> CatSynthSimParam
+                            |> CatalyticSynthesisRateParam
+
+                            {
+                                destructionDistribution = DeltaDistribution(1977633196, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.0001
                             }
                             |> DestrRndParam
                             |> DestructionRateParam
+
+                            {
+                                simDestrDistribution = UniformDistribution(682594380, { threshold = Some 0.2 }) |> Uniform
+                                aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
+                            }
+                            |> CatDestrSimParam
+                            |> CatalyticDestructionRateParam
 
                         ]
                 }

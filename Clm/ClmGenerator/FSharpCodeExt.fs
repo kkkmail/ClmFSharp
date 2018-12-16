@@ -342,4 +342,9 @@ module FSharpCodeExt =
     type ReactionRateProvider
         with
 
-        member rrp.toParamFSharpCode shift = rrp.providerParams.rateModels |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl
+        member rrp.toParamFSharpCode shift = 
+            let dep = 
+                rrp.providerParams.rateModels 
+                |> List.map (fun e -> e.dependsOn) 
+                |> List.concat
+            rrp.providerParams.rateModels |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl

@@ -917,6 +917,32 @@ module ReactionRates =
                 | CatRacemRndModel m -> m.inputParams.catRacemRndParam |> CatRacemRndParam |> CatalyticRacemizationRateParam
                 | CatRacemSimModel m -> m.inputParams.catRacemSimParam |> CatRacemSimParam |> CatalyticRacemizationRateParam
 
+        member rm.dependsOn = 
+            match rm with
+            | FoodCreationRateModel _ -> []
+            | WasteRemovalRateModel _ -> []
+            | SynthesisRateModel _ -> []
+            | DestructionRateModel _ -> []
+            | CatalyticSynthesisRateModel v ->
+                match v with 
+                | CatSynthRndModel _ -> []
+                | CatSynthSimModel m -> [ m.inputParams.catSynthModel |> CatSynthRndModel |> CatalyticSynthesisRateModel ]
+            | CatalyticDestructionRateModel v ->
+                match v with 
+                | CatDestrRndModel _ -> []
+                | CatDestrSimModel m -> [ m.inputParams.catDestrModel |> CatDestrRndModel |> CatalyticDestructionRateModel ]
+            | LigationRateModel m -> []
+            | CatalyticLigationRateModel v -> 
+                match v with 
+                | CatLigRndModel _ -> []
+            | SedimentationDirectRateModel _ -> []
+            | SedimentationAllRateModel _ -> []
+            | RacemizationRateModel _ -> []
+            | CatalyticRacemizationRateModel v ->
+                match v with 
+                | CatRacemRndModel _ -> []
+                | CatRacemSimModel m -> [ m.inputParams.catRacemModel |> CatRacemRndModel |> CatalyticRacemizationRateModel ]
+
 
     type ReactionRateProviderParams = 
         {

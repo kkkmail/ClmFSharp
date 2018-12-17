@@ -58,6 +58,26 @@ module FSharpCodeExt =
         member distr.toFSharpCode = "TriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
+    type SymmetricTriangularDistribution
+        with
+
+        member distr.toFSharpCode = "SymmetricTriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
+
+
+    type EeDistribution
+        with 
+
+        member distr.toFSharpCode = 
+            match distr with 
+            | SymmetricTriangularEe d -> d.toFSharpCode + " |> " + "SymmetricTriangularEe"
+
+
+    let toEeDistrOpt (distr : EeDistribution option) = 
+        match distr with 
+        | Some d -> d.toFSharpCode
+        | None -> "None"
+
+
     type Distribution
         with
 
@@ -66,13 +86,14 @@ module FSharpCodeExt =
             | Delta d -> d.toFSharpCode + " |> Delta"
             | Uniform d -> d.toFSharpCode + " |> Uniform"
             | Triangular d -> d.toFSharpCode + " |> Triangular"
+            | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"
 
 
     type CatRatesEeParams
         with 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                eeDistribution = None" + Nl +
+            shift + "                eeDistribution = " + (toEeDistrOpt p.eeDistribution) + Nl +
             shift + "                maxForwardEe = " + (doubleFSharpString p.maxForwardEe) + Nl +
             shift + "                maxBackwardEe = " + (doubleOptFSharpString p.maxBackwardEe) + Nl +
             shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
@@ -343,8 +364,16 @@ module FSharpCodeExt =
         with
 
         member rrp.toParamFSharpCode shift = 
-            let dep = 
-                rrp.providerParams.rateModels 
-                |> List.map (fun e -> e.dependsOn) 
+            let rec allDep (rm : ReactionRateModel) (acc : list<ReactionRateModel>) = 
+                match rm.dependsOn with 
+                | [] -> acc
+                | l -> l |> List.fold (fun a r -> allDep r (r :: a)) acc
+
+            let dep =
+                rrp.providerParams.rateModels
+                |> List.map (fun e -> allDep e [])
                 |> List.concat
-            rrp.providerParams.rateModels |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl
+
+            (dep @ rrp.providerParams.rateModels)
+            |> List.distinct
+            |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl

@@ -925,22 +925,22 @@ module ReactionRates =
             | DestructionRateModel _ -> []
             | CatalyticSynthesisRateModel v ->
                 match v with 
-                | CatSynthRndModel _ -> []
+                | CatSynthRndModel m -> [ m.inputParams.synthesisModel |> SynthesisRateModel ]
                 | CatSynthSimModel m -> [ m.inputParams.catSynthModel |> CatSynthRndModel |> CatalyticSynthesisRateModel ]
             | CatalyticDestructionRateModel v ->
                 match v with 
-                | CatDestrRndModel _ -> []
+                | CatDestrRndModel m -> [ m.inputParams.destructionModel |> DestructionRateModel ]
                 | CatDestrSimModel m -> [ m.inputParams.catDestrModel |> CatDestrRndModel |> CatalyticDestructionRateModel ]
-            | LigationRateModel m -> []
+            | LigationRateModel _ -> []
             | CatalyticLigationRateModel v -> 
                 match v with 
-                | CatLigRndModel _ -> []
+                | CatLigRndModel m -> [ m.inputParams.ligationModel |> LigationRateModel ]
             | SedimentationDirectRateModel _ -> []
             | SedimentationAllRateModel _ -> []
             | RacemizationRateModel _ -> []
             | CatalyticRacemizationRateModel v ->
                 match v with 
-                | CatRacemRndModel _ -> []
+                | CatRacemRndModel m -> [ m.inputParams.racemizationModel |> RacemizationRateModel ]
                 | CatRacemSimModel m -> [ m.inputParams.catRacemModel |> CatRacemRndModel |> CatalyticRacemizationRateModel ]
 
 
@@ -1020,10 +1020,10 @@ module ReactionRates =
                         catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = None
+                                eeDistribution = EeDistribution.createDefaultOpt rnd
                                 multiplier  = mult
-                                maxForwardEe = 0.25
-                                maxBackwardEe = 0.25 |> Some
+                                maxForwardEe = 0.99
+                                maxBackwardEe = 0.99 |> Some
                             }
                     }
                 synthesisModel = m
@@ -1055,10 +1055,10 @@ module ReactionRates =
                         catDestrDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = None
+                                eeDistribution = EeDistribution.createDefaultOpt rnd
                                 multiplier  = mult
-                                maxForwardEe = 0.25
-                                maxBackwardEe = 0.25 |> Some
+                                maxForwardEe = 0.99
+                                maxBackwardEe = 0.99 |> Some
                             }
                     }
                 destructionModel = m
@@ -1100,7 +1100,7 @@ module ReactionRates =
                         catLigationDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = None
+                                eeDistribution = EeDistribution.createDefaultOpt rnd
                                 multiplier  = mult
                                 maxForwardEe = 0.25
                                 maxBackwardEe = 0.25 |> Some

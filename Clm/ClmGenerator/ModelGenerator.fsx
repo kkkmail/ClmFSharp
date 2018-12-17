@@ -18,29 +18,30 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
 let rnd = new Random(seed)
 //===========================================================
-let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.1
-let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 0.1
+let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.01
+let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 10.0
 //===========================================================
-let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.0001)
+let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
 let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.2, numberOfAminoAcids)
 //===========================================================
-let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.0001)
+let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
 let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
 //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
 //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
 let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.2, numberOfAminoAcids)
 //===========================================================
-let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
+//let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
 //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)
+let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 1.0)
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.00005), 2000.0)
 //===========================================================
 let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00002, 10000.0)
@@ -58,12 +59,12 @@ let rates =
         wasteModel |> WasteRemovalRateModel
 
         synthModel |> SynthesisRateModel
-        catSynthModel |> CatalyticSynthesisRateModel
+        //catSynthModel |> CatalyticSynthesisRateModel
 
         destrModel |> DestructionRateModel
-        catDestrModel |> CatalyticDestructionRateModel
+        //catDestrModel |> CatalyticDestructionRateModel
 
-        //ligModel |> LigationRateModel
+        ligModel |> LigationRateModel
         //catLigModel |> CatalyticLigationRateModel
 
         //sedDirModel |> SedimentationDirectRateModel

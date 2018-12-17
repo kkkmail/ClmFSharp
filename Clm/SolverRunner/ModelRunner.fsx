@@ -9,10 +9,10 @@ open Model.ModelData
 open OdeSolver.Solver
 open OdeSolver.Visualization
 //===========================================================
-let useResultsFolder = true
+let useResultsFolder = false
 
-let y0 = 1000.0
-let tEnd = 100.0
+let y0 = 10.0
+let tEnd = 10000.0
 //===========================================================
 printfn "Solving for n = %A, y0 = %A..." numberOfSubstances y0
 printfn "Starting at: %A" DateTime.Now

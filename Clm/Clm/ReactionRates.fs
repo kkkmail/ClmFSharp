@@ -233,6 +233,19 @@ module ReactionRates =
         member __.inputParams = p
 
 
+    type WasteRecyclingParam = 
+        {
+            wasteRecyclingRate : double
+        }
+
+
+    type WasteRecyclingModel (p : WasteRecyclingParam) = 
+        let rateDictionary = new Dictionary<WasteRecyclingReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.wasteRecyclingRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
     type SynthesisRandomParam = 
         {
             synthesisDistribution : Distribution
@@ -865,6 +878,7 @@ module ReactionRates =
     type ReactionRateModelParam = 
         | FoodCreationRateParam of FoodCreationParam
         | WasteRemovalRateParam of WasteRemovalParam
+        | WasteRecyclingRateParam of WasteRecyclingParam
         | SynthesisRateParam of SynthesisParam
         | DestructionRateParam of DestructionParam
         | CatalyticSynthesisRateParam of CatalyticSynthesisParam
@@ -880,6 +894,7 @@ module ReactionRates =
     type ReactionRateModel = 
         | FoodCreationRateModel of FoodCreationModel
         | WasteRemovalRateModel of WasteRemovalModel
+        | WasteRecyclingRateModel of WasteRecyclingModel
         | SynthesisRateModel of SynthesisModel
         | DestructionRateModel of DestructionModel
         | CatalyticSynthesisRateModel of CatalyticSynthesisModel
@@ -895,6 +910,7 @@ module ReactionRates =
             match rm with
             | FoodCreationRateModel m -> m.inputParams |> FoodCreationRateParam
             | WasteRemovalRateModel m -> m.inputParams |> WasteRemovalRateParam
+            | WasteRecyclingRateModel m -> m.inputParams |> WasteRecyclingRateParam
             | SynthesisRateModel m -> m.inputParams |> SynthesisRateParam
             | DestructionRateModel m -> m.inputParams |> DestructionRateParam
             | CatalyticSynthesisRateModel v ->
@@ -921,6 +937,7 @@ module ReactionRates =
             match rm with
             | FoodCreationRateModel _ -> []
             | WasteRemovalRateModel _ -> []
+            | WasteRecyclingRateModel _ -> []
             | SynthesisRateModel _ -> []
             | DestructionRateModel _ -> []
             | CatalyticSynthesisRateModel v ->
@@ -951,6 +968,7 @@ module ReactionRates =
 
         member p.tryFindSFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
         member p.tryFindSWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
+        member p.tryFindSWasteRecyclingModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRecyclingRateModel m -> Some m | _ -> None)
         member p.tryFindSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | SynthesisRateModel m -> Some m | _ -> None)
         member p.tryFindDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | DestructionRateModel m -> Some m | _ -> None)
         member p.tryFindCatalyticSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateModel m -> Some m | _ -> None)
@@ -968,6 +986,7 @@ module ReactionRates =
             match a with 
             | FoodCreation r -> getModelRates (p.tryFindSFoodCreationModel()) r
             | WasteRemoval r -> getModelRates (p.tryFindSWasteRemovalModel()) r
+            | WasteRecycling r -> getModelRates (p.tryFindSWasteRecyclingModel()) r
             | Synthesis r -> getModelRates (p.tryFindSynthesisModel()) r
             | Destruction r -> getModelRates (p.tryFindDestructionModel()) r
             | CatalyticSynthesis r -> getModelRates (p.tryFindCatalyticSynthesisModel()) r
@@ -993,6 +1012,12 @@ module ReactionRates =
                 wasteRemovalRate = forward
             }
             |> WasteRemovalModel
+
+        static member defaultWasteRecyclingModel forward =
+            {
+                wasteRecyclingRate = forward
+            }
+            |> WasteRecyclingModel
 
         static member defaultSynthRndModel (rnd : Random) (forward, backward) =
             {

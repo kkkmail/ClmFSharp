@@ -118,6 +118,15 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
+    type WasteRecyclingParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                wasteRecyclingRate = " + (doubleFSharpString p.wasteRecyclingRate) + Nl +
+            shift + "            }" + Nl
+
+
     type SynthesisRandomParam
         with
 
@@ -348,6 +357,7 @@ module FSharpCodeExt =
             match rm with 
             | FoodCreationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> FoodCreationRateParam" + Nl
             | WasteRemovalRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRemovalRateParam" + Nl
+            | WasteRecyclingRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRecyclingRateParam" + Nl
             | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
             | DestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> DestructionRateParam" + Nl
             | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl

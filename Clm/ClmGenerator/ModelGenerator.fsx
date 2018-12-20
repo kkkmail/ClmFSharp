@@ -26,6 +26,7 @@ let rnd = new Random(seed)
 //===========================================================
 let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.01
 let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 10.0
+let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 10.0
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
 let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
@@ -57,6 +58,7 @@ let rates =
     [
         foodModel |> FoodCreationRateModel
         wasteModel |> WasteRemovalRateModel
+        wasteRecyclingModel |> WasteRecyclingRateModel
 
         synthModel |> SynthesisRateModel
         //catSynthModel |> CatalyticSynthesisRateModel

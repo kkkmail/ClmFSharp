@@ -94,6 +94,7 @@ module ClmModel =
             match n with 
             | FoodCreationName -> 1
             | WasteRemovalName -> 1
+            | WasteRecyclingName -> 1
             | SynthesisName -> chiralAminoAcids.Length
             | DestructionName -> chiralAminoAcids.Length
             | CatalyticSynthesisName -> catSynthPairs.Length

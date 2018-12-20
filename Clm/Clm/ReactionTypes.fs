@@ -7,6 +7,7 @@ module ReactionTypes =
     type ReactionName = 
         | FoodCreationName
         | WasteRemovalName
+        | WasteRecyclingName
         | SynthesisName
         | DestructionName
         | CatalyticSynthesisName
@@ -22,6 +23,7 @@ module ReactionTypes =
             match this with 
             | FoodCreationName -> "food"
             | WasteRemovalName -> "waste"
+            | WasteRecyclingName -> "recycling"
             | SynthesisName -> "synthesis"
             | DestructionName -> "destruction"
             | CatalyticSynthesisName -> "catalytic synthesis"
@@ -84,6 +86,18 @@ module ReactionTypes =
             {
                 input = [ (Simple Waste, 1) ]
                 output = []
+            }
+
+        member r.enantiomer = r
+
+
+    type WasteRecyclingReaction = 
+        | WasteRecyclingReaction
+
+        member r.info = 
+            {
+                input = [ (Simple Waste, 1) ]
+                output = [ (Simple Food, 1) ]
             }
 
         member r.enantiomer = r
@@ -284,6 +298,7 @@ module ReactionTypes =
     type Reaction = 
         | FoodCreation of FoodCreationReaction
         | WasteRemoval of WasteRemovalReaction
+        | WasteRecycling of WasteRecyclingReaction
         | Synthesis of SynthesisReaction
         | Destruction of DestructionReaction
         | CatalyticSynthesis of CatalyticSynthesisReaction
@@ -299,6 +314,7 @@ module ReactionTypes =
             match r with 
             | FoodCreation _ -> FoodCreationName
             | WasteRemoval _ -> WasteRemovalName
+            | WasteRecycling _ -> WasteRecyclingName
             | Synthesis _ -> SynthesisName
             | Destruction _ -> DestructionName
             | CatalyticSynthesis _ -> CatalyticSynthesisName
@@ -314,6 +330,7 @@ module ReactionTypes =
             match r with 
             | FoodCreation r -> r.info
             | WasteRemoval r -> r.info
+            | WasteRecycling r -> r.info
             | Synthesis r -> r.info
             | Destruction r -> r.info
             | CatalyticSynthesis r -> r.info
@@ -329,6 +346,7 @@ module ReactionTypes =
             match r with 
             | FoodCreation r -> r.enantiomer |> FoodCreation
             | WasteRemoval r -> r.enantiomer |> WasteRemoval
+            | WasteRecycling r -> r.enantiomer |> WasteRecycling
             | Synthesis r -> r.enantiomer |> Synthesis
             | Destruction r -> r.enantiomer |> Destruction
             | CatalyticSynthesis r -> r.enantiomer |> CatalyticSynthesis

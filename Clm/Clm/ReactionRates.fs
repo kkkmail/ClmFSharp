@@ -108,10 +108,10 @@ module ReactionRates =
         | None -> (None, None)
 
 
-    let getEeDistr seed (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+    let getDefaultEeDistr (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
         match rate, rateEnant with 
         | Some (ReactionRate r), Some (ReactionRate re) -> 
-            (r - re) / (r + re) |> EeDistribution.createCentered seed |> Some
+            (r - re) / (r + re) |> EeDistribution.createCentered (seeder()) |> Some
         | _ -> None
 
 
@@ -1040,6 +1040,7 @@ module ReactionRates =
             |> DestrRndParam
             |> DestructionModel.create
 
+
         static member defaultCatSynthRndParams (rnd : Random) (m, threshold, mult) =
             {
                 catSynthRndParam = 
@@ -1047,10 +1048,9 @@ module ReactionRates =
                         catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = EeDistribution.createDefault rnd
-                                multiplier  = mult
-                                maxForwardEe = 0.99
-                                maxBackwardEe = 0.99 |> Some
+                                eeForwardDistribution = EeDistribution.createDefault (rnd.Next()) |> Some
+                                eeBackwardDistribution = EeDistribution.createDefault (rnd.Next()) |> Some
+                                multiplier = mult
                             }
                     }
                 synthesisModel = m
@@ -1064,12 +1064,27 @@ module ReactionRates =
         static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
             let aminoAcids = AminoAcid.getAminoAcids n
 
+
+
+    //type CatalyticSynthesisSimilarParam =
+    //    {
+    //        aminoAcids : list<AminoAcid>
+    //        simSynthDistribution : Distribution
+    //        getForwardEeDistr : (unit -> int) -> ReactionRate option -> ReactionRate option -> EeDistribution option
+    //        getBackwardEeDistr : (unit -> int) -> ReactionRate option -> ReactionRate option -> EeDistribution option
+    //        getMultiplierDistr : (unit -> int) -> SimDistribution
+    //    }
+
+
             {
                 catSynthSimParam = 
                     {
-                        simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
-                        simDistribution = SimDistribution.createDefault rnd
                         aminoAcids = aminoAcids
+                        simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        //simDistribution = SimDistribution.createDefault rnd
+                        getForwardEeDistr = getDefaultEeDistr
+                        getBackwardEeDistr = getDefaultEeDistr
+                        getMultiplierDistr = failwith ""
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
             }

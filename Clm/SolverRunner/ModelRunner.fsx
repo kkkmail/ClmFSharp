@@ -11,8 +11,8 @@ open OdeSolver.Visualization
 //===========================================================
 let useResultsFolder = false
 
-let y0 = 1000.0
-let tEnd = 100.0
+let y0 = 1.0
+let tEnd = 1000.0
 let useAbundant = false
 //===========================================================
 printfn "Solving for n = %A, y0 = %A..." numberOfSubstances y0

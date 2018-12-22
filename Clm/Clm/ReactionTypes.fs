@@ -166,7 +166,7 @@ module ReactionTypes =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticSynthesisReaction
 
-        member r.enantiomerCatalyst = 
+        member r.withEnantiomerCatalyst = 
             let (CatalyticSynthesisReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticSynthesisReaction
 

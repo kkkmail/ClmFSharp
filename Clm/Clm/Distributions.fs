@@ -46,6 +46,7 @@ module Distributions =
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
         member __.nextDoubleFromZeroToOne = nextDoubleFromZeroToOneImpl
+        member __.nextSeed() = rnd.Next()
 
         member __.nextDoubleOpt() = 
             match isDefinedImpl() with 
@@ -113,6 +114,13 @@ module Distributions =
             | Triangular d -> d.isDefined
             | SymmetricTriangular d -> d.isDefined
 
+        member this.nextSeed() = 
+            match this with
+            | Delta d -> d.nextSeed()
+            | Uniform d -> d.nextSeed()
+            | Triangular d -> d.nextSeed()
+            | SymmetricTriangular d -> d.nextSeed()
+
 
     /// Specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
@@ -125,12 +133,12 @@ module Distributions =
                     | DeltaEe d -> d.nextDouble()
                     | SymmetricTriangularEe d -> d.nextDouble()
 
-            max (min v 1.0) -1.0
+            max (min v 1.0) (-1.0)
 
-        static member createDefault (rnd : Random) = 
-            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
+        static member createDefault seed = 
+            SymmetricTriangularDistribution(seed, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
 
-        static member createCentered (rnd : Random) mean = 
+        static member createCentered seed mean = 
             let m, w = 
                 match mean with 
                 | x when x <= -1.0 -> -1.0, None
@@ -139,8 +147,8 @@ module Distributions =
                 | _ -> 0.0, Some 1.0
 
             match w with 
-            | Some s -> SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
-            | None -> DeltaDistribution (rnd.Next(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
+            | Some s -> SymmetricTriangularDistribution(seed, { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
+            | None -> DeltaDistribution (seed, { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
 
     ///// Specially formatted distributions to return values above 0 and with max / mean at 1.

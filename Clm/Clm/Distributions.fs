@@ -135,10 +135,10 @@ module Distributions =
 
             max (min v 1.0) (-1.0)
 
-        static member createDefault seed = 
-            SymmetricTriangularDistribution(seed, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
+        static member createDefault (seeder : unit -> int) = 
+            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
 
-        static member createCentered seed mean = 
+        static member createCentered (seeder : unit -> int) mean = 
             let m, w = 
                 match mean with 
                 | x when x <= -1.0 -> -1.0, None
@@ -147,8 +147,8 @@ module Distributions =
                 | _ -> 0.0, Some 1.0
 
             match w with 
-            | Some s -> SymmetricTriangularDistribution(seed, { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
-            | None -> DeltaDistribution (seed, { threshold = None; scale = None; shift = Some m }) |> DeltaEe
+            | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
+            | None -> DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
 
     /// Specially formatted distributions to return values above 0 and with max / mean at 1.
@@ -165,5 +165,5 @@ module Distributions =
             max v 0.0
 
         /// Returns values from 0 to 2 with max at 1.
-        static member createDefault (rnd : Random) = 
-            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
+        static member createDefault (seeder : unit -> int) = 
+            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim

@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1751701204
+    let seedValue = 416329330
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -343,7 +343,6 @@ module ModelData =
             -0.001 * x.[1] // Y | synthesis: Y <-> a
             0.001 * x.[3] // A | synthesis: Y <-> A
             -0.001 * x.[1] // Y | synthesis: Y <-> A
-            0.01 * 1.0 // 0 X | food: 0 X -> Y
         |]
         |> Array.sum
 
@@ -359,7 +358,6 @@ module ModelData =
             0.001 * x.[5] // a | destruction: a <-> Z
             -0.001 * x.[2] // Z | destruction: A <-> Z
             0.001 * x.[3] // A | destruction: A <-> Z
-            -10.0 * x.[2] // Z | waste: Z -> 
         |]
         |> Array.sum
 
@@ -367,6 +365,52 @@ module ModelData =
     // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[19] // bA | ligation: b + A <-> bA
+            -1.0 * x.[6] * x.[3] // b + A | ligation: b + A <-> bA
+            1.0 * x.[38] // Abb | ligation: A + bb <-> Abb
+            -1.0 * x.[3] * x.[22] // A + bb | ligation: A + bb <-> Abb
+            1.0 * x.[37] // Aba | ligation: A + ba <-> Aba
+            -1.0 * x.[3] * x.[21] // A + ba | ligation: A + ba <-> Aba
+            1.0 * x.[36] // AbB | ligation: A + bB <-> AbB
+            -1.0 * x.[3] * x.[20] // A + bB | ligation: A + bB <-> AbB
+            1.0 * x.[35] // AbA | ligation: A + bA <-> AbA
+            -1.0 * x.[3] * x.[19] // A + bA | ligation: A + bA <-> AbA
+            1.0 * x.[34] // Aab | ligation: A + ab <-> Aab
+            -1.0 * x.[3] * x.[18] // A + ab | ligation: A + ab <-> Aab
+            1.0 * x.[33] // Aaa | ligation: A + aa <-> Aaa
+            -1.0 * x.[3] * x.[17] // A + aa | ligation: A + aa <-> Aaa
+            1.0 * x.[32] // AaB | ligation: A + aB <-> AaB
+            -1.0 * x.[3] * x.[16] // A + aB | ligation: A + aB <-> AaB
+            1.0 * x.[31] // AaA | ligation: A + aA <-> AaA
+            -1.0 * x.[3] * x.[15] // A + aA | ligation: A + aA <-> AaA
+            1.0 * x.[30] // ABb | ligation: A + Bb <-> ABb
+            -1.0 * x.[3] * x.[14] // A + Bb | ligation: A + Bb <-> ABb
+            1.0 * x.[29] // ABa | ligation: A + Ba <-> ABa
+            -1.0 * x.[3] * x.[13] // A + Ba | ligation: A + Ba <-> ABa
+            1.0 * x.[28] // ABB | ligation: A + BB <-> ABB
+            -1.0 * x.[3] * x.[12] // A + BB | ligation: A + BB <-> ABB
+            1.0 * x.[27] // ABA | ligation: A + BA <-> ABA
+            -1.0 * x.[3] * x.[11] // A + BA | ligation: A + BA <-> ABA
+            1.0 * x.[26] // AAb | ligation: A + Ab <-> AAb
+            -1.0 * x.[3] * x.[10] // A + Ab | ligation: A + Ab <-> AAb
+            1.0 * x.[25] // AAa | ligation: A + Aa <-> AAa
+            -1.0 * x.[3] * x.[9] // A + Aa | ligation: A + Aa <-> AAa
+            1.0 * x.[24] // AAB | ligation: A + AB <-> AAB
+            -1.0 * x.[3] * x.[8] // A + AB | ligation: A + AB <-> AAB
+            1.0 * x.[23] // AAA | ligation: A + AA <-> AAA
+            -1.0 * x.[3] * x.[7] // A + AA | ligation: A + AA <-> AAA
+            1.0 * x.[10] // Ab | ligation: A + b <-> Ab
+            -1.0 * x.[3] * x.[6] // A + b | ligation: A + b <-> Ab
+            1.0 * x.[15] // aA | ligation: a + A <-> aA
+            -1.0 * x.[5] * x.[3] // a + A | ligation: a + A <-> aA
+            1.0 * x.[9] // Aa | ligation: A + a <-> Aa
+            -1.0 * x.[3] * x.[5] // A + a | ligation: A + a <-> Aa
+            1.0 * x.[8] // AB | ligation: A + B <-> AB
+            -1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
+            1.0 * x.[7] // AA | ligation: A + A <-> AA
+            1.0 * x.[7] // AA | ligation: A + A <-> AA
+            -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
+            -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             0.001 * x.[2] // Z | destruction: A <-> Z
             -0.001 * x.[3] // A | destruction: A <-> Z
             -0.001 * x.[3] // A | synthesis: Y <-> A
@@ -378,6 +422,52 @@ module ModelData =
     // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
+            -1.0 * x.[4] * x.[22] // B + bb | ligation: B + bb <-> Bbb
+            1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
+            -1.0 * x.[4] * x.[21] // B + ba | ligation: B + ba <-> Bba
+            1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
+            -1.0 * x.[4] * x.[20] // B + bB | ligation: B + bB <-> BbB
+            1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
+            -1.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
+            1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
+            -1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
+            1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
+            -1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
+            1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
+            -1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
+            1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
+            -1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
+            1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
+            -1.0 * x.[4] * x.[14] // B + Bb | ligation: B + Bb <-> BBb
+            1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
+            -1.0 * x.[4] * x.[13] // B + Ba | ligation: B + Ba <-> BBa
+            1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
+            -1.0 * x.[4] * x.[12] // B + BB | ligation: B + BB <-> BBB
+            1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
+            -1.0 * x.[4] * x.[11] // B + BA | ligation: B + BA <-> BBA
+            1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
+            -1.0 * x.[4] * x.[10] // B + Ab | ligation: B + Ab <-> BAb
+            1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
+            -1.0 * x.[4] * x.[9] // B + Aa | ligation: B + Aa <-> BAa
+            1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
+            -1.0 * x.[4] * x.[8] // B + AB | ligation: B + AB <-> BAB
+            1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
+            -1.0 * x.[4] * x.[7] // B + AA | ligation: B + AA <-> BAA
+            1.0 * x.[20] // bB | ligation: b + B <-> bB
+            -1.0 * x.[6] * x.[4] // b + B | ligation: b + B <-> bB
+            1.0 * x.[14] // Bb | ligation: B + b <-> Bb
+            -1.0 * x.[4] * x.[6] // B + b | ligation: B + b <-> Bb
+            1.0 * x.[13] // Ba | ligation: B + a <-> Ba
+            -1.0 * x.[4] * x.[5] // B + a | ligation: B + a <-> Ba
+            1.0 * x.[12] // BB | ligation: B + B <-> BB
+            1.0 * x.[12] // BB | ligation: B + B <-> BB
+            -1.0 * x.[4] * x.[4] // B + B | ligation: B + B <-> BB
+            -1.0 * x.[4] * x.[4] // B + B | ligation: B + B <-> BB
+            1.0 * x.[16] // aB | ligation: a + B <-> aB
+            -1.0 * x.[5] * x.[4] // a + B | ligation: a + B <-> aB
+            1.0 * x.[8] // AB | ligation: A + B <-> AB
+            -1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
             0.001 * x.[2] // Z | destruction: B <-> Z
             -0.001 * x.[4] // B | destruction: B <-> Z
             -0.001 * x.[4] // B | synthesis: Y <-> B
@@ -389,6 +479,52 @@ module ModelData =
     // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[13] // Ba | ligation: B + a <-> Ba
+            -1.0 * x.[4] * x.[5] // B + a | ligation: B + a <-> Ba
+            1.0 * x.[60] // aBB | ligation: a + BB <-> aBB
+            -1.0 * x.[5] * x.[12] // a + BB | ligation: a + BB <-> aBB
+            1.0 * x.[59] // aBA | ligation: a + BA <-> aBA
+            -1.0 * x.[5] * x.[11] // a + BA | ligation: a + BA <-> aBA
+            1.0 * x.[62] // aBb | ligation: a + Bb <-> aBb
+            -1.0 * x.[5] * x.[14] // a + Bb | ligation: a + Bb <-> aBb
+            1.0 * x.[61] // aBa | ligation: a + Ba <-> aBa
+            -1.0 * x.[5] * x.[13] // a + Ba | ligation: a + Ba <-> aBa
+            1.0 * x.[56] // aAB | ligation: a + AB <-> aAB
+            -1.0 * x.[5] * x.[8] // a + AB | ligation: a + AB <-> aAB
+            1.0 * x.[55] // aAA | ligation: a + AA <-> aAA
+            -1.0 * x.[5] * x.[7] // a + AA | ligation: a + AA <-> aAA
+            1.0 * x.[58] // aAb | ligation: a + Ab <-> aAb
+            -1.0 * x.[5] * x.[10] // a + Ab | ligation: a + Ab <-> aAb
+            1.0 * x.[57] // aAa | ligation: a + Aa <-> aAa
+            -1.0 * x.[5] * x.[9] // a + Aa | ligation: a + Aa <-> aAa
+            1.0 * x.[68] // abB | ligation: a + bB <-> abB
+            -1.0 * x.[5] * x.[20] // a + bB | ligation: a + bB <-> abB
+            1.0 * x.[67] // abA | ligation: a + bA <-> abA
+            -1.0 * x.[5] * x.[19] // a + bA | ligation: a + bA <-> abA
+            1.0 * x.[70] // abb | ligation: a + bb <-> abb
+            -1.0 * x.[5] * x.[22] // a + bb | ligation: a + bb <-> abb
+            1.0 * x.[69] // aba | ligation: a + ba <-> aba
+            -1.0 * x.[5] * x.[21] // a + ba | ligation: a + ba <-> aba
+            1.0 * x.[64] // aaB | ligation: a + aB <-> aaB
+            -1.0 * x.[5] * x.[16] // a + aB | ligation: a + aB <-> aaB
+            1.0 * x.[63] // aaA | ligation: a + aA <-> aaA
+            -1.0 * x.[5] * x.[15] // a + aA | ligation: a + aA <-> aaA
+            1.0 * x.[66] // aab | ligation: a + ab <-> aab
+            -1.0 * x.[5] * x.[18] // a + ab | ligation: a + ab <-> aab
+            1.0 * x.[65] // aaa | ligation: a + aa <-> aaa
+            -1.0 * x.[5] * x.[17] // a + aa | ligation: a + aa <-> aaa
+            1.0 * x.[16] // aB | ligation: a + B <-> aB
+            -1.0 * x.[5] * x.[4] // a + B | ligation: a + B <-> aB
+            1.0 * x.[15] // aA | ligation: a + A <-> aA
+            -1.0 * x.[5] * x.[3] // a + A | ligation: a + A <-> aA
+            1.0 * x.[9] // Aa | ligation: A + a <-> Aa
+            -1.0 * x.[3] * x.[5] // A + a | ligation: A + a <-> Aa
+            1.0 * x.[18] // ab | ligation: a + b <-> ab
+            -1.0 * x.[5] * x.[6] // a + b | ligation: a + b <-> ab
+            1.0 * x.[17] // aa | ligation: a + a <-> aa
+            1.0 * x.[17] // aa | ligation: a + a <-> aa
+            -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
+            -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
             0.001 * x.[2] // Z | destruction: a <-> Z
             -0.001 * x.[5] // a | destruction: a <-> Z
             -0.001 * x.[5] // a | synthesis: Y <-> a
@@ -400,6 +536,52 @@ module ModelData =
     // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
+            -1.0 * x.[6] * x.[12] // b + BB | ligation: b + BB <-> bBB
+            1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
+            -1.0 * x.[6] * x.[11] // b + BA | ligation: b + BA <-> bBA
+            1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
+            -1.0 * x.[6] * x.[14] // b + Bb | ligation: b + Bb <-> bBb
+            1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
+            -1.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
+            1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
+            -1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
+            1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
+            -1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
+            1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
+            -1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
+            1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
+            -1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
+            1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
+            -1.0 * x.[6] * x.[20] // b + bB | ligation: b + bB <-> bbB
+            1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
+            -1.0 * x.[6] * x.[19] // b + bA | ligation: b + bA <-> bbA
+            1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
+            -1.0 * x.[6] * x.[22] // b + bb | ligation: b + bb <-> bbb
+            1.0 * x.[85] // bba | ligation: b + ba <-> bba
+            -1.0 * x.[6] * x.[21] // b + ba | ligation: b + ba <-> bba
+            1.0 * x.[80] // baB | ligation: b + aB <-> baB
+            -1.0 * x.[6] * x.[16] // b + aB | ligation: b + aB <-> baB
+            1.0 * x.[79] // baA | ligation: b + aA <-> baA
+            -1.0 * x.[6] * x.[15] // b + aA | ligation: b + aA <-> baA
+            1.0 * x.[82] // bab | ligation: b + ab <-> bab
+            -1.0 * x.[6] * x.[18] // b + ab | ligation: b + ab <-> bab
+            1.0 * x.[81] // baa | ligation: b + aa <-> baa
+            -1.0 * x.[6] * x.[17] // b + aa | ligation: b + aa <-> baa
+            1.0 * x.[20] // bB | ligation: b + B <-> bB
+            -1.0 * x.[6] * x.[4] // b + B | ligation: b + B <-> bB
+            1.0 * x.[14] // Bb | ligation: B + b <-> Bb
+            -1.0 * x.[4] * x.[6] // B + b | ligation: B + b <-> Bb
+            1.0 * x.[19] // bA | ligation: b + A <-> bA
+            -1.0 * x.[6] * x.[3] // b + A | ligation: b + A <-> bA
+            1.0 * x.[22] // bb | ligation: b + b <-> bb
+            1.0 * x.[22] // bb | ligation: b + b <-> bb
+            -1.0 * x.[6] * x.[6] // b + b | ligation: b + b <-> bb
+            -1.0 * x.[6] * x.[6] // b + b | ligation: b + b <-> bb
+            1.0 * x.[10] // Ab | ligation: A + b <-> Ab
+            -1.0 * x.[3] * x.[6] // A + b | ligation: A + b <-> Ab
+            1.0 * x.[18] // ab | ligation: a + b <-> ab
+            -1.0 * x.[5] * x.[6] // a + b | ligation: a + b <-> ab
             0.001 * x.[2] // Z | destruction: b <-> Z
             -0.001 * x.[6] // b | destruction: b <-> Z
             -0.001 * x.[6] // b | synthesis: Y <-> b
@@ -411,6 +593,16 @@ module ModelData =
     // 7 - AA
     let d7 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
+            -1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
+            1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
+            -1.0 * x.[4] * x.[7] // B + AA | ligation: B + AA <-> BAA
+            1.0 * x.[55] // aAA | ligation: a + AA <-> aAA
+            -1.0 * x.[5] * x.[7] // a + AA | ligation: a + AA <-> aAA
+            1.0 * x.[23] // AAA | ligation: A + AA <-> AAA
+            -1.0 * x.[3] * x.[7] // A + AA | ligation: A + AA <-> AAA
+            -1.0 * x.[7] // AA | ligation: A + A <-> AA
+            1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
         |]
         |> Array.sum
 
@@ -418,6 +610,16 @@ module ModelData =
     // 8 - AB
     let d8 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
+            -1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
+            1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
+            -1.0 * x.[4] * x.[8] // B + AB | ligation: B + AB <-> BAB
+            1.0 * x.[56] // aAB | ligation: a + AB <-> aAB
+            -1.0 * x.[5] * x.[8] // a + AB | ligation: a + AB <-> aAB
+            1.0 * x.[24] // AAB | ligation: A + AB <-> AAB
+            -1.0 * x.[3] * x.[8] // A + AB | ligation: A + AB <-> AAB
+            -1.0 * x.[8] // AB | ligation: A + B <-> AB
+            1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
         |]
         |> Array.sum
 
@@ -425,6 +627,16 @@ module ModelData =
     // 9 - Aa
     let d9 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
+            -1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
+            1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
+            -1.0 * x.[4] * x.[9] // B + Aa | ligation: B + Aa <-> BAa
+            1.0 * x.[57] // aAa | ligation: a + Aa <-> aAa
+            -1.0 * x.[5] * x.[9] // a + Aa | ligation: a + Aa <-> aAa
+            1.0 * x.[25] // AAa | ligation: A + Aa <-> AAa
+            -1.0 * x.[3] * x.[9] // A + Aa | ligation: A + Aa <-> AAa
+            -1.0 * x.[9] // Aa | ligation: A + a <-> Aa
+            1.0 * x.[3] * x.[5] // A + a | ligation: A + a <-> Aa
         |]
         |> Array.sum
 
@@ -432,6 +644,16 @@ module ModelData =
     // 10 - Ab
     let d10 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
+            -1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
+            1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
+            -1.0 * x.[4] * x.[10] // B + Ab | ligation: B + Ab <-> BAb
+            1.0 * x.[58] // aAb | ligation: a + Ab <-> aAb
+            -1.0 * x.[5] * x.[10] // a + Ab | ligation: a + Ab <-> aAb
+            1.0 * x.[26] // AAb | ligation: A + Ab <-> AAb
+            -1.0 * x.[3] * x.[10] // A + Ab | ligation: A + Ab <-> AAb
+            -1.0 * x.[10] // Ab | ligation: A + b <-> Ab
+            1.0 * x.[3] * x.[6] // A + b | ligation: A + b <-> Ab
         |]
         |> Array.sum
 
@@ -439,6 +661,14 @@ module ModelData =
     // 11 - BA
     let d11 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
+            -1.0 * x.[6] * x.[11] // b + BA | ligation: b + BA <-> bBA
+            1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
+            -1.0 * x.[4] * x.[11] // B + BA | ligation: B + BA <-> BBA
+            1.0 * x.[59] // aBA | ligation: a + BA <-> aBA
+            -1.0 * x.[5] * x.[11] // a + BA | ligation: a + BA <-> aBA
+            1.0 * x.[27] // ABA | ligation: A + BA <-> ABA
+            -1.0 * x.[3] * x.[11] // A + BA | ligation: A + BA <-> ABA
         |]
         |> Array.sum
 
@@ -446,6 +676,16 @@ module ModelData =
     // 12 - BB
     let d12 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
+            -1.0 * x.[6] * x.[12] // b + BB | ligation: b + BB <-> bBB
+            1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
+            -1.0 * x.[4] * x.[12] // B + BB | ligation: B + BB <-> BBB
+            -1.0 * x.[12] // BB | ligation: B + B <-> BB
+            1.0 * x.[4] * x.[4] // B + B | ligation: B + B <-> BB
+            1.0 * x.[60] // aBB | ligation: a + BB <-> aBB
+            -1.0 * x.[5] * x.[12] // a + BB | ligation: a + BB <-> aBB
+            1.0 * x.[28] // ABB | ligation: A + BB <-> ABB
+            -1.0 * x.[3] * x.[12] // A + BB | ligation: A + BB <-> ABB
         |]
         |> Array.sum
 
@@ -453,6 +693,16 @@ module ModelData =
     // 13 - Ba
     let d13 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
+            -1.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
+            1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
+            -1.0 * x.[4] * x.[13] // B + Ba | ligation: B + Ba <-> BBa
+            -1.0 * x.[13] // Ba | ligation: B + a <-> Ba
+            1.0 * x.[4] * x.[5] // B + a | ligation: B + a <-> Ba
+            1.0 * x.[61] // aBa | ligation: a + Ba <-> aBa
+            -1.0 * x.[5] * x.[13] // a + Ba | ligation: a + Ba <-> aBa
+            1.0 * x.[29] // ABa | ligation: A + Ba <-> ABa
+            -1.0 * x.[3] * x.[13] // A + Ba | ligation: A + Ba <-> ABa
         |]
         |> Array.sum
 
@@ -460,6 +710,16 @@ module ModelData =
     // 14 - Bb
     let d14 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
+            -1.0 * x.[6] * x.[14] // b + Bb | ligation: b + Bb <-> bBb
+            1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
+            -1.0 * x.[4] * x.[14] // B + Bb | ligation: B + Bb <-> BBb
+            -1.0 * x.[14] // Bb | ligation: B + b <-> Bb
+            1.0 * x.[4] * x.[6] // B + b | ligation: B + b <-> Bb
+            1.0 * x.[62] // aBb | ligation: a + Bb <-> aBb
+            -1.0 * x.[5] * x.[14] // a + Bb | ligation: a + Bb <-> aBb
+            1.0 * x.[30] // ABb | ligation: A + Bb <-> ABb
+            -1.0 * x.[3] * x.[14] // A + Bb | ligation: A + Bb <-> ABb
         |]
         |> Array.sum
 
@@ -467,6 +727,16 @@ module ModelData =
     // 15 - aA
     let d15 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
+            -1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
+            1.0 * x.[79] // baA | ligation: b + aA <-> baA
+            -1.0 * x.[6] * x.[15] // b + aA | ligation: b + aA <-> baA
+            1.0 * x.[31] // AaA | ligation: A + aA <-> AaA
+            -1.0 * x.[3] * x.[15] // A + aA | ligation: A + aA <-> AaA
+            1.0 * x.[63] // aaA | ligation: a + aA <-> aaA
+            -1.0 * x.[5] * x.[15] // a + aA | ligation: a + aA <-> aaA
+            -1.0 * x.[15] // aA | ligation: a + A <-> aA
+            1.0 * x.[5] * x.[3] // a + A | ligation: a + A <-> aA
         |]
         |> Array.sum
 
@@ -474,6 +744,16 @@ module ModelData =
     // 16 - aB
     let d16 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
+            -1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
+            1.0 * x.[80] // baB | ligation: b + aB <-> baB
+            -1.0 * x.[6] * x.[16] // b + aB | ligation: b + aB <-> baB
+            1.0 * x.[32] // AaB | ligation: A + aB <-> AaB
+            -1.0 * x.[3] * x.[16] // A + aB | ligation: A + aB <-> AaB
+            1.0 * x.[64] // aaB | ligation: a + aB <-> aaB
+            -1.0 * x.[5] * x.[16] // a + aB | ligation: a + aB <-> aaB
+            -1.0 * x.[16] // aB | ligation: a + B <-> aB
+            1.0 * x.[5] * x.[4] // a + B | ligation: a + B <-> aB
         |]
         |> Array.sum
 
@@ -481,6 +761,16 @@ module ModelData =
     // 17 - aa
     let d17 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
+            -1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
+            1.0 * x.[81] // baa | ligation: b + aa <-> baa
+            -1.0 * x.[6] * x.[17] // b + aa | ligation: b + aa <-> baa
+            1.0 * x.[33] // Aaa | ligation: A + aa <-> Aaa
+            -1.0 * x.[3] * x.[17] // A + aa | ligation: A + aa <-> Aaa
+            1.0 * x.[65] // aaa | ligation: a + aa <-> aaa
+            -1.0 * x.[5] * x.[17] // a + aa | ligation: a + aa <-> aaa
+            -1.0 * x.[17] // aa | ligation: a + a <-> aa
+            1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
         |]
         |> Array.sum
 
@@ -488,6 +778,16 @@ module ModelData =
     // 18 - ab
     let d18 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
+            -1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
+            1.0 * x.[82] // bab | ligation: b + ab <-> bab
+            -1.0 * x.[6] * x.[18] // b + ab | ligation: b + ab <-> bab
+            1.0 * x.[34] // Aab | ligation: A + ab <-> Aab
+            -1.0 * x.[3] * x.[18] // A + ab | ligation: A + ab <-> Aab
+            1.0 * x.[66] // aab | ligation: a + ab <-> aab
+            -1.0 * x.[5] * x.[18] // a + ab | ligation: a + ab <-> aab
+            -1.0 * x.[18] // ab | ligation: a + b <-> ab
+            1.0 * x.[5] * x.[6] // a + b | ligation: a + b <-> ab
         |]
         |> Array.sum
 
@@ -495,6 +795,16 @@ module ModelData =
     // 19 - bA
     let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
+            -1.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
+            1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
+            -1.0 * x.[6] * x.[19] // b + bA | ligation: b + bA <-> bbA
+            -1.0 * x.[19] // bA | ligation: b + A <-> bA
+            1.0 * x.[6] * x.[3] // b + A | ligation: b + A <-> bA
+            1.0 * x.[35] // AbA | ligation: A + bA <-> AbA
+            -1.0 * x.[3] * x.[19] // A + bA | ligation: A + bA <-> AbA
+            1.0 * x.[67] // abA | ligation: a + bA <-> abA
+            -1.0 * x.[5] * x.[19] // a + bA | ligation: a + bA <-> abA
         |]
         |> Array.sum
 
@@ -502,6 +812,16 @@ module ModelData =
     // 20 - bB
     let d20 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
+            -1.0 * x.[4] * x.[20] // B + bB | ligation: B + bB <-> BbB
+            1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
+            -1.0 * x.[6] * x.[20] // b + bB | ligation: b + bB <-> bbB
+            -1.0 * x.[20] // bB | ligation: b + B <-> bB
+            1.0 * x.[6] * x.[4] // b + B | ligation: b + B <-> bB
+            1.0 * x.[36] // AbB | ligation: A + bB <-> AbB
+            -1.0 * x.[3] * x.[20] // A + bB | ligation: A + bB <-> AbB
+            1.0 * x.[68] // abB | ligation: a + bB <-> abB
+            -1.0 * x.[5] * x.[20] // a + bB | ligation: a + bB <-> abB
         |]
         |> Array.sum
 
@@ -509,6 +829,14 @@ module ModelData =
     // 21 - ba
     let d21 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
+            -1.0 * x.[4] * x.[21] // B + ba | ligation: B + ba <-> Bba
+            1.0 * x.[85] // bba | ligation: b + ba <-> bba
+            -1.0 * x.[6] * x.[21] // b + ba | ligation: b + ba <-> bba
+            1.0 * x.[37] // Aba | ligation: A + ba <-> Aba
+            -1.0 * x.[3] * x.[21] // A + ba | ligation: A + ba <-> Aba
+            1.0 * x.[69] // aba | ligation: a + ba <-> aba
+            -1.0 * x.[5] * x.[21] // a + ba | ligation: a + ba <-> aba
         |]
         |> Array.sum
 
@@ -516,6 +844,16 @@ module ModelData =
     // 22 - bb
     let d22 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
+            -1.0 * x.[4] * x.[22] // B + bb | ligation: B + bb <-> Bbb
+            1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
+            -1.0 * x.[6] * x.[22] // b + bb | ligation: b + bb <-> bbb
+            -1.0 * x.[22] // bb | ligation: b + b <-> bb
+            1.0 * x.[6] * x.[6] // b + b | ligation: b + b <-> bb
+            1.0 * x.[38] // Abb | ligation: A + bb <-> Abb
+            -1.0 * x.[3] * x.[22] // A + bb | ligation: A + bb <-> Abb
+            1.0 * x.[70] // abb | ligation: a + bb <-> abb
+            -1.0 * x.[5] * x.[22] // a + bb | ligation: a + bb <-> abb
         |]
         |> Array.sum
 
@@ -523,6 +861,8 @@ module ModelData =
     // 23 - AAA
     let d23 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[23] // AAA | ligation: A + AA <-> AAA
+            1.0 * x.[3] * x.[7] // A + AA | ligation: A + AA <-> AAA
         |]
         |> Array.sum
 
@@ -530,6 +870,8 @@ module ModelData =
     // 24 - AAB
     let d24 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[24] // AAB | ligation: A + AB <-> AAB
+            1.0 * x.[3] * x.[8] // A + AB | ligation: A + AB <-> AAB
         |]
         |> Array.sum
 
@@ -537,6 +879,8 @@ module ModelData =
     // 25 - AAa
     let d25 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[25] // AAa | ligation: A + Aa <-> AAa
+            1.0 * x.[3] * x.[9] // A + Aa | ligation: A + Aa <-> AAa
         |]
         |> Array.sum
 
@@ -544,6 +888,8 @@ module ModelData =
     // 26 - AAb
     let d26 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[26] // AAb | ligation: A + Ab <-> AAb
+            1.0 * x.[3] * x.[10] // A + Ab | ligation: A + Ab <-> AAb
         |]
         |> Array.sum
 
@@ -551,6 +897,8 @@ module ModelData =
     // 27 - ABA
     let d27 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[27] // ABA | ligation: A + BA <-> ABA
+            1.0 * x.[3] * x.[11] // A + BA | ligation: A + BA <-> ABA
         |]
         |> Array.sum
 
@@ -558,6 +906,8 @@ module ModelData =
     // 28 - ABB
     let d28 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[28] // ABB | ligation: A + BB <-> ABB
+            1.0 * x.[3] * x.[12] // A + BB | ligation: A + BB <-> ABB
         |]
         |> Array.sum
 
@@ -565,6 +915,8 @@ module ModelData =
     // 29 - ABa
     let d29 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[29] // ABa | ligation: A + Ba <-> ABa
+            1.0 * x.[3] * x.[13] // A + Ba | ligation: A + Ba <-> ABa
         |]
         |> Array.sum
 
@@ -572,6 +924,8 @@ module ModelData =
     // 30 - ABb
     let d30 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[30] // ABb | ligation: A + Bb <-> ABb
+            1.0 * x.[3] * x.[14] // A + Bb | ligation: A + Bb <-> ABb
         |]
         |> Array.sum
 
@@ -579,6 +933,8 @@ module ModelData =
     // 31 - AaA
     let d31 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[31] // AaA | ligation: A + aA <-> AaA
+            1.0 * x.[3] * x.[15] // A + aA | ligation: A + aA <-> AaA
         |]
         |> Array.sum
 
@@ -586,6 +942,8 @@ module ModelData =
     // 32 - AaB
     let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[32] // AaB | ligation: A + aB <-> AaB
+            1.0 * x.[3] * x.[16] // A + aB | ligation: A + aB <-> AaB
         |]
         |> Array.sum
 
@@ -593,6 +951,8 @@ module ModelData =
     // 33 - Aaa
     let d33 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[33] // Aaa | ligation: A + aa <-> Aaa
+            1.0 * x.[3] * x.[17] // A + aa | ligation: A + aa <-> Aaa
         |]
         |> Array.sum
 
@@ -600,6 +960,8 @@ module ModelData =
     // 34 - Aab
     let d34 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[34] // Aab | ligation: A + ab <-> Aab
+            1.0 * x.[3] * x.[18] // A + ab | ligation: A + ab <-> Aab
         |]
         |> Array.sum
 
@@ -607,6 +969,8 @@ module ModelData =
     // 35 - AbA
     let d35 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[35] // AbA | ligation: A + bA <-> AbA
+            1.0 * x.[3] * x.[19] // A + bA | ligation: A + bA <-> AbA
         |]
         |> Array.sum
 
@@ -614,6 +978,8 @@ module ModelData =
     // 36 - AbB
     let d36 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[36] // AbB | ligation: A + bB <-> AbB
+            1.0 * x.[3] * x.[20] // A + bB | ligation: A + bB <-> AbB
         |]
         |> Array.sum
 
@@ -621,6 +987,8 @@ module ModelData =
     // 37 - Aba
     let d37 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[37] // Aba | ligation: A + ba <-> Aba
+            1.0 * x.[3] * x.[21] // A + ba | ligation: A + ba <-> Aba
         |]
         |> Array.sum
 
@@ -628,6 +996,8 @@ module ModelData =
     // 38 - Abb
     let d38 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[38] // Abb | ligation: A + bb <-> Abb
+            1.0 * x.[3] * x.[22] // A + bb | ligation: A + bb <-> Abb
         |]
         |> Array.sum
 
@@ -635,6 +1005,8 @@ module ModelData =
     // 39 - BAA
     let d39 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
+            1.0 * x.[4] * x.[7] // B + AA | ligation: B + AA <-> BAA
         |]
         |> Array.sum
 
@@ -642,6 +1014,8 @@ module ModelData =
     // 40 - BAB
     let d40 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
+            1.0 * x.[4] * x.[8] // B + AB | ligation: B + AB <-> BAB
         |]
         |> Array.sum
 
@@ -649,6 +1023,8 @@ module ModelData =
     // 41 - BAa
     let d41 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
+            1.0 * x.[4] * x.[9] // B + Aa | ligation: B + Aa <-> BAa
         |]
         |> Array.sum
 
@@ -656,6 +1032,8 @@ module ModelData =
     // 42 - BAb
     let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
+            1.0 * x.[4] * x.[10] // B + Ab | ligation: B + Ab <-> BAb
         |]
         |> Array.sum
 
@@ -663,6 +1041,8 @@ module ModelData =
     // 43 - BBA
     let d43 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
+            1.0 * x.[4] * x.[11] // B + BA | ligation: B + BA <-> BBA
         |]
         |> Array.sum
 
@@ -670,6 +1050,8 @@ module ModelData =
     // 44 - BBB
     let d44 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
+            1.0 * x.[4] * x.[12] // B + BB | ligation: B + BB <-> BBB
         |]
         |> Array.sum
 
@@ -677,6 +1059,8 @@ module ModelData =
     // 45 - BBa
     let d45 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
+            1.0 * x.[4] * x.[13] // B + Ba | ligation: B + Ba <-> BBa
         |]
         |> Array.sum
 
@@ -684,6 +1068,8 @@ module ModelData =
     // 46 - BBb
     let d46 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
+            1.0 * x.[4] * x.[14] // B + Bb | ligation: B + Bb <-> BBb
         |]
         |> Array.sum
 
@@ -691,6 +1077,8 @@ module ModelData =
     // 47 - BaA
     let d47 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
+            1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
         |]
         |> Array.sum
 
@@ -698,6 +1086,8 @@ module ModelData =
     // 48 - BaB
     let d48 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
+            1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
         |]
         |> Array.sum
 
@@ -705,6 +1095,8 @@ module ModelData =
     // 49 - Baa
     let d49 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
+            1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
         |]
         |> Array.sum
 
@@ -712,6 +1104,8 @@ module ModelData =
     // 50 - Bab
     let d50 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
+            1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
         |]
         |> Array.sum
 
@@ -719,6 +1113,8 @@ module ModelData =
     // 51 - BbA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
+            1.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
         |]
         |> Array.sum
 
@@ -726,6 +1122,8 @@ module ModelData =
     // 52 - BbB
     let d52 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
+            1.0 * x.[4] * x.[20] // B + bB | ligation: B + bB <-> BbB
         |]
         |> Array.sum
 
@@ -733,6 +1131,8 @@ module ModelData =
     // 53 - Bba
     let d53 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
+            1.0 * x.[4] * x.[21] // B + ba | ligation: B + ba <-> Bba
         |]
         |> Array.sum
 
@@ -740,6 +1140,8 @@ module ModelData =
     // 54 - Bbb
     let d54 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
+            1.0 * x.[4] * x.[22] // B + bb | ligation: B + bb <-> Bbb
         |]
         |> Array.sum
 
@@ -747,6 +1149,8 @@ module ModelData =
     // 55 - aAA
     let d55 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[55] // aAA | ligation: a + AA <-> aAA
+            1.0 * x.[5] * x.[7] // a + AA | ligation: a + AA <-> aAA
         |]
         |> Array.sum
 
@@ -754,6 +1158,8 @@ module ModelData =
     // 56 - aAB
     let d56 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[56] // aAB | ligation: a + AB <-> aAB
+            1.0 * x.[5] * x.[8] // a + AB | ligation: a + AB <-> aAB
         |]
         |> Array.sum
 
@@ -761,6 +1167,8 @@ module ModelData =
     // 57 - aAa
     let d57 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[57] // aAa | ligation: a + Aa <-> aAa
+            1.0 * x.[5] * x.[9] // a + Aa | ligation: a + Aa <-> aAa
         |]
         |> Array.sum
 
@@ -768,6 +1176,8 @@ module ModelData =
     // 58 - aAb
     let d58 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[58] // aAb | ligation: a + Ab <-> aAb
+            1.0 * x.[5] * x.[10] // a + Ab | ligation: a + Ab <-> aAb
         |]
         |> Array.sum
 
@@ -775,6 +1185,8 @@ module ModelData =
     // 59 - aBA
     let d59 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[59] // aBA | ligation: a + BA <-> aBA
+            1.0 * x.[5] * x.[11] // a + BA | ligation: a + BA <-> aBA
         |]
         |> Array.sum
 
@@ -782,6 +1194,8 @@ module ModelData =
     // 60 - aBB
     let d60 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[60] // aBB | ligation: a + BB <-> aBB
+            1.0 * x.[5] * x.[12] // a + BB | ligation: a + BB <-> aBB
         |]
         |> Array.sum
 
@@ -789,6 +1203,8 @@ module ModelData =
     // 61 - aBa
     let d61 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[61] // aBa | ligation: a + Ba <-> aBa
+            1.0 * x.[5] * x.[13] // a + Ba | ligation: a + Ba <-> aBa
         |]
         |> Array.sum
 
@@ -796,6 +1212,8 @@ module ModelData =
     // 62 - aBb
     let d62 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[62] // aBb | ligation: a + Bb <-> aBb
+            1.0 * x.[5] * x.[14] // a + Bb | ligation: a + Bb <-> aBb
         |]
         |> Array.sum
 
@@ -803,6 +1221,8 @@ module ModelData =
     // 63 - aaA
     let d63 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[63] // aaA | ligation: a + aA <-> aaA
+            1.0 * x.[5] * x.[15] // a + aA | ligation: a + aA <-> aaA
         |]
         |> Array.sum
 
@@ -810,6 +1230,8 @@ module ModelData =
     // 64 - aaB
     let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[64] // aaB | ligation: a + aB <-> aaB
+            1.0 * x.[5] * x.[16] // a + aB | ligation: a + aB <-> aaB
         |]
         |> Array.sum
 
@@ -817,6 +1239,8 @@ module ModelData =
     // 65 - aaa
     let d65 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[65] // aaa | ligation: a + aa <-> aaa
+            1.0 * x.[5] * x.[17] // a + aa | ligation: a + aa <-> aaa
         |]
         |> Array.sum
 
@@ -824,6 +1248,8 @@ module ModelData =
     // 66 - aab
     let d66 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[66] // aab | ligation: a + ab <-> aab
+            1.0 * x.[5] * x.[18] // a + ab | ligation: a + ab <-> aab
         |]
         |> Array.sum
 
@@ -831,6 +1257,8 @@ module ModelData =
     // 67 - abA
     let d67 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[67] // abA | ligation: a + bA <-> abA
+            1.0 * x.[5] * x.[19] // a + bA | ligation: a + bA <-> abA
         |]
         |> Array.sum
 
@@ -838,6 +1266,8 @@ module ModelData =
     // 68 - abB
     let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[68] // abB | ligation: a + bB <-> abB
+            1.0 * x.[5] * x.[20] // a + bB | ligation: a + bB <-> abB
         |]
         |> Array.sum
 
@@ -845,6 +1275,8 @@ module ModelData =
     // 69 - aba
     let d69 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[69] // aba | ligation: a + ba <-> aba
+            1.0 * x.[5] * x.[21] // a + ba | ligation: a + ba <-> aba
         |]
         |> Array.sum
 
@@ -852,6 +1284,8 @@ module ModelData =
     // 70 - abb
     let d70 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[70] // abb | ligation: a + bb <-> abb
+            1.0 * x.[5] * x.[22] // a + bb | ligation: a + bb <-> abb
         |]
         |> Array.sum
 
@@ -859,6 +1293,8 @@ module ModelData =
     // 71 - bAA
     let d71 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
+            1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
         |]
         |> Array.sum
 
@@ -866,6 +1302,8 @@ module ModelData =
     // 72 - bAB
     let d72 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
+            1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
         |]
         |> Array.sum
 
@@ -873,6 +1311,8 @@ module ModelData =
     // 73 - bAa
     let d73 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
+            1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
         |]
         |> Array.sum
 
@@ -880,6 +1320,8 @@ module ModelData =
     // 74 - bAb
     let d74 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
+            1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
         |]
         |> Array.sum
 
@@ -887,6 +1329,8 @@ module ModelData =
     // 75 - bBA
     let d75 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
+            1.0 * x.[6] * x.[11] // b + BA | ligation: b + BA <-> bBA
         |]
         |> Array.sum
 
@@ -894,6 +1338,8 @@ module ModelData =
     // 76 - bBB
     let d76 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
+            1.0 * x.[6] * x.[12] // b + BB | ligation: b + BB <-> bBB
         |]
         |> Array.sum
 
@@ -901,6 +1347,8 @@ module ModelData =
     // 77 - bBa
     let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
+            1.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
         |]
         |> Array.sum
 
@@ -908,6 +1356,8 @@ module ModelData =
     // 78 - bBb
     let d78 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
+            1.0 * x.[6] * x.[14] // b + Bb | ligation: b + Bb <-> bBb
         |]
         |> Array.sum
 
@@ -915,6 +1365,8 @@ module ModelData =
     // 79 - baA
     let d79 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[79] // baA | ligation: b + aA <-> baA
+            1.0 * x.[6] * x.[15] // b + aA | ligation: b + aA <-> baA
         |]
         |> Array.sum
 
@@ -922,6 +1374,8 @@ module ModelData =
     // 80 - baB
     let d80 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[80] // baB | ligation: b + aB <-> baB
+            1.0 * x.[6] * x.[16] // b + aB | ligation: b + aB <-> baB
         |]
         |> Array.sum
 
@@ -929,6 +1383,8 @@ module ModelData =
     // 81 - baa
     let d81 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[81] // baa | ligation: b + aa <-> baa
+            1.0 * x.[6] * x.[17] // b + aa | ligation: b + aa <-> baa
         |]
         |> Array.sum
 
@@ -936,6 +1392,8 @@ module ModelData =
     // 82 - bab
     let d82 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[82] // bab | ligation: b + ab <-> bab
+            1.0 * x.[6] * x.[18] // b + ab | ligation: b + ab <-> bab
         |]
         |> Array.sum
 
@@ -943,6 +1401,8 @@ module ModelData =
     // 83 - bbA
     let d83 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
+            1.0 * x.[6] * x.[19] // b + bA | ligation: b + bA <-> bbA
         |]
         |> Array.sum
 
@@ -950,6 +1410,8 @@ module ModelData =
     // 84 - bbB
     let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
+            1.0 * x.[6] * x.[20] // b + bB | ligation: b + bB <-> bbB
         |]
         |> Array.sum
 
@@ -957,6 +1419,8 @@ module ModelData =
     // 85 - bba
     let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[85] // bba | ligation: b + ba <-> bba
+            1.0 * x.[6] * x.[21] // b + ba | ligation: b + ba <-> bba
         |]
         |> Array.sum
 
@@ -964,6 +1428,8 @@ module ModelData =
     // 86 - bbb
     let d86 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
+            1.0 * x.[6] * x.[22] // b + bb | ligation: b + bb <-> bbb
         |]
         |> Array.sum
 
@@ -1250,10 +1716,10 @@ module ModelData =
                 {
                     modelInfo = 
                         {
-                            fileStructureVersionNumber = "1.2.0.0"
-                            versionNumber = "1.2.0.0"
+                            fileStructureVersionNumber = "1.2.0.1"
+                            versionNumber = "1.2.0.1"
                             seedValue = seedValue
-                            modelName = "20181217_001"
+                            modelName = "20181222_001"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1262,17 +1728,12 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                foodCreationRate = 0.01
+                                wasteRecyclingRate = 10.0
                             }
-                            |> FoodCreationRateParam
+                            |> WasteRecyclingRateParam
 
                             {
-                                wasteRemovalRate = 10.0
-                            }
-                            |> WasteRemovalRateParam
-
-                            {
-                                synthesisDistribution = DeltaDistribution(1270076978, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(1627029109, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1280,12 +1741,20 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(304945643, { threshold = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(1604464534, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
                             |> DestrRndParam
                             |> DestructionRateParam
+
+                            {
+                                ligationDistribution = DeltaDistribution(2084664662, { threshold = None }) |> Delta
+                                forwardScale = Some 1.0
+                                backwardScale = Some 1.0
+                            }
+                            |> LigRndParam
+                            |> LigationRateParam
 
                         ]
                 }
@@ -1313,10 +1782,9 @@ module ModelData =
 
             allReactions = 
                 [
-                    (FoodCreationName, 1)
-                    (WasteRemovalName, 1)
                     (SynthesisName, 4)
                     (DestructionName, 4)
+                    (LigationName, 78)
                 ]
         }
 

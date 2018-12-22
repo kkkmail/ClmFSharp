@@ -146,27 +146,27 @@ module ClmModel =
             |> List.choose id
             |> List.concat
 
-        let food = 
-            [ AnyReaction.tryCreateReaction rateProvider (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
-        let waste = [ AnyReaction.tryCreateReaction rateProvider (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
-        let synth = createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
-        let destr = createReactions (fun a -> DestructionReaction a |> Destruction) chiralAminoAcids
-        let lig = createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
-        let racem = createReactions (fun a -> RacemizationReaction a |> Racemization) chiralAminoAcids
 
-        //do
-        //    lig
-        //    |> List.map (fun r -> printfn "r: %A" r)
-        //    |> ignore
-
-        let sedDir = createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
-        let catSynth = createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
-        let catDestr = createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
-        let catLig = createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
-        let catRacem = createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
+        let getReactions n = 
+            match n with 
+            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
+            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
+            | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) chiralAminoAcids
+            | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) chiralAminoAcids
+            | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
+            | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
+            | LigationName -> createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
+            | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
+            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
+            | SedimentationAllName -> []
+            | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) chiralAminoAcids
+            | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
         let allReac = 
-            food @ waste @ synth @ catSynth @ destr @ catDestr @ lig @ catLig @ sedDir @ racem @ catRacem
+            ReactionName.all
+            |> List.map (fun e -> getReactions e)
+            |> List.concat
             |> List.distinct
 
         let kW = 
@@ -567,11 +567,11 @@ module ClmModel =
             printfn "Done."
 
         member model.allSubstances = allSubst
-        member model.synthesis = synth
-        member model.catalyticSynthesis = catSynth
-        member model.ligation = lig
-        member model.catalyticLigation = catLig
-        member model.sedimentationDirect = sedDir
+        //member model.synthesis = synth
+        //member model.catalyticSynthesis = catSynth
+        //member model.ligation = lig
+        //member model.catalyticLigation = catLig
+        //member model.sedimentationDirect = sedDir
         member model.allReactions = allReac
         member model.allModelData = allModelDataImpl
         member model.locationInfo = modelLocationInfo

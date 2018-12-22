@@ -23,4 +23,4 @@ module VersionInfo =
     /// This is a version of the Code Generator.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "1.2.0.1"
+    let VersionNumber = "1.2.0.2"

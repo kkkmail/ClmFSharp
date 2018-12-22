@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 416329330
+    let seedValue = 1401792064
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1719,7 +1719,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.2.0.1"
                             versionNumber = "1.2.0.1"
                             seedValue = seedValue
-                            modelName = "20181222_001"
+                            modelName = "20181222_002"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1733,7 +1733,7 @@ module ModelData =
                             |> WasteRecyclingRateParam
 
                             {
-                                synthesisDistribution = DeltaDistribution(1627029109, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(406467942, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1741,7 +1741,7 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(1604464534, { threshold = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(469030212, { threshold = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1749,7 +1749,7 @@ module ModelData =
                             |> DestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(2084664662, { threshold = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(1722818350, { threshold = None }) |> Delta
                                 forwardScale = Some 1.0
                                 backwardScale = Some 1.0
                             }

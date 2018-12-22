@@ -18,7 +18,7 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -56,8 +56,8 @@ let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRnd
 //===========================================================
 let rates = 
     [
-        foodModel |> FoodCreationRateModel
-        wasteModel |> WasteRemovalRateModel
+        //foodModel |> FoodCreationRateModel
+        //wasteModel |> WasteRemovalRateModel
         wasteRecyclingModel |> WasteRecyclingRateModel
 
         synthModel |> SynthesisRateModel

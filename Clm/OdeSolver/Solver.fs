@@ -37,13 +37,6 @@ module Solver =
         }
 
 
-    //let defaultInit n y0 = 
-    //    let mult = 0.01
-    //    let rnd = new Random(12345)
-    //    let i0 = [ for i in 1..(n-1) -> (mult * y0 / (double n)) * rnd.NextDouble() ]
-    //    (y0 - (i0 |> List.sum)) :: i0 |> Array.ofList
-
-
     /// F# wrapper around Alglib ODE solver.
     let nSolve tEnd (g : double[] -> double[]) (h : double -> array<double>) y0 : OdeResult = 
         printfn "nSolve::Starting."

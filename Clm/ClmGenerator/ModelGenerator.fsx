@@ -18,7 +18,7 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()

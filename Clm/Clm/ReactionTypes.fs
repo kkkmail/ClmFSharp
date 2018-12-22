@@ -39,6 +39,7 @@ module ReactionTypes =
             [
                 FoodCreationName
                 WasteRemovalName
+                WasteRecyclingName
                 SynthesisName
                 DestructionName
                 CatalyticSynthesisName

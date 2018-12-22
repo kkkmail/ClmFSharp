@@ -567,11 +567,6 @@ module ClmModel =
             printfn "Done."
 
         member model.allSubstances = allSubst
-        //member model.synthesis = synth
-        //member model.catalyticSynthesis = catSynth
-        //member model.ligation = lig
-        //member model.catalyticLigation = catLig
-        //member model.sedimentationDirect = sedDir
         member model.allReactions = allReac
         member model.allModelData = allModelDataImpl
         member model.locationInfo = modelLocationInfo

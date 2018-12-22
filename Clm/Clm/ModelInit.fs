@@ -15,12 +15,13 @@ module ModelInit =
             distr : Distribution
             multiplier : double option
             multEe : double option
+            useAbundant : bool
         }
 
         static member defaultMult = 0.001
         static member defaultMultEe = 0.001
 
-        static member getDefaultValue p so = 
+        static member getDefaultValue p so a = 
             {
                 modelDataParams = p
                 distr = 
@@ -32,6 +33,7 @@ module ModelInit =
                     UniformDistribution seed |> Uniform
                 multiplier = None
                 multEe = None
+                useAbundant = a
             }
 
 
@@ -77,7 +79,10 @@ module ModelInit =
             match s with 
             | Simple i -> 
                 match i with 
-                | Abundant -> 1.0
+                | Abundant -> 
+                    match p.useAbundant with 
+                    | true -> 1.0
+                    | false -> 0.0
                 | Food -> y0 - 2.0 * total
                 | Waste -> 0.0
             | _ ->

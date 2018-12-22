@@ -18,7 +18,7 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.SixAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -30,14 +30,14 @@ let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
 //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.002), 10000.0)
+let catSynthRndParams = (synthModel, (Some 0.001), 10000.0)
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.2, numberOfAminoAcids)
 //===========================================================
 let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
 //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
-let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
+let catDestrRndParams = (destrModel, (Some 0.001), 10000.0)
 //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
 //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
 let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.2, numberOfAminoAcids)

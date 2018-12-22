@@ -6,11 +6,13 @@ module Distributions =
     type DistributionParams = 
         {
             threshold : double option
+            shift : double option
         }
 
         static member defaultValue = 
             {
                 threshold = None
+                shift = None
             }
 
 
@@ -24,7 +26,12 @@ module Distributions =
             | Some t -> if rndBool.NextDouble() < t then true else false
             | None -> true
 
-        let nextDoubleImpl() = d(rnd)
+        let nextDoubleImpl() = 
+            d(rnd) + 
+            match p.shift with 
+            | Some s -> s
+            | None -> 0.0
+
         let nextDoubleFromZeroToOneImpl() = rnd.NextDouble()
 
         member __.seedValue = seed
@@ -59,7 +66,7 @@ module Distributions =
         else 1.0 - sqrt(2.0 * (1.0 - d))
 
 
-    /// Genetates values on (-1, 1).
+    /// Genetates values on (-1 + p.shift, 1 + p.shift).
     type SymmetricTriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangular)
 
@@ -108,6 +115,23 @@ module Distributions =
             | SymmetricTriangularEe d -> d.nextDouble()
 
         static member createDefault (rnd : Random) = 
-            SymmetricTriangularDistribution(rnd.Next(), { threshold = None }) |> SymmetricTriangularEe
+            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; shift = None }) |> SymmetricTriangularEe
 
         static member createDefaultOpt (rnd : Random) = EeDistribution.createDefault rnd |> Some
+
+
+    /// Specially formatted distributions to return values above 0 and with max / mean at 1.
+    type SimDistribution = 
+        | DeltaSim of DeltaDistribution
+        | SymmetricTriangularSim of SymmetricTriangularDistribution
+
+        member sym.nextDouble() : double = 
+            match sym with 
+            | DeltaSim d -> d.nextDouble()
+            | SymmetricTriangularSim d -> d.nextDouble()
+
+        /// Returns values from 0 to 2 with max at 1.
+        static member createDefault (rnd : Random) = 
+            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; shift = Some 1.0 }) |> SymmetricTriangularSim
+
+        static member createDefaultOpt (rnd : Random) = SimDistribution.createDefault rnd |> Some

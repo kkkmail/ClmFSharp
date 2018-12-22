@@ -110,7 +110,7 @@ module ReactionRates =
 
     type CatRatesEeParams = 
         {
-            eeDistribution : EeDistribution option // If none, then parent distribution will be used.
+            eeDistribution : EeDistribution
             maxForwardEe : double
             maxBackwardEe : double option // If none, then the same value of generated forward ee is used.
             multiplier : double
@@ -146,17 +146,11 @@ module ReactionRates =
             | Some k0 ->
                 let (sf0, sb0) = i.getRates i.reaction
 
-                let fEe = 
-                    match i.eeParams.eeDistribution with 
-                    | Some d -> i.eeParams.maxForwardEe * (d.nextDouble())
-                    | None -> i.eeParams.maxForwardEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                let fEe = i.eeParams.maxForwardEe * (i.eeParams.eeDistribution.nextDouble())
 
                 let bEe = 
                     match i.eeParams.maxBackwardEe with 
-                    | Some m -> 
-                        match i.eeParams.eeDistribution with
-                        | Some d -> m * (d.nextDouble())
-                        | None -> m * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                    | Some m -> m * (i.eeParams.eeDistribution.nextDouble())
                     | None -> fEe
 
                 let kf = k0 * i.eeParams.multiplier * (1.0 + fEe)
@@ -302,6 +296,7 @@ module ReactionRates =
     type CatalyticSynthesisSimilarParam =
         {
             simSynthDistribution : Distribution
+            simDistribution : SimDistribution
             aminoAcids : list<AminoAcid>
         }
 
@@ -322,11 +317,11 @@ module ReactionRates =
         let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
         let distr = p.catSynthRndParam.catSynthDistribution
 
-        let calculateCatSynthRates s (c : SynthCatalyst) k = 
+        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) k d = 
             {
                 reaction = s
                 catalyst = c
-                distribution = distr
+                distribution = d
                 catReactionCreator = CatalyticSynthesisReaction
                 rateCoeff = k
                 getRates = p.synthesisModel.getRates
@@ -334,13 +329,12 @@ module ReactionRates =
             }
             |> calculateCatRates
 
-        let calculateOptionalRatesImpl (CatalyticSynthesisReaction (s, c)) = calculateCatSynthRates s c (distr.nextDoubleOpt())
-        let calculatelRatesImpl (CatalyticSynthesisReaction (s, c)) = calculateCatSynthRates s c (distr.nextDouble() |> Some)
+        let calculateOptionalRatesImpl r = calculateCatSynthRates r (distr.nextDoubleOpt()) distr
 
         member __.getRates r = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
         member __.inputParams = p
         member __.rateDictionary = rateDictionaryImpl
-        member __.calculatelRates r = getRatesImpl rateDictionaryImpl calculatelRatesImpl r
+        member __.calculatelRates r k d = getRatesImpl rateDictionaryImpl (fun r -> calculateCatSynthRates r k d) r
 
 
     type CatalyticSynthesisSimilarParamWithModel = 
@@ -1028,7 +1022,7 @@ module ReactionRates =
 
         static member defaultSynthRndModel (rnd : Random) (forward, backward) =
             {
-                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
+                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None; shift = None }) |> Delta
                 //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward
@@ -1038,7 +1032,7 @@ module ReactionRates =
 
         static member defaultDestrRndModel (rnd : Random) (forward, backward) =
             {
-                destructionDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
+                destructionDistribution = DeltaDistribution(rnd.Next(), { threshold = None; shift = None }) |> Delta
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
@@ -1049,10 +1043,10 @@ module ReactionRates =
             {
                 catSynthRndParam = 
                     {
-                        catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
+                        catSynthDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold; shift = None }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = EeDistribution.createDefaultOpt rnd
+                                eeDistribution = EeDistribution.createDefault rnd
                                 multiplier  = mult
                                 maxForwardEe = 0.99
                                 maxBackwardEe = 0.99 |> Some
@@ -1072,7 +1066,8 @@ module ReactionRates =
             {
                 catSynthSimParam = 
                     {
-                        simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; shift = None }) |> Uniform
+                        simDistribution = SimDistribution.createDefault rnd
                         aminoAcids = aminoAcids
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
@@ -1084,10 +1079,10 @@ module ReactionRates =
             {
                 catDestrRndParam = 
                     {
-                        catDestrDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
+                        catDestrDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold; shift = None }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = EeDistribution.createDefaultOpt rnd
+                                eeDistribution = EeDistribution.createDefault rnd
                                 multiplier  = mult
                                 maxForwardEe = 0.99
                                 maxBackwardEe = 0.99 |> Some
@@ -1107,7 +1102,7 @@ module ReactionRates =
             {
                 catDestrSimParam = 
                     {
-                        simDestrDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        simDestrDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; shift = None }) |> Uniform
                         aminoAcids = aminoAcids
                     }
                 catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
@@ -1117,7 +1112,7 @@ module ReactionRates =
 
         static member defaultLigRndModel (rnd : Random) (forward, backward) =
             {
-                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
+                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; shift = None }) |> Delta
                 //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward
@@ -1129,10 +1124,10 @@ module ReactionRates =
             {
                 catLigationParam = 
                     {
-                        catLigationDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
+                        catLigationDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold; shift = None }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = EeDistribution.createDefaultOpt rnd
+                                eeDistribution = EeDistribution.createDefault rnd
                                 multiplier  = mult
                                 maxForwardEe = 0.25
                                 maxBackwardEe = 0.25 |> Some
@@ -1145,7 +1140,7 @@ module ReactionRates =
 
         static member defaultSedDirRndModel (rnd : Random) (threshold, mult) =
             {
-                sedimentationDirectDistribution = TriangularDistribution(rnd.Next(), { threshold = Some threshold }) |> Triangular
+                sedimentationDirectDistribution = TriangularDistribution(rnd.Next(), { threshold = Some threshold; shift = None }) |> Triangular
                 forwardScale = Some mult
             }
             |> SedDirRndParam
@@ -1153,7 +1148,7 @@ module ReactionRates =
 
         static member defaultSedAllRndModel (rnd : Random) mult =
             {
-                sedimentationAllDistribution = TriangularDistribution(rnd.Next(), { threshold = None }) |> Triangular
+                sedimentationAllDistribution = TriangularDistribution(rnd.Next(), { threshold = None; shift = None }) |> Triangular
                 forwardScale = Some mult
             }
             |> SedAllRndParam
@@ -1161,7 +1156,7 @@ module ReactionRates =
 
         static member defaultRacemRndModel (rnd : Random) forward =
             {
-                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None }) |> Delta
+                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; shift = None }) |> Delta
                 //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
                 forwardScale = Some forward
             }
@@ -1172,10 +1167,10 @@ module ReactionRates =
             {
                 catRacemRndParam = 
                     {
-                        catRacemDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold }) |> Triangular
+                        catRacemDistribution = TriangularDistribution(rnd.Next(), { threshold = threshold; shift = None }) |> Triangular
                         eeParams = 
                             {
-                                eeDistribution = None
+                                eeDistribution = EeDistribution.createDefault rnd
                                 multiplier = mult
                                 maxForwardEe = 0.25
                                 maxBackwardEe = 0.25 |> Some
@@ -1195,7 +1190,7 @@ module ReactionRates =
             {
                 catRacemSimParam = 
                     {
-                        simRacemDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold }) |> Uniform
+                        simRacemDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; shift = None }) |> Uniform
                         aminoAcids = aminoAcids
                     }
                 catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel

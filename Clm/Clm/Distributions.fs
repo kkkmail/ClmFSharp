@@ -6,12 +6,14 @@ module Distributions =
     type DistributionParams = 
         {
             threshold : double option
+            scale : double option
             shift : double option
         }
 
         static member defaultValue = 
             {
                 threshold = None
+                scale = None
                 shift = None
             }
 
@@ -27,7 +29,13 @@ module Distributions =
             | None -> true
 
         let nextDoubleImpl() = 
-            d(rnd) + 
+            let v = 
+                d(rnd) *
+                match p.scale with 
+                | Some s -> s
+                | None -> 1.0
+
+            v + 
             match p.shift with 
             | Some s -> s
             | None -> 0.0
@@ -108,30 +116,43 @@ module Distributions =
 
     /// Specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
+        | DeltaEe of DeltaDistribution
         | SymmetricTriangularEe of SymmetricTriangularDistribution
 
         member eed.nextDouble() : double = 
-            match eed with 
-            | SymmetricTriangularEe d -> d.nextDouble()
+            let v = 
+                match eed with 
+                    | DeltaEe d -> d.nextDouble()
+                    | SymmetricTriangularEe d -> d.nextDouble()
+
+            max (min v 1.0) -1.0
 
         static member createDefault (rnd : Random) = 
-            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; shift = None }) |> SymmetricTriangularEe
+            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
 
-        static member createDefaultOpt (rnd : Random) = EeDistribution.createDefault rnd |> Some
+        static member createCentered (rnd : Random) mean = 
+            let m, w = 
+                match mean with 
+                | x when x <= -1.0 -> -1.0, None
+                | x when -1.0 < x && x < 1.0 -> x, min (1.0 - x) (x + 1.0) |> Some
+                | x when x >= 1.0 -> 1.0, None
+                | _ -> 0.0, Some 1.0
+
+            match w with 
+            | Some s -> SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
+            | None -> DeltaDistribution (rnd.Next(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
 
-    /// Specially formatted distributions to return values above 0 and with max / mean at 1.
-    type SimDistribution = 
-        | DeltaSim of DeltaDistribution
-        | SymmetricTriangularSim of SymmetricTriangularDistribution
+    ///// Specially formatted distributions to return values above 0 and with max / mean at 1.
+    //type SimDistribution = 
+    //    | DeltaSim of DeltaDistribution
+    //    | SymmetricTriangularSim of SymmetricTriangularDistribution
 
-        member sym.nextDouble() : double = 
-            match sym with 
-            | DeltaSim d -> d.nextDouble()
-            | SymmetricTriangularSim d -> d.nextDouble()
+    //    member sym.nextDouble() : double = 
+    //        match sym with 
+    //        | DeltaSim d -> d.nextDouble()
+    //        | SymmetricTriangularSim d -> d.nextDouble()
 
-        /// Returns values from 0 to 2 with max at 1.
-        static member createDefault (rnd : Random) = 
-            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; shift = Some 1.0 }) |> SymmetricTriangularSim
-
-        static member createDefaultOpt (rnd : Random) = SimDistribution.createDefault rnd |> Some
+    //    /// Returns values from 0 to 2 with max at 1.
+    //    static member createDefault (rnd : Random) = 
+    //        SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim

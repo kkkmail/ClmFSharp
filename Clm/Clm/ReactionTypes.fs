@@ -166,6 +166,10 @@ module ReactionTypes =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticSynthesisReaction
 
+        member r.enantiomerCatalyst = 
+            let (CatalyticSynthesisReaction (a, c)) = r
+            (a, c.enantiomer) |> CatalyticSynthesisReaction
+
 
     type CatalyticDestructionReaction = 
         | CatalyticDestructionReaction of (DestructionReaction * DestrCatalyst)
@@ -182,6 +186,11 @@ module ReactionTypes =
         member r.enantiomer = 
             let (CatalyticDestructionReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticDestructionReaction
+
+        member r.enantiomerCatalyst = 
+            let (CatalyticDestructionReaction (a, c)) = r
+            (a, c.enantiomer) |> CatalyticDestructionReaction
+
 
 
     type LigationReaction = 

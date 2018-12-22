@@ -145,11 +145,18 @@ module ReactionRates =
             match i.rateCoeff with 
             | Some k0 ->
                 let (sf0, sb0) = i.getRates i.reaction
-                let fEe = i.eeParams.maxForwardEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+
+                let fEe = 
+                    match i.eeParams.eeDistribution with 
+                    | Some d -> i.eeParams.maxForwardEe * (d.nextDouble())
+                    | None -> i.eeParams.maxForwardEe * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
 
                 let bEe = 
                     match i.eeParams.maxBackwardEe with 
-                    | Some m -> m * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
+                    | Some m -> 
+                        match i.eeParams.eeDistribution with
+                        | Some d -> m * (d.nextDouble())
+                        | None -> m * (i.distribution.nextDoubleFromZeroToOne() - 0.5)
                     | None -> fEe
 
                 let kf = k0 * i.eeParams.multiplier * (1.0 + fEe)

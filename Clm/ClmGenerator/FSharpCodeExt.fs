@@ -74,7 +74,7 @@ module FSharpCodeExt =
 
     let toEeDistrOpt (distr : EeDistribution option) = 
         match distr with 
-        | Some d -> d.toFSharpCode
+        | Some d -> d.toFSharpCode + " |> " + "Some"
         | None -> "None"
 
 

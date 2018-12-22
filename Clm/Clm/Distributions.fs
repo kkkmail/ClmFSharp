@@ -151,16 +151,19 @@ module Distributions =
             | None -> DeltaDistribution (seed, { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
 
-    ///// Specially formatted distributions to return values above 0 and with max / mean at 1.
-    //type SimDistribution = 
-    //    | DeltaSim of DeltaDistribution
-    //    | SymmetricTriangularSim of SymmetricTriangularDistribution
+    /// Specially formatted distributions to return values above 0 and with max / mean at 1.
+    type SimDistribution = 
+        | DeltaSim of DeltaDistribution
+        | SymmetricTriangularSim of SymmetricTriangularDistribution
 
-    //    member sym.nextDouble() : double = 
-    //        match sym with 
-    //        | DeltaSim d -> d.nextDouble()
-    //        | SymmetricTriangularSim d -> d.nextDouble()
+        member sym.nextDouble() : double = 
+            let v = 
+                match sym with 
+                | DeltaSim d -> d.nextDouble()
+                | SymmetricTriangularSim d -> d.nextDouble()
 
-    //    /// Returns values from 0 to 2 with max at 1.
-    //    static member createDefault (rnd : Random) = 
-    //        SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
+            max v 0.0
+
+        /// Returns values from 0 to 2 with max at 1.
+        static member createDefault (rnd : Random) = 
+            SymmetricTriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim

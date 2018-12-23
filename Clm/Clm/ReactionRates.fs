@@ -117,7 +117,7 @@ module ReactionRates =
             reaction : 'R
             catalyst : 'C
             catReactionCreator : ('R * 'C) -> 'RC
-            getRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
+            getBaseRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
             eeParams : CatRatesEeParams
         }
 
@@ -137,7 +137,7 @@ module ReactionRates =
         let rf, rb, rfe, rbe = 
             match i.eeParams.rateMultiplierDistr.nextDoubleOpt(), i.eeParams.eeForwardDistribution with
             | Some k0, Some df ->
-                let (sf0, sb0) = i.getRates i.reaction
+                let (sf0, sb0) = i.getBaseRates i.reaction
                 let fEe = df.nextDouble()
 
                 let bEe = 
@@ -249,8 +249,8 @@ module ReactionRates =
 
     type CatalyticSynthesisRandomParam = 
         {
-            catSynthDistribution : RateMultiplierDistribution
-            eeParams : CatRatesEeParams
+            //catSynthDistribution : RateMultiplierDistribution
+            catSynthRndEeParams : CatRatesEeParams
         }
 
 
@@ -284,8 +284,8 @@ module ReactionRates =
                 reaction = s
                 catalyst = c
                 catReactionCreator = CatalyticSynthesisReaction
-                getRates = p.synthesisModel.getRates
-                eeParams = p.catSynthRndParam.eeParams
+                getBaseRates = p.synthesisModel.getRates
+                eeParams = p.catSynthRndParam.catSynthRndEeParams
             }
             |> calculateCatRates
 
@@ -314,7 +314,7 @@ module ReactionRates =
                 reaction = s
                 catalyst = c
                 catReactionCreator = CatalyticSynthesisReaction
-                getRates = p.catSynthModel.inputParams.synthesisModel.getRates
+                getBaseRates = p.catSynthModel.inputParams.synthesisModel.getRates
                 eeParams = e
             }
             |> calculateCatRates

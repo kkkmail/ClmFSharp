@@ -341,8 +341,7 @@ module ClmModel =
 
             let getReaction s = 
                 match reactions.TryFind s with 
-                //| Some r -> r |> List.rev |> List.fold (fun acc (s, e) -> acc + e) ""
-                | Some r -> r |> List.rev |> List.map (fun (_, e) -> e) |> String.concat ""
+                | Some r -> r |> List.rev |> List.map (fun (_, e) -> e) |> String.concat String.Empty
                 | None -> String.Empty
 
             let getTotalSedReac (s : Substance) shift = 
@@ -353,8 +352,8 @@ module ClmModel =
                         match h with 
                         | Abundant -> String.Empty
                         | Food -> String.Empty
-                        | Waste -> shift + "            " + coeffSedAllName + " * (2.0 * " + xSumName + " * " + xSumNameN + " - " + xSumSquaredNameN + ")"
-                    | _ -> shift + "            " + "-" + coeffSedAllName + " * (2.0 * " + xSumName + " - " + (x s) + ") * " + (x s)
+                        | Waste -> nl + shift + "            " + coeffSedAllName + " * (2.0 * " + xSumName + " * " + xSumNameN + " - " + xSumSquaredNameN + ")"
+                    | _ -> nl + shift + "            " + "-" + coeffSedAllName + " * (2.0 * " + xSumName + " - " + (x s) + ") * " + (x s)
                 | None -> String.Empty
 
             let coeffSedAllCode = 

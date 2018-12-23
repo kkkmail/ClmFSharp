@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open Clm.Distributions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 

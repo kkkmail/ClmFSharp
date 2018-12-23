@@ -10,10 +10,6 @@ open Clm.ReactionTypes
 
 module ReactionRates = 
 
-    type ReactionRate = 
-        | ReactionRate of double
-
-
     type RelatedReactions<'T> = 
         {
             primary : (ReactionRate option * ReactionRate option)
@@ -106,13 +102,6 @@ module ReactionRates =
         match mo with 
         | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
         | None -> (None, None)
-
-
-    let getDefaultEeDistr (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
-        match rate, rateEnant with 
-        | Some (ReactionRate r), Some (ReactionRate re) -> 
-            (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
-        | _ -> None
 
 
     type CatRatesEeParams = 
@@ -270,9 +259,9 @@ module ReactionRates =
         {
             aminoAcids : list<AminoAcid>
             simSynthDistribution : Distribution
-            getForwardEeDistr : (unit -> int) -> ReactionRate option -> ReactionRate option -> EeDistribution option
-            getBackwardEeDistr : (unit -> int) -> ReactionRate option -> ReactionRate option -> EeDistribution option
-            getMultiplierDistr : (unit -> int) -> SimDistribution
+            getForwardEeDistr : EeDistributionGetter
+            getBackwardEeDistr : EeDistributionGetter
+            getMultiplierDistr : SimDistributionGetter
         }
 
 
@@ -358,9 +347,9 @@ module ReactionRates =
                             //p.catSynthModel.inputParams.catSynthRndParam.catSynthDistribution.nextDouble()
 
                     {
-                        eeForwardDistribution = p.catSynthSimParam.getForwardEeDistr nextSeed f fe
-                        eeBackwardDistribution = p.catSynthSimParam.getBackwardEeDistr nextSeed b be
-                        multiplier = mult * ((p.catSynthSimParam.getMultiplierDistr nextSeed).nextDouble())
+                        eeForwardDistribution = p.catSynthSimParam.getForwardEeDistr.getDistr nextSeed f fe
+                        eeBackwardDistribution = p.catSynthSimParam.getBackwardEeDistr.getDistr nextSeed b be
+                        multiplier = mult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())
                     }
 
                 p.catSynthSimParam.aminoAcids
@@ -1069,9 +1058,9 @@ module ReactionRates =
                     {
                         aminoAcids = aminoAcids
                         simSynthDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
-                        getForwardEeDistr = getDefaultEeDistr
-                        getBackwardEeDistr = getDefaultEeDistr
-                        getMultiplierDistr = SimDistribution.createDefault
+                        getForwardEeDistr = DefaultEeDistributionGetter
+                        getBackwardEeDistr = DefaultEeDistributionGetter
+                        getMultiplierDistr = DefaultSimDistributionGetter
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
             }

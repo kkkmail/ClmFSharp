@@ -18,7 +18,7 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -29,15 +29,15 @@ let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 10.0
 let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
-//let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.001), 10000.0)
+let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
+//let catSynthRndParams = (synthModel, (Some 0.001), 10000.0)
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.2, numberOfAminoAcids)
 //===========================================================
 let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
-//let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
-let catDestrRndParams = (destrModel, (Some 0.001), 10000.0)
+let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
+//let catDestrRndParams = (destrModel, (Some 0.001), 10000.0)
 //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
 //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
 let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.2, numberOfAminoAcids)
@@ -58,8 +58,8 @@ let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRnd
 //===========================================================
 let rates = 
     [
-        //foodModel |> FoodCreationRateModel
-        //wasteModel |> WasteRemovalRateModel
+        foodModel |> FoodCreationRateModel
+        wasteModel |> WasteRemovalRateModel
         wasteRecyclingModel |> WasteRecyclingRateModel
 
         synthModel |> SynthesisRateModel
@@ -69,13 +69,13 @@ let rates =
         catDestrModel |> CatalyticDestructionRateModel
 
         ligModel |> LigationRateModel
-        //catLigModel |> CatalyticLigationRateModel
+        catLigModel |> CatalyticLigationRateModel
 
-        //sedDirModel |> SedimentationDirectRateModel
-        //sedAllModel |> SedimentationAllRateModel
+        sedDirModel |> SedimentationDirectRateModel
+        sedAllModel |> SedimentationAllRateModel
 
-        //racemModel |> RacemizationRateModel
-        //catRacemModel |> CatalyticRacemizationRateModel
+        racemModel |> RacemizationRateModel
+        catRacemModel |> CatalyticRacemizationRateModel
     ]
 //===========================================================
 let modelGenerationParams = 

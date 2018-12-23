@@ -69,6 +69,7 @@ module FSharpCodeExt =
 
         member distr.toFSharpCode = 
             match distr with 
+            | DeltaEe d -> d.toFSharpCode + " |> " + "DeltaEe"
             | SymmetricTriangularEe d -> d.toFSharpCode + " |> " + "SymmetricTriangularEe"
 
 
@@ -76,6 +77,29 @@ module FSharpCodeExt =
         match distr with 
         | Some d -> d.toFSharpCode + " |> " + "Some"
         | None -> "None"
+
+
+    type EeDistributionGetter
+        with 
+        member distr.toFSharpCode = 
+            match distr with 
+            | DefaultEeDistributionGetter -> "DefaultEeDistributionGetter"
+
+
+    type SimDistribution
+        with 
+
+        member distr.toFSharpCode = 
+            match distr with 
+            | DeltaSim d -> d.toFSharpCode + " |> " + "DeltaSim"
+            | SymmetricTriangularSim d -> d.toFSharpCode + " |> " + "SymmetricTriangularSim"
+
+
+    type SimDistributionGetter
+        with 
+        member distr.toFSharpCode = 
+            match distr with 
+            | DefaultSimDistributionGetter -> "DefaultSimDistributionGetter"
 
 
     type Distribution
@@ -93,9 +117,8 @@ module FSharpCodeExt =
         with 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                eeDistribution = " + (toEeDistrOpt p.eeDistribution) + Nl +
-            shift + "                maxForwardEe = " + (doubleFSharpString p.maxForwardEe) + Nl +
-            shift + "                maxBackwardEe = " + (doubleOptFSharpString p.maxBackwardEe) + Nl +
+            shift + "                eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
+            shift + "                eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
             shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
             shift + "            }" + Nl
 
@@ -161,8 +184,11 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
             shift + "            {" + Nl +
-            shift + "                simSynthDistribution = " + p.simSynthDistribution.toFSharpCode + Nl +
             shift + "                aminoAcids = " + aminoAcidsCode + Nl +
+            shift + "                simSynthDistribution = " + p.simSynthDistribution.toFSharpCode + Nl +
+            shift + "                getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
+            shift + "                getBackwardEeDistr = " + p.getBackwardEeDistr.toFSharpCode + Nl +
+            shift + "                getMultiplierDistr = " + p.getMultiplierDistr.toFSharpCode + Nl +
             shift + "            }" + Nl
 
 

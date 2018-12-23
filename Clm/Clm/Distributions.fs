@@ -3,6 +3,10 @@ open System
 
 module Distributions = 
 
+    type ReactionRate = 
+        | ReactionRate of double
+
+
     type DistributionParams = 
         {
             threshold : double option
@@ -150,6 +154,19 @@ module Distributions =
             | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
             | None -> DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
+        static member getDefaultEeDistr (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+            match rate, rateEnant with 
+            | Some (ReactionRate r), Some (ReactionRate re) -> 
+                (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | _ -> None
+
+    type EeDistributionGetter = 
+        | DefaultEeDistributionGetter
+
+        member ee.getDistr = 
+            match ee with 
+            | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistr
+
 
     /// Specially formatted distributions to return values above 0 and with max / mean at 1.
     type SimDistribution = 
@@ -167,3 +184,10 @@ module Distributions =
         /// Returns values from 0 to 2 with max at 1.
         static member createDefault (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
+
+    type SimDistributionGetter = 
+        | DefaultSimDistributionGetter
+
+        member sd.getDistr = 
+            match sd with 
+            | DefaultSimDistributionGetter -> SimDistribution.createDefault

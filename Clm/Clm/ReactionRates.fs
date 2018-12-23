@@ -41,12 +41,12 @@ module ReactionRates =
         let enantiomer = getEnantiomer r
         //printfn "updatePrimaryReactions: r = %A, enantiomer = %A" r enantiomer
 
-        if d.ContainsKey r |> not 
+        if d.ContainsKey r |> not
             then 
                 //printfn "    updatePrimaryReactions: r = %A, primary = %A" r primary
                 d.Add(r, primary)
 
-        if d.ContainsKey enantiomer |> not 
+        if d.ContainsKey enantiomer |> not
             then 
                 //printfn "    updatePrimaryReactions: enantiomer = %A, primary = %A" enantiomer primary
                 d.Add(enantiomer, primary)
@@ -249,7 +249,7 @@ module ReactionRates =
 
     type CatalyticSynthesisRandomParam = 
         {
-            catSynthDistribution : Distribution
+            catSynthDistribution : RateMultiplierDistribution
             eeParams : CatRatesEeParams
         }
 
@@ -336,7 +336,7 @@ module ReactionRates =
 
                 let getEeParams (x : CatalyticSynthesisReaction) = 
                     {
-                        rateMultiplierDistr = p.catSynthSimParam.getRateMultiplierDistr.getDistr (failwith "") rateMult
+                        rateMultiplierDistr = p.catSynthSimParam.getRateMultiplierDistr.getDistr (p.catSynthModel.inputParams.catSynthRndParam.catSynthDistribution) rateMult
                         eeForwardDistribution = p.catSynthSimParam.getForwardEeDistr.getDistr nextSeed f fe
                         eeBackwardDistribution = p.catSynthSimParam.getBackwardEeDistr.getDistr nextSeed b be
                         //rateMultiplier = rateMult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())

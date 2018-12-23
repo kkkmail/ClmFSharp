@@ -93,8 +93,10 @@ module ReactionRates =
         (r : 'T) = 
 
         match d.TryGetValue r with 
-        | true, rates -> rates
-        | false, _ -> updateRelatedReactions d (calculateRates r) r
+        | true, rates -> 
+            rates
+        | false, _ -> 
+            updateRelatedReactions d (calculateRates r) r
 
 
     let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -294,7 +296,22 @@ module ReactionRates =
 
         let calculateOptionalRatesImpl r = calculateCatSynthRates r (distr.nextDoubleOpt())
 
-        member __.getRates r = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
+        member __.getRates r = 
+            let z = rateDictionaryImpl.TryGetValue r
+            let y0 = 
+                rateDictionaryImpl 
+                |> List.ofSeq
+                |> List.map (fun e -> e.Key, e.Value)
+                |> List.sortBy (fun e -> fst e, snd e)
+
+            let x = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
+            let y = 
+                rateDictionaryImpl 
+                |> List.ofSeq
+                |> List.map (fun e -> e.Key, e.Value)
+                |> List.sortBy (fun e -> fst e, snd e)
+            x
+
         member __.inputParams = p
         member __.rateDictionary = rateDictionaryImpl
         member __.calculatelRates r k = getRatesImpl rateDictionaryImpl (fun r -> calculateCatSynthRates r k) r
@@ -328,34 +345,34 @@ module ReactionRates =
             |> calculateCatRates
 
         let calculateRatesImpl r = 
+            let nextSeed = p.catSynthSimParam.simSynthDistribution.nextSeed
             let (CatalyticSynthesisReaction ((SynthesisReaction a), c)) = r
             let (f, b) = r |> catSynthRndModel.getRates
 
             match (f, b) with
             | None, None -> ignore()
             | _ -> 
+                let (fe, be) = r.withEnantiomerCatalyst |> catSynthRndModel.getRates
+                let eeMult, coeffMult = 
+                    match f, fe, b, be with 
+                    | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a - b) / (2.0 * (a + b)), (a + b) / 2.0
+                    | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a - b) / (2.0 * (a + b)), (a + b) / 2.0
+                    | _ -> failwith "CatalyticSynthesisSimilarModel::calculateRatesImpl::FUBAR..."
+                        //printfn "calculateRatesImpl - FUBAR..."
+                        //p.catSynthModel.inputParams.catSynthRndParam.catSynthDistribution.nextDouble()
+
                 let getEeParams (x : CatalyticSynthesisReaction) = 
-                    let (fe, be) = x.withEnantiomerCatalyst |> catSynthRndModel.getRates
-                    let nextSeed = p.catSynthSimParam.simSynthDistribution.nextSeed
-
-                    let mult = 
-                        match f, fe, b, be with 
-                        | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a + b) / 2.0
-                        | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a + b) / 2.0
-                        | _ -> failwith "CatalyticSynthesisSimilarModel::calculateRatesImpl::FUBAR..."
-                            //printfn "calculateRatesImpl - FUBAR..."
-                            //p.catSynthModel.inputParams.catSynthRndParam.catSynthDistribution.nextDouble()
-
                     {
                         eeForwardDistribution = p.catSynthSimParam.getForwardEeDistr.getDistr nextSeed f fe
                         eeBackwardDistribution = p.catSynthSimParam.getBackwardEeDistr.getDistr nextSeed b be
-                        multiplier = mult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())
+                        //multiplier = eeMult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())
+                        multiplier = 1.0
                     }
 
                 p.catSynthSimParam.aminoAcids
                 |> List.filter (fun _ -> p.catSynthSimParam.simSynthDistribution.isDefined())
                 |> List.map (fun e -> CatalyticSynthesisReaction (a.createSameChirality e |> SynthesisReaction, c))
-                |> List.map (fun e -> calculateCatSynthRates e None (getEeParams e))
+                |> List.map (fun e -> calculateCatSynthRates e (Some coeffMult) (getEeParams e))
                 |> ignore
 
             (f, b)

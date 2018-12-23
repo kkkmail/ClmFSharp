@@ -21,7 +21,9 @@ let updateAllModels = false
 let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
-let seed = newSeed()
+//let seed = newSeed()
+let seed = 1005169009
+printfn "seed = %A" seed
 let rnd = new Random(seed)
 //===========================================================
 let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.01
@@ -58,24 +60,24 @@ let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRnd
 //===========================================================
 let rates = 
     [
-        foodModel |> FoodCreationRateModel
-        wasteModel |> WasteRemovalRateModel
+        //foodModel |> FoodCreationRateModel
+        //wasteModel |> WasteRemovalRateModel
         wasteRecyclingModel |> WasteRecyclingRateModel
 
-        synthModel |> SynthesisRateModel
+        //synthModel |> SynthesisRateModel
         catSynthModel |> CatalyticSynthesisRateModel
 
-        destrModel |> DestructionRateModel
-        catDestrModel |> CatalyticDestructionRateModel
+        //destrModel |> DestructionRateModel
+        //catDestrModel |> CatalyticDestructionRateModel
 
-        ligModel |> LigationRateModel
-        catLigModel |> CatalyticLigationRateModel
+        //ligModel |> LigationRateModel
+        //catLigModel |> CatalyticLigationRateModel
 
-        sedDirModel |> SedimentationDirectRateModel
-        sedAllModel |> SedimentationAllRateModel
+        //sedDirModel |> SedimentationDirectRateModel
+        //sedAllModel |> SedimentationAllRateModel
 
-        racemModel |> RacemizationRateModel
-        catRacemModel |> CatalyticRacemizationRateModel
+        //racemModel |> RacemizationRateModel
+        //catRacemModel |> CatalyticRacemizationRateModel
     ]
 //===========================================================
 let modelGenerationParams = 

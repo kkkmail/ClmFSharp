@@ -37,7 +37,12 @@ module FSharpCodeExt =
     type DistributionParams
 
         with
-        member this.toFSharpCode = "{ threshold = " + (doubleOptFSharpString this.threshold) + " }"
+        member this.toFSharpCode = 
+            "{ " + 
+            "threshold = " + (doubleOptFSharpString this.threshold) + "; " +
+            "scale = " + (doubleOptFSharpString this.scale) + "; " +
+            "shift = " + (doubleOptFSharpString this.shift) + 
+            " }"
 
 
     type DeltaDistribution

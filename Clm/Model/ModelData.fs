@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 851746885
+    let seedValue = 1109423128
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -24,7 +24,7 @@ module ModelData =
         (peptides |> List.map (fun p -> PeptideChain p))
 
     let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
-    let kW = 0.043811642033868 / 86.0
+    let kW = 0.0173971274875205 / 86.0
 
 
     let getTotalSubst (x : array<double>) = 
@@ -336,6 +336,14 @@ module ModelData =
     // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            0.445054985045952 * x.[5] * x.[54] // a + Bbb | catalytic synthesis: Y + Bbb <-> a + Bbb
+            -0.391385000088169 * x.[1] * x.[54] // Y + Bbb | catalytic synthesis: Y + Bbb <-> a + Bbb
+            0.445054985045952 * x.[3] * x.[76] // A + bBB | catalytic synthesis: Y + bBB <-> A + bBB
+            -0.391385000088169 * x.[1] * x.[76] // Y + bBB | catalytic synthesis: Y + bBB <-> A + bBB
+            0.134829646778709 * x.[5] * x.[76] // a + bBB | catalytic synthesis: Y + bBB <-> a + bBB
+            -0.188499631736492 * x.[1] * x.[76] // Y + bBB | catalytic synthesis: Y + bBB <-> a + bBB
+            0.134829646778709 * x.[3] * x.[54] // A + Bbb | catalytic synthesis: Y + Bbb <-> A + Bbb
+            -0.188499631736492 * x.[1] * x.[54] // Y + Bbb | catalytic synthesis: Y + Bbb <-> A + Bbb
             0.001 * x.[6] // b | synthesis: Y <-> b
             -0.001 * x.[1] // Y | synthesis: Y <-> b
             0.001 * x.[4] // B | synthesis: Y <-> B
@@ -354,14 +362,14 @@ module ModelData =
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
             kW * (2.0 * xSum * xSumN - xSumSquaredN)
-            -0.182844624509982 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
-            0.0958599419647068 * x.[6] * x.[33] // b + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
-            -0.182844624509982 * x.[2] * x.[55] // Z + aAA | catalytic destruction: B + aAA <-> Z + aAA
-            0.0958599419647068 * x.[4] * x.[55] // B + aAA | catalytic destruction: B + aAA <-> Z + aAA
-            -0.577260981382114 * x.[2] * x.[55] // Z + aAA | catalytic destruction: b + aAA <-> Z + aAA
-            0.66424566392739 * x.[6] * x.[55] // b + aAA | catalytic destruction: b + aAA <-> Z + aAA
-            -0.577260981382114 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
-            0.66424566392739 * x.[4] * x.[33] // B + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            -1.11881259639926 * x.[2] * x.[28] // Z + ABB | catalytic destruction: b + ABB <-> Z + ABB
+            0.492781927695115 * x.[6] * x.[28] // b + ABB | catalytic destruction: b + ABB <-> Z + ABB
+            -1.11881259639926 * x.[2] * x.[70] // Z + abb | catalytic destruction: B + abb <-> Z + abb
+            0.492781927695115 * x.[4] * x.[70] // B + abb | catalytic destruction: B + abb <-> Z + abb
+            -0.591857853097805 * x.[2] * x.[70] // Z + abb | catalytic destruction: b + abb <-> Z + abb
+            1.21788852180195 * x.[6] * x.[70] // b + abb | catalytic destruction: b + abb <-> Z + abb
+            -0.591857853097805 * x.[2] * x.[28] // Z + ABB | catalytic destruction: B + ABB <-> Z + ABB
+            1.21788852180195 * x.[4] * x.[28] // B + ABB | catalytic destruction: B + ABB <-> Z + ABB
             -0.001 * x.[2] // Z | destruction: b <-> Z
             0.001 * x.[6] // b | destruction: b <-> Z
             -0.001 * x.[2] // Z | destruction: B <-> Z
@@ -380,14 +388,10 @@ module ModelData =
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
             -kW * (2.0 * xSum - x.[3]) * x.[3]
-            0.134376340125049 * x.[5] * x.[31] // a + AaA | catalytic racemization: a + AaA -> A + AaA
-            -0.134376340125049 * x.[3] * x.[57] // A + aAa | catalytic racemization: A + aAa -> a + aAa
-            0.102032328482399 * x.[5] * x.[57] // a + aAa | catalytic racemization: a + aAa -> A + aAa
-            -0.102032328482399 * x.[3] * x.[31] // A + AaA | catalytic racemization: A + AaA -> a + AaA
-            0.104136447516627 * x.[5] * x.[7] // a + AA | catalytic racemization: a + AA -> A + AA
-            -0.104136447516627 * x.[3] * x.[17] // A + aa | catalytic racemization: A + aa -> a + aa
-            0.609174497813814 * x.[5] * x.[17] // a + aa | catalytic racemization: a + aa -> A + aa
-            -0.609174497813814 * x.[3] * x.[7] // A + AA | catalytic racemization: A + AA -> a + AA
+            0.238394029938642 * x.[5] * x.[38] // a + Abb | catalytic racemization: a + Abb -> A + Abb
+            -0.238394029938642 * x.[3] * x.[60] // A + aBB | catalytic racemization: A + aBB -> a + aBB
+            0.249990246537281 * x.[5] * x.[60] // a + aBB | catalytic racemization: a + aBB -> A + aBB
+            -0.249990246537281 * x.[3] * x.[38] // A + Abb | catalytic racemization: A + Abb -> a + Abb
             0.001 * x.[5] // a | racemization: a -> A
             -0.001 * x.[3] // A | racemization: A -> a
             1.0 * x.[19] // bA | ligation: b + A <-> bA
@@ -436,6 +440,10 @@ module ModelData =
             1.0 * x.[7] // AA | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
+            -0.445054985045952 * x.[3] * x.[76] // A + bBB | catalytic synthesis: Y + bBB <-> A + bBB
+            0.391385000088169 * x.[1] * x.[76] // Y + bBB | catalytic synthesis: Y + bBB <-> A + bBB
+            -0.134829646778709 * x.[3] * x.[54] // A + Bbb | catalytic synthesis: Y + Bbb <-> A + Bbb
+            0.188499631736492 * x.[1] * x.[54] // Y + Bbb | catalytic synthesis: Y + Bbb <-> A + Bbb
             0.001 * x.[2] // Z | destruction: A <-> Z
             -0.001 * x.[3] // A | destruction: A <-> Z
             -0.001 * x.[3] // A | synthesis: Y <-> A
@@ -446,15 +454,8 @@ module ModelData =
 
     // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[4]) * x.[4]
-            0.104994416206189 * x.[6] * x.[12] // b + BB | catalytic racemization: b + BB -> B + BB
-            -0.104994416206189 * x.[4] * x.[22] // B + bb | catalytic racemization: B + bb -> b + bb
-            0.104005647534487 * x.[6] * x.[7] // b + AA | catalytic racemization: b + AA -> B + AA
-            -0.104005647534487 * x.[4] * x.[17] // B + aa | catalytic racemization: B + aa -> b + aa
-            1.05814028120533 * x.[6] * x.[22] // b + bb | catalytic racemization: b + bb -> B + bb
-            -1.05814028120533 * x.[4] * x.[12] // B + BB | catalytic racemization: B + BB -> b + BB
-            0.130649176892678 * x.[6] * x.[17] // b + aa | catalytic racemization: b + aa -> B + aa
-            -0.130649176892678 * x.[4] * x.[7] // B + AA | catalytic racemization: B + AA -> b + AA
+        [|
+            -kW * (2.0 * xSum - x.[4]) * x.[4]
             0.001 * x.[6] // b | racemization: b -> B
             -0.001 * x.[4] // B | racemization: B -> b
             1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
@@ -503,10 +504,10 @@ module ModelData =
             -1.0 * x.[5] * x.[4] // a + B | ligation: a + B <-> aB
             1.0 * x.[8] // AB | ligation: A + B <-> AB
             -1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
-            0.182844624509982 * x.[2] * x.[55] // Z + aAA | catalytic destruction: B + aAA <-> Z + aAA
-            -0.0958599419647068 * x.[4] * x.[55] // B + aAA | catalytic destruction: B + aAA <-> Z + aAA
-            0.577260981382114 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
-            -0.66424566392739 * x.[4] * x.[33] // B + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            1.11881259639926 * x.[2] * x.[70] // Z + abb | catalytic destruction: B + abb <-> Z + abb
+            -0.492781927695115 * x.[4] * x.[70] // B + abb | catalytic destruction: B + abb <-> Z + abb
+            0.591857853097805 * x.[2] * x.[28] // Z + ABB | catalytic destruction: B + ABB <-> Z + ABB
+            -1.21788852180195 * x.[4] * x.[28] // B + ABB | catalytic destruction: B + ABB <-> Z + ABB
             0.001 * x.[2] // Z | destruction: B <-> Z
             -0.001 * x.[4] // B | destruction: B <-> Z
             -0.001 * x.[4] // B | synthesis: Y <-> B
@@ -517,15 +518,12 @@ module ModelData =
 
     // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[5]) * x.[5]
-            -0.134376340125049 * x.[5] * x.[31] // a + AaA | catalytic racemization: a + AaA -> A + AaA
-            0.134376340125049 * x.[3] * x.[57] // A + aAa | catalytic racemization: A + aAa -> a + aAa
-            -0.102032328482399 * x.[5] * x.[57] // a + aAa | catalytic racemization: a + aAa -> A + aAa
-            0.102032328482399 * x.[3] * x.[31] // A + AaA | catalytic racemization: A + AaA -> a + AaA
-            -0.104136447516627 * x.[5] * x.[7] // a + AA | catalytic racemization: a + AA -> A + AA
-            0.104136447516627 * x.[3] * x.[17] // A + aa | catalytic racemization: A + aa -> a + aa
-            -0.609174497813814 * x.[5] * x.[17] // a + aa | catalytic racemization: a + aa -> A + aa
-            0.609174497813814 * x.[3] * x.[7] // A + AA | catalytic racemization: A + AA -> a + AA
+        [|
+            -kW * (2.0 * xSum - x.[5]) * x.[5]
+            -0.238394029938642 * x.[5] * x.[38] // a + Abb | catalytic racemization: a + Abb -> A + Abb
+            0.238394029938642 * x.[3] * x.[60] // A + aBB | catalytic racemization: A + aBB -> a + aBB
+            -0.249990246537281 * x.[5] * x.[60] // a + aBB | catalytic racemization: a + aBB -> A + aBB
+            0.249990246537281 * x.[3] * x.[38] // A + Abb | catalytic racemization: A + Abb -> a + Abb
             -0.001 * x.[5] // a | racemization: a -> A
             0.001 * x.[3] // A | racemization: A -> a
             1.0 * x.[13] // Ba | ligation: B + a <-> Ba
@@ -574,6 +572,10 @@ module ModelData =
             1.0 * x.[17] // aa | ligation: a + a <-> aa
             -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
             -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
+            -0.445054985045952 * x.[5] * x.[54] // a + Bbb | catalytic synthesis: Y + Bbb <-> a + Bbb
+            0.391385000088169 * x.[1] * x.[54] // Y + Bbb | catalytic synthesis: Y + Bbb <-> a + Bbb
+            -0.134829646778709 * x.[5] * x.[76] // a + bBB | catalytic synthesis: Y + bBB <-> a + bBB
+            0.188499631736492 * x.[1] * x.[76] // Y + bBB | catalytic synthesis: Y + bBB <-> a + bBB
             0.001 * x.[2] // Z | destruction: a <-> Z
             -0.001 * x.[5] // a | destruction: a <-> Z
             -0.001 * x.[5] // a | synthesis: Y <-> a
@@ -584,15 +586,8 @@ module ModelData =
 
     // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[6]) * x.[6]
-            -0.104994416206189 * x.[6] * x.[12] // b + BB | catalytic racemization: b + BB -> B + BB
-            0.104994416206189 * x.[4] * x.[22] // B + bb | catalytic racemization: B + bb -> b + bb
-            -0.104005647534487 * x.[6] * x.[7] // b + AA | catalytic racemization: b + AA -> B + AA
-            0.104005647534487 * x.[4] * x.[17] // B + aa | catalytic racemization: B + aa -> b + aa
-            -1.05814028120533 * x.[6] * x.[22] // b + bb | catalytic racemization: b + bb -> B + bb
-            1.05814028120533 * x.[4] * x.[12] // B + BB | catalytic racemization: B + BB -> b + BB
-            -0.130649176892678 * x.[6] * x.[17] // b + aa | catalytic racemization: b + aa -> B + aa
-            0.130649176892678 * x.[4] * x.[7] // B + AA | catalytic racemization: B + AA -> b + AA
+        [|
+            -kW * (2.0 * xSum - x.[6]) * x.[6]
             -0.001 * x.[6] // b | racemization: b -> B
             0.001 * x.[4] // B | racemization: B -> b
             1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
@@ -641,10 +636,10 @@ module ModelData =
             -1.0 * x.[3] * x.[6] // A + b | ligation: A + b <-> Ab
             1.0 * x.[18] // ab | ligation: a + b <-> ab
             -1.0 * x.[5] * x.[6] // a + b | ligation: a + b <-> ab
-            0.182844624509982 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
-            -0.0958599419647068 * x.[6] * x.[33] // b + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
-            0.577260981382114 * x.[2] * x.[55] // Z + aAA | catalytic destruction: b + aAA <-> Z + aAA
-            -0.66424566392739 * x.[6] * x.[55] // b + aAA | catalytic destruction: b + aAA <-> Z + aAA
+            1.11881259639926 * x.[2] * x.[28] // Z + ABB | catalytic destruction: b + ABB <-> Z + ABB
+            -0.492781927695115 * x.[6] * x.[28] // b + ABB | catalytic destruction: b + ABB <-> Z + ABB
+            0.591857853097805 * x.[2] * x.[70] // Z + abb | catalytic destruction: b + abb <-> Z + abb
+            -1.21788852180195 * x.[6] * x.[70] // b + abb | catalytic destruction: b + abb <-> Z + abb
             0.001 * x.[2] // Z | destruction: b <-> Z
             -0.001 * x.[6] // b | destruction: b <-> Z
             -0.001 * x.[6] // b | synthesis: Y <-> b
@@ -655,7 +650,8 @@ module ModelData =
 
     // 7 - AA
     let d7 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[7]) * x.[7]
+        [|
+            -kW * (2.0 * xSum - x.[7]) * x.[7]
             1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
             -1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
             1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
@@ -672,7 +668,8 @@ module ModelData =
 
     // 8 - AB
     let d8 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[8]) * x.[8]
+        [|
+            -kW * (2.0 * xSum - x.[8]) * x.[8]
             1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
             -1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
             1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
@@ -689,7 +686,8 @@ module ModelData =
 
     // 9 - Aa
     let d9 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[9]) * x.[9]
+        [|
+            -kW * (2.0 * xSum - x.[9]) * x.[9]
             1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
             -1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
             1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
@@ -706,7 +704,8 @@ module ModelData =
 
     // 10 - Ab
     let d10 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[10]) * x.[10]
+        [|
+            -kW * (2.0 * xSum - x.[10]) * x.[10]
             1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
             -1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
             1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
@@ -723,7 +722,8 @@ module ModelData =
 
     // 11 - BA
     let d11 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[11]) * x.[11]
+        [|
+            -kW * (2.0 * xSum - x.[11]) * x.[11]
             1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
             -1.0 * x.[6] * x.[11] // b + BA | ligation: b + BA <-> bBA
             1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
@@ -738,7 +738,8 @@ module ModelData =
 
     // 12 - BB
     let d12 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[12]) * x.[12]
+        [|
+            -kW * (2.0 * xSum - x.[12]) * x.[12]
             1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
             -1.0 * x.[6] * x.[12] // b + BB | ligation: b + BB <-> bBB
             1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
@@ -755,7 +756,8 @@ module ModelData =
 
     // 13 - Ba
     let d13 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[13]) * x.[13]
+        [|
+            -kW * (2.0 * xSum - x.[13]) * x.[13]
             1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
             -1.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
             1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
@@ -772,7 +774,8 @@ module ModelData =
 
     // 14 - Bb
     let d14 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[14]) * x.[14]
+        [|
+            -kW * (2.0 * xSum - x.[14]) * x.[14]
             1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
             -1.0 * x.[6] * x.[14] // b + Bb | ligation: b + Bb <-> bBb
             1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
@@ -789,7 +792,8 @@ module ModelData =
 
     // 15 - aA
     let d15 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[15]) * x.[15]
+        [|
+            -kW * (2.0 * xSum - x.[15]) * x.[15]
             1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
             -1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
             1.0 * x.[79] // baA | ligation: b + aA <-> baA
@@ -806,7 +810,8 @@ module ModelData =
 
     // 16 - aB
     let d16 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[16]) * x.[16]
+        [|
+            -kW * (2.0 * xSum - x.[16]) * x.[16]
             1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
             -1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
             1.0 * x.[80] // baB | ligation: b + aB <-> baB
@@ -823,7 +828,8 @@ module ModelData =
 
     // 17 - aa
     let d17 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[17]) * x.[17]
+        [|
+            -kW * (2.0 * xSum - x.[17]) * x.[17]
             1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
             -1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
             1.0 * x.[81] // baa | ligation: b + aa <-> baa
@@ -840,7 +846,8 @@ module ModelData =
 
     // 18 - ab
     let d18 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[18]) * x.[18]
+        [|
+            -kW * (2.0 * xSum - x.[18]) * x.[18]
             1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
             -1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
             1.0 * x.[82] // bab | ligation: b + ab <-> bab
@@ -857,7 +864,8 @@ module ModelData =
 
     // 19 - bA
     let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[19]) * x.[19]
+        [|
+            -kW * (2.0 * xSum - x.[19]) * x.[19]
             1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
             -1.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
             1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
@@ -874,7 +882,8 @@ module ModelData =
 
     // 20 - bB
     let d20 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[20]) * x.[20]
+        [|
+            -kW * (2.0 * xSum - x.[20]) * x.[20]
             1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
             -1.0 * x.[4] * x.[20] // B + bB | ligation: B + bB <-> BbB
             1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
@@ -891,7 +900,8 @@ module ModelData =
 
     // 21 - ba
     let d21 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[21]) * x.[21]
+        [|
+            -kW * (2.0 * xSum - x.[21]) * x.[21]
             1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
             -1.0 * x.[4] * x.[21] // B + ba | ligation: B + ba <-> Bba
             1.0 * x.[85] // bba | ligation: b + ba <-> bba
@@ -906,7 +916,8 @@ module ModelData =
 
     // 22 - bb
     let d22 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[22]) * x.[22]
+        [|
+            -kW * (2.0 * xSum - x.[22]) * x.[22]
             1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
             -1.0 * x.[4] * x.[22] // B + bb | ligation: B + bb <-> Bbb
             1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
@@ -923,7 +934,8 @@ module ModelData =
 
     // 23 - AAA
     let d23 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[23]) * x.[23]
+        [|
+            -kW * (2.0 * xSum - x.[23]) * x.[23]
             -1.0 * x.[23] // AAA | ligation: A + AA <-> AAA
             1.0 * x.[3] * x.[7] // A + AA | ligation: A + AA <-> AAA
         |]
@@ -932,7 +944,8 @@ module ModelData =
 
     // 24 - AAB
     let d24 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[24]) * x.[24]
+        [|
+            -kW * (2.0 * xSum - x.[24]) * x.[24]
             -1.0 * x.[24] // AAB | ligation: A + AB <-> AAB
             1.0 * x.[3] * x.[8] // A + AB | ligation: A + AB <-> AAB
         |]
@@ -941,7 +954,8 @@ module ModelData =
 
     // 25 - AAa
     let d25 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[25]) * x.[25]
+        [|
+            -kW * (2.0 * xSum - x.[25]) * x.[25]
             -1.0 * x.[25] // AAa | ligation: A + Aa <-> AAa
             1.0 * x.[3] * x.[9] // A + Aa | ligation: A + Aa <-> AAa
         |]
@@ -950,7 +964,8 @@ module ModelData =
 
     // 26 - AAb
     let d26 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[26]) * x.[26]
+        [|
+            -kW * (2.0 * xSum - x.[26]) * x.[26]
             -1.0 * x.[26] // AAb | ligation: A + Ab <-> AAb
             1.0 * x.[3] * x.[10] // A + Ab | ligation: A + Ab <-> AAb
         |]
@@ -959,7 +974,8 @@ module ModelData =
 
     // 27 - ABA
     let d27 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[27]) * x.[27]
+        [|
+            -kW * (2.0 * xSum - x.[27]) * x.[27]
             -1.0 * x.[27] // ABA | ligation: A + BA <-> ABA
             1.0 * x.[3] * x.[11] // A + BA | ligation: A + BA <-> ABA
         |]
@@ -968,7 +984,8 @@ module ModelData =
 
     // 28 - ABB
     let d28 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[28]) * x.[28]
+        [|
+            -kW * (2.0 * xSum - x.[28]) * x.[28]
             -1.0 * x.[28] // ABB | ligation: A + BB <-> ABB
             1.0 * x.[3] * x.[12] // A + BB | ligation: A + BB <-> ABB
         |]
@@ -977,7 +994,8 @@ module ModelData =
 
     // 29 - ABa
     let d29 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[29]) * x.[29]
+        [|
+            -kW * (2.0 * xSum - x.[29]) * x.[29]
             -1.0 * x.[29] // ABa | ligation: A + Ba <-> ABa
             1.0 * x.[3] * x.[13] // A + Ba | ligation: A + Ba <-> ABa
         |]
@@ -986,7 +1004,8 @@ module ModelData =
 
     // 30 - ABb
     let d30 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[30]) * x.[30]
+        [|
+            -kW * (2.0 * xSum - x.[30]) * x.[30]
             -1.0 * x.[30] // ABb | ligation: A + Bb <-> ABb
             1.0 * x.[3] * x.[14] // A + Bb | ligation: A + Bb <-> ABb
         |]
@@ -995,7 +1014,8 @@ module ModelData =
 
     // 31 - AaA
     let d31 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[31]) * x.[31]
+        [|
+            -kW * (2.0 * xSum - x.[31]) * x.[31]
             -1.0 * x.[31] // AaA | ligation: A + aA <-> AaA
             1.0 * x.[3] * x.[15] // A + aA | ligation: A + aA <-> AaA
         |]
@@ -1004,7 +1024,8 @@ module ModelData =
 
     // 32 - AaB
     let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[32]) * x.[32]
+        [|
+            -kW * (2.0 * xSum - x.[32]) * x.[32]
             -1.0 * x.[32] // AaB | ligation: A + aB <-> AaB
             1.0 * x.[3] * x.[16] // A + aB | ligation: A + aB <-> AaB
         |]
@@ -1013,7 +1034,8 @@ module ModelData =
 
     // 33 - Aaa
     let d33 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[33]) * x.[33]
+        [|
+            -kW * (2.0 * xSum - x.[33]) * x.[33]
             -1.0 * x.[33] // Aaa | ligation: A + aa <-> Aaa
             1.0 * x.[3] * x.[17] // A + aa | ligation: A + aa <-> Aaa
         |]
@@ -1022,7 +1044,8 @@ module ModelData =
 
     // 34 - Aab
     let d34 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[34]) * x.[34]
+        [|
+            -kW * (2.0 * xSum - x.[34]) * x.[34]
             -1.0 * x.[34] // Aab | ligation: A + ab <-> Aab
             1.0 * x.[3] * x.[18] // A + ab | ligation: A + ab <-> Aab
         |]
@@ -1031,7 +1054,8 @@ module ModelData =
 
     // 35 - AbA
     let d35 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[35]) * x.[35]
+        [|
+            -kW * (2.0 * xSum - x.[35]) * x.[35]
             -1.0 * x.[35] // AbA | ligation: A + bA <-> AbA
             1.0 * x.[3] * x.[19] // A + bA | ligation: A + bA <-> AbA
         |]
@@ -1040,7 +1064,8 @@ module ModelData =
 
     // 36 - AbB
     let d36 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[36]) * x.[36]
+        [|
+            -kW * (2.0 * xSum - x.[36]) * x.[36]
             -1.0 * x.[36] // AbB | ligation: A + bB <-> AbB
             1.0 * x.[3] * x.[20] // A + bB | ligation: A + bB <-> AbB
         |]
@@ -1049,7 +1074,8 @@ module ModelData =
 
     // 37 - Aba
     let d37 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[37]) * x.[37]
+        [|
+            -kW * (2.0 * xSum - x.[37]) * x.[37]
             -1.0 * x.[37] // Aba | ligation: A + ba <-> Aba
             1.0 * x.[3] * x.[21] // A + ba | ligation: A + ba <-> Aba
         |]
@@ -1058,7 +1084,8 @@ module ModelData =
 
     // 38 - Abb
     let d38 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[38]) * x.[38]
+        [|
+            -kW * (2.0 * xSum - x.[38]) * x.[38]
             -1.0 * x.[38] // Abb | ligation: A + bb <-> Abb
             1.0 * x.[3] * x.[22] // A + bb | ligation: A + bb <-> Abb
         |]
@@ -1067,7 +1094,8 @@ module ModelData =
 
     // 39 - BAA
     let d39 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[39]) * x.[39]
+        [|
+            -kW * (2.0 * xSum - x.[39]) * x.[39]
             -1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
             1.0 * x.[4] * x.[7] // B + AA | ligation: B + AA <-> BAA
         |]
@@ -1076,7 +1104,8 @@ module ModelData =
 
     // 40 - BAB
     let d40 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[40]) * x.[40]
+        [|
+            -kW * (2.0 * xSum - x.[40]) * x.[40]
             -1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
             1.0 * x.[4] * x.[8] // B + AB | ligation: B + AB <-> BAB
         |]
@@ -1085,7 +1114,8 @@ module ModelData =
 
     // 41 - BAa
     let d41 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[41]) * x.[41]
+        [|
+            -kW * (2.0 * xSum - x.[41]) * x.[41]
             -1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
             1.0 * x.[4] * x.[9] // B + Aa | ligation: B + Aa <-> BAa
         |]
@@ -1094,7 +1124,8 @@ module ModelData =
 
     // 42 - BAb
     let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[42]) * x.[42]
+        [|
+            -kW * (2.0 * xSum - x.[42]) * x.[42]
             -1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
             1.0 * x.[4] * x.[10] // B + Ab | ligation: B + Ab <-> BAb
         |]
@@ -1103,7 +1134,8 @@ module ModelData =
 
     // 43 - BBA
     let d43 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[43]) * x.[43]
+        [|
+            -kW * (2.0 * xSum - x.[43]) * x.[43]
             -1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
             1.0 * x.[4] * x.[11] // B + BA | ligation: B + BA <-> BBA
         |]
@@ -1112,7 +1144,8 @@ module ModelData =
 
     // 44 - BBB
     let d44 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[44]) * x.[44]
+        [|
+            -kW * (2.0 * xSum - x.[44]) * x.[44]
             -1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
             1.0 * x.[4] * x.[12] // B + BB | ligation: B + BB <-> BBB
         |]
@@ -1121,7 +1154,8 @@ module ModelData =
 
     // 45 - BBa
     let d45 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[45]) * x.[45]
+        [|
+            -kW * (2.0 * xSum - x.[45]) * x.[45]
             -1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
             1.0 * x.[4] * x.[13] // B + Ba | ligation: B + Ba <-> BBa
         |]
@@ -1130,7 +1164,8 @@ module ModelData =
 
     // 46 - BBb
     let d46 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[46]) * x.[46]
+        [|
+            -kW * (2.0 * xSum - x.[46]) * x.[46]
             -1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
             1.0 * x.[4] * x.[14] // B + Bb | ligation: B + Bb <-> BBb
         |]
@@ -1139,7 +1174,8 @@ module ModelData =
 
     // 47 - BaA
     let d47 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[47]) * x.[47]
+        [|
+            -kW * (2.0 * xSum - x.[47]) * x.[47]
             -1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
             1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
         |]
@@ -1148,7 +1184,8 @@ module ModelData =
 
     // 48 - BaB
     let d48 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[48]) * x.[48]
+        [|
+            -kW * (2.0 * xSum - x.[48]) * x.[48]
             -1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
             1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
         |]
@@ -1157,7 +1194,8 @@ module ModelData =
 
     // 49 - Baa
     let d49 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[49]) * x.[49]
+        [|
+            -kW * (2.0 * xSum - x.[49]) * x.[49]
             -1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
             1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
         |]
@@ -1166,7 +1204,8 @@ module ModelData =
 
     // 50 - Bab
     let d50 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[50]) * x.[50]
+        [|
+            -kW * (2.0 * xSum - x.[50]) * x.[50]
             -1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
             1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
         |]
@@ -1175,7 +1214,8 @@ module ModelData =
 
     // 51 - BbA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[51]) * x.[51]
+        [|
+            -kW * (2.0 * xSum - x.[51]) * x.[51]
             -1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
             1.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
         |]
@@ -1184,7 +1224,8 @@ module ModelData =
 
     // 52 - BbB
     let d52 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[52]) * x.[52]
+        [|
+            -kW * (2.0 * xSum - x.[52]) * x.[52]
             -1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
             1.0 * x.[4] * x.[20] // B + bB | ligation: B + bB <-> BbB
         |]
@@ -1193,7 +1234,8 @@ module ModelData =
 
     // 53 - Bba
     let d53 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[53]) * x.[53]
+        [|
+            -kW * (2.0 * xSum - x.[53]) * x.[53]
             -1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
             1.0 * x.[4] * x.[21] // B + ba | ligation: B + ba <-> Bba
         |]
@@ -1202,7 +1244,8 @@ module ModelData =
 
     // 54 - Bbb
     let d54 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[54]) * x.[54]
+        [|
+            -kW * (2.0 * xSum - x.[54]) * x.[54]
             -1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
             1.0 * x.[4] * x.[22] // B + bb | ligation: B + bb <-> Bbb
         |]
@@ -1211,7 +1254,8 @@ module ModelData =
 
     // 55 - aAA
     let d55 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[55]) * x.[55]
+        [|
+            -kW * (2.0 * xSum - x.[55]) * x.[55]
             -1.0 * x.[55] // aAA | ligation: a + AA <-> aAA
             1.0 * x.[5] * x.[7] // a + AA | ligation: a + AA <-> aAA
         |]
@@ -1220,7 +1264,8 @@ module ModelData =
 
     // 56 - aAB
     let d56 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[56]) * x.[56]
+        [|
+            -kW * (2.0 * xSum - x.[56]) * x.[56]
             -1.0 * x.[56] // aAB | ligation: a + AB <-> aAB
             1.0 * x.[5] * x.[8] // a + AB | ligation: a + AB <-> aAB
         |]
@@ -1229,7 +1274,8 @@ module ModelData =
 
     // 57 - aAa
     let d57 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[57]) * x.[57]
+        [|
+            -kW * (2.0 * xSum - x.[57]) * x.[57]
             -1.0 * x.[57] // aAa | ligation: a + Aa <-> aAa
             1.0 * x.[5] * x.[9] // a + Aa | ligation: a + Aa <-> aAa
         |]
@@ -1238,7 +1284,8 @@ module ModelData =
 
     // 58 - aAb
     let d58 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[58]) * x.[58]
+        [|
+            -kW * (2.0 * xSum - x.[58]) * x.[58]
             -1.0 * x.[58] // aAb | ligation: a + Ab <-> aAb
             1.0 * x.[5] * x.[10] // a + Ab | ligation: a + Ab <-> aAb
         |]
@@ -1247,7 +1294,8 @@ module ModelData =
 
     // 59 - aBA
     let d59 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[59]) * x.[59]
+        [|
+            -kW * (2.0 * xSum - x.[59]) * x.[59]
             -1.0 * x.[59] // aBA | ligation: a + BA <-> aBA
             1.0 * x.[5] * x.[11] // a + BA | ligation: a + BA <-> aBA
         |]
@@ -1256,7 +1304,8 @@ module ModelData =
 
     // 60 - aBB
     let d60 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[60]) * x.[60]
+        [|
+            -kW * (2.0 * xSum - x.[60]) * x.[60]
             -1.0 * x.[60] // aBB | ligation: a + BB <-> aBB
             1.0 * x.[5] * x.[12] // a + BB | ligation: a + BB <-> aBB
         |]
@@ -1265,7 +1314,8 @@ module ModelData =
 
     // 61 - aBa
     let d61 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[61]) * x.[61]
+        [|
+            -kW * (2.0 * xSum - x.[61]) * x.[61]
             -1.0 * x.[61] // aBa | ligation: a + Ba <-> aBa
             1.0 * x.[5] * x.[13] // a + Ba | ligation: a + Ba <-> aBa
         |]
@@ -1274,7 +1324,8 @@ module ModelData =
 
     // 62 - aBb
     let d62 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[62]) * x.[62]
+        [|
+            -kW * (2.0 * xSum - x.[62]) * x.[62]
             -1.0 * x.[62] // aBb | ligation: a + Bb <-> aBb
             1.0 * x.[5] * x.[14] // a + Bb | ligation: a + Bb <-> aBb
         |]
@@ -1283,7 +1334,8 @@ module ModelData =
 
     // 63 - aaA
     let d63 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[63]) * x.[63]
+        [|
+            -kW * (2.0 * xSum - x.[63]) * x.[63]
             -1.0 * x.[63] // aaA | ligation: a + aA <-> aaA
             1.0 * x.[5] * x.[15] // a + aA | ligation: a + aA <-> aaA
         |]
@@ -1292,7 +1344,8 @@ module ModelData =
 
     // 64 - aaB
     let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[64]) * x.[64]
+        [|
+            -kW * (2.0 * xSum - x.[64]) * x.[64]
             -1.0 * x.[64] // aaB | ligation: a + aB <-> aaB
             1.0 * x.[5] * x.[16] // a + aB | ligation: a + aB <-> aaB
         |]
@@ -1301,7 +1354,8 @@ module ModelData =
 
     // 65 - aaa
     let d65 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[65]) * x.[65]
+        [|
+            -kW * (2.0 * xSum - x.[65]) * x.[65]
             -1.0 * x.[65] // aaa | ligation: a + aa <-> aaa
             1.0 * x.[5] * x.[17] // a + aa | ligation: a + aa <-> aaa
         |]
@@ -1310,7 +1364,8 @@ module ModelData =
 
     // 66 - aab
     let d66 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[66]) * x.[66]
+        [|
+            -kW * (2.0 * xSum - x.[66]) * x.[66]
             -1.0 * x.[66] // aab | ligation: a + ab <-> aab
             1.0 * x.[5] * x.[18] // a + ab | ligation: a + ab <-> aab
         |]
@@ -1319,7 +1374,8 @@ module ModelData =
 
     // 67 - abA
     let d67 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[67]) * x.[67]
+        [|
+            -kW * (2.0 * xSum - x.[67]) * x.[67]
             -1.0 * x.[67] // abA | ligation: a + bA <-> abA
             1.0 * x.[5] * x.[19] // a + bA | ligation: a + bA <-> abA
         |]
@@ -1328,7 +1384,8 @@ module ModelData =
 
     // 68 - abB
     let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[68]) * x.[68]
+        [|
+            -kW * (2.0 * xSum - x.[68]) * x.[68]
             -1.0 * x.[68] // abB | ligation: a + bB <-> abB
             1.0 * x.[5] * x.[20] // a + bB | ligation: a + bB <-> abB
         |]
@@ -1337,7 +1394,8 @@ module ModelData =
 
     // 69 - aba
     let d69 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[69]) * x.[69]
+        [|
+            -kW * (2.0 * xSum - x.[69]) * x.[69]
             -1.0 * x.[69] // aba | ligation: a + ba <-> aba
             1.0 * x.[5] * x.[21] // a + ba | ligation: a + ba <-> aba
         |]
@@ -1346,7 +1404,8 @@ module ModelData =
 
     // 70 - abb
     let d70 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[70]) * x.[70]
+        [|
+            -kW * (2.0 * xSum - x.[70]) * x.[70]
             -1.0 * x.[70] // abb | ligation: a + bb <-> abb
             1.0 * x.[5] * x.[22] // a + bb | ligation: a + bb <-> abb
         |]
@@ -1355,7 +1414,8 @@ module ModelData =
 
     // 71 - bAA
     let d71 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[71]) * x.[71]
+        [|
+            -kW * (2.0 * xSum - x.[71]) * x.[71]
             -1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
             1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
         |]
@@ -1364,7 +1424,8 @@ module ModelData =
 
     // 72 - bAB
     let d72 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[72]) * x.[72]
+        [|
+            -kW * (2.0 * xSum - x.[72]) * x.[72]
             -1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
             1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
         |]
@@ -1373,7 +1434,8 @@ module ModelData =
 
     // 73 - bAa
     let d73 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[73]) * x.[73]
+        [|
+            -kW * (2.0 * xSum - x.[73]) * x.[73]
             -1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
             1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
         |]
@@ -1382,7 +1444,8 @@ module ModelData =
 
     // 74 - bAb
     let d74 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[74]) * x.[74]
+        [|
+            -kW * (2.0 * xSum - x.[74]) * x.[74]
             -1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
             1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
         |]
@@ -1391,7 +1454,8 @@ module ModelData =
 
     // 75 - bBA
     let d75 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[75]) * x.[75]
+        [|
+            -kW * (2.0 * xSum - x.[75]) * x.[75]
             -1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
             1.0 * x.[6] * x.[11] // b + BA | ligation: b + BA <-> bBA
         |]
@@ -1400,7 +1464,8 @@ module ModelData =
 
     // 76 - bBB
     let d76 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[76]) * x.[76]
+        [|
+            -kW * (2.0 * xSum - x.[76]) * x.[76]
             -1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
             1.0 * x.[6] * x.[12] // b + BB | ligation: b + BB <-> bBB
         |]
@@ -1409,7 +1474,8 @@ module ModelData =
 
     // 77 - bBa
     let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[77]) * x.[77]
+        [|
+            -kW * (2.0 * xSum - x.[77]) * x.[77]
             -1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
             1.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
         |]
@@ -1418,7 +1484,8 @@ module ModelData =
 
     // 78 - bBb
     let d78 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[78]) * x.[78]
+        [|
+            -kW * (2.0 * xSum - x.[78]) * x.[78]
             -1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
             1.0 * x.[6] * x.[14] // b + Bb | ligation: b + Bb <-> bBb
         |]
@@ -1427,7 +1494,8 @@ module ModelData =
 
     // 79 - baA
     let d79 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[79]) * x.[79]
+        [|
+            -kW * (2.0 * xSum - x.[79]) * x.[79]
             -1.0 * x.[79] // baA | ligation: b + aA <-> baA
             1.0 * x.[6] * x.[15] // b + aA | ligation: b + aA <-> baA
         |]
@@ -1436,7 +1504,8 @@ module ModelData =
 
     // 80 - baB
     let d80 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[80]) * x.[80]
+        [|
+            -kW * (2.0 * xSum - x.[80]) * x.[80]
             -1.0 * x.[80] // baB | ligation: b + aB <-> baB
             1.0 * x.[6] * x.[16] // b + aB | ligation: b + aB <-> baB
         |]
@@ -1445,7 +1514,8 @@ module ModelData =
 
     // 81 - baa
     let d81 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[81]) * x.[81]
+        [|
+            -kW * (2.0 * xSum - x.[81]) * x.[81]
             -1.0 * x.[81] // baa | ligation: b + aa <-> baa
             1.0 * x.[6] * x.[17] // b + aa | ligation: b + aa <-> baa
         |]
@@ -1454,7 +1524,8 @@ module ModelData =
 
     // 82 - bab
     let d82 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[82]) * x.[82]
+        [|
+            -kW * (2.0 * xSum - x.[82]) * x.[82]
             -1.0 * x.[82] // bab | ligation: b + ab <-> bab
             1.0 * x.[6] * x.[18] // b + ab | ligation: b + ab <-> bab
         |]
@@ -1463,7 +1534,8 @@ module ModelData =
 
     // 83 - bbA
     let d83 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[83]) * x.[83]
+        [|
+            -kW * (2.0 * xSum - x.[83]) * x.[83]
             -1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
             1.0 * x.[6] * x.[19] // b + bA | ligation: b + bA <-> bbA
         |]
@@ -1472,7 +1544,8 @@ module ModelData =
 
     // 84 - bbB
     let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[84]) * x.[84]
+        [|
+            -kW * (2.0 * xSum - x.[84]) * x.[84]
             -1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
             1.0 * x.[6] * x.[20] // b + bB | ligation: b + bB <-> bbB
         |]
@@ -1481,7 +1554,8 @@ module ModelData =
 
     // 85 - bba
     let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[85]) * x.[85]
+        [|
+            -kW * (2.0 * xSum - x.[85]) * x.[85]
             -1.0 * x.[85] // bba | ligation: b + ba <-> bba
             1.0 * x.[6] * x.[21] // b + ba | ligation: b + ba <-> bba
         |]
@@ -1490,7 +1564,8 @@ module ModelData =
 
     // 86 - bbb
     let d86 (x : array<double>) xSum xSumN xSumSquaredN = 
-        [|            -kW * (2.0 * xSum - x.[86]) * x.[86]
+        [|
+            -kW * (2.0 * xSum - x.[86]) * x.[86]
             -1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
             1.0 * x.[6] * x.[22] // b + bb | ligation: b + bb <-> bbb
         |]
@@ -1782,7 +1857,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.2.1.0"
                             versionNumber = "1.2.1.0"
                             seedValue = seedValue
-                            modelName = "20181223_001"
+                            modelName = "20181223_005"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1791,7 +1866,7 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(1571922663, { threshold = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(2019351656, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1799,11 +1874,11 @@ module ModelData =
                             |> SynthesisRateParam
 
                             {
-                                catSynthDistribution = TriangularDistribution(665104013, { threshold = Some 0.02 }) |> Triangular
+                                catSynthDistribution = TriangularDistribution(1284402257, { threshold = Some 0.02; scale = None; shift = None }) |> Triangular
                                 eeParams = 
                                 {
-                                    eeForwardDistribution = SymmetricTriangularDistribution(1738571589, { threshold = None }) |> SymmetricTriangularEe |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1445632800, { threshold = None }) |> SymmetricTriangularEe |> Some
+                                    eeForwardDistribution = SymmetricTriangularDistribution(553519987, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1855451446, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     multiplier = 1000.0
                                 }
                             }
@@ -1811,7 +1886,7 @@ module ModelData =
                             |> CatalyticSynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(449041775, { threshold = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(1720151443, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1819,11 +1894,11 @@ module ModelData =
                             |> DestructionRateParam
 
                             {
-                                catDestrDistribution = TriangularDistribution(1702676718, { threshold = Some 0.02 }) |> Triangular
+                                catDestrDistribution = TriangularDistribution(1893903767, { threshold = Some 0.02; scale = None; shift = None }) |> Triangular
                                 eeParams = 
                                 {
-                                    eeForwardDistribution = SymmetricTriangularDistribution(381622339, { threshold = None }) |> SymmetricTriangularEe |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(66161804, { threshold = None }) |> SymmetricTriangularEe |> Some
+                                    eeForwardDistribution = SymmetricTriangularDistribution(1582178414, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1016589291, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     multiplier = 1000.0
                                 }
                             }
@@ -1831,7 +1906,7 @@ module ModelData =
                             |> CatalyticDestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(1182115454, { threshold = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(201502492, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 1.0
                                 backwardScale = Some 1.0
                             }
@@ -1839,18 +1914,18 @@ module ModelData =
                             |> LigationRateParam
 
                             {
-                                racemizationDistribution = DeltaDistribution(940770193, { threshold = None }) |> Delta
+                                racemizationDistribution = DeltaDistribution(737608590, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                             }
                             |> RacemRndParam
                             |> RacemizationRateParam
 
                             {
-                                catRacemDistribution = TriangularDistribution(1985814365, { threshold = Some 0.02 }) |> Triangular
+                                catRacemDistribution = TriangularDistribution(806147669, { threshold = Some 0.02; scale = None; shift = None }) |> Triangular
                                 eeParams = 
                                 {
-                                    eeForwardDistribution = SymmetricTriangularDistribution(1628940972, { threshold = None }) |> SymmetricTriangularEe |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1837893606, { threshold = None }) |> SymmetricTriangularEe |> Some
+                                    eeForwardDistribution = SymmetricTriangularDistribution(273839671, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(2040729543, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     multiplier = 1000.0
                                 }
                             }
@@ -1874,7 +1949,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simSynthDistribution = UniformDistribution(753047381, { threshold = Some 0.2 }) |> Uniform
+                                simSynthDistribution = UniformDistribution(767779821, { threshold = Some 0.2; scale = None; shift = None }) |> Uniform
                                 getForwardEeDistr = DefaultEeDistributionGetter
                                 getBackwardEeDistr = DefaultEeDistributionGetter
                                 getMultiplierDistr = DefaultSimDistributionGetter
@@ -1883,18 +1958,18 @@ module ModelData =
                             |> CatalyticSynthesisRateParam
 
                             {
-                                simDestrDistribution = UniformDistribution(816834384, { threshold = Some 0.2 }) |> Uniform
+                                simDestrDistribution = UniformDistribution(1859601915, { threshold = Some 0.2; scale = None; shift = None }) |> Uniform
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
                             }
                             |> CatDestrSimParam
                             |> CatalyticDestructionRateParam
 
                             {
-                                catLigationDistribution = TriangularDistribution(480164958, { threshold = Some 5E-05 }) |> Triangular
+                                catLigationDistribution = TriangularDistribution(672846875, { threshold = Some 5E-05; scale = None; shift = None }) |> Triangular
                                 eeParams = 
                                 {
-                                    eeForwardDistribution = SymmetricTriangularDistribution(1290189890, { threshold = None }) |> SymmetricTriangularEe |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1000695701, { threshold = None }) |> SymmetricTriangularEe |> Some
+                                    eeForwardDistribution = SymmetricTriangularDistribution(1487016821, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1395184989, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     multiplier = 2000.0
                                 }
                             }
@@ -1902,21 +1977,21 @@ module ModelData =
                             |> CatalyticLigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(427921751, { threshold = Some 2E-05 }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(1641628916, { threshold = Some 2E-05; scale = None; shift = None }) |> Triangular
                                 forwardScale = Some 10000.0
                             }
                             |> SedDirRndParam
                             |> SedimentationDirectRateParam
 
                             {
-                                sedimentationAllDistribution = TriangularDistribution(141163220, { threshold = None }) |> Triangular
+                                sedimentationAllDistribution = TriangularDistribution(639149230, { threshold = None; scale = None; shift = None }) |> Triangular
                                 forwardScale = Some 0.1
                             }
                             |> SedAllRndParam
                             |> SedimentationAllRateParam
 
                             {
-                                simRacemDistribution = UniformDistribution(1107882828, { threshold = Some 0.2 }) |> Uniform
+                                simRacemDistribution = UniformDistribution(1661647157, { threshold = Some 0.2; scale = None; shift = None }) |> Uniform
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
                             }
                             |> CatRacemSimParam
@@ -1954,10 +2029,11 @@ module ModelData =
                     (WasteRecyclingName, 1)
                     (SynthesisName, 4)
                     (DestructionName, 4)
+                    (CatalyticSynthesisName, 4)
                     (CatalyticDestructionName, 4)
                     (LigationName, 78)
                     (RacemizationName, 4)
-                    (CatalyticRacemizationName, 16)
+                    (CatalyticRacemizationName, 4)
                     (SedimentationAllName, 4)
                 ]
         }

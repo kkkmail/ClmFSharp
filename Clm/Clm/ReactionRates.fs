@@ -93,10 +93,8 @@ module ReactionRates =
         (r : 'T) = 
 
         match d.TryGetValue r with 
-        | true, rates -> 
-            rates
-        | false, _ -> 
-            updateRelatedReactions d (calculateRates r) r
+        | true, rates -> rates
+        | false, _ -> updateRelatedReactions d (calculateRates r) r
 
 
     let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -108,9 +106,9 @@ module ReactionRates =
 
     type CatRatesEeParams = 
         {
+            rateMultiplierDistr : RateMultiplierDistribution
             eeForwardDistribution : EeDistribution option
             eeBackwardDistribution : EeDistribution option
-            multiplier : double
         }
 
 
@@ -119,8 +117,7 @@ module ReactionRates =
             reaction : 'R
             catalyst : 'C
             catReactionCreator : ('R * 'C) -> 'RC
-            rateCoeff : double option
-            getRates : 'R -> (ReactionRate option * ReactionRate option)
+            getRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
             eeParams : CatRatesEeParams
         }
 
@@ -138,7 +135,7 @@ module ReactionRates =
         let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
 
         let rf, rb, rfe, rbe = 
-            match i.rateCoeff, i.eeParams.eeForwardDistribution with 
+            match i.eeParams.rateMultiplierDistr.nextDoubleOpt(), i.eeParams.eeForwardDistribution with
             | Some k0, Some df ->
                 let (sf0, sb0) = i.getRates i.reaction
                 let fEe = df.nextDouble()
@@ -148,10 +145,10 @@ module ReactionRates =
                     | Some d -> d.nextDouble()
                     | None -> fEe
 
-                let kf = k0 * i.eeParams.multiplier * (1.0 + fEe)
-                let kfe = k0 * i.eeParams.multiplier * (1.0 - fEe)
-                let kb = k0 * i.eeParams.multiplier * (1.0 + bEe)
-                let kbe = k0 * i.eeParams.multiplier * (1.0 - bEe)
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+                let kb = k0 * (1.0 + bEe)
+                let kbe = k0 * (1.0 - bEe)
 
                 let (rf, rfe) = 
                     match sf0 with
@@ -263,7 +260,7 @@ module ReactionRates =
             simSynthDistribution : Distribution
             getForwardEeDistr : EeDistributionGetter
             getBackwardEeDistr : EeDistributionGetter
-            getMultiplierDistr : SimDistributionGetter
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
         }
 
 
@@ -281,40 +278,20 @@ module ReactionRates =
 
     type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) = 
         let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
-        let distr = p.catSynthRndParam.catSynthDistribution
 
-        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) k = 
+        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) = 
             {
                 reaction = s
                 catalyst = c
                 catReactionCreator = CatalyticSynthesisReaction
-                rateCoeff = k
                 getRates = p.synthesisModel.getRates
                 eeParams = p.catSynthRndParam.eeParams
             }
             |> calculateCatRates
 
-        let calculateOptionalRatesImpl r = calculateCatSynthRates r (distr.nextDoubleOpt())
-
-        member __.getRates r = 
-            let z = rateDictionaryImpl.TryGetValue r
-            let y0 = 
-                rateDictionaryImpl 
-                |> List.ofSeq
-                |> List.map (fun e -> e.Key, e.Value)
-                |> List.sortBy (fun e -> fst e, snd e)
-
-            let x = getRatesImpl rateDictionaryImpl calculateOptionalRatesImpl r
-            let y = 
-                rateDictionaryImpl 
-                |> List.ofSeq
-                |> List.map (fun e -> e.Key, e.Value)
-                |> List.sortBy (fun e -> fst e, snd e)
-            x
-
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateCatSynthRates r
         member __.inputParams = p
         member __.rateDictionary = rateDictionaryImpl
-        member __.calculatelRates r k = getRatesImpl rateDictionaryImpl (fun r -> calculateCatSynthRates r k) r
 
 
     type CatalyticSynthesisSimilarParamWithModel = 
@@ -331,14 +308,12 @@ module ReactionRates =
 
     type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) = 
         let catSynthRndModel = p.catSynthModel
-        //let getEeDistribution = getEeDistr (p.catSynthSimParam.simSynthDistribution.nextSeed())
 
-        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) k e = 
+        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) e = 
             {
                 reaction = s
                 catalyst = c
                 catReactionCreator = CatalyticSynthesisReaction
-                rateCoeff = k
                 getRates = p.catSynthModel.inputParams.synthesisModel.getRates
                 eeParams = e
             }
@@ -353,26 +328,24 @@ module ReactionRates =
             | None, None -> ignore()
             | _ -> 
                 let (fe, be) = r.withEnantiomerCatalyst |> catSynthRndModel.getRates
-                let eeMult, coeffMult = 
+                let rateMult = 
                     match f, fe, b, be with 
-                    | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a - b) / (2.0 * (a + b)), (a + b) / 2.0
-                    | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a - b) / (2.0 * (a + b)), (a + b) / 2.0
+                    | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a + b) / 2.0
+                    | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a + b) / 2.0
                     | _ -> failwith "CatalyticSynthesisSimilarModel::calculateRatesImpl::FUBAR..."
-                        //printfn "calculateRatesImpl - FUBAR..."
-                        //p.catSynthModel.inputParams.catSynthRndParam.catSynthDistribution.nextDouble()
 
                 let getEeParams (x : CatalyticSynthesisReaction) = 
                     {
+                        rateMultiplierDistr = p.catSynthSimParam.getRateMultiplierDistr.getDistr (failwith "") rateMult
                         eeForwardDistribution = p.catSynthSimParam.getForwardEeDistr.getDistr nextSeed f fe
                         eeBackwardDistribution = p.catSynthSimParam.getBackwardEeDistr.getDistr nextSeed b be
-                        //multiplier = eeMult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())
-                        multiplier = 1.0
+                        //rateMultiplier = rateMult * ((p.catSynthSimParam.getMultiplierDistr.getDistr nextSeed).nextDouble())
                     }
 
                 p.catSynthSimParam.aminoAcids
                 |> List.filter (fun _ -> p.catSynthSimParam.simSynthDistribution.isDefined())
                 |> List.map (fun e -> CatalyticSynthesisReaction (a.createSameChirality e |> SynthesisReaction, c))
-                |> List.map (fun e -> calculateCatSynthRates e (Some coeffMult) (getEeParams e))
+                |> List.map (fun e -> calculateCatSynthRates e (getEeParams e))
                 |> ignore
 
             (f, b)

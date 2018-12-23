@@ -7,6 +7,7 @@ module Distributions =
         | ReactionRate of double
 
 
+    /// First scale, then shift. This is more convenient here than the other way around.
     type DistributionParams = 
         {
             threshold : double option
@@ -125,6 +126,37 @@ module Distributions =
             | Triangular d -> d.nextSeed()
             | SymmetricTriangular d -> d.nextSeed()
 
+        member this.scaled newScale =
+            match this with
+            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Delta
+            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Uniform
+            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Triangular
+            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricTriangular
+
+        member this.shifted newshift =
+            match this with
+            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Delta
+            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Uniform
+            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Triangular
+            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> SymmetricTriangular
+
+
+    /// Distribution of rate multipliers for catalytic reactions.
+    type RateMultiplierDistribution = 
+        | RateMultiplierDistribution of Distribution
+
+        member this.nextDoubleOpt() = 
+            let (RateMultiplierDistribution d) = this
+            d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)
+
+        member this.scaled newScale = 
+            let (RateMultiplierDistribution d) = this
+            d.scaled newScale
+
+        member this.shifted newScale = 
+            let (RateMultiplierDistribution d) = this
+            d.shifted newScale
+
 
     /// Specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
@@ -160,6 +192,7 @@ module Distributions =
                 (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
             | _ -> None
 
+
     type EeDistributionGetter = 
         | DefaultEeDistributionGetter
 
@@ -168,26 +201,34 @@ module Distributions =
             | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistr
 
 
-    /// Specially formatted distributions to return values above 0 and with max / mean at 1.
-    type SimDistribution = 
-        | DeltaSim of DeltaDistribution
-        | SymmetricTriangularSim of SymmetricTriangularDistribution
+    ///// Specially formatted distributions to return values above 0 and with max / mean at around 1.
+    //type SimDistribution = 
+    //    | DeltaSim of DeltaDistribution
+    //    | SymmetricTriangularSim of SymmetricTriangularDistribution
 
-        member sym.nextDouble() : double = 
-            let v = 
-                match sym with 
-                | DeltaSim d -> d.nextDouble()
-                | SymmetricTriangularSim d -> d.nextDouble()
+    //    member sym.nextDouble() : double = 
+    //        let v = 
+    //            match sym with 
+    //            | DeltaSim d -> d.nextDouble()
+    //            | SymmetricTriangularSim d -> d.nextDouble()
 
-            max v 0.0
+    //        max v 0.0
 
-        /// Returns values from 0 to 2 with max at 1.
-        static member createDefault (seeder : unit -> int) = 
-            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
+    //    /// Returns values from 0 to 2 with max at 1.
+    //    static member createDefault (seeder : unit -> int) = 
+    //        SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
 
-    type SimDistributionGetter = 
-        | DefaultSimDistributionGetter
+    //type SimDistributionGetter = 
+    //    | DefaultSimDistributionGetter
 
-        member sd.getDistr = 
-            match sd with 
-            | DefaultSimDistributionGetter -> SimDistribution.createDefault
+    //    member sd.getDistr = 
+    //        match sd with 
+    //        | DefaultSimDistributionGetter -> SimDistribution.createDefault
+
+
+    type RateMultiplierDistributionGetter =
+        | DefaultRateMultiplierDistributionGetter
+
+        member this.getDistr (d : RateMultiplierDistribution) (rate : double) = 
+            match this with
+            | DefaultRateMultiplierDistributionGetter -> d.scaled (Some rate) |> RateMultiplierDistribution

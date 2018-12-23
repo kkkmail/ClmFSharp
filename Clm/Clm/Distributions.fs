@@ -186,7 +186,7 @@ module Distributions =
             | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
             | None -> DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
 
-        static member getDefaultEeDistr (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+        static member getDefaultEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
             match rate, rateEnant with 
             | Some (ReactionRate r), Some (ReactionRate re) -> 
                 (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
@@ -195,10 +195,12 @@ module Distributions =
 
     type EeDistributionGetter = 
         | DefaultEeDistributionGetter
+        | NoneGetter
 
         member ee.getDistr = 
             match ee with 
-            | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistr
+            | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistrOpt
+            | NoneGetter -> (fun _ _ _ -> None)
 
 
     ///// Specially formatted distributions to return values above 0 and with max / mean at around 1.

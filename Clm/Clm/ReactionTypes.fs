@@ -187,10 +187,9 @@ module ReactionTypes =
             let (CatalyticDestructionReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticDestructionReaction
 
-        member r.enantiomerCatalyst = 
+        member r.withEnantiomerCatalyst = 
             let (CatalyticDestructionReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticDestructionReaction
-
 
 
     type LigationReaction = 
@@ -232,6 +231,10 @@ module ReactionTypes =
         member r.enantiomer = 
             let (CatalyticLigationReaction (l, c)) = r
             (l.enantiomer, c.enantiomer) |> CatalyticLigationReaction
+
+        member r.withEnantiomerCatalyst = 
+            let (CatalyticLigationReaction (a, c)) = r
+            (a, c.enantiomer) |> CatalyticLigationReaction
 
 
     type SedimentationDirectReaction = 

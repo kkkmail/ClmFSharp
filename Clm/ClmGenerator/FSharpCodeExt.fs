@@ -69,6 +69,17 @@ module FSharpCodeExt =
         member distr.toFSharpCode = "SymmetricTriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
+    type Distribution
+        with
+
+        member this.toFSharpCode =
+            match this with
+            | Delta d -> d.toFSharpCode + " |> Delta"
+            | Uniform d -> d.toFSharpCode + " |> Uniform"
+            | Triangular d -> d.toFSharpCode + " |> Triangular"
+            | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"
+
+
     type EeDistribution
         with 
 
@@ -92,40 +103,44 @@ module FSharpCodeExt =
             | NoneGetter -> "NoneGetter"
 
 
-    type SimDistribution
+    type RateMultiplierDistributionGetter
+        with 
+        member distr.toFSharpCode = 
+            match distr with 
+            | DefaultRateMultiplierDistributionGetter -> "DefaultRateMultiplierDistributionGetter"
+
+
+    //type SimDistribution
+    //    with 
+
+    //    member distr.toFSharpCode = 
+    //        match distr with 
+    //        | DeltaSim d -> d.toFSharpCode + " |> " + "DeltaSim"
+    //        | SymmetricTriangularSim d -> d.toFSharpCode + " |> " + "SymmetricTriangularSim"
+
+
+    //type SimDistributionGetter
+    //    with 
+    //    member distr.toFSharpCode = 
+    //        match distr with 
+    //        | DefaultSimDistributionGetter -> "DefaultSimDistributionGetter"
+
+
+    type RateMultiplierDistribution
         with 
 
         member distr.toFSharpCode = 
             match distr with 
-            | DeltaSim d -> d.toFSharpCode + " |> " + "DeltaSim"
-            | SymmetricTriangularSim d -> d.toFSharpCode + " |> " + "SymmetricTriangularSim"
-
-
-    type SimDistributionGetter
-        with 
-        member distr.toFSharpCode = 
-            match distr with 
-            | DefaultSimDistributionGetter -> "DefaultSimDistributionGetter"
-
-
-    type Distribution
-        with
-
-        member this.toFSharpCode =
-            match this with
-            | Delta d -> d.toFSharpCode + " |> Delta"
-            | Uniform d -> d.toFSharpCode + " |> Uniform"
-            | Triangular d -> d.toFSharpCode + " |> Triangular"
-            | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"
+            | RateMultiplierDistribution d -> d.toFSharpCode + " |> " + "RateMultiplierDistribution"
 
 
     type CatRatesEeParams
         with 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
+            shift + "                rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
             shift + "                eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
             shift + "                eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
-            shift + "                multiplier = " + (doubleFSharpString p.multiplier) + Nl +
             shift + "            }" + Nl
 
 
@@ -180,21 +195,20 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catSynthDistribution = " + p.catSynthDistribution.toFSharpCode + Nl +
-            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                catSynthRndEeParams = " + Nl + (p.catSynthRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
-    type CatalyticSynthesisSimilarParam
+    type CatRatesSimilarityParam
         with
 
         member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
             shift + "            {" + Nl +
             shift + "                aminoAcids = " + aminoAcidsCode + Nl +
-            shift + "                simSynthDistribution = " + p.simSynthDistribution.toFSharpCode + Nl +
+            shift + "                simBaseDistribution = " + p.simBaseDistribution.toFSharpCode + Nl +
+            shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
             shift + "                getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
             shift + "                getBackwardEeDistr = " + p.getBackwardEeDistr.toFSharpCode + Nl +
-            shift + "                getMultiplierDistr = " + p.getMultiplierDistr.toFSharpCode + Nl +
             shift + "            }" + Nl
 
 
@@ -231,18 +245,7 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catDestrDistribution = " + p.catDestrDistribution.toFSharpCode + Nl +
-            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
-            shift + "            }" + Nl
-
-
-    type CatalyticDestructionSimilarParam
-        with
-
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
-            shift + "            {" + Nl +
-            shift + "                simDestrDistribution = " + p.simDestrDistribution.toFSharpCode + Nl +
-            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
+            shift + "                catDestrRndEeParams = " + Nl + (p.catDestrRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
@@ -315,8 +318,7 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catLigationDistribution = " + p.catLigationDistribution.toFSharpCode + Nl +
-            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                catLigRndEeParams = " + Nl + (p.catLigRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
@@ -351,8 +353,7 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catRacemDistribution = " + p.catRacemDistribution.toFSharpCode + Nl +
-            shift + "                eeParams = " + Nl + (p.eeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                catRacemRndEeParams = " + Nl + (p.catRacemRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 

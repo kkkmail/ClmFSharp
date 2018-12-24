@@ -145,6 +145,10 @@ module Distributions =
     type RateMultiplierDistribution = 
         | RateMultiplierDistribution of Distribution
 
+        member this.nextDouble() = 
+            let (RateMultiplierDistribution d) = this
+            max (d.nextDouble()) 0.0
+
         member this.nextDoubleOpt() = 
             let (RateMultiplierDistribution d) = this
             d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)

@@ -87,7 +87,7 @@ module ReactionRates =
         x.primary
 
 
-    let inline getRatesImpl<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+    let inline getRatesImpl<'T when 'T : (member enantiomer : 'T) and 'T : equality>
         (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
         (calculateRates : 'T -> RelatedReactions<'T>)
         (r : 'T) = 

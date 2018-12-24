@@ -201,6 +201,7 @@ module ReactionRates =
     let calculateSimRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) = 
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
+        let (bf, bb) = i.getBaseRates i.reaction
         let (f, b) = r |> i.getBaseCatRates
 
         let calculateCatRates s c e = 
@@ -219,9 +220,15 @@ module ReactionRates =
             let (fe, be) = re |> i.getBaseCatRates
             let rateMult = 
                 match f, fe, b, be with 
-                | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a + b) / 2.0
-                | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a + b) / 2.0
-                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR..."
+                | Some (ReactionRate a), Some (ReactionRate b), _, _ -> 
+                    match bf with 
+                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
+                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
+                | _, _, Some (ReactionRate a), Some (ReactionRate b) -> 
+                    match bb with 
+                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
+                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
+                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
 
             let getEeParams d = 
                 match d with 

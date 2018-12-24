@@ -1302,7 +1302,7 @@ module ModelData =
                             {
                                 catSynthRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(986286975, { threshold = Some 0.02; scale = Some 1000.0; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                    rateMultiplierDistr = TriangularDistribution(986286975, { threshold = Some 0.02; scale = Some 1000.0; shift = None }) |> Triangular |> RateMultiplierDistr
                                     eeForwardDistribution = SymmetricTriangularDistribution(1230055165, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     eeBackwardDistribution = SymmetricTriangularDistribution(1768885985, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                 }

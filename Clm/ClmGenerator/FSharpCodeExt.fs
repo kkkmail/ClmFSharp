@@ -131,7 +131,8 @@ module FSharpCodeExt =
 
         member distr.toFSharpCode = 
             match distr with 
-            | RateMultiplierDistribution d -> d.toFSharpCode + " |> " + "RateMultiplierDistribution"
+            | RateMultiplierDistr d -> d.toFSharpCode + " |> " + "RateMultiplierDistr"
+            | NoneDistr -> "NoneDistr"
 
 
     type CatRatesEeParam

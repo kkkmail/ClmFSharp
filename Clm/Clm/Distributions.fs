@@ -143,23 +143,23 @@ module Distributions =
 
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
-        | RateMultiplierDistribution of Distribution
-
-        member this.nextDouble() = 
-            let (RateMultiplierDistribution d) = this
-            max (d.nextDouble()) 0.0
+        | RateMultiplierDistr of Distribution
+        | NoneDistr
 
         member this.nextDoubleOpt() = 
-            let (RateMultiplierDistribution d) = this
-            d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)
+            match this with 
+            | RateMultiplierDistr d -> d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)
+            | NoneDistr -> None
 
         member this.scaled newScale = 
-            let (RateMultiplierDistribution d) = this
-            d.scaled newScale
+            match this with 
+            | RateMultiplierDistr d -> d.scaled newScale |> RateMultiplierDistr
+            | NoneDistr -> NoneDistr
 
-        member this.shifted newScale = 
-            let (RateMultiplierDistribution d) = this
-            d.shifted newScale
+        member this.shifted newShift = 
+            match this with 
+            | RateMultiplierDistr d -> d.shifted newShift |> RateMultiplierDistr
+            | NoneDistr -> NoneDistr
 
 
     /// Specially formatted distributions to return values only between (-1 and 1).
@@ -207,34 +207,9 @@ module Distributions =
             | NoneGetter -> (fun _ _ _ -> None)
 
 
-    ///// Specially formatted distributions to return values above 0 and with max / mean at around 1.
-    //type SimDistribution = 
-    //    | DeltaSim of DeltaDistribution
-    //    | SymmetricTriangularSim of SymmetricTriangularDistribution
-
-    //    member sym.nextDouble() : double = 
-    //        let v = 
-    //            match sym with 
-    //            | DeltaSim d -> d.nextDouble()
-    //            | SymmetricTriangularSim d -> d.nextDouble()
-
-    //        max v 0.0
-
-    //    /// Returns values from 0 to 2 with max at 1.
-    //    static member createDefault (seeder : unit -> int) = 
-    //        SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
-
-    //type SimDistributionGetter = 
-    //    | DefaultSimDistributionGetter
-
-    //    member sd.getDistr = 
-    //        match sd with 
-    //        | DefaultSimDistributionGetter -> SimDistribution.createDefault
-
-
     type RateMultiplierDistributionGetter =
         | DefaultRateMultiplierDistributionGetter
 
         member this.getDistr (d : RateMultiplierDistribution) (rate : double) = 
             match this with
-            | DefaultRateMultiplierDistributionGetter -> d.scaled (Some rate) |> RateMultiplierDistribution
+            | DefaultRateMultiplierDistributionGetter -> d.scaled (Some rate)

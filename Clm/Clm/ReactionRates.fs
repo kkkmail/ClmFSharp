@@ -17,6 +17,13 @@ module ReactionRates =
         }
 
 
+    let dictionaryToList (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) = 
+        d
+        |> List.ofSeq
+        |> List.map (fun e -> e.Key, e.Value)
+        |> List.sortBy (fun (k, _) -> k)
+
+
     let getRatesWithSimilar (fo, rf) (bo, rb) s = 
         let g so ro = 
             match so, ro with
@@ -375,7 +382,12 @@ module ReactionRates =
             }
             |> calculateSimRates
 
-        member __.getRates r = calculateSimRatesImpl r
+        member __.getRates r = 
+            let x0 = p.catSynthModel.rateDictionary |> dictionaryToList
+            let v = calculateSimRatesImpl r
+            let x1 = p.catSynthModel.rateDictionary |> dictionaryToList
+            v
+
         member __.inputParams = p
         member __.rateDictionary = p.catSynthModel.rateDictionary
 

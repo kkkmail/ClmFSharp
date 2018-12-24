@@ -64,7 +64,7 @@ let rates =
         //wasteModel |> WasteRemovalRateModel
         //wasteRecyclingModel |> WasteRecyclingRateModel
 
-        synthModel |> SynthesisRateModel
+        //synthModel |> SynthesisRateModel
         catSynthModel |> CatalyticSynthesisRateModel
 
         //destrModel |> DestructionRateModel

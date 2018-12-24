@@ -1,0 +1,1179 @@
+﻿namespace Clm
+
+open System
+open System.Collections.Generic
+open FSharp.Collections
+
+open Clm.Substances
+open Clm.Distributions
+open Clm.ReactionTypes
+
+module ReactionRates = 
+
+    type RelatedReactions<'T> = 
+        {
+            primary : (ReactionRate option * ReactionRate option)
+            similar : list<'T * (ReactionRate option * ReactionRate option)>
+        }
+
+
+    let dictionaryToList (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) = 
+        d
+        |> List.ofSeq
+        |> List.map (fun e -> e.Key, e.Value)
+        |> List.sortBy (fun (k, _) -> k)
+
+
+    let getRatesWithSimilar (fo, rf) (bo, rb) s = 
+        let g so ro = 
+            match so, ro with
+            | Some s, Some r -> s * r |> ReactionRate |> Some
+            | _ -> None
+
+        {
+            primary = (g fo rf, g bo rb)
+            similar = s
+        }
+
+
+    let getRates (fo, rf) (bo, rb) = getRatesWithSimilar (fo, rf) (bo, rb) []
+    let getForwardRates (fo, rf) = getRates (fo, rf) (None, None)
+
+
+    let inline updatePrimaryReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (primary : (ReactionRate option * ReactionRate option))
+        (r : 'T) =
+
+        let enantiomer = getEnantiomer r
+        //printfn "updatePrimaryReactions: r = %A, enantiomer = %A" r enantiomer
+
+        if d.ContainsKey r |> not
+            then 
+                //printfn "    updatePrimaryReactions: r = %A, primary = %A" r primary
+                d.Add(r, primary)
+
+        if d.ContainsKey enantiomer |> not
+            then 
+                //printfn "    updatePrimaryReactions: enantiomer = %A, primary = %A" enantiomer primary
+                d.Add(enantiomer, primary)
+
+
+    let inline updateSimilarReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (similar : list<'T * (ReactionRate option * ReactionRate option)>) =
+
+        //printfn "updateSimilarReactions: similar = %A" similar
+
+        similar |> List.map (fun (i, e) -> 
+                    //printfn "    updateSimilarReactions: i = %A" i
+                    if d.ContainsKey i |> not 
+                    then 
+                        //printfn "        updateSimilarReactions: Adding: i = %A, e = %A" i e
+                        d.Add(i, e)
+                        ) |> ignore
+
+        similar |> List.map (fun (i, e) -> 
+                    //printfn "    updateSimilarReactions: (getEnantiomer i) = %A" (getEnantiomer i)
+                    if d.ContainsKey (getEnantiomer i) |> not 
+                    then 
+                        //printfn "        updateSimilarReactions: Adding: (getEnantiomer i) = %A, e = %A" (getEnantiomer i) e
+                        d.Add(getEnantiomer i, e)
+                        ) |> ignore
+
+
+    let inline updateRelatedReactions<'T when 'T : (member enantiomer : 'T) and 'T : equality> 
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (x : RelatedReactions<'T>)
+        (r : 'T) =
+
+        //printfn "updateRelatedReactions: r = %A, x = %A" r x
+
+        updatePrimaryReactions d x.primary r
+        updateSimilarReactions d x.similar
+        x.primary
+
+
+    let inline getRatesImpl<'T when 'T : (member enantiomer : 'T) and 'T : equality>
+        (d : Dictionary<'T, (ReactionRate option * ReactionRate option)>) 
+        (calculateRates : 'T -> RelatedReactions<'T>)
+        (r : 'T) = 
+
+        match d.TryGetValue r with 
+        | true, rates -> rates
+        | false, _ -> updateRelatedReactions d (calculateRates r) r
+
+
+    let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
+        (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) = 
+        match mo with 
+        | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
+        | None -> (None, None)
+
+
+    type CatRatesEeParam = 
+        {
+            rateMultiplierDistr : RateMultiplierDistribution
+            eeForwardDistribution : EeDistribution option
+            eeBackwardDistribution : EeDistribution option
+        }
+
+
+    type CatRatesInfo<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> = 
+        {
+            reaction : 'R
+            catalyst : 'C
+            catReactionCreator : ('R * 'C) -> 'RC
+            getBaseRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
+            eeParams : CatRatesEeParam
+        }
+
+
+    /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
+    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
+    /// If sf and sb are forward and backward rates of not catalyzed reaction, then
+    /// total forward and backward multiplers due to racemic mixture of catalysts must be the equal:
+    /// kf + kfe = kb + kbe, where
+    ///     kf -  is forward  multipler for a catalyst C
+    ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
+    ///     kb -  is backward multipler for a catalyst C
+    ///     kbe - is backward multipler for a catalyst E(C)
+    let inline calculateCatRates<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> (i : CatRatesInfo<'R, 'C, 'RC>) = 
+        let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
+
+        let rf, rb, rfe, rbe = 
+            match i.eeParams.rateMultiplierDistr.nextDoubleOpt(), i.eeParams.eeForwardDistribution with
+            | Some k0, Some df ->
+                let (sf0, sb0) = i.getBaseRates i.reaction
+                let fEe = df.nextDouble()
+
+                let bEe = 
+                    match i.eeParams.eeBackwardDistribution with 
+                    | Some d -> d.nextDouble()
+                    | None -> fEe
+
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+                let kb = k0 * (1.0 + bEe)
+                let kbe = k0 * (1.0 - bEe)
+
+                let (rf, rfe) = 
+                    match sf0 with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rb, rbe) = 
+                    match sb0 with
+                    | Some (ReactionRate sb) -> (kb * sb |> ReactionRate |> Some, kbe * sb |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rb, rfe, rbe)
+            | _ -> (None, None, None, None)
+
+        {
+            primary = (rf, rb)
+            similar = [ (re, (rfe, rbe)) ]
+        }
+
+
+    type CatRatesSimilarityParam =
+        {
+            aminoAcids : list<AminoAcid>
+            simBaseDistribution : Distribution
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
+            getForwardEeDistr : EeDistributionGetter
+            getBackwardEeDistr : EeDistributionGetter
+        }
+
+
+    type CatRatesSimInfo<'A, 'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> = 
+        {
+            reaction : 'R
+            catalyst : 'C
+            catReactionCreator : ('R * 'C) -> 'RC
+            simReactionCreator : 'A -> 'R
+            getBaseRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
+            getBaseCatRates : 'RC -> (ReactionRate option * ReactionRate option) // Get rates of underlying catalyzed reaction.
+            simParams : CatRatesSimilarityParam
+            eeParams : CatRatesEeParam
+        }
+
+
+    let inline calculateSimRates<'R, 'C, 'RC when 'C : (member enantiomer : 'C) and 'C : equality> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) = 
+        let r = (i.reaction, i.catalyst) |> i.catReactionCreator
+        let re = (i.reaction, getEnantiomer i.catalyst) |> i.catReactionCreator
+        let (f, b) = r |> i.getBaseCatRates
+
+        let calculateCatRates s c e = 
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = i.catReactionCreator
+                getBaseRates = i.getBaseRates
+                eeParams = e
+            }
+            |> calculateCatRates
+
+        match (f, b) with
+        | None, None -> ignore()
+        | _ -> 
+            let nextSeed = i.simParams.simBaseDistribution.nextSeed
+            let (fe, be) = re |> i.getBaseCatRates
+            let rateMult = 
+                match f, fe, b, be with 
+                | Some (ReactionRate a), Some (ReactionRate b), _, _ -> (a + b) / 2.0
+                | _, _, Some (ReactionRate a), Some (ReactionRate b) -> (a + b) / 2.0
+                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR..."
+
+            let getEeParams () = 
+                {
+                    rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr i.eeParams.rateMultiplierDistr rateMult
+                    eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr nextSeed f fe
+                    eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr nextSeed b be
+                }
+
+            i.simParams.aminoAcids
+            |> List.filter (fun _ -> i.simParams.simBaseDistribution.isDefined())
+            |> List.map (fun a -> i.simReactionCreator a)
+            |> List.map (fun r -> calculateCatRates r i.catalyst (getEeParams ()))
+            |> ignore
+
+        (f, b)
+
+
+    type FoodCreationParam = 
+        {
+            foodCreationRate : double
+        }
+
+
+    type FoodCreationModel (p : FoodCreationParam) = 
+        let rateDictionary = new Dictionary<FoodCreationReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.foodCreationRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type WasteRemovalParam = 
+        {
+            wasteRemovalRate : double
+        }
+
+
+    type WasteRemovalModel (p : WasteRemovalParam) = 
+        let rateDictionary = new Dictionary<WasteRemovalReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.wasteRemovalRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type WasteRecyclingParam = 
+        {
+            wasteRecyclingRate : double
+        }
+
+
+    type WasteRecyclingModel (p : WasteRecyclingParam) = 
+        let rateDictionary = new Dictionary<WasteRecyclingReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getRates (Some p.wasteRecyclingRate, Some 1.0) (None, None)
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type SynthesisRandomParam = 
+        {
+            synthesisDistribution : Distribution
+            forwardScale : double option
+            backwardScale : double option
+        }
+
+
+    type SynthesisParam = 
+        | SynthRndParam of SynthesisRandomParam
+
+
+    type SynthesisRandomModel (p : SynthesisRandomParam) =
+        let rateDictionary = new Dictionary<SynthesisReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateRates _ = 
+            let d = p.synthesisDistribution
+            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type SynthesisModel = 
+        | SynthRndModel of SynthesisRandomModel
+
+        member model.getRates r = 
+            match model with
+            | SynthRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | SynthRndModel m -> m.inputParams |> SynthRndParam
+
+        static member create p = 
+            match p with 
+            | SynthRndParam q -> SynthesisRandomModel q |> SynthRndModel
+
+
+    type CatalyticSynthesisRandomParam = 
+        {
+            catSynthRndEeParams : CatRatesEeParam
+        }
+
+
+    type CatalyticSynthesisParam = 
+        | CatSynthRndParam of CatalyticSynthesisRandomParam
+        | CatSynthSimParam of CatRatesSimilarityParam
+
+
+    type CatalyticSynthesisRandomParamWithModel = 
+        {
+            catSynthRndParam : CatalyticSynthesisRandomParam
+            synthesisModel : SynthesisModel
+        }
+
+
+    type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) = 
+        let rateDictionaryImpl = new Dictionary<CatalyticSynthesisReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateCatSynthRates (CatalyticSynthesisReaction (s, c)) = 
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticSynthesisReaction
+                getBaseRates = p.synthesisModel.getRates
+                eeParams = p.catSynthRndParam.catSynthRndEeParams
+            }
+            |> calculateCatRates
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateCatSynthRates r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+
+
+    type CatalyticSynthesisSimilarParamWithModel = 
+        {
+            catSynthModel : CatalyticSynthesisRandomModel
+            catSynthSimParam : CatRatesSimilarityParam
+        }
+
+
+    type CatalyticSynthesisParamWithModel = 
+        | CatSynthRndParamWithModel of CatalyticSynthesisRandomParamWithModel
+        | CatSynthSimParamWithModel of CatalyticSynthesisSimilarParamWithModel
+
+
+    type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) = 
+        let calculateSimRatesImpl (CatalyticSynthesisReaction (s, c)) = 
+            let (SynthesisReaction a) = s
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticSynthesisReaction
+                simReactionCreator = (fun e -> a.createSameChirality e |> SynthesisReaction)
+                getBaseRates = p.catSynthModel.inputParams.synthesisModel.getRates
+                getBaseCatRates = p.catSynthModel.getRates
+                simParams = p.catSynthSimParam
+                eeParams = p.catSynthModel.inputParams.catSynthRndParam.catSynthRndEeParams
+            }
+            |> calculateSimRates
+
+        member __.getRates r = 
+            let x0 = p.catSynthModel.rateDictionary |> dictionaryToList
+            let v = calculateSimRatesImpl r
+            let x1 = p.catSynthModel.rateDictionary |> dictionaryToList
+            v
+
+        member __.inputParams = p
+        member __.rateDictionary = p.catSynthModel.rateDictionary
+
+
+    type CatalyticSynthesisModel = 
+        | CatSynthRndModel of CatalyticSynthesisRandomModel
+        | CatSynthSimModel of CatalyticSynthesisSimilarModel
+
+        member model.getRates r = 
+            match model with
+            | CatSynthRndModel m -> m.getRates r
+            | CatSynthSimModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | CatSynthRndModel m -> m.inputParams |> CatSynthRndParamWithModel
+            | CatSynthSimModel m -> m.inputParams |> CatSynthSimParamWithModel
+
+        static member create p = 
+            match p with 
+            | CatSynthRndParamWithModel q -> CatalyticSynthesisRandomModel q |> CatSynthRndModel
+            | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel q |> CatSynthSimModel
+
+        member model.rateDictionary = 
+            match model with
+            | CatSynthRndModel m -> m.rateDictionary
+            | CatSynthSimModel m -> m.rateDictionary
+
+
+    type DestructionRandomParam = 
+        {
+            destructionDistribution : Distribution
+            forwardScale : double option
+            backwardScale : double option
+        }
+
+
+    type DestructionParam = 
+        | DestrRndParam of DestructionRandomParam
+
+
+    type DestructionRandomModel (p : DestructionRandomParam) =
+        let rateDictionary = new Dictionary<DestructionReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateRates _ = 
+            let d = p.destructionDistribution
+            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type DestructionModel = 
+        | DestrRndModel of DestructionRandomModel
+
+        member model.getRates r = 
+            match model with
+            | DestrRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | DestrRndModel m -> m.inputParams |> DestrRndParam
+
+        static member create p = 
+            match p with 
+            | DestrRndParam q -> DestructionRandomModel q |> DestrRndModel
+
+
+    type CatalyticDestructionRandomParam = 
+        {
+            catDestrRndEeParams : CatRatesEeParam
+        }
+
+
+    type CatalyticDestructionParam = 
+        | CatDestrRndParam of CatalyticDestructionRandomParam
+        | CatDestrSimParam of CatRatesSimilarityParam
+
+
+    type CatalyticDestructionRandomParamWithModel = 
+        {
+            catDestrRndParam : CatalyticDestructionRandomParam
+            destructionModel : DestructionModel
+        }
+
+
+    type CatalyticDestructionRandomModel (p : CatalyticDestructionRandomParamWithModel) = 
+        let rateDictionaryImpl = new Dictionary<CatalyticDestructionReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateCatSynthRates (CatalyticDestructionReaction (s, c)) = 
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticDestructionReaction
+                getBaseRates = p.destructionModel.getRates
+                eeParams = p.catDestrRndParam.catDestrRndEeParams
+            }
+            |> calculateCatRates
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateCatSynthRates r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+
+
+    type CatalyticDestructionSimilarParamWithModel = 
+        {
+            catDestrSimParam : CatRatesSimilarityParam
+            catDestrModel : CatalyticDestructionRandomModel
+        }
+
+
+    type CatalyticDestructionParamWithModel = 
+        | CatDestrRndParamWithModel of CatalyticDestructionRandomParamWithModel
+        | CatDestrSimParamWithModel of CatalyticDestructionSimilarParamWithModel
+
+
+    type CatalyticDestructionSimilarModel (p : CatalyticDestructionSimilarParamWithModel) = 
+        let calculateSimRatesImpl (CatalyticDestructionReaction (s, c)) = 
+            let (DestructionReaction a) = s
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticDestructionReaction
+                simReactionCreator = (fun e -> a.createSameChirality e |> DestructionReaction)
+                getBaseRates = p.catDestrModel.inputParams.destructionModel.getRates
+                getBaseCatRates = p.catDestrModel.getRates
+                simParams = p.catDestrSimParam
+                eeParams = p.catDestrModel.inputParams.catDestrRndParam.catDestrRndEeParams
+            }
+            |> calculateSimRates
+
+        member __.getRates r = calculateSimRatesImpl r
+        member __.inputParams = p
+        member __.rateDictionary = p.catDestrModel.rateDictionary
+
+
+    type CatalyticDestructionModel = 
+        | CatDestrRndModel of CatalyticDestructionRandomModel
+        | CatDestrSimModel of CatalyticDestructionSimilarModel
+
+        member model.getRates r = 
+            match model with
+            | CatDestrRndModel m -> m.getRates r
+            | CatDestrSimModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | CatDestrRndModel m -> m.inputParams |> CatDestrRndParamWithModel
+            | CatDestrSimModel m -> m.inputParams |> CatDestrSimParamWithModel
+
+        static member create p = 
+            match p with 
+            | CatDestrRndParamWithModel q -> CatalyticDestructionRandomModel q |> CatDestrRndModel
+            | CatDestrSimParamWithModel q -> CatalyticDestructionSimilarModel q |> CatDestrSimModel
+
+        member model.rateDictionary = 
+            match model with
+            | CatDestrRndModel m -> m.rateDictionary
+            | CatDestrSimModel m -> m.rateDictionary
+
+
+    type SedimentationDirectRandomParam = 
+        {
+            sedimentationDirectDistribution : Distribution
+            forwardScale : double option
+        }
+
+
+    type SedimentationDirectParam = 
+        | SedDirRndParam of SedimentationDirectRandomParam
+
+
+    type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
+        let rateDictionaryImpl = new Dictionary<SedimentationDirectReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationDirectDistribution.nextDoubleOpt())
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateRates r
+        member __.inputParams = p
+
+
+    type SedimentationDirectModel = 
+        | SedDirRndModel of SedimentationDirectRandomModel
+
+        member model.getRates r = 
+            match model with
+            | SedDirRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | SedDirRndModel m -> m.inputParams |> SedDirRndParam
+
+        static member create p = 
+            match p with 
+            | SedDirRndParam q -> SedimentationDirectRandomModel q |> SedDirRndModel
+
+
+    type SedimentationAllRandomParam = 
+        {
+            sedimentationAllDistribution : Distribution
+            forwardScale : double option
+        }
+
+
+    type SedimentationAllParam = 
+        | SedAllRndParam of SedimentationAllRandomParam
+
+
+    type SedimentationRandomAllModel (p : SedimentationAllRandomParam) =
+        let rateDictionaryImpl = new Dictionary<SedimentationAllReaction, (ReactionRate option * ReactionRate option)>()
+        let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble() |> Some)
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateRates r
+        member __.inputParams = p
+
+
+    type SedimentationAllModel = 
+        | SedAllRndModel of SedimentationRandomAllModel
+
+        member model.getRates r = 
+            match model with
+            | SedAllRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | SedAllRndModel m -> m.inputParams |> SedAllRndParam
+
+        static member create p = 
+            match p with 
+            | SedAllRndParam q -> SedimentationRandomAllModel q |> SedAllRndModel
+
+
+    type LigationRandomParam = 
+        {
+            ligationDistribution : Distribution
+            forwardScale : double option
+            backwardScale : double option
+        }
+
+
+    type LigationParam = 
+        | LigRndParam of LigationRandomParam
+
+
+    type LigationRandomModel (p : LigationRandomParam) = 
+        let rateDictionaryImpl = new Dictionary<LigationReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateRates _ = 
+            let d = p.ligationDistribution
+            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateRates r
+        member __.inputParams = p
+
+
+    type LigationModel = 
+        | LigRndModel of LigationRandomModel
+
+        member model.getRates r = 
+            match model with
+            | LigRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | LigRndModel m -> m.inputParams |> LigRndParam
+
+        static member create p = 
+            match p with 
+            | LigRndParam q -> LigationRandomModel q |> LigRndModel
+
+
+    type CatalyticLigationRandomParam = 
+        {
+            catLigRndEeParams : CatRatesEeParam
+        }
+
+
+    type CatalyticLigationParam = 
+        | CatLigRndParam of CatalyticLigationRandomParam
+
+
+    type CatalyticLigationRandomParamWithModel = 
+        {
+            catLigationParam : CatalyticLigationRandomParam
+            ligationModel : LigationModel
+        }
+
+
+    type CatalyticLigationParamWithModel = 
+        | CatLigRndParamWithModel of CatalyticLigationRandomParamWithModel
+
+        member p.catLigationParam = 
+            match p with 
+            | CatLigRndParamWithModel q -> q.catLigationParam
+
+
+    type CatalyticLigationRandomModel (p : CatalyticLigationRandomParamWithModel) = 
+        let rateDictionaryImpl = new Dictionary<CatalyticLigationReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateCatSynthRates (CatalyticLigationReaction (s, c)) = 
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticLigationReaction
+                getBaseRates = p.ligationModel.getRates
+                eeParams = p.catLigationParam.catLigRndEeParams
+            }
+            |> calculateCatRates
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateCatSynthRates r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+
+
+    type CatalyticLigationModel = 
+        | CatLigRndModel of CatalyticLigationRandomModel
+
+        member model.getRates r = 
+            match model with
+            | CatLigRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | CatLigRndModel m -> m.inputParams |> CatLigRndParamWithModel
+
+        static member create p = 
+            match p with 
+            | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
+
+
+    type RacemizationRandomParam = 
+        {
+            racemizationDistribution : Distribution
+            forwardScale : double option
+        }
+
+
+    type RacemizationParam = 
+        | RacemRndParam of RacemizationRandomParam
+
+
+    type RacemizationRandomModel (p : RacemizationRandomParam) =
+        let rateDictionary = new Dictionary<RacemizationReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateRates _ = 
+            let d = p.racemizationDistribution
+            getRates (p.forwardScale, d.nextDouble() |> Some) (None, None)
+
+        member __.getRates r = getRatesImpl rateDictionary calculateRates r
+        member __.inputParams = p
+
+
+    type RacemizationModel = 
+        | RacemRndModel of RacemizationRandomModel
+
+        member model.getRates r = 
+            match model with
+            | RacemRndModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | RacemRndModel m -> m.inputParams |> RacemRndParam
+
+        static member create p = 
+            match p with 
+            | RacemRndParam q -> RacemizationRandomModel q |> RacemRndModel
+
+
+    type CatalyticRacemizationRandomParam = 
+        {
+            catRacemRndEeParams : CatRatesEeParam
+        }
+
+
+    type CatalyticRacemizationSimilarParam =
+        {
+            simRacemDistribution : Distribution
+            aminoAcids : list<AminoAcid>
+        }
+
+
+    type CatalyticRacemizationParam = 
+        | CatRacemRndParam of CatalyticRacemizationRandomParam
+        | CatRacemSimParam of CatRatesSimilarityParam
+
+
+    type CatalyticRacemizationRandomParamWithModel = 
+        {
+            catRacemRndParam : CatalyticRacemizationRandomParam
+            racemizationModel : RacemizationModel
+        }
+
+
+    type CatalyticRacemizationRandomModel (p : CatalyticRacemizationRandomParamWithModel) = 
+        let rateDictionaryImpl = new Dictionary<CatalyticRacemizationReaction, (ReactionRate option * ReactionRate option)>()
+
+        let calculateCatSynthRates (CatalyticRacemizationReaction (s, c)) = 
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticRacemizationReaction
+                getBaseRates = p.racemizationModel.getRates
+                eeParams = p.catRacemRndParam.catRacemRndEeParams
+            }
+            |> calculateCatRates
+
+        member __.getRates r = getRatesImpl rateDictionaryImpl calculateCatSynthRates r
+        member __.inputParams = p
+        member __.rateDictionary = rateDictionaryImpl
+
+
+    type CatalyticRacemizationSimilarParamWithModel = 
+        {
+            catRacemSimParam : CatRatesSimilarityParam
+            catRacemModel : CatalyticRacemizationRandomModel
+        }
+
+
+    type CatalyticRacemizationParamWithModel = 
+        | CatRacemRndParamWithModel of CatalyticRacemizationRandomParamWithModel
+        | CatRacemSimParamWithModel of CatalyticRacemizationSimilarParamWithModel
+
+
+    type CatalyticRacemizationSimilarModel (p : CatalyticRacemizationSimilarParamWithModel) = 
+        let calculateSimRatesImpl (CatalyticRacemizationReaction (s, c)) = 
+            let (RacemizationReaction a) = s
+            {
+                reaction = s
+                catalyst = c
+                catReactionCreator = CatalyticRacemizationReaction
+                simReactionCreator = (fun e -> a.createSameChirality e |> RacemizationReaction)
+                getBaseRates = p.catRacemModel.inputParams.racemizationModel.getRates
+                getBaseCatRates = p.catRacemModel.getRates
+                simParams = p.catRacemSimParam
+                eeParams = p.catRacemModel.inputParams.catRacemRndParam.catRacemRndEeParams
+            }
+            |> calculateSimRates
+
+        member __.getRates r = calculateSimRatesImpl r
+        member __.inputParams = p
+        member __.rateDictionary = p.catRacemModel.rateDictionary
+
+
+    type CatalyticRacemizationModel = 
+        | CatRacemRndModel of CatalyticRacemizationRandomModel
+        | CatRacemSimModel of CatalyticRacemizationSimilarModel
+
+        member model.getRates r = 
+            match model with
+            | CatRacemRndModel m -> m.getRates r
+            | CatRacemSimModel m -> m.getRates r
+
+        member model.inputParams = 
+            match model with
+            | CatRacemRndModel m -> m.inputParams |> CatRacemRndParamWithModel
+            | CatRacemSimModel m -> m.inputParams |> CatRacemSimParamWithModel
+
+        static member create p = 
+            match p with 
+            | CatRacemRndParamWithModel q -> CatalyticRacemizationRandomModel q |> CatRacemRndModel
+            | CatRacemSimParamWithModel q -> CatalyticRacemizationSimilarModel q |> CatRacemSimModel
+
+        member model.rateDictionary = 
+            match model with
+            | CatRacemRndModel m -> m.rateDictionary
+            | CatRacemSimModel m -> m.rateDictionary
+
+
+    type ReactionRateModelParam = 
+        | FoodCreationRateParam of FoodCreationParam
+        | WasteRemovalRateParam of WasteRemovalParam
+        | WasteRecyclingRateParam of WasteRecyclingParam
+        | SynthesisRateParam of SynthesisParam
+        | DestructionRateParam of DestructionParam
+        | CatalyticSynthesisRateParam of CatalyticSynthesisParam
+        | CatalyticDestructionRateParam of CatalyticDestructionParam
+        | LigationRateParam of LigationParam
+        | CatalyticLigationRateParam of CatalyticLigationParam
+        | SedimentationDirectRateParam of SedimentationDirectParam
+        | SedimentationAllRateParam of SedimentationAllParam
+        | RacemizationRateParam of RacemizationParam
+        | CatalyticRacemizationRateParam of CatalyticRacemizationParam
+
+
+    type ReactionRateModel = 
+        | FoodCreationRateModel of FoodCreationModel
+        | WasteRemovalRateModel of WasteRemovalModel
+        | WasteRecyclingRateModel of WasteRecyclingModel
+        | SynthesisRateModel of SynthesisModel
+        | DestructionRateModel of DestructionModel
+        | CatalyticSynthesisRateModel of CatalyticSynthesisModel
+        | CatalyticDestructionRateModel of CatalyticDestructionModel
+        | LigationRateModel of LigationModel
+        | CatalyticLigationRateModel of CatalyticLigationModel
+        | SedimentationDirectRateModel of SedimentationDirectModel
+        | SedimentationAllRateModel of SedimentationAllModel
+        | RacemizationRateModel of RacemizationModel
+        | CatalyticRacemizationRateModel of CatalyticRacemizationModel
+
+        member rm.inputParams = 
+            match rm with
+            | FoodCreationRateModel m -> m.inputParams |> FoodCreationRateParam
+            | WasteRemovalRateModel m -> m.inputParams |> WasteRemovalRateParam
+            | WasteRecyclingRateModel m -> m.inputParams |> WasteRecyclingRateParam
+            | SynthesisRateModel m -> m.inputParams |> SynthesisRateParam
+            | DestructionRateModel m -> m.inputParams |> DestructionRateParam
+            | CatalyticSynthesisRateModel v ->
+                match v with 
+                | CatSynthRndModel m -> m.inputParams.catSynthRndParam |> CatSynthRndParam |> CatalyticSynthesisRateParam
+                | CatSynthSimModel m -> m.inputParams.catSynthSimParam |> CatSynthSimParam |> CatalyticSynthesisRateParam
+            | CatalyticDestructionRateModel v ->
+                match v with 
+                | CatDestrRndModel m -> m.inputParams.catDestrRndParam |> CatDestrRndParam |> CatalyticDestructionRateParam
+                | CatDestrSimModel m -> m.inputParams.catDestrSimParam |> CatDestrSimParam |> CatalyticDestructionRateParam
+            | LigationRateModel m -> m.inputParams |> LigationRateParam
+            | CatalyticLigationRateModel v -> 
+                match v with 
+                | CatLigRndModel m -> m.inputParams.catLigationParam |> CatLigRndParam |> CatalyticLigationRateParam
+            | SedimentationDirectRateModel m -> m.inputParams |> SedimentationDirectRateParam
+            | SedimentationAllRateModel m -> m.inputParams |> SedimentationAllRateParam
+            | RacemizationRateModel m -> m.inputParams |> RacemizationRateParam
+            | CatalyticRacemizationRateModel v ->
+                match v with 
+                | CatRacemRndModel m -> m.inputParams.catRacemRndParam |> CatRacemRndParam |> CatalyticRacemizationRateParam
+                | CatRacemSimModel m -> m.inputParams.catRacemSimParam |> CatRacemSimParam |> CatalyticRacemizationRateParam
+
+        member rm.dependsOn = 
+            match rm with
+            | FoodCreationRateModel _ -> []
+            | WasteRemovalRateModel _ -> []
+            | WasteRecyclingRateModel _ -> []
+            | SynthesisRateModel _ -> []
+            | DestructionRateModel _ -> []
+            | CatalyticSynthesisRateModel v ->
+                match v with 
+                | CatSynthRndModel m -> [ m.inputParams.synthesisModel |> SynthesisRateModel ]
+                | CatSynthSimModel m -> [ m.inputParams.catSynthModel |> CatSynthRndModel |> CatalyticSynthesisRateModel ]
+            | CatalyticDestructionRateModel v ->
+                match v with 
+                | CatDestrRndModel m -> [ m.inputParams.destructionModel |> DestructionRateModel ]
+                | CatDestrSimModel m -> [ m.inputParams.catDestrModel |> CatDestrRndModel |> CatalyticDestructionRateModel ]
+            | LigationRateModel _ -> []
+            | CatalyticLigationRateModel v -> 
+                match v with 
+                | CatLigRndModel m -> [ m.inputParams.ligationModel |> LigationRateModel ]
+            | SedimentationDirectRateModel _ -> []
+            | SedimentationAllRateModel _ -> []
+            | RacemizationRateModel _ -> []
+            | CatalyticRacemizationRateModel v ->
+                match v with 
+                | CatRacemRndModel m -> [ m.inputParams.racemizationModel |> RacemizationRateModel ]
+                | CatRacemSimModel m -> [ m.inputParams.catRacemModel |> CatRacemRndModel |> CatalyticRacemizationRateModel ]
+
+
+    type ReactionRateProviderParams = 
+        {
+            rateModels: list<ReactionRateModel>
+        }
+
+        member p.tryFindSFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
+        member p.tryFindSWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
+        member p.tryFindSWasteRecyclingModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRecyclingRateModel m -> Some m | _ -> None)
+        member p.tryFindSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | SynthesisRateModel m -> Some m | _ -> None)
+        member p.tryFindDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | DestructionRateModel m -> Some m | _ -> None)
+        member p.tryFindCatalyticSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateModel m -> Some m | _ -> None)
+        member p.tryFindCatalyticDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticDestructionRateModel m -> Some m | _ -> None)
+        member p.tryFindLigationModel() = p.rateModels |> List.tryPick (fun e -> match e with | LigationRateModel m -> Some m | _ -> None)
+        member p.tryFindCatalyticLigationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticLigationRateModel m -> Some m | _ -> None)
+        member p.tryFindSedimentationDirectModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationDirectRateModel m -> Some m | _ -> None)
+        member p.tryFindSedimentationAllModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationAllRateModel m -> Some m | _ -> None)
+        member p.tryFindRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | RacemizationRateModel m -> Some m | _ -> None)
+        member p.tryFindCatalyticRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateModel m -> Some m | _ -> None)
+
+
+    type ReactionRateProvider (p: ReactionRateProviderParams) =
+        let getRatesImpl (a : Reaction) = 
+            match a with 
+            | FoodCreation r -> getModelRates (p.tryFindSFoodCreationModel()) r
+            | WasteRemoval r -> getModelRates (p.tryFindSWasteRemovalModel()) r
+            | WasteRecycling r -> getModelRates (p.tryFindSWasteRecyclingModel()) r
+            | Synthesis r -> getModelRates (p.tryFindSynthesisModel()) r
+            | Destruction r -> getModelRates (p.tryFindDestructionModel()) r
+            | CatalyticSynthesis r -> getModelRates (p.tryFindCatalyticSynthesisModel()) r
+            | CatalyticDestruction r -> getModelRates (p.tryFindCatalyticDestructionModel()) r
+            | Ligation r -> getModelRates (p.tryFindLigationModel()) r
+            | CatalyticLigation r ->  getModelRates (p.tryFindCatalyticLigationModel()) r
+            | SedimentationDirect r -> getModelRates (p.tryFindSedimentationDirectModel()) r
+            | SedimentationAll r -> getModelRates (p.tryFindSedimentationAllModel()) r
+            | Racemization r -> getModelRates (p.tryFindRacemizationModel()) r
+            | CatalyticRacemization r -> getModelRates (p.tryFindCatalyticRacemizationModel()) r
+
+        member __.providerParams = p
+        member __.getRates (a : Reaction) = getRatesImpl a
+
+        static member defaultFoodCreationModel forward =
+            {
+                foodCreationRate = forward
+            }
+            |> FoodCreationModel
+
+        static member defaultWasteRemovalModel forward =
+            {
+                wasteRemovalRate = forward
+            }
+            |> WasteRemovalModel
+
+        static member defaultWasteRecyclingModel forward =
+            {
+                wasteRecyclingRate = forward
+            }
+            |> WasteRecyclingModel
+
+        static member defaultSynthRndModel (rnd : Random) (forward, backward) =
+            {
+                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
+                //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                forwardScale = Some forward
+                backwardScale = Some backward
+            }
+            |> SynthRndParam
+            |> SynthesisModel.create
+
+        static member defaultDestrRndModel (rnd : Random) (forward, backward) =
+            {
+                destructionDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
+                forwardScale = Some forward
+                backwardScale = Some backward
+            }
+            |> DestrRndParam
+            |> DestructionModel.create
+
+
+        static member defaultCatSynthRndParams (rnd : Random) (m, threshold, mult) =
+            {
+                catSynthRndParam = 
+                    {
+                        catSynthRndEeParams =
+                            {
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                            }
+                    }
+                synthesisModel = m
+            }
+
+        static member defaultCatSynthRndModel (rnd : Random) (m, threshold, mult) = 
+            ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult)
+            |> CatSynthRndParamWithModel
+            |> CatalyticSynthesisModel.create
+
+        static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
+            let aminoAcids = AminoAcid.getAminoAcids n
+
+            {
+                catSynthSimParam = 
+                    {
+                        aminoAcids = aminoAcids
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        getForwardEeDistr = DefaultEeDistributionGetter
+                        getBackwardEeDistr = DefaultEeDistributionGetter
+                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                    }
+                catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
+            }
+            |> CatSynthSimParamWithModel
+            |> CatalyticSynthesisModel.create
+
+        static member defaultCatDestrRndParams (rnd : Random) (m, threshold, mult) =
+            {
+                catDestrRndParam = 
+                    {
+                        catDestrRndEeParams =
+                            {
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                            }
+
+                    }
+                destructionModel = m
+            }
+
+        static member defaultCatDestrRndModel (rnd : Random) (m, threshold, mult) = 
+            ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult)
+            |> CatDestrRndParamWithModel
+            |> CatalyticDestructionModel.create
+
+        static member defaultCatDestrSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
+            let aminoAcids = AminoAcid.getAminoAcids n
+
+            {
+                catDestrSimParam = 
+                    {
+                        aminoAcids = aminoAcids
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        getForwardEeDistr = DefaultEeDistributionGetter
+                        getBackwardEeDistr = DefaultEeDistributionGetter
+                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                    }
+                catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
+            }
+            |> CatDestrSimParamWithModel
+            |> CatalyticDestructionModel.create
+
+        static member defaultLigRndModel (rnd : Random) (forward, backward) =
+            {
+                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
+                //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                forwardScale = Some forward
+                backwardScale = Some backward
+            }
+            |> LigRndParam
+            |> LigationModel.create
+
+        static member defaultCatLigRndModel (rnd : Random) (m, threshold, mult) =
+            {
+                catLigationParam = 
+                    {
+                        catLigRndEeParams =
+                            {
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                            }
+                    }
+                ligationModel = m
+            }
+            |> CatLigRndParamWithModel
+            |> CatalyticLigationModel.create
+
+        static member defaultSedDirRndModel (rnd : Random) (threshold, mult) =
+            {
+                sedimentationDirectDistribution = TriangularDistribution(rnd.Next(), { threshold = Some threshold; scale = None; shift = None }) |> Triangular
+                forwardScale = Some mult
+            }
+            |> SedDirRndParam
+            |> SedimentationDirectModel.create
+
+        static member defaultSedAllRndModel (rnd : Random) mult =
+            {
+                sedimentationAllDistribution = TriangularDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Triangular
+                forwardScale = Some mult
+            }
+            |> SedAllRndParam
+            |> SedimentationAllModel.create
+
+        static member defaultRacemRndModel (rnd : Random) forward =
+            {
+                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
+                //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                forwardScale = Some forward
+            }
+            |> RacemRndParam
+            |> RacemizationModel.create
+
+        static member defaultCatRacemRndParams (rnd : Random) (m, threshold, mult) =
+            {
+                catRacemRndParam = 
+                    {
+                        catRacemRndEeParams =
+                            {
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                            }
+
+                    }
+                racemizationModel = m
+            }
+
+        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) = 
+            ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult)
+            |> CatRacemRndParamWithModel
+            |> CatalyticRacemizationModel.create
+
+        static member defaultCatRacemSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
+            let aminoAcids = AminoAcid.getAminoAcids n
+
+            {
+                catRacemSimParam = 
+                    {
+                        aminoAcids = aminoAcids
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        getForwardEeDistr = DefaultEeDistributionGetter
+                        getBackwardEeDistr = DefaultEeDistributionGetter
+                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                    }
+                catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
+            }
+            |> CatRacemSimParamWithModel
+            |> CatalyticRacemizationModel.create

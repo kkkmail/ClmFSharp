@@ -335,14 +335,6 @@ module ModelData =
     // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            1.23943836216035 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            -0.529202317375006 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            1.23943836216035 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
-            -0.529202317375006 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
-            0.280419539178449 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
-            -0.99065558396379 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
-            0.280419539178449 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            -0.99065558396379 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
             0.464041228550968 * x.[5] * x.[47] // a + BaA | catalytic synthesis: Y + BaA <-> a + BaA
             -0.16024428037834 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> a + BaA
             0.464041228550968 * x.[3] * x.[73] // A + bAa | catalytic synthesis: Y + bAa <-> A + bAa
@@ -359,14 +351,6 @@ module ModelData =
             -0.526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
             0.222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
             -0.526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
-            0.001 * x.[6] // b | synthesis: Y <-> b
-            -0.001 * x.[1] // Y | synthesis: Y <-> b
-            0.001 * x.[4] // B | synthesis: Y <-> B
-            -0.001 * x.[1] // Y | synthesis: Y <-> B
-            0.001 * x.[5] // a | synthesis: Y <-> a
-            -0.001 * x.[1] // Y | synthesis: Y <-> a
-            0.001 * x.[3] // A | synthesis: Y <-> A
-            -0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
@@ -389,8 +373,6 @@ module ModelData =
             0.612441273855641 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> A + Bab
             -0.222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
             0.526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
-            -0.001 * x.[3] // A | synthesis: Y <-> A
-            0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
@@ -398,12 +380,6 @@ module ModelData =
     // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1.23943836216035 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
-            0.529202317375006 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
-            -0.280419539178449 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            0.99065558396379 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            -0.001 * x.[4] // B | synthesis: Y <-> B
-            0.001 * x.[1] // Y | synthesis: Y <-> B
         |]
         |> Array.sum
 
@@ -419,8 +395,6 @@ module ModelData =
             0.612441273855641 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> a + bAB
             -0.222805685879135 * x.[5] * x.[73] // a + bAa | catalytic synthesis: Y + bAa <-> a + bAa
             0.526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
-            -0.001 * x.[5] // a | synthesis: Y <-> a
-            0.001 * x.[1] // Y | synthesis: Y <-> a
         |]
         |> Array.sum
 
@@ -428,12 +402,6 @@ module ModelData =
     // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1.23943836216035 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            0.529202317375006 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            -0.280419539178449 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
-            0.99065558396379 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
-            -0.001 * x.[6] // b | synthesis: Y <-> b
-            0.001 * x.[1] // Y | synthesis: Y <-> b
         |]
         |> Array.sum
 
@@ -1283,7 +1251,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.3.0.0"
                             versionNumber = "1.3.0.0"
                             seedValue = seedValue
-                            modelName = "20181224_002"
+                            modelName = "20181224_001"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1347,8 +1315,7 @@ module ModelData =
 
             allReactions = 
                 [
-                    (SynthesisName, 4)
-                    (CatalyticSynthesisName, 12)
+                    (CatalyticSynthesisName, 8)
                 ]
         }
 

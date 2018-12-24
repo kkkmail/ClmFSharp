@@ -133,12 +133,19 @@ module Distributions =
             | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Triangular
             | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricTriangular
 
-        member this.shifted newshift =
+        member this.shifted newShift =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> SymmetricTriangular
+            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Delta
+            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Uniform
+            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Triangular
+            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> SymmetricTriangular
+
+        member this.thresholded newThreshold =
+            match this with
+            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Delta
+            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Uniform
+            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Triangular
+            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> SymmetricTriangular
 
 
     /// Distribution of rate multipliers for catalytic reactions.
@@ -150,6 +157,11 @@ module Distributions =
             match this with 
             | RateMultiplierDistr d -> d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)
             | NoneDistr -> None
+
+        member this.thresholded newThreshold = 
+            match this with 
+            | RateMultiplierDistr d -> d.thresholded newThreshold |> RateMultiplierDistr
+            | NoneDistr -> NoneDistr
 
         member this.scaled newScale = 
             match this with 

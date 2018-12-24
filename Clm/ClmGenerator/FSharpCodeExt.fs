@@ -134,7 +134,7 @@ module FSharpCodeExt =
             | RateMultiplierDistribution d -> d.toFSharpCode + " |> " + "RateMultiplierDistribution"
 
 
-    type CatRatesEeParams
+    type CatRatesEeParam
         with 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +

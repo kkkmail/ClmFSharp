@@ -35,7 +35,7 @@ let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
 //let catSynthRndParams = (synthModel, (Some 0.001), 10000.0)
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
-let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.2, numberOfAminoAcids)
+let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 1.0, numberOfAminoAcids)
 //===========================================================
 let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
 let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
@@ -62,9 +62,9 @@ let rates =
     [
         //foodModel |> FoodCreationRateModel
         //wasteModel |> WasteRemovalRateModel
-        wasteRecyclingModel |> WasteRecyclingRateModel
+        //wasteRecyclingModel |> WasteRecyclingRateModel
 
-        //synthModel |> SynthesisRateModel
+        synthModel |> SynthesisRateModel
         catSynthModel |> CatalyticSynthesisRateModel
 
         //destrModel |> DestructionRateModel

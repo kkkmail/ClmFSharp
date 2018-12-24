@@ -104,7 +104,7 @@ module ReactionRates =
         | None -> (None, None)
 
 
-    type CatRatesEeParams = 
+    type CatRatesEeParam = 
         {
             rateMultiplierDistr : RateMultiplierDistribution
             eeForwardDistribution : EeDistribution option
@@ -118,7 +118,7 @@ module ReactionRates =
             catalyst : 'C
             catReactionCreator : ('R * 'C) -> 'RC
             getBaseRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
-            eeParams : CatRatesEeParams
+            eeParams : CatRatesEeParam
         }
 
 
@@ -188,7 +188,7 @@ module ReactionRates =
             getBaseRates : 'R -> (ReactionRate option * ReactionRate option) // Get rates of base (not catalyzed) reaction.
             getBaseCatRates : 'RC -> (ReactionRate option * ReactionRate option) // Get rates of underlying catalyzed reaction.
             simParams : CatRatesSimilarityParam
-            eeParams : CatRatesEeParams
+            eeParams : CatRatesEeParam
         }
 
 
@@ -314,7 +314,7 @@ module ReactionRates =
 
     type CatalyticSynthesisRandomParam = 
         {
-            catSynthRndEeParams : CatRatesEeParams
+            catSynthRndEeParams : CatRatesEeParam
         }
 
 
@@ -446,7 +446,7 @@ module ReactionRates =
 
     type CatalyticDestructionRandomParam = 
         {
-            catDestrRndEeParams : CatRatesEeParams
+            catDestrRndEeParams : CatRatesEeParam
         }
 
 
@@ -646,7 +646,7 @@ module ReactionRates =
 
     type CatalyticLigationRandomParam = 
         {
-            catLigRndEeParams : CatRatesEeParams
+            catLigRndEeParams : CatRatesEeParam
         }
 
 
@@ -743,7 +743,7 @@ module ReactionRates =
 
     type CatalyticRacemizationRandomParam = 
         {
-            catRacemRndEeParams : CatRatesEeParams
+            catRacemRndEeParams : CatRatesEeParam
         }
 
 
@@ -797,27 +797,6 @@ module ReactionRates =
 
 
     type CatalyticRacemizationSimilarModel (p : CatalyticRacemizationSimilarParamWithModel) = 
-        //let catRacemRndModel = p.catRacemModel
-
-        //let calculateSimilarRates (CatalyticRacemizationReaction ((RacemizationReaction a), c)) = 
-        //    p.catRacemSimParam.aminoAcids
-        //    |> List.map (fun e -> CatalyticRacemizationReaction (a.createSameChirality e |> RacemizationReaction, c))
-        //    |> List.filter (fun _ -> p.catRacemSimParam.simRacemDistribution.isDefined())
-        //    |> List.map (fun r -> catRacemRndModel.calculatelRates r)
-
-        //let calculateRatesImpl r = 
-        //    let rates = catRacemRndModel.getRates r
-
-        //    match rates with
-        //    | None, None -> ignore()
-        //    | _ -> calculateSimilarRates r |> ignore
-
-        //    rates
-
-        //member __.getRates r = calculateRatesImpl r
-        //member __.inputParams = p
-        //member __.rateDictionary = catRacemRndModel.rateDictionary
-
         let calculateSimRatesImpl (CatalyticRacemizationReaction (s, c)) = 
             let (RacemizationReaction a) = s
             {
@@ -1032,7 +1011,7 @@ module ReactionRates =
                     {
                         catSynthRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1068,7 +1047,7 @@ module ReactionRates =
                     {
                         catDestrRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1115,7 +1094,7 @@ module ReactionRates =
                     {
                         catLigRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistribution
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }

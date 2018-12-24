@@ -335,31 +335,38 @@ module ModelData =
     // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            0.000899805040458847 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            -0.000384189264374995 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            0.000899805040458847 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
-            -0.000384189264374995 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
-            0.000203578429149244 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
-            -0.000719194205233095 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
-            0.000203578429149244 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            -0.000719194205233095 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            0.000464041228550968 * x.[5] * x.[47] // a + BaA | catalytic synthesis: Y + BaA <-> a + BaA
-            -0.00016024428037834 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> a + BaA
-            0.000464041228550968 * x.[3] * x.[73] // A + bAa | catalytic synthesis: Y + bAa <-> A + bAa
-            -0.00016024428037834 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> A + bAa
-            0.000163619422297694 * x.[5] * x.[50] // a + Bab | catalytic synthesis: Y + Bab <-> a + Bab
-            -0.000194327283198061 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> a + Bab
-            0.000163619422297694 * x.[3] * x.[72] // A + bAB | catalytic synthesis: Y + bAB <-> A + bAB
-            -0.000194327283198061 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> A + bAB
-            0.000363269960890635 * x.[5] * x.[72] // a + bAB | catalytic synthesis: Y + bAB <-> a + bAB
-            -0.000332562099990268 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> a + bAB
-            0.000363269960890635 * x.[3] * x.[50] // A + Bab | catalytic synthesis: Y + Bab <-> A + Bab
-            -0.000332562099990268 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> A + Bab
-            0.000222805685879135 * x.[5] * x.[73] // a + bAa | catalytic synthesis: Y + bAa <-> a + bAa
-            -0.000526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
-            0.000222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
-            -0.000526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
-            0.1 * x.[2] // Z | recycling: Z -> Y
+            1.23943836216035 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
+            -0.529202317375006 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
+            1.23943836216035 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
+            -0.529202317375006 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
+            0.280419539178449 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
+            -0.99065558396379 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
+            0.280419539178449 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
+            -0.99065558396379 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
+            0.464041228550968 * x.[5] * x.[47] // a + BaA | catalytic synthesis: Y + BaA <-> a + BaA
+            -0.16024428037834 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> a + BaA
+            0.464041228550968 * x.[3] * x.[73] // A + bAa | catalytic synthesis: Y + bAa <-> A + bAa
+            -0.16024428037834 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> A + bAa
+            0.301319024093414 * x.[5] * x.[50] // a + Bab | catalytic synthesis: Y + Bab <-> a + Bab
+            -0.357870150778483 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> a + Bab
+            0.301319024093414 * x.[3] * x.[72] // A + bAB | catalytic synthesis: Y + bAB <-> A + bAB
+            -0.357870150778483 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> A + bAB
+            0.66899240054071 * x.[5] * x.[72] // a + bAB | catalytic synthesis: Y + bAB <-> a + bAB
+            -0.612441273855641 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> a + bAB
+            0.66899240054071 * x.[3] * x.[50] // A + Bab | catalytic synthesis: Y + Bab <-> A + Bab
+            -0.612441273855641 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> A + Bab
+            0.222805685879135 * x.[5] * x.[73] // a + bAa | catalytic synthesis: Y + bAa <-> a + bAa
+            -0.526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
+            0.222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
+            -0.526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
+            0.001 * x.[6] // b | synthesis: Y <-> b
+            -0.001 * x.[1] // Y | synthesis: Y <-> b
+            0.001 * x.[4] // B | synthesis: Y <-> B
+            -0.001 * x.[1] // Y | synthesis: Y <-> B
+            0.001 * x.[5] // a | synthesis: Y <-> a
+            -0.001 * x.[1] // Y | synthesis: Y <-> a
+            0.001 * x.[3] // A | synthesis: Y <-> A
+            -0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
@@ -367,7 +374,6 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.1 * x.[2] // Z | recycling: Z -> Y
         |]
         |> Array.sum
 
@@ -375,14 +381,16 @@ module ModelData =
     // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.000464041228550968 * x.[3] * x.[73] // A + bAa | catalytic synthesis: Y + bAa <-> A + bAa
-            0.00016024428037834 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> A + bAa
-            -0.000163619422297694 * x.[3] * x.[72] // A + bAB | catalytic synthesis: Y + bAB <-> A + bAB
-            0.000194327283198061 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> A + bAB
-            -0.000363269960890635 * x.[3] * x.[50] // A + Bab | catalytic synthesis: Y + Bab <-> A + Bab
-            0.000332562099990268 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> A + Bab
-            -0.000222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
-            0.000526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
+            -0.464041228550968 * x.[3] * x.[73] // A + bAa | catalytic synthesis: Y + bAa <-> A + bAa
+            0.16024428037834 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> A + bAa
+            -0.301319024093414 * x.[3] * x.[72] // A + bAB | catalytic synthesis: Y + bAB <-> A + bAB
+            0.357870150778483 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> A + bAB
+            -0.66899240054071 * x.[3] * x.[50] // A + Bab | catalytic synthesis: Y + Bab <-> A + Bab
+            0.612441273855641 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> A + Bab
+            -0.222805685879135 * x.[3] * x.[47] // A + BaA | catalytic synthesis: Y + BaA <-> A + BaA
+            0.526602634051763 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> A + BaA
+            -0.001 * x.[3] // A | synthesis: Y <-> A
+            0.001 * x.[1] // Y | synthesis: Y <-> A
         |]
         |> Array.sum
 
@@ -390,10 +398,12 @@ module ModelData =
     // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.000899805040458847 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
-            0.000384189264374995 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
-            -0.000203578429149244 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
-            0.000719194205233095 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
+            -1.23943836216035 * x.[4] * x.[20] // B + bB | catalytic synthesis: Y + bB <-> B + bB
+            0.529202317375006 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> B + bB
+            -0.280419539178449 * x.[4] * x.[14] // B + Bb | catalytic synthesis: Y + Bb <-> B + Bb
+            0.99065558396379 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> B + Bb
+            -0.001 * x.[4] // B | synthesis: Y <-> B
+            0.001 * x.[1] // Y | synthesis: Y <-> B
         |]
         |> Array.sum
 
@@ -401,14 +411,16 @@ module ModelData =
     // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.000464041228550968 * x.[5] * x.[47] // a + BaA | catalytic synthesis: Y + BaA <-> a + BaA
-            0.00016024428037834 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> a + BaA
-            -0.000163619422297694 * x.[5] * x.[50] // a + Bab | catalytic synthesis: Y + Bab <-> a + Bab
-            0.000194327283198061 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> a + Bab
-            -0.000363269960890635 * x.[5] * x.[72] // a + bAB | catalytic synthesis: Y + bAB <-> a + bAB
-            0.000332562099990268 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> a + bAB
-            -0.000222805685879135 * x.[5] * x.[73] // a + bAa | catalytic synthesis: Y + bAa <-> a + bAa
-            0.000526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
+            -0.464041228550968 * x.[5] * x.[47] // a + BaA | catalytic synthesis: Y + BaA <-> a + BaA
+            0.16024428037834 * x.[1] * x.[47] // Y + BaA | catalytic synthesis: Y + BaA <-> a + BaA
+            -0.301319024093414 * x.[5] * x.[50] // a + Bab | catalytic synthesis: Y + Bab <-> a + Bab
+            0.357870150778483 * x.[1] * x.[50] // Y + Bab | catalytic synthesis: Y + Bab <-> a + Bab
+            -0.66899240054071 * x.[5] * x.[72] // a + bAB | catalytic synthesis: Y + bAB <-> a + bAB
+            0.612441273855641 * x.[1] * x.[72] // Y + bAB | catalytic synthesis: Y + bAB <-> a + bAB
+            -0.222805685879135 * x.[5] * x.[73] // a + bAa | catalytic synthesis: Y + bAa <-> a + bAa
+            0.526602634051763 * x.[1] * x.[73] // Y + bAa | catalytic synthesis: Y + bAa <-> a + bAa
+            -0.001 * x.[5] // a | synthesis: Y <-> a
+            0.001 * x.[1] // Y | synthesis: Y <-> a
         |]
         |> Array.sum
 
@@ -416,10 +428,12 @@ module ModelData =
     // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -0.000899805040458847 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            0.000384189264374995 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
-            -0.000203578429149244 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
-            0.000719194205233095 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
+            -1.23943836216035 * x.[6] * x.[14] // b + Bb | catalytic synthesis: Y + Bb <-> b + Bb
+            0.529202317375006 * x.[1] * x.[14] // Y + Bb | catalytic synthesis: Y + Bb <-> b + Bb
+            -0.280419539178449 * x.[6] * x.[20] // b + bB | catalytic synthesis: Y + bB <-> b + bB
+            0.99065558396379 * x.[1] * x.[20] // Y + bB | catalytic synthesis: Y + bB <-> b + bB
+            -0.001 * x.[6] // b | synthesis: Y <-> b
+            0.001 * x.[1] // Y | synthesis: Y <-> b
         |]
         |> Array.sum
 
@@ -1269,7 +1283,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.3.0.0"
                             versionNumber = "1.3.0.0"
                             seedValue = seedValue
-                            modelName = "20181224_001"
+                            modelName = "20181224_002"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1288,7 +1302,7 @@ module ModelData =
                             {
                                 catSynthRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(986286975, { threshold = Some 0.02; scale = None; shift = None }) |> Triangular |> RateMultiplierDistribution
+                                    rateMultiplierDistr = TriangularDistribution(986286975, { threshold = Some 0.02; scale = Some 1000.0; shift = None }) |> Triangular |> RateMultiplierDistribution
                                     eeForwardDistribution = SymmetricTriangularDistribution(1230055165, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                     eeBackwardDistribution = SymmetricTriangularDistribution(1768885985, { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe |> Some
                                 }
@@ -1297,13 +1311,8 @@ module ModelData =
                             |> CatalyticSynthesisRateParam
 
                             {
-                                wasteRecyclingRate = 0.1
-                            }
-                            |> WasteRecyclingRateParam
-
-                            {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simBaseDistribution = UniformDistribution(1895102244, { threshold = Some 0.2; scale = None; shift = None }) |> Uniform
+                                simBaseDistribution = UniformDistribution(1895102244, { threshold = Some 1.0; scale = None; shift = None }) |> Uniform
                                 getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
                                 getForwardEeDistr = DefaultEeDistributionGetter
                                 getBackwardEeDistr = DefaultEeDistributionGetter
@@ -1338,7 +1347,7 @@ module ModelData =
 
             allReactions = 
                 [
-                    (WasteRecyclingName, 1)
+                    (SynthesisName, 4)
                     (CatalyticSynthesisName, 12)
                 ]
         }

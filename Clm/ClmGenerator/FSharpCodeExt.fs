@@ -89,6 +89,7 @@ module FSharpCodeExt =
         member distr.toFSharpCode = 
             match distr with 
             | DefaultEeDistributionGetter -> "DefaultEeDistributionGetter"
+            | NoneGetter -> "NoneGetter"
 
 
     type SimDistribution

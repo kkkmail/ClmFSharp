@@ -69,7 +69,7 @@ let rates =
         destrModel |> DestructionRateModel
         //catDestrModel |> CatalyticDestructionRateModel
 
-        //ligModel |> LigationRateModel
+        ligModel |> LigationRateModel
         //catLigModel |> CatalyticLigationRateModel
 
         //sedDirModel |> SedimentationDirectRateModel

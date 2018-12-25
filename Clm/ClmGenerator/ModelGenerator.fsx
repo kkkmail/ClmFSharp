@@ -31,14 +31,14 @@ let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
 //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.005), 10000.0)
+let catSynthRndParams = (synthModel, (Some 0.003), 10000.0)
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.3, numberOfAminoAcids)
 //===========================================================
 let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
 //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
-let catDestrRndParams = (destrModel, (Some 0.005), 10000.0)
+let catDestrRndParams = (destrModel, (Some 0.003), 10000.0)
 //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
 //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
 let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.3, numberOfAminoAcids)

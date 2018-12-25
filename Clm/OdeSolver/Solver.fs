@@ -52,7 +52,7 @@ module Solver =
                 if t > (double progressCount) * (tEnd / (double k))
                 then 
                     progressCount <- ((double k) * (t / tEnd) |> int) + 1
-                    printfn "Current time: %A, t = %A of %A." (DateTime.Now) t tEnd
+                    printfn "Step: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t tEnd
             | _ -> ignore()
 
             g x

@@ -190,22 +190,32 @@ module Distributions =
         static member createDefault (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
 
-        static member createCentered (seeder : unit -> int) mean = 
-            let m, w = 
-                match mean with 
-                | x when x <= -1.0 -> -1.0, None
-                | x when -1.0 < x && x < 1.0 -> x, min (1.0 - x) (x + 1.0) |> Some
-                | x when x >= 1.0 -> 1.0, None
-                | _ -> 0.0, Some 1.0
+        static member private getMeanAndWidth mean =
+            match mean with
+            | x when x <= -1.0 -> -1.0, None
+            | x when -1.0 < x && x < 1.0 -> x, min (1.0 - x) (x + 1.0) |> Some
+            | x when x >= 1.0 -> 1.0, None
+            | _ -> 0.0, Some 1.0
 
-            match w with 
+        static member private createCenteredDelta (seeder : unit -> int) mean = 
+            let m, _ = EeDistribution.getMeanAndWidth mean
+            DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
+
+        static member private createCentered (seeder : unit -> int) mean = 
+            let m, w = EeDistribution.getMeanAndWidth mean
+
+            match w with
             | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
-            | None -> DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
+            | None -> EeDistribution.createCenteredDelta seeder mean
 
         static member getDefaultEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
             match rate, rateEnant with 
-            | Some (ReactionRate r), Some (ReactionRate re) -> 
-                (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | _ -> None
+
+        static member getDeltaEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+            match rate, rateEnant with 
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta seeder |> Some
             | _ -> None
 
 

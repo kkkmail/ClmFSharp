@@ -64,10 +64,10 @@ module Solver =
 
         let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
 
-        printfn "nSolve::About to call alglib.ndimensional_ode_rp."
+        //printfn "nSolve::About to call alglib.ndimensional_ode_rp."
         let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
 
-        printfn "nSolve::About to call alglib.odesolverrkck."
+        //printfn "nSolve::About to call alglib.odesolverrkck."
         let mutable s = alglib.odesolverrkck(i, x, p.eps, p.stepSize)
 
         printfn "nSolve::About to call alglib.odesolversolve."

@@ -16,9 +16,9 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open ClmGenerator.ClmModel
 //===========================================================
-let updateAllModels = false
+let updateAllModels = true
 
-let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.EightAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -31,14 +31,14 @@ let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
 //===========================================================
 let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
 //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-let catSynthRndParams = (synthModel, (Some 0.003), 10000.0)
+let catSynthRndParams = (synthModel, (Some 0.002), 10000.0)
 //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
 //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
 let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.3, numberOfAminoAcids)
 //===========================================================
 let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
 //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
-let catDestrRndParams = (destrModel, (Some 0.003), 10000.0)
+let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
 //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
 //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
 let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.3, numberOfAminoAcids)
@@ -48,7 +48,7 @@ let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRnd
 let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 1.0)
 let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.00005), 2000.0)
 //===========================================================
-let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00002, 10000.0)
+let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00001, 10000.0)
 let sedAllModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
 //===========================================================
 let racemModel = ReactionRateProvider.defaultRacemRndModel rnd 0.001

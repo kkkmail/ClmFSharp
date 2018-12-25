@@ -11,7 +11,7 @@ open OdeSolver.Visualization
 //===========================================================
 let useResultsFolder = false
 
-let y0 = 10.0
+let y0 = 20.0
 let tEnd = 10000.0
 let useAbundant = false
 //===========================================================

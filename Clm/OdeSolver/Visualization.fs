@@ -64,7 +64,8 @@ module Visualization =
 
         let description = 
             [
-                "Comleted at", sprintf "%A" (DateTime.Now)
+                "Comleted at", sprintf "%A" (o.endTime)
+                "run time", sprintf "%A" (o.endTime - o.startTime)
                 "model name", p.modelDataParams.modelInfo.modelName
                 "end time", sprintf "%A" o.endTime
                 "y0", sprintf "%A" o.y0

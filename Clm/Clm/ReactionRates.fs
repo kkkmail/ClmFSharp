@@ -393,14 +393,8 @@ module ReactionRates =
             }
             |> calculateSimRates
 
-        member __.getRates r = 
-            let x0 = p.catSynthModel.rateDictionary |> dictionaryToList
-            let v = calculateSimRatesImpl r
-            let x1 = p.catSynthModel.rateDictionary |> dictionaryToList
-            v
-
+        member __.getRates r = calculateSimRatesImpl r
         member __.inputParams = p
-        member __.rateDictionary = p.catSynthModel.rateDictionary
 
 
     type CatalyticSynthesisModel = 
@@ -421,11 +415,6 @@ module ReactionRates =
             match p with 
             | CatSynthRndParamWithModel q -> CatalyticSynthesisRandomModel q |> CatSynthRndModel
             | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel q |> CatSynthSimModel
-
-        member model.rateDictionary = 
-            match model with
-            | CatSynthRndModel m -> m.rateDictionary
-            | CatSynthSimModel m -> m.rateDictionary
 
 
     type DestructionRandomParam = 
@@ -536,7 +525,6 @@ module ReactionRates =
 
         member __.getRates r = calculateSimRatesImpl r
         member __.inputParams = p
-        member __.rateDictionary = p.catDestrModel.rateDictionary
 
 
     type CatalyticDestructionModel = 
@@ -557,11 +545,6 @@ module ReactionRates =
             match p with 
             | CatDestrRndParamWithModel q -> CatalyticDestructionRandomModel q |> CatDestrRndModel
             | CatDestrSimParamWithModel q -> CatalyticDestructionSimilarModel q |> CatDestrSimModel
-
-        member model.rateDictionary = 
-            match model with
-            | CatDestrRndModel m -> m.rateDictionary
-            | CatDestrSimModel m -> m.rateDictionary
 
 
     type SedimentationDirectRandomParam = 
@@ -845,7 +828,6 @@ module ReactionRates =
 
         member __.getRates r = calculateSimRatesImpl r
         member __.inputParams = p
-        member __.rateDictionary = p.catRacemModel.rateDictionary
 
 
     type CatalyticRacemizationModel = 
@@ -866,11 +848,6 @@ module ReactionRates =
             match p with 
             | CatRacemRndParamWithModel q -> CatalyticRacemizationRandomModel q |> CatRacemRndModel
             | CatRacemSimParamWithModel q -> CatalyticRacemizationSimilarModel q |> CatRacemSimModel
-
-        member model.rateDictionary = 
-            match model with
-            | CatRacemRndModel m -> m.rateDictionary
-            | CatRacemSimModel m -> m.rateDictionary
 
 
     type ReactionRateModelParam = 

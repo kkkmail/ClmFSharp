@@ -18,7 +18,7 @@ open ClmGenerator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.FiveAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -72,7 +72,7 @@ let rates =
         ligModel |> LigationRateModel
         //catLigModel |> CatalyticLigationRateModel
 
-        //sedDirModel |> SedimentationDirectRateModel
+        sedDirModel |> SedimentationDirectRateModel
         //sedAllModel |> SedimentationAllRateModel
 
         //racemModel |> RacemizationRateModel

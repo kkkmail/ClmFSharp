@@ -234,7 +234,7 @@ module ReactionRates =
                 match d with 
                 | true -> 
                     {
-                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr i.eeParams.rateMultiplierDistr rateMult
+                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr i.eeParams.rateMultiplierDistr None rateMult
                         eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr nextSeed f fe
                         eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr nextSeed b be
                     }

@@ -222,6 +222,6 @@ module Distributions =
     type RateMultiplierDistributionGetter =
         | DefaultRateMultiplierDistributionGetter
 
-        member this.getDistr (d : RateMultiplierDistribution) (rate : double) = 
+        member this.getDistr (d : RateMultiplierDistribution) threshold rate = 
             match this with
-            | DefaultRateMultiplierDistributionGetter -> d.scaled (Some rate)
+            | DefaultRateMultiplierDistributionGetter -> (d.thresholded threshold).scaled (Some rate)

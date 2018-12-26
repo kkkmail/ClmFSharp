@@ -234,7 +234,7 @@ module ReactionRates =
                 match d with 
                 | true -> 
                     {
-                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr i.eeParams.rateMultiplierDistr None rateMult
+                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr nextSeed None rateMult
                         eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr nextSeed f fe
                         eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr nextSeed b be
                     }
@@ -1020,7 +1020,7 @@ module ReactionRates =
                     {
                         catSynthRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistr
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1043,7 +1043,7 @@ module ReactionRates =
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
                         getForwardEeDistr = DefaultEeDistributionGetter
                         getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
             }
@@ -1056,7 +1056,7 @@ module ReactionRates =
                     {
                         catDestrRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistr
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1080,7 +1080,7 @@ module ReactionRates =
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
                         getForwardEeDistr = DefaultEeDistributionGetter
                         getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
                     }
                 catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
             }
@@ -1103,7 +1103,7 @@ module ReactionRates =
                     {
                         catLigRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultiplierDistr
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1144,7 +1144,7 @@ module ReactionRates =
                     {
                         catRacemRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultiplierDistr
+                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultDistr
                                 eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                                 eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
                             }
@@ -1168,7 +1168,7 @@ module ReactionRates =
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
                         getForwardEeDistr = DefaultEeDistributionGetter
                         getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultRateMultiplierDistributionGetter
+                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
                     }
                 catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
             }

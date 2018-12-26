@@ -98,7 +98,7 @@ module ReactionRates =
 
         static member defaultValue = 
             {
-                rateMultiplierDistr = NoneDistr
+                rateMultiplierDistr = NoneRateMult
                 eeForwardDistribution = None
                 eeBackwardDistribution = None
             }

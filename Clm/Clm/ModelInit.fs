@@ -13,6 +13,7 @@ module ModelInit =
         {
             modelDataParams : ModelDataParamsWithExtraData
             distr : Distribution
+            eeDistr : EeDistribution
             multiplier : double option
             multEe : double option
             useAbundant : bool
@@ -22,15 +23,17 @@ module ModelInit =
         static member defaultMultEe = 0.001
 
         static member getDefaultValue p so a = 
+            let distr = 
+                let seed = 
+                    match so with 
+                    | Some s -> s
+                    | None -> 0
+                UniformDistribution seed |> Uniform
+
             {
                 modelDataParams = p
-                distr = 
-                    let seed = 
-                        match so with 
-                        | Some s -> s
-                        | None -> 0
-
-                    UniformDistribution seed |> Uniform
+                distr = distr
+                eeDistr = EeDistribution.createDefault distr.nextSeed
                 multiplier = None
                 multEe = None
                 useAbundant = a
@@ -55,14 +58,8 @@ module ModelInit =
             | None -> ModelInitValuesParams.defaultMultEe
 
         let allSubst = p.modelDataParams.allSubst
-
-        let nextValue (s : Substance) = 
-            y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1))
-            //let n = p.modelDataParams.modelDataParams.modelInfo.numberOfAminoAcids.length
-            //let noOfSubstOnLevel = pown (2 * n) s.atoms
-            //y0 * mult *p.distr.nextDouble() / (double noOfSubstOnLevel)
-
-        let nextEe() = multEe * (2.0 * p.distr.nextDoubleFromZeroToOne() - 1.0)
+        let nextValue (s : Substance) = y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1))
+        let nextEe() = multEe * (p.eeDistr.nextDouble())
 
         let initVals =
             allSubst

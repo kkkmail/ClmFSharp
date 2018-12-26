@@ -56,13 +56,19 @@ module Distributions =
 
         member __.isDefined = isDefinedImpl
 
+        member distr.createScaled newScale creator = (distr.nextSeed(), { distr.distributionParams with scale = newScale }) |> creator
+        member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
+        member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
+
 
     /// Produces only 0 with default parameters.
     type DeltaDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase (seed, p, fun _ -> 0.0)
 
-        static member create seed threshold scale shift = 
-            new DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        static member create seed threshold scale shift = DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member __.scaled newScale = base.createScaled newScale DeltaDistribution
+        member __.shifted newShift = base.createShifted newShift DeltaDistribution
+        member __.thresholded newThreshold = base.createThresholded newThreshold DeltaDistribution
 
 
     type UniformDistribution (seed : int, p : DistributionParams) = 
@@ -70,15 +76,19 @@ module Distributions =
 
         new (seed : int) = UniformDistribution(seed, DistributionParams.defaultValue)
 
-        static member create seed threshold scale shift = 
-            new UniformDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        static member create seed threshold scale shift = new UniformDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member __.scaled newScale = base.createScaled newScale UniformDistribution
+        member __.shifted newShift = base.createShifted newShift UniformDistribution
+        member __.thresholded newThreshold = base.createThresholded newThreshold UniformDistribution
 
 
     type TriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> 1.0 - sqrt(1.0 - r.NextDouble()))
 
-        static member create seed threshold scale shift = 
-            new TriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        static member create seed threshold scale shift = new TriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member __.scaled newScale = base.createScaled newScale TriangularDistribution
+        member __.shifted newShift = base.createShifted newShift TriangularDistribution
+        member __.thresholded newThreshold = base.createThresholded newThreshold TriangularDistribution
 
 
     let toSymmetricTriangular d = 
@@ -95,16 +105,20 @@ module Distributions =
     type SymmetricTriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangular)
 
-        static member create seed threshold scale shift = 
-            new SymmetricTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        static member create seed threshold scale shift = new SymmetricTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member __.scaled newScale = base.createScaled newScale SymmetricTriangularDistribution
+        member __.shifted newShift = base.createShifted newShift SymmetricTriangularDistribution
+        member __.thresholded newThreshold = base.createThresholded newThreshold SymmetricTriangularDistribution
 
 
     /// Generates values on (0, 2) with max / mean at 1 with default parameters.
     type SymmetricPositiveTriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangularFromZeroToTwo)
 
-        static member create seed threshold scale shift = 
-            new SymmetricPositiveTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        static member create seed threshold scale shift = new SymmetricPositiveTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member __.scaled newScale = base.createScaled newScale SymmetricPositiveTriangularDistribution
+        member __.shifted newShift = base.createShifted newShift SymmetricPositiveTriangularDistribution
+        member __.thresholded newThreshold = base.createThresholded newThreshold SymmetricPositiveTriangularDistribution
 
 
     type Distribution =
@@ -148,33 +162,34 @@ module Distributions =
 
         member this.scaled newScale =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricTriangular
-            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricPositiveTriangular
+            | Delta d -> d.scaled newScale |> Delta
+            | Uniform d -> d.scaled newScale |> Uniform
+            | Triangular d -> d.scaled newScale |> Triangular
+            | SymmetricTriangular d ->  d.scaled newScale |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> d.scaled newScale |> SymmetricPositiveTriangular
 
         member this.shifted newShift =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> SymmetricTriangular
-            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> SymmetricPositiveTriangular
+            | Delta d -> d.shifted newShift |> Delta
+            | Uniform d -> d.shifted newShift |> Uniform
+            | Triangular d -> d.shifted newShift |> Triangular
+            | SymmetricTriangular d -> d.shifted newShift |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> d.shifted newShift |> SymmetricPositiveTriangular
 
         member this.thresholded newThreshold =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> SymmetricTriangular
-            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> SymmetricPositiveTriangular
+            | Delta d -> d.thresholded newThreshold |> Delta
+            | Uniform d -> d.thresholded newThreshold |> Uniform
+            | Triangular d -> d.thresholded newThreshold |> Triangular
+            | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> d.thresholded newThreshold |> SymmetricPositiveTriangular
 
 
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
-        | RateMultiplierDistr of Distribution
-        | NoneDistr
+        | DeltaRateMult of DeltaDistribution
+        | SymmetricPositiveTriangularRateMult of SymmetricPositiveTriangularDistribution
+        | NoneRateMult
 
         member this.nextDoubleOpt() = 
             match this with 
@@ -183,8 +198,9 @@ module Distributions =
 
         member this.thresholded newThreshold = 
             match this with 
-            | RateMultiplierDistr d -> d.thresholded newThreshold |> RateMultiplierDistr
-            | NoneDistr -> NoneDistr
+            | DeltaRateMult d -> d.thresholded newThreshold |> DeltaRateMult
+            | SymmetricPositiveTriangularRateMult d -> d.thresholded newThreshold |> SymmetricPositiveTriangularRateMult
+            | NoneRateMult -> NoneRateMult
 
         member this.scaled newScale = 
             match this with 
@@ -195,6 +211,12 @@ module Distributions =
             match this with 
             | RateMultiplierDistr d -> d.shifted newShift |> RateMultiplierDistr
             | NoneDistr -> NoneDistr
+
+        static member createDefault (seeder : unit -> int) rate = 
+            SymmetricPositiveTriangularDistribution(seeder(), { threshold = None; scale = Some rate; shift = None }) |> SymmetricPositiveTriangularRateMult
+
+        static member private createDelta (seeder : unit -> int) rate = 
+            DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some rate }) |> DeltaRateMult
 
 
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).

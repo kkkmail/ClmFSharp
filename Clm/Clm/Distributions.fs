@@ -7,7 +7,6 @@ module Distributions =
         | ReactionRate of double
 
 
-    /// First scale, then shift. This is more convenient here than the other way around.
     type DistributionParams = 
         {
             threshold : double option
@@ -23,14 +22,14 @@ module Distributions =
             }
 
 
+    /// First scale, then shift. This is more convenient here than the other way around.
     [<AbstractClass>]
     type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) = 
         let rnd = new Random(seed)
-        let rndBool = new Random(rnd.Next())
 
         let isDefinedImpl() = 
             match p.threshold with
-            | Some t -> if rndBool.NextDouble() < t then true else false
+            | Some t -> if rnd.NextDouble() < t then true else false
             | None -> true
 
         let nextDoubleImpl() = 
@@ -45,12 +44,9 @@ module Distributions =
             | Some s -> s
             | None -> 0.0
 
-        let nextDoubleFromZeroToOneImpl() = rnd.NextDouble()
-
         member __.seedValue = seed
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
-        member __.nextDoubleFromZeroToOne = nextDoubleFromZeroToOneImpl
         member __.nextSeed() = rnd.Next()
 
         member __.nextDoubleOpt() = 
@@ -61,8 +57,12 @@ module Distributions =
         member __.isDefined = isDefinedImpl
 
 
+    /// Produces only 0 with default parameters.
     type DeltaDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun _ -> 1.0)
+        inherit DistributionBase (seed, p, fun _ -> 0.0)
+
+        static member create seed threshold scale shift = 
+            new DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
 
 
     type UniformDistribution (seed : int, p : DistributionParams) = 
@@ -70,9 +70,15 @@ module Distributions =
 
         new (seed : int) = UniformDistribution(seed, DistributionParams.defaultValue)
 
+        static member create seed threshold scale shift = 
+            new UniformDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+
 
     type TriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> 1.0 - sqrt(1.0 - r.NextDouble()))
+
+        static member create seed threshold scale shift = 
+            new TriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
 
 
     let toSymmetricTriangular d = 
@@ -80,9 +86,25 @@ module Distributions =
         else 1.0 - sqrt(2.0 * (1.0 - d))
 
 
-    /// Genetates values on (-1 + p.shift, 1 + p.shift).
+    let toSymmetricTriangularFromZeroToTwo d = 
+        if d < 0.5 then sqrt(2.0 * d)
+        else 2.0 - sqrt(2.0 * (1.0 - d))
+
+
+    /// Generates values on (-1, 1) with max / mean at 0 with default parameters.
     type SymmetricTriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangular)
+
+        static member create seed threshold scale shift = 
+            new SymmetricTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+
+
+    /// Generates values on (0, 2) with max / mean at 1 with default parameters.
+    type SymmetricPositiveTriangularDistribution (seed : int, p : DistributionParams) = 
+        inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangularFromZeroToTwo)
+
+        static member create seed threshold scale shift = 
+            new SymmetricPositiveTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
 
 
     type Distribution =
@@ -90,6 +112,7 @@ module Distributions =
         | Uniform of UniformDistribution
         | Triangular of TriangularDistribution
         | SymmetricTriangular of SymmetricTriangularDistribution
+        | SymmetricPositiveTriangular of SymmetricPositiveTriangularDistribution
 
         member this.nextDouble = 
             match this with
@@ -97,6 +120,7 @@ module Distributions =
             | Uniform d -> d.nextDouble
             | Triangular d -> d.nextDouble
             | SymmetricTriangular d -> d.nextDouble
+            | SymmetricPositiveTriangular d -> d.nextDouble
 
         member this.nextDoubleOpt = 
             match this with
@@ -104,13 +128,7 @@ module Distributions =
             | Uniform d -> d.nextDoubleOpt
             | Triangular d -> d.nextDoubleOpt
             | SymmetricTriangular d -> d.nextDoubleOpt
-
-        member this.nextDoubleFromZeroToOne =
-            match this with
-            | Delta d -> d.nextDoubleFromZeroToOne
-            | Uniform d -> d.nextDoubleFromZeroToOne
-            | Triangular d -> d.nextDoubleFromZeroToOne
-            | SymmetricTriangular d -> d.nextDoubleFromZeroToOne
+            | SymmetricPositiveTriangular d -> d.nextDoubleOpt
 
         member this.isDefined =
             match this with
@@ -118,6 +136,7 @@ module Distributions =
             | Uniform d -> d.isDefined
             | Triangular d -> d.isDefined
             | SymmetricTriangular d -> d.isDefined
+            | SymmetricPositiveTriangular d -> d.isDefined
 
         member this.nextSeed() = 
             match this with
@@ -125,6 +144,7 @@ module Distributions =
             | Uniform d -> d.nextSeed()
             | Triangular d -> d.nextSeed()
             | SymmetricTriangular d -> d.nextSeed()
+            | SymmetricPositiveTriangular d -> d.nextSeed()
 
         member this.scaled newScale =
             match this with
@@ -132,6 +152,7 @@ module Distributions =
             | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Uniform
             | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Triangular
             | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricPositiveTriangular
 
         member this.shifted newShift =
             match this with
@@ -139,6 +160,7 @@ module Distributions =
             | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Uniform
             | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> Triangular
             | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newShift }) |> SymmetricPositiveTriangular
 
         member this.thresholded newThreshold =
             match this with
@@ -146,6 +168,7 @@ module Distributions =
             | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Uniform
             | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> Triangular
             | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> SymmetricTriangular
+            | SymmetricPositiveTriangular d -> SymmetricPositiveTriangularDistribution (d.nextSeed(), { d.distributionParams with threshold = newThreshold }) |> SymmetricPositiveTriangular
 
 
     /// Distribution of rate multipliers for catalytic reactions.
@@ -174,7 +197,7 @@ module Distributions =
             | NoneDistr -> NoneDistr
 
 
-    /// Specially formatted distributions to return values only between (-1 and 1).
+    /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
         | DeltaEe of DeltaDistribution
         | SymmetricTriangularEe of SymmetricTriangularDistribution
@@ -221,17 +244,21 @@ module Distributions =
 
     type EeDistributionGetter = 
         | DefaultEeDistributionGetter
+        | DeltaEeDistributionGetter
         | NoneGetter
 
         member ee.getDistr = 
             match ee with 
             | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistrOpt
+            | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | NoneGetter -> (fun _ _ _ -> None)
 
 
     type RateMultiplierDistributionGetter =
         | DefaultRateMultiplierDistributionGetter
+        | DeltaRateMultiplierDistributionGetter
 
         member this.getDistr (d : RateMultiplierDistribution) threshold rate = 
             match this with
             | DefaultRateMultiplierDistributionGetter -> (d.thresholded threshold).scaled (Some rate)
+            | DeltaRateMultiplierDistributionGetter -> failwith ""

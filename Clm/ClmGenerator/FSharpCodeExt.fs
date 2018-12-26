@@ -81,12 +81,11 @@ module FSharpCodeExt =
 
 
     type EeDistribution
-        with 
+        with
 
         member distr.toFSharpCode = 
-            match distr with 
-            | DeltaEe d -> d.toFSharpCode + " |> " + "DeltaEe"
-            | SymmetricTriangularEe d -> d.toFSharpCode + " |> " + "SymmetricTriangularEe"
+            let (EeDistribution d) = distr
+            d.toFSharpCode + " |> " + "EeDistribution"
 
 
     let toEeDistrOpt (distr : EeDistribution option) = 
@@ -100,39 +99,27 @@ module FSharpCodeExt =
         member distr.toFSharpCode = 
             match distr with 
             | DefaultEeDistributionGetter -> "DefaultEeDistributionGetter"
-            | NoneGetter -> "NoneGetter"
+            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
+            | NoneEeGetter -> "NoneEeGetter"
+
+
+    type RateMultiplierDistribution
+        with
+
+        member distr.toFSharpCode = 
+            match distr with 
+            | RateMultDistr d -> d.toFSharpCode + " |> " + "RateMultDistr"
+            | NoneRateMult -> "NoneRateMult"
 
 
     type RateMultiplierDistributionGetter
         with 
         member distr.toFSharpCode = 
             match distr with 
-            | DefaultRateMultiplierDistributionGetter -> "DefaultRateMultiplierDistributionGetter"
-
-
-    //type SimDistribution
-    //    with 
-
-    //    member distr.toFSharpCode = 
-    //        match distr with 
-    //        | DeltaSim d -> d.toFSharpCode + " |> " + "DeltaSim"
-    //        | SymmetricTriangularSim d -> d.toFSharpCode + " |> " + "SymmetricTriangularSim"
-
-
-    //type SimDistributionGetter
-    //    with 
-    //    member distr.toFSharpCode = 
-    //        match distr with 
-    //        | DefaultSimDistributionGetter -> "DefaultSimDistributionGetter"
-
-
-    type RateMultiplierDistribution
-        with 
-
-        member distr.toFSharpCode = 
-            match distr with 
-            | RateMultiplierDistr d -> d.toFSharpCode + " |> " + "RateMultiplierDistr"
-            | NoneDistr -> "NoneDistr"
+            | DefaultRateMultDistrGetter -> "DefaultRateMultDistrGetter"
+            | DefaultSimRateMultDistrGetter -> "DefaultSimRateMultDistrGetter"
+            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
+            | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
 
 
     type CatRatesEeParam

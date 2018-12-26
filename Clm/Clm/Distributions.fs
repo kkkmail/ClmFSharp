@@ -214,13 +214,13 @@ module Distributions =
     type EeDistributionGetter = 
         | DefaultEeDistributionGetter
         | DeltaEeDistributionGetter
-        | NoneGetter
+        | NoneEeGetter
 
         member ee.getDistr = 
             match ee with 
             | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistrOpt
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
-            | NoneGetter -> (fun _ _ _ -> None)
+            | NoneEeGetter -> (fun _ _ _ -> None)
 
 
     /// Distribution of rate multipliers for catalytic reactions.

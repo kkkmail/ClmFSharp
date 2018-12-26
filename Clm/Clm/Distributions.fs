@@ -200,62 +200,64 @@ module Distributions =
             | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangular |> EeDistribution
             | None -> EeDistribution.createCenteredDelta seeder mean
 
-        static member getDefaultEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
-            match rate, rateEnant with 
-            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
-            | _ -> None
-
         static member getDeltaEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
             match rate, rateEnant with 
             | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta seeder |> Some
             | _ -> None
 
+        static member getCenteredEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+            match rate, rateEnant with 
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | _ -> None
+
+        static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
+
 
     type EeDistributionGetter = 
-        | DefaultEeDistributionGetter
-        | DeltaEeDistributionGetter
         | NoneEeGetter
+        | DeltaEeDistributionGetter
+        | CenteredEeDistributionGetter
 
         member ee.getDistr = 
             match ee with 
-            | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistrOpt
-            | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | NoneEeGetter -> (fun _ _ _ -> None)
+            | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
+            | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
 
 
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
-        | RateMultDistr of Distribution
         | NoneRateMult
+        | RateMultDistr of Distribution
 
         static member private normalize d = d |> Option.bind (fun e -> max e 0.0 |> Some)
 
         member this.nextDoubleOpt() = 
             match this with 
-            | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
             | NoneRateMult -> None
+            | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
+
+        static member createNone = NoneRateMult
 
         static member createDelta (seeder : unit -> int) threshold rate = 
             DeltaDistribution (seeder(), { threshold = threshold; scale = None; shift = Some rate }) |> Delta |> RateMultDistr
 
-        static member createDefault (seeder : unit -> int) threshold rate = 
+        static member createTriangular (seeder : unit -> int) threshold rate = 
             TriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = None }) |> Triangular |> RateMultDistr
 
-        static member createSymDefault (seeder : unit -> int) threshold rate = 
+        static member createSymmetricTriangular (seeder : unit -> int) threshold rate = 
             SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
-
-        static member createNone = NoneRateMult
 
 
     type RateMultiplierDistributionGetter =
-        | DefaultRateMultDistrGetter
-        | DefaultSimRateMultDistrGetter
-        | DeltaRateMultDistrGetter
         | NoneRateMultDistrGetter
+        | DeltaRateMultDistrGetter
+        | TriangularRateMultDistrGetter
+        | SymmetricTriangularRateMultDistrGetter
 
         member this.getDistr seeder threshold rate = 
             match this with
-            | DefaultRateMultDistrGetter -> RateMultiplierDistribution.createDefault seeder threshold rate
-            | DefaultSimRateMultDistrGetter -> RateMultiplierDistribution.createSymDefault seeder threshold rate
-            | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
             | NoneRateMultDistrGetter -> RateMultiplierDistribution.createNone
+            | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
+            | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular seeder threshold rate
+            | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular seeder threshold rate

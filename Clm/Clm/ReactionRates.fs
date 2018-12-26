@@ -957,6 +957,9 @@ module ReactionRates =
 
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
+        static let defaultEeDistributionGetter = DeltaEeDistributionGetter
+        static let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
+
         let getRatesImpl (a : Reaction) = 
             match a with 
             | FoodCreation r -> getModelRates (p.tryFindSFoodCreationModel()) r
@@ -1041,9 +1044,9 @@ module ReactionRates =
                     {
                         aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
-                        getForwardEeDistr = DefaultEeDistributionGetter
-                        getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
             }
@@ -1078,9 +1081,9 @@ module ReactionRates =
                     {
                         aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
-                        getForwardEeDistr = DefaultEeDistributionGetter
-                        getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
             }
@@ -1166,9 +1169,9 @@ module ReactionRates =
                     {
                         aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
-                        getForwardEeDistr = DefaultEeDistributionGetter
-                        getBackwardEeDistr = DefaultEeDistributionGetter
-                        getRateMultiplierDistr = DefaultSimRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
             }

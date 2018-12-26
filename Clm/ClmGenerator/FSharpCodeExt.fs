@@ -98,9 +98,9 @@ module FSharpCodeExt =
         with 
         member distr.toFSharpCode = 
             match distr with 
-            | DefaultEeDistributionGetter -> "DefaultEeDistributionGetter"
-            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
             | NoneEeGetter -> "NoneEeGetter"
+            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
+            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
 
 
     type RateMultiplierDistribution
@@ -113,13 +113,13 @@ module FSharpCodeExt =
 
 
     type RateMultiplierDistributionGetter
-        with 
+        with
         member distr.toFSharpCode = 
             match distr with 
-            | DefaultRateMultDistrGetter -> "DefaultRateMultDistrGetter"
-            | DefaultSimRateMultDistrGetter -> "DefaultSimRateMultDistrGetter"
-            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
             | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
+            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
+            | TriangularRateMultDistrGetter -> "TriangularRateMultDistrGetter"
+            | SymmetricTriangularRateMultDistrGetter -> "SymmetricTriangularRateMultDistrGetter"
 
 
     type CatRatesEeParam

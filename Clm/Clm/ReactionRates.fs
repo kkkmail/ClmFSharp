@@ -999,8 +999,8 @@ module ReactionRates =
 
         static member defaultSynthRndModel (rnd : Random) (forward, backward) =
             {
-                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
-                //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                synthesisDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                //synthesisDistribution = UniformDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
@@ -1009,7 +1009,7 @@ module ReactionRates =
 
         static member defaultDestrRndModel (rnd : Random) (forward, backward) =
             {
-                destructionDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
+                destructionDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
@@ -1043,7 +1043,7 @@ module ReactionRates =
                 catSynthSimParam = 
                     {
                         aminoAcids = aminoAcids
-                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
@@ -1080,7 +1080,7 @@ module ReactionRates =
                 catDestrSimParam = 
                     {
                         aminoAcids = aminoAcids
-                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
@@ -1092,8 +1092,8 @@ module ReactionRates =
 
         static member defaultLigRndModel (rnd : Random) (forward, backward) =
             {
-                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
-                //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                ligationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                //ligationDistribution = UniformDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Uniform
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
@@ -1134,8 +1134,8 @@ module ReactionRates =
 
         static member defaultRacemRndModel (rnd : Random) forward =
             {
-                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = None }) |> Delta
-                //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None }) |> Uniform
+                racemizationDistribution = DeltaDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                //racemizationDistribution = UniformDistribution(rnd.Next(), { threshold = None; scale = None; shift = Some 1.0 }) |> Uniform
                 forwardScale = Some forward
             }
             |> RacemRndParam
@@ -1168,7 +1168,7 @@ module ReactionRates =
                 catRacemSimParam = 
                     {
                         aminoAcids = aminoAcids
-                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = None }) |> Uniform
+                        simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter

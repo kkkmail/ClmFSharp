@@ -511,7 +511,7 @@ module ClmModel =
                 coeffSedAllCode
 
             [
-                "namespace Model" + nl
+                "namespace Clm.Model" + nl
                 "open Clm.Substances"
                 "open Clm.Distributions"
                 "open Clm.ModelParams"
@@ -539,6 +539,8 @@ module ClmModel =
                         numberOfSubstances = " + (allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
+                        updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
+                        allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                     }
 
                 allParams = 

@@ -17,6 +17,8 @@ module ModelParams =
             numberOfSubstances : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
+            updateAllModels : bool // true if updating AllModels.fs file was done. This is needed to update / do not update all results.
+            allResultsFile : string
         }
 
 

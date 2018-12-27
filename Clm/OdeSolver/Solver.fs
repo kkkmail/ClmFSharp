@@ -1,4 +1,4 @@
-﻿namespace OdeSolver
+﻿namespace Clm.OdeSolver
 
 open Microsoft.FSharp.Core
 open System
@@ -7,6 +7,7 @@ module Solver =
 
     type OdeParams = 
         {
+            modelName : string
             startTime : double
             endTime : double
             stepSize : double
@@ -17,6 +18,7 @@ module Solver =
 
         static member defaultValue =
             {
+                modelName = String.Empty
                 startTime = 0.0
                 endTime = 10.0
                 stepSize = 0.01
@@ -28,6 +30,7 @@ module Solver =
 
     type OdeResult = 
         {
+            modelName : string
             y0 : double
             noOfOutputPoints : int
             startTime : double
@@ -37,25 +40,35 @@ module Solver =
         }
 
 
+    type NSolveParam = 
+        {
+            modelName : string
+            tEnd : double
+            g : double[] -> double[]
+            h : double -> double[]
+            y0 : double
+        }
+
+
     /// F# wrapper around Alglib ODE solver.
-    let nSolve tEnd (g : double[] -> double[]) (h : double -> array<double>) y0 : OdeResult = 
+    let nSolve (n : NSolveParam) : OdeResult = 
         printfn "nSolve::Starting."
-        let i = h y0
+        let i = n.h n.y0
 
         let mutable progressCount = 0
 
-        let p = { OdeParams.defaultValue with endTime = tEnd }
+        let p = { OdeParams.defaultValue with modelName = n.modelName; endTime = n.tEnd }
 
         let f (x : double[]) (t : double) : double[] = 
             match p.noOfProgressPoints with 
-            | Some k when k > 0 && tEnd > 0.0 ->
-                if t > (double progressCount) * (tEnd / (double k))
+            | Some k when k > 0 && n.tEnd > 0.0 ->
+                if t > (double progressCount) * (n.tEnd / (double k))
                 then 
-                    progressCount <- ((double k) * (t / tEnd) |> int) + 1
-                    printfn "Step: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t tEnd
+                    progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
+                    printfn "Step: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
             | _ -> ignore()
 
-            g x
+            n.g x
 
         let nt = 
             match p.noOfOutputPoints with 
@@ -75,7 +88,8 @@ module Solver =
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 
         {
-            y0 = y0
+            modelName = p.modelName
+            y0 = n.y0
             noOfOutputPoints = nt
             startTime = p.startTime
             endTime = p.endTime

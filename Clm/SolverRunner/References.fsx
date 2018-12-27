@@ -1,4 +1,5 @@
 ﻿#I __SOURCE_DIRECTORY__
+#r "FSharp.Core.dll"
 #r "System.Core.dll"
 #r "System.dll"
 #r "System.Numerics.dll"

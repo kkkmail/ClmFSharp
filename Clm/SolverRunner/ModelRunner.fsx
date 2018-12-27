@@ -40,7 +40,7 @@ plotter.plotTotalSubst()
 plotter.plotEnantiomericExcess()
 printfn "Plotting is completed."
 //===========================================================
-printfn "Saving results..."
-if useResultsFolder then saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
-printfn "Saving is completed."
+//printfn "Saving results..."
+//if useResultsFolder then saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
+//printfn "Saving is completed."
 //===========================================================

@@ -44,6 +44,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AllResults.fs" />
+    <None Include="References.fsx" />
+    <None Include="ModelPlotter.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -57,8 +59,6 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
       <Name>AlgLib</Name>
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>

@@ -21,14 +21,12 @@ module ResultSerialization =
             shift + "                noOfOutputPoints = " + (o.noOfOutputPoints.ToString()) + Nl +
             shift + "                startTime = " + (doubleFSharpString o.startTime) + Nl +
             shift + "                endTime = " + (doubleFSharpString o.endTime) + Nl +
-            shift + "                t= [||]" + Nl +
+            shift + "                t= " + (arrayToFSharpString o.t String.Empty) + Nl +
             shift + "                x = " + Nl +
-            shift + "                    array2D " + Nl +
-            shift + "                        [| " + Nl +
-            shift + "                            [||] " + Nl +
-            shift + "                        |]" + Nl +
+            shift + "                    array2D " + Nl + (array2DToFSharpString o.x "                    ") + 
             shift + "            }" + Nl +
-            shift + "        ]" + Nl
+            shift + "        ]" + Nl + Nl
 
-    let saveResults (o : OdeResult) = 
-        ignore()
+
+    let saveResults (fileName : string) (o : OdeResult) = 
+        File.AppendAllLines(fileName, [ "        @" + Nl + o.toFSharpCode String.Empty ])

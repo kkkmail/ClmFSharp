@@ -10,6 +10,11 @@ module FSharpCodeExt =
 
 
     let increaseShift shift = shift + "    "
+    let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+
+    let fold f state (arr: 'a [,]) =
+        Seq.cast<'a> arr
+        |> Seq.fold f state
 
 
     let toFloat (s : string) = 
@@ -43,13 +48,17 @@ module FSharpCodeExt =
 
 
     let array2DToFSharpString (a : double[,]) (shift : string) = 
-        let s = 
-            a
-            |> Array.map (fun e -> e)
-            //|> String.concat "; "
+        let arrayShift = shift |> increaseShift
 
-        //shift + "[| " + s + " |]"
-        0
+        let s = 
+            [| for i in 0..(Array2D.length1 a) -> i |]
+            |> Array.map (fun i -> a.[i,*])
+            |> Array.map (fun e -> arrayToFSharpString e arrayShift + Nl)
+            |> String.concat Nl
+
+        shift + "[| " + Nl + 
+        s + Nl + 
+        shift + "|]" + Nl
 
 
     type DistributionParams

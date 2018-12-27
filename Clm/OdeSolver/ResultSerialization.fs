@@ -23,10 +23,14 @@ module ResultSerialization =
             shift + "                endTime = " + (doubleFSharpString o.endTime) + Nl +
             shift + "                t= " + (arrayToFSharpString o.t String.Empty) + Nl +
             shift + "                x = " + Nl +
-            shift + "                    array2D " + Nl + (array2DToFSharpString o.x "                    ") + 
+            shift + "                    array2D " + Nl + (array2DToFSharpString o.x "                        ") + 
             shift + "            }" + Nl +
-            shift + "        ]" + Nl + Nl
+            shift + "        ]" + Nl
 
 
-    let saveResults (fileName : string) (o : OdeResult) = 
-        File.AppendAllLines(fileName, [ "        @" + Nl + o.toFSharpCode String.Empty ])
+    let saveResults (fileName : string) (o : OdeResult) =
+        printfn "Saving..."
+        let s = Nl + "        @" + Nl + o.toFSharpCode String.Empty
+        printfn "Adding %A characters to %A." (s.Length) fileName
+        File.AppendAllLines(fileName, [ s ])
+        printfn "Done."

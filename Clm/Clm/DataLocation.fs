@@ -14,7 +14,7 @@ module DataLocation =
 
 
     [<Literal>]
-    let DefaultAllResultsFile = __SOURCE_DIRECTORY__ + @"\..\Model\AllResults.fs"
+    let DefaultAllResultsFile = __SOURCE_DIRECTORY__ + @"\..\Results\AllResults.fs"
 
 
     [<Literal>]

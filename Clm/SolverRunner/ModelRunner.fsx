@@ -38,9 +38,9 @@ let plotter = new Plotter({ PlotDataInfo.defaultValue with useTempFolder = useRe
 plotter.plotAminoAcids()
 plotter.plotTotalSubst()
 plotter.plotEnantiomericExcess()
-printfn "Completed."
+printfn "Plotting is completed."
 //===========================================================
-if useResultsFolder 
-then 
-    saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
+printfn "Saving results..."
+if useResultsFolder then saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
+printfn "Saving is completed."
 //===========================================================

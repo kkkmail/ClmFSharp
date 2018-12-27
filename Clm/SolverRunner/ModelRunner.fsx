@@ -10,7 +10,7 @@ open Clm.OdeSolver.Solver
 open Clm.OdeSolver.Visualization
 open Clm.OdeSolver.ResultSerialization
 //===========================================================
-let useResultsFolder = true
+let useResultsFolder = false
 
 let y0 = 20.0
 let tEnd = 10000.0

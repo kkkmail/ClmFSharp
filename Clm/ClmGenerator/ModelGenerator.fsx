@@ -16,7 +16,7 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Generator.ClmModel
 //===========================================================
-let updateAllModels = false
+let updateAllModels = true
 
 let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax

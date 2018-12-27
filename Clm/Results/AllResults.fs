@@ -1,4 +1,4 @@
-﻿namespace Model
+﻿namespace Clm.Results
 
 open Clm.Substances
 open Clm.Distributions

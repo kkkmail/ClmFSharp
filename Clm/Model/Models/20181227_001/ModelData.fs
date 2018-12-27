@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 172447908
+    let seedValue = 1044123657
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -351,6 +351,14 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -0.0 * x.[2] * x.[29] // Z + ABa | catalytic destruction: a + ABa <-> Z + ABa
+            0.0 * x.[5] * x.[29] // a + ABa | catalytic destruction: a + ABa <-> Z + ABa
+            -0.0 * x.[2] * x.[67] // Z + abA | catalytic destruction: A + abA <-> Z + abA
+            0.0 * x.[3] * x.[67] // A + abA | catalytic destruction: A + abA <-> Z + abA
+            -0.0 * x.[2] * x.[67] // Z + abA | catalytic destruction: a + abA <-> Z + abA
+            0.0 * x.[5] * x.[67] // a + abA | catalytic destruction: a + abA <-> Z + abA
+            -0.0 * x.[2] * x.[29] // Z + ABa | catalytic destruction: A + ABa <-> Z + ABa
+            0.0 * x.[3] * x.[29] // A + ABa | catalytic destruction: A + ABa <-> Z + ABa
             -0.0 * x.[2] // Z | destruction: b <-> Z
             0.0 * x.[6] // b | destruction: b <-> Z
             -0.0 * x.[2] // Z | destruction: B <-> Z
@@ -413,6 +421,10 @@ module ModelData =
             0.0 * x.[7] // AA | ligation: A + A <-> AA
             -0.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             -0.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
+            0.0 * x.[2] * x.[67] // Z + abA | catalytic destruction: A + abA <-> Z + abA
+            -0.0 * x.[3] * x.[67] // A + abA | catalytic destruction: A + abA <-> Z + abA
+            0.0 * x.[2] * x.[29] // Z + ABa | catalytic destruction: A + ABa <-> Z + ABa
+            -0.0 * x.[3] * x.[29] // A + ABa | catalytic destruction: A + ABa <-> Z + ABa
             0.0 * x.[2] // Z | destruction: A <-> Z
             -0.0 * x.[3] // A | destruction: A <-> Z
             -0.0 * x.[3] // A | synthesis: Y <-> A
@@ -527,6 +539,10 @@ module ModelData =
             0.0 * x.[17] // aa | ligation: a + a <-> aa
             -0.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
             -0.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
+            0.0 * x.[2] * x.[29] // Z + ABa | catalytic destruction: a + ABa <-> Z + ABa
+            -0.0 * x.[5] * x.[29] // a + ABa | catalytic destruction: a + ABa <-> Z + ABa
+            0.0 * x.[2] * x.[67] // Z + abA | catalytic destruction: a + abA <-> Z + abA
+            -0.0 * x.[5] * x.[67] // a + abA | catalytic destruction: a + abA <-> Z + abA
             0.0 * x.[2] // Z | destruction: a <-> Z
             -0.0 * x.[5] // a | destruction: a <-> Z
             -0.0 * x.[5] // a | synthesis: Y <-> a
@@ -1726,13 +1742,13 @@ module ModelData =
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
                             updateAllModels = true
-                            allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Model\AllResults.fs"
+                            allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
                         }
 
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(524849207, { threshold = None; scale = None; shift = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(615844019, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1742,16 +1758,16 @@ module ModelData =
                             {
                                 catSynthRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(951347499, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = SymmetricTriangularDistribution(891228166, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1117587636, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(1255327116, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = SymmetricTriangularDistribution(1721924391, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1918313653, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
                                 }
                             }
                             |> CatSynthRndParam
                             |> CatalyticSynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(272909746, { threshold = None; scale = None; shift = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(679840570, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1761,9 +1777,9 @@ module ModelData =
                             {
                                 catDestrRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(394793438, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = SymmetricTriangularDistribution(319154248, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1363247578, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(1651742468, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = SymmetricTriangularDistribution(1386963898, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1861178931, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
                                 }
                             }
                             |> CatDestrRndParam
@@ -1776,7 +1792,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simBaseDistribution = UniformDistribution(1264831739, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
+                                simBaseDistribution = UniformDistribution(1819655535, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -1786,7 +1802,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simBaseDistribution = UniformDistribution(151488329, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
+                                simBaseDistribution = UniformDistribution(1149789569, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -1795,7 +1811,7 @@ module ModelData =
                             |> CatalyticDestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(1278074175, { threshold = None; scale = None; shift = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(750980819, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 1.0
                                 backwardScale = Some 1.0
                             }
@@ -1803,7 +1819,7 @@ module ModelData =
                             |> LigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(1900354787, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(467839755, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
                                 forwardScale = Some 10000.0
                             }
                             |> SedDirRndParam
@@ -1839,6 +1855,7 @@ module ModelData =
                     (WasteRecyclingName, 1)
                     (SynthesisName, 4)
                     (DestructionName, 4)
+                    (CatalyticDestructionName, 4)
                     (LigationName, 78)
                 ]
         }

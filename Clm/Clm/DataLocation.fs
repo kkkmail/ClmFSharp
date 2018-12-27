@@ -14,7 +14,11 @@ module DataLocation =
 
 
     [<Literal>]
-    let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results"
+    let DefaultAllResultsFile = __SOURCE_DIRECTORY__ + @"\..\Results\AllResults.fs"
+
+
+    [<Literal>]
+    let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
 
 
     type ModelLocationInputData = 
@@ -23,6 +27,7 @@ module DataLocation =
             separator : string
             padLength : int
             allModelsFile : string
+            allResultsFile : string
         }
 
         static member defaultValue = 
@@ -31,6 +36,7 @@ module DataLocation =
                 separator = "_"
                 padLength = 3
                 allModelsFile = DefaultAllModelsFile
+                allResultsFile = DefaultAllResultsFile
             }
 
 
@@ -40,19 +46,21 @@ module DataLocation =
             modelName : string
         }
 
-        member location.modelDataName = "ModelData"
-        member location.outputFile = Path.Combine(location.modelFolder, location.modelDataName) + ".fs"
+        static member modelDataName = "ModelData"
+        member location.outputFile = Path.Combine(location.modelFolder, ModelLocationInfo.modelDataName) + ".fs"
 
 
     type ResultInfo =
         {
             resultLocation : string
+            allResultsFile : string
             separator : string
         }
 
         static member defautlValue = 
             {
                 resultLocation = DefaultResultLocationFolder
+                allResultsFile = DefaultAllResultsFile
                 separator = "_"
             }
 

@@ -1,4 +1,4 @@
-﻿namespace ClmGenerator
+﻿namespace Clm.Generator
 
 open Clm.Distributions
 open Clm.ReactionRates
@@ -10,13 +10,11 @@ module FSharpCodeExt =
 
 
     let increaseShift shift = shift + "    "
+    let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
 
-
-    let doubleFSharpString (d : double) = 
-        let s = d.ToString()
-        match s.Contains(".") with
-        | true -> s
-        | false -> s + ".0"
+    let fold f state (arr: 'a [,]) =
+        Seq.cast<'a> arr
+        |> Seq.fold f state
 
 
     let toFloat (s : string) = 
@@ -28,10 +26,39 @@ module FSharpCodeExt =
             | false -> s + ".0"
 
 
+    let doubleFSharpString (d : double) = d.ToString() |> toFloat
+        //let s = d.ToString()
+        //match s.Contains(".") with
+        //| true -> s
+        //| false -> s + ".0"
+
+
     let doubleOptFSharpString (d : double option) = 
         match d with 
         | Some v -> "Some " + (v.ToString() |> toFloat)
         | None -> "None"
+
+
+    let arrayToFSharpString (a : double[]) (shift : string) = 
+        let s = 
+            a
+            |> Array.map (fun e -> doubleFSharpString e)
+            |> String.concat "; "
+        shift + "[| " + s + " |]"
+
+
+    let array2DToFSharpString (a : double[,]) (shift : string) = 
+        let arrayShift = shift |> increaseShift
+
+        let s = 
+            [| for i in 0..((Array2D.length1 a) - 1) -> i |]
+            |> Array.map (fun i -> a.[i,*])
+            |> Array.map (fun e -> arrayToFSharpString e arrayShift)
+            |> String.concat Nl
+
+        shift + "[| " + Nl + 
+        s + Nl + 
+        shift + "|]" + Nl
 
 
     type DistributionParams
@@ -47,25 +74,24 @@ module FSharpCodeExt =
 
     type DeltaDistribution
         with
-
         member distr.toFSharpCode = "DeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
+    type BiDeltaDistribution
+        with
+        member distr.toFSharpCode = "BiDeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
     type UniformDistribution
         with
-
         member distr.toFSharpCode = "UniformDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
     type TriangularDistribution
         with
-
         member distr.toFSharpCode = "TriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
     type SymmetricTriangularDistribution
         with
-
         member distr.toFSharpCode = "SymmetricTriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
@@ -75,18 +101,18 @@ module FSharpCodeExt =
         member this.toFSharpCode =
             match this with
             | Delta d -> d.toFSharpCode + " |> Delta"
+            | BiDelta d -> d.toFSharpCode + " |> BiDelta"
             | Uniform d -> d.toFSharpCode + " |> Uniform"
             | Triangular d -> d.toFSharpCode + " |> Triangular"
             | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"
 
 
     type EeDistribution
-        with 
+        with
 
         member distr.toFSharpCode = 
-            match distr with 
-            | DeltaEe d -> d.toFSharpCode + " |> " + "DeltaEe"
-            | SymmetricTriangularEe d -> d.toFSharpCode + " |> " + "SymmetricTriangularEe"
+            let (EeDistribution d) = distr
+            d.toFSharpCode + " |> " + "EeDistribution"
 
 
     let toEeDistrOpt (distr : EeDistribution option) = 
@@ -99,39 +125,28 @@ module FSharpCodeExt =
         with 
         member distr.toFSharpCode = 
             match distr with 
-            | DefaultEeDistributionGetter -> "DefaultEeDistributionGetter"
-            | NoneGetter -> "NoneGetter"
-
-
-    type RateMultiplierDistributionGetter
-        with 
-        member distr.toFSharpCode = 
-            match distr with 
-            | DefaultRateMultiplierDistributionGetter -> "DefaultRateMultiplierDistributionGetter"
-
-
-    //type SimDistribution
-    //    with 
-
-    //    member distr.toFSharpCode = 
-    //        match distr with 
-    //        | DeltaSim d -> d.toFSharpCode + " |> " + "DeltaSim"
-    //        | SymmetricTriangularSim d -> d.toFSharpCode + " |> " + "SymmetricTriangularSim"
-
-
-    //type SimDistributionGetter
-    //    with 
-    //    member distr.toFSharpCode = 
-    //        match distr with 
-    //        | DefaultSimDistributionGetter -> "DefaultSimDistributionGetter"
+            | NoneEeGetter -> "NoneEeGetter"
+            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
+            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
 
 
     type RateMultiplierDistribution
-        with 
+        with
 
         member distr.toFSharpCode = 
             match distr with 
-            | RateMultiplierDistribution d -> d.toFSharpCode + " |> " + "RateMultiplierDistribution"
+            | RateMultDistr d -> d.toFSharpCode + " |> " + "RateMultDistr"
+            | NoneRateMult -> "NoneRateMult"
+
+
+    type RateMultiplierDistributionGetter
+        with
+        member distr.toFSharpCode = 
+            match distr with 
+            | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
+            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
+            | TriangularRateMultDistrGetter -> "TriangularRateMultDistrGetter"
+            | SymmetricTriangularRateMultDistrGetter -> "SymmetricTriangularRateMultDistrGetter"
 
 
     type CatRatesEeParam

@@ -5,14 +5,15 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>cabc1334-fa26-483e-ae65-9f93c86dce2d</ProjectGuid>
+    <ProjectGuid>4efee0df-76ca-4152-94f6-f561472379e1</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>OdeSolvers</RootNamespace>
-    <AssemblyName>OdeSolver</AssemblyName>
+    <RootNamespace>Results</RootNamespace>
+    <AssemblyName>Results</AssemblyName>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>OdeSolver</Name>
+    <Name>Results</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +24,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
-    <OtherFlags>--warnaserror+:25</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -43,19 +43,14 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Solver.fs" />
-    <Compile Include="Visualization.fs" />
-    <Compile Include="ResultSerialization.fs" />
+    <Compile Include="AllResults.fs" />
     <None Include="References.fsx" />
-    <None Include="SolverTest.fsx" />
+    <None Include="ModelPlotter.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Collections.ParallelSeq">
-      <HintPath>..\packages\FSharp.Collections.ParallelSeq.1.1.2\lib\net45\FSharp.Collections.ParallelSeq.dll</HintPath>
-    </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -64,8 +59,6 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
       <Name>AlgLib</Name>
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
@@ -89,6 +82,11 @@
     <ProjectReference Include="..\Model\Model.fsproj">
       <Name>Model</Name>
       <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
+      <Name>OdeSolver</Name>
+      <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

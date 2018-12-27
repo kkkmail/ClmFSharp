@@ -5,24 +5,32 @@ printfn "Starting..."
 open System
 open Microsoft.FSharp.Core
 open Clm.ModelInit
-open Model.ModelData
-open OdeSolver.Solver
-open OdeSolver.Visualization
+open Clm.Model.ModelData
+open Clm.OdeSolver.Solver
+open Clm.OdeSolver.Visualization
+open Clm.OdeSolver.ResultSerialization
 //===========================================================
 let useResultsFolder = false
 
-let y0 = 1.0
+let y0 = 20.0
 let tEnd = 10000.0
 let useAbundant = false
 //===========================================================
 printfn "Solving for n = %A, y0 = %A..." numberOfSubstances y0
 printfn "Starting at: %A" DateTime.Now
-
-let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None useAbundant)
+//===========================================================
+let p =
+    {
+        modelName = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName
+        tEnd = tEnd
+        g = update
+        h = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None useAbundant)
+        y0 = y0
+    }
 //===========================================================
 printfn "Calling nSolve..."
 #time
-let result = nSolve tEnd update getInitValues y0
+let result = nSolve p
 #time
 //===========================================================
 printfn "Plotting."
@@ -30,5 +38,9 @@ let plotter = new Plotter({ PlotDataInfo.defaultValue with useTempFolder = useRe
 plotter.plotAminoAcids()
 plotter.plotTotalSubst()
 plotter.plotEnantiomericExcess()
-printfn "Completed."
+printfn "Plotting is completed."
+//===========================================================
+//printfn "Saving results..."
+//if useResultsFolder then saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
+//printfn "Saving is completed."
 //===========================================================

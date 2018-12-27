@@ -1,4 +1,4 @@
-﻿namespace ClmGenerator
+﻿namespace Clm.Generator
 
 open System
 open System.IO
@@ -12,7 +12,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
 
-open ClmGenerator.FSharpCodeExt
+open Clm.Generator.FSharpCodeExt
 
 module ClmModel = 
 
@@ -427,6 +427,8 @@ module ClmModel =
                             numberOfSubstances = " + allSubst.Length.ToString() + @"
                             numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
+                            updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
+                            allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                         }
 
                     allParams = 
@@ -511,7 +513,7 @@ module ClmModel =
                 coeffSedAllCode
 
             [
-                "namespace Model" + nl
+                "namespace Clm.Model" + nl
                 "open Clm.Substances"
                 "open Clm.Distributions"
                 "open Clm.ModelParams"
@@ -539,6 +541,8 @@ module ClmModel =
                         numberOfSubstances = " + (allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
+                        updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
+                        allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                     }
 
                 allParams = 

@@ -1,13 +1,19 @@
 ﻿namespace Clm
 open System
 
+/// The distributions that we need fall into the following categories:
+///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
+///     2. Unconditional rate distributions (RateDistribution). They must produce values on (0, infinity) with mean of 1.
+//         This distribution is usually skewed toward 0.
+///     3. Conditional rate distributions (RateDistribution).
+///        They must produce values on (0, infinity) with mean of 1.
+///        This distribution produces value near mean.
 module Distributions = 
 
     type ReactionRate = 
         | ReactionRate of double
 
 
-    /// First scale, then shift. This is more convenient here than the other way around.
     type DistributionParams = 
         {
             threshold : double option
@@ -23,14 +29,14 @@ module Distributions =
             }
 
 
+    /// First scale, then shift. This is more convenient here than the other way around.
     [<AbstractClass>]
     type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) = 
         let rnd = new Random(seed)
-        let rndBool = new Random(rnd.Next())
 
         let isDefinedImpl() = 
             match p.threshold with
-            | Some t -> if rndBool.NextDouble() < t then true else false
+            | Some t -> if rnd.NextDouble() < t then true else false
             | None -> true
 
         let nextDoubleImpl() = 
@@ -45,12 +51,9 @@ module Distributions =
             | Some s -> s
             | None -> 0.0
 
-        let nextDoubleFromZeroToOneImpl() = rnd.NextDouble()
-
         member __.seedValue = seed
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
-        member __.nextDoubleFromZeroToOne = nextDoubleFromZeroToOneImpl
         member __.nextSeed() = rnd.Next()
 
         member __.nextDoubleOpt() = 
@@ -60,19 +63,51 @@ module Distributions =
 
         member __.isDefined = isDefinedImpl
 
+        member distr.createScaled newScale creator = (distr.nextSeed(), { distr.distributionParams with scale = newScale }) |> creator
+        member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
+        member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
 
+
+    /// Generates only 0 for default parameters.
     type DeltaDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun _ -> 1.0)
+        inherit DistributionBase (seed, p, fun _ -> 0.0)
+
+        static member create seed threshold scale shift = DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale DeltaDistribution
+        member distr.shifted newShift = distr.createShifted newShift DeltaDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold DeltaDistribution
 
 
+    /// Generates only -1 and 1 with equal probability for default parameters.
+    type BiDeltaDistribution (seed : int, p : DistributionParams) = 
+        inherit DistributionBase (seed, p, fun r -> if r.NextDouble() < 0.5 then -1.0 else 1.0)
+
+        static member create seed threshold scale shift = BiDeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale BiDeltaDistribution
+        member distr.shifted newShift = distr.createShifted newShift BiDeltaDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold BiDeltaDistribution
+
+
+    /// Generates values on (-1, 1) for default parameters.
     type UniformDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun r -> r.NextDouble())
+        inherit DistributionBase (seed, p, fun r -> 2.0 * (r.NextDouble() - 1.0))
 
         new (seed : int) = UniformDistribution(seed, DistributionParams.defaultValue)
 
+        static member create seed threshold scale shift = new UniformDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale UniformDistribution
+        member distr.shifted newShift = distr.createShifted newShift UniformDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold UniformDistribution
 
+
+    /// Generates values on (0, 3) with mean 1 for default parameters.
     type TriangularDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase(seed, p, fun r -> 1.0 - sqrt(1.0 - r.NextDouble()))
+        inherit DistributionBase(seed, p, fun r -> 3.0 * (1.0 - sqrt(1.0 - r.NextDouble())))
+
+        static member create seed threshold scale shift = new TriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale TriangularDistribution
+        member distr.shifted newShift = distr.createShifted newShift TriangularDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold TriangularDistribution
 
 
     let toSymmetricTriangular d = 
@@ -80,13 +115,19 @@ module Distributions =
         else 1.0 - sqrt(2.0 * (1.0 - d))
 
 
-    /// Genetates values on (-1 + p.shift, 1 + p.shift).
+    /// Generates values on (-1, 1) with max / mean at 0 for default parameters.
     type SymmetricTriangularDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangular)
+
+        static member create seed threshold scale shift = new SymmetricTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale SymmetricTriangularDistribution
+        member distr.shifted newShift = distr.createShifted newShift SymmetricTriangularDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold SymmetricTriangularDistribution
 
 
     type Distribution =
         | Delta of DeltaDistribution
+        | BiDelta of BiDeltaDistribution
         | Uniform of UniformDistribution
         | Triangular of TriangularDistribution
         | SymmetricTriangular of SymmetricTriangularDistribution
@@ -94,6 +135,7 @@ module Distributions =
         member this.nextDouble = 
             match this with
             | Delta d -> d.nextDouble
+            | BiDelta d -> d.nextDouble
             | Uniform d -> d.nextDouble
             | Triangular d -> d.nextDouble
             | SymmetricTriangular d -> d.nextDouble
@@ -101,20 +143,15 @@ module Distributions =
         member this.nextDoubleOpt = 
             match this with
             | Delta d -> d.nextDoubleOpt
+            | BiDelta d -> d.nextDoubleOpt
             | Uniform d -> d.nextDoubleOpt
             | Triangular d -> d.nextDoubleOpt
             | SymmetricTriangular d -> d.nextDoubleOpt
 
-        member this.nextDoubleFromZeroToOne =
-            match this with
-            | Delta d -> d.nextDoubleFromZeroToOne
-            | Uniform d -> d.nextDoubleFromZeroToOne
-            | Triangular d -> d.nextDoubleFromZeroToOne
-            | SymmetricTriangular d -> d.nextDoubleFromZeroToOne
-
         member this.isDefined =
             match this with
             | Delta d -> d.isDefined
+            | BiDelta d -> d.isDefined
             | Uniform d -> d.isDefined
             | Triangular d -> d.isDefined
             | SymmetricTriangular d -> d.isDefined
@@ -122,119 +159,126 @@ module Distributions =
         member this.nextSeed() = 
             match this with
             | Delta d -> d.nextSeed()
+            | BiDelta d -> d.nextSeed()
             | Uniform d -> d.nextSeed()
             | Triangular d -> d.nextSeed()
             | SymmetricTriangular d -> d.nextSeed()
 
         member this.scaled newScale =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with scale = newScale }) |> SymmetricTriangular
+            | Delta d -> d.scaled newScale |> Delta
+            | BiDelta d -> d.scaled newScale |> BiDelta
+            | Uniform d -> d.scaled newScale |> Uniform
+            | Triangular d -> d.scaled newScale |> Triangular
+            | SymmetricTriangular d ->  d.scaled newScale |> SymmetricTriangular
 
-        member this.shifted newshift =
+        member this.shifted newShift =
             match this with
-            | Delta d -> DeltaDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Delta
-            | Uniform d -> UniformDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Uniform
-            | Triangular d -> TriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> Triangular
-            | SymmetricTriangular d -> SymmetricTriangularDistribution (d.nextSeed(), { d.distributionParams with shift = newshift }) |> SymmetricTriangular
+            | Delta d -> d.shifted newShift |> Delta
+            | BiDelta d -> d.shifted newShift |> BiDelta
+            | Uniform d -> d.shifted newShift |> Uniform
+            | Triangular d -> d.shifted newShift |> Triangular
+            | SymmetricTriangular d -> d.shifted newShift |> SymmetricTriangular
+
+        member this.thresholded newThreshold =
+            match this with
+            | Delta d -> d.thresholded newThreshold |> Delta
+            | BiDelta d -> d.thresholded newThreshold |> BiDelta
+            | Uniform d -> d.thresholded newThreshold |> Uniform
+            | Triangular d -> d.thresholded newThreshold |> Triangular
+            | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
+
+
+    /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
+    type EeDistribution = 
+        | EeDistribution of Distribution
+
+        member eed.nextDouble() : double = 
+            let (EeDistribution d) = eed
+            max (min (d.nextDouble()) 1.0) (-1.0)
+
+        static member createSymmetricTriangular (seeder : unit -> int) = 
+            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
+
+        static member createBiDelta scale (seeder : unit -> int) = 
+            BiDeltaDistribution(seeder(), { threshold = None; scale = scale; shift = None }) |> BiDelta |> EeDistribution
+
+        static member private getMeanAndWidth mean =
+            match mean with
+            | x when x <= -1.0 -> -1.0, None
+            | x when -1.0 < x && x < 1.0 -> x, min (1.0 - x) (x + 1.0) |> Some
+            | x when x >= 1.0 -> 1.0, None
+            | _ -> 0.0, Some 1.0
+
+        static member private createCenteredDelta (seeder : unit -> int) mean = 
+            let m, _ = EeDistribution.getMeanAndWidth mean
+            DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> Delta |> EeDistribution
+
+        static member private createCentered (seeder : unit -> int) mean = 
+            let m, w = EeDistribution.getMeanAndWidth mean
+
+            match w with
+            | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangular |> EeDistribution
+            | None -> EeDistribution.createCenteredDelta seeder mean
+
+        static member getDeltaEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+            match rate, rateEnant with 
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta seeder |> Some
+            | _ -> None
+
+        static member getCenteredEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+            match rate, rateEnant with 
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | _ -> None
+
+        static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
+
+
+    type EeDistributionGetter = 
+        | NoneEeGetter
+        | DeltaEeDistributionGetter
+        | CenteredEeDistributionGetter
+
+        member ee.getDistr = 
+            match ee with 
+            | NoneEeGetter -> (fun _ _ _ -> None)
+            | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
+            | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
 
 
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
-        | RateMultiplierDistribution of Distribution
+        | NoneRateMult
+        | RateMultDistr of Distribution
 
-        member this.nextDouble() = 
-            let (RateMultiplierDistribution d) = this
-            max (d.nextDouble()) 0.0
+        static member private normalize d = d |> Option.bind (fun e -> max e 0.0 |> Some)
 
         member this.nextDoubleOpt() = 
-            let (RateMultiplierDistribution d) = this
-            d.nextDoubleOpt() |> Option.bind (fun e -> max e 0.0 |> Some)
+            match this with 
+            | NoneRateMult -> None
+            | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
 
-        member this.scaled newScale = 
-            let (RateMultiplierDistribution d) = this
-            d.scaled newScale
+        static member createNone = NoneRateMult
 
-        member this.shifted newScale = 
-            let (RateMultiplierDistribution d) = this
-            d.shifted newScale
+        static member createDelta (seeder : unit -> int) threshold rate = 
+            DeltaDistribution (seeder(), { threshold = threshold; scale = None; shift = Some rate }) |> Delta |> RateMultDistr
 
+        static member createTriangular (seeder : unit -> int) threshold rate = 
+            TriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = None }) |> Triangular |> RateMultDistr
 
-    /// Specially formatted distributions to return values only between (-1 and 1).
-    type EeDistribution = 
-        | DeltaEe of DeltaDistribution
-        | SymmetricTriangularEe of SymmetricTriangularDistribution
-
-        member eed.nextDouble() : double = 
-            let v = 
-                match eed with 
-                    | DeltaEe d -> d.nextDouble()
-                    | SymmetricTriangularEe d -> d.nextDouble()
-
-            max (min v 1.0) (-1.0)
-
-        static member createDefault (seeder : unit -> int) = 
-            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangularEe
-
-        static member createCentered (seeder : unit -> int) mean = 
-            let m, w = 
-                match mean with 
-                | x when x <= -1.0 -> -1.0, None
-                | x when -1.0 < x && x < 1.0 -> x, min (1.0 - x) (x + 1.0) |> Some
-                | x when x >= 1.0 -> 1.0, None
-                | _ -> 0.0, Some 1.0
-
-            match w with 
-            | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangularEe
-            | None -> DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> DeltaEe
-
-        static member getDefaultEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
-            match rate, rateEnant with 
-            | Some (ReactionRate r), Some (ReactionRate re) -> 
-                (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
-            | _ -> None
-
-
-    type EeDistributionGetter = 
-        | DefaultEeDistributionGetter
-        | NoneGetter
-
-        member ee.getDistr = 
-            match ee with 
-            | DefaultEeDistributionGetter -> EeDistribution.getDefaultEeDistrOpt
-            | NoneGetter -> (fun _ _ _ -> None)
-
-
-    ///// Specially formatted distributions to return values above 0 and with max / mean at around 1.
-    //type SimDistribution = 
-    //    | DeltaSim of DeltaDistribution
-    //    | SymmetricTriangularSim of SymmetricTriangularDistribution
-
-    //    member sym.nextDouble() : double = 
-    //        let v = 
-    //            match sym with 
-    //            | DeltaSim d -> d.nextDouble()
-    //            | SymmetricTriangularSim d -> d.nextDouble()
-
-    //        max v 0.0
-
-    //    /// Returns values from 0 to 2 with max at 1.
-    //    static member createDefault (seeder : unit -> int) = 
-    //        SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = Some 1.0 }) |> SymmetricTriangularSim
-
-    //type SimDistributionGetter = 
-    //    | DefaultSimDistributionGetter
-
-    //    member sd.getDistr = 
-    //        match sd with 
-    //        | DefaultSimDistributionGetter -> SimDistribution.createDefault
+        static member createSymmetricTriangular (seeder : unit -> int) threshold rate = 
+            SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
 
 
     type RateMultiplierDistributionGetter =
-        | DefaultRateMultiplierDistributionGetter
+        | NoneRateMultDistrGetter
+        | DeltaRateMultDistrGetter
+        | TriangularRateMultDistrGetter
+        | SymmetricTriangularRateMultDistrGetter
 
-        member this.getDistr (d : RateMultiplierDistribution) (rate : double) = 
+        member this.getDistr seeder threshold rate = 
             match this with
-            | DefaultRateMultiplierDistributionGetter -> d.scaled (Some rate) |> RateMultiplierDistribution
+            | NoneRateMultDistrGetter -> RateMultiplierDistribution.createNone
+            | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
+            | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular seeder threshold rate
+            | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular seeder threshold rate

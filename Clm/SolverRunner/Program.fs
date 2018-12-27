@@ -2,9 +2,9 @@
 open Microsoft.FSharp.Core
 open Clm.ModelParams
 open Clm.ModelInit
-open Model.ModelData
-open OdeSolver.Solver
-open OdeSolver.Visualization
+open Clm.Model.ModelData
+open Clm.OdeSolver.Solver
+open Clm.OdeSolver.Visualization
 
 
 [<EntryPoint>]
@@ -48,7 +48,17 @@ let main argv =
     let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
 
     printfn "Calling nSolve..."
-    let result = nSolve tEnd update getInitValues y0
+
+    let p =
+        {
+            modelName = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName
+            tEnd = tEnd
+            g = update
+            h = getInitValues
+            y0 = y0
+        }
+
+    let result = nSolve p
 
     printfn "Plotting."
     let plotter = new Plotter(PlotDataInfo.defaultValue, modelDataParamsWithExtraData, result)

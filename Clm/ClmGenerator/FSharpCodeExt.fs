@@ -51,7 +51,7 @@ module FSharpCodeExt =
         let arrayShift = shift |> increaseShift
 
         let s = 
-            [| for i in 0..(Array2D.length1 a) -> i |]
+            [| for i in 0..((Array2D.length1 a) - 1) -> i |]
             |> Array.map (fun i -> a.[i,*])
             |> Array.map (fun e -> arrayToFSharpString e arrayShift + Nl)
             |> String.concat Nl

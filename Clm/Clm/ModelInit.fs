@@ -33,7 +33,7 @@ module ModelInit =
             {
                 modelDataParams = p
                 distr = distr
-                eeDistr = EeDistribution.createDefault distr.nextSeed
+                eeDistr = EeDistribution.createSymmetricTriangular distr.nextSeed
                 multiplier = None
                 multEe = None
                 useAbundant = a

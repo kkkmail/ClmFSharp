@@ -74,25 +74,24 @@ module FSharpCodeExt =
 
     type DeltaDistribution
         with
-
         member distr.toFSharpCode = "DeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
+    type BiDeltaDistribution
+        with
+        member distr.toFSharpCode = "BiDeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
     type UniformDistribution
         with
-
         member distr.toFSharpCode = "UniformDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
     type TriangularDistribution
         with
-
         member distr.toFSharpCode = "TriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
     type SymmetricTriangularDistribution
         with
-
         member distr.toFSharpCode = "SymmetricTriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
 
@@ -102,6 +101,7 @@ module FSharpCodeExt =
         member this.toFSharpCode =
             match this with
             | Delta d -> d.toFSharpCode + " |> Delta"
+            | BiDelta d -> d.toFSharpCode + " |> BiDelta"
             | Uniform d -> d.toFSharpCode + " |> Uniform"
             | Triangular d -> d.toFSharpCode + " |> Triangular"
             | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"

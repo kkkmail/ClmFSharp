@@ -78,6 +78,16 @@ module Distributions =
         member distr.thresholded newThreshold = distr.createThresholded newThreshold DeltaDistribution
 
 
+    /// Generates only -1 and 1 with equal probability for default parameters.
+    type BiDeltaDistribution (seed : int, p : DistributionParams) = 
+        inherit DistributionBase (seed, p, fun r -> if r.NextDouble() < 0.5 then -1.0 else 1.0)
+
+        static member create seed threshold scale shift = BiDeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
+        member distr.scaled newScale = distr.createScaled newScale BiDeltaDistribution
+        member distr.shifted newShift = distr.createShifted newShift BiDeltaDistribution
+        member distr.thresholded newThreshold = distr.createThresholded newThreshold BiDeltaDistribution
+
+
     /// Generates values on (-1, 1) for default parameters.
     type UniformDistribution (seed : int, p : DistributionParams) = 
         inherit DistributionBase (seed, p, fun r -> 2.0 * (r.NextDouble() - 1.0))
@@ -117,6 +127,7 @@ module Distributions =
 
     type Distribution =
         | Delta of DeltaDistribution
+        | BiDelta of BiDeltaDistribution
         | Uniform of UniformDistribution
         | Triangular of TriangularDistribution
         | SymmetricTriangular of SymmetricTriangularDistribution
@@ -124,6 +135,7 @@ module Distributions =
         member this.nextDouble = 
             match this with
             | Delta d -> d.nextDouble
+            | BiDelta d -> d.nextDouble
             | Uniform d -> d.nextDouble
             | Triangular d -> d.nextDouble
             | SymmetricTriangular d -> d.nextDouble
@@ -131,6 +143,7 @@ module Distributions =
         member this.nextDoubleOpt = 
             match this with
             | Delta d -> d.nextDoubleOpt
+            | BiDelta d -> d.nextDoubleOpt
             | Uniform d -> d.nextDoubleOpt
             | Triangular d -> d.nextDoubleOpt
             | SymmetricTriangular d -> d.nextDoubleOpt
@@ -138,6 +151,7 @@ module Distributions =
         member this.isDefined =
             match this with
             | Delta d -> d.isDefined
+            | BiDelta d -> d.isDefined
             | Uniform d -> d.isDefined
             | Triangular d -> d.isDefined
             | SymmetricTriangular d -> d.isDefined
@@ -145,6 +159,7 @@ module Distributions =
         member this.nextSeed() = 
             match this with
             | Delta d -> d.nextSeed()
+            | BiDelta d -> d.nextSeed()
             | Uniform d -> d.nextSeed()
             | Triangular d -> d.nextSeed()
             | SymmetricTriangular d -> d.nextSeed()
@@ -152,6 +167,7 @@ module Distributions =
         member this.scaled newScale =
             match this with
             | Delta d -> d.scaled newScale |> Delta
+            | BiDelta d -> d.scaled newScale |> BiDelta
             | Uniform d -> d.scaled newScale |> Uniform
             | Triangular d -> d.scaled newScale |> Triangular
             | SymmetricTriangular d ->  d.scaled newScale |> SymmetricTriangular
@@ -159,6 +175,7 @@ module Distributions =
         member this.shifted newShift =
             match this with
             | Delta d -> d.shifted newShift |> Delta
+            | BiDelta d -> d.shifted newShift |> BiDelta
             | Uniform d -> d.shifted newShift |> Uniform
             | Triangular d -> d.shifted newShift |> Triangular
             | SymmetricTriangular d -> d.shifted newShift |> SymmetricTriangular
@@ -166,6 +183,7 @@ module Distributions =
         member this.thresholded newThreshold =
             match this with
             | Delta d -> d.thresholded newThreshold |> Delta
+            | BiDelta d -> d.thresholded newThreshold |> BiDelta
             | Uniform d -> d.thresholded newThreshold |> Uniform
             | Triangular d -> d.thresholded newThreshold |> Triangular
             | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
@@ -179,8 +197,11 @@ module Distributions =
             let (EeDistribution d) = eed
             max (min (d.nextDouble()) 1.0) (-1.0)
 
-        static member createDefault (seeder : unit -> int) = 
+        static member createSymmetricTriangular (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
+
+        static member createBiDelta scale (seeder : unit -> int) = 
+            BiDeltaDistribution(seeder(), { threshold = None; scale = scale; shift = None }) |> BiDelta |> EeDistribution
 
         static member private getMeanAndWidth mean =
             match mean with

@@ -957,6 +957,10 @@ module ReactionRates =
 
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
+        static let defaultRateMultiplierDistr (rnd : Random) threshold mult = 
+            TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
+
+        static let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
         static let defaultEeDistributionGetter = DeltaEeDistributionGetter
         static let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
 
@@ -1023,9 +1027,9 @@ module ReactionRates =
                     {
                         catSynthRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
-                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
-                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                rateMultiplierDistr = defaultRateMultiplierDistr rnd threshold mult
+                                eeForwardDistribution = defaultEeDistribution rnd.Next |> Some
+                                eeBackwardDistribution = defaultEeDistribution rnd.Next |> Some
                             }
                     }
                 synthesisModel = m
@@ -1059,9 +1063,9 @@ module ReactionRates =
                     {
                         catDestrRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
-                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
-                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                rateMultiplierDistr = defaultRateMultiplierDistr rnd threshold mult
+                                eeForwardDistribution = defaultEeDistribution rnd.Next |> Some
+                                eeBackwardDistribution = defaultEeDistribution rnd.Next |> Some
                             }
 
                     }
@@ -1106,9 +1110,9 @@ module ReactionRates =
                     {
                         catLigRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
-                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
-                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                rateMultiplierDistr = defaultRateMultiplierDistr rnd threshold mult
+                                eeForwardDistribution = defaultEeDistribution rnd.Next |> Some
+                                eeBackwardDistribution = defaultEeDistribution rnd.Next |> Some
                             }
                     }
                 ligationModel = m
@@ -1147,9 +1151,9 @@ module ReactionRates =
                     {
                         catRacemRndEeParams =
                             {
-                                rateMultiplierDistr = TriangularDistribution(rnd.Next(), { threshold = threshold; scale = None; shift = None }) |> Triangular |> RateMultDistr
-                                eeForwardDistribution = EeDistribution.createDefault rnd.Next |> Some
-                                eeBackwardDistribution = EeDistribution.createDefault rnd.Next |> Some
+                                rateMultiplierDistr = defaultRateMultiplierDistr rnd threshold mult
+                                eeForwardDistribution = defaultEeDistribution rnd.Next |> Some
+                                eeBackwardDistribution = defaultEeDistribution rnd.Next |> Some
                             }
 
                     }

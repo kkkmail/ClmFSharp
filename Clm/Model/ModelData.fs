@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 891252980
+    let seedValue = 1561763670
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -351,8 +351,6 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4.0 * 17045.7444635482 * x.[5] * x.[51] // a + BbA | sedimentation direct: a + BbA -> 4 Z
-            4.0 * 17045.7444635482 * x.[3] * x.[77] // A + bBa | sedimentation direct: A + bBa -> 4 Z
             -0.0 * x.[2] // Z | destruction: b <-> Z
             0.0 * x.[6] // b | destruction: b <-> Z
             -0.0 * x.[2] // Z | destruction: B <-> Z
@@ -369,7 +367,6 @@ module ModelData =
     // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17045.7444635482 * x.[3] * x.[77] // A + bBa | sedimentation direct: A + bBa -> 4 Z
             0.0 * x.[19] // bA | ligation: b + A <-> bA
             -0.0 * x.[6] * x.[3] // b + A | ligation: b + A <-> bA
             0.0 * x.[38] // Abb | ligation: A + bb <-> Abb
@@ -484,7 +481,6 @@ module ModelData =
     // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17045.7444635482 * x.[5] * x.[51] // a + BbA | sedimentation direct: a + BbA -> 4 Z
             0.0 * x.[13] // Ba | ligation: B + a <-> Ba
             -0.0 * x.[4] * x.[5] // B + a | ligation: B + a <-> Ba
             0.0 * x.[60] // aBB | ligation: a + BB <-> aBB
@@ -1119,7 +1115,6 @@ module ModelData =
     // 51 - BbA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17045.7444635482 * x.[5] * x.[51] // a + BbA | sedimentation direct: a + BbA -> 4 Z
             -0.0 * x.[51] // BbA | ligation: B + bA <-> BbA
             0.0 * x.[4] * x.[19] // B + bA | ligation: B + bA <-> BbA
         |]
@@ -1354,7 +1349,6 @@ module ModelData =
     // 77 - bBa
     let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17045.7444635482 * x.[3] * x.[77] // A + bBa | sedimentation direct: A + bBa -> 4 Z
             -0.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
             0.0 * x.[6] * x.[13] // b + Ba | ligation: b + Ba <-> bBa
         |]
@@ -1727,18 +1721,18 @@ module ModelData =
                             fileStructureVersionNumber = "1.4.0.0"
                             versionNumber = "1.4.0.0"
                             seedValue = seedValue
-                            modelName = "20181226_002"
+                            modelName = "20181226_001"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
-                            updateAllModels = false
-                            allResultsFile = ""
+                            updateAllModels = true
+                            allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Model\AllResults.fs"
                         }
 
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(1771124820, { threshold = None; scale = None; shift = None }) |> Delta
+                                synthesisDistribution = DeltaDistribution(1535808504, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1748,16 +1742,16 @@ module ModelData =
                             {
                                 catSynthRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(569898482, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = SymmetricTriangularDistribution(1078836715, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(428410852, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(133609752, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = SymmetricTriangularDistribution(353994536, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(203551817, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
                                 }
                             }
                             |> CatSynthRndParam
                             |> CatalyticSynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(2104952449, { threshold = None; scale = None; shift = None }) |> Delta
+                                destructionDistribution = DeltaDistribution(705267423, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -1767,9 +1761,9 @@ module ModelData =
                             {
                                 catDestrRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(1010380539, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = SymmetricTriangularDistribution(1927047223, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
-                                    eeBackwardDistribution = SymmetricTriangularDistribution(1987748247, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(1211534244, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = SymmetricTriangularDistribution(121350976, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
+                                    eeBackwardDistribution = SymmetricTriangularDistribution(1812411326, { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution |> Some
                                 }
                             }
                             |> CatDestrRndParam
@@ -1782,7 +1776,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simBaseDistribution = UniformDistribution(283353138, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
+                                simBaseDistribution = UniformDistribution(1870681015, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -1792,7 +1786,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.TwoAminoAcids
-                                simBaseDistribution = UniformDistribution(1805353739, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
+                                simBaseDistribution = UniformDistribution(643879647, { threshold = Some 0.3; scale = None; shift = None }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -1801,7 +1795,7 @@ module ModelData =
                             |> CatalyticDestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(1667996887, { threshold = None; scale = None; shift = None }) |> Delta
+                                ligationDistribution = DeltaDistribution(882242312, { threshold = None; scale = None; shift = None }) |> Delta
                                 forwardScale = Some 1.0
                                 backwardScale = Some 1.0
                             }
@@ -1809,7 +1803,7 @@ module ModelData =
                             |> LigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(480698291, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(1911881595, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
                                 forwardScale = Some 10000.0
                             }
                             |> SedDirRndParam
@@ -1846,7 +1840,6 @@ module ModelData =
                     (SynthesisName, 4)
                     (DestructionName, 4)
                     (LigationName, 78)
-                    (SedimentationDirectName, 2)
                 ]
         }
 

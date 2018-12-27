@@ -427,6 +427,8 @@ module ClmModel =
                             numberOfSubstances = " + allSubst.Length.ToString() + @"
                             numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
+                            updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
+                            allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                         }
 
                     allParams = 

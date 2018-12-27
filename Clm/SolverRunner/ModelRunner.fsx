@@ -5,11 +5,12 @@ printfn "Starting..."
 open System
 open Microsoft.FSharp.Core
 open Clm.ModelInit
-open Model.ModelData
-open OdeSolver.Solver
-open OdeSolver.Visualization
+open Clm.Model.ModelData
+open Clm.OdeSolver.Solver
+open Clm.OdeSolver.Visualization
+open Clm.OdeSolver.ResultSerialization
 //===========================================================
-let useResultsFolder = false
+let useResultsFolder = true
 
 let y0 = 20.0
 let tEnd = 10000.0
@@ -38,4 +39,6 @@ plotter.plotAminoAcids()
 plotter.plotTotalSubst()
 plotter.plotEnantiomericExcess()
 printfn "Completed."
+//===========================================================
+if useResultsFolder then saveResults modelDataParamsWithExtraData.modelDataParams.modelInfo.allResultsFile result
 //===========================================================

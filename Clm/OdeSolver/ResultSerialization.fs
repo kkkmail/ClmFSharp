@@ -1,4 +1,4 @@
-﻿namespace OdeSolver
+﻿namespace Clm.OdeSolver
 
 open System
 open System.IO

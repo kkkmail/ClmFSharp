@@ -14,7 +14,7 @@ open Clm.VersionInfo
 open Clm.Substances
 open Clm.ReactionRates
 open Clm.DataLocation
-open ClmGenerator.ClmModel
+open Clm.Generator.ClmModel
 //===========================================================
 let updateAllModels = true
 

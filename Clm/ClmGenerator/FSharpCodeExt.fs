@@ -1,4 +1,4 @@
-﻿namespace ClmGenerator
+﻿namespace Clm.Generator
 
 open Clm.Distributions
 open Clm.ReactionRates
@@ -12,13 +12,6 @@ module FSharpCodeExt =
     let increaseShift shift = shift + "    "
 
 
-    let doubleFSharpString (d : double) = 
-        let s = d.ToString()
-        match s.Contains(".") with
-        | true -> s
-        | false -> s + ".0"
-
-
     let toFloat (s : string) = 
         match s.Contains(".") with 
         | true -> s
@@ -28,10 +21,35 @@ module FSharpCodeExt =
             | false -> s + ".0"
 
 
+    let doubleFSharpString (d : double) = d.ToString() |> toFloat
+        //let s = d.ToString()
+        //match s.Contains(".") with
+        //| true -> s
+        //| false -> s + ".0"
+
+
     let doubleOptFSharpString (d : double option) = 
         match d with 
         | Some v -> "Some " + (v.ToString() |> toFloat)
         | None -> "None"
+
+
+    let arrayToFSharpString (a : double[]) (shift : string) = 
+        let s = 
+            a
+            |> Array.map (fun e -> doubleFSharpString e)
+            |> String.concat "; "
+        shift + "[| " + s + " |]"
+
+
+    let array2DToFSharpString (a : double[,]) (shift : string) = 
+        let s = 
+            a
+            |> Array.map (fun e -> e)
+            //|> String.concat "; "
+
+        //shift + "[| " + s + " |]"
+        0
 
 
     type DistributionParams

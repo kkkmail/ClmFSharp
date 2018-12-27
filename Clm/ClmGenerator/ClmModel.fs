@@ -1,4 +1,4 @@
-﻿namespace ClmGenerator
+﻿namespace Clm.Generator
 
 open System
 open System.IO
@@ -12,7 +12,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
 
-open ClmGenerator.FSharpCodeExt
+open Clm.Generator.FSharpCodeExt
 
 module ClmModel = 
 

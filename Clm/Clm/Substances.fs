@@ -344,8 +344,9 @@ module Substances =
             | PeptideChain p -> p.aminoAcids
             | Sum _ -> []
 
-        //static member food = AchiralSubst.Food |> Simple
-        //static member waste = AchiralSubst.Waste |> Simple
+        static member food = AchiralSubst.Food |> Simple
+        static member waste = AchiralSubst.Waste |> Simple
+        static member abundant = AchiralSubst.Abundant |> Simple
 
         static member allSimple = 
             AchiralSubst.all

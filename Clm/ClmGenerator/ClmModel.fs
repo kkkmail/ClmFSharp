@@ -408,7 +408,7 @@ module ClmModel =
                 |> List.map (fun s -> "                " + (s.atoms.ToString()) + ".0 * " + (x s) + " * " + (x s) + " // " + (substToString s))
                 |> String.concat nl
 
-            let sumCode = "        let " + xSumName + " = (" + xName + " |> Array.sum) - " + xName + ".[0]" + nl + nl
+            let sumCode = "        let " + xSumName + " = (" + xName + " |> Array.sum) - (" + (x Substance.food) + " + " + (x Substance.waste) + " + " + (x Substance.abundant) + ")" + nl + nl
             let sumCodeN = "        let " + xSumNameN + " = " + nl + "            [|" + nl + sc + nl + "            |]" + nl + "            |> Array.sum" + nl + nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + nl + "            [|" + nl + sc2 + nl + "            |]" + nl + "            |> Array.sum" + nl
 
@@ -495,8 +495,10 @@ module ClmModel =
                 updateOuterCode
                 @
                 [ 
-                    "    let update (x : array<double>) : array<double> = " + nl
-                    "        // printfn \"update::Starting...\"" + nl
+                    nl
+                    "    let update (xRaw : array<double>) : array<double> = "
+                    "        // printfn \"update::Starting...\""
+                    "        let x = xRaw |> Array.map (fun e -> max e 0.0)"
                     sumCode
                     sumCodeN
                     sumSquaredCodeN

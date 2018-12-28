@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1271013664
+    let seedValue = 1352682477
     let numberOfAminoAcids = NumberOfAminoAcids.EightAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 4371
@@ -16553,126 +16553,70 @@ module ModelData =
     // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            22.6065858567858 * x.[18] * x.[2248] // h + HdF | catalytic synthesis: Y + HdF <-> h + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> h + HdF
-            22.6065858567858 * x.[10] * x.[4176] // H + hDf | catalytic synthesis: Y + hDf <-> H + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> H + hDf
-            0.579656047609891 * x.[18] * x.[4176] // h + hDf | catalytic synthesis: Y + hDf <-> h + hDf
-            -0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> h + hDf
-            0.579656047609891 * x.[10] * x.[2248] // H + HdF | catalytic synthesis: Y + HdF <-> H + HdF
-            -0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> H + HdF
-            22.6065858567858 * x.[17] * x.[2248] // g + HdF | catalytic synthesis: Y + HdF <-> g + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> g + HdF
-            22.6065858567858 * x.[9] * x.[4176] // G + hDf | catalytic synthesis: Y + hDf <-> G + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> G + hDf
-            13.295505497826 * x.[17] * x.[1221] // g + DdC | catalytic synthesis: Y + DdC <-> g + DdC
-            -13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> g + DdC
-            13.295505497826 * x.[9] * x.[3149] // G + dDc | catalytic synthesis: Y + dDc <-> G + dDc
-            -13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> G + dDc
-            1.8540564716286 * x.[17] * x.[472] // g + AeF | catalytic synthesis: Y + AeF <-> g + AeF
-            -0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> g + AeF
-            1.8540564716286 * x.[9] * x.[2400] // G + aEf | catalytic synthesis: Y + aEf <-> G + aEf
-            -0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> G + aEf
-            0.579656047609891 * x.[17] * x.[4176] // g + hDf | catalytic synthesis: Y + hDf <-> g + hDf
-            -0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> g + hDf
-            0.579656047609891 * x.[9] * x.[2248] // G + HdF | catalytic synthesis: Y + HdF <-> G + HdF
-            -0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> G + HdF
-            0.340910397380155 * x.[17] * x.[3149] // g + dDc | catalytic synthesis: Y + dDc <-> g + dDc
-            -0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> g + dDc
-            0.340910397380155 * x.[9] * x.[1221] // G + DdC | catalytic synthesis: Y + DdC <-> G + DdC
-            -0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> G + DdC
-            0.0475399095289384 * x.[17] * x.[2400] // g + aEf | catalytic synthesis: Y + aEf <-> g + aEf
-            -1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> g + aEf
-            0.0475399095289384 * x.[9] * x.[472] // G + AeF | catalytic synthesis: Y + AeF <-> G + AeF
-            -1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> G + AeF
-            22.6065858567858 * x.[16] * x.[2248] // f + HdF | catalytic synthesis: Y + HdF <-> f + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> f + HdF
-            22.6065858567858 * x.[8] * x.[4176] // F + hDf | catalytic synthesis: Y + hDf <-> F + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> F + hDf
-            13.295505497826 * x.[16] * x.[1221] // f + DdC | catalytic synthesis: Y + DdC <-> f + DdC
-            -13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> f + DdC
-            13.295505497826 * x.[8] * x.[3149] // F + dDc | catalytic synthesis: Y + dDc <-> F + dDc
-            -13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> F + dDc
-            0.256034647543398 * x.[16] * x.[933] // f + CbC | catalytic synthesis: Y + CbC <-> f + CbC
-            -0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> f + CbC
-            0.256034647543398 * x.[8] * x.[2861] // F + cBc | catalytic synthesis: Y + cBc <-> F + cBc
-            -0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> F + cBc
-            0.579656047609891 * x.[16] * x.[4176] // f + hDf | catalytic synthesis: Y + hDf <-> f + hDf
-            -0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> f + hDf
-            0.579656047609891 * x.[8] * x.[2248] // F + HdF | catalytic synthesis: Y + HdF <-> F + HdF
-            -0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> F + HdF
-            0.340910397380155 * x.[16] * x.[3149] // f + dDc | catalytic synthesis: Y + dDc <-> f + dDc
-            -0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> f + dDc
-            0.340910397380155 * x.[8] * x.[1221] // F + DdC | catalytic synthesis: Y + DdC <-> F + DdC
-            -0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> F + DdC
-            9.98535125419251 * x.[16] * x.[2861] // f + cBc | catalytic synthesis: Y + cBc <-> f + cBc
-            -9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> f + cBc
-            9.98535125419251 * x.[8] * x.[933] // F + CbC | catalytic synthesis: Y + CbC <-> F + CbC
-            -9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> F + CbC
-            22.6065858567858 * x.[14] * x.[2248] // d + HdF | catalytic synthesis: Y + HdF <-> d + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> d + HdF
-            22.6065858567858 * x.[6] * x.[4176] // D + hDf | catalytic synthesis: Y + hDf <-> D + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> D + hDf
-            0.256034647543398 * x.[14] * x.[933] // d + CbC | catalytic synthesis: Y + CbC <-> d + CbC
-            -0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> d + CbC
-            0.256034647543398 * x.[6] * x.[2861] // D + cBc | catalytic synthesis: Y + cBc <-> D + cBc
-            -0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> D + cBc
-            1.8540564716286 * x.[14] * x.[472] // d + AeF | catalytic synthesis: Y + AeF <-> d + AeF
-            -0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> d + AeF
-            1.8540564716286 * x.[6] * x.[2400] // D + aEf | catalytic synthesis: Y + aEf <-> D + aEf
-            -0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> D + aEf
-            0.579656047609891 * x.[14] * x.[4176] // d + hDf | catalytic synthesis: Y + hDf <-> d + hDf
-            -0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> d + hDf
-            0.579656047609891 * x.[6] * x.[2248] // D + HdF | catalytic synthesis: Y + HdF <-> D + HdF
-            -0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> D + HdF
-            9.98535125419251 * x.[14] * x.[2861] // d + cBc | catalytic synthesis: Y + cBc <-> d + cBc
-            -9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> d + cBc
-            9.98535125419251 * x.[6] * x.[933] // D + CbC | catalytic synthesis: Y + CbC <-> D + CbC
-            -9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> D + CbC
-            0.0475399095289384 * x.[14] * x.[2400] // d + aEf | catalytic synthesis: Y + aEf <-> d + aEf
-            -1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> d + aEf
-            0.0475399095289384 * x.[6] * x.[472] // D + AeF | catalytic synthesis: Y + AeF <-> D + AeF
-            -1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> D + AeF
-            22.6065858567858 * x.[12] * x.[2248] // b + HdF | catalytic synthesis: Y + HdF <-> b + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> b + HdF
-            22.6065858567858 * x.[4] * x.[4176] // B + hDf | catalytic synthesis: Y + hDf <-> B + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> B + hDf
-            0.579656047609891 * x.[12] * x.[4176] // b + hDf | catalytic synthesis: Y + hDf <-> b + hDf
-            -0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> b + hDf
-            0.579656047609891 * x.[4] * x.[2248] // B + HdF | catalytic synthesis: Y + HdF <-> B + HdF
-            -0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> B + HdF
-            22.6065858567858 * x.[11] * x.[2248] // a + HdF | catalytic synthesis: Y + HdF <-> a + HdF
-            -22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> a + HdF
-            22.6065858567858 * x.[3] * x.[4176] // A + hDf | catalytic synthesis: Y + hDf <-> A + hDf
-            -22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> A + hDf
-            13.295505497826 * x.[11] * x.[1221] // a + DdC | catalytic synthesis: Y + DdC <-> a + DdC
-            -13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> a + DdC
-            13.295505497826 * x.[3] * x.[3149] // A + dDc | catalytic synthesis: Y + dDc <-> A + dDc
-            -13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> A + dDc
-            0.256034647543398 * x.[11] * x.[933] // a + CbC | catalytic synthesis: Y + CbC <-> a + CbC
-            -0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> a + CbC
-            0.256034647543398 * x.[3] * x.[2861] // A + cBc | catalytic synthesis: Y + cBc <-> A + cBc
-            -0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> A + cBc
-            1.8540564716286 * x.[11] * x.[472] // a + AeF | catalytic synthesis: Y + AeF <-> a + AeF
-            -0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> a + AeF
-            1.8540564716286 * x.[3] * x.[2400] // A + aEf | catalytic synthesis: Y + aEf <-> A + aEf
-            -0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> A + aEf
-            0.579656047609892 * x.[11] * x.[4176] // a + hDf | catalytic synthesis: Y + hDf <-> a + hDf
-            -0.579656047609892 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> a + hDf
-            0.579656047609892 * x.[3] * x.[2248] // A + HdF | catalytic synthesis: Y + HdF <-> A + HdF
-            -0.579656047609892 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> A + HdF
-            0.340910397380155 * x.[11] * x.[3149] // a + dDc | catalytic synthesis: Y + dDc <-> a + dDc
-            -0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> a + dDc
-            0.340910397380155 * x.[3] * x.[1221] // A + DdC | catalytic synthesis: Y + DdC <-> A + DdC
-            -0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> A + DdC
-            9.98535125419251 * x.[11] * x.[2861] // a + cBc | catalytic synthesis: Y + cBc <-> a + cBc
-            -9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> a + cBc
-            9.98535125419251 * x.[3] * x.[933] // A + CbC | catalytic synthesis: Y + CbC <-> A + CbC
-            -9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> A + CbC
-            0.0475399095289384 * x.[11] * x.[2400] // a + aEf | catalytic synthesis: Y + aEf <-> a + aEf
-            -1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> a + aEf
-            0.0475399095289384 * x.[3] * x.[472] // A + AeF | catalytic synthesis: Y + AeF <-> A + AeF
-            -1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> A + AeF
+            52.6049630010652 * x.[16] * x.[1549] // f + Ehc | catalytic synthesis: Y + Ehc <-> f + Ehc
+            -1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> f + Ehc
+            52.6049630010652 * x.[8] * x.[3461] // F + eHC | catalytic synthesis: Y + eHC <-> F + eHC
+            -1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> F + eHC
+            1.34884520515552 * x.[16] * x.[3461] // f + eHC | catalytic synthesis: Y + eHC <-> f + eHC
+            -52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> f + eHC
+            1.34884520515552 * x.[8] * x.[1549] // F + Ehc | catalytic synthesis: Y + Ehc <-> F + Ehc
+            -52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> F + Ehc
+            50.2182251982423 * x.[16] * x.[89] // f + EG | catalytic synthesis: Y + EG <-> f + EG
+            -1.28764679995494 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> f + EG
+            50.2182251982423 * x.[8] * x.[225] // F + eg | catalytic synthesis: Y + eg <-> F + eg
+            -1.28764679995494 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> F + eg
+            1.28764679995494 * x.[16] * x.[225] // f + eg | catalytic synthesis: Y + eg <-> f + eg
+            -50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> f + eg
+            1.28764679995494 * x.[8] * x.[89] // F + EG | catalytic synthesis: Y + EG <-> F + EG
+            -50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> F + EG
+            5.32745698673349 * x.[13] * x.[676] // c + BbB | catalytic synthesis: Y + BbB <-> c + BbB
+            -5.32745698673349 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> c + BbB
+            5.32745698673349 * x.[5] * x.[2604] // C + bBb | catalytic synthesis: Y + bBb <-> C + bBb
+            -5.32745698673349 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> C + bBb
+            0.136601461198294 * x.[13] * x.[2604] // c + bBb | catalytic synthesis: Y + bBb <-> c + bBb
+            -0.136601461198294 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> c + bBb
+            0.136601461198294 * x.[5] * x.[676] // C + BbB | catalytic synthesis: Y + BbB <-> C + BbB
+            -0.136601461198294 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> C + BbB
+            50.2182251982423 * x.[13] * x.[89] // c + EG | catalytic synthesis: Y + EG <-> c + EG
+            -1.28764679995494 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> c + EG
+            50.2182251982423 * x.[5] * x.[225] // C + eg | catalytic synthesis: Y + eg <-> C + eg
+            -1.28764679995494 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> C + eg
+            1.28764679995494 * x.[13] * x.[225] // c + eg | catalytic synthesis: Y + eg <-> c + eg
+            -50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> c + eg
+            1.28764679995494 * x.[5] * x.[89] // C + EG | catalytic synthesis: Y + EG <-> C + EG
+            -50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> C + EG
+            52.6049630010652 * x.[12] * x.[1549] // b + Ehc | catalytic synthesis: Y + Ehc <-> b + Ehc
+            -1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> b + Ehc
+            52.6049630010652 * x.[4] * x.[3461] // B + eHC | catalytic synthesis: Y + eHC <-> B + eHC
+            -1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> B + eHC
+            1.34884520515552 * x.[12] * x.[3461] // b + eHC | catalytic synthesis: Y + eHC <-> b + eHC
+            -52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> b + eHC
+            1.34884520515552 * x.[4] * x.[1549] // B + Ehc | catalytic synthesis: Y + Ehc <-> B + Ehc
+            -52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> B + Ehc
+            52.6049630010652 * x.[11] * x.[1549] // a + Ehc | catalytic synthesis: Y + Ehc <-> a + Ehc
+            -1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> a + Ehc
+            52.6049630010652 * x.[3] * x.[3461] // A + eHC | catalytic synthesis: Y + eHC <-> A + eHC
+            -1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> A + eHC
+            5.32745698673349 * x.[11] * x.[676] // a + BbB | catalytic synthesis: Y + BbB <-> a + BbB
+            -5.32745698673349 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> a + BbB
+            5.32745698673349 * x.[3] * x.[2604] // A + bBb | catalytic synthesis: Y + bBb <-> A + bBb
+            -5.32745698673349 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> A + bBb
+            1.34884520515552 * x.[11] * x.[3461] // a + eHC | catalytic synthesis: Y + eHC <-> a + eHC
+            -52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> a + eHC
+            1.34884520515552 * x.[3] * x.[1549] // A + Ehc | catalytic synthesis: Y + Ehc <-> A + Ehc
+            -52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> A + Ehc
+            0.136601461198295 * x.[11] * x.[2604] // a + bBb | catalytic synthesis: Y + bBb <-> a + bBb
+            -0.136601461198295 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> a + bBb
+            0.136601461198295 * x.[3] * x.[676] // A + BbB | catalytic synthesis: Y + BbB <-> A + BbB
+            -0.136601461198295 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> A + BbB
+            50.2182251982423 * x.[11] * x.[89] // a + EG | catalytic synthesis: Y + EG <-> a + EG
+            -1.28764679995493 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> a + EG
+            50.2182251982423 * x.[3] * x.[225] // A + eg | catalytic synthesis: Y + eg <-> A + eg
+            -1.28764679995493 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> A + eg
+            1.28764679995493 * x.[11] * x.[225] // a + eg | catalytic synthesis: Y + eg <-> a + eg
+            -50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> a + eg
+            1.28764679995493 * x.[3] * x.[89] // A + EG | catalytic synthesis: Y + EG <-> A + EG
+            -50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> A + EG
             0.001 * x.[18] // h | synthesis: Y <-> h
             -0.001 * x.[1] // Y | synthesis: Y <-> h
             0.001 * x.[10] // H | synthesis: Y <-> H
@@ -16713,280 +16657,270 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            6.0 * 28282.0449571943 * x.[4235] * x.[2276] // hHa + HfB | sedimentation direct: hHa + HfB -> 6 Z
-            6.0 * 28282.0449571943 * x.[2307] * x.[4204] // HhA + hFb | sedimentation direct: HhA + hFb -> 6 Z
-            6.0 * 14976.6916743637 * x.[4207] * x.[1330] // hFe + EBh | sedimentation direct: hFe + EBh -> 6 Z
-            6.0 * 14976.6916743637 * x.[2279] * x.[3498] // HfE + ebH | sedimentation direct: HfE + ebH -> 6 Z
-            6.0 * 7357.42790688303 * x.[4162] * x.[2036] // hCh + GgB | sedimentation direct: hCh + GgB -> 6 Z
-            6.0 * 7357.42790688303 * x.[2234] * x.[3964] // HcH + gGb | sedimentation direct: HcH + gGb -> 6 Z
-            6.0 * 14926.1988077241 * x.[4137] * x.[4219] // hBG + hGa | sedimentation direct: hBG + hGa -> 6 Z
-            6.0 * 14926.1988077241 * x.[2225] * x.[2291] // Hbg + HgA | sedimentation direct: Hbg + HgA -> 6 Z
-            6.0 * 3228.11171224934 * x.[4122] * x.[1918] // hAH + GGd | sedimentation direct: hAH + GGd -> 6 Z
-            6.0 * 3228.11171224934 * x.[2210] * x.[4086] // Hah + ggD | sedimentation direct: Hah + ggD -> 6 Z
-            6.0 * 7935.60093491373 * x.[4357] * x.[4223] // hhC + hGe | sedimentation direct: hhC + hGe -> 6 Z
-            6.0 * 7935.60093491373 * x.[2189] * x.[2295] // HHc + HgE | sedimentation direct: HHc + HgE -> 6 Z
-            6.0 * 7572.13188618575 * x.[4345] * x.[1519] // hgG + Efe | sedimentation direct: hgG + Efe -> 6 Z
-            6.0 * 7572.13188618575 * x.[2177] * x.[3431] // HGg + eFE | sedimentation direct: HGg + eFE -> 6 Z
-            6.0 * 3072.20503664969 * x.[4342] * x.[1375] // hgD + EEe | sedimentation direct: hgD + EEe -> 6 Z
-            6.0 * 3072.20503664969 * x.[2174] * x.[3543] // HGd + eeE | sedimentation direct: HGd + eeE -> 6 Z
-            6.0 * 7506.17407629085 * x.[4341] * x.[654] // hgC + BHd | sedimentation direct: hgC + BHd -> 6 Z
-            6.0 * 7506.17407629085 * x.[2173] * x.[2822] // HGc + bhD | sedimentation direct: HGc + bhD -> 6 Z
-            6.0 * 7721.82294306637 * x.[4298] * x.[1403] // hdH + EGa | sedimentation direct: hdH + EGa -> 6 Z
-            6.0 * 7721.82294306637 * x.[2130] * x.[3571] // HDh + egA | sedimentation direct: HDh + egA -> 6 Z
-            6.0 * 16748.3478713221 * x.[4279] * x.[1767] // hcE + FfE | sedimentation direct: hcE + FfE -> 6 Z
-            6.0 * 16748.3478713221 * x.[2111] * x.[3695] // HCe + fFe | sedimentation direct: HCe + fFe -> 6 Z
-            6.0 * 6665.91489135737 * x.[3923] * x.[1821] // gEA + GAc | sedimentation direct: gEA + GAc -> 6 Z
-            6.0 * 6665.91489135737 * x.[2011] * x.[3989] // Gea + gaC | sedimentation direct: Gea + gaC -> 6 Z
-            6.0 * 25216.8894039707 * x.[4032] * x.[1371] // gcf + EEa | sedimentation direct: gcf + EEa -> 6 Z
-            6.0 * 25216.8894039707 * x.[1848] * x.[3539] // GCF + eeA | sedimentation direct: GCF + eeA -> 6 Z
-            6.0 * 6515.8139355917 * x.[4007] * x.[605] // gbE + BEc | sedimentation direct: gbE + BEc -> 6 Z
-            6.0 * 6515.8139355917 * x.[1839] * x.[2773] // GBe + beC | sedimentation direct: GBe + beC -> 6 Z
-            6.0 * 6063.44011286894 * x.[3715] * x.[983] // fHA + CeE | sedimentation direct: fHA + CeE -> 6 Z
-            6.0 * 6063.44011286894 * x.[1803] * x.[2911] // Fha + cEe | sedimentation direct: Fha + cEe -> 6 Z
-            6.0 * 11097.989453503 * x.[3665] * x.[1037] // fDg + Chc | sedimentation direct: fDg + Chc -> 6 Z
-            6.0 * 11097.989453503 * x.[1737] * x.[2949] // FdG + cHC | sedimentation direct: FdG + cHC -> 6 Z
-            6.0 * 19036.0188379219 * x.[3615] * x.[1224] // fAe + DdF | sedimentation direct: fAe + DdF -> 6 Z
-            6.0 * 19036.0188379219 * x.[1687] * x.[3152] // FaE + dDf | sedimentation direct: FaE + dDf -> 6 Z
-            6.0 * 6106.8482849167 * x.[3770] * x.[4337] // fcH + hfg | sedimentation direct: fcH + hfg -> 6 Z
-            6.0 * 6106.8482849167 * x.[1602] * x.[2153] // FCh + HFG | sedimentation direct: FCh + HFG -> 6 Z
-            6.0 * 7269.90537369658 * x.[3426] * x.[1861] // eEh + GDC | sedimentation direct: eEh + GDC -> 6 Z
-            6.0 * 7269.90537369658 * x.[1498] * x.[4045] // EeH + gdc | sedimentation direct: EeH + gdc -> 6 Z
-            6.0 * 180.269135969094 * x.[3559] * x.[315] // efE + ACa | sedimentation direct: efE + ACa -> 6 Z
-            6.0 * 180.269135969094 * x.[1391] * x.[2483] // EFe + acA | sedimentation direct: EFe + acA -> 6 Z
-            6.0 * 25924.9397122055 * x.[3546] * x.[3934] // eeH + gEd | sedimentation direct: eeH + gEd -> 6 Z
-            6.0 * 25924.9397122055 * x.[1378] * x.[2006] // EEh + GeD | sedimentation direct: EEh + GeD -> 6 Z
-            6.0 * 14613.3568430879 * x.[3553] * x.[3766] // eeg + fcD | sedimentation direct: eeg + fcD -> 6 Z
-            6.0 * 14613.3568430879 * x.[1369] * x.[1598] // EEG + FCd | sedimentation direct: EEG + FCd -> 6 Z
-            6.0 * 24710.7040503995 * x.[3535] * x.[1729] // ede + Fcg | sedimentation direct: ede + Fcg -> 6 Z
-            6.0 * 24710.7040503995 * x.[1351] * x.[3641] // EDE + fCG | sedimentation direct: EDE + fCG -> 6 Z
-            6.0 * 13621.9972958145 * x.[3514] * x.[566] // ecH + BCD | sedimentation direct: ecH + BCD -> 6 Z
-            6.0 * 13621.9972958145 * x.[1346] * x.[2750] // ECh + bcd | sedimentation direct: ECh + bcd -> 6 Z
-            6.0 * 9068.52382428667 * x.[3165] * x.[3158] // dEc + dED | sedimentation direct: dEc + dED -> 6 Z
-            6.0 * 9068.52382428667 * x.[1237] * x.[1246] // DeC + Ded | sedimentation direct: DeC + Ded -> 6 Z
-            6.0 * 15106.3620393838 * x.[3152] * x.[3791] // dDf + fde | sedimentation direct: dDf + fde -> 6 Z
-            6.0 * 15106.3620393838 * x.[1224] * x.[1607] // DdF + FDE | sedimentation direct: DdF + FDE -> 6 Z
-            6.0 * 1945.99735381805 * x.[3098] * x.[577] // dAH + BCg | sedimentation direct: dAH + BCg -> 6 Z
-            6.0 * 1945.99735381805 * x.[1186] * x.[2745] // Dah + bcG | sedimentation direct: Dah + bcG -> 6 Z
-            6.0 * 12764.1386400984 * x.[3095] * x.[3769] // dAE + fcG | sedimentation direct: dAE + fcG -> 6 Z
-            6.0 * 12764.1386400984 * x.[1183] * x.[1601] // Dae + FCg | sedimentation direct: Dae + FCg -> 6 Z
-            6.0 * 7139.6781251637 * x.[3337] * x.[3872] // dhG + gAf | sedimentation direct: dhG + gAf -> 6 Z
-            6.0 * 7139.6781251637 * x.[1169] * x.[1944] // DHg + GaF | sedimentation direct: DHg + GaF -> 6 Z
-            6.0 * 6048.99318882237 * x.[3328] * x.[1131] // dgf + DFa | sedimentation direct: dgf + DFa -> 6 Z
-            6.0 * 6048.99318882237 * x.[1144] * x.[3299] // DGF + dfA | sedimentation direct: DGF + dfA -> 6 Z
-            6.0 * 431.76773374494 * x.[3305] * x.[1281] // dfG + Dgg | sedimentation direct: dfG + Dgg -> 6 Z
-            6.0 * 431.76773374494 * x.[1137] * x.[3193] // DFg + dGG | sedimentation direct: DFg + dGG -> 6 Z
-            6.0 * 7717.07697685324 * x.[3313] * x.[1736] // dfg + FdF | sedimentation direct: dfg + FdF -> 6 Z
-            6.0 * 7717.07697685324 * x.[1129] * x.[3664] // DFG + fDf | sedimentation direct: DFG + fDf -> 6 Z
-            6.0 * 1581.4051065602 * x.[3293] * x.[3536] // dec + edf | sedimentation direct: dec + edf -> 6 Z
-            6.0 * 1581.4051065602 * x.[1109] * x.[1352] // DEC + EDF | sedimentation direct: DEC + EDF -> 6 Z
-            6.0 * 8369.23110619292 * x.[3270] * x.[2082] // ddD + HAh | sedimentation direct: ddD + HAh -> 6 Z
-            6.0 * 8369.23110619292 * x.[1102] * x.[4250] // DDd + haH | sedimentation direct: DDd + haH -> 6 Z
-            6.0 * 17839.3614720962 * x.[3275] * x.[2230] // dda + HcD | sedimentation direct: dda + HcD -> 6 Z
-            6.0 * 17839.3614720962 * x.[1091] * x.[4158] // DDA + hCd | sedimentation direct: DDA + hCd -> 6 Z
-            6.0 * 2054.79400378071 * x.[3226] * x.[2124] // daH + HDb | sedimentation direct: daH + HDb -> 6 Z
-            6.0 * 2054.79400378071 * x.[1058] * x.[4292] // DAh + hdB | sedimentation direct: DAh + hdB -> 6 Z
-            6.0 * 18156.9734792082 * x.[2941] * x.[4239] // cGc + hHe | sedimentation direct: cGc + hHe -> 6 Z
-            6.0 * 18156.9734792082 * x.[1013] * x.[2311] // CgC + HhE | sedimentation direct: CgC + HhE -> 6 Z
-            6.0 * 1497.35731887318 * x.[2908] * x.[1848] // cEb + GCF | sedimentation direct: cEb + GCF -> 6 Z
-            6.0 * 1497.35731887318 * x.[980] * x.[4032] // CeB + gcf | sedimentation direct: CeB + gcf -> 6 Z
-            6.0 * 1227.25443829911 * x.[2889] * x.[3883] // cDG + gBa | sedimentation direct: cDG + gBa -> 6 Z
-            6.0 * 1227.25443829911 * x.[977] * x.[1955] // Cdg + GbA | sedimentation direct: Cdg + GbA -> 6 Z
-            6.0 * 1517.2169490292 * x.[2869] * x.[3824] // cCC + fff | sedimentation direct: cCC + fff -> 6 Z
-            6.0 * 1517.2169490292 * x.[957] * x.[1640] // Ccc + FFF | sedimentation direct: Ccc + FFF -> 6 Z
-            6.0 * 538.290959382864 * x.[2868] * x.[3252] // cCB + dcB | sedimentation direct: cCB + dcB -> 6 Z
-            6.0 * 538.290959382864 * x.[956] * x.[1084] // Ccb + DCb | sedimentation direct: Ccb + DCb -> 6 Z
-            6.0 * 2180.62788451558 * x.[2876] * x.[1829] // cCb + GBC | sedimentation direct: cCb + GBC -> 6 Z
-            6.0 * 2180.62788451558 * x.[948] * x.[4013] // CcB + gbc | sedimentation direct: CcB + gbc -> 6 Z
-            6.0 * 12047.7501937082 * x.[2851] * x.[311] // cBA + ACE | sedimentation direct: cBA + ACE -> 6 Z
-            6.0 * 12047.7501937082 * x.[939] * x.[2495] // Cba + ace | sedimentation direct: Cba + ace -> 6 Z
-            6.0 * 19686.0229377226 * x.[3083] * x.[1904] // cha + GFf | sedimentation direct: cha + GFf -> 6 Z
-            6.0 * 19686.0229377226 * x.[899] * x.[4072] // CHA + gfF | sedimentation direct: CHA + gfF -> 6 Z
-            6.0 * 9307.84876480825 * x.[3064] * x.[3587] // cgF + ehA | sedimentation direct: cgF + ehA -> 6 Z
-            6.0 * 9307.84876480825 * x.[896] * x.[1419] // CGf + EHa | sedimentation direct: CGf + EHa -> 6 Z
-            6.0 * 10727.9444934639 * x.[3067] * x.[2929] // cga + cFg | sedimentation direct: cga + cFg -> 6 Z
-            6.0 * 10727.9444934639 * x.[883] * x.[1001] // CGA + CfG | sedimentation direct: CGA + CfG -> 6 Z
-            6.0 * 10998.458870287 * x.[3034] * x.[3405] // ceH + eDc | sedimentation direct: ceH + eDc -> 6 Z
-            6.0 * 10998.458870287 * x.[866] * x.[1477] // CEh + EdC | sedimentation direct: CEh + EdC -> 6 Z
-            6.0 * 4791.23492110301 * x.[2978] * x.[1378] // cah + EEh | sedimentation direct: cah + EEh -> 6 Z
-            6.0 * 4791.23492110301 * x.[794] * x.[3546] // CAH + eeH | sedimentation direct: CAH + eeH -> 6 Z
-            6.0 * 1468.08571032709 * x.[2674] * x.[2246] // bFh + HdD | sedimentation direct: bFh + HdD -> 6 Z
-            6.0 * 1468.08571032709 * x.[746] * x.[4174] // BfH + hDd | sedimentation direct: BfH + hDd -> 6 Z
-            6.0 * 10153.9404756042 * x.[2630] * x.[4065] // bDD + geg | sedimentation direct: bDD + geg -> 6 Z
-            6.0 * 10153.9404756042 * x.[718] * x.[1881] // Bdd + GEG | sedimentation direct: Bdd + GEG -> 6 Z
-            6.0 * 3393.13651179241 * x.[2618] * x.[570] // bCH + BCH | sedimentation direct: bCH + BCH -> 6 Z
-            6.0 * 3393.13651179241 * x.[706] * x.[2754] // Bch + bch | sedimentation direct: Bch + bch -> 6 Z
-            6.0 * 9147.23280475069 * x.[2823] * x.[2851] // bhE + cBA | sedimentation direct: bhE + cBA -> 6 Z
-            6.0 * 9147.23280475069 * x.[655] * x.[939] // BHe + Cba | sedimentation direct: BHe + Cba -> 6 Z
-            6.0 * 6484.085183082 * x.[2808] * x.[3419] // bgF + eEa | sedimentation direct: bgF + eEa -> 6 Z
-            6.0 * 6484.085183082 * x.[640] * x.[1491] // BGf + EeA | sedimentation direct: BGf + EeA -> 6 Z
-            6.0 * 14647.802392498 * x.[2438] * x.[1516] // aHD + Efb | sedimentation direct: aHD + Efb -> 6 Z
-            6.0 * 14647.802392498 * x.[526] * x.[3428] // Ahd + eFB | sedimentation direct: Ahd + eFB -> 6 Z
-            6.0 * 7574.85028993522 * x.[2435] * x.[492] // aHA + Afb | sedimentation direct: aHA + Afb -> 6 Z
-            6.0 * 7574.85028993522 * x.[523] * x.[2404] // Aha + aFB | sedimentation direct: Aha + aFB -> 6 Z
-            6.0 * 1277.73454437184 * x.[2449] * x.[2684] // aHg + bGb | sedimentation direct: aHg + bGb -> 6 Z
-            6.0 * 1277.73454437184 * x.[521] * x.[756] // AhG + BgB | sedimentation direct: AhG + BgB -> 6 Z
-            6.0 * 2473.41781330885 * x.[2409] * x.[2859] // aFG + cBa | sedimentation direct: aFG + cBa -> 6 Z
-            6.0 * 2473.41781330885 * x.[497] * x.[931] // Afg + CbA | sedimentation direct: Afg + CbA -> 6 Z
-            6.0 * 2163.38989482915 * x.[2386] * x.[627] // aDh + BGA | sedimentation direct: aDh + BGA -> 6 Z
-            6.0 * 2163.38989482915 * x.[458] * x.[2811] // AdH + bga | sedimentation direct: AdH + bga -> 6 Z
-            6.0 * 19455.7118782213 * x.[2369] * x.[3790] // aCg + fdd | sedimentation direct: aCg + fdd -> 6 Z
-            6.0 * 19455.7118782213 * x.[441] * x.[1606] // AcG + FDD | sedimentation direct: AcG + FDD -> 6 Z
-            5.0 * 11638.9194931042 * x.[250] * x.[1698] // gH + Fah | sedimentation direct: gH + Fah -> 5 Z
-            5.0 * 11638.9194931042 * x.[130] * x.[3610] // Gh + fAH | sedimentation direct: Gh + fAH -> 5 Z
-            5.0 * 1055.07463887675 * x.[220] * x.[3623] // eb + fBE | sedimentation direct: eb + fBE -> 5 Z
-            5.0 * 1055.07463887675 * x.[84] * x.[1711] // EB + Fbe | sedimentation direct: EB + Fbe -> 5 Z
-            -0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: h + HBG <-> Z + HBG
-            17.9975576233807 * x.[18] * x.[2089] // h + HBG | catalytic destruction: h + HBG <-> Z + HBG
-            -0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: H + hbg <-> Z + hbg
-            17.9975576233807 * x.[10] * x.[4273] // H + hbg | catalytic destruction: H + hbg <-> Z + hbg
-            -17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: h + hbg <-> Z + hbg
-            0.461475836496941 * x.[18] * x.[4273] // h + hbg | catalytic destruction: h + hbg <-> Z + hbg
-            -17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: H + HBG <-> Z + HBG
-            0.461475836496941 * x.[10] * x.[2089] // H + HBG | catalytic destruction: H + HBG <-> Z + HBG
-            -0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: g + HBG <-> Z + HBG
-            17.9975576233807 * x.[17] * x.[2089] // g + HBG | catalytic destruction: g + HBG <-> Z + HBG
-            -0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: G + hbg <-> Z + hbg
-            17.9975576233807 * x.[9] * x.[4273] // G + hbg | catalytic destruction: G + hbg <-> Z + hbg
-            -1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: g + CgB <-> Z + CgB
-            48.4618788006822 * x.[17] * x.[1012] // g + CgB | catalytic destruction: g + CgB <-> Z + CgB
-            -1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: G + cGb <-> Z + cGb
-            48.4618788006822 * x.[9] * x.[2940] // G + cGb | catalytic destruction: G + cGb <-> Z + cGb
-            -40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: g + AFG <-> Z + AFG
-            1.03507950923558 * x.[17] * x.[361] // g + AFG | catalytic destruction: g + AFG <-> Z + AFG
-            -40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: G + afg <-> Z + afg
-            1.03507950923558 * x.[9] * x.[2545] // G + afg | catalytic destruction: G + afg <-> Z + afg
-            -17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: g + hbg <-> Z + hbg
-            0.461475836496941 * x.[17] * x.[4273] // g + hbg | catalytic destruction: g + hbg <-> Z + hbg
-            -17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: G + HBG <-> Z + HBG
-            0.461475836496941 * x.[9] * x.[2089] // G + HBG | catalytic destruction: G + HBG <-> Z + HBG
-            -48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: g + cGb <-> Z + cGb
-            1.24261227694057 * x.[17] * x.[2940] // g + cGb | catalytic destruction: g + cGb <-> Z + cGb
-            -48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: G + CgB <-> Z + CgB
-            1.24261227694057 * x.[9] * x.[1012] // G + CgB | catalytic destruction: G + CgB <-> Z + CgB
-            -1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: g + afg <-> Z + afg
-            40.3681008601875 * x.[17] * x.[2545] // g + afg | catalytic destruction: g + afg <-> Z + afg
-            -1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: G + AFG <-> Z + AFG
-            40.3681008601875 * x.[9] * x.[361] // G + AFG | catalytic destruction: G + AFG <-> Z + AFG
-            -21.4702535520613 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: f + GEa <-> Z + GEa
-            21.4702535520613 * x.[16] * x.[1883] // f + GEa | catalytic destruction: f + GEa <-> Z + GEa
-            -21.4702535520613 * x.[2] * x.[4051] // Z + geA | catalytic destruction: F + geA <-> Z + geA
-            21.4702535520613 * x.[8] * x.[4051] // F + geA | catalytic destruction: F + geA <-> Z + geA
-            -0.550519321847727 * x.[2] * x.[4051] // Z + geA | catalytic destruction: f + geA <-> Z + geA
-            0.550519321847727 * x.[16] * x.[4051] // f + geA | catalytic destruction: f + geA <-> Z + geA
-            -0.550519321847727 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: F + GEa <-> Z + GEa
-            0.550519321847727 * x.[8] * x.[1883] // F + GEa | catalytic destruction: F + GEa <-> Z + GEa
-            -0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: e + HBG <-> Z + HBG
-            17.9975576233807 * x.[15] * x.[2089] // e + HBG | catalytic destruction: e + HBG <-> Z + HBG
-            -0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: E + hbg <-> Z + hbg
-            17.9975576233807 * x.[7] * x.[4273] // E + hbg | catalytic destruction: E + hbg <-> Z + hbg
-            -0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: e + FFA <-> Z + FFA
-            36.9888981437812 * x.[15] * x.[1635] // e + FFA | catalytic destruction: e + FFA <-> Z + FFA
-            -0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: E + ffa <-> Z + ffa
-            36.9888981437812 * x.[7] * x.[3819] // E + ffa | catalytic destruction: E + ffa <-> Z + ffa
-            -17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: e + hbg <-> Z + hbg
-            0.461475836496941 * x.[15] * x.[4273] // e + hbg | catalytic destruction: e + hbg <-> Z + hbg
-            -17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: E + HBG <-> Z + HBG
-            0.461475836496941 * x.[7] * x.[2089] // E + HBG | catalytic destruction: E + HBG <-> Z + HBG
-            -36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: e + ffa <-> Z + ffa
-            0.948433285737984 * x.[15] * x.[3819] // e + ffa | catalytic destruction: e + ffa <-> Z + ffa
-            -36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: E + FFA <-> Z + FFA
-            0.948433285737984 * x.[7] * x.[1635] // E + FFA | catalytic destruction: E + FFA <-> Z + FFA
-            -0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: d + FFA <-> Z + FFA
-            36.9888981437812 * x.[14] * x.[1635] // d + FFA | catalytic destruction: d + FFA <-> Z + FFA
-            -0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: D + ffa <-> Z + ffa
-            36.9888981437812 * x.[6] * x.[3819] // D + ffa | catalytic destruction: D + ffa <-> Z + ffa
-            -1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: d + CgB <-> Z + CgB
-            48.4618788006822 * x.[14] * x.[1012] // d + CgB | catalytic destruction: d + CgB <-> Z + CgB
-            -1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: D + cGb <-> Z + cGb
-            48.4618788006822 * x.[6] * x.[2940] // D + cGb | catalytic destruction: D + cGb <-> Z + cGb
-            -36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: d + ffa <-> Z + ffa
-            0.948433285737984 * x.[14] * x.[3819] // d + ffa | catalytic destruction: d + ffa <-> Z + ffa
-            -36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: D + FFA <-> Z + FFA
-            0.948433285737984 * x.[6] * x.[1635] // D + FFA | catalytic destruction: D + FFA <-> Z + FFA
-            -48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: d + cGb <-> Z + cGb
-            1.24261227694057 * x.[14] * x.[2940] // d + cGb | catalytic destruction: d + cGb <-> Z + cGb
-            -48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: D + CgB <-> Z + CgB
-            1.24261227694057 * x.[6] * x.[1012] // D + CgB | catalytic destruction: D + CgB <-> Z + CgB
-            -0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: c + FFA <-> Z + FFA
-            36.9888981437812 * x.[13] * x.[1635] // c + FFA | catalytic destruction: c + FFA <-> Z + FFA
-            -0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: C + ffa <-> Z + ffa
-            36.9888981437812 * x.[5] * x.[3819] // C + ffa | catalytic destruction: C + ffa <-> Z + ffa
-            -40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: c + AFG <-> Z + AFG
-            1.03507950923558 * x.[13] * x.[361] // c + AFG | catalytic destruction: c + AFG <-> Z + AFG
-            -40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: C + afg <-> Z + afg
-            1.03507950923558 * x.[5] * x.[2545] // C + afg | catalytic destruction: C + afg <-> Z + afg
-            -36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: c + ffa <-> Z + ffa
-            0.948433285737984 * x.[13] * x.[3819] // c + ffa | catalytic destruction: c + ffa <-> Z + ffa
-            -36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: C + FFA <-> Z + FFA
-            0.948433285737984 * x.[5] * x.[1635] // C + FFA | catalytic destruction: C + FFA <-> Z + FFA
-            -1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: c + afg <-> Z + afg
-            40.3681008601875 * x.[13] * x.[2545] // c + afg | catalytic destruction: c + afg <-> Z + afg
-            -1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: C + AFG <-> Z + AFG
-            40.3681008601875 * x.[5] * x.[361] // C + AFG | catalytic destruction: C + AFG <-> Z + AFG
-            -0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: b + FFA <-> Z + FFA
-            36.9888981437812 * x.[12] * x.[1635] // b + FFA | catalytic destruction: b + FFA <-> Z + FFA
-            -0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: B + ffa <-> Z + ffa
-            36.9888981437812 * x.[4] * x.[3819] // B + ffa | catalytic destruction: B + ffa <-> Z + ffa
-            -40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: b + AFG <-> Z + AFG
-            1.03507950923558 * x.[12] * x.[361] // b + AFG | catalytic destruction: b + AFG <-> Z + AFG
-            -40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: B + afg <-> Z + afg
-            1.03507950923558 * x.[4] * x.[2545] // B + afg | catalytic destruction: B + afg <-> Z + afg
-            -36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: b + ffa <-> Z + ffa
-            0.948433285737984 * x.[12] * x.[3819] // b + ffa | catalytic destruction: b + ffa <-> Z + ffa
-            -36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: B + FFA <-> Z + FFA
-            0.948433285737984 * x.[4] * x.[1635] // B + FFA | catalytic destruction: B + FFA <-> Z + FFA
-            -1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: b + afg <-> Z + afg
-            40.3681008601875 * x.[12] * x.[2545] // b + afg | catalytic destruction: b + afg <-> Z + afg
-            -1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: B + AFG <-> Z + AFG
-            40.3681008601875 * x.[4] * x.[361] // B + AFG | catalytic destruction: B + AFG <-> Z + AFG
-            -0.461475836496943 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: a + HBG <-> Z + HBG
-            17.9975576233807 * x.[11] * x.[2089] // a + HBG | catalytic destruction: a + HBG <-> Z + HBG
-            -0.461475836496943 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: A + hbg <-> Z + hbg
-            17.9975576233807 * x.[3] * x.[4273] // A + hbg | catalytic destruction: A + hbg <-> Z + hbg
-            -21.4702535520613 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: a + GEa <-> Z + GEa
-            21.4702535520613 * x.[11] * x.[1883] // a + GEa | catalytic destruction: a + GEa <-> Z + GEa
-            -21.4702535520613 * x.[2] * x.[4051] // Z + geA | catalytic destruction: A + geA <-> Z + geA
-            21.4702535520613 * x.[3] * x.[4051] // A + geA | catalytic destruction: A + geA <-> Z + geA
-            -0.948433285737981 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: a + FFA <-> Z + FFA
-            36.9888981437812 * x.[11] * x.[1635] // a + FFA | catalytic destruction: a + FFA <-> Z + FFA
-            -0.948433285737981 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: A + ffa <-> Z + ffa
-            36.9888981437812 * x.[3] * x.[3819] // A + ffa | catalytic destruction: A + ffa <-> Z + ffa
-            -0.588203125741503 * x.[2] * x.[893] // Z + CGc | catalytic destruction: a + CGc <-> Z + CGc
-            22.9399219039186 * x.[11] * x.[893] // a + CGc | catalytic destruction: a + CGc <-> Z + CGc
-            -0.588203125741503 * x.[2] * x.[3061] // Z + cgC | catalytic destruction: A + cgC <-> Z + cgC
-            22.9399219039186 * x.[3] * x.[3061] // A + cgC | catalytic destruction: A + cgC <-> Z + cgC
-            -1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: a + CgB <-> Z + CgB
-            48.4618788006822 * x.[11] * x.[1012] // a + CgB | catalytic destruction: a + CgB <-> Z + CgB
-            -1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: A + cGb <-> Z + cGb
-            48.4618788006822 * x.[3] * x.[2940] // A + cGb | catalytic destruction: A + cGb <-> Z + cGb
-            -40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: a + AFG <-> Z + AFG
-            1.03507950923558 * x.[11] * x.[361] // a + AFG | catalytic destruction: a + AFG <-> Z + AFG
-            -40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: A + afg <-> Z + afg
-            1.03507950923558 * x.[3] * x.[2545] // A + afg | catalytic destruction: A + afg <-> Z + afg
-            -17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: a + hbg <-> Z + hbg
-            0.461475836496943 * x.[11] * x.[4273] // a + hbg | catalytic destruction: a + hbg <-> Z + hbg
-            -17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: A + HBG <-> Z + HBG
-            0.461475836496943 * x.[3] * x.[2089] // A + HBG | catalytic destruction: A + HBG <-> Z + HBG
-            -0.550519321847727 * x.[2] * x.[4051] // Z + geA | catalytic destruction: a + geA <-> Z + geA
-            0.550519321847727 * x.[11] * x.[4051] // a + geA | catalytic destruction: a + geA <-> Z + geA
-            -0.550519321847727 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: A + GEa <-> Z + GEa
-            0.550519321847727 * x.[3] * x.[1883] // A + GEa | catalytic destruction: A + GEa <-> Z + GEa
-            -36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: a + ffa <-> Z + ffa
-            0.948433285737981 * x.[11] * x.[3819] // a + ffa | catalytic destruction: a + ffa <-> Z + ffa
-            -36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: A + FFA <-> Z + FFA
-            0.948433285737981 * x.[3] * x.[1635] // A + FFA | catalytic destruction: A + FFA <-> Z + FFA
-            -48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: a + cGb <-> Z + cGb
-            1.24261227694057 * x.[11] * x.[2940] // a + cGb | catalytic destruction: a + cGb <-> Z + cGb
-            -48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: A + CgB <-> Z + CgB
-            1.24261227694057 * x.[3] * x.[1012] // A + CgB | catalytic destruction: A + CgB <-> Z + CgB
-            -22.9399219039186 * x.[2] * x.[3061] // Z + cgC | catalytic destruction: a + cgC <-> Z + cgC
-            0.588203125741503 * x.[11] * x.[3061] // a + cgC | catalytic destruction: a + cgC <-> Z + cgC
-            -22.9399219039186 * x.[2] * x.[893] // Z + CGc | catalytic destruction: A + CGc <-> Z + CGc
-            0.588203125741503 * x.[3] * x.[893] // A + CGc | catalytic destruction: A + CGc <-> Z + CGc
-            -1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: a + afg <-> Z + afg
-            40.3681008601875 * x.[11] * x.[2545] // a + afg | catalytic destruction: a + afg <-> Z + afg
-            -1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: A + AFG <-> Z + AFG
-            40.3681008601875 * x.[3] * x.[361] // A + AFG | catalytic destruction: A + AFG <-> Z + AFG
+            6.0 * 22621.3937190296 * x.[4183] * x.[1400] // hEE + EGF | sedimentation direct: hEE + EGF -> 6 Z
+            6.0 * 22621.3937190296 * x.[2271] * x.[3584] // Hee + egf | sedimentation direct: Hee + egf -> 6 Z
+            6.0 * 17306.5931290351 * x.[4327] * x.[522] // hfE + AhH | sedimentation direct: hfE + AhH -> 6 Z
+            6.0 * 17306.5931290351 * x.[2159] * x.[2450] // HFe + aHh | sedimentation direct: HFe + aHh -> 6 Z
+            6.0 * 18324.8680018572 * x.[4315] * x.[437] // hea + AcC | sedimentation direct: hea + AcC -> 6 Z
+            6.0 * 18324.8680018572 * x.[2131] * x.[2365] // HEA + aCc | sedimentation direct: HEA + aCc -> 6 Z
+            6.0 * 8731.27438850719 * x.[4266] * x.[1251] // hbH + DfA | sedimentation direct: hbH + DfA -> 6 Z
+            6.0 * 8731.27438850719 * x.[2098] * x.[3179] // HBh + dFa | sedimentation direct: HBh + dFa -> 6 Z
+            6.0 * 24726.4829073038 * x.[3944] * x.[1945] // gFF + GaG | sedimentation direct: gFF + GaG -> 6 Z
+            6.0 * 24726.4829073038 * x.[2032] * x.[3873] // Gff + gAg | sedimentation direct: Gff + gAg -> 6 Z
+            6.0 * 17360.5629522301 * x.[3941] * x.[823] // gFC + CCE | sedimentation direct: gFC + CCE -> 6 Z
+            6.0 * 17360.5629522301 * x.[2029] * x.[3007] // Gfc + cce | sedimentation direct: Gfc + cce -> 6 Z
+            6.0 * 2500.93714867315 * x.[3910] * x.[755] // gDD + BgA | sedimentation direct: gDD + BgA -> 6 Z
+            6.0 * 2500.93714867315 * x.[1998] * x.[2683] // Gdd + bGa | sedimentation direct: Gdd + bGa -> 6 Z
+            6.0 * 873.298731989269 * x.[3909] * x.[1874] // gDC + GDh | sedimentation direct: gDC + GDh -> 6 Z
+            6.0 * 873.298731989269 * x.[1997] * x.[4042] // Gdc + gdH | sedimentation direct: Gdc + gdH -> 6 Z
+            6.0 * 8265.36543805816 * x.[3917] * x.[1555] // gDc + FAA | sedimentation direct: gDc + FAA -> 6 Z
+            6.0 * 8265.36543805816 * x.[1989] * x.[3739] // GdC + faa | sedimentation direct: GdC + faa -> 6 Z
+            6.0 * 2936.0485365958 * x.[3862] * x.[724] // gAD + BeB | sedimentation direct: gAD + BeB -> 6 Z
+            6.0 * 2936.0485365958 * x.[1950] * x.[2652] // Gad + bEb | sedimentation direct: Gad + bEb -> 6 Z
+            6.0 * 2226.18199215946 * x.[4092] * x.[4199] // ggb + hFE | sedimentation direct: ggb + hFE -> 6 Z
+            6.0 * 2226.18199215946 * x.[1908] * x.[2287] // GGB + Hfe | sedimentation direct: GGB + Hfe -> 6 Z
+            6.0 * 5104.93645761457 * x.[4074] * x.[2003] // gfH + GeA | sedimentation direct: gfH + GeA -> 6 Z
+            6.0 * 5104.93645761457 * x.[1906] * x.[3931] // GFh + gEa | sedimentation direct: GFh + gEa -> 6 Z
+            6.0 * 16411.818370426 * x.[4070] * x.[2198] // gfD + HaD | sedimentation direct: gfD + HaD -> 6 Z
+            6.0 * 16411.818370426 * x.[1902] * x.[4126] // GFd + hAd | sedimentation direct: GFd + hAd -> 6 Z
+            6.0 * 4601.42629088965 * x.[4060] * x.[3944] // geb + gFF | sedimentation direct: geb + gFF -> 6 Z
+            6.0 * 4601.42629088965 * x.[1876] * x.[2032] // GEB + Gff | sedimentation direct: GEB + Gff -> 6 Z
+            6.0 * 3267.81006400869 * x.[4023] * x.[1111] // gcE + DEE | sedimentation direct: gcE + DEE -> 6 Z
+            6.0 * 3267.81006400869 * x.[1855] * x.[3295] // GCe + dee | sedimentation direct: GCe + dee -> 6 Z
+            6.0 * 7659.23830885464 * x.[3991] * x.[2278] // gaE + HfD | sedimentation direct: gaE + HfD -> 6 Z
+            6.0 * 7659.23830885464 * x.[1823] * x.[4206] // GAe + hFd | sedimentation direct: GAe + hFd -> 6 Z
+            6.0 * 3582.47629759828 * x.[3687] * x.[497] // fFE + Afg | sedimentation direct: fFE + Afg -> 6 Z
+            6.0 * 3582.47629759828 * x.[1775] * x.[2409] // Ffe + aFG | sedimentation direct: Ffe + aFG -> 6 Z
+            6.0 * 19814.2018581472 * x.[3691] * x.[1743] // fFa + Fde | sedimentation direct: fFa + Fde -> 6 Z
+            6.0 * 19814.2018581472 * x.[1763] * x.[3655] // FfA + fDE | sedimentation direct: FfA + fDE -> 6 Z
+            6.0 * 2527.94994937767 * x.[3670] * x.[428] // fED + Abb | sedimentation direct: fED + Abb -> 6 Z
+            6.0 * 2527.94994937767 * x.[1758] * x.[2340] // Fed + aBB | sedimentation direct: Fed + aBB -> 6 Z
+            6.0 * 15427.1664126754 * x.[3635] * x.[1873] // fCA + GDg | sedimentation direct: fCA + GDg -> 6 Z
+            6.0 * 15427.1664126754 * x.[1723] * x.[4041] // Fca + gdG | sedimentation direct: Fca + gdG -> 6 Z
+            6.0 * 24895.9996373885 * x.[3618] * x.[561] // fAh + BBg | sedimentation direct: fAh + BBg -> 6 Z
+            6.0 * 24895.9996373885 * x.[1690] * x.[2729] // FaH + bbG | sedimentation direct: FaH + bbG -> 6 Z
+            6.0 * 2003.23566018782 * x.[3807] * x.[1454] // fee + Ebd | sedimentation direct: fee + Ebd -> 6 Z
+            6.0 * 2003.23566018782 * x.[1623] * x.[3366] // FEE + eBD | sedimentation direct: FEE + eBD -> 6 Z
+            6.0 * 14269.1628988593 * x.[3756] * x.[1556] // fbb + FAB | sedimentation direct: fbb + FAB -> 6 Z
+            6.0 * 14269.1628988593 * x.[1572] * x.[3740] // FBB + fab | sedimentation direct: FBB + fab -> 6 Z
+            6.0 * 11806.3869313432 * x.[3735] * x.[518] // faE + AhD | sedimentation direct: faE + AhD -> 6 Z
+            6.0 * 11806.3869313432 * x.[1567] * x.[2446] // FAe + aHd | sedimentation direct: FAe + aHd -> 6 Z
+            6.0 * 6886.58640245847 * x.[3732] * x.[1499] // faB + Eea | sedimentation direct: faB + Eea -> 6 Z
+            6.0 * 6886.58640245847 * x.[1564] * x.[3411] // FAb + eEA | sedimentation direct: FAb + eEA -> 6 Z
+            6.0 * 7139.11144504604 * x.[3441] * x.[1445] // eFg + EbC | sedimentation direct: eFg + EbC -> 6 Z
+            6.0 * 7139.11144504604 * x.[1513] * x.[3373] // EfG + eBc | sedimentation direct: EfG + eBc -> 6 Z
+            6.0 * 6557.47052503005 * x.[3381] * x.[3701] // eCC + fGC | sedimentation direct: eCC + fGC -> 6 Z
+            6.0 * 6557.47052503005 * x.[1469] * x.[1789] // Ecc + Fgc | sedimentation direct: Ecc + Fgc -> 6 Z
+            6.0 * 1066.73243010838 * x.[3360] * x.[3811] // eAf + ffA | sedimentation direct: eAf + ffA -> 6 Z
+            6.0 * 1066.73243010838 * x.[1432] * x.[1643] // EaF + FFa | sedimentation direct: EaF + FFa -> 6 Z
+            6.0 * 2212.82112219053 * x.[3596] * x.[1673] // ehb + FHG | sedimentation direct: ehb + FHG -> 6 Z
+            6.0 * 2212.82112219053 * x.[1412] * x.[3857] // EHB + fhg | sedimentation direct: EHB + fhg -> 6 Z
+            6.0 * 437.736426597162 * x.[3495] * x.[516] // ebE + AhB | sedimentation direct: ebE + AhB -> 6 Z
+            6.0 * 437.736426597162 * x.[1327] * x.[2444] // EBe + aHb | sedimentation direct: EBe + aHb -> 6 Z
+            6.0 * 4129.15859858373 * x.[3216] * x.[838] // dHf + CDD | sedimentation direct: dHf + CDD -> 6 Z
+            6.0 * 4129.15859858373 * x.[1288] * x.[3022] // DhF + cdd | sedimentation direct: DhF + cdd -> 6 Z
+            6.0 * 6876.16777776285 * x.[3159] * x.[3722] // dEE + fHH | sedimentation direct: dEE + fHH -> 6 Z
+            6.0 * 6876.16777776285 * x.[1247] * x.[1810] // Dee + Fhh | sedimentation direct: Dee + Fhh -> 6 Z
+            6.0 * 4603.35117468113 * x.[3155] * x.[4281] // dEA + hcG | sedimentation direct: dEA + hcG -> 6 Z
+            6.0 * 4603.35117468113 * x.[1243] * x.[2113] // Dea + HCg | sedimentation direct: Dea + HCg -> 6 Z
+            6.0 * 24750.6701834934 * x.[3135] * x.[4004] // dCe + gbB | sedimentation direct: dCe + gbB -> 6 Z
+            6.0 * 24750.6701834934 * x.[1207] * x.[1836] // DcE + GBb | sedimentation direct: DcE + GBb -> 6 Z
+            6.0 * 5567.31009042503 * x.[3289] * x.[3572] // deG + egB | sedimentation direct: deG + egB -> 6 Z
+            6.0 * 5567.31009042503 * x.[1121] * x.[1404] // DEg + EGb | sedimentation direct: DEg + EGb -> 6 Z
+            6.0 * 3361.52532775523 * x.[3227] * x.[688] // daa + Bbf | sedimentation direct: daa + Bbf -> 6 Z
+            6.0 * 3361.52532775523 * x.[1043] * x.[2600] // DAA + bBF | sedimentation direct: DAA + bBF -> 6 Z
+            6.0 * 14103.4772284841 * x.[2855] * x.[2285] // cBE + Hfc | sedimentation direct: cBE + Hfc -> 6 Z
+            6.0 * 14103.4772284841 * x.[943] * x.[4197] // Cbe + hFC | sedimentation direct: Cbe + hFC -> 6 Z
+            6.0 * 1508.93068788665 * x.[3082] * x.[1073] // chH + DBg | sedimentation direct: chH + DBg -> 6 Z
+            6.0 * 1508.93068788665 * x.[914] * x.[3241] // CHh + dbG | sedimentation direct: CHh + dbG -> 6 Z
+            6.0 * 993.841020801401 * x.[3062] * x.[406] // cgD + AaD | sedimentation direct: cgD + AaD -> 6 Z
+            6.0 * 993.841020801401 * x.[894] * x.[2334] // CGd + aAd | sedimentation direct: CGd + aAd -> 6 Z
+            6.0 * 7543.20847064459 * x.[3061] * x.[2284] // cgC + Hfb | sedimentation direct: cgC + Hfb -> 6 Z
+            6.0 * 7543.20847064459 * x.[893] * x.[4196] // CGc + hFB | sedimentation direct: CGc + hFB -> 6 Z
+            6.0 * 3050.6685572978 * x.[3050] * x.[3674] // cfH + fEH | sedimentation direct: cfH + fEH -> 6 Z
+            6.0 * 3050.6685572978 * x.[882] * x.[1762] // CFh + Feh | sedimentation direct: CFh + Feh -> 6 Z
+            6.0 * 21283.0703523449 * x.[3050] * x.[2886] // cfH + cDD | sedimentation direct: cfH + cDD -> 6 Z
+            6.0 * 21283.0703523449 * x.[882] * x.[974] // CFh + Cdd | sedimentation direct: CFh + Cdd -> 6 Z
+            6.0 * 12017.2139840518 * x.[3049] * x.[2086] // cfG + HBD | sedimentation direct: cfG + HBD -> 6 Z
+            6.0 * 12017.2139840518 * x.[881] * x.[4270] // CFg + hbd | sedimentation direct: CFg + hbd -> 6 Z
+            6.0 * 21694.7027046045 * x.[3014] * x.[3948] // cdD + gFb | sedimentation direct: cdD + gFb -> 6 Z
+            6.0 * 21694.7027046045 * x.[846] * x.[2020] // CDd + GfB | sedimentation direct: CDd + GfB -> 6 Z
+            6.0 * 8500.49742325451 * x.[2997] * x.[3249] // ccC + dbg | sedimentation direct: ccC + dbg -> 6 Z
+            6.0 * 8500.49742325451 * x.[829] * x.[1065] // CCc + DBG | sedimentation direct: CCc + DBG -> 6 Z
+            6.0 * 7187.3845028166 * x.[3007] * x.[3479] // cce + eaE | sedimentation direct: cce + eaE -> 6 Z
+            6.0 * 7187.3845028166 * x.[823] * x.[1311] // CCE + EAe | sedimentation direct: CCE + EAe -> 6 Z
+            6.0 * 2791.04435959399 * x.[2977] * x.[3621] // cag + fBC | sedimentation direct: cag + fBC -> 6 Z
+            6.0 * 2791.04435959399 * x.[793] * x.[1709] // CAG + Fbc | sedimentation direct: CAG + Fbc -> 6 Z
+            6.0 * 8364.36283457212 * x.[2702] * x.[1927] // bHd + GHE | sedimentation direct: bHd + GHE -> 6 Z
+            6.0 * 8364.36283457212 * x.[774] * x.[4111] // BhD + ghe | sedimentation direct: BhD + ghe -> 6 Z
+            6.0 * 17148.9658495997 * x.[2689] * x.[3341] // bGg + dhc | sedimentation direct: bGg + dhc -> 6 Z
+            6.0 * 17148.9658495997 * x.[761] * x.[1157] // BgG + DHC | sedimentation direct: BgG + DHC -> 6 Z
+            6.0 * 9265.09841202555 * x.[2674] * x.[1401] // bFh + EGG | sedimentation direct: bFh + EGG -> 6 Z
+            6.0 * 9265.09841202555 * x.[746] * x.[3585] // BfH + egg | sedimentation direct: BfH + egg -> 6 Z
+            6.0 * 643.561930601962 * x.[2645] * x.[2154] // bEC + HFH | sedimentation direct: bEC + HFH -> 6 Z
+            6.0 * 643.561930601962 * x.[733] * x.[4338] // Bec + hfh | sedimentation direct: Bec + hfh -> 6 Z
+            6.0 * 4515.04390536149 * x.[2614] * x.[524] // bCD + Ahb | sedimentation direct: bCD + Ahb -> 6 Z
+            6.0 * 4515.04390536149 * x.[702] * x.[2436] // Bcd + aHB | sedimentation direct: Bcd + aHB -> 6 Z
+            6.0 * 3840.53228062151 * x.[2786] * x.[2788] // beh + bfB | sedimentation direct: beh + bfB -> 6 Z
+            6.0 * 3840.53228062151 * x.[602] * x.[620] // BEH + BFb | sedimentation direct: BEH + BFb -> 6 Z
+            6.0 * 15966.6440407804 * x.[2767] * x.[544] // bde + BAf | sedimentation direct: bde + BAf -> 6 Z
+            6.0 * 15966.6440407804 * x.[583] * x.[2712] // BDE + baF | sedimentation direct: BDE + baF -> 6 Z
+            6.0 * 694.996180868133 * x.[2421] * x.[312] // aGC + ACF | sedimentation direct: aGC + ACF -> 6 Z
+            6.0 * 694.996180868133 * x.[509] * x.[2496] // Agc + acf | sedimentation direct: Agc + acf -> 6 Z
+            6.0 * 24523.968136374 * x.[2405] * x.[275] // aFC + AAA | sedimentation direct: aFC + AAA -> 6 Z
+            6.0 * 24523.968136374 * x.[493] * x.[2459] // Afc + aaa | sedimentation direct: Afc + aaa -> 6 Z
+            6.0 * 8127.88228117916 * x.[2411] * x.[1141] // aFa + DGC | sedimentation direct: aFa + DGC -> 6 Z
+            6.0 * 8127.88228117916 * x.[483] * x.[3325] // AfA + dgc | sedimentation direct: AfA + dgc -> 6 Z
+            6.0 * 6867.01565343078 * x.[2411] * x.[3936] // aFa + gEf | sedimentation direct: aFa + gEf -> 6 Z
+            6.0 * 6867.01565343078 * x.[483] * x.[2008] // AfA + GeF | sedimentation direct: AfA + GeF -> 6 Z
+            6.0 * 2095.52784166418 * x.[2356] * x.[981] // aCB + CeC | sedimentation direct: aCB + CeC -> 6 Z
+            6.0 * 2095.52784166418 * x.[444] * x.[2909] // Acb + cEc | sedimentation direct: Acb + cEc -> 6 Z
+            6.0 * 1491.0342841907 * x.[2551] * x.[3573] // agE + egC | sedimentation direct: agE + egC -> 6 Z
+            6.0 * 1491.0342841907 * x.[383] * x.[1405] // AGe + EGc | sedimentation direct: AGe + EGc -> 6 Z
+            6.0 * 352.155016305217 * x.[2541] * x.[2837] // afc + cAC | sedimentation direct: afc + cAC -> 6 Z
+            6.0 * 352.155016305217 * x.[357] * x.[925] // AFC + Cac | sedimentation direct: AFC + Cac -> 6 Z
+            6.0 * 4698.89142379968 * x.[2518] * x.[922] // aeD + CaH | sedimentation direct: aeD + CaH -> 6 Z
+            6.0 * 4698.89142379968 * x.[350] * x.[2850] // AEd + cAh | sedimentation direct: AEd + cAh -> 6 Z
+            6.0 * 11328.4843016445 * x.[2517] * x.[1177] // aeC + DaG | sedimentation direct: aeC + DaG -> 6 Z
+            6.0 * 11328.4843016445 * x.[349] * x.[3105] // AEc + dAg | sedimentation direct: AEc + dAg -> 6 Z
+            6.0 * 10838.584991472 * x.[2515] * x.[2170] // aeA + HGH | sedimentation direct: aeA + HGH -> 6 Z
+            6.0 * 10838.584991472 * x.[347] * x.[4354] // AEa + hgh | sedimentation direct: AEa + hgh -> 6 Z
+            6.0 * 6510.56836927524 * x.[2496] * x.[3287] // acf + deE | sedimentation direct: acf + deE -> 6 Z
+            6.0 * 6510.56836927524 * x.[312] * x.[1119] // ACF + DEe | sedimentation direct: ACF + DEe -> 6 Z
+            6.0 * 3429.44073043316 * x.[2479] * x.[4366] // abe + hhd | sedimentation direct: abe + hhd -> 6 Z
+            6.0 * 3429.44073043316 * x.[295] * x.[2182] // ABE + HHD | sedimentation direct: ABE + HHD -> 6 Z
+            6.0 * 2982.8290550336 * x.[2462] * x.[1214] // aad + Dcd | sedimentation direct: aad + Dcd -> 6 Z
+            6.0 * 2982.8290550336 * x.[278] * x.[3126] // AAD + dCD | sedimentation direct: AAD + dCD -> 6 Z
+            6.0 * 17244.5429996477 * x.[2461] * x.[4230] // aac + hHD | sedimentation direct: aac + hHD -> 6 Z
+            6.0 * 17244.5429996477 * x.[277] * x.[2318] // AAC + Hhd | sedimentation direct: AAC + Hhd -> 6 Z
+            5.0 * 3488.44865631773 * x.[274] * x.[4112] // hh + ghf | sedimentation direct: hh + ghf -> 5 Z
+            5.0 * 3488.44865631773 * x.[138] * x.[1928] // HH + GHF | sedimentation direct: HH + GHF -> 5 Z
+            5.0 * 22829.6223683907 * x.[221] * x.[1088] // ec + DCf | sedimentation direct: ec + DCf -> 5 Z
+            5.0 * 22829.6223683907 * x.[85] * x.[3256] // EC + dcF | sedimentation direct: EC + dcF -> 5 Z
+            5.0 * 25525.10772298 * x.[204] * x.[2979] // db + cbA | sedimentation direct: db + cbA -> 5 Z
+            5.0 * 25525.10772298 * x.[68] * x.[811] // DB + CBa | sedimentation direct: DB + CBa -> 5 Z
+            5.0 * 1788.81628912716 * x.[184] * x.[3383] // cF + eCE | sedimentation direct: cF + eCE -> 5 Z
+            5.0 * 1788.81628912716 * x.[64] * x.[1471] // Cf + Ece | sedimentation direct: Cf + Ece -> 5 Z
+            5.0 * 22647.3985326419 * x.[187] * x.[453] // ca + AdC | sedimentation direct: ca + AdC -> 5 Z
+            5.0 * 22647.3985326419 * x.[51] * x.[2381] // CA + aDc | sedimentation direct: CA + aDc -> 5 Z
+            5.0 * 12132.849229071 * x.[178] * x.[4188] // bh + hEb | sedimentation direct: bh + hEb -> 5 Z
+            5.0 * 12132.849229071 * x.[42] * x.[2260] // BH + HeB | sedimentation direct: BH + HeB -> 5 Z
+            5.0 * 15112.0380673577 * x.[152] * x.[3661] // aF + fDc | sedimentation direct: aF + fDc -> 5 Z
+            5.0 * 15112.0380673577 * x.[32] * x.[1733] // Af + FdC | sedimentation direct: Af + FdC -> 5 Z
+            5.0 * 8812.10386379525 * x.[155] * x.[1879] // aa + GEE | sedimentation direct: aa + GEE -> 5 Z
+            5.0 * 8812.10386379525 * x.[19] * x.[4063] // AA + gee | sedimentation direct: AA + gee -> 5 Z
+            -27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: h + Ghh <-> Z + Ghh
+            0.710108633896557 * x.[18] * x.[2066] // h + Ghh | catalytic destruction: h + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: H + gHH <-> Z + gHH
+            0.710108633896557 * x.[10] * x.[3978] // H + gHH | catalytic destruction: H + gHH <-> Z + gHH
+            -0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: h + gHH <-> Z + gHH
+            27.6942367219656 * x.[18] * x.[3978] // h + gHH | catalytic destruction: h + gHH <-> Z + gHH
+            -0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: H + Ghh <-> Z + Ghh
+            27.6942367219656 * x.[10] * x.[2066] // H + Ghh | catalytic destruction: H + Ghh <-> Z + Ghh
+            -0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: f + HAE <-> Z + HAE
+            15.1364586076162 * x.[16] * x.[2071] // f + HAE | catalytic destruction: f + HAE <-> Z + HAE
+            -0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: F + hae <-> Z + hae
+            15.1364586076162 * x.[8] * x.[4255] // F + hae | catalytic destruction: F + hae <-> Z + hae
+            -0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: f + FCE <-> Z + FCE
+            0.608399461735587 * x.[16] * x.[1591] // f + FCE | catalytic destruction: f + FCE <-> Z + FCE
+            -0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: F + fce <-> Z + fce
+            0.608399461735587 * x.[8] * x.[3775] // F + fce | catalytic destruction: F + fce <-> Z + fce
+            -15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: f + hae <-> Z + hae
+            0.388114323272211 * x.[16] * x.[4255] // f + hae | catalytic destruction: f + hae <-> Z + hae
+            -15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: F + HAE <-> Z + HAE
+            0.388114323272211 * x.[8] * x.[2071] // F + HAE | catalytic destruction: F + HAE <-> Z + HAE
+            -23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: f + fce <-> Z + fce
+            23.7275790076879 * x.[16] * x.[3775] // f + fce | catalytic destruction: f + fce <-> Z + fce
+            -23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: F + FCE <-> Z + FCE
+            23.7275790076879 * x.[8] * x.[1591] // F + FCE | catalytic destruction: F + FCE <-> Z + FCE
+            -0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: e + FCE <-> Z + FCE
+            0.608399461735587 * x.[15] * x.[1591] // e + FCE | catalytic destruction: e + FCE <-> Z + FCE
+            -0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: E + fce <-> Z + fce
+            0.608399461735587 * x.[7] * x.[3775] // E + fce | catalytic destruction: E + fce <-> Z + fce
+            -23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: e + fce <-> Z + fce
+            23.7275790076879 * x.[15] * x.[3775] // e + fce | catalytic destruction: e + fce <-> Z + fce
+            -23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: E + FCE <-> Z + FCE
+            23.7275790076879 * x.[7] * x.[1591] // E + FCE | catalytic destruction: E + FCE <-> Z + FCE
+            -0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: d + HAE <-> Z + HAE
+            15.1364586076162 * x.[14] * x.[2071] // d + HAE | catalytic destruction: d + HAE <-> Z + HAE
+            -0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: D + hae <-> Z + hae
+            15.1364586076162 * x.[6] * x.[4255] // D + hae | catalytic destruction: D + hae <-> Z + hae
+            -27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: d + Ghh <-> Z + Ghh
+            0.710108633896557 * x.[14] * x.[2066] // d + Ghh | catalytic destruction: d + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: D + gHH <-> Z + gHH
+            0.710108633896557 * x.[6] * x.[3978] // D + gHH | catalytic destruction: D + gHH <-> Z + gHH
+            -15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: d + hae <-> Z + hae
+            0.388114323272211 * x.[14] * x.[4255] // d + hae | catalytic destruction: d + hae <-> Z + hae
+            -15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: D + HAE <-> Z + HAE
+            0.388114323272211 * x.[6] * x.[2071] // D + HAE | catalytic destruction: D + HAE <-> Z + HAE
+            -0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: d + gHH <-> Z + gHH
+            27.6942367219656 * x.[14] * x.[3978] // d + gHH | catalytic destruction: d + gHH <-> Z + gHH
+            -0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: D + Ghh <-> Z + Ghh
+            27.6942367219656 * x.[6] * x.[2066] // D + Ghh | catalytic destruction: D + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: c + Ghh <-> Z + Ghh
+            0.710108633896557 * x.[13] * x.[2066] // c + Ghh | catalytic destruction: c + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: C + gHH <-> Z + gHH
+            0.710108633896557 * x.[5] * x.[3978] // C + gHH | catalytic destruction: C + gHH <-> Z + gHH
+            -0.119825195175918 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: c + FHE <-> Z + FHE
+            4.67318261186078 * x.[13] * x.[1671] // c + FHE | catalytic destruction: c + FHE <-> Z + FHE
+            -0.119825195175918 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: C + fhe <-> Z + fhe
+            4.67318261186078 * x.[5] * x.[3855] // C + fhe | catalytic destruction: C + fhe <-> Z + fhe
+            -0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: c + FCE <-> Z + FCE
+            0.608399461735587 * x.[13] * x.[1591] // c + FCE | catalytic destruction: c + FCE <-> Z + FCE
+            -0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: C + fce <-> Z + fce
+            0.608399461735587 * x.[5] * x.[3775] // C + fce | catalytic destruction: C + fce <-> Z + fce
+            -0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: c + gHH <-> Z + gHH
+            27.6942367219656 * x.[13] * x.[3978] // c + gHH | catalytic destruction: c + gHH <-> Z + gHH
+            -0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: C + Ghh <-> Z + Ghh
+            27.6942367219656 * x.[5] * x.[2066] // C + Ghh | catalytic destruction: C + Ghh <-> Z + Ghh
+            -4.67318261186078 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: c + fhe <-> Z + fhe
+            0.119825195175918 * x.[13] * x.[3855] // c + fhe | catalytic destruction: c + fhe <-> Z + fhe
+            -4.67318261186078 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: C + FHE <-> Z + FHE
+            0.119825195175918 * x.[5] * x.[1671] // C + FHE | catalytic destruction: C + FHE <-> Z + FHE
+            -23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: c + fce <-> Z + fce
+            23.7275790076879 * x.[13] * x.[3775] // c + fce | catalytic destruction: c + fce <-> Z + fce
+            -23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: C + FCE <-> Z + FCE
+            23.7275790076879 * x.[5] * x.[1591] // C + FCE | catalytic destruction: C + FCE <-> Z + FCE
+            -0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: b + HAE <-> Z + HAE
+            15.1364586076162 * x.[12] * x.[2071] // b + HAE | catalytic destruction: b + HAE <-> Z + HAE
+            -0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: B + hae <-> Z + hae
+            15.1364586076162 * x.[4] * x.[4255] // B + hae | catalytic destruction: B + hae <-> Z + hae
+            -15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: b + hae <-> Z + hae
+            0.388114323272211 * x.[12] * x.[4255] // b + hae | catalytic destruction: b + hae <-> Z + hae
+            -15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: B + HAE <-> Z + HAE
+            0.388114323272211 * x.[4] * x.[2071] // B + HAE | catalytic destruction: B + HAE <-> Z + HAE
+            -0.38811432327221 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: a + HAE <-> Z + HAE
+            15.1364586076162 * x.[11] * x.[2071] // a + HAE | catalytic destruction: a + HAE <-> Z + HAE
+            -0.38811432327221 * x.[2] * x.[4255] // Z + hae | catalytic destruction: A + hae <-> Z + hae
+            15.1364586076162 * x.[3] * x.[4255] // A + hae | catalytic destruction: A + hae <-> Z + hae
+            -27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: a + Ghh <-> Z + Ghh
+            0.710108633896555 * x.[11] * x.[2066] // a + Ghh | catalytic destruction: a + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: A + gHH <-> Z + gHH
+            0.710108633896555 * x.[3] * x.[3978] // A + gHH | catalytic destruction: A + gHH <-> Z + gHH
+            -0.119825195175918 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: a + FHE <-> Z + FHE
+            4.67318261186078 * x.[11] * x.[1671] // a + FHE | catalytic destruction: a + FHE <-> Z + FHE
+            -0.119825195175918 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: A + fhe <-> Z + fhe
+            4.67318261186078 * x.[3] * x.[3855] // A + fhe | catalytic destruction: A + fhe <-> Z + fhe
+            -0.608399461735588 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: a + FCE <-> Z + FCE
+            0.608399461735588 * x.[11] * x.[1591] // a + FCE | catalytic destruction: a + FCE <-> Z + FCE
+            -0.608399461735588 * x.[2] * x.[3775] // Z + fce | catalytic destruction: A + fce <-> Z + fce
+            0.608399461735588 * x.[3] * x.[3775] // A + fce | catalytic destruction: A + fce <-> Z + fce
+            -15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: a + hae <-> Z + hae
+            0.38811432327221 * x.[11] * x.[4255] // a + hae | catalytic destruction: a + hae <-> Z + hae
+            -15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: A + HAE <-> Z + HAE
+            0.38811432327221 * x.[3] * x.[2071] // A + HAE | catalytic destruction: A + HAE <-> Z + HAE
+            -0.710108633896555 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: a + gHH <-> Z + gHH
+            27.6942367219656 * x.[11] * x.[3978] // a + gHH | catalytic destruction: a + gHH <-> Z + gHH
+            -0.710108633896555 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: A + Ghh <-> Z + Ghh
+            27.6942367219656 * x.[3] * x.[2066] // A + Ghh | catalytic destruction: A + Ghh <-> Z + Ghh
+            -4.67318261186078 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: a + fhe <-> Z + fhe
+            0.119825195175918 * x.[11] * x.[3855] // a + fhe | catalytic destruction: a + fhe <-> Z + fhe
+            -4.67318261186078 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: A + FHE <-> Z + FHE
+            0.119825195175918 * x.[3] * x.[1671] // A + FHE | catalytic destruction: A + FHE <-> Z + FHE
+            -23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: a + fce <-> Z + fce
+            23.7275790076879 * x.[11] * x.[3775] // a + fce | catalytic destruction: a + fce <-> Z + fce
+            -23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: A + FCE <-> Z + FCE
+            23.7275790076879 * x.[3] * x.[1591] // A + FCE | catalytic destruction: A + FCE <-> Z + FCE
             -0.001 * x.[2] // Z | destruction: h <-> Z
             0.001 * x.[18] // h | destruction: h <-> Z
             -0.001 * x.[2] // Z | destruction: H <-> Z
@@ -17589,46 +17523,34 @@ module ModelData =
             1.0 * x.[19] // AA | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
-            0.461475836496943 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: A + hbg <-> Z + hbg
-            -17.9975576233807 * x.[3] * x.[4273] // A + hbg | catalytic destruction: A + hbg <-> Z + hbg
-            21.4702535520613 * x.[2] * x.[4051] // Z + geA | catalytic destruction: A + geA <-> Z + geA
-            -21.4702535520613 * x.[3] * x.[4051] // A + geA | catalytic destruction: A + geA <-> Z + geA
-            0.948433285737981 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: A + ffa <-> Z + ffa
-            -36.9888981437812 * x.[3] * x.[3819] // A + ffa | catalytic destruction: A + ffa <-> Z + ffa
-            0.588203125741503 * x.[2] * x.[3061] // Z + cgC | catalytic destruction: A + cgC <-> Z + cgC
-            -22.9399219039186 * x.[3] * x.[3061] // A + cgC | catalytic destruction: A + cgC <-> Z + cgC
-            1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: A + cGb <-> Z + cGb
-            -48.4618788006822 * x.[3] * x.[2940] // A + cGb | catalytic destruction: A + cGb <-> Z + cGb
-            40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: A + afg <-> Z + afg
-            -1.03507950923558 * x.[3] * x.[2545] // A + afg | catalytic destruction: A + afg <-> Z + afg
-            17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: A + HBG <-> Z + HBG
-            -0.461475836496943 * x.[3] * x.[2089] // A + HBG | catalytic destruction: A + HBG <-> Z + HBG
-            0.550519321847727 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: A + GEa <-> Z + GEa
-            -0.550519321847727 * x.[3] * x.[1883] // A + GEa | catalytic destruction: A + GEa <-> Z + GEa
-            36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: A + FFA <-> Z + FFA
-            -0.948433285737981 * x.[3] * x.[1635] // A + FFA | catalytic destruction: A + FFA <-> Z + FFA
-            48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: A + CgB <-> Z + CgB
-            -1.24261227694057 * x.[3] * x.[1012] // A + CgB | catalytic destruction: A + CgB <-> Z + CgB
-            22.9399219039186 * x.[2] * x.[893] // Z + CGc | catalytic destruction: A + CGc <-> Z + CGc
-            -0.588203125741503 * x.[3] * x.[893] // A + CGc | catalytic destruction: A + CGc <-> Z + CGc
-            1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: A + AFG <-> Z + AFG
-            -40.3681008601875 * x.[3] * x.[361] // A + AFG | catalytic destruction: A + AFG <-> Z + AFG
-            -22.6065858567858 * x.[3] * x.[4176] // A + hDf | catalytic synthesis: Y + hDf <-> A + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> A + hDf
-            -13.295505497826 * x.[3] * x.[3149] // A + dDc | catalytic synthesis: Y + dDc <-> A + dDc
-            13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> A + dDc
-            -0.256034647543398 * x.[3] * x.[2861] // A + cBc | catalytic synthesis: Y + cBc <-> A + cBc
-            0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> A + cBc
-            -1.8540564716286 * x.[3] * x.[2400] // A + aEf | catalytic synthesis: Y + aEf <-> A + aEf
-            0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> A + aEf
-            -0.579656047609892 * x.[3] * x.[2248] // A + HdF | catalytic synthesis: Y + HdF <-> A + HdF
-            0.579656047609892 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> A + HdF
-            -0.340910397380155 * x.[3] * x.[1221] // A + DdC | catalytic synthesis: Y + DdC <-> A + DdC
-            0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> A + DdC
-            -9.98535125419251 * x.[3] * x.[933] // A + CbC | catalytic synthesis: Y + CbC <-> A + CbC
-            9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> A + CbC
-            -0.0475399095289384 * x.[3] * x.[472] // A + AeF | catalytic synthesis: Y + AeF <-> A + AeF
-            1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> A + AeF
+            0.38811432327221 * x.[2] * x.[4255] // Z + hae | catalytic destruction: A + hae <-> Z + hae
+            -15.1364586076162 * x.[3] * x.[4255] // A + hae | catalytic destruction: A + hae <-> Z + hae
+            27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: A + gHH <-> Z + gHH
+            -0.710108633896555 * x.[3] * x.[3978] // A + gHH | catalytic destruction: A + gHH <-> Z + gHH
+            0.119825195175918 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: A + fhe <-> Z + fhe
+            -4.67318261186078 * x.[3] * x.[3855] // A + fhe | catalytic destruction: A + fhe <-> Z + fhe
+            0.608399461735588 * x.[2] * x.[3775] // Z + fce | catalytic destruction: A + fce <-> Z + fce
+            -0.608399461735588 * x.[3] * x.[3775] // A + fce | catalytic destruction: A + fce <-> Z + fce
+            15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: A + HAE <-> Z + HAE
+            -0.38811432327221 * x.[3] * x.[2071] // A + HAE | catalytic destruction: A + HAE <-> Z + HAE
+            0.710108633896555 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: A + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[3] * x.[2066] // A + Ghh | catalytic destruction: A + Ghh <-> Z + Ghh
+            4.67318261186078 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: A + FHE <-> Z + FHE
+            -0.119825195175918 * x.[3] * x.[1671] // A + FHE | catalytic destruction: A + FHE <-> Z + FHE
+            23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: A + FCE <-> Z + FCE
+            -23.7275790076879 * x.[3] * x.[1591] // A + FCE | catalytic destruction: A + FCE <-> Z + FCE
+            -52.6049630010652 * x.[3] * x.[3461] // A + eHC | catalytic synthesis: Y + eHC <-> A + eHC
+            1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> A + eHC
+            -5.32745698673349 * x.[3] * x.[2604] // A + bBb | catalytic synthesis: Y + bBb <-> A + bBb
+            5.32745698673349 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> A + bBb
+            -1.34884520515552 * x.[3] * x.[1549] // A + Ehc | catalytic synthesis: Y + Ehc <-> A + Ehc
+            52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> A + Ehc
+            -0.136601461198295 * x.[3] * x.[676] // A + BbB | catalytic synthesis: Y + BbB <-> A + BbB
+            0.136601461198295 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> A + BbB
+            -50.2182251982423 * x.[3] * x.[225] // A + eg | catalytic synthesis: Y + eg <-> A + eg
+            1.28764679995493 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> A + eg
+            -1.28764679995493 * x.[3] * x.[89] // A + EG | catalytic synthesis: Y + EG <-> A + EG
+            50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> A + EG
             0.001 * x.[2] // Z | destruction: A <-> Z
             -0.001 * x.[3] // A | destruction: A <-> Z
             -0.001 * x.[3] // A | synthesis: Y <-> A
@@ -18202,18 +18124,14 @@ module ModelData =
             -1.0 * x.[11] * x.[4] // a + B | ligation: a + B <-> aB
             1.0 * x.[20] // AB | ligation: A + B <-> AB
             -1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
-            0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: B + ffa <-> Z + ffa
-            -36.9888981437812 * x.[4] * x.[3819] // B + ffa | catalytic destruction: B + ffa <-> Z + ffa
-            40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: B + afg <-> Z + afg
-            -1.03507950923558 * x.[4] * x.[2545] // B + afg | catalytic destruction: B + afg <-> Z + afg
-            36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: B + FFA <-> Z + FFA
-            -0.948433285737984 * x.[4] * x.[1635] // B + FFA | catalytic destruction: B + FFA <-> Z + FFA
-            1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: B + AFG <-> Z + AFG
-            -40.3681008601875 * x.[4] * x.[361] // B + AFG | catalytic destruction: B + AFG <-> Z + AFG
-            -22.6065858567858 * x.[4] * x.[4176] // B + hDf | catalytic synthesis: Y + hDf <-> B + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> B + hDf
-            -0.579656047609891 * x.[4] * x.[2248] // B + HdF | catalytic synthesis: Y + HdF <-> B + HdF
-            0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> B + HdF
+            0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: B + hae <-> Z + hae
+            -15.1364586076162 * x.[4] * x.[4255] // B + hae | catalytic destruction: B + hae <-> Z + hae
+            15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: B + HAE <-> Z + HAE
+            -0.388114323272211 * x.[4] * x.[2071] // B + HAE | catalytic destruction: B + HAE <-> Z + HAE
+            -52.6049630010652 * x.[4] * x.[3461] // B + eHC | catalytic synthesis: Y + eHC <-> B + eHC
+            1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> B + eHC
+            -1.34884520515552 * x.[4] * x.[1549] // B + Ehc | catalytic synthesis: Y + Ehc <-> B + Ehc
+            52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> B + Ehc
             0.001 * x.[2] // Z | destruction: B <-> Z
             -0.001 * x.[4] // B | destruction: B <-> Z
             -0.001 * x.[4] // B | synthesis: Y <-> B
@@ -18787,14 +18705,26 @@ module ModelData =
             -1.0 * x.[11] * x.[5] // a + C | ligation: a + C <-> aC
             1.0 * x.[21] // AC | ligation: A + C <-> AC
             -1.0 * x.[3] * x.[5] // A + C | ligation: A + C <-> AC
-            0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: C + ffa <-> Z + ffa
-            -36.9888981437812 * x.[5] * x.[3819] // C + ffa | catalytic destruction: C + ffa <-> Z + ffa
-            40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: C + afg <-> Z + afg
-            -1.03507950923558 * x.[5] * x.[2545] // C + afg | catalytic destruction: C + afg <-> Z + afg
-            36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: C + FFA <-> Z + FFA
-            -0.948433285737984 * x.[5] * x.[1635] // C + FFA | catalytic destruction: C + FFA <-> Z + FFA
-            1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: C + AFG <-> Z + AFG
-            -40.3681008601875 * x.[5] * x.[361] // C + AFG | catalytic destruction: C + AFG <-> Z + AFG
+            27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: C + gHH <-> Z + gHH
+            -0.710108633896557 * x.[5] * x.[3978] // C + gHH | catalytic destruction: C + gHH <-> Z + gHH
+            0.119825195175918 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: C + fhe <-> Z + fhe
+            -4.67318261186078 * x.[5] * x.[3855] // C + fhe | catalytic destruction: C + fhe <-> Z + fhe
+            0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: C + fce <-> Z + fce
+            -0.608399461735587 * x.[5] * x.[3775] // C + fce | catalytic destruction: C + fce <-> Z + fce
+            0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: C + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[5] * x.[2066] // C + Ghh | catalytic destruction: C + Ghh <-> Z + Ghh
+            4.67318261186078 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: C + FHE <-> Z + FHE
+            -0.119825195175918 * x.[5] * x.[1671] // C + FHE | catalytic destruction: C + FHE <-> Z + FHE
+            23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: C + FCE <-> Z + FCE
+            -23.7275790076879 * x.[5] * x.[1591] // C + FCE | catalytic destruction: C + FCE <-> Z + FCE
+            -5.32745698673349 * x.[5] * x.[2604] // C + bBb | catalytic synthesis: Y + bBb <-> C + bBb
+            5.32745698673349 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> C + bBb
+            -0.136601461198294 * x.[5] * x.[676] // C + BbB | catalytic synthesis: Y + BbB <-> C + BbB
+            0.136601461198294 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> C + BbB
+            -50.2182251982423 * x.[5] * x.[225] // C + eg | catalytic synthesis: Y + eg <-> C + eg
+            1.28764679995494 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> C + eg
+            -1.28764679995494 * x.[5] * x.[89] // C + EG | catalytic synthesis: Y + EG <-> C + EG
+            50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> C + EG
             0.001 * x.[2] // Z | destruction: C <-> Z
             -0.001 * x.[5] // C | destruction: C <-> Z
             -0.001 * x.[5] // C | synthesis: Y <-> C
@@ -19368,26 +19298,14 @@ module ModelData =
             -1.0 * x.[11] * x.[6] // a + D | ligation: a + D <-> aD
             1.0 * x.[22] // AD | ligation: A + D <-> AD
             -1.0 * x.[3] * x.[6] // A + D | ligation: A + D <-> AD
-            0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: D + ffa <-> Z + ffa
-            -36.9888981437812 * x.[6] * x.[3819] // D + ffa | catalytic destruction: D + ffa <-> Z + ffa
-            1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: D + cGb <-> Z + cGb
-            -48.4618788006822 * x.[6] * x.[2940] // D + cGb | catalytic destruction: D + cGb <-> Z + cGb
-            36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: D + FFA <-> Z + FFA
-            -0.948433285737984 * x.[6] * x.[1635] // D + FFA | catalytic destruction: D + FFA <-> Z + FFA
-            48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: D + CgB <-> Z + CgB
-            -1.24261227694057 * x.[6] * x.[1012] // D + CgB | catalytic destruction: D + CgB <-> Z + CgB
-            -22.6065858567858 * x.[6] * x.[4176] // D + hDf | catalytic synthesis: Y + hDf <-> D + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> D + hDf
-            -0.256034647543398 * x.[6] * x.[2861] // D + cBc | catalytic synthesis: Y + cBc <-> D + cBc
-            0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> D + cBc
-            -1.8540564716286 * x.[6] * x.[2400] // D + aEf | catalytic synthesis: Y + aEf <-> D + aEf
-            0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> D + aEf
-            -0.579656047609891 * x.[6] * x.[2248] // D + HdF | catalytic synthesis: Y + HdF <-> D + HdF
-            0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> D + HdF
-            -9.98535125419251 * x.[6] * x.[933] // D + CbC | catalytic synthesis: Y + CbC <-> D + CbC
-            9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> D + CbC
-            -0.0475399095289384 * x.[6] * x.[472] // D + AeF | catalytic synthesis: Y + AeF <-> D + AeF
-            1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> D + AeF
+            0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: D + hae <-> Z + hae
+            -15.1364586076162 * x.[6] * x.[4255] // D + hae | catalytic destruction: D + hae <-> Z + hae
+            27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: D + gHH <-> Z + gHH
+            -0.710108633896557 * x.[6] * x.[3978] // D + gHH | catalytic destruction: D + gHH <-> Z + gHH
+            15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: D + HAE <-> Z + HAE
+            -0.388114323272211 * x.[6] * x.[2071] // D + HAE | catalytic destruction: D + HAE <-> Z + HAE
+            0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: D + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[6] * x.[2066] // D + Ghh | catalytic destruction: D + Ghh <-> Z + Ghh
             0.001 * x.[2] // Z | destruction: D <-> Z
             -0.001 * x.[6] // D | destruction: D <-> Z
             -0.001 * x.[6] // D | synthesis: Y <-> D
@@ -19961,14 +19879,10 @@ module ModelData =
             -1.0 * x.[11] * x.[7] // a + E | ligation: a + E <-> aE
             1.0 * x.[23] // AE | ligation: A + E <-> AE
             -1.0 * x.[3] * x.[7] // A + E | ligation: A + E <-> AE
-            0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: E + hbg <-> Z + hbg
-            -17.9975576233807 * x.[7] * x.[4273] // E + hbg | catalytic destruction: E + hbg <-> Z + hbg
-            0.948433285737984 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: E + ffa <-> Z + ffa
-            -36.9888981437812 * x.[7] * x.[3819] // E + ffa | catalytic destruction: E + ffa <-> Z + ffa
-            17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: E + HBG <-> Z + HBG
-            -0.461475836496941 * x.[7] * x.[2089] // E + HBG | catalytic destruction: E + HBG <-> Z + HBG
-            36.9888981437812 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: E + FFA <-> Z + FFA
-            -0.948433285737984 * x.[7] * x.[1635] // E + FFA | catalytic destruction: E + FFA <-> Z + FFA
+            0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: E + fce <-> Z + fce
+            -0.608399461735587 * x.[7] * x.[3775] // E + fce | catalytic destruction: E + fce <-> Z + fce
+            23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: E + FCE <-> Z + FCE
+            -23.7275790076879 * x.[7] * x.[1591] // E + FCE | catalytic destruction: E + FCE <-> Z + FCE
             0.001 * x.[2] // Z | destruction: E <-> Z
             -0.001 * x.[7] // E | destruction: E <-> Z
             -0.001 * x.[7] // E | synthesis: Y <-> E
@@ -20542,22 +20456,22 @@ module ModelData =
             -1.0 * x.[11] * x.[8] // a + F | ligation: a + F <-> aF
             1.0 * x.[24] // AF | ligation: A + F <-> AF
             -1.0 * x.[3] * x.[8] // A + F | ligation: A + F <-> AF
-            21.4702535520613 * x.[2] * x.[4051] // Z + geA | catalytic destruction: F + geA <-> Z + geA
-            -21.4702535520613 * x.[8] * x.[4051] // F + geA | catalytic destruction: F + geA <-> Z + geA
-            0.550519321847727 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: F + GEa <-> Z + GEa
-            -0.550519321847727 * x.[8] * x.[1883] // F + GEa | catalytic destruction: F + GEa <-> Z + GEa
-            -22.6065858567858 * x.[8] * x.[4176] // F + hDf | catalytic synthesis: Y + hDf <-> F + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> F + hDf
-            -13.295505497826 * x.[8] * x.[3149] // F + dDc | catalytic synthesis: Y + dDc <-> F + dDc
-            13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> F + dDc
-            -0.256034647543398 * x.[8] * x.[2861] // F + cBc | catalytic synthesis: Y + cBc <-> F + cBc
-            0.256034647543398 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> F + cBc
-            -0.579656047609891 * x.[8] * x.[2248] // F + HdF | catalytic synthesis: Y + HdF <-> F + HdF
-            0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> F + HdF
-            -0.340910397380155 * x.[8] * x.[1221] // F + DdC | catalytic synthesis: Y + DdC <-> F + DdC
-            0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> F + DdC
-            -9.98535125419251 * x.[8] * x.[933] // F + CbC | catalytic synthesis: Y + CbC <-> F + CbC
-            9.98535125419251 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> F + CbC
+            0.388114323272211 * x.[2] * x.[4255] // Z + hae | catalytic destruction: F + hae <-> Z + hae
+            -15.1364586076162 * x.[8] * x.[4255] // F + hae | catalytic destruction: F + hae <-> Z + hae
+            0.608399461735587 * x.[2] * x.[3775] // Z + fce | catalytic destruction: F + fce <-> Z + fce
+            -0.608399461735587 * x.[8] * x.[3775] // F + fce | catalytic destruction: F + fce <-> Z + fce
+            15.1364586076162 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: F + HAE <-> Z + HAE
+            -0.388114323272211 * x.[8] * x.[2071] // F + HAE | catalytic destruction: F + HAE <-> Z + HAE
+            23.7275790076879 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: F + FCE <-> Z + FCE
+            -23.7275790076879 * x.[8] * x.[1591] // F + FCE | catalytic destruction: F + FCE <-> Z + FCE
+            -52.6049630010652 * x.[8] * x.[3461] // F + eHC | catalytic synthesis: Y + eHC <-> F + eHC
+            1.34884520515552 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> F + eHC
+            -1.34884520515552 * x.[8] * x.[1549] // F + Ehc | catalytic synthesis: Y + Ehc <-> F + Ehc
+            52.6049630010652 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> F + Ehc
+            -50.2182251982423 * x.[8] * x.[225] // F + eg | catalytic synthesis: Y + eg <-> F + eg
+            1.28764679995494 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> F + eg
+            -1.28764679995494 * x.[8] * x.[89] // F + EG | catalytic synthesis: Y + EG <-> F + EG
+            50.2182251982423 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> F + EG
             0.001 * x.[2] // Z | destruction: F <-> Z
             -0.001 * x.[8] // F | destruction: F <-> Z
             -0.001 * x.[8] // F | synthesis: Y <-> F
@@ -21131,30 +21045,6 @@ module ModelData =
             -1.0 * x.[11] * x.[9] // a + G | ligation: a + G <-> aG
             1.0 * x.[25] // AG | ligation: A + G <-> AG
             -1.0 * x.[3] * x.[9] // A + G | ligation: A + G <-> AG
-            0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: G + hbg <-> Z + hbg
-            -17.9975576233807 * x.[9] * x.[4273] // G + hbg | catalytic destruction: G + hbg <-> Z + hbg
-            1.24261227694057 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: G + cGb <-> Z + cGb
-            -48.4618788006822 * x.[9] * x.[2940] // G + cGb | catalytic destruction: G + cGb <-> Z + cGb
-            40.3681008601875 * x.[2] * x.[2545] // Z + afg | catalytic destruction: G + afg <-> Z + afg
-            -1.03507950923558 * x.[9] * x.[2545] // G + afg | catalytic destruction: G + afg <-> Z + afg
-            17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: G + HBG <-> Z + HBG
-            -0.461475836496941 * x.[9] * x.[2089] // G + HBG | catalytic destruction: G + HBG <-> Z + HBG
-            48.4618788006822 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: G + CgB <-> Z + CgB
-            -1.24261227694057 * x.[9] * x.[1012] // G + CgB | catalytic destruction: G + CgB <-> Z + CgB
-            1.03507950923558 * x.[2] * x.[361] // Z + AFG | catalytic destruction: G + AFG <-> Z + AFG
-            -40.3681008601875 * x.[9] * x.[361] // G + AFG | catalytic destruction: G + AFG <-> Z + AFG
-            -22.6065858567858 * x.[9] * x.[4176] // G + hDf | catalytic synthesis: Y + hDf <-> G + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> G + hDf
-            -13.295505497826 * x.[9] * x.[3149] // G + dDc | catalytic synthesis: Y + dDc <-> G + dDc
-            13.295505497826 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> G + dDc
-            -1.8540564716286 * x.[9] * x.[2400] // G + aEf | catalytic synthesis: Y + aEf <-> G + aEf
-            0.0475399095289384 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> G + aEf
-            -0.579656047609891 * x.[9] * x.[2248] // G + HdF | catalytic synthesis: Y + HdF <-> G + HdF
-            0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> G + HdF
-            -0.340910397380155 * x.[9] * x.[1221] // G + DdC | catalytic synthesis: Y + DdC <-> G + DdC
-            0.340910397380155 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> G + DdC
-            -0.0475399095289384 * x.[9] * x.[472] // G + AeF | catalytic synthesis: Y + AeF <-> G + AeF
-            1.8540564716286 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> G + AeF
             0.001 * x.[2] // Z | destruction: G <-> Z
             -0.001 * x.[9] // G | destruction: G <-> Z
             -0.001 * x.[9] // G | synthesis: Y <-> G
@@ -21728,14 +21618,10 @@ module ModelData =
             -1.0 * x.[11] * x.[10] // a + H | ligation: a + H <-> aH
             1.0 * x.[26] // AH | ligation: A + H <-> AH
             -1.0 * x.[3] * x.[10] // A + H | ligation: A + H <-> AH
-            0.461475836496941 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: H + hbg <-> Z + hbg
-            -17.9975576233807 * x.[10] * x.[4273] // H + hbg | catalytic destruction: H + hbg <-> Z + hbg
-            17.9975576233807 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: H + HBG <-> Z + HBG
-            -0.461475836496941 * x.[10] * x.[2089] // H + HBG | catalytic destruction: H + HBG <-> Z + HBG
-            -22.6065858567858 * x.[10] * x.[4176] // H + hDf | catalytic synthesis: Y + hDf <-> H + hDf
-            22.6065858567858 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> H + hDf
-            -0.579656047609891 * x.[10] * x.[2248] // H + HdF | catalytic synthesis: Y + HdF <-> H + HdF
-            0.579656047609891 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> H + HdF
+            27.6942367219656 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: H + gHH <-> Z + gHH
+            -0.710108633896557 * x.[10] * x.[3978] // H + gHH | catalytic destruction: H + gHH <-> Z + gHH
+            0.710108633896557 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: H + Ghh <-> Z + Ghh
+            -27.6942367219656 * x.[10] * x.[2066] // H + Ghh | catalytic destruction: H + Ghh <-> Z + Ghh
             0.001 * x.[2] // Z | destruction: H <-> Z
             -0.001 * x.[10] // H | destruction: H <-> Z
             -0.001 * x.[10] // H | synthesis: Y <-> H
@@ -22309,46 +22195,34 @@ module ModelData =
             1.0 * x.[155] // aa | ligation: a + a <-> aa
             -1.0 * x.[11] * x.[11] // a + a | ligation: a + a <-> aa
             -1.0 * x.[11] * x.[11] // a + a | ligation: a + a <-> aa
-            0.461475836496943 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: a + HBG <-> Z + HBG
-            -17.9975576233807 * x.[11] * x.[2089] // a + HBG | catalytic destruction: a + HBG <-> Z + HBG
-            21.4702535520613 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: a + GEa <-> Z + GEa
-            -21.4702535520613 * x.[11] * x.[1883] // a + GEa | catalytic destruction: a + GEa <-> Z + GEa
-            0.948433285737981 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: a + FFA <-> Z + FFA
-            -36.9888981437812 * x.[11] * x.[1635] // a + FFA | catalytic destruction: a + FFA <-> Z + FFA
-            0.588203125741503 * x.[2] * x.[893] // Z + CGc | catalytic destruction: a + CGc <-> Z + CGc
-            -22.9399219039186 * x.[11] * x.[893] // a + CGc | catalytic destruction: a + CGc <-> Z + CGc
-            1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: a + CgB <-> Z + CgB
-            -48.4618788006822 * x.[11] * x.[1012] // a + CgB | catalytic destruction: a + CgB <-> Z + CgB
-            40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: a + AFG <-> Z + AFG
-            -1.03507950923558 * x.[11] * x.[361] // a + AFG | catalytic destruction: a + AFG <-> Z + AFG
-            17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: a + hbg <-> Z + hbg
-            -0.461475836496943 * x.[11] * x.[4273] // a + hbg | catalytic destruction: a + hbg <-> Z + hbg
-            0.550519321847727 * x.[2] * x.[4051] // Z + geA | catalytic destruction: a + geA <-> Z + geA
-            -0.550519321847727 * x.[11] * x.[4051] // a + geA | catalytic destruction: a + geA <-> Z + geA
-            36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: a + ffa <-> Z + ffa
-            -0.948433285737981 * x.[11] * x.[3819] // a + ffa | catalytic destruction: a + ffa <-> Z + ffa
-            48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: a + cGb <-> Z + cGb
-            -1.24261227694057 * x.[11] * x.[2940] // a + cGb | catalytic destruction: a + cGb <-> Z + cGb
-            22.9399219039186 * x.[2] * x.[3061] // Z + cgC | catalytic destruction: a + cgC <-> Z + cgC
-            -0.588203125741503 * x.[11] * x.[3061] // a + cgC | catalytic destruction: a + cgC <-> Z + cgC
-            1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: a + afg <-> Z + afg
-            -40.3681008601875 * x.[11] * x.[2545] // a + afg | catalytic destruction: a + afg <-> Z + afg
-            -22.6065858567858 * x.[11] * x.[2248] // a + HdF | catalytic synthesis: Y + HdF <-> a + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> a + HdF
-            -13.295505497826 * x.[11] * x.[1221] // a + DdC | catalytic synthesis: Y + DdC <-> a + DdC
-            13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> a + DdC
-            -0.256034647543398 * x.[11] * x.[933] // a + CbC | catalytic synthesis: Y + CbC <-> a + CbC
-            0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> a + CbC
-            -1.8540564716286 * x.[11] * x.[472] // a + AeF | catalytic synthesis: Y + AeF <-> a + AeF
-            0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> a + AeF
-            -0.579656047609892 * x.[11] * x.[4176] // a + hDf | catalytic synthesis: Y + hDf <-> a + hDf
-            0.579656047609892 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> a + hDf
-            -0.340910397380155 * x.[11] * x.[3149] // a + dDc | catalytic synthesis: Y + dDc <-> a + dDc
-            0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> a + dDc
-            -9.98535125419251 * x.[11] * x.[2861] // a + cBc | catalytic synthesis: Y + cBc <-> a + cBc
-            9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> a + cBc
-            -0.0475399095289384 * x.[11] * x.[2400] // a + aEf | catalytic synthesis: Y + aEf <-> a + aEf
-            1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> a + aEf
+            0.38811432327221 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: a + HAE <-> Z + HAE
+            -15.1364586076162 * x.[11] * x.[2071] // a + HAE | catalytic destruction: a + HAE <-> Z + HAE
+            27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: a + Ghh <-> Z + Ghh
+            -0.710108633896555 * x.[11] * x.[2066] // a + Ghh | catalytic destruction: a + Ghh <-> Z + Ghh
+            0.119825195175918 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: a + FHE <-> Z + FHE
+            -4.67318261186078 * x.[11] * x.[1671] // a + FHE | catalytic destruction: a + FHE <-> Z + FHE
+            0.608399461735588 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: a + FCE <-> Z + FCE
+            -0.608399461735588 * x.[11] * x.[1591] // a + FCE | catalytic destruction: a + FCE <-> Z + FCE
+            15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: a + hae <-> Z + hae
+            -0.38811432327221 * x.[11] * x.[4255] // a + hae | catalytic destruction: a + hae <-> Z + hae
+            0.710108633896555 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: a + gHH <-> Z + gHH
+            -27.6942367219656 * x.[11] * x.[3978] // a + gHH | catalytic destruction: a + gHH <-> Z + gHH
+            4.67318261186078 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: a + fhe <-> Z + fhe
+            -0.119825195175918 * x.[11] * x.[3855] // a + fhe | catalytic destruction: a + fhe <-> Z + fhe
+            23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: a + fce <-> Z + fce
+            -23.7275790076879 * x.[11] * x.[3775] // a + fce | catalytic destruction: a + fce <-> Z + fce
+            -52.6049630010652 * x.[11] * x.[1549] // a + Ehc | catalytic synthesis: Y + Ehc <-> a + Ehc
+            1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> a + Ehc
+            -5.32745698673349 * x.[11] * x.[676] // a + BbB | catalytic synthesis: Y + BbB <-> a + BbB
+            5.32745698673349 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> a + BbB
+            -1.34884520515552 * x.[11] * x.[3461] // a + eHC | catalytic synthesis: Y + eHC <-> a + eHC
+            52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> a + eHC
+            -0.136601461198295 * x.[11] * x.[2604] // a + bBb | catalytic synthesis: Y + bBb <-> a + bBb
+            0.136601461198295 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> a + bBb
+            -50.2182251982423 * x.[11] * x.[89] // a + EG | catalytic synthesis: Y + EG <-> a + EG
+            1.28764679995493 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> a + EG
+            -1.28764679995493 * x.[11] * x.[225] // a + eg | catalytic synthesis: Y + eg <-> a + eg
+            50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> a + eg
             0.001 * x.[2] // Z | destruction: a <-> Z
             -0.001 * x.[11] // a | destruction: a <-> Z
             -0.001 * x.[11] // a | synthesis: Y <-> a
@@ -22922,18 +22796,14 @@ module ModelData =
             -1.0 * x.[3] * x.[12] // A + b | ligation: A + b <-> Ab
             1.0 * x.[156] // ab | ligation: a + b <-> ab
             -1.0 * x.[11] * x.[12] // a + b | ligation: a + b <-> ab
-            0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: b + FFA <-> Z + FFA
-            -36.9888981437812 * x.[12] * x.[1635] // b + FFA | catalytic destruction: b + FFA <-> Z + FFA
-            40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: b + AFG <-> Z + AFG
-            -1.03507950923558 * x.[12] * x.[361] // b + AFG | catalytic destruction: b + AFG <-> Z + AFG
-            36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: b + ffa <-> Z + ffa
-            -0.948433285737984 * x.[12] * x.[3819] // b + ffa | catalytic destruction: b + ffa <-> Z + ffa
-            1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: b + afg <-> Z + afg
-            -40.3681008601875 * x.[12] * x.[2545] // b + afg | catalytic destruction: b + afg <-> Z + afg
-            -22.6065858567858 * x.[12] * x.[2248] // b + HdF | catalytic synthesis: Y + HdF <-> b + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> b + HdF
-            -0.579656047609891 * x.[12] * x.[4176] // b + hDf | catalytic synthesis: Y + hDf <-> b + hDf
-            0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> b + hDf
+            0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: b + HAE <-> Z + HAE
+            -15.1364586076162 * x.[12] * x.[2071] // b + HAE | catalytic destruction: b + HAE <-> Z + HAE
+            15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: b + hae <-> Z + hae
+            -0.388114323272211 * x.[12] * x.[4255] // b + hae | catalytic destruction: b + hae <-> Z + hae
+            -52.6049630010652 * x.[12] * x.[1549] // b + Ehc | catalytic synthesis: Y + Ehc <-> b + Ehc
+            1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> b + Ehc
+            -1.34884520515552 * x.[12] * x.[3461] // b + eHC | catalytic synthesis: Y + eHC <-> b + eHC
+            52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> b + eHC
             0.001 * x.[2] // Z | destruction: b <-> Z
             -0.001 * x.[12] // b | destruction: b <-> Z
             -0.001 * x.[12] // b | synthesis: Y <-> b
@@ -23507,14 +23377,26 @@ module ModelData =
             -1.0 * x.[3] * x.[13] // A + c | ligation: A + c <-> Ac
             1.0 * x.[157] // ac | ligation: a + c <-> ac
             -1.0 * x.[11] * x.[13] // a + c | ligation: a + c <-> ac
-            0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: c + FFA <-> Z + FFA
-            -36.9888981437812 * x.[13] * x.[1635] // c + FFA | catalytic destruction: c + FFA <-> Z + FFA
-            40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: c + AFG <-> Z + AFG
-            -1.03507950923558 * x.[13] * x.[361] // c + AFG | catalytic destruction: c + AFG <-> Z + AFG
-            36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: c + ffa <-> Z + ffa
-            -0.948433285737984 * x.[13] * x.[3819] // c + ffa | catalytic destruction: c + ffa <-> Z + ffa
-            1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: c + afg <-> Z + afg
-            -40.3681008601875 * x.[13] * x.[2545] // c + afg | catalytic destruction: c + afg <-> Z + afg
+            27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: c + Ghh <-> Z + Ghh
+            -0.710108633896557 * x.[13] * x.[2066] // c + Ghh | catalytic destruction: c + Ghh <-> Z + Ghh
+            0.119825195175918 * x.[2] * x.[1671] // Z + FHE | catalytic destruction: c + FHE <-> Z + FHE
+            -4.67318261186078 * x.[13] * x.[1671] // c + FHE | catalytic destruction: c + FHE <-> Z + FHE
+            0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: c + FCE <-> Z + FCE
+            -0.608399461735587 * x.[13] * x.[1591] // c + FCE | catalytic destruction: c + FCE <-> Z + FCE
+            0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: c + gHH <-> Z + gHH
+            -27.6942367219656 * x.[13] * x.[3978] // c + gHH | catalytic destruction: c + gHH <-> Z + gHH
+            4.67318261186078 * x.[2] * x.[3855] // Z + fhe | catalytic destruction: c + fhe <-> Z + fhe
+            -0.119825195175918 * x.[13] * x.[3855] // c + fhe | catalytic destruction: c + fhe <-> Z + fhe
+            23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: c + fce <-> Z + fce
+            -23.7275790076879 * x.[13] * x.[3775] // c + fce | catalytic destruction: c + fce <-> Z + fce
+            -5.32745698673349 * x.[13] * x.[676] // c + BbB | catalytic synthesis: Y + BbB <-> c + BbB
+            5.32745698673349 * x.[1] * x.[676] // Y + BbB | catalytic synthesis: Y + BbB <-> c + BbB
+            -0.136601461198294 * x.[13] * x.[2604] // c + bBb | catalytic synthesis: Y + bBb <-> c + bBb
+            0.136601461198294 * x.[1] * x.[2604] // Y + bBb | catalytic synthesis: Y + bBb <-> c + bBb
+            -50.2182251982423 * x.[13] * x.[89] // c + EG | catalytic synthesis: Y + EG <-> c + EG
+            1.28764679995494 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> c + EG
+            -1.28764679995494 * x.[13] * x.[225] // c + eg | catalytic synthesis: Y + eg <-> c + eg
+            50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> c + eg
             0.001 * x.[2] // Z | destruction: c <-> Z
             -0.001 * x.[13] // c | destruction: c <-> Z
             -0.001 * x.[13] // c | synthesis: Y <-> c
@@ -24088,26 +23970,14 @@ module ModelData =
             -1.0 * x.[3] * x.[14] // A + d | ligation: A + d <-> Ad
             1.0 * x.[158] // ad | ligation: a + d <-> ad
             -1.0 * x.[11] * x.[14] // a + d | ligation: a + d <-> ad
-            0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: d + FFA <-> Z + FFA
-            -36.9888981437812 * x.[14] * x.[1635] // d + FFA | catalytic destruction: d + FFA <-> Z + FFA
-            1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: d + CgB <-> Z + CgB
-            -48.4618788006822 * x.[14] * x.[1012] // d + CgB | catalytic destruction: d + CgB <-> Z + CgB
-            36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: d + ffa <-> Z + ffa
-            -0.948433285737984 * x.[14] * x.[3819] // d + ffa | catalytic destruction: d + ffa <-> Z + ffa
-            48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: d + cGb <-> Z + cGb
-            -1.24261227694057 * x.[14] * x.[2940] // d + cGb | catalytic destruction: d + cGb <-> Z + cGb
-            -22.6065858567858 * x.[14] * x.[2248] // d + HdF | catalytic synthesis: Y + HdF <-> d + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> d + HdF
-            -0.256034647543398 * x.[14] * x.[933] // d + CbC | catalytic synthesis: Y + CbC <-> d + CbC
-            0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> d + CbC
-            -1.8540564716286 * x.[14] * x.[472] // d + AeF | catalytic synthesis: Y + AeF <-> d + AeF
-            0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> d + AeF
-            -0.579656047609891 * x.[14] * x.[4176] // d + hDf | catalytic synthesis: Y + hDf <-> d + hDf
-            0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> d + hDf
-            -9.98535125419251 * x.[14] * x.[2861] // d + cBc | catalytic synthesis: Y + cBc <-> d + cBc
-            9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> d + cBc
-            -0.0475399095289384 * x.[14] * x.[2400] // d + aEf | catalytic synthesis: Y + aEf <-> d + aEf
-            1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> d + aEf
+            0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: d + HAE <-> Z + HAE
+            -15.1364586076162 * x.[14] * x.[2071] // d + HAE | catalytic destruction: d + HAE <-> Z + HAE
+            27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: d + Ghh <-> Z + Ghh
+            -0.710108633896557 * x.[14] * x.[2066] // d + Ghh | catalytic destruction: d + Ghh <-> Z + Ghh
+            15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: d + hae <-> Z + hae
+            -0.388114323272211 * x.[14] * x.[4255] // d + hae | catalytic destruction: d + hae <-> Z + hae
+            0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: d + gHH <-> Z + gHH
+            -27.6942367219656 * x.[14] * x.[3978] // d + gHH | catalytic destruction: d + gHH <-> Z + gHH
             0.001 * x.[2] // Z | destruction: d <-> Z
             -0.001 * x.[14] // d | destruction: d <-> Z
             -0.001 * x.[14] // d | synthesis: Y <-> d
@@ -24681,14 +24551,10 @@ module ModelData =
             -1.0 * x.[3] * x.[15] // A + e | ligation: A + e <-> Ae
             1.0 * x.[159] // ae | ligation: a + e <-> ae
             -1.0 * x.[11] * x.[15] // a + e | ligation: a + e <-> ae
-            0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: e + HBG <-> Z + HBG
-            -17.9975576233807 * x.[15] * x.[2089] // e + HBG | catalytic destruction: e + HBG <-> Z + HBG
-            0.948433285737984 * x.[2] * x.[1635] // Z + FFA | catalytic destruction: e + FFA <-> Z + FFA
-            -36.9888981437812 * x.[15] * x.[1635] // e + FFA | catalytic destruction: e + FFA <-> Z + FFA
-            17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: e + hbg <-> Z + hbg
-            -0.461475836496941 * x.[15] * x.[4273] // e + hbg | catalytic destruction: e + hbg <-> Z + hbg
-            36.9888981437812 * x.[2] * x.[3819] // Z + ffa | catalytic destruction: e + ffa <-> Z + ffa
-            -0.948433285737984 * x.[15] * x.[3819] // e + ffa | catalytic destruction: e + ffa <-> Z + ffa
+            0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: e + FCE <-> Z + FCE
+            -0.608399461735587 * x.[15] * x.[1591] // e + FCE | catalytic destruction: e + FCE <-> Z + FCE
+            23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: e + fce <-> Z + fce
+            -23.7275790076879 * x.[15] * x.[3775] // e + fce | catalytic destruction: e + fce <-> Z + fce
             0.001 * x.[2] // Z | destruction: e <-> Z
             -0.001 * x.[15] // e | destruction: e <-> Z
             -0.001 * x.[15] // e | synthesis: Y <-> e
@@ -25262,22 +25128,22 @@ module ModelData =
             -1.0 * x.[3] * x.[16] // A + f | ligation: A + f <-> Af
             1.0 * x.[160] // af | ligation: a + f <-> af
             -1.0 * x.[11] * x.[16] // a + f | ligation: a + f <-> af
-            21.4702535520613 * x.[2] * x.[1883] // Z + GEa | catalytic destruction: f + GEa <-> Z + GEa
-            -21.4702535520613 * x.[16] * x.[1883] // f + GEa | catalytic destruction: f + GEa <-> Z + GEa
-            0.550519321847727 * x.[2] * x.[4051] // Z + geA | catalytic destruction: f + geA <-> Z + geA
-            -0.550519321847727 * x.[16] * x.[4051] // f + geA | catalytic destruction: f + geA <-> Z + geA
-            -22.6065858567858 * x.[16] * x.[2248] // f + HdF | catalytic synthesis: Y + HdF <-> f + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> f + HdF
-            -13.295505497826 * x.[16] * x.[1221] // f + DdC | catalytic synthesis: Y + DdC <-> f + DdC
-            13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> f + DdC
-            -0.256034647543398 * x.[16] * x.[933] // f + CbC | catalytic synthesis: Y + CbC <-> f + CbC
-            0.256034647543398 * x.[1] * x.[933] // Y + CbC | catalytic synthesis: Y + CbC <-> f + CbC
-            -0.579656047609891 * x.[16] * x.[4176] // f + hDf | catalytic synthesis: Y + hDf <-> f + hDf
-            0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> f + hDf
-            -0.340910397380155 * x.[16] * x.[3149] // f + dDc | catalytic synthesis: Y + dDc <-> f + dDc
-            0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> f + dDc
-            -9.98535125419251 * x.[16] * x.[2861] // f + cBc | catalytic synthesis: Y + cBc <-> f + cBc
-            9.98535125419251 * x.[1] * x.[2861] // Y + cBc | catalytic synthesis: Y + cBc <-> f + cBc
+            0.388114323272211 * x.[2] * x.[2071] // Z + HAE | catalytic destruction: f + HAE <-> Z + HAE
+            -15.1364586076162 * x.[16] * x.[2071] // f + HAE | catalytic destruction: f + HAE <-> Z + HAE
+            0.608399461735587 * x.[2] * x.[1591] // Z + FCE | catalytic destruction: f + FCE <-> Z + FCE
+            -0.608399461735587 * x.[16] * x.[1591] // f + FCE | catalytic destruction: f + FCE <-> Z + FCE
+            15.1364586076162 * x.[2] * x.[4255] // Z + hae | catalytic destruction: f + hae <-> Z + hae
+            -0.388114323272211 * x.[16] * x.[4255] // f + hae | catalytic destruction: f + hae <-> Z + hae
+            23.7275790076879 * x.[2] * x.[3775] // Z + fce | catalytic destruction: f + fce <-> Z + fce
+            -23.7275790076879 * x.[16] * x.[3775] // f + fce | catalytic destruction: f + fce <-> Z + fce
+            -52.6049630010652 * x.[16] * x.[1549] // f + Ehc | catalytic synthesis: Y + Ehc <-> f + Ehc
+            1.34884520515552 * x.[1] * x.[1549] // Y + Ehc | catalytic synthesis: Y + Ehc <-> f + Ehc
+            -1.34884520515552 * x.[16] * x.[3461] // f + eHC | catalytic synthesis: Y + eHC <-> f + eHC
+            52.6049630010652 * x.[1] * x.[3461] // Y + eHC | catalytic synthesis: Y + eHC <-> f + eHC
+            -50.2182251982423 * x.[16] * x.[89] // f + EG | catalytic synthesis: Y + EG <-> f + EG
+            1.28764679995494 * x.[1] * x.[89] // Y + EG | catalytic synthesis: Y + EG <-> f + EG
+            -1.28764679995494 * x.[16] * x.[225] // f + eg | catalytic synthesis: Y + eg <-> f + eg
+            50.2182251982423 * x.[1] * x.[225] // Y + eg | catalytic synthesis: Y + eg <-> f + eg
             0.001 * x.[2] // Z | destruction: f <-> Z
             -0.001 * x.[16] // f | destruction: f <-> Z
             -0.001 * x.[16] // f | synthesis: Y <-> f
@@ -25851,30 +25717,6 @@ module ModelData =
             -1.0 * x.[3] * x.[17] // A + g | ligation: A + g <-> Ag
             1.0 * x.[161] // ag | ligation: a + g <-> ag
             -1.0 * x.[11] * x.[17] // a + g | ligation: a + g <-> ag
-            0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: g + HBG <-> Z + HBG
-            -17.9975576233807 * x.[17] * x.[2089] // g + HBG | catalytic destruction: g + HBG <-> Z + HBG
-            1.24261227694057 * x.[2] * x.[1012] // Z + CgB | catalytic destruction: g + CgB <-> Z + CgB
-            -48.4618788006822 * x.[17] * x.[1012] // g + CgB | catalytic destruction: g + CgB <-> Z + CgB
-            40.3681008601875 * x.[2] * x.[361] // Z + AFG | catalytic destruction: g + AFG <-> Z + AFG
-            -1.03507950923558 * x.[17] * x.[361] // g + AFG | catalytic destruction: g + AFG <-> Z + AFG
-            17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: g + hbg <-> Z + hbg
-            -0.461475836496941 * x.[17] * x.[4273] // g + hbg | catalytic destruction: g + hbg <-> Z + hbg
-            48.4618788006822 * x.[2] * x.[2940] // Z + cGb | catalytic destruction: g + cGb <-> Z + cGb
-            -1.24261227694057 * x.[17] * x.[2940] // g + cGb | catalytic destruction: g + cGb <-> Z + cGb
-            1.03507950923558 * x.[2] * x.[2545] // Z + afg | catalytic destruction: g + afg <-> Z + afg
-            -40.3681008601875 * x.[17] * x.[2545] // g + afg | catalytic destruction: g + afg <-> Z + afg
-            -22.6065858567858 * x.[17] * x.[2248] // g + HdF | catalytic synthesis: Y + HdF <-> g + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> g + HdF
-            -13.295505497826 * x.[17] * x.[1221] // g + DdC | catalytic synthesis: Y + DdC <-> g + DdC
-            13.295505497826 * x.[1] * x.[1221] // Y + DdC | catalytic synthesis: Y + DdC <-> g + DdC
-            -1.8540564716286 * x.[17] * x.[472] // g + AeF | catalytic synthesis: Y + AeF <-> g + AeF
-            0.0475399095289384 * x.[1] * x.[472] // Y + AeF | catalytic synthesis: Y + AeF <-> g + AeF
-            -0.579656047609891 * x.[17] * x.[4176] // g + hDf | catalytic synthesis: Y + hDf <-> g + hDf
-            0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> g + hDf
-            -0.340910397380155 * x.[17] * x.[3149] // g + dDc | catalytic synthesis: Y + dDc <-> g + dDc
-            0.340910397380155 * x.[1] * x.[3149] // Y + dDc | catalytic synthesis: Y + dDc <-> g + dDc
-            -0.0475399095289384 * x.[17] * x.[2400] // g + aEf | catalytic synthesis: Y + aEf <-> g + aEf
-            1.8540564716286 * x.[1] * x.[2400] // Y + aEf | catalytic synthesis: Y + aEf <-> g + aEf
             0.001 * x.[2] // Z | destruction: g <-> Z
             -0.001 * x.[17] // g | destruction: g <-> Z
             -0.001 * x.[17] // g | synthesis: Y <-> g
@@ -26448,14 +26290,10 @@ module ModelData =
             -1.0 * x.[3] * x.[18] // A + h | ligation: A + h <-> Ah
             1.0 * x.[162] // ah | ligation: a + h <-> ah
             -1.0 * x.[11] * x.[18] // a + h | ligation: a + h <-> ah
-            0.461475836496941 * x.[2] * x.[2089] // Z + HBG | catalytic destruction: h + HBG <-> Z + HBG
-            -17.9975576233807 * x.[18] * x.[2089] // h + HBG | catalytic destruction: h + HBG <-> Z + HBG
-            17.9975576233807 * x.[2] * x.[4273] // Z + hbg | catalytic destruction: h + hbg <-> Z + hbg
-            -0.461475836496941 * x.[18] * x.[4273] // h + hbg | catalytic destruction: h + hbg <-> Z + hbg
-            -22.6065858567858 * x.[18] * x.[2248] // h + HdF | catalytic synthesis: Y + HdF <-> h + HdF
-            22.6065858567858 * x.[1] * x.[2248] // Y + HdF | catalytic synthesis: Y + HdF <-> h + HdF
-            -0.579656047609891 * x.[18] * x.[4176] // h + hDf | catalytic synthesis: Y + hDf <-> h + hDf
-            0.579656047609891 * x.[1] * x.[4176] // Y + hDf | catalytic synthesis: Y + hDf <-> h + hDf
+            27.6942367219656 * x.[2] * x.[2066] // Z + Ghh | catalytic destruction: h + Ghh <-> Z + Ghh
+            -0.710108633896557 * x.[18] * x.[2066] // h + Ghh | catalytic destruction: h + Ghh <-> Z + Ghh
+            0.710108633896557 * x.[2] * x.[3978] // Z + gHH | catalytic destruction: h + gHH <-> Z + gHH
+            -27.6942367219656 * x.[18] * x.[3978] // h + gHH | catalytic destruction: h + gHH <-> Z + gHH
             0.001 * x.[2] // Z | destruction: h <-> Z
             -0.001 * x.[18] // h | destruction: h <-> Z
             -0.001 * x.[18] // h | synthesis: Y <-> h
@@ -26467,6 +26305,7 @@ module ModelData =
     // 19 - AA
     let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8812.10386379525 * x.[19] * x.[4063] // AA + gee | sedimentation direct: AA + gee -> 5 Z
             1.0 * x.[4115] // hAA | ligation: h + AA <-> hAA
             -1.0 * x.[18] * x.[19] // h + AA | ligation: h + AA <-> hAA
             1.0 * x.[2067] // HAA | ligation: H + AA <-> HAA
@@ -27000,6 +26839,7 @@ module ModelData =
     // 32 - Af
     let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15112.0380673577 * x.[32] * x.[1733] // Af + FdC | sedimentation direct: Af + FdC -> 5 Z
             1.0 * x.[4128] // hAf | ligation: h + Af <-> hAf
             -1.0 * x.[18] * x.[32] // h + Af | ligation: h + Af <-> hAf
             1.0 * x.[2080] // HAf | ligation: H + Af <-> HAf
@@ -27408,6 +27248,7 @@ module ModelData =
     // 42 - BH
     let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12132.849229071 * x.[42] * x.[2260] // BH + HeB | sedimentation direct: BH + HeB -> 5 Z
             1.0 * x.[4138] // hBH | ligation: h + BH <-> hBH
             -1.0 * x.[18] * x.[42] // h + BH | ligation: h + BH <-> hBH
             1.0 * x.[2090] // HBH | ligation: H + BH <-> HBH
@@ -27777,6 +27618,7 @@ module ModelData =
     // 51 - CA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22647.3985326419 * x.[51] * x.[2381] // CA + aDc | sedimentation direct: CA + aDc -> 5 Z
             1.0 * x.[4147] // hCA | ligation: h + CA <-> hCA
             -1.0 * x.[18] * x.[51] // h + CA | ligation: h + CA <-> hCA
             1.0 * x.[2099] // HCA | ligation: H + CA <-> HCA
@@ -28306,6 +28148,7 @@ module ModelData =
     // 64 - Cf
     let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1788.81628912716 * x.[64] * x.[1471] // Cf + Ece | sedimentation direct: Cf + Ece -> 5 Z
             1.0 * x.[4160] // hCf | ligation: h + Cf <-> hCf
             -1.0 * x.[18] * x.[64] // h + Cf | ligation: h + Cf <-> hCf
             1.0 * x.[2112] // HCf | ligation: H + Cf <-> HCf
@@ -28468,6 +28311,7 @@ module ModelData =
     // 68 - DB
     let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -25525.10772298 * x.[68] * x.[811] // DB + CBa | sedimentation direct: DB + CBa -> 5 Z
             1.0 * x.[4164] // hDB | ligation: h + DB <-> hDB
             -1.0 * x.[18] * x.[68] // h + DB | ligation: h + DB <-> hDB
             1.0 * x.[2116] // HDB | ligation: H + DB <-> HDB
@@ -29118,7 +28962,6 @@ module ModelData =
     // 84 - EB
     let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1055.07463887675 * x.[84] * x.[1711] // EB + Fbe | sedimentation direct: EB + Fbe -> 5 Z
             1.0 * x.[4180] // hEB | ligation: h + EB <-> hEB
             -1.0 * x.[18] * x.[84] // h + EB | ligation: h + EB <-> hEB
             1.0 * x.[2132] // HEB | ligation: H + EB <-> HEB
@@ -29158,6 +29001,7 @@ module ModelData =
     // 85 - EC
     let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22829.6223683907 * x.[85] * x.[3256] // EC + dcF | sedimentation direct: EC + dcF -> 5 Z
             1.0 * x.[4181] // hEC | ligation: h + EC <-> hEC
             -1.0 * x.[18] * x.[85] // h + EC | ligation: h + EC <-> hEC
             1.0 * x.[2133] // HEC | ligation: H + EC <-> HEC
@@ -30977,7 +30821,6 @@ module ModelData =
     // 130 - Gh
     let d130 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11638.9194931042 * x.[130] * x.[3610] // Gh + fAH | sedimentation direct: Gh + fAH -> 5 Z
             1.0 * x.[4226] // hGh | ligation: h + Gh <-> hGh
             -1.0 * x.[18] * x.[130] // h + Gh | ligation: h + Gh <-> hGh
             1.0 * x.[2178] // HGh | ligation: H + Gh <-> HGh
@@ -31292,6 +31135,7 @@ module ModelData =
     // 138 - HH
     let d138 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3488.44865631773 * x.[138] * x.[1928] // HH + GHF | sedimentation direct: HH + GHF -> 5 Z
             1.0 * x.[4234] // hHH | ligation: h + HH <-> hHH
             -1.0 * x.[18] * x.[138] // h + HH | ligation: h + HH <-> hHH
             1.0 * x.[2186] // HHH | ligation: H + HH <-> HHH
@@ -31866,6 +31710,7 @@ module ModelData =
     // 152 - aF
     let d152 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15112.0380673577 * x.[152] * x.[3661] // aF + fDc | sedimentation direct: aF + fDc -> 5 Z
             1.0 * x.[2200] // HaF | ligation: H + aF <-> HaF
             -1.0 * x.[10] * x.[152] // H + aF | ligation: H + aF <-> HaF
             1.0 * x.[4248] // haF | ligation: h + aF <-> haF
@@ -31989,6 +31834,7 @@ module ModelData =
     // 155 - aa
     let d155 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8812.10386379525 * x.[155] * x.[1879] // aa + GEE | sedimentation direct: aa + GEE -> 5 Z
             1.0 * x.[2203] // Haa | ligation: H + aa <-> Haa
             -1.0 * x.[10] * x.[155] // H + aa | ligation: H + aa <-> Haa
             1.0 * x.[4251] // haa | ligation: h + aa <-> haa
@@ -32930,6 +32776,7 @@ module ModelData =
     // 178 - bh
     let d178 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12132.849229071 * x.[178] * x.[4188] // bh + hEb | sedimentation direct: bh + hEb -> 5 Z
             1.0 * x.[2226] // Hbh | ligation: H + bh <-> Hbh
             -1.0 * x.[10] * x.[178] // H + bh | ligation: H + bh <-> Hbh
             1.0 * x.[4274] // hbh | ligation: h + bh <-> hbh
@@ -33176,6 +33023,7 @@ module ModelData =
     // 184 - cF
     let d184 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1788.81628912716 * x.[184] * x.[3383] // cF + eCE | sedimentation direct: cF + eCE -> 5 Z
             1.0 * x.[2232] // HcF | ligation: H + cF <-> HcF
             -1.0 * x.[10] * x.[184] // H + cF | ligation: H + cF <-> HcF
             1.0 * x.[4280] // hcF | ligation: h + cF <-> hcF
@@ -33299,6 +33147,7 @@ module ModelData =
     // 187 - ca
     let d187 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22647.3985326419 * x.[187] * x.[453] // ca + AdC | sedimentation direct: ca + AdC -> 5 Z
             1.0 * x.[2235] // Hca | ligation: H + ca <-> Hca
             -1.0 * x.[10] * x.[187] // H + ca | ligation: H + ca <-> Hca
             1.0 * x.[4283] // hca | ligation: h + ca <-> hca
@@ -33990,6 +33839,7 @@ module ModelData =
     // 204 - db
     let d204 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -25525.10772298 * x.[204] * x.[2979] // db + cbA | sedimentation direct: db + cbA -> 5 Z
             1.0 * x.[2252] // Hdb | ligation: H + db <-> Hdb
             -1.0 * x.[10] * x.[204] // H + db | ligation: H + db <-> Hdb
             1.0 * x.[4300] // hdb | ligation: h + db <-> hdb
@@ -34640,7 +34490,6 @@ module ModelData =
     // 220 - eb
     let d220 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1055.07463887675 * x.[220] * x.[3623] // eb + fBE | sedimentation direct: eb + fBE -> 5 Z
             1.0 * x.[2268] // Heb | ligation: H + eb <-> Heb
             -1.0 * x.[10] * x.[220] // H + eb | ligation: H + eb <-> Heb
             1.0 * x.[4316] // heb | ligation: h + eb <-> heb
@@ -34680,6 +34529,7 @@ module ModelData =
     // 221 - ec
     let d221 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22829.6223683907 * x.[221] * x.[1088] // ec + DCf | sedimentation direct: ec + DCf -> 5 Z
             1.0 * x.[2269] // Hec | ligation: H + ec <-> Hec
             -1.0 * x.[10] * x.[221] // H + ec | ligation: H + ec <-> Hec
             1.0 * x.[4317] // hec | ligation: h + ec <-> hec
@@ -35855,7 +35705,6 @@ module ModelData =
     // 250 - gH
     let d250 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11638.9194931042 * x.[250] * x.[1698] // gH + Fah | sedimentation direct: gH + Fah -> 5 Z
             1.0 * x.[2298] // HgH | ligation: H + gH <-> HgH
             -1.0 * x.[10] * x.[250] // H + gH | ligation: H + gH <-> HgH
             1.0 * x.[4346] // hgH | ligation: h + gH <-> hgH
@@ -36814,6 +36663,7 @@ module ModelData =
     // 274 - hh
     let d274 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3488.44865631773 * x.[274] * x.[4112] // hh + ghf | sedimentation direct: hh + ghf -> 5 Z
             1.0 * x.[2322] // Hhh | ligation: H + hh <-> Hhh
             -1.0 * x.[10] * x.[274] // H + hh | ligation: H + hh <-> Hhh
             1.0 * x.[4370] // hhh | ligation: h + hh <-> hhh
@@ -36855,6 +36705,7 @@ module ModelData =
     // 275 - AAA
     let d275 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24523.968136374 * x.[2405] * x.[275] // aFC + AAA | sedimentation direct: aFC + AAA -> 6 Z
             -1.0 * x.[275] // AAA | ligation: A + AA <-> AAA
             1.0 * x.[3] * x.[19] // A + AA | ligation: A + AA <-> AAA
         |]
@@ -36873,6 +36724,7 @@ module ModelData =
     // 277 - AAC
     let d277 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17244.5429996477 * x.[277] * x.[2318] // AAC + Hhd | sedimentation direct: AAC + Hhd -> 6 Z
             -1.0 * x.[277] // AAC | ligation: A + AC <-> AAC
             1.0 * x.[3] * x.[21] // A + AC | ligation: A + AC <-> AAC
         |]
@@ -36882,6 +36734,7 @@ module ModelData =
     // 278 - AAD
     let d278 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2982.8290550336 * x.[278] * x.[3126] // AAD + dCD | sedimentation direct: AAD + dCD -> 6 Z
             -1.0 * x.[278] // AAD | ligation: A + AD <-> AAD
             1.0 * x.[3] * x.[22] // A + AD | ligation: A + AD <-> AAD
         |]
@@ -37035,6 +36888,7 @@ module ModelData =
     // 295 - ABE
     let d295 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3429.44073043316 * x.[295] * x.[2182] // ABE + HHD | sedimentation direct: ABE + HHD -> 6 Z
             -1.0 * x.[295] // ABE | ligation: A + BE <-> ABE
             1.0 * x.[3] * x.[39] // A + BE | ligation: A + BE <-> ABE
         |]
@@ -37179,7 +37033,6 @@ module ModelData =
     // 311 - ACE
     let d311 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12047.7501937082 * x.[2851] * x.[311] // cBA + ACE | sedimentation direct: cBA + ACE -> 6 Z
             -1.0 * x.[311] // ACE | ligation: A + CE <-> ACE
             1.0 * x.[3] * x.[55] // A + CE | ligation: A + CE <-> ACE
         |]
@@ -37189,6 +37042,8 @@ module ModelData =
     // 312 - ACF
     let d312 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -694.996180868133 * x.[2421] * x.[312] // aGC + ACF | sedimentation direct: aGC + ACF -> 6 Z
+            -6510.56836927524 * x.[312] * x.[1119] // ACF + DEe | sedimentation direct: ACF + DEe -> 6 Z
             -1.0 * x.[312] // ACF | ligation: A + CF <-> ACF
             1.0 * x.[3] * x.[56] // A + CF | ligation: A + CF <-> ACF
         |]
@@ -37216,7 +37071,6 @@ module ModelData =
     // 315 - ACa
     let d315 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -180.269135969094 * x.[3559] * x.[315] // efE + ACa | sedimentation direct: efE + ACa -> 6 Z
             -1.0 * x.[315] // ACa | ligation: A + Ca <-> ACa
             1.0 * x.[3] * x.[59] // A + Ca | ligation: A + Ca <-> ACa
         |]
@@ -37505,6 +37359,7 @@ module ModelData =
     // 347 - AEa
     let d347 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -10838.584991472 * x.[347] * x.[4354] // AEa + hgh | sedimentation direct: AEa + hgh -> 6 Z
             -1.0 * x.[347] // AEa | ligation: A + Ea <-> AEa
             1.0 * x.[3] * x.[91] // A + Ea | ligation: A + Ea <-> AEa
         |]
@@ -37523,6 +37378,7 @@ module ModelData =
     // 349 - AEc
     let d349 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11328.4843016445 * x.[349] * x.[3105] // AEc + dAg | sedimentation direct: AEc + dAg -> 6 Z
             -1.0 * x.[349] // AEc | ligation: A + Ec <-> AEc
             1.0 * x.[3] * x.[93] // A + Ec | ligation: A + Ec <-> AEc
         |]
@@ -37532,6 +37388,7 @@ module ModelData =
     // 350 - AEd
     let d350 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4698.89142379968 * x.[350] * x.[2850] // AEd + cAh | sedimentation direct: AEd + cAh -> 6 Z
             -1.0 * x.[350] // AEd | ligation: A + Ed <-> AEd
             1.0 * x.[3] * x.[94] // A + Ed | ligation: A + Ed <-> AEd
         |]
@@ -37595,6 +37452,7 @@ module ModelData =
     // 357 - AFC
     let d357 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -352.155016305217 * x.[357] * x.[925] // AFC + Cac | sedimentation direct: AFC + Cac -> 6 Z
             -1.0 * x.[357] // AFC | ligation: A + FC <-> AFC
             1.0 * x.[3] * x.[101] // A + FC | ligation: A + FC <-> AFC
         |]
@@ -37829,6 +37687,7 @@ module ModelData =
     // 383 - AGe
     let d383 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1491.0342841907 * x.[383] * x.[1405] // AGe + EGc | sedimentation direct: AGe + EGc -> 6 Z
             -1.0 * x.[383] // AGe | ligation: A + Ge <-> AGe
             1.0 * x.[3] * x.[127] // A + Ge | ligation: A + Ge <-> AGe
         |]
@@ -38036,6 +37895,7 @@ module ModelData =
     // 406 - AaD
     let d406 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -993.841020801401 * x.[3062] * x.[406] // cgD + AaD | sedimentation direct: cgD + AaD -> 6 Z
             -1.0 * x.[406] // AaD | ligation: A + aD <-> AaD
             1.0 * x.[3] * x.[150] // A + aD | ligation: A + aD <-> AaD
         |]
@@ -38234,6 +38094,7 @@ module ModelData =
     // 428 - Abb
     let d428 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2527.94994937767 * x.[3670] * x.[428] // fED + Abb | sedimentation direct: fED + Abb -> 6 Z
             -1.0 * x.[428] // Abb | ligation: A + bb <-> Abb
             1.0 * x.[3] * x.[172] // A + bb | ligation: A + bb <-> Abb
         |]
@@ -38315,6 +38176,7 @@ module ModelData =
     // 437 - AcC
     let d437 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -18324.8680018572 * x.[4315] * x.[437] // hea + AcC | sedimentation direct: hea + AcC -> 6 Z
             -1.0 * x.[437] // AcC | ligation: A + cC <-> AcC
             1.0 * x.[3] * x.[181] // A + cC | ligation: A + cC <-> AcC
         |]
@@ -38351,7 +38213,6 @@ module ModelData =
     // 441 - AcG
     let d441 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19455.7118782213 * x.[441] * x.[1606] // AcG + FDD | sedimentation direct: AcG + FDD -> 6 Z
             -1.0 * x.[441] // AcG | ligation: A + cG <-> AcG
             1.0 * x.[3] * x.[185] // A + cG | ligation: A + cG <-> AcG
         |]
@@ -38379,6 +38240,7 @@ module ModelData =
     // 444 - Acb
     let d444 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2095.52784166418 * x.[444] * x.[2909] // Acb + cEc | sedimentation direct: Acb + cEc -> 6 Z
             -1.0 * x.[444] // Acb | ligation: A + cb <-> Acb
             1.0 * x.[3] * x.[188] // A + cb | ligation: A + cb <-> Acb
         |]
@@ -38460,6 +38322,7 @@ module ModelData =
     // 453 - AdC
     let d453 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22647.3985326419 * x.[187] * x.[453] // ca + AdC | sedimentation direct: ca + AdC -> 5 Z
             -1.0 * x.[453] // AdC | ligation: A + dC <-> AdC
             1.0 * x.[3] * x.[197] // A + dC | ligation: A + dC <-> AdC
         |]
@@ -38505,7 +38368,6 @@ module ModelData =
     // 458 - AdH
     let d458 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2163.38989482915 * x.[458] * x.[2811] // AdH + bga | sedimentation direct: AdH + bga -> 6 Z
             -1.0 * x.[458] // AdH | ligation: A + dH <-> AdH
             1.0 * x.[3] * x.[202] // A + dH | ligation: A + dH <-> AdH
         |]
@@ -38731,6 +38593,8 @@ module ModelData =
     // 483 - AfA
     let d483 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8127.88228117916 * x.[483] * x.[3325] // AfA + dgc | sedimentation direct: AfA + dgc -> 6 Z
+            -6867.01565343078 * x.[483] * x.[2008] // AfA + GeF | sedimentation direct: AfA + GeF -> 6 Z
             -1.0 * x.[483] // AfA | ligation: A + fA <-> AfA
             1.0 * x.[3] * x.[227] // A + fA | ligation: A + fA <-> AfA
         |]
@@ -38812,7 +38676,6 @@ module ModelData =
     // 492 - Afb
     let d492 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7574.85028993522 * x.[2435] * x.[492] // aHA + Afb | sedimentation direct: aHA + Afb -> 6 Z
             -1.0 * x.[492] // Afb | ligation: A + fb <-> Afb
             1.0 * x.[3] * x.[236] // A + fb | ligation: A + fb <-> Afb
         |]
@@ -38822,6 +38685,7 @@ module ModelData =
     // 493 - Afc
     let d493 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24523.968136374 * x.[493] * x.[2459] // Afc + aaa | sedimentation direct: Afc + aaa -> 6 Z
             -1.0 * x.[493] // Afc | ligation: A + fc <-> Afc
             1.0 * x.[3] * x.[237] // A + fc | ligation: A + fc <-> Afc
         |]
@@ -38858,7 +38722,7 @@ module ModelData =
     // 497 - Afg
     let d497 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2473.41781330885 * x.[497] * x.[931] // Afg + CbA | sedimentation direct: Afg + CbA -> 6 Z
+            -3582.47629759828 * x.[3687] * x.[497] // fFE + Afg | sedimentation direct: fFE + Afg -> 6 Z
             -1.0 * x.[497] // Afg | ligation: A + fg <-> Afg
             1.0 * x.[3] * x.[241] // A + fg | ligation: A + fg <-> Afg
         |]
@@ -38967,6 +38831,7 @@ module ModelData =
     // 509 - Agc
     let d509 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -694.996180868133 * x.[509] * x.[2496] // Agc + acf | sedimentation direct: Agc + acf -> 6 Z
             -1.0 * x.[509] // Agc | ligation: A + gc <-> Agc
             1.0 * x.[3] * x.[253] // A + gc | ligation: A + gc <-> Agc
         |]
@@ -39030,6 +38895,7 @@ module ModelData =
     // 516 - AhB
     let d516 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -437.736426597162 * x.[3495] * x.[516] // ebE + AhB | sedimentation direct: ebE + AhB -> 6 Z
             -1.0 * x.[516] // AhB | ligation: A + hB <-> AhB
             1.0 * x.[3] * x.[260] // A + hB | ligation: A + hB <-> AhB
         |]
@@ -39048,6 +38914,7 @@ module ModelData =
     // 518 - AhD
     let d518 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11806.3869313432 * x.[3735] * x.[518] // faE + AhD | sedimentation direct: faE + AhD -> 6 Z
             -1.0 * x.[518] // AhD | ligation: A + hD <-> AhD
             1.0 * x.[3] * x.[262] // A + hD | ligation: A + hD <-> AhD
         |]
@@ -39075,7 +38942,6 @@ module ModelData =
     // 521 - AhG
     let d521 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1277.73454437184 * x.[521] * x.[756] // AhG + BgB | sedimentation direct: AhG + BgB -> 6 Z
             -1.0 * x.[521] // AhG | ligation: A + hG <-> AhG
             1.0 * x.[3] * x.[265] // A + hG | ligation: A + hG <-> AhG
         |]
@@ -39085,6 +38951,7 @@ module ModelData =
     // 522 - AhH
     let d522 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17306.5931290351 * x.[4327] * x.[522] // hfE + AhH | sedimentation direct: hfE + AhH -> 6 Z
             -1.0 * x.[522] // AhH | ligation: A + hH <-> AhH
             1.0 * x.[3] * x.[266] // A + hH | ligation: A + hH <-> AhH
         |]
@@ -39094,7 +38961,6 @@ module ModelData =
     // 523 - Aha
     let d523 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7574.85028993522 * x.[523] * x.[2404] // Aha + aFB | sedimentation direct: Aha + aFB -> 6 Z
             -1.0 * x.[523] // Aha | ligation: A + ha <-> Aha
             1.0 * x.[3] * x.[267] // A + ha | ligation: A + ha <-> Aha
         |]
@@ -39104,6 +38970,7 @@ module ModelData =
     // 524 - Ahb
     let d524 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4515.04390536149 * x.[2614] * x.[524] // bCD + Ahb | sedimentation direct: bCD + Ahb -> 6 Z
             -1.0 * x.[524] // Ahb | ligation: A + hb <-> Ahb
             1.0 * x.[3] * x.[268] // A + hb | ligation: A + hb <-> Ahb
         |]
@@ -39122,7 +38989,6 @@ module ModelData =
     // 526 - Ahd
     let d526 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14647.802392498 * x.[526] * x.[3428] // Ahd + eFB | sedimentation direct: Ahd + eFB -> 6 Z
             -1.0 * x.[526] // Ahd | ligation: A + hd <-> Ahd
             1.0 * x.[3] * x.[270] // A + hd | ligation: A + hd <-> Ahd
         |]
@@ -39285,6 +39151,7 @@ module ModelData =
     // 544 - BAf
     let d544 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15966.6440407804 * x.[2767] * x.[544] // bde + BAf | sedimentation direct: bde + BAf -> 6 Z
             -1.0 * x.[544] // BAf | ligation: B + Af <-> BAf
             1.0 * x.[4] * x.[32] // B + Af | ligation: B + Af <-> BAf
         |]
@@ -39438,6 +39305,7 @@ module ModelData =
     // 561 - BBg
     let d561 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24895.9996373885 * x.[3618] * x.[561] // fAh + BBg | sedimentation direct: fAh + BBg -> 6 Z
             -1.0 * x.[561] // BBg | ligation: B + Bg <-> BBg
             1.0 * x.[4] * x.[49] // B + Bg | ligation: B + Bg <-> BBg
         |]
@@ -39483,7 +39351,6 @@ module ModelData =
     // 566 - BCD
     let d566 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13621.9972958145 * x.[3514] * x.[566] // ecH + BCD | sedimentation direct: ecH + BCD -> 6 Z
             -1.0 * x.[566] // BCD | ligation: B + CD <-> BCD
             1.0 * x.[4] * x.[54] // B + CD | ligation: B + CD <-> BCD
         |]
@@ -39520,7 +39387,6 @@ module ModelData =
     // 570 - BCH
     let d570 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3393.13651179241 * x.[2618] * x.[570] // bCH + BCH | sedimentation direct: bCH + BCH -> 6 Z
             -1.0 * x.[570] // BCH | ligation: B + CH <-> BCH
             1.0 * x.[4] * x.[58] // B + CH | ligation: B + CH <-> BCH
         |]
@@ -39584,7 +39450,6 @@ module ModelData =
     // 577 - BCg
     let d577 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1945.99735381805 * x.[3098] * x.[577] // dAH + BCg | sedimentation direct: dAH + BCg -> 6 Z
             -1.0 * x.[577] // BCg | ligation: B + Cg <-> BCg
             1.0 * x.[4] * x.[65] // B + Cg | ligation: B + Cg <-> BCg
         |]
@@ -39639,6 +39504,7 @@ module ModelData =
     // 583 - BDE
     let d583 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15966.6440407804 * x.[583] * x.[2712] // BDE + baF | sedimentation direct: BDE + baF -> 6 Z
             -1.0 * x.[583] // BDE | ligation: B + DE <-> BDE
             1.0 * x.[4] * x.[71] // B + DE | ligation: B + DE <-> BDE
         |]
@@ -39810,6 +39676,7 @@ module ModelData =
     // 602 - BEH
     let d602 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3840.53228062151 * x.[602] * x.[620] // BEH + BFb | sedimentation direct: BEH + BFb -> 6 Z
             -1.0 * x.[602] // BEH | ligation: B + EH <-> BEH
             1.0 * x.[4] * x.[90] // B + EH | ligation: B + EH <-> BEH
         |]
@@ -39837,7 +39704,6 @@ module ModelData =
     // 605 - BEc
     let d605 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6515.8139355917 * x.[4007] * x.[605] // gbE + BEc | sedimentation direct: gbE + BEc -> 6 Z
             -1.0 * x.[605] // BEc | ligation: B + Ec <-> BEc
             1.0 * x.[4] * x.[93] // B + Ec | ligation: B + Ec <-> BEc
         |]
@@ -39973,6 +39839,7 @@ module ModelData =
     // 620 - BFb
     let d620 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3840.53228062151 * x.[602] * x.[620] // BEH + BFb | sedimentation direct: BEH + BFb -> 6 Z
             -1.0 * x.[620] // BFb | ligation: B + Fb <-> BFb
             1.0 * x.[4] * x.[108] // B + Fb | ligation: B + Fb <-> BFb
         |]
@@ -40036,7 +39903,6 @@ module ModelData =
     // 627 - BGA
     let d627 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2163.38989482915 * x.[2386] * x.[627] // aDh + BGA | sedimentation direct: aDh + BGA -> 6 Z
             -1.0 * x.[627] // BGA | ligation: B + GA <-> BGA
             1.0 * x.[4] * x.[115] // B + GA | ligation: B + GA <-> BGA
         |]
@@ -40154,7 +40020,6 @@ module ModelData =
     // 640 - BGf
     let d640 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6484.085183082 * x.[640] * x.[1491] // BGf + EeA | sedimentation direct: BGf + EeA -> 6 Z
             -1.0 * x.[640] // BGf | ligation: B + Gf <-> BGf
             1.0 * x.[4] * x.[128] // B + Gf | ligation: B + Gf <-> BGf
         |]
@@ -40281,7 +40146,6 @@ module ModelData =
     // 654 - BHd
     let d654 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7506.17407629085 * x.[4341] * x.[654] // hgC + BHd | sedimentation direct: hgC + BHd -> 6 Z
             -1.0 * x.[654] // BHd | ligation: B + Hd <-> BHd
             1.0 * x.[4] * x.[142] // B + Hd | ligation: B + Hd <-> BHd
         |]
@@ -40291,7 +40155,6 @@ module ModelData =
     // 655 - BHe
     let d655 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9147.23280475069 * x.[655] * x.[939] // BHe + Cba | sedimentation direct: BHe + Cba -> 6 Z
             -1.0 * x.[655] // BHe | ligation: B + He <-> BHe
             1.0 * x.[4] * x.[143] // B + He | ligation: B + He <-> BHe
         |]
@@ -40589,6 +40452,7 @@ module ModelData =
     // 688 - Bbf
     let d688 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3361.52532775523 * x.[3227] * x.[688] // daa + Bbf | sedimentation direct: daa + Bbf -> 6 Z
             -1.0 * x.[688] // Bbf | ligation: B + bf <-> Bbf
             1.0 * x.[4] * x.[176] // B + bf | ligation: B + bf <-> Bbf
         |]
@@ -40715,6 +40579,7 @@ module ModelData =
     // 702 - Bcd
     let d702 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4515.04390536149 * x.[702] * x.[2436] // Bcd + aHB | sedimentation direct: Bcd + aHB -> 6 Z
             -1.0 * x.[702] // Bcd | ligation: B + cd <-> Bcd
             1.0 * x.[4] * x.[190] // B + cd | ligation: B + cd <-> Bcd
         |]
@@ -40751,7 +40616,6 @@ module ModelData =
     // 706 - Bch
     let d706 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3393.13651179241 * x.[706] * x.[2754] // Bch + bch | sedimentation direct: Bch + bch -> 6 Z
             -1.0 * x.[706] // Bch | ligation: B + ch <-> Bch
             1.0 * x.[4] * x.[194] // B + ch | ligation: B + ch <-> Bch
         |]
@@ -40860,7 +40724,6 @@ module ModelData =
     // 718 - Bdd
     let d718 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10153.9404756042 * x.[718] * x.[1881] // Bdd + GEG | sedimentation direct: Bdd + GEG -> 6 Z
             -1.0 * x.[718] // Bdd | ligation: B + dd <-> Bdd
             1.0 * x.[4] * x.[206] // B + dd | ligation: B + dd <-> Bdd
         |]
@@ -40915,6 +40778,7 @@ module ModelData =
     // 724 - BeB
     let d724 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2936.0485365958 * x.[3862] * x.[724] // gAD + BeB | sedimentation direct: gAD + BeB -> 6 Z
             -1.0 * x.[724] // BeB | ligation: B + eB <-> BeB
             1.0 * x.[4] * x.[212] // B + eB | ligation: B + eB <-> BeB
         |]
@@ -40996,6 +40860,7 @@ module ModelData =
     // 733 - Bec
     let d733 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -643.561930601962 * x.[733] * x.[4338] // Bec + hfh | sedimentation direct: Bec + hfh -> 6 Z
             -1.0 * x.[733] // Bec | ligation: B + ec <-> Bec
             1.0 * x.[4] * x.[221] // B + ec | ligation: B + ec <-> Bec
         |]
@@ -41113,7 +40978,7 @@ module ModelData =
     // 746 - BfH
     let d746 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1468.08571032709 * x.[746] * x.[4174] // BfH + hDd | sedimentation direct: BfH + hDd -> 6 Z
+            -9265.09841202555 * x.[746] * x.[3585] // BfH + egg | sedimentation direct: BfH + egg -> 6 Z
             -1.0 * x.[746] // BfH | ligation: B + fH <-> BfH
             1.0 * x.[4] * x.[234] // B + fH | ligation: B + fH <-> BfH
         |]
@@ -41195,6 +41060,7 @@ module ModelData =
     // 755 - BgA
     let d755 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2500.93714867315 * x.[3910] * x.[755] // gDD + BgA | sedimentation direct: gDD + BgA -> 6 Z
             -1.0 * x.[755] // BgA | ligation: B + gA <-> BgA
             1.0 * x.[4] * x.[243] // B + gA | ligation: B + gA <-> BgA
         |]
@@ -41204,7 +41070,6 @@ module ModelData =
     // 756 - BgB
     let d756 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1277.73454437184 * x.[521] * x.[756] // AhG + BgB | sedimentation direct: AhG + BgB -> 6 Z
             -1.0 * x.[756] // BgB | ligation: B + gB <-> BgB
             1.0 * x.[4] * x.[244] // B + gB | ligation: B + gB <-> BgB
         |]
@@ -41250,6 +41115,7 @@ module ModelData =
     // 761 - BgG
     let d761 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17148.9658495997 * x.[761] * x.[1157] // BgG + DHC | sedimentation direct: BgG + DHC -> 6 Z
             -1.0 * x.[761] // BgG | ligation: B + gG <-> BgG
             1.0 * x.[4] * x.[249] // B + gG | ligation: B + gG <-> BgG
         |]
@@ -41367,6 +41233,7 @@ module ModelData =
     // 774 - BhD
     let d774 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8364.36283457212 * x.[774] * x.[4111] // BhD + ghe | sedimentation direct: BhD + ghe -> 6 Z
             -1.0 * x.[774] // BhD | ligation: B + hD <-> BhD
             1.0 * x.[4] * x.[262] // B + hD | ligation: B + hD <-> BhD
         |]
@@ -41538,6 +41405,7 @@ module ModelData =
     // 793 - CAG
     let d793 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2791.04435959399 * x.[793] * x.[1709] // CAG + Fbc | sedimentation direct: CAG + Fbc -> 6 Z
             -1.0 * x.[793] // CAG | ligation: C + AG <-> CAG
             1.0 * x.[5] * x.[25] // C + AG | ligation: C + AG <-> CAG
         |]
@@ -41547,7 +41415,6 @@ module ModelData =
     // 794 - CAH
     let d794 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4791.23492110301 * x.[794] * x.[3546] // CAH + eeH | sedimentation direct: CAH + eeH -> 6 Z
             -1.0 * x.[794] // CAH | ligation: C + AH <-> CAH
             1.0 * x.[5] * x.[26] // C + AH | ligation: C + AH <-> CAH
         |]
@@ -41701,6 +41568,7 @@ module ModelData =
     // 811 - CBa
     let d811 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -25525.10772298 * x.[68] * x.[811] // DB + CBa | sedimentation direct: DB + CBa -> 5 Z
             -1.0 * x.[811] // CBa | ligation: C + Ba <-> CBa
             1.0 * x.[5] * x.[43] // C + Ba | ligation: C + Ba <-> CBa
         |]
@@ -41809,6 +41677,8 @@ module ModelData =
     // 823 - CCE
     let d823 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17360.5629522301 * x.[3941] * x.[823] // gFC + CCE | sedimentation direct: gFC + CCE -> 6 Z
+            -7187.3845028166 * x.[823] * x.[1311] // CCE + EAe | sedimentation direct: CCE + EAe -> 6 Z
             -1.0 * x.[823] // CCE | ligation: C + CE <-> CCE
             1.0 * x.[5] * x.[55] // C + CE | ligation: C + CE <-> CCE
         |]
@@ -41863,6 +41733,7 @@ module ModelData =
     // 829 - CCc
     let d829 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8500.49742325451 * x.[829] * x.[1065] // CCc + DBG | sedimentation direct: CCc + DBG -> 6 Z
             -1.0 * x.[829] // CCc | ligation: C + Cc <-> CCc
             1.0 * x.[5] * x.[61] // C + Cc | ligation: C + Cc <-> CCc
         |]
@@ -41944,6 +41815,7 @@ module ModelData =
     // 838 - CDD
     let d838 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4129.15859858373 * x.[3216] * x.[838] // dHf + CDD | sedimentation direct: dHf + CDD -> 6 Z
             -1.0 * x.[838] // CDD | ligation: C + DD <-> CDD
             1.0 * x.[5] * x.[70] // C + DD | ligation: C + DD <-> CDD
         |]
@@ -42016,6 +41888,7 @@ module ModelData =
     // 846 - CDd
     let d846 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21694.7027046045 * x.[846] * x.[2020] // CDd + GfB | sedimentation direct: CDd + GfB -> 6 Z
             -1.0 * x.[846] // CDd | ligation: C + Dd <-> CDd
             1.0 * x.[5] * x.[78] // C + Dd | ligation: C + Dd <-> CDd
         |]
@@ -42196,7 +42069,6 @@ module ModelData =
     // 866 - CEh
     let d866 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10998.458870287 * x.[866] * x.[1477] // CEh + EdC | sedimentation direct: CEh + EdC -> 6 Z
             -1.0 * x.[866] // CEh | ligation: C + Eh <-> CEh
             1.0 * x.[5] * x.[98] // C + Eh | ligation: C + Eh <-> CEh
         |]
@@ -42332,6 +42204,7 @@ module ModelData =
     // 881 - CFg
     let d881 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12017.2139840518 * x.[881] * x.[4270] // CFg + hbd | sedimentation direct: CFg + hbd -> 6 Z
             -1.0 * x.[881] // CFg | ligation: C + Fg <-> CFg
             1.0 * x.[5] * x.[113] // C + Fg | ligation: C + Fg <-> CFg
         |]
@@ -42341,6 +42214,8 @@ module ModelData =
     // 882 - CFh
     let d882 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3050.6685572978 * x.[882] * x.[1762] // CFh + Feh | sedimentation direct: CFh + Feh -> 6 Z
+            -21283.0703523449 * x.[882] * x.[974] // CFh + Cdd | sedimentation direct: CFh + Cdd -> 6 Z
             -1.0 * x.[882] // CFh | ligation: C + Fh <-> CFh
             1.0 * x.[5] * x.[114] // C + Fh | ligation: C + Fh <-> CFh
         |]
@@ -42350,7 +42225,6 @@ module ModelData =
     // 883 - CGA
     let d883 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10727.9444934639 * x.[883] * x.[1001] // CGA + CfG | sedimentation direct: CGA + CfG -> 6 Z
             -1.0 * x.[883] // CGA | ligation: C + GA <-> CGA
             1.0 * x.[5] * x.[115] // C + GA | ligation: C + GA <-> CGA
         |]
@@ -42441,6 +42315,7 @@ module ModelData =
     // 893 - CGc
     let d893 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7543.20847064459 * x.[893] * x.[4196] // CGc + hFB | sedimentation direct: CGc + hFB -> 6 Z
             -1.0 * x.[893] // CGc | ligation: C + Gc <-> CGc
             1.0 * x.[5] * x.[125] // C + Gc | ligation: C + Gc <-> CGc
         |]
@@ -42450,6 +42325,7 @@ module ModelData =
     // 894 - CGd
     let d894 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -993.841020801401 * x.[894] * x.[2334] // CGd + aAd | sedimentation direct: CGd + aAd -> 6 Z
             -1.0 * x.[894] // CGd | ligation: C + Gd <-> CGd
             1.0 * x.[5] * x.[126] // C + Gd | ligation: C + Gd <-> CGd
         |]
@@ -42468,7 +42344,6 @@ module ModelData =
     // 896 - CGf
     let d896 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9307.84876480825 * x.[896] * x.[1419] // CGf + EHa | sedimentation direct: CGf + EHa -> 6 Z
             -1.0 * x.[896] // CGf | ligation: C + Gf <-> CGf
             1.0 * x.[5] * x.[128] // C + Gf | ligation: C + Gf <-> CGf
         |]
@@ -42496,7 +42371,6 @@ module ModelData =
     // 899 - CHA
     let d899 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19686.0229377226 * x.[899] * x.[4072] // CHA + gfF | sedimentation direct: CHA + gfF -> 6 Z
             -1.0 * x.[899] // CHA | ligation: C + HA <-> CHA
             1.0 * x.[5] * x.[131] // C + HA | ligation: C + HA <-> CHA
         |]
@@ -42632,6 +42506,7 @@ module ModelData =
     // 914 - CHh
     let d914 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1508.93068788665 * x.[914] * x.[3241] // CHh + dbG | sedimentation direct: CHh + dbG -> 6 Z
             -1.0 * x.[914] // CHh | ligation: C + Hh <-> CHh
             1.0 * x.[5] * x.[146] // C + Hh | ligation: C + Hh <-> CHh
         |]
@@ -42704,6 +42579,7 @@ module ModelData =
     // 922 - CaH
     let d922 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4698.89142379968 * x.[2518] * x.[922] // aeD + CaH | sedimentation direct: aeD + CaH -> 6 Z
             -1.0 * x.[922] // CaH | ligation: C + aH <-> CaH
             1.0 * x.[5] * x.[154] // C + aH | ligation: C + aH <-> CaH
         |]
@@ -42731,6 +42607,7 @@ module ModelData =
     // 925 - Cac
     let d925 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -352.155016305217 * x.[357] * x.[925] // AFC + Cac | sedimentation direct: AFC + Cac -> 6 Z
             -1.0 * x.[925] // Cac | ligation: C + ac <-> Cac
             1.0 * x.[5] * x.[157] // C + ac | ligation: C + ac <-> Cac
         |]
@@ -42785,7 +42662,6 @@ module ModelData =
     // 931 - CbA
     let d931 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2473.41781330885 * x.[497] * x.[931] // Afg + CbA | sedimentation direct: Afg + CbA -> 6 Z
             -1.0 * x.[931] // CbA | ligation: C + bA <-> CbA
             1.0 * x.[5] * x.[163] // C + bA | ligation: C + bA <-> CbA
         |]
@@ -42858,8 +42734,6 @@ module ModelData =
     // 939 - Cba
     let d939 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12047.7501937082 * x.[939] * x.[2495] // Cba + ace | sedimentation direct: Cba + ace -> 6 Z
-            -9147.23280475069 * x.[655] * x.[939] // BHe + Cba | sedimentation direct: BHe + Cba -> 6 Z
             -1.0 * x.[939] // Cba | ligation: C + ba <-> Cba
             1.0 * x.[5] * x.[171] // C + ba | ligation: C + ba <-> Cba
         |]
@@ -42896,6 +42770,7 @@ module ModelData =
     // 943 - Cbe
     let d943 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14103.4772284841 * x.[943] * x.[4197] // Cbe + hFC | sedimentation direct: Cbe + hFC -> 6 Z
             -1.0 * x.[943] // Cbe | ligation: C + be <-> Cbe
             1.0 * x.[5] * x.[175] // C + be | ligation: C + be <-> Cbe
         |]
@@ -42941,7 +42816,6 @@ module ModelData =
     // 948 - CcB
     let d948 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2180.62788451558 * x.[948] * x.[4013] // CcB + gbc | sedimentation direct: CcB + gbc -> 6 Z
             -1.0 * x.[948] // CcB | ligation: C + cB <-> CcB
             1.0 * x.[5] * x.[180] // C + cB | ligation: C + cB <-> CcB
         |]
@@ -43014,7 +42888,6 @@ module ModelData =
     // 956 - Ccb
     let d956 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -538.290959382864 * x.[956] * x.[1084] // Ccb + DCb | sedimentation direct: Ccb + DCb -> 6 Z
             -1.0 * x.[956] // Ccb | ligation: C + cb <-> Ccb
             1.0 * x.[5] * x.[188] // C + cb | ligation: C + cb <-> Ccb
         |]
@@ -43024,7 +42897,6 @@ module ModelData =
     // 957 - Ccc
     let d957 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1517.2169490292 * x.[957] * x.[1640] // Ccc + FFF | sedimentation direct: Ccc + FFF -> 6 Z
             -1.0 * x.[957] // Ccc | ligation: C + cc <-> Ccc
             1.0 * x.[5] * x.[189] // C + cc | ligation: C + cc <-> Ccc
         |]
@@ -43178,6 +43050,7 @@ module ModelData =
     // 974 - Cdd
     let d974 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21283.0703523449 * x.[882] * x.[974] // CFh + Cdd | sedimentation direct: CFh + Cdd -> 6 Z
             -1.0 * x.[974] // Cdd | ligation: C + dd <-> Cdd
             1.0 * x.[5] * x.[206] // C + dd | ligation: C + dd <-> Cdd
         |]
@@ -43205,7 +43078,6 @@ module ModelData =
     // 977 - Cdg
     let d977 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1227.25443829911 * x.[977] * x.[1955] // Cdg + GbA | sedimentation direct: Cdg + GbA -> 6 Z
             -1.0 * x.[977] // Cdg | ligation: C + dg <-> Cdg
             1.0 * x.[5] * x.[209] // C + dg | ligation: C + dg <-> Cdg
         |]
@@ -43233,7 +43105,6 @@ module ModelData =
     // 980 - CeB
     let d980 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1497.35731887318 * x.[980] * x.[4032] // CeB + gcf | sedimentation direct: CeB + gcf -> 6 Z
             -1.0 * x.[980] // CeB | ligation: C + eB <-> CeB
             1.0 * x.[5] * x.[212] // C + eB | ligation: C + eB <-> CeB
         |]
@@ -43243,6 +43114,7 @@ module ModelData =
     // 981 - CeC
     let d981 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2095.52784166418 * x.[2356] * x.[981] // aCB + CeC | sedimentation direct: aCB + CeC -> 6 Z
             -1.0 * x.[981] // CeC | ligation: C + eC <-> CeC
             1.0 * x.[5] * x.[213] // C + eC | ligation: C + eC <-> CeC
         |]
@@ -43261,7 +43133,6 @@ module ModelData =
     // 983 - CeE
     let d983 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6063.44011286894 * x.[3715] * x.[983] // fHA + CeE | sedimentation direct: fHA + CeE -> 6 Z
             -1.0 * x.[983] // CeE | ligation: C + eE <-> CeE
             1.0 * x.[5] * x.[215] // C + eE | ligation: C + eE <-> CeE
         |]
@@ -43424,7 +43295,6 @@ module ModelData =
     // 1001 - CfG
     let d1001 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10727.9444934639 * x.[883] * x.[1001] // CGA + CfG | sedimentation direct: CGA + CfG -> 6 Z
             -1.0 * x.[1001] // CfG | ligation: C + fG <-> CfG
             1.0 * x.[5] * x.[233] // C + fG | ligation: C + fG <-> CfG
         |]
@@ -43533,7 +43403,6 @@ module ModelData =
     // 1013 - CgC
     let d1013 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -18156.9734792082 * x.[1013] * x.[2311] // CgC + HhE | sedimentation direct: CgC + HhE -> 6 Z
             -1.0 * x.[1013] // CgC | ligation: C + gC <-> CgC
             1.0 * x.[5] * x.[245] // C + gC | ligation: C + gC <-> CgC
         |]
@@ -43750,7 +43619,6 @@ module ModelData =
     // 1037 - Chc
     let d1037 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11097.989453503 * x.[3665] * x.[1037] // fDg + Chc | sedimentation direct: fDg + Chc -> 6 Z
             -1.0 * x.[1037] // Chc | ligation: C + hc <-> Chc
             1.0 * x.[5] * x.[269] // C + hc | ligation: C + hc <-> Chc
         |]
@@ -43805,6 +43673,7 @@ module ModelData =
     // 1043 - DAA
     let d1043 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3361.52532775523 * x.[1043] * x.[2600] // DAA + bBF | sedimentation direct: DAA + bBF -> 6 Z
             -1.0 * x.[1043] // DAA | ligation: D + AA <-> DAA
             1.0 * x.[6] * x.[19] // D + AA | ligation: D + AA <-> DAA
         |]
@@ -43940,7 +43809,6 @@ module ModelData =
     // 1058 - DAh
     let d1058 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2054.79400378071 * x.[1058] * x.[4292] // DAh + hdB | sedimentation direct: DAh + hdB -> 6 Z
             -1.0 * x.[1058] // DAh | ligation: D + Ah <-> DAh
             1.0 * x.[6] * x.[34] // D + Ah | ligation: D + Ah <-> DAh
         |]
@@ -44004,6 +43872,7 @@ module ModelData =
     // 1065 - DBG
     let d1065 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8500.49742325451 * x.[829] * x.[1065] // CCc + DBG | sedimentation direct: CCc + DBG -> 6 Z
             -1.0 * x.[1065] // DBG | ligation: D + BG <-> DBG
             1.0 * x.[6] * x.[41] // D + BG | ligation: D + BG <-> DBG
         |]
@@ -44076,6 +43945,7 @@ module ModelData =
     // 1073 - DBg
     let d1073 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1508.93068788665 * x.[3082] * x.[1073] // chH + DBg | sedimentation direct: chH + DBg -> 6 Z
             -1.0 * x.[1073] // DBg | ligation: D + Bg <-> DBg
             1.0 * x.[6] * x.[49] // D + Bg | ligation: D + Bg <-> DBg
         |]
@@ -44175,7 +44045,6 @@ module ModelData =
     // 1084 - DCb
     let d1084 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -538.290959382864 * x.[956] * x.[1084] // Ccb + DCb | sedimentation direct: Ccb + DCb -> 6 Z
             -1.0 * x.[1084] // DCb | ligation: D + Cb <-> DCb
             1.0 * x.[6] * x.[60] // D + Cb | ligation: D + Cb <-> DCb
         |]
@@ -44212,6 +44081,7 @@ module ModelData =
     // 1088 - DCf
     let d1088 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22829.6223683907 * x.[221] * x.[1088] // ec + DCf | sedimentation direct: ec + DCf -> 5 Z
             -1.0 * x.[1088] // DCf | ligation: D + Cf <-> DCf
             1.0 * x.[6] * x.[64] // D + Cf | ligation: D + Cf <-> DCf
         |]
@@ -44239,7 +44109,6 @@ module ModelData =
     // 1091 - DDA
     let d1091 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17839.3614720962 * x.[1091] * x.[4158] // DDA + hCd | sedimentation direct: DDA + hCd -> 6 Z
             -1.0 * x.[1091] // DDA | ligation: D + DA <-> DDA
             1.0 * x.[6] * x.[67] // D + DA | ligation: D + DA <-> DDA
         |]
@@ -44339,7 +44208,6 @@ module ModelData =
     // 1102 - DDd
     let d1102 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -8369.23110619292 * x.[1102] * x.[4250] // DDd + haH | sedimentation direct: DDd + haH -> 6 Z
             -1.0 * x.[1102] // DDd | ligation: D + Dd <-> DDd
             1.0 * x.[6] * x.[78] // D + Dd | ligation: D + Dd <-> DDd
         |]
@@ -44403,7 +44271,6 @@ module ModelData =
     // 1109 - DEC
     let d1109 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1581.4051065602 * x.[1109] * x.[1352] // DEC + EDF | sedimentation direct: DEC + EDF -> 6 Z
             -1.0 * x.[1109] // DEC | ligation: D + EC <-> DEC
             1.0 * x.[6] * x.[85] // D + EC | ligation: D + EC <-> DEC
         |]
@@ -44422,6 +44289,7 @@ module ModelData =
     // 1111 - DEE
     let d1111 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3267.81006400869 * x.[4023] * x.[1111] // gcE + DEE | sedimentation direct: gcE + DEE -> 6 Z
             -1.0 * x.[1111] // DEE | ligation: D + EE <-> DEE
             1.0 * x.[6] * x.[87] // D + EE | ligation: D + EE <-> DEE
         |]
@@ -44494,6 +44362,7 @@ module ModelData =
     // 1119 - DEe
     let d1119 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6510.56836927524 * x.[312] * x.[1119] // ACF + DEe | sedimentation direct: ACF + DEe -> 6 Z
             -1.0 * x.[1119] // DEe | ligation: D + Ee <-> DEe
             1.0 * x.[6] * x.[95] // D + Ee | ligation: D + Ee <-> DEe
         |]
@@ -44512,6 +44381,7 @@ module ModelData =
     // 1121 - DEg
     let d1121 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5567.31009042503 * x.[1121] * x.[1404] // DEg + EGb | sedimentation direct: DEg + EGb -> 6 Z
             -1.0 * x.[1121] // DEg | ligation: D + Eg <-> DEg
             1.0 * x.[6] * x.[97] // D + Eg | ligation: D + Eg <-> DEg
         |]
@@ -44584,7 +44454,6 @@ module ModelData =
     // 1129 - DFG
     let d1129 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7717.07697685324 * x.[1129] * x.[3664] // DFG + fDf | sedimentation direct: DFG + fDf -> 6 Z
             -1.0 * x.[1129] // DFG | ligation: D + FG <-> DFG
             1.0 * x.[6] * x.[105] // D + FG | ligation: D + FG <-> DFG
         |]
@@ -44603,7 +44472,6 @@ module ModelData =
     // 1131 - DFa
     let d1131 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6048.99318882237 * x.[3328] * x.[1131] // dgf + DFa | sedimentation direct: dgf + DFa -> 6 Z
             -1.0 * x.[1131] // DFa | ligation: D + Fa <-> DFa
             1.0 * x.[6] * x.[107] // D + Fa | ligation: D + Fa <-> DFa
         |]
@@ -44658,7 +44526,6 @@ module ModelData =
     // 1137 - DFg
     let d1137 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -431.76773374494 * x.[1137] * x.[3193] // DFg + dGG | sedimentation direct: DFg + dGG -> 6 Z
             -1.0 * x.[1137] // DFg | ligation: D + Fg <-> DFg
             1.0 * x.[6] * x.[113] // D + Fg | ligation: D + Fg <-> DFg
         |]
@@ -44695,6 +44562,7 @@ module ModelData =
     // 1141 - DGC
     let d1141 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8127.88228117916 * x.[2411] * x.[1141] // aFa + DGC | sedimentation direct: aFa + DGC -> 6 Z
             -1.0 * x.[1141] // DGC | ligation: D + GC <-> DGC
             1.0 * x.[6] * x.[117] // D + GC | ligation: D + GC <-> DGC
         |]
@@ -44722,7 +44590,6 @@ module ModelData =
     // 1144 - DGF
     let d1144 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6048.99318882237 * x.[1144] * x.[3299] // DGF + dfA | sedimentation direct: DGF + dfA -> 6 Z
             -1.0 * x.[1144] // DGF | ligation: D + GF <-> DGF
             1.0 * x.[6] * x.[120] // D + GF | ligation: D + GF <-> DGF
         |]
@@ -44840,6 +44707,7 @@ module ModelData =
     // 1157 - DHC
     let d1157 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17148.9658495997 * x.[761] * x.[1157] // BgG + DHC | sedimentation direct: BgG + DHC -> 6 Z
             -1.0 * x.[1157] // DHC | ligation: D + HC <-> DHC
             1.0 * x.[6] * x.[133] // D + HC | ligation: D + HC <-> DHC
         |]
@@ -44948,7 +44816,6 @@ module ModelData =
     // 1169 - DHg
     let d1169 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7139.6781251637 * x.[1169] * x.[1944] // DHg + GaF | sedimentation direct: DHg + GaF -> 6 Z
             -1.0 * x.[1169] // DHg | ligation: D + Hg <-> DHg
             1.0 * x.[6] * x.[145] // D + Hg | ligation: D + Hg <-> DHg
         |]
@@ -45021,6 +44888,7 @@ module ModelData =
     // 1177 - DaG
     let d1177 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11328.4843016445 * x.[2517] * x.[1177] // aeC + DaG | sedimentation direct: aeC + DaG -> 6 Z
             -1.0 * x.[1177] // DaG | ligation: D + aG <-> DaG
             1.0 * x.[6] * x.[153] // D + aG | ligation: D + aG <-> DaG
         |]
@@ -45075,7 +44943,6 @@ module ModelData =
     // 1183 - Dae
     let d1183 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12764.1386400984 * x.[1183] * x.[1601] // Dae + FCg | sedimentation direct: Dae + FCg -> 6 Z
             -1.0 * x.[1183] // Dae | ligation: D + ae <-> Dae
             1.0 * x.[6] * x.[159] // D + ae | ligation: D + ae <-> Dae
         |]
@@ -45103,7 +44970,6 @@ module ModelData =
     // 1186 - Dah
     let d1186 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1945.99735381805 * x.[1186] * x.[2745] // Dah + bcG | sedimentation direct: Dah + bcG -> 6 Z
             -1.0 * x.[1186] // Dah | ligation: D + ah <-> Dah
             1.0 * x.[6] * x.[162] // D + ah | ligation: D + ah <-> Dah
         |]
@@ -45293,6 +45159,7 @@ module ModelData =
     // 1207 - DcE
     let d1207 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24750.6701834934 * x.[1207] * x.[1836] // DcE + GBb | sedimentation direct: DcE + GBb -> 6 Z
             -1.0 * x.[1207] // DcE | ligation: D + cE <-> DcE
             1.0 * x.[6] * x.[183] // D + cE | ligation: D + cE <-> DcE
         |]
@@ -45356,6 +45223,7 @@ module ModelData =
     // 1214 - Dcd
     let d1214 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2982.8290550336 * x.[2462] * x.[1214] // aad + Dcd | sedimentation direct: aad + Dcd -> 6 Z
             -1.0 * x.[1214] // Dcd | ligation: D + cd <-> Dcd
             1.0 * x.[6] * x.[190] // D + cd | ligation: D + cd <-> Dcd
         |]
@@ -45446,8 +45314,6 @@ module ModelData =
     // 1224 - DdF
     let d1224 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19036.0188379219 * x.[3615] * x.[1224] // fAe + DdF | sedimentation direct: fAe + DdF -> 6 Z
-            -15106.3620393838 * x.[1224] * x.[1607] // DdF + FDE | sedimentation direct: DdF + FDE -> 6 Z
             -1.0 * x.[1224] // DdF | ligation: D + dF <-> DdF
             1.0 * x.[6] * x.[200] // D + dF | ligation: D + dF <-> DdF
         |]
@@ -45565,7 +45431,6 @@ module ModelData =
     // 1237 - DeC
     let d1237 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9068.52382428667 * x.[1237] * x.[1246] // DeC + Ded | sedimentation direct: DeC + Ded -> 6 Z
             -1.0 * x.[1237] // DeC | ligation: D + eC <-> DeC
             1.0 * x.[6] * x.[213] // D + eC | ligation: D + eC <-> DeC
         |]
@@ -45620,6 +45485,7 @@ module ModelData =
     // 1243 - Dea
     let d1243 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4603.35117468113 * x.[1243] * x.[2113] // Dea + HCg | sedimentation direct: Dea + HCg -> 6 Z
             -1.0 * x.[1243] // Dea | ligation: D + ea <-> Dea
             1.0 * x.[6] * x.[219] // D + ea | ligation: D + ea <-> Dea
         |]
@@ -45647,7 +45513,6 @@ module ModelData =
     // 1246 - Ded
     let d1246 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9068.52382428667 * x.[1237] * x.[1246] // DeC + Ded | sedimentation direct: DeC + Ded -> 6 Z
             -1.0 * x.[1246] // Ded | ligation: D + ed <-> Ded
             1.0 * x.[6] * x.[222] // D + ed | ligation: D + ed <-> Ded
         |]
@@ -45657,6 +45522,7 @@ module ModelData =
     // 1247 - Dee
     let d1247 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6876.16777776285 * x.[1247] * x.[1810] // Dee + Fhh | sedimentation direct: Dee + Fhh -> 6 Z
             -1.0 * x.[1247] // Dee | ligation: D + ee <-> Dee
             1.0 * x.[6] * x.[223] // D + ee | ligation: D + ee <-> Dee
         |]
@@ -45693,6 +45559,7 @@ module ModelData =
     // 1251 - DfA
     let d1251 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8731.27438850719 * x.[4266] * x.[1251] // hbH + DfA | sedimentation direct: hbH + DfA -> 6 Z
             -1.0 * x.[1251] // DfA | ligation: D + fA <-> DfA
             1.0 * x.[6] * x.[227] // D + fA | ligation: D + fA <-> DfA
         |]
@@ -45963,7 +45830,6 @@ module ModelData =
     // 1281 - Dgg
     let d1281 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -431.76773374494 * x.[3305] * x.[1281] // dfG + Dgg | sedimentation direct: dfG + Dgg -> 6 Z
             -1.0 * x.[1281] // Dgg | ligation: D + gg <-> Dgg
             1.0 * x.[6] * x.[257] // D + gg | ligation: D + gg <-> Dgg
         |]
@@ -46027,6 +45893,7 @@ module ModelData =
     // 1288 - DhF
     let d1288 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4129.15859858373 * x.[1288] * x.[3022] // DhF + cdd | sedimentation direct: DhF + cdd -> 6 Z
             -1.0 * x.[1288] // DhF | ligation: D + hF <-> DhF
             1.0 * x.[6] * x.[264] // D + hF | ligation: D + hF <-> DhF
         |]
@@ -46234,6 +46101,7 @@ module ModelData =
     // 1311 - EAe
     let d1311 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7187.3845028166 * x.[823] * x.[1311] // CCE + EAe | sedimentation direct: CCE + EAe -> 6 Z
             -1.0 * x.[1311] // EAe | ligation: E + Ae <-> EAe
             1.0 * x.[7] * x.[31] // E + Ae | ligation: E + Ae <-> EAe
         |]
@@ -46378,6 +46246,7 @@ module ModelData =
     // 1327 - EBe
     let d1327 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -437.736426597162 * x.[1327] * x.[2444] // EBe + aHb | sedimentation direct: EBe + aHb -> 6 Z
             -1.0 * x.[1327] // EBe | ligation: E + Be <-> EBe
             1.0 * x.[7] * x.[47] // E + Be | ligation: E + Be <-> EBe
         |]
@@ -46405,7 +46274,6 @@ module ModelData =
     // 1330 - EBh
     let d1330 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14976.6916743637 * x.[4207] * x.[1330] // hFe + EBh | sedimentation direct: hFe + EBh -> 6 Z
             -1.0 * x.[1330] // EBh | ligation: E + Bh <-> EBh
             1.0 * x.[7] * x.[50] // E + Bh | ligation: E + Bh <-> EBh
         |]
@@ -46550,7 +46418,6 @@ module ModelData =
     // 1346 - ECh
     let d1346 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13621.9972958145 * x.[1346] * x.[2750] // ECh + bcd | sedimentation direct: ECh + bcd -> 6 Z
             -1.0 * x.[1346] // ECh | ligation: E + Ch <-> ECh
             1.0 * x.[7] * x.[66] // E + Ch | ligation: E + Ch <-> ECh
         |]
@@ -46596,7 +46463,6 @@ module ModelData =
     // 1351 - EDE
     let d1351 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -24710.7040503995 * x.[1351] * x.[3641] // EDE + fCG | sedimentation direct: EDE + fCG -> 6 Z
             -1.0 * x.[1351] // EDE | ligation: E + DE <-> EDE
             1.0 * x.[7] * x.[71] // E + DE | ligation: E + DE <-> EDE
         |]
@@ -46606,7 +46472,6 @@ module ModelData =
     // 1352 - EDF
     let d1352 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1581.4051065602 * x.[1109] * x.[1352] // DEC + EDF | sedimentation direct: DEC + EDF -> 6 Z
             -1.0 * x.[1352] // EDF | ligation: E + DF <-> EDF
             1.0 * x.[7] * x.[72] // E + DF | ligation: E + DF <-> EDF
         |]
@@ -46760,7 +46625,6 @@ module ModelData =
     // 1369 - EEG
     let d1369 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14613.3568430879 * x.[1369] * x.[1598] // EEG + FCd | sedimentation direct: EEG + FCd -> 6 Z
             -1.0 * x.[1369] // EEG | ligation: E + EG <-> EEG
             1.0 * x.[7] * x.[89] // E + EG | ligation: E + EG <-> EEG
         |]
@@ -46779,7 +46643,6 @@ module ModelData =
     // 1371 - EEa
     let d1371 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25216.8894039707 * x.[4032] * x.[1371] // gcf + EEa | sedimentation direct: gcf + EEa -> 6 Z
             -1.0 * x.[1371] // EEa | ligation: E + Ea <-> EEa
             1.0 * x.[7] * x.[91] // E + Ea | ligation: E + Ea <-> EEa
         |]
@@ -46816,7 +46679,6 @@ module ModelData =
     // 1375 - EEe
     let d1375 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3072.20503664969 * x.[4342] * x.[1375] // hgD + EEe | sedimentation direct: hgD + EEe -> 6 Z
             -1.0 * x.[1375] // EEe | ligation: E + Ee <-> EEe
             1.0 * x.[7] * x.[95] // E + Ee | ligation: E + Ee <-> EEe
         |]
@@ -46844,8 +46706,6 @@ module ModelData =
     // 1378 - EEh
     let d1378 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25924.9397122055 * x.[1378] * x.[2006] // EEh + GeD | sedimentation direct: EEh + GeD -> 6 Z
-            -4791.23492110301 * x.[2978] * x.[1378] // cah + EEh | sedimentation direct: cah + EEh -> 6 Z
             -1.0 * x.[1378] // EEh | ligation: E + Eh <-> EEh
             1.0 * x.[7] * x.[98] // E + Eh | ligation: E + Eh <-> EEh
         |]
@@ -46963,7 +46823,6 @@ module ModelData =
     // 1391 - EFe
     let d1391 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -180.269135969094 * x.[1391] * x.[2483] // EFe + acA | sedimentation direct: EFe + acA -> 6 Z
             -1.0 * x.[1391] // EFe | ligation: E + Fe <-> EFe
             1.0 * x.[7] * x.[111] // E + Fe | ligation: E + Fe <-> EFe
         |]
@@ -47045,6 +46904,7 @@ module ModelData =
     // 1400 - EGF
     let d1400 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22621.3937190296 * x.[4183] * x.[1400] // hEE + EGF | sedimentation direct: hEE + EGF -> 6 Z
             -1.0 * x.[1400] // EGF | ligation: E + GF <-> EGF
             1.0 * x.[7] * x.[120] // E + GF | ligation: E + GF <-> EGF
         |]
@@ -47054,6 +46914,7 @@ module ModelData =
     // 1401 - EGG
     let d1401 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -9265.09841202555 * x.[2674] * x.[1401] // bFh + EGG | sedimentation direct: bFh + EGG -> 6 Z
             -1.0 * x.[1401] // EGG | ligation: E + GG <-> EGG
             1.0 * x.[7] * x.[121] // E + GG | ligation: E + GG <-> EGG
         |]
@@ -47072,7 +46933,6 @@ module ModelData =
     // 1403 - EGa
     let d1403 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7721.82294306637 * x.[4298] * x.[1403] // hdH + EGa | sedimentation direct: hdH + EGa -> 6 Z
             -1.0 * x.[1403] // EGa | ligation: E + Ga <-> EGa
             1.0 * x.[7] * x.[123] // E + Ga | ligation: E + Ga <-> EGa
         |]
@@ -47082,6 +46942,7 @@ module ModelData =
     // 1404 - EGb
     let d1404 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5567.31009042503 * x.[1121] * x.[1404] // DEg + EGb | sedimentation direct: DEg + EGb -> 6 Z
             -1.0 * x.[1404] // EGb | ligation: E + Gb <-> EGb
             1.0 * x.[7] * x.[124] // E + Gb | ligation: E + Gb <-> EGb
         |]
@@ -47091,6 +46952,7 @@ module ModelData =
     // 1405 - EGc
     let d1405 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1491.0342841907 * x.[383] * x.[1405] // AGe + EGc | sedimentation direct: AGe + EGc -> 6 Z
             -1.0 * x.[1405] // EGc | ligation: E + Gc <-> EGc
             1.0 * x.[7] * x.[125] // E + Gc | ligation: E + Gc <-> EGc
         |]
@@ -47154,6 +47016,7 @@ module ModelData =
     // 1412 - EHB
     let d1412 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2212.82112219053 * x.[1412] * x.[3857] // EHB + fhg | sedimentation direct: EHB + fhg -> 6 Z
             -1.0 * x.[1412] // EHB | ligation: E + HB <-> EHB
             1.0 * x.[7] * x.[132] // E + HB | ligation: E + HB <-> EHB
         |]
@@ -47217,7 +47080,6 @@ module ModelData =
     // 1419 - EHa
     let d1419 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9307.84876480825 * x.[896] * x.[1419] // CGf + EHa | sedimentation direct: CGf + EHa -> 6 Z
             -1.0 * x.[1419] // EHa | ligation: E + Ha <-> EHa
             1.0 * x.[7] * x.[139] // E + Ha | ligation: E + Ha <-> EHa
         |]
@@ -47335,6 +47197,7 @@ module ModelData =
     // 1432 - EaF
     let d1432 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1066.73243010838 * x.[1432] * x.[1643] // EaF + FFa | sedimentation direct: EaF + FFa -> 6 Z
             -1.0 * x.[1432] // EaF | ligation: E + aF <-> EaF
             1.0 * x.[7] * x.[152] // E + aF | ligation: E + aF <-> EaF
         |]
@@ -47452,6 +47315,7 @@ module ModelData =
     // 1445 - EbC
     let d1445 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7139.11144504604 * x.[3441] * x.[1445] // eFg + EbC | sedimentation direct: eFg + EbC -> 6 Z
             -1.0 * x.[1445] // EbC | ligation: E + bC <-> EbC
             1.0 * x.[7] * x.[165] // E + bC | ligation: E + bC <-> EbC
         |]
@@ -47533,6 +47397,7 @@ module ModelData =
     // 1454 - Ebd
     let d1454 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2003.23566018782 * x.[3807] * x.[1454] // fee + Ebd | sedimentation direct: fee + Ebd -> 6 Z
             -1.0 * x.[1454] // Ebd | ligation: E + bd <-> Ebd
             1.0 * x.[7] * x.[174] // E + bd | ligation: E + bd <-> Ebd
         |]
@@ -47668,6 +47533,7 @@ module ModelData =
     // 1469 - Ecc
     let d1469 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6557.47052503005 * x.[1469] * x.[1789] // Ecc + Fgc | sedimentation direct: Ecc + Fgc -> 6 Z
             -1.0 * x.[1469] // Ecc | ligation: E + cc <-> Ecc
             1.0 * x.[7] * x.[189] // E + cc | ligation: E + cc <-> Ecc
         |]
@@ -47686,6 +47552,7 @@ module ModelData =
     // 1471 - Ece
     let d1471 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1788.81628912716 * x.[64] * x.[1471] // Cf + Ece | sedimentation direct: Cf + Ece -> 5 Z
             -1.0 * x.[1471] // Ece | ligation: E + ce <-> Ece
             1.0 * x.[7] * x.[191] // E + ce | ligation: E + ce <-> Ece
         |]
@@ -47740,7 +47607,6 @@ module ModelData =
     // 1477 - EdC
     let d1477 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10998.458870287 * x.[866] * x.[1477] // CEh + EdC | sedimentation direct: CEh + EdC -> 6 Z
             -1.0 * x.[1477] // EdC | ligation: E + dC <-> EdC
             1.0 * x.[7] * x.[197] // E + dC | ligation: E + dC <-> EdC
         |]
@@ -47867,7 +47733,6 @@ module ModelData =
     // 1491 - EeA
     let d1491 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6484.085183082 * x.[640] * x.[1491] // BGf + EeA | sedimentation direct: BGf + EeA -> 6 Z
             -1.0 * x.[1491] // EeA | ligation: E + eA <-> EeA
             1.0 * x.[7] * x.[211] // E + eA | ligation: E + eA <-> EeA
         |]
@@ -47931,7 +47796,6 @@ module ModelData =
     // 1498 - EeH
     let d1498 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7269.90537369658 * x.[1498] * x.[4045] // EeH + gdc | sedimentation direct: EeH + gdc -> 6 Z
             -1.0 * x.[1498] // EeH | ligation: E + eH <-> EeH
             1.0 * x.[7] * x.[218] // E + eH | ligation: E + eH <-> EeH
         |]
@@ -47941,6 +47805,7 @@ module ModelData =
     // 1499 - Eea
     let d1499 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6886.58640245847 * x.[3732] * x.[1499] // faB + Eea | sedimentation direct: faB + Eea -> 6 Z
             -1.0 * x.[1499] // Eea | ligation: E + ea <-> Eea
             1.0 * x.[7] * x.[219] // E + ea | ligation: E + ea <-> Eea
         |]
@@ -48067,6 +47932,7 @@ module ModelData =
     // 1513 - EfG
     let d1513 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7139.11144504604 * x.[1513] * x.[3373] // EfG + eBc | sedimentation direct: EfG + eBc -> 6 Z
             -1.0 * x.[1513] // EfG | ligation: E + fG <-> EfG
             1.0 * x.[7] * x.[233] // E + fG | ligation: E + fG <-> EfG
         |]
@@ -48094,7 +47960,6 @@ module ModelData =
     // 1516 - Efb
     let d1516 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14647.802392498 * x.[2438] * x.[1516] // aHD + Efb | sedimentation direct: aHD + Efb -> 6 Z
             -1.0 * x.[1516] // Efb | ligation: E + fb <-> Efb
             1.0 * x.[7] * x.[236] // E + fb | ligation: E + fb <-> Efb
         |]
@@ -48122,7 +47987,6 @@ module ModelData =
     // 1519 - Efe
     let d1519 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7572.13188618575 * x.[4345] * x.[1519] // hgG + Efe | sedimentation direct: hgG + Efe -> 6 Z
             -1.0 * x.[1519] // Efe | ligation: E + fe <-> Efe
             1.0 * x.[7] * x.[239] // E + fe | ligation: E + fe <-> Efe
         |]
@@ -48447,6 +48311,7 @@ module ModelData =
     // 1555 - FAA
     let d1555 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8265.36543805816 * x.[3917] * x.[1555] // gDc + FAA | sedimentation direct: gDc + FAA -> 6 Z
             -1.0 * x.[1555] // FAA | ligation: F + AA <-> FAA
             1.0 * x.[8] * x.[19] // F + AA | ligation: F + AA <-> FAA
         |]
@@ -48456,6 +48321,7 @@ module ModelData =
     // 1556 - FAB
     let d1556 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14269.1628988593 * x.[3756] * x.[1556] // fbb + FAB | sedimentation direct: fbb + FAB -> 6 Z
             -1.0 * x.[1556] // FAB | ligation: F + AB <-> FAB
             1.0 * x.[8] * x.[20] // F + AB | ligation: F + AB <-> FAB
         |]
@@ -48528,6 +48394,7 @@ module ModelData =
     // 1564 - FAb
     let d1564 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6886.58640245847 * x.[1564] * x.[3411] // FAb + eEA | sedimentation direct: FAb + eEA -> 6 Z
             -1.0 * x.[1564] // FAb | ligation: F + Ab <-> FAb
             1.0 * x.[8] * x.[28] // F + Ab | ligation: F + Ab <-> FAb
         |]
@@ -48555,6 +48422,7 @@ module ModelData =
     // 1567 - FAe
     let d1567 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11806.3869313432 * x.[1567] * x.[2446] // FAe + aHd | sedimentation direct: FAe + aHd -> 6 Z
             -1.0 * x.[1567] // FAe | ligation: F + Ae <-> FAe
             1.0 * x.[8] * x.[31] // F + Ae | ligation: F + Ae <-> FAe
         |]
@@ -48600,6 +48468,7 @@ module ModelData =
     // 1572 - FBB
     let d1572 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14269.1628988593 * x.[1572] * x.[3740] // FBB + fab | sedimentation direct: FBB + fab -> 6 Z
             -1.0 * x.[1572] // FBB | ligation: F + BB <-> FBB
             1.0 * x.[8] * x.[36] // F + BB | ligation: F + BB <-> FBB
         |]
@@ -48834,7 +48703,6 @@ module ModelData =
     // 1598 - FCd
     let d1598 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14613.3568430879 * x.[1369] * x.[1598] // EEG + FCd | sedimentation direct: EEG + FCd -> 6 Z
             -1.0 * x.[1598] // FCd | ligation: F + Cd <-> FCd
             1.0 * x.[8] * x.[62] // F + Cd | ligation: F + Cd <-> FCd
         |]
@@ -48862,7 +48730,6 @@ module ModelData =
     // 1601 - FCg
     let d1601 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12764.1386400984 * x.[1183] * x.[1601] // Dae + FCg | sedimentation direct: Dae + FCg -> 6 Z
             -1.0 * x.[1601] // FCg | ligation: F + Cg <-> FCg
             1.0 * x.[8] * x.[65] // F + Cg | ligation: F + Cg <-> FCg
         |]
@@ -48872,7 +48739,6 @@ module ModelData =
     // 1602 - FCh
     let d1602 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6106.8482849167 * x.[1602] * x.[2153] // FCh + HFG | sedimentation direct: FCh + HFG -> 6 Z
             -1.0 * x.[1602] // FCh | ligation: F + Ch <-> FCh
             1.0 * x.[8] * x.[66] // F + Ch | ligation: F + Ch <-> FCh
         |]
@@ -48909,7 +48775,6 @@ module ModelData =
     // 1606 - FDD
     let d1606 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19455.7118782213 * x.[441] * x.[1606] // AcG + FDD | sedimentation direct: AcG + FDD -> 6 Z
             -1.0 * x.[1606] // FDD | ligation: F + DD <-> FDD
             1.0 * x.[8] * x.[70] // F + DD | ligation: F + DD <-> FDD
         |]
@@ -48919,7 +48784,6 @@ module ModelData =
     // 1607 - FDE
     let d1607 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -15106.3620393838 * x.[1224] * x.[1607] // DdF + FDE | sedimentation direct: DdF + FDE -> 6 Z
             -1.0 * x.[1607] // FDE | ligation: F + DE <-> FDE
             1.0 * x.[8] * x.[71] // F + DE | ligation: F + DE <-> FDE
         |]
@@ -49064,6 +48928,7 @@ module ModelData =
     // 1623 - FEE
     let d1623 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2003.23566018782 * x.[1623] * x.[3366] // FEE + eBD | sedimentation direct: FEE + eBD -> 6 Z
             -1.0 * x.[1623] // FEE | ligation: F + EE <-> FEE
             1.0 * x.[8] * x.[87] // F + EE | ligation: F + EE <-> FEE
         |]
@@ -49217,7 +49082,6 @@ module ModelData =
     // 1640 - FFF
     let d1640 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1517.2169490292 * x.[957] * x.[1640] // Ccc + FFF | sedimentation direct: Ccc + FFF -> 6 Z
             -1.0 * x.[1640] // FFF | ligation: F + FF <-> FFF
             1.0 * x.[8] * x.[104] // F + FF | ligation: F + FF <-> FFF
         |]
@@ -49245,6 +49109,7 @@ module ModelData =
     // 1643 - FFa
     let d1643 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1066.73243010838 * x.[1432] * x.[1643] // EaF + FFa | sedimentation direct: EaF + FFa -> 6 Z
             -1.0 * x.[1643] // FFa | ligation: F + Fa <-> FFa
             1.0 * x.[8] * x.[107] // F + Fa | ligation: F + Fa <-> FFa
         |]
@@ -49515,6 +49380,7 @@ module ModelData =
     // 1673 - FHG
     let d1673 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2212.82112219053 * x.[3596] * x.[1673] // ehb + FHG | sedimentation direct: ehb + FHG -> 6 Z
             -1.0 * x.[1673] // FHG | ligation: F + HG <-> FHG
             1.0 * x.[8] * x.[137] // F + HG | ligation: F + HG <-> FHG
         |]
@@ -49641,7 +49507,6 @@ module ModelData =
     // 1687 - FaE
     let d1687 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19036.0188379219 * x.[1687] * x.[3152] // FaE + dDf | sedimentation direct: FaE + dDf -> 6 Z
             -1.0 * x.[1687] // FaE | ligation: F + aE <-> FaE
             1.0 * x.[8] * x.[151] // F + aE | ligation: F + aE <-> FaE
         |]
@@ -49669,6 +49534,7 @@ module ModelData =
     // 1690 - FaH
     let d1690 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24895.9996373885 * x.[1690] * x.[2729] // FaH + bbG | sedimentation direct: FaH + bbG -> 6 Z
             -1.0 * x.[1690] // FaH | ligation: F + aH <-> FaH
             1.0 * x.[8] * x.[154] // F + aH | ligation: F + aH <-> FaH
         |]
@@ -49741,7 +49607,6 @@ module ModelData =
     // 1698 - Fah
     let d1698 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11638.9194931042 * x.[250] * x.[1698] // gH + Fah | sedimentation direct: gH + Fah -> 5 Z
             -1.0 * x.[1698] // Fah | ligation: F + ah <-> Fah
             1.0 * x.[8] * x.[162] // F + ah | ligation: F + ah <-> Fah
         |]
@@ -49841,6 +49706,7 @@ module ModelData =
     // 1709 - Fbc
     let d1709 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2791.04435959399 * x.[793] * x.[1709] // CAG + Fbc | sedimentation direct: CAG + Fbc -> 6 Z
             -1.0 * x.[1709] // Fbc | ligation: F + bc <-> Fbc
             1.0 * x.[8] * x.[173] // F + bc | ligation: F + bc <-> Fbc
         |]
@@ -49859,7 +49725,6 @@ module ModelData =
     // 1711 - Fbe
     let d1711 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1055.07463887675 * x.[84] * x.[1711] // EB + Fbe | sedimentation direct: EB + Fbe -> 5 Z
             -1.0 * x.[1711] // Fbe | ligation: F + be <-> Fbe
             1.0 * x.[8] * x.[175] // F + be | ligation: F + be <-> Fbe
         |]
@@ -49968,6 +49833,7 @@ module ModelData =
     // 1723 - Fca
     let d1723 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15427.1664126754 * x.[1723] * x.[4041] // Fca + gdG | sedimentation direct: Fca + gdG -> 6 Z
             -1.0 * x.[1723] // Fca | ligation: F + ca <-> Fca
             1.0 * x.[8] * x.[187] // F + ca | ligation: F + ca <-> Fca
         |]
@@ -50022,7 +49888,6 @@ module ModelData =
     // 1729 - Fcg
     let d1729 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -24710.7040503995 * x.[3535] * x.[1729] // ede + Fcg | sedimentation direct: ede + Fcg -> 6 Z
             -1.0 * x.[1729] // Fcg | ligation: F + cg <-> Fcg
             1.0 * x.[8] * x.[193] // F + cg | ligation: F + cg <-> Fcg
         |]
@@ -50059,6 +49924,7 @@ module ModelData =
     // 1733 - FdC
     let d1733 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15112.0380673577 * x.[32] * x.[1733] // Af + FdC | sedimentation direct: Af + FdC -> 5 Z
             -1.0 * x.[1733] // FdC | ligation: F + dC <-> FdC
             1.0 * x.[8] * x.[197] // F + dC | ligation: F + dC <-> FdC
         |]
@@ -50086,7 +49952,6 @@ module ModelData =
     // 1736 - FdF
     let d1736 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7717.07697685324 * x.[3313] * x.[1736] // dfg + FdF | sedimentation direct: dfg + FdF -> 6 Z
             -1.0 * x.[1736] // FdF | ligation: F + dF <-> FdF
             1.0 * x.[8] * x.[200] // F + dF | ligation: F + dF <-> FdF
         |]
@@ -50096,7 +49961,6 @@ module ModelData =
     // 1737 - FdG
     let d1737 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11097.989453503 * x.[1737] * x.[2949] // FdG + cHC | sedimentation direct: FdG + cHC -> 6 Z
             -1.0 * x.[1737] // FdG | ligation: F + dG <-> FdG
             1.0 * x.[8] * x.[201] // F + dG | ligation: F + dG <-> FdG
         |]
@@ -50151,6 +50015,7 @@ module ModelData =
     // 1743 - Fde
     let d1743 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -19814.2018581472 * x.[3691] * x.[1743] // fFa + Fde | sedimentation direct: fFa + Fde -> 6 Z
             -1.0 * x.[1743] // Fde | ligation: F + de <-> Fde
             1.0 * x.[8] * x.[207] // F + de | ligation: F + de <-> Fde
         |]
@@ -50286,6 +50151,7 @@ module ModelData =
     // 1758 - Fed
     let d1758 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2527.94994937767 * x.[1758] * x.[2340] // Fed + aBB | sedimentation direct: Fed + aBB -> 6 Z
             -1.0 * x.[1758] // Fed | ligation: F + ed <-> Fed
             1.0 * x.[8] * x.[222] // F + ed | ligation: F + ed <-> Fed
         |]
@@ -50322,6 +50188,7 @@ module ModelData =
     // 1762 - Feh
     let d1762 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3050.6685572978 * x.[882] * x.[1762] // CFh + Feh | sedimentation direct: CFh + Feh -> 6 Z
             -1.0 * x.[1762] // Feh | ligation: F + eh <-> Feh
             1.0 * x.[8] * x.[226] // F + eh | ligation: F + eh <-> Feh
         |]
@@ -50331,6 +50198,7 @@ module ModelData =
     // 1763 - FfA
     let d1763 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -19814.2018581472 * x.[1763] * x.[3655] // FfA + fDE | sedimentation direct: FfA + fDE -> 6 Z
             -1.0 * x.[1763] // FfA | ligation: F + fA <-> FfA
             1.0 * x.[8] * x.[227] // F + fA | ligation: F + fA <-> FfA
         |]
@@ -50367,7 +50235,6 @@ module ModelData =
     // 1767 - FfE
     let d1767 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -16748.3478713221 * x.[4279] * x.[1767] // hcE + FfE | sedimentation direct: hcE + FfE -> 6 Z
             -1.0 * x.[1767] // FfE | ligation: F + fE <-> FfE
             1.0 * x.[8] * x.[231] // F + fE | ligation: F + fE <-> FfE
         |]
@@ -50440,6 +50307,7 @@ module ModelData =
     // 1775 - Ffe
     let d1775 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3582.47629759828 * x.[1775] * x.[2409] // Ffe + aFG | sedimentation direct: Ffe + aFG -> 6 Z
             -1.0 * x.[1775] // Ffe | ligation: F + fe <-> Ffe
             1.0 * x.[8] * x.[239] // F + fe | ligation: F + fe <-> Ffe
         |]
@@ -50566,6 +50434,7 @@ module ModelData =
     // 1789 - Fgc
     let d1789 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6557.47052503005 * x.[1469] * x.[1789] // Ecc + Fgc | sedimentation direct: Ecc + Fgc -> 6 Z
             -1.0 * x.[1789] // Fgc | ligation: F + gc <-> Fgc
             1.0 * x.[8] * x.[253] // F + gc | ligation: F + gc <-> Fgc
         |]
@@ -50692,7 +50561,6 @@ module ModelData =
     // 1803 - Fha
     let d1803 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6063.44011286894 * x.[1803] * x.[2911] // Fha + cEe | sedimentation direct: Fha + cEe -> 6 Z
             -1.0 * x.[1803] // Fha | ligation: F + ha <-> Fha
             1.0 * x.[8] * x.[267] // F + ha | ligation: F + ha <-> Fha
         |]
@@ -50756,6 +50624,7 @@ module ModelData =
     // 1810 - Fhh
     let d1810 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6876.16777776285 * x.[1247] * x.[1810] // Dee + Fhh | sedimentation direct: Dee + Fhh -> 6 Z
             -1.0 * x.[1810] // Fhh | ligation: F + hh <-> Fhh
             1.0 * x.[8] * x.[274] // F + hh | ligation: F + hh <-> Fhh
         |]
@@ -50855,7 +50724,6 @@ module ModelData =
     // 1821 - GAc
     let d1821 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6665.91489135737 * x.[3923] * x.[1821] // gEA + GAc | sedimentation direct: gEA + GAc -> 6 Z
             -1.0 * x.[1821] // GAc | ligation: G + Ac <-> GAc
             1.0 * x.[9] * x.[29] // G + Ac | ligation: G + Ac <-> GAc
         |]
@@ -50874,6 +50742,7 @@ module ModelData =
     // 1823 - GAe
     let d1823 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7659.23830885464 * x.[1823] * x.[4206] // GAe + hFd | sedimentation direct: GAe + hFd -> 6 Z
             -1.0 * x.[1823] // GAe | ligation: G + Ae <-> GAe
             1.0 * x.[9] * x.[31] // G + Ae | ligation: G + Ae <-> GAe
         |]
@@ -50928,7 +50797,6 @@ module ModelData =
     // 1829 - GBC
     let d1829 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2180.62788451558 * x.[2876] * x.[1829] // cCb + GBC | sedimentation direct: cCb + GBC -> 6 Z
             -1.0 * x.[1829] // GBC | ligation: G + BC <-> GBC
             1.0 * x.[9] * x.[37] // G + BC | ligation: G + BC <-> GBC
         |]
@@ -50992,6 +50860,7 @@ module ModelData =
     // 1836 - GBb
     let d1836 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24750.6701834934 * x.[1207] * x.[1836] // DcE + GBb | sedimentation direct: DcE + GBb -> 6 Z
             -1.0 * x.[1836] // GBb | ligation: G + Bb <-> GBb
             1.0 * x.[9] * x.[44] // G + Bb | ligation: G + Bb <-> GBb
         |]
@@ -51019,7 +50888,6 @@ module ModelData =
     // 1839 - GBe
     let d1839 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6515.8139355917 * x.[1839] * x.[2773] // GBe + beC | sedimentation direct: GBe + beC -> 6 Z
             -1.0 * x.[1839] // GBe | ligation: G + Be <-> GBe
             1.0 * x.[9] * x.[47] // G + Be | ligation: G + Be <-> GBe
         |]
@@ -51101,8 +50969,6 @@ module ModelData =
     // 1848 - GCF
     let d1848 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25216.8894039707 * x.[1848] * x.[3539] // GCF + eeA | sedimentation direct: GCF + eeA -> 6 Z
-            -1497.35731887318 * x.[2908] * x.[1848] // cEb + GCF | sedimentation direct: cEb + GCF -> 6 Z
             -1.0 * x.[1848] // GCF | ligation: G + CF <-> GCF
             1.0 * x.[9] * x.[56] // G + CF | ligation: G + CF <-> GCF
         |]
@@ -51166,6 +51032,7 @@ module ModelData =
     // 1855 - GCe
     let d1855 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3267.81006400869 * x.[1855] * x.[3295] // GCe + dee | sedimentation direct: GCe + dee -> 6 Z
             -1.0 * x.[1855] // GCe | ligation: G + Ce <-> GCe
             1.0 * x.[9] * x.[63] // G + Ce | ligation: G + Ce <-> GCe
         |]
@@ -51220,7 +51087,6 @@ module ModelData =
     // 1861 - GDC
     let d1861 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7269.90537369658 * x.[3426] * x.[1861] // eEh + GDC | sedimentation direct: eEh + GDC -> 6 Z
             -1.0 * x.[1861] // GDC | ligation: G + DC <-> GDC
             1.0 * x.[9] * x.[69] // G + DC | ligation: G + DC <-> GDC
         |]
@@ -51329,6 +51195,7 @@ module ModelData =
     // 1873 - GDg
     let d1873 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15427.1664126754 * x.[3635] * x.[1873] // fCA + GDg | sedimentation direct: fCA + GDg -> 6 Z
             -1.0 * x.[1873] // GDg | ligation: G + Dg <-> GDg
             1.0 * x.[9] * x.[81] // G + Dg | ligation: G + Dg <-> GDg
         |]
@@ -51338,6 +51205,7 @@ module ModelData =
     // 1874 - GDh
     let d1874 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -873.298731989269 * x.[3909] * x.[1874] // gDC + GDh | sedimentation direct: gDC + GDh -> 6 Z
             -1.0 * x.[1874] // GDh | ligation: G + Dh <-> GDh
             1.0 * x.[9] * x.[82] // G + Dh | ligation: G + Dh <-> GDh
         |]
@@ -51356,6 +51224,7 @@ module ModelData =
     // 1876 - GEB
     let d1876 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4601.42629088965 * x.[1876] * x.[2032] // GEB + Gff | sedimentation direct: GEB + Gff -> 6 Z
             -1.0 * x.[1876] // GEB | ligation: G + EB <-> GEB
             1.0 * x.[9] * x.[84] // G + EB | ligation: G + EB <-> GEB
         |]
@@ -51383,6 +51252,7 @@ module ModelData =
     // 1879 - GEE
     let d1879 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8812.10386379525 * x.[155] * x.[1879] // aa + GEE | sedimentation direct: aa + GEE -> 5 Z
             -1.0 * x.[1879] // GEE | ligation: G + EE <-> GEE
             1.0 * x.[9] * x.[87] // G + EE | ligation: G + EE <-> GEE
         |]
@@ -51401,7 +51271,6 @@ module ModelData =
     // 1881 - GEG
     let d1881 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10153.9404756042 * x.[718] * x.[1881] // Bdd + GEG | sedimentation direct: Bdd + GEG -> 6 Z
             -1.0 * x.[1881] // GEG | ligation: G + EG <-> GEG
             1.0 * x.[9] * x.[89] // G + EG | ligation: G + EG <-> GEG
         |]
@@ -51591,6 +51460,7 @@ module ModelData =
     // 1902 - GFd
     let d1902 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -16411.818370426 * x.[1902] * x.[4126] // GFd + hAd | sedimentation direct: GFd + hAd -> 6 Z
             -1.0 * x.[1902] // GFd | ligation: G + Fd <-> GFd
             1.0 * x.[9] * x.[110] // G + Fd | ligation: G + Fd <-> GFd
         |]
@@ -51609,7 +51479,6 @@ module ModelData =
     // 1904 - GFf
     let d1904 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19686.0229377226 * x.[3083] * x.[1904] // cha + GFf | sedimentation direct: cha + GFf -> 6 Z
             -1.0 * x.[1904] // GFf | ligation: G + Ff <-> GFf
             1.0 * x.[9] * x.[112] // G + Ff | ligation: G + Ff <-> GFf
         |]
@@ -51628,6 +51497,7 @@ module ModelData =
     // 1906 - GFh
     let d1906 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5104.93645761457 * x.[1906] * x.[3931] // GFh + gEa | sedimentation direct: GFh + gEa -> 6 Z
             -1.0 * x.[1906] // GFh | ligation: G + Fh <-> GFh
             1.0 * x.[9] * x.[114] // G + Fh | ligation: G + Fh <-> GFh
         |]
@@ -51646,6 +51516,7 @@ module ModelData =
     // 1908 - GGB
     let d1908 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2226.18199215946 * x.[1908] * x.[2287] // GGB + Hfe | sedimentation direct: GGB + Hfe -> 6 Z
             -1.0 * x.[1908] // GGB | ligation: G + GB <-> GGB
             1.0 * x.[9] * x.[116] // G + GB | ligation: G + GB <-> GGB
         |]
@@ -51736,7 +51607,6 @@ module ModelData =
     // 1918 - GGd
     let d1918 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3228.11171224934 * x.[4122] * x.[1918] // hAH + GGd | sedimentation direct: hAH + GGd -> 6 Z
             -1.0 * x.[1918] // GGd | ligation: G + Gd <-> GGd
             1.0 * x.[9] * x.[126] // G + Gd | ligation: G + Gd <-> GGd
         |]
@@ -51818,6 +51688,7 @@ module ModelData =
     // 1927 - GHE
     let d1927 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8364.36283457212 * x.[2702] * x.[1927] // bHd + GHE | sedimentation direct: bHd + GHE -> 6 Z
             -1.0 * x.[1927] // GHE | ligation: G + HE <-> GHE
             1.0 * x.[9] * x.[135] // G + HE | ligation: G + HE <-> GHE
         |]
@@ -51827,6 +51698,7 @@ module ModelData =
     // 1928 - GHF
     let d1928 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3488.44865631773 * x.[138] * x.[1928] // HH + GHF | sedimentation direct: HH + GHF -> 5 Z
             -1.0 * x.[1928] // GHF | ligation: G + HF <-> GHF
             1.0 * x.[9] * x.[136] // G + HF | ligation: G + HF <-> GHF
         |]
@@ -51971,7 +51843,6 @@ module ModelData =
     // 1944 - GaF
     let d1944 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7139.6781251637 * x.[1169] * x.[1944] // DHg + GaF | sedimentation direct: DHg + GaF -> 6 Z
             -1.0 * x.[1944] // GaF | ligation: G + aF <-> GaF
             1.0 * x.[9] * x.[152] // G + aF | ligation: G + aF <-> GaF
         |]
@@ -51981,6 +51852,7 @@ module ModelData =
     // 1945 - GaG
     let d1945 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24726.4829073038 * x.[3944] * x.[1945] // gFF + GaG | sedimentation direct: gFF + GaG -> 6 Z
             -1.0 * x.[1945] // GaG | ligation: G + aG <-> GaG
             1.0 * x.[9] * x.[153] // G + aG | ligation: G + aG <-> GaG
         |]
@@ -52026,6 +51898,7 @@ module ModelData =
     // 1950 - Gad
     let d1950 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2936.0485365958 * x.[1950] * x.[2652] // Gad + bEb | sedimentation direct: Gad + bEb -> 6 Z
             -1.0 * x.[1950] // Gad | ligation: G + ad <-> Gad
             1.0 * x.[9] * x.[158] // G + ad | ligation: G + ad <-> Gad
         |]
@@ -52071,7 +51944,6 @@ module ModelData =
     // 1955 - GbA
     let d1955 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1227.25443829911 * x.[977] * x.[1955] // Cdg + GbA | sedimentation direct: Cdg + GbA -> 6 Z
             -1.0 * x.[1955] // GbA | ligation: G + bA <-> GbA
             1.0 * x.[9] * x.[163] // G + bA | ligation: G + bA <-> GbA
         |]
@@ -52378,6 +52250,7 @@ module ModelData =
     // 1989 - GdC
     let d1989 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8265.36543805816 * x.[1989] * x.[3739] // GdC + faa | sedimentation direct: GdC + faa -> 6 Z
             -1.0 * x.[1989] // GdC | ligation: G + dC <-> GdC
             1.0 * x.[9] * x.[197] // G + dC | ligation: G + dC <-> GdC
         |]
@@ -52450,6 +52323,7 @@ module ModelData =
     // 1997 - Gdc
     let d1997 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -873.298731989269 * x.[1997] * x.[4042] // Gdc + gdH | sedimentation direct: Gdc + gdH -> 6 Z
             -1.0 * x.[1997] // Gdc | ligation: G + dc <-> Gdc
             1.0 * x.[9] * x.[205] // G + dc | ligation: G + dc <-> Gdc
         |]
@@ -52459,6 +52333,7 @@ module ModelData =
     // 1998 - Gdd
     let d1998 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2500.93714867315 * x.[1998] * x.[2683] // Gdd + bGa | sedimentation direct: Gdd + bGa -> 6 Z
             -1.0 * x.[1998] // Gdd | ligation: G + dd <-> Gdd
             1.0 * x.[9] * x.[206] // G + dd | ligation: G + dd <-> Gdd
         |]
@@ -52504,6 +52379,7 @@ module ModelData =
     // 2003 - GeA
     let d2003 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5104.93645761457 * x.[4074] * x.[2003] // gfH + GeA | sedimentation direct: gfH + GeA -> 6 Z
             -1.0 * x.[2003] // GeA | ligation: G + eA <-> GeA
             1.0 * x.[9] * x.[211] // G + eA | ligation: G + eA <-> GeA
         |]
@@ -52531,7 +52407,6 @@ module ModelData =
     // 2006 - GeD
     let d2006 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25924.9397122055 * x.[1378] * x.[2006] // EEh + GeD | sedimentation direct: EEh + GeD -> 6 Z
             -1.0 * x.[2006] // GeD | ligation: G + eD <-> GeD
             1.0 * x.[9] * x.[214] // G + eD | ligation: G + eD <-> GeD
         |]
@@ -52550,6 +52425,7 @@ module ModelData =
     // 2008 - GeF
     let d2008 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6867.01565343078 * x.[483] * x.[2008] // AfA + GeF | sedimentation direct: AfA + GeF -> 6 Z
             -1.0 * x.[2008] // GeF | ligation: G + eF <-> GeF
             1.0 * x.[9] * x.[216] // G + eF | ligation: G + eF <-> GeF
         |]
@@ -52577,7 +52453,6 @@ module ModelData =
     // 2011 - Gea
     let d2011 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6665.91489135737 * x.[2011] * x.[3989] // Gea + gaC | sedimentation direct: Gea + gaC -> 6 Z
             -1.0 * x.[2011] // Gea | ligation: G + ea <-> Gea
             1.0 * x.[9] * x.[219] // G + ea | ligation: G + ea <-> Gea
         |]
@@ -52659,6 +52534,7 @@ module ModelData =
     // 2020 - GfB
     let d2020 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21694.7027046045 * x.[846] * x.[2020] // CDd + GfB | sedimentation direct: CDd + GfB -> 6 Z
             -1.0 * x.[2020] // GfB | ligation: G + fB <-> GfB
             1.0 * x.[9] * x.[228] // G + fB | ligation: G + fB <-> GfB
         |]
@@ -52740,6 +52616,7 @@ module ModelData =
     // 2029 - Gfc
     let d2029 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17360.5629522301 * x.[2029] * x.[3007] // Gfc + cce | sedimentation direct: Gfc + cce -> 6 Z
             -1.0 * x.[2029] // Gfc | ligation: G + fc <-> Gfc
             1.0 * x.[9] * x.[237] // G + fc | ligation: G + fc <-> Gfc
         |]
@@ -52767,6 +52644,8 @@ module ModelData =
     // 2032 - Gff
     let d2032 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24726.4829073038 * x.[2032] * x.[3873] // Gff + gAg | sedimentation direct: Gff + gAg -> 6 Z
+            -4601.42629088965 * x.[1876] * x.[2032] // GEB + Gff | sedimentation direct: GEB + Gff -> 6 Z
             -1.0 * x.[2032] // Gff | ligation: G + ff <-> Gff
             1.0 * x.[9] * x.[240] // G + ff | ligation: G + ff <-> Gff
         |]
@@ -52803,7 +52682,6 @@ module ModelData =
     // 2036 - GgB
     let d2036 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7357.42790688303 * x.[4162] * x.[2036] // hCh + GgB | sedimentation direct: hCh + GgB -> 6 Z
             -1.0 * x.[2036] // GgB | ligation: G + gB <-> GgB
             1.0 * x.[9] * x.[244] // G + gB | ligation: G + gB <-> GgB
         |]
@@ -53218,7 +53096,6 @@ module ModelData =
     // 2082 - HAh
     let d2082 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -8369.23110619292 * x.[3270] * x.[2082] // ddD + HAh | sedimentation direct: ddD + HAh -> 6 Z
             -1.0 * x.[2082] // HAh | ligation: H + Ah <-> HAh
             1.0 * x.[10] * x.[34] // H + Ah | ligation: H + Ah <-> HAh
         |]
@@ -53255,6 +53132,7 @@ module ModelData =
     // 2086 - HBD
     let d2086 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12017.2139840518 * x.[3049] * x.[2086] // cfG + HBD | sedimentation direct: cfG + HBD -> 6 Z
             -1.0 * x.[2086] // HBD | ligation: H + BD <-> HBD
             1.0 * x.[10] * x.[38] // H + BD | ligation: H + BD <-> HBD
         |]
@@ -53363,6 +53241,7 @@ module ModelData =
     // 2098 - HBh
     let d2098 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8731.27438850719 * x.[2098] * x.[3179] // HBh + dFa | sedimentation direct: HBh + dFa -> 6 Z
             -1.0 * x.[2098] // HBh | ligation: H + Bh <-> HBh
             1.0 * x.[10] * x.[50] // H + Bh | ligation: H + Bh <-> HBh
         |]
@@ -53480,7 +53359,6 @@ module ModelData =
     // 2111 - HCe
     let d2111 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -16748.3478713221 * x.[2111] * x.[3695] // HCe + fFe | sedimentation direct: HCe + fFe -> 6 Z
             -1.0 * x.[2111] // HCe | ligation: H + Ce <-> HCe
             1.0 * x.[10] * x.[63] // H + Ce | ligation: H + Ce <-> HCe
         |]
@@ -53499,6 +53377,7 @@ module ModelData =
     // 2113 - HCg
     let d2113 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4603.35117468113 * x.[1243] * x.[2113] // Dea + HCg | sedimentation direct: Dea + HCg -> 6 Z
             -1.0 * x.[2113] // HCg | ligation: H + Cg <-> HCg
             1.0 * x.[10] * x.[65] // H + Cg | ligation: H + Cg <-> HCg
         |]
@@ -53598,7 +53477,6 @@ module ModelData =
     // 2124 - HDb
     let d2124 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2054.79400378071 * x.[3226] * x.[2124] // daH + HDb | sedimentation direct: daH + HDb -> 6 Z
             -1.0 * x.[2124] // HDb | ligation: H + Db <-> HDb
             1.0 * x.[10] * x.[76] // H + Db | ligation: H + Db <-> HDb
         |]
@@ -53653,7 +53531,6 @@ module ModelData =
     // 2130 - HDh
     let d2130 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7721.82294306637 * x.[2130] * x.[3571] // HDh + egA | sedimentation direct: HDh + egA -> 6 Z
             -1.0 * x.[2130] // HDh | ligation: H + Dh <-> HDh
             1.0 * x.[10] * x.[82] // H + Dh | ligation: H + Dh <-> HDh
         |]
@@ -53663,6 +53540,7 @@ module ModelData =
     // 2131 - HEA
     let d2131 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -18324.8680018572 * x.[2131] * x.[2365] // HEA + aCc | sedimentation direct: HEA + aCc -> 6 Z
             -1.0 * x.[2131] // HEA | ligation: H + EA <-> HEA
             1.0 * x.[10] * x.[83] // H + EA | ligation: H + EA <-> HEA
         |]
@@ -53861,7 +53739,6 @@ module ModelData =
     // 2153 - HFG
     let d2153 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6106.8482849167 * x.[1602] * x.[2153] // FCh + HFG | sedimentation direct: FCh + HFG -> 6 Z
             -1.0 * x.[2153] // HFG | ligation: H + FG <-> HFG
             1.0 * x.[10] * x.[105] // H + FG | ligation: H + FG <-> HFG
         |]
@@ -53871,6 +53748,7 @@ module ModelData =
     // 2154 - HFH
     let d2154 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -643.561930601962 * x.[2645] * x.[2154] // bEC + HFH | sedimentation direct: bEC + HFH -> 6 Z
             -1.0 * x.[2154] // HFH | ligation: H + FH <-> HFH
             1.0 * x.[10] * x.[106] // H + FH | ligation: H + FH <-> HFH
         |]
@@ -53916,6 +53794,7 @@ module ModelData =
     // 2159 - HFe
     let d2159 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17306.5931290351 * x.[2159] * x.[2450] // HFe + aHh | sedimentation direct: HFe + aHh -> 6 Z
             -1.0 * x.[2159] // HFe | ligation: H + Fe <-> HFe
             1.0 * x.[10] * x.[111] // H + Fe | ligation: H + Fe <-> HFe
         |]
@@ -54015,6 +53894,7 @@ module ModelData =
     // 2170 - HGH
     let d2170 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -10838.584991472 * x.[2515] * x.[2170] // aeA + HGH | sedimentation direct: aeA + HGH -> 6 Z
             -1.0 * x.[2170] // HGH | ligation: H + GH <-> HGH
             1.0 * x.[10] * x.[122] // H + GH | ligation: H + GH <-> HGH
         |]
@@ -54042,7 +53922,6 @@ module ModelData =
     // 2173 - HGc
     let d2173 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7506.17407629085 * x.[2173] * x.[2822] // HGc + bhD | sedimentation direct: HGc + bhD -> 6 Z
             -1.0 * x.[2173] // HGc | ligation: H + Gc <-> HGc
             1.0 * x.[10] * x.[125] // H + Gc | ligation: H + Gc <-> HGc
         |]
@@ -54052,7 +53931,6 @@ module ModelData =
     // 2174 - HGd
     let d2174 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3072.20503664969 * x.[2174] * x.[3543] // HGd + eeE | sedimentation direct: HGd + eeE -> 6 Z
             -1.0 * x.[2174] // HGd | ligation: H + Gd <-> HGd
             1.0 * x.[10] * x.[126] // H + Gd | ligation: H + Gd <-> HGd
         |]
@@ -54080,7 +53958,6 @@ module ModelData =
     // 2177 - HGg
     let d2177 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7572.13188618575 * x.[2177] * x.[3431] // HGg + eFE | sedimentation direct: HGg + eFE -> 6 Z
             -1.0 * x.[2177] // HGg | ligation: H + Gg <-> HGg
             1.0 * x.[10] * x.[129] // H + Gg | ligation: H + Gg <-> HGg
         |]
@@ -54126,6 +54003,7 @@ module ModelData =
     // 2182 - HHD
     let d2182 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3429.44073043316 * x.[295] * x.[2182] // ABE + HHD | sedimentation direct: ABE + HHD -> 6 Z
             -1.0 * x.[2182] // HHD | ligation: H + HD <-> HHD
             1.0 * x.[10] * x.[134] // H + HD | ligation: H + HD <-> HHD
         |]
@@ -54189,7 +54067,6 @@ module ModelData =
     // 2189 - HHc
     let d2189 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7935.60093491373 * x.[2189] * x.[2295] // HHc + HgE | sedimentation direct: HHc + HgE -> 6 Z
             -1.0 * x.[2189] // HHc | ligation: H + Hc <-> HHc
             1.0 * x.[10] * x.[141] // H + Hc | ligation: H + Hc <-> HHc
         |]
@@ -54271,6 +54148,7 @@ module ModelData =
     // 2198 - HaD
     let d2198 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -16411.818370426 * x.[4070] * x.[2198] // gfD + HaD | sedimentation direct: gfD + HaD -> 6 Z
             -1.0 * x.[2198] // HaD | ligation: H + aD <-> HaD
             1.0 * x.[10] * x.[150] // H + aD | ligation: H + aD <-> HaD
         |]
@@ -54379,7 +54257,6 @@ module ModelData =
     // 2210 - Hah
     let d2210 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3228.11171224934 * x.[2210] * x.[4086] // Hah + ggD | sedimentation direct: Hah + ggD -> 6 Z
             -1.0 * x.[2210] // Hah | ligation: H + ah <-> Hah
             1.0 * x.[10] * x.[162] // H + ah | ligation: H + ah <-> Hah
         |]
@@ -54515,7 +54392,6 @@ module ModelData =
     // 2225 - Hbg
     let d2225 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14926.1988077241 * x.[2225] * x.[2291] // Hbg + HgA | sedimentation direct: Hbg + HgA -> 6 Z
             -1.0 * x.[2225] // Hbg | ligation: H + bg <-> Hbg
             1.0 * x.[10] * x.[177] // H + bg | ligation: H + bg <-> Hbg
         |]
@@ -54561,7 +54437,6 @@ module ModelData =
     // 2230 - HcD
     let d2230 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17839.3614720962 * x.[3275] * x.[2230] // dda + HcD | sedimentation direct: dda + HcD -> 6 Z
             -1.0 * x.[2230] // HcD | ligation: H + cD <-> HcD
             1.0 * x.[10] * x.[182] // H + cD | ligation: H + cD <-> HcD
         |]
@@ -54598,7 +54473,6 @@ module ModelData =
     // 2234 - HcH
     let d2234 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7357.42790688303 * x.[2234] * x.[3964] // HcH + gGb | sedimentation direct: HcH + gGb -> 6 Z
             -1.0 * x.[2234] // HcH | ligation: H + cH <-> HcH
             1.0 * x.[10] * x.[186] // H + cH | ligation: H + cH <-> HcH
         |]
@@ -54707,7 +54581,6 @@ module ModelData =
     // 2246 - HdD
     let d2246 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1468.08571032709 * x.[2674] * x.[2246] // bFh + HdD | sedimentation direct: bFh + HdD -> 6 Z
             -1.0 * x.[2246] // HdD | ligation: H + dD <-> HdD
             1.0 * x.[10] * x.[198] // H + dD | ligation: H + dD <-> HdD
         |]
@@ -54834,6 +54707,7 @@ module ModelData =
     // 2260 - HeB
     let d2260 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12132.849229071 * x.[42] * x.[2260] // BH + HeB | sedimentation direct: BH + HeB -> 5 Z
             -1.0 * x.[2260] // HeB | ligation: H + eB <-> HeB
             1.0 * x.[10] * x.[212] // H + eB | ligation: H + eB <-> HeB
         |]
@@ -54933,6 +54807,7 @@ module ModelData =
     // 2271 - Hee
     let d2271 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22621.3937190296 * x.[2271] * x.[3584] // Hee + egf | sedimentation direct: Hee + egf -> 6 Z
             -1.0 * x.[2271] // Hee | ligation: H + ee <-> Hee
             1.0 * x.[10] * x.[223] // H + ee | ligation: H + ee <-> Hee
         |]
@@ -54978,7 +54853,6 @@ module ModelData =
     // 2276 - HfB
     let d2276 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -28282.0449571943 * x.[4235] * x.[2276] // hHa + HfB | sedimentation direct: hHa + HfB -> 6 Z
             -1.0 * x.[2276] // HfB | ligation: H + fB <-> HfB
             1.0 * x.[10] * x.[228] // H + fB | ligation: H + fB <-> HfB
         |]
@@ -54997,6 +54871,7 @@ module ModelData =
     // 2278 - HfD
     let d2278 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7659.23830885464 * x.[3991] * x.[2278] // gaE + HfD | sedimentation direct: gaE + HfD -> 6 Z
             -1.0 * x.[2278] // HfD | ligation: H + fD <-> HfD
             1.0 * x.[10] * x.[230] // H + fD | ligation: H + fD <-> HfD
         |]
@@ -55006,7 +54881,6 @@ module ModelData =
     // 2279 - HfE
     let d2279 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14976.6916743637 * x.[2279] * x.[3498] // HfE + ebH | sedimentation direct: HfE + ebH -> 6 Z
             -1.0 * x.[2279] // HfE | ligation: H + fE <-> HfE
             1.0 * x.[10] * x.[231] // H + fE | ligation: H + fE <-> HfE
         |]
@@ -55052,6 +54926,7 @@ module ModelData =
     // 2284 - Hfb
     let d2284 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7543.20847064459 * x.[3061] * x.[2284] // cgC + Hfb | sedimentation direct: cgC + Hfb -> 6 Z
             -1.0 * x.[2284] // Hfb | ligation: H + fb <-> Hfb
             1.0 * x.[10] * x.[236] // H + fb | ligation: H + fb <-> Hfb
         |]
@@ -55061,6 +54936,7 @@ module ModelData =
     // 2285 - Hfc
     let d2285 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14103.4772284841 * x.[2855] * x.[2285] // cBE + Hfc | sedimentation direct: cBE + Hfc -> 6 Z
             -1.0 * x.[2285] // Hfc | ligation: H + fc <-> Hfc
             1.0 * x.[10] * x.[237] // H + fc | ligation: H + fc <-> Hfc
         |]
@@ -55079,6 +54955,7 @@ module ModelData =
     // 2287 - Hfe
     let d2287 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2226.18199215946 * x.[1908] * x.[2287] // GGB + Hfe | sedimentation direct: GGB + Hfe -> 6 Z
             -1.0 * x.[2287] // Hfe | ligation: H + fe <-> Hfe
             1.0 * x.[10] * x.[239] // H + fe | ligation: H + fe <-> Hfe
         |]
@@ -55115,7 +54992,6 @@ module ModelData =
     // 2291 - HgA
     let d2291 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14926.1988077241 * x.[2225] * x.[2291] // Hbg + HgA | sedimentation direct: Hbg + HgA -> 6 Z
             -1.0 * x.[2291] // HgA | ligation: H + gA <-> HgA
             1.0 * x.[10] * x.[243] // H + gA | ligation: H + gA <-> HgA
         |]
@@ -55152,7 +55028,6 @@ module ModelData =
     // 2295 - HgE
     let d2295 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7935.60093491373 * x.[2189] * x.[2295] // HHc + HgE | sedimentation direct: HHc + HgE -> 6 Z
             -1.0 * x.[2295] // HgE | ligation: H + gE <-> HgE
             1.0 * x.[10] * x.[247] // H + gE | ligation: H + gE <-> HgE
         |]
@@ -55261,7 +55136,6 @@ module ModelData =
     // 2307 - HhA
     let d2307 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -28282.0449571943 * x.[2307] * x.[4204] // HhA + hFb | sedimentation direct: HhA + hFb -> 6 Z
             -1.0 * x.[2307] // HhA | ligation: H + hA <-> HhA
             1.0 * x.[10] * x.[259] // H + hA | ligation: H + hA <-> HhA
         |]
@@ -55298,7 +55172,6 @@ module ModelData =
     // 2311 - HhE
     let d2311 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -18156.9734792082 * x.[1013] * x.[2311] // CgC + HhE | sedimentation direct: CgC + HhE -> 6 Z
             -1.0 * x.[2311] // HhE | ligation: H + hE <-> HhE
             1.0 * x.[10] * x.[263] // H + hE | ligation: H + hE <-> HhE
         |]
@@ -55362,6 +55235,7 @@ module ModelData =
     // 2318 - Hhd
     let d2318 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17244.5429996477 * x.[277] * x.[2318] // AAC + Hhd | sedimentation direct: AAC + Hhd -> 6 Z
             -1.0 * x.[2318] // Hhd | ligation: H + hd <-> Hhd
             1.0 * x.[10] * x.[270] // H + hd | ligation: H + hd <-> Hhd
         |]
@@ -55506,6 +55380,7 @@ module ModelData =
     // 2334 - aAd
     let d2334 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -993.841020801401 * x.[894] * x.[2334] // CGd + aAd | sedimentation direct: CGd + aAd -> 6 Z
             -1.0 * x.[2334] // aAd | ligation: a + Ad <-> aAd
             1.0 * x.[11] * x.[30] // a + Ad | ligation: a + Ad <-> aAd
         |]
@@ -55560,6 +55435,7 @@ module ModelData =
     // 2340 - aBB
     let d2340 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2527.94994937767 * x.[1758] * x.[2340] // Fed + aBB | sedimentation direct: Fed + aBB -> 6 Z
             -1.0 * x.[2340] // aBB | ligation: a + BB <-> aBB
             1.0 * x.[11] * x.[36] // a + BB | ligation: a + BB <-> aBB
         |]
@@ -55704,6 +55580,7 @@ module ModelData =
     // 2356 - aCB
     let d2356 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2095.52784166418 * x.[2356] * x.[981] // aCB + CeC | sedimentation direct: aCB + CeC -> 6 Z
             -1.0 * x.[2356] // aCB | ligation: a + CB <-> aCB
             1.0 * x.[11] * x.[52] // a + CB | ligation: a + CB <-> aCB
         |]
@@ -55785,6 +55662,7 @@ module ModelData =
     // 2365 - aCc
     let d2365 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -18324.8680018572 * x.[2131] * x.[2365] // HEA + aCc | sedimentation direct: HEA + aCc -> 6 Z
             -1.0 * x.[2365] // aCc | ligation: a + Cc <-> aCc
             1.0 * x.[11] * x.[61] // a + Cc | ligation: a + Cc <-> aCc
         |]
@@ -55821,7 +55699,6 @@ module ModelData =
     // 2369 - aCg
     let d2369 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19455.7118782213 * x.[2369] * x.[3790] // aCg + fdd | sedimentation direct: aCg + fdd -> 6 Z
             -1.0 * x.[2369] // aCg | ligation: a + Cg <-> aCg
             1.0 * x.[11] * x.[65] // a + Cg | ligation: a + Cg <-> aCg
         |]
@@ -55930,6 +55807,7 @@ module ModelData =
     // 2381 - aDc
     let d2381 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22647.3985326419 * x.[51] * x.[2381] // CA + aDc | sedimentation direct: CA + aDc -> 5 Z
             -1.0 * x.[2381] // aDc | ligation: a + Dc <-> aDc
             1.0 * x.[11] * x.[77] // a + Dc | ligation: a + Dc <-> aDc
         |]
@@ -55975,7 +55853,6 @@ module ModelData =
     // 2386 - aDh
     let d2386 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2163.38989482915 * x.[2386] * x.[627] // aDh + BGA | sedimentation direct: aDh + BGA -> 6 Z
             -1.0 * x.[2386] // aDh | ligation: a + Dh <-> aDh
             1.0 * x.[11] * x.[82] // a + Dh | ligation: a + Dh <-> aDh
         |]
@@ -56138,7 +56015,6 @@ module ModelData =
     // 2404 - aFB
     let d2404 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7574.85028993522 * x.[523] * x.[2404] // Aha + aFB | sedimentation direct: Aha + aFB -> 6 Z
             -1.0 * x.[2404] // aFB | ligation: a + FB <-> aFB
             1.0 * x.[11] * x.[100] // a + FB | ligation: a + FB <-> aFB
         |]
@@ -56148,6 +56024,7 @@ module ModelData =
     // 2405 - aFC
     let d2405 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24523.968136374 * x.[2405] * x.[275] // aFC + AAA | sedimentation direct: aFC + AAA -> 6 Z
             -1.0 * x.[2405] // aFC | ligation: a + FC <-> aFC
             1.0 * x.[11] * x.[101] // a + FC | ligation: a + FC <-> aFC
         |]
@@ -56184,7 +56061,7 @@ module ModelData =
     // 2409 - aFG
     let d2409 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2473.41781330885 * x.[2409] * x.[2859] // aFG + cBa | sedimentation direct: aFG + cBa -> 6 Z
+            -3582.47629759828 * x.[1775] * x.[2409] // Ffe + aFG | sedimentation direct: Ffe + aFG -> 6 Z
             -1.0 * x.[2409] // aFG | ligation: a + FG <-> aFG
             1.0 * x.[11] * x.[105] // a + FG | ligation: a + FG <-> aFG
         |]
@@ -56203,6 +56080,8 @@ module ModelData =
     // 2411 - aFa
     let d2411 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8127.88228117916 * x.[2411] * x.[1141] // aFa + DGC | sedimentation direct: aFa + DGC -> 6 Z
+            -6867.01565343078 * x.[2411] * x.[3936] // aFa + gEf | sedimentation direct: aFa + gEf -> 6 Z
             -1.0 * x.[2411] // aFa | ligation: a + Fa <-> aFa
             1.0 * x.[11] * x.[107] // a + Fa | ligation: a + Fa <-> aFa
         |]
@@ -56293,6 +56172,7 @@ module ModelData =
     // 2421 - aGC
     let d2421 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -694.996180868133 * x.[2421] * x.[312] // aGC + ACF | sedimentation direct: aGC + ACF -> 6 Z
             -1.0 * x.[2421] // aGC | ligation: a + GC <-> aGC
             1.0 * x.[11] * x.[117] // a + GC | ligation: a + GC <-> aGC
         |]
@@ -56419,7 +56299,6 @@ module ModelData =
     // 2435 - aHA
     let d2435 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7574.85028993522 * x.[2435] * x.[492] // aHA + Afb | sedimentation direct: aHA + Afb -> 6 Z
             -1.0 * x.[2435] // aHA | ligation: a + HA <-> aHA
             1.0 * x.[11] * x.[131] // a + HA | ligation: a + HA <-> aHA
         |]
@@ -56429,6 +56308,7 @@ module ModelData =
     // 2436 - aHB
     let d2436 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4515.04390536149 * x.[702] * x.[2436] // Bcd + aHB | sedimentation direct: Bcd + aHB -> 6 Z
             -1.0 * x.[2436] // aHB | ligation: a + HB <-> aHB
             1.0 * x.[11] * x.[132] // a + HB | ligation: a + HB <-> aHB
         |]
@@ -56447,7 +56327,6 @@ module ModelData =
     // 2438 - aHD
     let d2438 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14647.802392498 * x.[2438] * x.[1516] // aHD + Efb | sedimentation direct: aHD + Efb -> 6 Z
             -1.0 * x.[2438] // aHD | ligation: a + HD <-> aHD
             1.0 * x.[11] * x.[134] // a + HD | ligation: a + HD <-> aHD
         |]
@@ -56502,6 +56381,7 @@ module ModelData =
     // 2444 - aHb
     let d2444 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -437.736426597162 * x.[1327] * x.[2444] // EBe + aHb | sedimentation direct: EBe + aHb -> 6 Z
             -1.0 * x.[2444] // aHb | ligation: a + Hb <-> aHb
             1.0 * x.[11] * x.[140] // a + Hb | ligation: a + Hb <-> aHb
         |]
@@ -56520,6 +56400,7 @@ module ModelData =
     // 2446 - aHd
     let d2446 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11806.3869313432 * x.[1567] * x.[2446] // FAe + aHd | sedimentation direct: FAe + aHd -> 6 Z
             -1.0 * x.[2446] // aHd | ligation: a + Hd <-> aHd
             1.0 * x.[11] * x.[142] // a + Hd | ligation: a + Hd <-> aHd
         |]
@@ -56547,7 +56428,6 @@ module ModelData =
     // 2449 - aHg
     let d2449 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1277.73454437184 * x.[2449] * x.[2684] // aHg + bGb | sedimentation direct: aHg + bGb -> 6 Z
             -1.0 * x.[2449] // aHg | ligation: a + Hg <-> aHg
             1.0 * x.[11] * x.[145] // a + Hg | ligation: a + Hg <-> aHg
         |]
@@ -56557,6 +56437,7 @@ module ModelData =
     // 2450 - aHh
     let d2450 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17306.5931290351 * x.[2159] * x.[2450] // HFe + aHh | sedimentation direct: HFe + aHh -> 6 Z
             -1.0 * x.[2450] // aHh | ligation: a + Hh <-> aHh
             1.0 * x.[11] * x.[146] // a + Hh | ligation: a + Hh <-> aHh
         |]
@@ -56638,6 +56519,7 @@ module ModelData =
     // 2459 - aaa
     let d2459 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24523.968136374 * x.[493] * x.[2459] // Afc + aaa | sedimentation direct: Afc + aaa -> 6 Z
             -1.0 * x.[2459] // aaa | ligation: a + aa <-> aaa
             1.0 * x.[11] * x.[155] // a + aa | ligation: a + aa <-> aaa
         |]
@@ -56656,6 +56538,7 @@ module ModelData =
     // 2461 - aac
     let d2461 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17244.5429996477 * x.[2461] * x.[4230] // aac + hHD | sedimentation direct: aac + hHD -> 6 Z
             -1.0 * x.[2461] // aac | ligation: a + ac <-> aac
             1.0 * x.[11] * x.[157] // a + ac | ligation: a + ac <-> aac
         |]
@@ -56665,6 +56548,7 @@ module ModelData =
     // 2462 - aad
     let d2462 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2982.8290550336 * x.[2462] * x.[1214] // aad + Dcd | sedimentation direct: aad + Dcd -> 6 Z
             -1.0 * x.[2462] // aad | ligation: a + ad <-> aad
             1.0 * x.[11] * x.[158] // a + ad | ligation: a + ad <-> aad
         |]
@@ -56818,6 +56702,7 @@ module ModelData =
     // 2479 - abe
     let d2479 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3429.44073043316 * x.[2479] * x.[4366] // abe + hhd | sedimentation direct: abe + hhd -> 6 Z
             -1.0 * x.[2479] // abe | ligation: a + be <-> abe
             1.0 * x.[11] * x.[175] // a + be | ligation: a + be <-> abe
         |]
@@ -56854,7 +56739,6 @@ module ModelData =
     // 2483 - acA
     let d2483 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -180.269135969094 * x.[1391] * x.[2483] // EFe + acA | sedimentation direct: EFe + acA -> 6 Z
             -1.0 * x.[2483] // acA | ligation: a + cA <-> acA
             1.0 * x.[11] * x.[179] // a + cA | ligation: a + cA <-> acA
         |]
@@ -56963,7 +56847,6 @@ module ModelData =
     // 2495 - ace
     let d2495 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12047.7501937082 * x.[939] * x.[2495] // Cba + ace | sedimentation direct: Cba + ace -> 6 Z
             -1.0 * x.[2495] // ace | ligation: a + ce <-> ace
             1.0 * x.[11] * x.[191] // a + ce | ligation: a + ce <-> ace
         |]
@@ -56973,6 +56856,8 @@ module ModelData =
     // 2496 - acf
     let d2496 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -694.996180868133 * x.[509] * x.[2496] // Agc + acf | sedimentation direct: Agc + acf -> 6 Z
+            -6510.56836927524 * x.[2496] * x.[3287] // acf + deE | sedimentation direct: acf + deE -> 6 Z
             -1.0 * x.[2496] // acf | ligation: a + cf <-> acf
             1.0 * x.[11] * x.[192] // a + cf | ligation: a + cf <-> acf
         |]
@@ -57144,6 +57029,7 @@ module ModelData =
     // 2515 - aeA
     let d2515 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -10838.584991472 * x.[2515] * x.[2170] // aeA + HGH | sedimentation direct: aeA + HGH -> 6 Z
             -1.0 * x.[2515] // aeA | ligation: a + eA <-> aeA
             1.0 * x.[11] * x.[211] // a + eA | ligation: a + eA <-> aeA
         |]
@@ -57162,6 +57048,7 @@ module ModelData =
     // 2517 - aeC
     let d2517 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11328.4843016445 * x.[2517] * x.[1177] // aeC + DaG | sedimentation direct: aeC + DaG -> 6 Z
             -1.0 * x.[2517] // aeC | ligation: a + eC <-> aeC
             1.0 * x.[11] * x.[213] // a + eC | ligation: a + eC <-> aeC
         |]
@@ -57171,6 +57058,7 @@ module ModelData =
     // 2518 - aeD
     let d2518 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4698.89142379968 * x.[2518] * x.[922] // aeD + CaH | sedimentation direct: aeD + CaH -> 6 Z
             -1.0 * x.[2518] // aeD | ligation: a + eD <-> aeD
             1.0 * x.[11] * x.[214] // a + eD | ligation: a + eD <-> aeD
         |]
@@ -57378,6 +57266,7 @@ module ModelData =
     // 2541 - afc
     let d2541 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -352.155016305217 * x.[2541] * x.[2837] // afc + cAC | sedimentation direct: afc + cAC -> 6 Z
             -1.0 * x.[2541] // afc | ligation: a + fc <-> afc
             1.0 * x.[11] * x.[237] // a + fc | ligation: a + fc <-> afc
         |]
@@ -57468,6 +57357,7 @@ module ModelData =
     // 2551 - agE
     let d2551 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1491.0342841907 * x.[2551] * x.[3573] // agE + egC | sedimentation direct: agE + egC -> 6 Z
             -1.0 * x.[2551] // agE | ligation: a + gE <-> agE
             1.0 * x.[11] * x.[247] // a + gE | ligation: a + gE <-> agE
         |]
@@ -57909,6 +57799,7 @@ module ModelData =
     // 2600 - bBF
     let d2600 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3361.52532775523 * x.[1043] * x.[2600] // DAA + bBF | sedimentation direct: DAA + bBF -> 6 Z
             -1.0 * x.[2600] // bBF | ligation: b + BF <-> bBF
             1.0 * x.[12] * x.[40] // b + BF | ligation: b + BF <-> bBF
         |]
@@ -58035,6 +57926,7 @@ module ModelData =
     // 2614 - bCD
     let d2614 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4515.04390536149 * x.[2614] * x.[524] // bCD + Ahb | sedimentation direct: bCD + Ahb -> 6 Z
             -1.0 * x.[2614] // bCD | ligation: b + CD <-> bCD
             1.0 * x.[12] * x.[54] // b + CD | ligation: b + CD <-> bCD
         |]
@@ -58071,7 +57963,6 @@ module ModelData =
     // 2618 - bCH
     let d2618 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3393.13651179241 * x.[2618] * x.[570] // bCH + BCH | sedimentation direct: bCH + BCH -> 6 Z
             -1.0 * x.[2618] // bCH | ligation: b + CH <-> bCH
             1.0 * x.[12] * x.[58] // b + CH | ligation: b + CH <-> bCH
         |]
@@ -58180,7 +58071,6 @@ module ModelData =
     // 2630 - bDD
     let d2630 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10153.9404756042 * x.[2630] * x.[4065] // bDD + geg | sedimentation direct: bDD + geg -> 6 Z
             -1.0 * x.[2630] // bDD | ligation: b + DD <-> bDD
             1.0 * x.[12] * x.[70] // b + DD | ligation: b + DD <-> bDD
         |]
@@ -58316,6 +58206,7 @@ module ModelData =
     // 2645 - bEC
     let d2645 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -643.561930601962 * x.[2645] * x.[2154] // bEC + HFH | sedimentation direct: bEC + HFH -> 6 Z
             -1.0 * x.[2645] // bEC | ligation: b + EC <-> bEC
             1.0 * x.[12] * x.[85] // b + EC | ligation: b + EC <-> bEC
         |]
@@ -58379,6 +58270,7 @@ module ModelData =
     // 2652 - bEb
     let d2652 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2936.0485365958 * x.[1950] * x.[2652] // Gad + bEb | sedimentation direct: Gad + bEb -> 6 Z
             -1.0 * x.[2652] // bEb | ligation: b + Eb <-> bEb
             1.0 * x.[12] * x.[92] // b + Eb | ligation: b + Eb <-> bEb
         |]
@@ -58577,7 +58469,7 @@ module ModelData =
     // 2674 - bFh
     let d2674 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1468.08571032709 * x.[2674] * x.[2246] // bFh + HdD | sedimentation direct: bFh + HdD -> 6 Z
+            -9265.09841202555 * x.[2674] * x.[1401] // bFh + EGG | sedimentation direct: bFh + EGG -> 6 Z
             -1.0 * x.[2674] // bFh | ligation: b + Fh <-> bFh
             1.0 * x.[12] * x.[114] // b + Fh | ligation: b + Fh <-> bFh
         |]
@@ -58659,6 +58551,7 @@ module ModelData =
     // 2683 - bGa
     let d2683 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2500.93714867315 * x.[1998] * x.[2683] // Gdd + bGa | sedimentation direct: Gdd + bGa -> 6 Z
             -1.0 * x.[2683] // bGa | ligation: b + Ga <-> bGa
             1.0 * x.[12] * x.[123] // b + Ga | ligation: b + Ga <-> bGa
         |]
@@ -58668,7 +58561,6 @@ module ModelData =
     // 2684 - bGb
     let d2684 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1277.73454437184 * x.[2449] * x.[2684] // aHg + bGb | sedimentation direct: aHg + bGb -> 6 Z
             -1.0 * x.[2684] // bGb | ligation: b + Gb <-> bGb
             1.0 * x.[12] * x.[124] // b + Gb | ligation: b + Gb <-> bGb
         |]
@@ -58714,6 +58606,7 @@ module ModelData =
     // 2689 - bGg
     let d2689 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17148.9658495997 * x.[2689] * x.[3341] // bGg + dhc | sedimentation direct: bGg + dhc -> 6 Z
             -1.0 * x.[2689] // bGg | ligation: b + Gg <-> bGg
             1.0 * x.[12] * x.[129] // b + Gg | ligation: b + Gg <-> bGg
         |]
@@ -58831,6 +58724,7 @@ module ModelData =
     // 2702 - bHd
     let d2702 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8364.36283457212 * x.[2702] * x.[1927] // bHd + GHE | sedimentation direct: bHd + GHE -> 6 Z
             -1.0 * x.[2702] // bHd | ligation: b + Hd <-> bHd
             1.0 * x.[12] * x.[142] // b + Hd | ligation: b + Hd <-> bHd
         |]
@@ -58921,6 +58815,7 @@ module ModelData =
     // 2712 - baF
     let d2712 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15966.6440407804 * x.[583] * x.[2712] // BDE + baF | sedimentation direct: BDE + baF -> 6 Z
             -1.0 * x.[2712] // baF | ligation: b + aF <-> baF
             1.0 * x.[12] * x.[152] // b + aF | ligation: b + aF <-> baF
         |]
@@ -59074,6 +58969,7 @@ module ModelData =
     // 2729 - bbG
     let d2729 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24895.9996373885 * x.[1690] * x.[2729] // FaH + bbG | sedimentation direct: FaH + bbG -> 6 Z
             -1.0 * x.[2729] // bbG | ligation: b + bG <-> bbG
             1.0 * x.[12] * x.[169] // b + bG | ligation: b + bG <-> bbG
         |]
@@ -59218,7 +59114,6 @@ module ModelData =
     // 2745 - bcG
     let d2745 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1945.99735381805 * x.[1186] * x.[2745] // Dah + bcG | sedimentation direct: Dah + bcG -> 6 Z
             -1.0 * x.[2745] // bcG | ligation: b + cG <-> bcG
             1.0 * x.[12] * x.[185] // b + cG | ligation: b + cG <-> bcG
         |]
@@ -59264,7 +59159,6 @@ module ModelData =
     // 2750 - bcd
     let d2750 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13621.9972958145 * x.[1346] * x.[2750] // ECh + bcd | sedimentation direct: ECh + bcd -> 6 Z
             -1.0 * x.[2750] // bcd | ligation: b + cd <-> bcd
             1.0 * x.[12] * x.[190] // b + cd | ligation: b + cd <-> bcd
         |]
@@ -59301,7 +59195,6 @@ module ModelData =
     // 2754 - bch
     let d2754 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3393.13651179241 * x.[706] * x.[2754] // Bch + bch | sedimentation direct: Bch + bch -> 6 Z
             -1.0 * x.[2754] // bch | ligation: b + ch <-> bch
             1.0 * x.[12] * x.[194] // b + ch | ligation: b + ch <-> bch
         |]
@@ -59419,6 +59312,7 @@ module ModelData =
     // 2767 - bde
     let d2767 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15966.6440407804 * x.[2767] * x.[544] // bde + BAf | sedimentation direct: bde + BAf -> 6 Z
             -1.0 * x.[2767] // bde | ligation: b + de <-> bde
             1.0 * x.[12] * x.[207] // b + de | ligation: b + de <-> bde
         |]
@@ -59473,7 +59367,6 @@ module ModelData =
     // 2773 - beC
     let d2773 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6515.8139355917 * x.[1839] * x.[2773] // GBe + beC | sedimentation direct: GBe + beC -> 6 Z
             -1.0 * x.[2773] // beC | ligation: b + eC <-> beC
             1.0 * x.[12] * x.[213] // b + eC | ligation: b + eC <-> beC
         |]
@@ -59591,6 +59484,7 @@ module ModelData =
     // 2786 - beh
     let d2786 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3840.53228062151 * x.[2786] * x.[2788] // beh + bfB | sedimentation direct: beh + bfB -> 6 Z
             -1.0 * x.[2786] // beh | ligation: b + eh <-> beh
             1.0 * x.[12] * x.[226] // b + eh | ligation: b + eh <-> beh
         |]
@@ -59609,6 +59503,7 @@ module ModelData =
     // 2788 - bfB
     let d2788 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3840.53228062151 * x.[2786] * x.[2788] // beh + bfB | sedimentation direct: beh + bfB -> 6 Z
             -1.0 * x.[2788] // bfB | ligation: b + fB <-> bfB
             1.0 * x.[12] * x.[228] // b + fB | ligation: b + fB <-> bfB
         |]
@@ -59789,7 +59684,6 @@ module ModelData =
     // 2808 - bgF
     let d2808 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6484.085183082 * x.[2808] * x.[3419] // bgF + eEa | sedimentation direct: bgF + eEa -> 6 Z
             -1.0 * x.[2808] // bgF | ligation: b + gF <-> bgF
             1.0 * x.[12] * x.[248] // b + gF | ligation: b + gF <-> bgF
         |]
@@ -59817,7 +59711,6 @@ module ModelData =
     // 2811 - bga
     let d2811 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2163.38989482915 * x.[458] * x.[2811] // AdH + bga | sedimentation direct: AdH + bga -> 6 Z
             -1.0 * x.[2811] // bga | ligation: b + ga <-> bga
             1.0 * x.[12] * x.[251] // b + ga | ligation: b + ga <-> bga
         |]
@@ -59917,7 +59810,6 @@ module ModelData =
     // 2822 - bhD
     let d2822 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7506.17407629085 * x.[2173] * x.[2822] // HGc + bhD | sedimentation direct: HGc + bhD -> 6 Z
             -1.0 * x.[2822] // bhD | ligation: b + hD <-> bhD
             1.0 * x.[12] * x.[262] // b + hD | ligation: b + hD <-> bhD
         |]
@@ -59927,7 +59819,6 @@ module ModelData =
     // 2823 - bhE
     let d2823 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9147.23280475069 * x.[2823] * x.[2851] // bhE + cBA | sedimentation direct: bhE + cBA -> 6 Z
             -1.0 * x.[2823] // bhE | ligation: b + hE <-> bhE
             1.0 * x.[12] * x.[263] // b + hE | ligation: b + hE <-> bhE
         |]
@@ -60054,6 +59945,7 @@ module ModelData =
     // 2837 - cAC
     let d2837 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -352.155016305217 * x.[2541] * x.[2837] // afc + cAC | sedimentation direct: afc + cAC -> 6 Z
             -1.0 * x.[2837] // cAC | ligation: c + AC <-> cAC
             1.0 * x.[13] * x.[21] // c + AC | ligation: c + AC <-> cAC
         |]
@@ -60171,6 +60063,7 @@ module ModelData =
     // 2850 - cAh
     let d2850 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4698.89142379968 * x.[350] * x.[2850] // AEd + cAh | sedimentation direct: AEd + cAh -> 6 Z
             -1.0 * x.[2850] // cAh | ligation: c + Ah <-> cAh
             1.0 * x.[13] * x.[34] // c + Ah | ligation: c + Ah <-> cAh
         |]
@@ -60180,8 +60073,6 @@ module ModelData =
     // 2851 - cBA
     let d2851 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12047.7501937082 * x.[2851] * x.[311] // cBA + ACE | sedimentation direct: cBA + ACE -> 6 Z
-            -9147.23280475069 * x.[2823] * x.[2851] // bhE + cBA | sedimentation direct: bhE + cBA -> 6 Z
             -1.0 * x.[2851] // cBA | ligation: c + BA <-> cBA
             1.0 * x.[13] * x.[35] // c + BA | ligation: c + BA <-> cBA
         |]
@@ -60218,6 +60109,7 @@ module ModelData =
     // 2855 - cBE
     let d2855 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14103.4772284841 * x.[2855] * x.[2285] // cBE + Hfc | sedimentation direct: cBE + Hfc -> 6 Z
             -1.0 * x.[2855] // cBE | ligation: c + BE <-> cBE
             1.0 * x.[13] * x.[39] // c + BE | ligation: c + BE <-> cBE
         |]
@@ -60254,7 +60146,6 @@ module ModelData =
     // 2859 - cBa
     let d2859 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2473.41781330885 * x.[2409] * x.[2859] // aFG + cBa | sedimentation direct: aFG + cBa -> 6 Z
             -1.0 * x.[2859] // cBa | ligation: c + Ba <-> cBa
             1.0 * x.[13] * x.[43] // c + Ba | ligation: c + Ba <-> cBa
         |]
@@ -60336,7 +60227,6 @@ module ModelData =
     // 2868 - cCB
     let d2868 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -538.290959382864 * x.[2868] * x.[3252] // cCB + dcB | sedimentation direct: cCB + dcB -> 6 Z
             -1.0 * x.[2868] // cCB | ligation: c + CB <-> cCB
             1.0 * x.[13] * x.[52] // c + CB | ligation: c + CB <-> cCB
         |]
@@ -60346,7 +60236,6 @@ module ModelData =
     // 2869 - cCC
     let d2869 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1517.2169490292 * x.[2869] * x.[3824] // cCC + fff | sedimentation direct: cCC + fff -> 6 Z
             -1.0 * x.[2869] // cCC | ligation: c + CC <-> cCC
             1.0 * x.[13] * x.[53] // c + CC | ligation: c + CC <-> cCC
         |]
@@ -60410,7 +60299,6 @@ module ModelData =
     // 2876 - cCb
     let d2876 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2180.62788451558 * x.[2876] * x.[1829] // cCb + GBC | sedimentation direct: cCb + GBC -> 6 Z
             -1.0 * x.[2876] // cCb | ligation: c + Cb <-> cCb
             1.0 * x.[13] * x.[60] // c + Cb | ligation: c + Cb <-> cCb
         |]
@@ -60501,6 +60389,7 @@ module ModelData =
     // 2886 - cDD
     let d2886 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21283.0703523449 * x.[3050] * x.[2886] // cfH + cDD | sedimentation direct: cfH + cDD -> 6 Z
             -1.0 * x.[2886] // cDD | ligation: c + DD <-> cDD
             1.0 * x.[13] * x.[70] // c + DD | ligation: c + DD <-> cDD
         |]
@@ -60528,7 +60417,6 @@ module ModelData =
     // 2889 - cDG
     let d2889 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1227.25443829911 * x.[2889] * x.[3883] // cDG + gBa | sedimentation direct: cDG + gBa -> 6 Z
             -1.0 * x.[2889] // cDG | ligation: c + DG <-> cDG
             1.0 * x.[13] * x.[73] // c + DG | ligation: c + DG <-> cDG
         |]
@@ -60700,7 +60588,6 @@ module ModelData =
     // 2908 - cEb
     let d2908 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1497.35731887318 * x.[2908] * x.[1848] // cEb + GCF | sedimentation direct: cEb + GCF -> 6 Z
             -1.0 * x.[2908] // cEb | ligation: c + Eb <-> cEb
             1.0 * x.[13] * x.[92] // c + Eb | ligation: c + Eb <-> cEb
         |]
@@ -60710,6 +60597,7 @@ module ModelData =
     // 2909 - cEc
     let d2909 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2095.52784166418 * x.[444] * x.[2909] // Acb + cEc | sedimentation direct: Acb + cEc -> 6 Z
             -1.0 * x.[2909] // cEc | ligation: c + Ec <-> cEc
             1.0 * x.[13] * x.[93] // c + Ec | ligation: c + Ec <-> cEc
         |]
@@ -60728,7 +60616,6 @@ module ModelData =
     // 2911 - cEe
     let d2911 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6063.44011286894 * x.[1803] * x.[2911] // Fha + cEe | sedimentation direct: Fha + cEe -> 6 Z
             -1.0 * x.[2911] // cEe | ligation: c + Ee <-> cEe
             1.0 * x.[13] * x.[95] // c + Ee | ligation: c + Ee <-> cEe
         |]
@@ -60891,7 +60778,6 @@ module ModelData =
     // 2929 - cFg
     let d2929 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10727.9444934639 * x.[3067] * x.[2929] // cga + cFg | sedimentation direct: cga + cFg -> 6 Z
             -1.0 * x.[2929] // cFg | ligation: c + Fg <-> cFg
             1.0 * x.[13] * x.[113] // c + Fg | ligation: c + Fg <-> cFg
         |]
@@ -61000,7 +60886,6 @@ module ModelData =
     // 2941 - cGc
     let d2941 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -18156.9734792082 * x.[2941] * x.[4239] // cGc + hHe | sedimentation direct: cGc + hHe -> 6 Z
             -1.0 * x.[2941] // cGc | ligation: c + Gc <-> cGc
             1.0 * x.[13] * x.[125] // c + Gc | ligation: c + Gc <-> cGc
         |]
@@ -61073,7 +60958,6 @@ module ModelData =
     // 2949 - cHC
     let d2949 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11097.989453503 * x.[1737] * x.[2949] // FdG + cHC | sedimentation direct: FdG + cHC -> 6 Z
             -1.0 * x.[2949] // cHC | ligation: c + HC <-> cHC
             1.0 * x.[13] * x.[133] // c + HC | ligation: c + HC <-> cHC
         |]
@@ -61326,6 +61210,7 @@ module ModelData =
     // 2977 - cag
     let d2977 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2791.04435959399 * x.[2977] * x.[3621] // cag + fBC | sedimentation direct: cag + fBC -> 6 Z
             -1.0 * x.[2977] // cag | ligation: c + ag <-> cag
             1.0 * x.[13] * x.[161] // c + ag | ligation: c + ag <-> cag
         |]
@@ -61335,7 +61220,6 @@ module ModelData =
     // 2978 - cah
     let d2978 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4791.23492110301 * x.[2978] * x.[1378] // cah + EEh | sedimentation direct: cah + EEh -> 6 Z
             -1.0 * x.[2978] // cah | ligation: c + ah <-> cah
             1.0 * x.[13] * x.[162] // c + ah | ligation: c + ah <-> cah
         |]
@@ -61345,6 +61229,7 @@ module ModelData =
     // 2979 - cbA
     let d2979 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -25525.10772298 * x.[204] * x.[2979] // db + cbA | sedimentation direct: db + cbA -> 5 Z
             -1.0 * x.[2979] // cbA | ligation: c + bA <-> cbA
             1.0 * x.[13] * x.[163] // c + bA | ligation: c + bA <-> cbA
         |]
@@ -61507,6 +61392,7 @@ module ModelData =
     // 2997 - ccC
     let d2997 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8500.49742325451 * x.[2997] * x.[3249] // ccC + dbg | sedimentation direct: ccC + dbg -> 6 Z
             -1.0 * x.[2997] // ccC | ligation: c + cC <-> ccC
             1.0 * x.[13] * x.[181] // c + cC | ligation: c + cC <-> ccC
         |]
@@ -61597,6 +61483,8 @@ module ModelData =
     // 3007 - cce
     let d3007 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17360.5629522301 * x.[2029] * x.[3007] // Gfc + cce | sedimentation direct: Gfc + cce -> 6 Z
+            -7187.3845028166 * x.[3007] * x.[3479] // cce + eaE | sedimentation direct: cce + eaE -> 6 Z
             -1.0 * x.[3007] // cce | ligation: c + ce <-> cce
             1.0 * x.[13] * x.[191] // c + ce | ligation: c + ce <-> cce
         |]
@@ -61660,6 +61548,7 @@ module ModelData =
     // 3014 - cdD
     let d3014 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21694.7027046045 * x.[3014] * x.[3948] // cdD + gFb | sedimentation direct: cdD + gFb -> 6 Z
             -1.0 * x.[3014] // cdD | ligation: c + dD <-> cdD
             1.0 * x.[13] * x.[198] // c + dD | ligation: c + dD <-> cdD
         |]
@@ -61732,6 +61621,7 @@ module ModelData =
     // 3022 - cdd
     let d3022 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4129.15859858373 * x.[1288] * x.[3022] // DhF + cdd | sedimentation direct: DhF + cdd -> 6 Z
             -1.0 * x.[3022] // cdd | ligation: c + dd <-> cdd
             1.0 * x.[13] * x.[206] // c + dd | ligation: c + dd <-> cdd
         |]
@@ -61840,7 +61730,6 @@ module ModelData =
     // 3034 - ceH
     let d3034 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10998.458870287 * x.[3034] * x.[3405] // ceH + eDc | sedimentation direct: ceH + eDc -> 6 Z
             -1.0 * x.[3034] // ceH | ligation: c + eH <-> ceH
             1.0 * x.[13] * x.[218] // c + eH | ligation: c + eH <-> ceH
         |]
@@ -61976,6 +61865,7 @@ module ModelData =
     // 3049 - cfG
     let d3049 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12017.2139840518 * x.[3049] * x.[2086] // cfG + HBD | sedimentation direct: cfG + HBD -> 6 Z
             -1.0 * x.[3049] // cfG | ligation: c + fG <-> cfG
             1.0 * x.[13] * x.[233] // c + fG | ligation: c + fG <-> cfG
         |]
@@ -61985,6 +61875,8 @@ module ModelData =
     // 3050 - cfH
     let d3050 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3050.6685572978 * x.[3050] * x.[3674] // cfH + fEH | sedimentation direct: cfH + fEH -> 6 Z
+            -21283.0703523449 * x.[3050] * x.[2886] // cfH + cDD | sedimentation direct: cfH + cDD -> 6 Z
             -1.0 * x.[3050] // cfH | ligation: c + fH <-> cfH
             1.0 * x.[13] * x.[234] // c + fH | ligation: c + fH <-> cfH
         |]
@@ -62084,6 +61976,7 @@ module ModelData =
     // 3061 - cgC
     let d3061 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7543.20847064459 * x.[3061] * x.[2284] // cgC + Hfb | sedimentation direct: cgC + Hfb -> 6 Z
             -1.0 * x.[3061] // cgC | ligation: c + gC <-> cgC
             1.0 * x.[13] * x.[245] // c + gC | ligation: c + gC <-> cgC
         |]
@@ -62093,6 +61986,7 @@ module ModelData =
     // 3062 - cgD
     let d3062 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -993.841020801401 * x.[3062] * x.[406] // cgD + AaD | sedimentation direct: cgD + AaD -> 6 Z
             -1.0 * x.[3062] // cgD | ligation: c + gD <-> cgD
             1.0 * x.[13] * x.[246] // c + gD | ligation: c + gD <-> cgD
         |]
@@ -62111,7 +62005,6 @@ module ModelData =
     // 3064 - cgF
     let d3064 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9307.84876480825 * x.[3064] * x.[3587] // cgF + ehA | sedimentation direct: cgF + ehA -> 6 Z
             -1.0 * x.[3064] // cgF | ligation: c + gF <-> cgF
             1.0 * x.[13] * x.[248] // c + gF | ligation: c + gF <-> cgF
         |]
@@ -62139,7 +62032,6 @@ module ModelData =
     // 3067 - cga
     let d3067 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10727.9444934639 * x.[3067] * x.[2929] // cga + cFg | sedimentation direct: cga + cFg -> 6 Z
             -1.0 * x.[3067] // cga | ligation: c + ga <-> cga
             1.0 * x.[13] * x.[251] // c + ga | ligation: c + ga <-> cga
         |]
@@ -62275,6 +62167,7 @@ module ModelData =
     // 3082 - chH
     let d3082 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1508.93068788665 * x.[3082] * x.[1073] // chH + DBg | sedimentation direct: chH + DBg -> 6 Z
             -1.0 * x.[3082] // chH | ligation: c + hH <-> chH
             1.0 * x.[13] * x.[266] // c + hH | ligation: c + hH <-> chH
         |]
@@ -62284,7 +62177,6 @@ module ModelData =
     // 3083 - cha
     let d3083 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19686.0229377226 * x.[3083] * x.[1904] // cha + GFf | sedimentation direct: cha + GFf -> 6 Z
             -1.0 * x.[3083] // cha | ligation: c + ha <-> cha
             1.0 * x.[13] * x.[267] // c + ha | ligation: c + ha <-> cha
         |]
@@ -62393,7 +62285,6 @@ module ModelData =
     // 3095 - dAE
     let d3095 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12764.1386400984 * x.[3095] * x.[3769] // dAE + fcG | sedimentation direct: dAE + fcG -> 6 Z
             -1.0 * x.[3095] // dAE | ligation: d + AE <-> dAE
             1.0 * x.[14] * x.[23] // d + AE | ligation: d + AE <-> dAE
         |]
@@ -62421,7 +62312,6 @@ module ModelData =
     // 3098 - dAH
     let d3098 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1945.99735381805 * x.[3098] * x.[577] // dAH + BCg | sedimentation direct: dAH + BCg -> 6 Z
             -1.0 * x.[3098] // dAH | ligation: d + AH <-> dAH
             1.0 * x.[14] * x.[26] // d + AH | ligation: d + AH <-> dAH
         |]
@@ -62485,6 +62375,7 @@ module ModelData =
     // 3105 - dAg
     let d3105 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11328.4843016445 * x.[349] * x.[3105] // AEc + dAg | sedimentation direct: AEc + dAg -> 6 Z
             -1.0 * x.[3105] // dAg | ligation: d + Ag <-> dAg
             1.0 * x.[14] * x.[33] // d + Ag | ligation: d + Ag <-> dAg
         |]
@@ -62674,6 +62565,7 @@ module ModelData =
     // 3126 - dCD
     let d3126 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2982.8290550336 * x.[278] * x.[3126] // AAD + dCD | sedimentation direct: AAD + dCD -> 6 Z
             -1.0 * x.[3126] // dCD | ligation: d + CD <-> dCD
             1.0 * x.[14] * x.[54] // d + CD | ligation: d + CD <-> dCD
         |]
@@ -62755,6 +62647,7 @@ module ModelData =
     // 3135 - dCe
     let d3135 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24750.6701834934 * x.[3135] * x.[4004] // dCe + gbB | sedimentation direct: dCe + gbB -> 6 Z
             -1.0 * x.[3135] // dCe | ligation: d + Ce <-> dCe
             1.0 * x.[14] * x.[63] // d + Ce | ligation: d + Ce <-> dCe
         |]
@@ -62908,8 +62801,6 @@ module ModelData =
     // 3152 - dDf
     let d3152 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19036.0188379219 * x.[1687] * x.[3152] // FaE + dDf | sedimentation direct: FaE + dDf -> 6 Z
-            -15106.3620393838 * x.[3152] * x.[3791] // dDf + fde | sedimentation direct: dDf + fde -> 6 Z
             -1.0 * x.[3152] // dDf | ligation: d + Df <-> dDf
             1.0 * x.[14] * x.[80] // d + Df | ligation: d + Df <-> dDf
         |]
@@ -62937,6 +62828,7 @@ module ModelData =
     // 3155 - dEA
     let d3155 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4603.35117468113 * x.[3155] * x.[4281] // dEA + hcG | sedimentation direct: dEA + hcG -> 6 Z
             -1.0 * x.[3155] // dEA | ligation: d + EA <-> dEA
             1.0 * x.[14] * x.[83] // d + EA | ligation: d + EA <-> dEA
         |]
@@ -62964,7 +62856,6 @@ module ModelData =
     // 3158 - dED
     let d3158 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9068.52382428667 * x.[3165] * x.[3158] // dEc + dED | sedimentation direct: dEc + dED -> 6 Z
             -1.0 * x.[3158] // dED | ligation: d + ED <-> dED
             1.0 * x.[14] * x.[86] // d + ED | ligation: d + ED <-> dED
         |]
@@ -62974,6 +62865,7 @@ module ModelData =
     // 3159 - dEE
     let d3159 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6876.16777776285 * x.[3159] * x.[3722] // dEE + fHH | sedimentation direct: dEE + fHH -> 6 Z
             -1.0 * x.[3159] // dEE | ligation: d + EE <-> dEE
             1.0 * x.[14] * x.[87] // d + EE | ligation: d + EE <-> dEE
         |]
@@ -63028,7 +62920,6 @@ module ModelData =
     // 3165 - dEc
     let d3165 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9068.52382428667 * x.[3165] * x.[3158] // dEc + dED | sedimentation direct: dEc + dED -> 6 Z
             -1.0 * x.[3165] // dEc | ligation: d + Ec <-> dEc
             1.0 * x.[14] * x.[93] // d + Ec | ligation: d + Ec <-> dEc
         |]
@@ -63155,6 +63046,7 @@ module ModelData =
     // 3179 - dFa
     let d3179 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8731.27438850719 * x.[2098] * x.[3179] // HBh + dFa | sedimentation direct: HBh + dFa -> 6 Z
             -1.0 * x.[3179] // dFa | ligation: d + Fa <-> dFa
             1.0 * x.[14] * x.[107] // d + Fa | ligation: d + Fa <-> dFa
         |]
@@ -63281,7 +63173,6 @@ module ModelData =
     // 3193 - dGG
     let d3193 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -431.76773374494 * x.[1137] * x.[3193] // DFg + dGG | sedimentation direct: DFg + dGG -> 6 Z
             -1.0 * x.[3193] // dGG | ligation: d + GG <-> dGG
             1.0 * x.[14] * x.[121] // d + GG | ligation: d + GG <-> dGG
         |]
@@ -63489,6 +63380,7 @@ module ModelData =
     // 3216 - dHf
     let d3216 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4129.15859858373 * x.[3216] * x.[838] // dHf + CDD | sedimentation direct: dHf + CDD -> 6 Z
             -1.0 * x.[3216] // dHf | ligation: d + Hf <-> dHf
             1.0 * x.[14] * x.[144] // d + Hf | ligation: d + Hf <-> dHf
         |]
@@ -63579,7 +63471,6 @@ module ModelData =
     // 3226 - daH
     let d3226 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2054.79400378071 * x.[3226] * x.[2124] // daH + HDb | sedimentation direct: daH + HDb -> 6 Z
             -1.0 * x.[3226] // daH | ligation: d + aH <-> daH
             1.0 * x.[14] * x.[154] // d + aH | ligation: d + aH <-> daH
         |]
@@ -63589,6 +63480,7 @@ module ModelData =
     // 3227 - daa
     let d3227 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3361.52532775523 * x.[3227] * x.[688] // daa + Bbf | sedimentation direct: daa + Bbf -> 6 Z
             -1.0 * x.[3227] // daa | ligation: d + aa <-> daa
             1.0 * x.[14] * x.[155] // d + aa | ligation: d + aa <-> daa
         |]
@@ -63715,6 +63607,7 @@ module ModelData =
     // 3241 - dbG
     let d3241 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1508.93068788665 * x.[914] * x.[3241] // CHh + dbG | sedimentation direct: CHh + dbG -> 6 Z
             -1.0 * x.[3241] // dbG | ligation: d + bG <-> dbG
             1.0 * x.[14] * x.[169] // d + bG | ligation: d + bG <-> dbG
         |]
@@ -63787,6 +63680,7 @@ module ModelData =
     // 3249 - dbg
     let d3249 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8500.49742325451 * x.[2997] * x.[3249] // ccC + dbg | sedimentation direct: ccC + dbg -> 6 Z
             -1.0 * x.[3249] // dbg | ligation: d + bg <-> dbg
             1.0 * x.[14] * x.[177] // d + bg | ligation: d + bg <-> dbg
         |]
@@ -63814,7 +63708,6 @@ module ModelData =
     // 3252 - dcB
     let d3252 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -538.290959382864 * x.[2868] * x.[3252] // cCB + dcB | sedimentation direct: cCB + dcB -> 6 Z
             -1.0 * x.[3252] // dcB | ligation: d + cB <-> dcB
             1.0 * x.[14] * x.[180] // d + cB | ligation: d + cB <-> dcB
         |]
@@ -63851,6 +63744,7 @@ module ModelData =
     // 3256 - dcF
     let d3256 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22829.6223683907 * x.[85] * x.[3256] // EC + dcF | sedimentation direct: EC + dcF -> 5 Z
             -1.0 * x.[3256] // dcF | ligation: d + cF <-> dcF
             1.0 * x.[14] * x.[184] // d + cF | ligation: d + cF <-> dcF
         |]
@@ -63977,7 +63871,6 @@ module ModelData =
     // 3270 - ddD
     let d3270 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -8369.23110619292 * x.[3270] * x.[2082] // ddD + HAh | sedimentation direct: ddD + HAh -> 6 Z
             -1.0 * x.[3270] // ddD | ligation: d + dD <-> ddD
             1.0 * x.[14] * x.[198] // d + dD | ligation: d + dD <-> ddD
         |]
@@ -64023,7 +63916,6 @@ module ModelData =
     // 3275 - dda
     let d3275 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17839.3614720962 * x.[3275] * x.[2230] // dda + HcD | sedimentation direct: dda + HcD -> 6 Z
             -1.0 * x.[3275] // dda | ligation: d + da <-> dda
             1.0 * x.[14] * x.[203] // d + da | ligation: d + da <-> dda
         |]
@@ -64132,6 +64024,7 @@ module ModelData =
     // 3287 - deE
     let d3287 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6510.56836927524 * x.[2496] * x.[3287] // acf + deE | sedimentation direct: acf + deE -> 6 Z
             -1.0 * x.[3287] // deE | ligation: d + eE <-> deE
             1.0 * x.[14] * x.[215] // d + eE | ligation: d + eE <-> deE
         |]
@@ -64150,6 +64043,7 @@ module ModelData =
     // 3289 - deG
     let d3289 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5567.31009042503 * x.[3289] * x.[3572] // deG + egB | sedimentation direct: deG + egB -> 6 Z
             -1.0 * x.[3289] // deG | ligation: d + eG <-> deG
             1.0 * x.[14] * x.[217] // d + eG | ligation: d + eG <-> deG
         |]
@@ -64186,7 +64080,6 @@ module ModelData =
     // 3293 - dec
     let d3293 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1581.4051065602 * x.[3293] * x.[3536] // dec + edf | sedimentation direct: dec + edf -> 6 Z
             -1.0 * x.[3293] // dec | ligation: d + ec <-> dec
             1.0 * x.[14] * x.[221] // d + ec | ligation: d + ec <-> dec
         |]
@@ -64205,6 +64098,7 @@ module ModelData =
     // 3295 - dee
     let d3295 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3267.81006400869 * x.[1855] * x.[3295] // GCe + dee | sedimentation direct: GCe + dee -> 6 Z
             -1.0 * x.[3295] // dee | ligation: d + ee <-> dee
             1.0 * x.[14] * x.[223] // d + ee | ligation: d + ee <-> dee
         |]
@@ -64241,7 +64135,6 @@ module ModelData =
     // 3299 - dfA
     let d3299 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6048.99318882237 * x.[1144] * x.[3299] // DGF + dfA | sedimentation direct: DGF + dfA -> 6 Z
             -1.0 * x.[3299] // dfA | ligation: d + fA <-> dfA
             1.0 * x.[14] * x.[227] // d + fA | ligation: d + fA <-> dfA
         |]
@@ -64296,7 +64189,6 @@ module ModelData =
     // 3305 - dfG
     let d3305 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -431.76773374494 * x.[3305] * x.[1281] // dfG + Dgg | sedimentation direct: dfG + Dgg -> 6 Z
             -1.0 * x.[3305] // dfG | ligation: d + fG <-> dfG
             1.0 * x.[14] * x.[233] // d + fG | ligation: d + fG <-> dfG
         |]
@@ -64369,7 +64261,6 @@ module ModelData =
     // 3313 - dfg
     let d3313 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7717.07697685324 * x.[3313] * x.[1736] // dfg + FdF | sedimentation direct: dfg + FdF -> 6 Z
             -1.0 * x.[3313] // dfg | ligation: d + fg <-> dfg
             1.0 * x.[14] * x.[241] // d + fg | ligation: d + fg <-> dfg
         |]
@@ -64478,6 +64369,7 @@ module ModelData =
     // 3325 - dgc
     let d3325 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8127.88228117916 * x.[483] * x.[3325] // AfA + dgc | sedimentation direct: AfA + dgc -> 6 Z
             -1.0 * x.[3325] // dgc | ligation: d + gc <-> dgc
             1.0 * x.[14] * x.[253] // d + gc | ligation: d + gc <-> dgc
         |]
@@ -64505,7 +64397,6 @@ module ModelData =
     // 3328 - dgf
     let d3328 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6048.99318882237 * x.[3328] * x.[1131] // dgf + DFa | sedimentation direct: dgf + DFa -> 6 Z
             -1.0 * x.[3328] // dgf | ligation: d + gf <-> dgf
             1.0 * x.[14] * x.[256] // d + gf | ligation: d + gf <-> dgf
         |]
@@ -64587,7 +64478,6 @@ module ModelData =
     // 3337 - dhG
     let d3337 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7139.6781251637 * x.[3337] * x.[3872] // dhG + gAf | sedimentation direct: dhG + gAf -> 6 Z
             -1.0 * x.[3337] // dhG | ligation: d + hG <-> dhG
             1.0 * x.[14] * x.[265] // d + hG | ligation: d + hG <-> dhG
         |]
@@ -64624,6 +64514,7 @@ module ModelData =
     // 3341 - dhc
     let d3341 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17148.9658495997 * x.[2689] * x.[3341] // bGg + dhc | sedimentation direct: bGg + dhc -> 6 Z
             -1.0 * x.[3341] // dhc | ligation: d + hc <-> dhc
             1.0 * x.[14] * x.[269] // d + hc | ligation: d + hc <-> dhc
         |]
@@ -64795,6 +64686,7 @@ module ModelData =
     // 3360 - eAf
     let d3360 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1066.73243010838 * x.[3360] * x.[3811] // eAf + ffA | sedimentation direct: eAf + ffA -> 6 Z
             -1.0 * x.[3360] // eAf | ligation: e + Af <-> eAf
             1.0 * x.[15] * x.[32] // e + Af | ligation: e + Af <-> eAf
         |]
@@ -64849,6 +64741,7 @@ module ModelData =
     // 3366 - eBD
     let d3366 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2003.23566018782 * x.[1623] * x.[3366] // FEE + eBD | sedimentation direct: FEE + eBD -> 6 Z
             -1.0 * x.[3366] // eBD | ligation: e + BD <-> eBD
             1.0 * x.[15] * x.[38] // e + BD | ligation: e + BD <-> eBD
         |]
@@ -64912,6 +64805,7 @@ module ModelData =
     // 3373 - eBc
     let d3373 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7139.11144504604 * x.[1513] * x.[3373] // EfG + eBc | sedimentation direct: EfG + eBc -> 6 Z
             -1.0 * x.[3373] // eBc | ligation: e + Bc <-> eBc
             1.0 * x.[15] * x.[45] // e + Bc | ligation: e + Bc <-> eBc
         |]
@@ -64984,6 +64878,7 @@ module ModelData =
     // 3381 - eCC
     let d3381 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6557.47052503005 * x.[3381] * x.[3701] // eCC + fGC | sedimentation direct: eCC + fGC -> 6 Z
             -1.0 * x.[3381] // eCC | ligation: e + CC <-> eCC
             1.0 * x.[15] * x.[53] // e + CC | ligation: e + CC <-> eCC
         |]
@@ -65002,6 +64897,7 @@ module ModelData =
     // 3383 - eCE
     let d3383 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1788.81628912716 * x.[184] * x.[3383] // cF + eCE | sedimentation direct: cF + eCE -> 5 Z
             -1.0 * x.[3383] // eCE | ligation: e + CE <-> eCE
             1.0 * x.[15] * x.[55] // e + CE | ligation: e + CE <-> eCE
         |]
@@ -65200,7 +65096,6 @@ module ModelData =
     // 3405 - eDc
     let d3405 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10998.458870287 * x.[3034] * x.[3405] // ceH + eDc | sedimentation direct: ceH + eDc -> 6 Z
             -1.0 * x.[3405] // eDc | ligation: e + Dc <-> eDc
             1.0 * x.[15] * x.[77] // e + Dc | ligation: e + Dc <-> eDc
         |]
@@ -65255,6 +65150,7 @@ module ModelData =
     // 3411 - eEA
     let d3411 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6886.58640245847 * x.[1564] * x.[3411] // FAb + eEA | sedimentation direct: FAb + eEA -> 6 Z
             -1.0 * x.[3411] // eEA | ligation: e + EA <-> eEA
             1.0 * x.[15] * x.[83] // e + EA | ligation: e + EA <-> eEA
         |]
@@ -65327,7 +65223,6 @@ module ModelData =
     // 3419 - eEa
     let d3419 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6484.085183082 * x.[2808] * x.[3419] // bgF + eEa | sedimentation direct: bgF + eEa -> 6 Z
             -1.0 * x.[3419] // eEa | ligation: e + Ea <-> eEa
             1.0 * x.[15] * x.[91] // e + Ea | ligation: e + Ea <-> eEa
         |]
@@ -65391,7 +65286,6 @@ module ModelData =
     // 3426 - eEh
     let d3426 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7269.90537369658 * x.[3426] * x.[1861] // eEh + GDC | sedimentation direct: eEh + GDC -> 6 Z
             -1.0 * x.[3426] // eEh | ligation: e + Eh <-> eEh
             1.0 * x.[15] * x.[98] // e + Eh | ligation: e + Eh <-> eEh
         |]
@@ -65410,7 +65304,6 @@ module ModelData =
     // 3428 - eFB
     let d3428 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14647.802392498 * x.[526] * x.[3428] // Ahd + eFB | sedimentation direct: Ahd + eFB -> 6 Z
             -1.0 * x.[3428] // eFB | ligation: e + FB <-> eFB
             1.0 * x.[15] * x.[100] // e + FB | ligation: e + FB <-> eFB
         |]
@@ -65438,7 +65331,6 @@ module ModelData =
     // 3431 - eFE
     let d3431 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7572.13188618575 * x.[2177] * x.[3431] // HGg + eFE | sedimentation direct: HGg + eFE -> 6 Z
             -1.0 * x.[3431] // eFE | ligation: e + FE <-> eFE
             1.0 * x.[15] * x.[103] // e + FE | ligation: e + FE <-> eFE
         |]
@@ -65529,6 +65421,7 @@ module ModelData =
     // 3441 - eFg
     let d3441 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7139.11144504604 * x.[3441] * x.[1445] // eFg + EbC | sedimentation direct: eFg + EbC -> 6 Z
             -1.0 * x.[3441] // eFg | ligation: e + Fg <-> eFg
             1.0 * x.[15] * x.[113] // e + Fg | ligation: e + Fg <-> eFg
         |]
@@ -65871,6 +65764,7 @@ module ModelData =
     // 3479 - eaE
     let d3479 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7187.3845028166 * x.[3007] * x.[3479] // cce + eaE | sedimentation direct: cce + eaE -> 6 Z
             -1.0 * x.[3479] // eaE | ligation: e + aE <-> eaE
             1.0 * x.[15] * x.[151] // e + aE | ligation: e + aE <-> eaE
         |]
@@ -66015,6 +65909,7 @@ module ModelData =
     // 3495 - ebE
     let d3495 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -437.736426597162 * x.[3495] * x.[516] // ebE + AhB | sedimentation direct: ebE + AhB -> 6 Z
             -1.0 * x.[3495] // ebE | ligation: e + bE <-> ebE
             1.0 * x.[15] * x.[167] // e + bE | ligation: e + bE <-> ebE
         |]
@@ -66042,7 +65937,6 @@ module ModelData =
     // 3498 - ebH
     let d3498 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14976.6916743637 * x.[2279] * x.[3498] // HfE + ebH | sedimentation direct: HfE + ebH -> 6 Z
             -1.0 * x.[3498] // ebH | ligation: e + bH <-> ebH
             1.0 * x.[15] * x.[170] // e + bH | ligation: e + bH <-> ebH
         |]
@@ -66187,7 +66081,6 @@ module ModelData =
     // 3514 - ecH
     let d3514 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13621.9972958145 * x.[3514] * x.[566] // ecH + BCD | sedimentation direct: ecH + BCD -> 6 Z
             -1.0 * x.[3514] // ecH | ligation: e + cH <-> ecH
             1.0 * x.[15] * x.[186] // e + cH | ligation: e + cH <-> ecH
         |]
@@ -66377,7 +66270,6 @@ module ModelData =
     // 3535 - ede
     let d3535 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -24710.7040503995 * x.[3535] * x.[1729] // ede + Fcg | sedimentation direct: ede + Fcg -> 6 Z
             -1.0 * x.[3535] // ede | ligation: e + de <-> ede
             1.0 * x.[15] * x.[207] // e + de | ligation: e + de <-> ede
         |]
@@ -66387,7 +66279,6 @@ module ModelData =
     // 3536 - edf
     let d3536 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1581.4051065602 * x.[3293] * x.[3536] // dec + edf | sedimentation direct: dec + edf -> 6 Z
             -1.0 * x.[3536] // edf | ligation: e + df <-> edf
             1.0 * x.[15] * x.[208] // e + df | ligation: e + df <-> edf
         |]
@@ -66415,7 +66306,6 @@ module ModelData =
     // 3539 - eeA
     let d3539 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25216.8894039707 * x.[1848] * x.[3539] // GCF + eeA | sedimentation direct: GCF + eeA -> 6 Z
             -1.0 * x.[3539] // eeA | ligation: e + eA <-> eeA
             1.0 * x.[15] * x.[211] // e + eA | ligation: e + eA <-> eeA
         |]
@@ -66452,7 +66342,6 @@ module ModelData =
     // 3543 - eeE
     let d3543 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3072.20503664969 * x.[2174] * x.[3543] // HGd + eeE | sedimentation direct: HGd + eeE -> 6 Z
             -1.0 * x.[3543] // eeE | ligation: e + eE <-> eeE
             1.0 * x.[15] * x.[215] // e + eE | ligation: e + eE <-> eeE
         |]
@@ -66480,8 +66369,6 @@ module ModelData =
     // 3546 - eeH
     let d3546 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25924.9397122055 * x.[3546] * x.[3934] // eeH + gEd | sedimentation direct: eeH + gEd -> 6 Z
-            -4791.23492110301 * x.[794] * x.[3546] // CAH + eeH | sedimentation direct: CAH + eeH -> 6 Z
             -1.0 * x.[3546] // eeH | ligation: e + eH <-> eeH
             1.0 * x.[15] * x.[218] // e + eH | ligation: e + eH <-> eeH
         |]
@@ -66545,7 +66432,6 @@ module ModelData =
     // 3553 - eeg
     let d3553 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14613.3568430879 * x.[3553] * x.[3766] // eeg + fcD | sedimentation direct: eeg + fcD -> 6 Z
             -1.0 * x.[3553] // eeg | ligation: e + eg <-> eeg
             1.0 * x.[15] * x.[225] // e + eg | ligation: e + eg <-> eeg
         |]
@@ -66600,7 +66486,6 @@ module ModelData =
     // 3559 - efE
     let d3559 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -180.269135969094 * x.[3559] * x.[315] // efE + ACa | sedimentation direct: efE + ACa -> 6 Z
             -1.0 * x.[3559] // efE | ligation: e + fE <-> efE
             1.0 * x.[15] * x.[231] // e + fE | ligation: e + fE <-> efE
         |]
@@ -66709,7 +66594,6 @@ module ModelData =
     // 3571 - egA
     let d3571 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7721.82294306637 * x.[2130] * x.[3571] // HDh + egA | sedimentation direct: HDh + egA -> 6 Z
             -1.0 * x.[3571] // egA | ligation: e + gA <-> egA
             1.0 * x.[15] * x.[243] // e + gA | ligation: e + gA <-> egA
         |]
@@ -66719,6 +66603,7 @@ module ModelData =
     // 3572 - egB
     let d3572 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5567.31009042503 * x.[3289] * x.[3572] // deG + egB | sedimentation direct: deG + egB -> 6 Z
             -1.0 * x.[3572] // egB | ligation: e + gB <-> egB
             1.0 * x.[15] * x.[244] // e + gB | ligation: e + gB <-> egB
         |]
@@ -66728,6 +66613,7 @@ module ModelData =
     // 3573 - egC
     let d3573 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1491.0342841907 * x.[2551] * x.[3573] // agE + egC | sedimentation direct: agE + egC -> 6 Z
             -1.0 * x.[3573] // egC | ligation: e + gC <-> egC
             1.0 * x.[15] * x.[245] // e + gC | ligation: e + gC <-> egC
         |]
@@ -66827,6 +66713,7 @@ module ModelData =
     // 3584 - egf
     let d3584 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22621.3937190296 * x.[2271] * x.[3584] // Hee + egf | sedimentation direct: Hee + egf -> 6 Z
             -1.0 * x.[3584] // egf | ligation: e + gf <-> egf
             1.0 * x.[15] * x.[256] // e + gf | ligation: e + gf <-> egf
         |]
@@ -66836,6 +66723,7 @@ module ModelData =
     // 3585 - egg
     let d3585 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -9265.09841202555 * x.[746] * x.[3585] // BfH + egg | sedimentation direct: BfH + egg -> 6 Z
             -1.0 * x.[3585] // egg | ligation: e + gg <-> egg
             1.0 * x.[15] * x.[257] // e + gg | ligation: e + gg <-> egg
         |]
@@ -66854,7 +66742,6 @@ module ModelData =
     // 3587 - ehA
     let d3587 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -9307.84876480825 * x.[3064] * x.[3587] // cgF + ehA | sedimentation direct: cgF + ehA -> 6 Z
             -1.0 * x.[3587] // ehA | ligation: e + hA <-> ehA
             1.0 * x.[15] * x.[259] // e + hA | ligation: e + hA <-> ehA
         |]
@@ -66936,6 +66823,7 @@ module ModelData =
     // 3596 - ehb
     let d3596 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2212.82112219053 * x.[3596] * x.[1673] // ehb + FHG | sedimentation direct: ehb + FHG -> 6 Z
             -1.0 * x.[3596] // ehb | ligation: e + hb <-> ehb
             1.0 * x.[15] * x.[268] // e + hb | ligation: e + hb <-> ehb
         |]
@@ -67062,7 +66950,6 @@ module ModelData =
     // 3610 - fAH
     let d3610 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11638.9194931042 * x.[130] * x.[3610] // Gh + fAH | sedimentation direct: Gh + fAH -> 5 Z
             -1.0 * x.[3610] // fAH | ligation: f + AH <-> fAH
             1.0 * x.[16] * x.[26] // f + AH | ligation: f + AH <-> fAH
         |]
@@ -67108,7 +66995,6 @@ module ModelData =
     // 3615 - fAe
     let d3615 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19036.0188379219 * x.[3615] * x.[1224] // fAe + DdF | sedimentation direct: fAe + DdF -> 6 Z
             -1.0 * x.[3615] // fAe | ligation: f + Ae <-> fAe
             1.0 * x.[16] * x.[31] // f + Ae | ligation: f + Ae <-> fAe
         |]
@@ -67136,6 +67022,7 @@ module ModelData =
     // 3618 - fAh
     let d3618 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24895.9996373885 * x.[3618] * x.[561] // fAh + BBg | sedimentation direct: fAh + BBg -> 6 Z
             -1.0 * x.[3618] // fAh | ligation: f + Ah <-> fAh
             1.0 * x.[16] * x.[34] // f + Ah | ligation: f + Ah <-> fAh
         |]
@@ -67163,6 +67050,7 @@ module ModelData =
     // 3621 - fBC
     let d3621 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2791.04435959399 * x.[2977] * x.[3621] // cag + fBC | sedimentation direct: cag + fBC -> 6 Z
             -1.0 * x.[3621] // fBC | ligation: f + BC <-> fBC
             1.0 * x.[16] * x.[37] // f + BC | ligation: f + BC <-> fBC
         |]
@@ -67181,7 +67069,6 @@ module ModelData =
     // 3623 - fBE
     let d3623 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1055.07463887675 * x.[220] * x.[3623] // eb + fBE | sedimentation direct: eb + fBE -> 5 Z
             -1.0 * x.[3623] // fBE | ligation: f + BE <-> fBE
             1.0 * x.[16] * x.[39] // f + BE | ligation: f + BE <-> fBE
         |]
@@ -67290,6 +67177,7 @@ module ModelData =
     // 3635 - fCA
     let d3635 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15427.1664126754 * x.[3635] * x.[1873] // fCA + GDg | sedimentation direct: fCA + GDg -> 6 Z
             -1.0 * x.[3635] // fCA | ligation: f + CA <-> fCA
             1.0 * x.[16] * x.[51] // f + CA | ligation: f + CA <-> fCA
         |]
@@ -67344,7 +67232,6 @@ module ModelData =
     // 3641 - fCG
     let d3641 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -24710.7040503995 * x.[1351] * x.[3641] // EDE + fCG | sedimentation direct: EDE + fCG -> 6 Z
             -1.0 * x.[3641] // fCG | ligation: f + CG <-> fCG
             1.0 * x.[16] * x.[57] // f + CG | ligation: f + CG <-> fCG
         |]
@@ -67471,6 +67358,7 @@ module ModelData =
     // 3655 - fDE
     let d3655 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -19814.2018581472 * x.[1763] * x.[3655] // FfA + fDE | sedimentation direct: FfA + fDE -> 6 Z
             -1.0 * x.[3655] // fDE | ligation: f + DE <-> fDE
             1.0 * x.[16] * x.[71] // f + DE | ligation: f + DE <-> fDE
         |]
@@ -67525,6 +67413,7 @@ module ModelData =
     // 3661 - fDc
     let d3661 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15112.0380673577 * x.[152] * x.[3661] // aF + fDc | sedimentation direct: aF + fDc -> 5 Z
             -1.0 * x.[3661] // fDc | ligation: f + Dc <-> fDc
             1.0 * x.[16] * x.[77] // f + Dc | ligation: f + Dc <-> fDc
         |]
@@ -67552,7 +67441,6 @@ module ModelData =
     // 3664 - fDf
     let d3664 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7717.07697685324 * x.[1129] * x.[3664] // DFG + fDf | sedimentation direct: DFG + fDf -> 6 Z
             -1.0 * x.[3664] // fDf | ligation: f + Df <-> fDf
             1.0 * x.[16] * x.[80] // f + Df | ligation: f + Df <-> fDf
         |]
@@ -67562,7 +67450,6 @@ module ModelData =
     // 3665 - fDg
     let d3665 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -11097.989453503 * x.[3665] * x.[1037] // fDg + Chc | sedimentation direct: fDg + Chc -> 6 Z
             -1.0 * x.[3665] // fDg | ligation: f + Dg <-> fDg
             1.0 * x.[16] * x.[81] // f + Dg | ligation: f + Dg <-> fDg
         |]
@@ -67608,6 +67495,7 @@ module ModelData =
     // 3670 - fED
     let d3670 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2527.94994937767 * x.[3670] * x.[428] // fED + Abb | sedimentation direct: fED + Abb -> 6 Z
             -1.0 * x.[3670] // fED | ligation: f + ED <-> fED
             1.0 * x.[16] * x.[86] // f + ED | ligation: f + ED <-> fED
         |]
@@ -67644,6 +67532,7 @@ module ModelData =
     // 3674 - fEH
     let d3674 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3050.6685572978 * x.[3050] * x.[3674] // cfH + fEH | sedimentation direct: cfH + fEH -> 6 Z
             -1.0 * x.[3674] // fEH | ligation: f + EH <-> fEH
             1.0 * x.[16] * x.[90] // f + EH | ligation: f + EH <-> fEH
         |]
@@ -67761,6 +67650,7 @@ module ModelData =
     // 3687 - fFE
     let d3687 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3582.47629759828 * x.[3687] * x.[497] // fFE + Afg | sedimentation direct: fFE + Afg -> 6 Z
             -1.0 * x.[3687] // fFE | ligation: f + FE <-> fFE
             1.0 * x.[16] * x.[103] // f + FE | ligation: f + FE <-> fFE
         |]
@@ -67797,6 +67687,7 @@ module ModelData =
     // 3691 - fFa
     let d3691 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -19814.2018581472 * x.[3691] * x.[1743] // fFa + Fde | sedimentation direct: fFa + Fde -> 6 Z
             -1.0 * x.[3691] // fFa | ligation: f + Fa <-> fFa
             1.0 * x.[16] * x.[107] // f + Fa | ligation: f + Fa <-> fFa
         |]
@@ -67833,7 +67724,6 @@ module ModelData =
     // 3695 - fFe
     let d3695 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -16748.3478713221 * x.[2111] * x.[3695] // HCe + fFe | sedimentation direct: HCe + fFe -> 6 Z
             -1.0 * x.[3695] // fFe | ligation: f + Fe <-> fFe
             1.0 * x.[16] * x.[111] // f + Fe | ligation: f + Fe <-> fFe
         |]
@@ -67888,6 +67778,7 @@ module ModelData =
     // 3701 - fGC
     let d3701 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6557.47052503005 * x.[3381] * x.[3701] // eCC + fGC | sedimentation direct: eCC + fGC -> 6 Z
             -1.0 * x.[3701] // fGC | ligation: f + GC <-> fGC
             1.0 * x.[16] * x.[117] // f + GC | ligation: f + GC <-> fGC
         |]
@@ -68014,7 +67905,6 @@ module ModelData =
     // 3715 - fHA
     let d3715 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6063.44011286894 * x.[3715] * x.[983] // fHA + CeE | sedimentation direct: fHA + CeE -> 6 Z
             -1.0 * x.[3715] // fHA | ligation: f + HA <-> fHA
             1.0 * x.[16] * x.[131] // f + HA | ligation: f + HA <-> fHA
         |]
@@ -68078,6 +67968,7 @@ module ModelData =
     // 3722 - fHH
     let d3722 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6876.16777776285 * x.[3159] * x.[3722] // dEE + fHH | sedimentation direct: dEE + fHH -> 6 Z
             -1.0 * x.[3722] // fHH | ligation: f + HH <-> fHH
             1.0 * x.[16] * x.[138] // f + HH | ligation: f + HH <-> fHH
         |]
@@ -68168,6 +68059,7 @@ module ModelData =
     // 3732 - faB
     let d3732 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6886.58640245847 * x.[3732] * x.[1499] // faB + Eea | sedimentation direct: faB + Eea -> 6 Z
             -1.0 * x.[3732] // faB | ligation: f + aB <-> faB
             1.0 * x.[16] * x.[148] // f + aB | ligation: f + aB <-> faB
         |]
@@ -68195,6 +68087,7 @@ module ModelData =
     // 3735 - faE
     let d3735 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -11806.3869313432 * x.[3735] * x.[518] // faE + AhD | sedimentation direct: faE + AhD -> 6 Z
             -1.0 * x.[3735] // faE | ligation: f + aE <-> faE
             1.0 * x.[16] * x.[151] // f + aE | ligation: f + aE <-> faE
         |]
@@ -68231,6 +68124,7 @@ module ModelData =
     // 3739 - faa
     let d3739 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8265.36543805816 * x.[1989] * x.[3739] // GdC + faa | sedimentation direct: GdC + faa -> 6 Z
             -1.0 * x.[3739] // faa | ligation: f + aa <-> faa
             1.0 * x.[16] * x.[155] // f + aa | ligation: f + aa <-> faa
         |]
@@ -68240,6 +68134,7 @@ module ModelData =
     // 3740 - fab
     let d3740 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14269.1628988593 * x.[1572] * x.[3740] // FBB + fab | sedimentation direct: FBB + fab -> 6 Z
             -1.0 * x.[3740] // fab | ligation: f + ab <-> fab
             1.0 * x.[16] * x.[156] // f + ab | ligation: f + ab <-> fab
         |]
@@ -68384,6 +68279,7 @@ module ModelData =
     // 3756 - fbb
     let d3756 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14269.1628988593 * x.[3756] * x.[1556] // fbb + FAB | sedimentation direct: fbb + FAB -> 6 Z
             -1.0 * x.[3756] // fbb | ligation: f + bb <-> fbb
             1.0 * x.[16] * x.[172] // f + bb | ligation: f + bb <-> fbb
         |]
@@ -68474,7 +68370,6 @@ module ModelData =
     // 3766 - fcD
     let d3766 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14613.3568430879 * x.[3553] * x.[3766] // eeg + fcD | sedimentation direct: eeg + fcD -> 6 Z
             -1.0 * x.[3766] // fcD | ligation: f + cD <-> fcD
             1.0 * x.[16] * x.[182] // f + cD | ligation: f + cD <-> fcD
         |]
@@ -68502,7 +68397,6 @@ module ModelData =
     // 3769 - fcG
     let d3769 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12764.1386400984 * x.[3095] * x.[3769] // dAE + fcG | sedimentation direct: dAE + fcG -> 6 Z
             -1.0 * x.[3769] // fcG | ligation: f + cG <-> fcG
             1.0 * x.[16] * x.[185] // f + cG | ligation: f + cG <-> fcG
         |]
@@ -68512,7 +68406,6 @@ module ModelData =
     // 3770 - fcH
     let d3770 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6106.8482849167 * x.[3770] * x.[4337] // fcH + hfg | sedimentation direct: fcH + hfg -> 6 Z
             -1.0 * x.[3770] // fcH | ligation: f + cH <-> fcH
             1.0 * x.[16] * x.[186] // f + cH | ligation: f + cH <-> fcH
         |]
@@ -68693,7 +68586,6 @@ module ModelData =
     // 3790 - fdd
     let d3790 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19455.7118782213 * x.[2369] * x.[3790] // aCg + fdd | sedimentation direct: aCg + fdd -> 6 Z
             -1.0 * x.[3790] // fdd | ligation: f + dd <-> fdd
             1.0 * x.[16] * x.[206] // f + dd | ligation: f + dd <-> fdd
         |]
@@ -68703,7 +68595,6 @@ module ModelData =
     // 3791 - fde
     let d3791 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -15106.3620393838 * x.[3152] * x.[3791] // dDf + fde | sedimentation direct: dDf + fde -> 6 Z
             -1.0 * x.[3791] // fde | ligation: f + de <-> fde
             1.0 * x.[16] * x.[207] // f + de | ligation: f + de <-> fde
         |]
@@ -68848,6 +68739,7 @@ module ModelData =
     // 3807 - fee
     let d3807 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2003.23566018782 * x.[3807] * x.[1454] // fee + Ebd | sedimentation direct: fee + Ebd -> 6 Z
             -1.0 * x.[3807] // fee | ligation: f + ee <-> fee
             1.0 * x.[16] * x.[223] // f + ee | ligation: f + ee <-> fee
         |]
@@ -68884,6 +68776,7 @@ module ModelData =
     // 3811 - ffA
     let d3811 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1066.73243010838 * x.[3360] * x.[3811] // eAf + ffA | sedimentation direct: eAf + ffA -> 6 Z
             -1.0 * x.[3811] // ffA | ligation: f + fA <-> ffA
             1.0 * x.[16] * x.[227] // f + fA | ligation: f + fA <-> ffA
         |]
@@ -69001,7 +68894,6 @@ module ModelData =
     // 3824 - fff
     let d3824 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1517.2169490292 * x.[2869] * x.[3824] // cCC + fff | sedimentation direct: cCC + fff -> 6 Z
             -1.0 * x.[3824] // fff | ligation: f + ff <-> fff
             1.0 * x.[16] * x.[240] // f + ff | ligation: f + ff <-> fff
         |]
@@ -69299,6 +69191,7 @@ module ModelData =
     // 3857 - fhg
     let d3857 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2212.82112219053 * x.[1412] * x.[3857] // EHB + fhg | sedimentation direct: EHB + fhg -> 6 Z
             -1.0 * x.[3857] // fhg | ligation: f + hg <-> fhg
             1.0 * x.[16] * x.[273] // f + hg | ligation: f + hg <-> fhg
         |]
@@ -69344,6 +69237,7 @@ module ModelData =
     // 3862 - gAD
     let d3862 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2936.0485365958 * x.[3862] * x.[724] // gAD + BeB | sedimentation direct: gAD + BeB -> 6 Z
             -1.0 * x.[3862] // gAD | ligation: g + AD <-> gAD
             1.0 * x.[17] * x.[22] // g + AD | ligation: g + AD <-> gAD
         |]
@@ -69434,7 +69328,6 @@ module ModelData =
     // 3872 - gAf
     let d3872 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7139.6781251637 * x.[3337] * x.[3872] // dhG + gAf | sedimentation direct: dhG + gAf -> 6 Z
             -1.0 * x.[3872] // gAf | ligation: g + Af <-> gAf
             1.0 * x.[17] * x.[32] // g + Af | ligation: g + Af <-> gAf
         |]
@@ -69444,6 +69337,7 @@ module ModelData =
     // 3873 - gAg
     let d3873 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24726.4829073038 * x.[2032] * x.[3873] // Gff + gAg | sedimentation direct: Gff + gAg -> 6 Z
             -1.0 * x.[3873] // gAg | ligation: g + Ag <-> gAg
             1.0 * x.[17] * x.[33] // g + Ag | ligation: g + Ag <-> gAg
         |]
@@ -69534,7 +69428,6 @@ module ModelData =
     // 3883 - gBa
     let d3883 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1227.25443829911 * x.[2889] * x.[3883] // cDG + gBa | sedimentation direct: cDG + gBa -> 6 Z
             -1.0 * x.[3883] // gBa | ligation: g + Ba <-> gBa
             1.0 * x.[17] * x.[43] // g + Ba | ligation: g + Ba <-> gBa
         |]
@@ -69769,6 +69662,7 @@ module ModelData =
     // 3909 - gDC
     let d3909 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -873.298731989269 * x.[3909] * x.[1874] // gDC + GDh | sedimentation direct: gDC + GDh -> 6 Z
             -1.0 * x.[3909] // gDC | ligation: g + DC <-> gDC
             1.0 * x.[17] * x.[69] // g + DC | ligation: g + DC <-> gDC
         |]
@@ -69778,6 +69672,7 @@ module ModelData =
     // 3910 - gDD
     let d3910 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2500.93714867315 * x.[3910] * x.[755] // gDD + BgA | sedimentation direct: gDD + BgA -> 6 Z
             -1.0 * x.[3910] // gDD | ligation: g + DD <-> gDD
             1.0 * x.[17] * x.[70] // g + DD | ligation: g + DD <-> gDD
         |]
@@ -69841,6 +69736,7 @@ module ModelData =
     // 3917 - gDc
     let d3917 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8265.36543805816 * x.[3917] * x.[1555] // gDc + FAA | sedimentation direct: gDc + FAA -> 6 Z
             -1.0 * x.[3917] // gDc | ligation: g + Dc <-> gDc
             1.0 * x.[17] * x.[77] // g + Dc | ligation: g + Dc <-> gDc
         |]
@@ -69895,7 +69791,6 @@ module ModelData =
     // 3923 - gEA
     let d3923 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6665.91489135737 * x.[3923] * x.[1821] // gEA + GAc | sedimentation direct: gEA + GAc -> 6 Z
             -1.0 * x.[3923] // gEA | ligation: g + EA <-> gEA
             1.0 * x.[17] * x.[83] // g + EA | ligation: g + EA <-> gEA
         |]
@@ -69968,6 +69863,7 @@ module ModelData =
     // 3931 - gEa
     let d3931 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5104.93645761457 * x.[1906] * x.[3931] // GFh + gEa | sedimentation direct: GFh + gEa -> 6 Z
             -1.0 * x.[3931] // gEa | ligation: g + Ea <-> gEa
             1.0 * x.[17] * x.[91] // g + Ea | ligation: g + Ea <-> gEa
         |]
@@ -69995,7 +69891,6 @@ module ModelData =
     // 3934 - gEd
     let d3934 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25924.9397122055 * x.[3546] * x.[3934] // eeH + gEd | sedimentation direct: eeH + gEd -> 6 Z
             -1.0 * x.[3934] // gEd | ligation: g + Ed <-> gEd
             1.0 * x.[17] * x.[94] // g + Ed | ligation: g + Ed <-> gEd
         |]
@@ -70014,6 +69909,7 @@ module ModelData =
     // 3936 - gEf
     let d3936 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6867.01565343078 * x.[2411] * x.[3936] // aFa + gEf | sedimentation direct: aFa + gEf -> 6 Z
             -1.0 * x.[3936] // gEf | ligation: g + Ef <-> gEf
             1.0 * x.[17] * x.[96] // g + Ef | ligation: g + Ef <-> gEf
         |]
@@ -70059,6 +69955,7 @@ module ModelData =
     // 3941 - gFC
     let d3941 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17360.5629522301 * x.[3941] * x.[823] // gFC + CCE | sedimentation direct: gFC + CCE -> 6 Z
             -1.0 * x.[3941] // gFC | ligation: g + FC <-> gFC
             1.0 * x.[17] * x.[101] // g + FC | ligation: g + FC <-> gFC
         |]
@@ -70086,6 +69983,8 @@ module ModelData =
     // 3944 - gFF
     let d3944 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24726.4829073038 * x.[3944] * x.[1945] // gFF + GaG | sedimentation direct: gFF + GaG -> 6 Z
+            -4601.42629088965 * x.[4060] * x.[3944] // geb + gFF | sedimentation direct: geb + gFF -> 6 Z
             -1.0 * x.[3944] // gFF | ligation: g + FF <-> gFF
             1.0 * x.[17] * x.[104] // g + FF | ligation: g + FF <-> gFF
         |]
@@ -70122,6 +70021,7 @@ module ModelData =
     // 3948 - gFb
     let d3948 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -21694.7027046045 * x.[3014] * x.[3948] // cdD + gFb | sedimentation direct: cdD + gFb -> 6 Z
             -1.0 * x.[3948] // gFb | ligation: g + Fb <-> gFb
             1.0 * x.[17] * x.[108] // g + Fb | ligation: g + Fb <-> gFb
         |]
@@ -70266,7 +70166,6 @@ module ModelData =
     // 3964 - gGb
     let d3964 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7357.42790688303 * x.[2234] * x.[3964] // HcH + gGb | sedimentation direct: HcH + gGb -> 6 Z
             -1.0 * x.[3964] // gGb | ligation: g + Gb <-> gGb
             1.0 * x.[17] * x.[124] // g + Gb | ligation: g + Gb <-> gGb
         |]
@@ -70492,7 +70391,6 @@ module ModelData =
     // 3989 - gaC
     let d3989 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6665.91489135737 * x.[2011] * x.[3989] // Gea + gaC | sedimentation direct: Gea + gaC -> 6 Z
             -1.0 * x.[3989] // gaC | ligation: g + aC <-> gaC
             1.0 * x.[17] * x.[149] // g + aC | ligation: g + aC <-> gaC
         |]
@@ -70511,6 +70409,7 @@ module ModelData =
     // 3991 - gaE
     let d3991 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7659.23830885464 * x.[3991] * x.[2278] // gaE + HfD | sedimentation direct: gaE + HfD -> 6 Z
             -1.0 * x.[3991] // gaE | ligation: g + aE <-> gaE
             1.0 * x.[17] * x.[151] // g + aE | ligation: g + aE <-> gaE
         |]
@@ -70628,6 +70527,7 @@ module ModelData =
     // 4004 - gbB
     let d4004 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -24750.6701834934 * x.[3135] * x.[4004] // dCe + gbB | sedimentation direct: dCe + gbB -> 6 Z
             -1.0 * x.[4004] // gbB | ligation: g + bB <-> gbB
             1.0 * x.[17] * x.[164] // g + bB | ligation: g + bB <-> gbB
         |]
@@ -70655,7 +70555,6 @@ module ModelData =
     // 4007 - gbE
     let d4007 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6515.8139355917 * x.[4007] * x.[605] // gbE + BEc | sedimentation direct: gbE + BEc -> 6 Z
             -1.0 * x.[4007] // gbE | ligation: g + bE <-> gbE
             1.0 * x.[17] * x.[167] // g + bE | ligation: g + bE <-> gbE
         |]
@@ -70710,7 +70609,6 @@ module ModelData =
     // 4013 - gbc
     let d4013 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2180.62788451558 * x.[948] * x.[4013] // CcB + gbc | sedimentation direct: CcB + gbc -> 6 Z
             -1.0 * x.[4013] // gbc | ligation: g + bc <-> gbc
             1.0 * x.[17] * x.[173] // g + bc | ligation: g + bc <-> gbc
         |]
@@ -70801,6 +70699,7 @@ module ModelData =
     // 4023 - gcE
     let d4023 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3267.81006400869 * x.[4023] * x.[1111] // gcE + DEE | sedimentation direct: gcE + DEE -> 6 Z
             -1.0 * x.[4023] // gcE | ligation: g + cE <-> gcE
             1.0 * x.[17] * x.[183] // g + cE | ligation: g + cE <-> gcE
         |]
@@ -70882,8 +70781,6 @@ module ModelData =
     // 4032 - gcf
     let d4032 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -25216.8894039707 * x.[4032] * x.[1371] // gcf + EEa | sedimentation direct: gcf + EEa -> 6 Z
-            -1497.35731887318 * x.[980] * x.[4032] // CeB + gcf | sedimentation direct: CeB + gcf -> 6 Z
             -1.0 * x.[4032] // gcf | ligation: g + cf <-> gcf
             1.0 * x.[17] * x.[192] // g + cf | ligation: g + cf <-> gcf
         |]
@@ -70965,6 +70862,7 @@ module ModelData =
     // 4041 - gdG
     let d4041 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -15427.1664126754 * x.[1723] * x.[4041] // Fca + gdG | sedimentation direct: Fca + gdG -> 6 Z
             -1.0 * x.[4041] // gdG | ligation: g + dG <-> gdG
             1.0 * x.[17] * x.[201] // g + dG | ligation: g + dG <-> gdG
         |]
@@ -70974,6 +70872,7 @@ module ModelData =
     // 4042 - gdH
     let d4042 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -873.298731989269 * x.[1997] * x.[4042] // Gdc + gdH | sedimentation direct: Gdc + gdH -> 6 Z
             -1.0 * x.[4042] // gdH | ligation: g + dH <-> gdH
             1.0 * x.[17] * x.[202] // g + dH | ligation: g + dH <-> gdH
         |]
@@ -71001,7 +70900,6 @@ module ModelData =
     // 4045 - gdc
     let d4045 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7269.90537369658 * x.[1498] * x.[4045] // EeH + gdc | sedimentation direct: EeH + gdc -> 6 Z
             -1.0 * x.[4045] // gdc | ligation: g + dc <-> gdc
             1.0 * x.[17] * x.[205] // g + dc | ligation: g + dc <-> gdc
         |]
@@ -71137,6 +71035,7 @@ module ModelData =
     // 4060 - geb
     let d4060 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4601.42629088965 * x.[4060] * x.[3944] // geb + gFF | sedimentation direct: geb + gFF -> 6 Z
             -1.0 * x.[4060] // geb | ligation: g + eb <-> geb
             1.0 * x.[17] * x.[220] // g + eb | ligation: g + eb <-> geb
         |]
@@ -71164,6 +71063,7 @@ module ModelData =
     // 4063 - gee
     let d4063 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8812.10386379525 * x.[19] * x.[4063] // AA + gee | sedimentation direct: AA + gee -> 5 Z
             -1.0 * x.[4063] // gee | ligation: g + ee <-> gee
             1.0 * x.[17] * x.[223] // g + ee | ligation: g + ee <-> gee
         |]
@@ -71182,7 +71082,6 @@ module ModelData =
     // 4065 - geg
     let d4065 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -10153.9404756042 * x.[2630] * x.[4065] // bDD + geg | sedimentation direct: bDD + geg -> 6 Z
             -1.0 * x.[4065] // geg | ligation: g + eg <-> geg
             1.0 * x.[17] * x.[225] // g + eg | ligation: g + eg <-> geg
         |]
@@ -71228,6 +71127,7 @@ module ModelData =
     // 4070 - gfD
     let d4070 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -16411.818370426 * x.[4070] * x.[2198] // gfD + HaD | sedimentation direct: gfD + HaD -> 6 Z
             -1.0 * x.[4070] // gfD | ligation: g + fD <-> gfD
             1.0 * x.[17] * x.[230] // g + fD | ligation: g + fD <-> gfD
         |]
@@ -71246,7 +71146,6 @@ module ModelData =
     // 4072 - gfF
     let d4072 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -19686.0229377226 * x.[899] * x.[4072] // CHA + gfF | sedimentation direct: CHA + gfF -> 6 Z
             -1.0 * x.[4072] // gfF | ligation: g + fF <-> gfF
             1.0 * x.[17] * x.[232] // g + fF | ligation: g + fF <-> gfF
         |]
@@ -71265,6 +71164,7 @@ module ModelData =
     // 4074 - gfH
     let d4074 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -5104.93645761457 * x.[4074] * x.[2003] // gfH + GeA | sedimentation direct: gfH + GeA -> 6 Z
             -1.0 * x.[4074] // gfH | ligation: g + fH <-> gfH
             1.0 * x.[17] * x.[234] // g + fH | ligation: g + fH <-> gfH
         |]
@@ -71373,7 +71273,6 @@ module ModelData =
     // 4086 - ggD
     let d4086 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3228.11171224934 * x.[2210] * x.[4086] // Hah + ggD | sedimentation direct: Hah + ggD -> 6 Z
             -1.0 * x.[4086] // ggD | ligation: g + gD <-> ggD
             1.0 * x.[17] * x.[246] // g + gD | ligation: g + gD <-> ggD
         |]
@@ -71428,6 +71327,7 @@ module ModelData =
     // 4092 - ggb
     let d4092 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2226.18199215946 * x.[4092] * x.[4199] // ggb + hFE | sedimentation direct: ggb + hFE -> 6 Z
             -1.0 * x.[4092] // ggb | ligation: g + gb <-> ggb
             1.0 * x.[17] * x.[252] // g + gb | ligation: g + gb <-> ggb
         |]
@@ -71599,6 +71499,7 @@ module ModelData =
     // 4111 - ghe
     let d4111 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8364.36283457212 * x.[774] * x.[4111] // BhD + ghe | sedimentation direct: BhD + ghe -> 6 Z
             -1.0 * x.[4111] // ghe | ligation: g + he <-> ghe
             1.0 * x.[17] * x.[271] // g + he | ligation: g + he <-> ghe
         |]
@@ -71608,6 +71509,7 @@ module ModelData =
     // 4112 - ghf
     let d4112 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3488.44865631773 * x.[274] * x.[4112] // hh + ghf | sedimentation direct: hh + ghf -> 5 Z
             -1.0 * x.[4112] // ghf | ligation: g + hf <-> ghf
             1.0 * x.[17] * x.[272] // g + hf | ligation: g + hf <-> ghf
         |]
@@ -71698,7 +71600,6 @@ module ModelData =
     // 4122 - hAH
     let d4122 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3228.11171224934 * x.[4122] * x.[1918] // hAH + GGd | sedimentation direct: hAH + GGd -> 6 Z
             -1.0 * x.[4122] // hAH | ligation: h + AH <-> hAH
             1.0 * x.[18] * x.[26] // h + AH | ligation: h + AH <-> hAH
         |]
@@ -71735,6 +71636,7 @@ module ModelData =
     // 4126 - hAd
     let d4126 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -16411.818370426 * x.[1902] * x.[4126] // GFd + hAd | sedimentation direct: GFd + hAd -> 6 Z
             -1.0 * x.[4126] // hAd | ligation: h + Ad <-> hAd
             1.0 * x.[18] * x.[30] // h + Ad | ligation: h + Ad <-> hAd
         |]
@@ -71834,7 +71736,6 @@ module ModelData =
     // 4137 - hBG
     let d4137 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14926.1988077241 * x.[4137] * x.[4219] // hBG + hGa | sedimentation direct: hBG + hGa -> 6 Z
             -1.0 * x.[4137] // hBG | ligation: h + BG <-> hBG
             1.0 * x.[18] * x.[41] // h + BG | ligation: h + BG <-> hBG
         |]
@@ -72024,7 +71925,6 @@ module ModelData =
     // 4158 - hCd
     let d4158 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -17839.3614720962 * x.[1091] * x.[4158] // DDA + hCd | sedimentation direct: DDA + hCd -> 6 Z
             -1.0 * x.[4158] // hCd | ligation: h + Cd <-> hCd
             1.0 * x.[18] * x.[62] // h + Cd | ligation: h + Cd <-> hCd
         |]
@@ -72061,7 +71961,6 @@ module ModelData =
     // 4162 - hCh
     let d4162 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7357.42790688303 * x.[4162] * x.[2036] // hCh + GgB | sedimentation direct: hCh + GgB -> 6 Z
             -1.0 * x.[4162] // hCh | ligation: h + Ch <-> hCh
             1.0 * x.[18] * x.[66] // h + Ch | ligation: h + Ch <-> hCh
         |]
@@ -72170,7 +72069,6 @@ module ModelData =
     // 4174 - hDd
     let d4174 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -1468.08571032709 * x.[746] * x.[4174] // BfH + hDd | sedimentation direct: BfH + hDd -> 6 Z
             -1.0 * x.[4174] // hDd | ligation: h + Dd <-> hDd
             1.0 * x.[18] * x.[78] // h + Dd | ligation: h + Dd <-> hDd
         |]
@@ -72252,6 +72150,7 @@ module ModelData =
     // 4183 - hEE
     let d4183 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -22621.3937190296 * x.[4183] * x.[1400] // hEE + EGF | sedimentation direct: hEE + EGF -> 6 Z
             -1.0 * x.[4183] // hEE | ligation: h + EE <-> hEE
             1.0 * x.[18] * x.[87] // h + EE | ligation: h + EE <-> hEE
         |]
@@ -72297,6 +72196,7 @@ module ModelData =
     // 4188 - hEb
     let d4188 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12132.849229071 * x.[178] * x.[4188] // bh + hEb | sedimentation direct: bh + hEb -> 5 Z
             -1.0 * x.[4188] // hEb | ligation: h + Eb <-> hEb
             1.0 * x.[18] * x.[92] // h + Eb | ligation: h + Eb <-> hEb
         |]
@@ -72369,6 +72269,7 @@ module ModelData =
     // 4196 - hFB
     let d4196 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7543.20847064459 * x.[893] * x.[4196] // CGc + hFB | sedimentation direct: CGc + hFB -> 6 Z
             -1.0 * x.[4196] // hFB | ligation: h + FB <-> hFB
             1.0 * x.[18] * x.[100] // h + FB | ligation: h + FB <-> hFB
         |]
@@ -72378,6 +72279,7 @@ module ModelData =
     // 4197 - hFC
     let d4197 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -14103.4772284841 * x.[943] * x.[4197] // Cbe + hFC | sedimentation direct: Cbe + hFC -> 6 Z
             -1.0 * x.[4197] // hFC | ligation: h + FC <-> hFC
             1.0 * x.[18] * x.[101] // h + FC | ligation: h + FC <-> hFC
         |]
@@ -72396,6 +72298,7 @@ module ModelData =
     // 4199 - hFE
     let d4199 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -2226.18199215946 * x.[4092] * x.[4199] // ggb + hFE | sedimentation direct: ggb + hFE -> 6 Z
             -1.0 * x.[4199] // hFE | ligation: h + FE <-> hFE
             1.0 * x.[18] * x.[103] // h + FE | ligation: h + FE <-> hFE
         |]
@@ -72441,7 +72344,6 @@ module ModelData =
     // 4204 - hFb
     let d4204 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -28282.0449571943 * x.[2307] * x.[4204] // HhA + hFb | sedimentation direct: HhA + hFb -> 6 Z
             -1.0 * x.[4204] // hFb | ligation: h + Fb <-> hFb
             1.0 * x.[18] * x.[108] // h + Fb | ligation: h + Fb <-> hFb
         |]
@@ -72460,6 +72362,7 @@ module ModelData =
     // 4206 - hFd
     let d4206 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -7659.23830885464 * x.[1823] * x.[4206] // GAe + hFd | sedimentation direct: GAe + hFd -> 6 Z
             -1.0 * x.[4206] // hFd | ligation: h + Fd <-> hFd
             1.0 * x.[18] * x.[110] // h + Fd | ligation: h + Fd <-> hFd
         |]
@@ -72469,7 +72372,6 @@ module ModelData =
     // 4207 - hFe
     let d4207 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14976.6916743637 * x.[4207] * x.[1330] // hFe + EBh | sedimentation direct: hFe + EBh -> 6 Z
             -1.0 * x.[4207] // hFe | ligation: h + Fe <-> hFe
             1.0 * x.[18] * x.[111] // h + Fe | ligation: h + Fe <-> hFe
         |]
@@ -72578,7 +72480,6 @@ module ModelData =
     // 4219 - hGa
     let d4219 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -14926.1988077241 * x.[4137] * x.[4219] // hBG + hGa | sedimentation direct: hBG + hGa -> 6 Z
             -1.0 * x.[4219] // hGa | ligation: h + Ga <-> hGa
             1.0 * x.[18] * x.[123] // h + Ga | ligation: h + Ga <-> hGa
         |]
@@ -72615,7 +72516,6 @@ module ModelData =
     // 4223 - hGe
     let d4223 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7935.60093491373 * x.[4357] * x.[4223] // hhC + hGe | sedimentation direct: hhC + hGe -> 6 Z
             -1.0 * x.[4223] // hGe | ligation: h + Ge <-> hGe
             1.0 * x.[18] * x.[127] // h + Ge | ligation: h + Ge <-> hGe
         |]
@@ -72679,6 +72579,7 @@ module ModelData =
     // 4230 - hHD
     let d4230 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17244.5429996477 * x.[2461] * x.[4230] // aac + hHD | sedimentation direct: aac + hHD -> 6 Z
             -1.0 * x.[4230] // hHD | ligation: h + HD <-> hHD
             1.0 * x.[18] * x.[134] // h + HD | ligation: h + HD <-> hHD
         |]
@@ -72724,7 +72625,6 @@ module ModelData =
     // 4235 - hHa
     let d4235 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -28282.0449571943 * x.[4235] * x.[2276] // hHa + HfB | sedimentation direct: hHa + HfB -> 6 Z
             -1.0 * x.[4235] // hHa | ligation: h + Ha <-> hHa
             1.0 * x.[18] * x.[139] // h + Ha | ligation: h + Ha <-> hHa
         |]
@@ -72761,7 +72661,6 @@ module ModelData =
     // 4239 - hHe
     let d4239 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -18156.9734792082 * x.[2941] * x.[4239] // cGc + hHe | sedimentation direct: cGc + hHe -> 6 Z
             -1.0 * x.[4239] // hHe | ligation: h + He <-> hHe
             1.0 * x.[18] * x.[143] // h + He | ligation: h + He <-> hHe
         |]
@@ -72861,7 +72760,6 @@ module ModelData =
     // 4250 - haH
     let d4250 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -8369.23110619292 * x.[1102] * x.[4250] // DDd + haH | sedimentation direct: DDd + haH -> 6 Z
             -1.0 * x.[4250] // haH | ligation: h + aH <-> haH
             1.0 * x.[18] * x.[154] // h + aH | ligation: h + aH <-> haH
         |]
@@ -73006,6 +72904,7 @@ module ModelData =
     // 4266 - hbH
     let d4266 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -8731.27438850719 * x.[4266] * x.[1251] // hbH + DfA | sedimentation direct: hbH + DfA -> 6 Z
             -1.0 * x.[4266] // hbH | ligation: h + bH <-> hbH
             1.0 * x.[18] * x.[170] // h + bH | ligation: h + bH <-> hbH
         |]
@@ -73042,6 +72941,7 @@ module ModelData =
     // 4270 - hbd
     let d4270 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -12017.2139840518 * x.[881] * x.[4270] // CFg + hbd | sedimentation direct: CFg + hbd -> 6 Z
             -1.0 * x.[4270] // hbd | ligation: h + bd <-> hbd
             1.0 * x.[18] * x.[174] // h + bd | ligation: h + bd <-> hbd
         |]
@@ -73123,7 +73023,6 @@ module ModelData =
     // 4279 - hcE
     let d4279 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -16748.3478713221 * x.[4279] * x.[1767] // hcE + FfE | sedimentation direct: hcE + FfE -> 6 Z
             -1.0 * x.[4279] // hcE | ligation: h + cE <-> hcE
             1.0 * x.[18] * x.[183] // h + cE | ligation: h + cE <-> hcE
         |]
@@ -73142,6 +73041,7 @@ module ModelData =
     // 4281 - hcG
     let d4281 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -4603.35117468113 * x.[3155] * x.[4281] // dEA + hcG | sedimentation direct: dEA + hcG -> 6 Z
             -1.0 * x.[4281] // hcG | ligation: h + cG <-> hcG
             1.0 * x.[18] * x.[185] // h + cG | ligation: h + cG <-> hcG
         |]
@@ -73241,7 +73141,6 @@ module ModelData =
     // 4292 - hdB
     let d4292 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -2054.79400378071 * x.[1058] * x.[4292] // DAh + hdB | sedimentation direct: DAh + hdB -> 6 Z
             -1.0 * x.[4292] // hdB | ligation: h + dB <-> hdB
             1.0 * x.[18] * x.[196] // h + dB | ligation: h + dB <-> hdB
         |]
@@ -73296,7 +73195,6 @@ module ModelData =
     // 4298 - hdH
     let d4298 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7721.82294306637 * x.[4298] * x.[1403] // hdH + EGa | sedimentation direct: hdH + EGa -> 6 Z
             -1.0 * x.[4298] // hdH | ligation: h + dH <-> hdH
             1.0 * x.[18] * x.[202] // h + dH | ligation: h + dH <-> hdH
         |]
@@ -73450,6 +73348,7 @@ module ModelData =
     // 4315 - hea
     let d4315 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -18324.8680018572 * x.[4315] * x.[437] // hea + AcC | sedimentation direct: hea + AcC -> 6 Z
             -1.0 * x.[4315] // hea | ligation: h + ea <-> hea
             1.0 * x.[18] * x.[219] // h + ea | ligation: h + ea <-> hea
         |]
@@ -73558,6 +73457,7 @@ module ModelData =
     // 4327 - hfE
     let d4327 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -17306.5931290351 * x.[4327] * x.[522] // hfE + AhH | sedimentation direct: hfE + AhH -> 6 Z
             -1.0 * x.[4327] // hfE | ligation: h + fE <-> hfE
             1.0 * x.[18] * x.[231] // h + fE | ligation: h + fE <-> hfE
         |]
@@ -73648,7 +73548,6 @@ module ModelData =
     // 4337 - hfg
     let d4337 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -6106.8482849167 * x.[3770] * x.[4337] // fcH + hfg | sedimentation direct: fcH + hfg -> 6 Z
             -1.0 * x.[4337] // hfg | ligation: h + fg <-> hfg
             1.0 * x.[18] * x.[241] // h + fg | ligation: h + fg <-> hfg
         |]
@@ -73658,6 +73557,7 @@ module ModelData =
     // 4338 - hfh
     let d4338 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -643.561930601962 * x.[733] * x.[4338] // Bec + hfh | sedimentation direct: Bec + hfh -> 6 Z
             -1.0 * x.[4338] // hfh | ligation: h + fh <-> hfh
             1.0 * x.[18] * x.[242] // h + fh | ligation: h + fh <-> hfh
         |]
@@ -73685,7 +73585,6 @@ module ModelData =
     // 4341 - hgC
     let d4341 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7506.17407629085 * x.[4341] * x.[654] // hgC + BHd | sedimentation direct: hgC + BHd -> 6 Z
             -1.0 * x.[4341] // hgC | ligation: h + gC <-> hgC
             1.0 * x.[18] * x.[245] // h + gC | ligation: h + gC <-> hgC
         |]
@@ -73695,7 +73594,6 @@ module ModelData =
     // 4342 - hgD
     let d4342 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3072.20503664969 * x.[4342] * x.[1375] // hgD + EEe | sedimentation direct: hgD + EEe -> 6 Z
             -1.0 * x.[4342] // hgD | ligation: h + gD <-> hgD
             1.0 * x.[18] * x.[246] // h + gD | ligation: h + gD <-> hgD
         |]
@@ -73723,7 +73621,6 @@ module ModelData =
     // 4345 - hgG
     let d4345 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7572.13188618575 * x.[4345] * x.[1519] // hgG + Efe | sedimentation direct: hgG + Efe -> 6 Z
             -1.0 * x.[4345] // hgG | ligation: h + gG <-> hgG
             1.0 * x.[18] * x.[249] // h + gG | ligation: h + gG <-> hgG
         |]
@@ -73805,6 +73702,7 @@ module ModelData =
     // 4354 - hgh
     let d4354 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -10838.584991472 * x.[347] * x.[4354] // AEa + hgh | sedimentation direct: AEa + hgh -> 6 Z
             -1.0 * x.[4354] // hgh | ligation: h + gh <-> hgh
             1.0 * x.[18] * x.[258] // h + gh | ligation: h + gh <-> hgh
         |]
@@ -73832,7 +73730,6 @@ module ModelData =
     // 4357 - hhC
     let d4357 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -7935.60093491373 * x.[4357] * x.[4223] // hhC + hGe | sedimentation direct: hhC + hGe -> 6 Z
             -1.0 * x.[4357] // hhC | ligation: h + hC <-> hhC
             1.0 * x.[18] * x.[261] // h + hC | ligation: h + hC <-> hhC
         |]
@@ -73914,6 +73811,7 @@ module ModelData =
     // 4366 - hhd
     let d4366 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -3429.44073043316 * x.[2479] * x.[4366] // abe + hhd | sedimentation direct: abe + hhd -> 6 Z
             -1.0 * x.[4366] // hhd | ligation: h + hd <-> hhd
             1.0 * x.[18] * x.[270] // h + hd | ligation: h + hd <-> hhd
         |]
@@ -87094,7 +86992,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.4.0.0"
                             versionNumber = "1.4.0.0"
                             seedValue = seedValue
-                            modelName = "20181228_009"
+                            modelName = "20181228_007"
                             numberOfSubstances = 4371
                             numberOfAminoAcids = EightAminoAcids
                             maxPeptideLength = ThreeMax
@@ -87105,7 +87003,7 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(1031059051, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                synthesisDistribution = DeltaDistribution(1655930713, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -87115,16 +87013,16 @@ module ModelData =
                             {
                                 catSynthRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(1367800739, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = BiDeltaDistribution(1753346816, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                    eeBackwardDistribution = BiDeltaDistribution(1179113213, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(258753120, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = BiDeltaDistribution(1289822598, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                    eeBackwardDistribution = BiDeltaDistribution(4592437, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                 }
                             }
                             |> CatSynthRndParam
                             |> CatalyticSynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(1700957000, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                destructionDistribution = DeltaDistribution(745475978, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                 forwardScale = Some 0.001
                                 backwardScale = Some 0.001
                             }
@@ -87134,9 +87032,9 @@ module ModelData =
                             {
                                 catDestrRndEeParams = 
                                 {
-                                    rateMultiplierDistr = TriangularDistribution(935487659, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = BiDeltaDistribution(1436278334, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                    eeBackwardDistribution = BiDeltaDistribution(2130268062, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                    rateMultiplierDistr = TriangularDistribution(245089532, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                    eeForwardDistribution = BiDeltaDistribution(1588949805, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                    eeBackwardDistribution = BiDeltaDistribution(920995185, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                 }
                             }
                             |> CatDestrRndParam
@@ -87149,7 +87047,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
-                                simBaseDistribution = UniformDistribution(99390125, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                simBaseDistribution = UniformDistribution(551824354, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -87159,7 +87057,7 @@ module ModelData =
 
                             {
                                 aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
-                                simBaseDistribution = UniformDistribution(1691466797, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                simBaseDistribution = UniformDistribution(937158627, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -87168,7 +87066,7 @@ module ModelData =
                             |> CatalyticDestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(2129140428, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                ligationDistribution = DeltaDistribution(1523214645, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                 forwardScale = Some 1.0
                                 backwardScale = Some 1.0
                             }
@@ -87176,7 +87074,7 @@ module ModelData =
                             |> LigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(1570939913, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                sedimentationDirectDistribution = TriangularDistribution(297448484, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
                                 forwardScale = Some 10000.0
                             }
                             |> SedDirRndParam
@@ -87212,10 +87110,10 @@ module ModelData =
                     (WasteRecyclingName, 1)
                     (SynthesisName, 16)
                     (DestructionName, 16)
-                    (CatalyticSynthesisName, 60)
-                    (CatalyticDestructionName, 76)
+                    (CatalyticSynthesisName, 32)
+                    (CatalyticDestructionName, 56)
                     (LigationName, 4296)
-                    (SedimentationDirectName, 122)
+                    (SedimentationDirectName, 152)
                 ]
         }
 

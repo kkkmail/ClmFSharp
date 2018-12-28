@@ -14,7 +14,7 @@ open Clm.OdeSolver.ResultSerialization
 let useResultsFolder = false
 
 let y0 = 10.0
-let tEnd = 10000.0
+let tEnd = 50000.0
 let useAbundant = false
 //===========================================================
 printfn "Solving for n = %A, y0 = %A..." numberOfSubstances y0

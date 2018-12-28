@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>4efee0df-76ca-4152-94f6-f561472379e1</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Results</RootNamespace>
-    <AssemblyName>Results</AssemblyName>
-    <UseStandardResourceNames>true</UseStandardResourceNames>
+    <ProjectGuid>caa251ee-1f75-42c9-9655-3a692944fc7d</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ContGen</RootNamespace>
+    <AssemblyName>ContGen</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Results</Name>
+    <UseStandardResourceNames>true</UseStandardResourceNames>
+    <Name>ContGen</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -23,7 +23,9 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,7 +34,9 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -43,9 +47,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="AllResults.fs" />
-    <None Include="References.fsx" />
-    <None Include="ModelPlotter.fsx" />
+    <Compile Include="Program.fs" />
+    <None Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -56,36 +59,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\AlgLib\AlgLib.csproj">
-      <Name>AlgLib</Name>
-      <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
-      <Name>ClmGenerator</Name>
-      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Clm\Clm.fsproj">
-      <Name>Clm</Name>
-      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSharp.Plotly\FSharp.Plotly.fsproj">
-      <Name>FSharp.Plotly</Name>
-      <Project>{c609d8ec-f1ea-4917-a43c-12efb173b8f3}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Model\Model.fsproj">
-      <Name>Model</Name>
-      <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
-      <Name>OdeSolver</Name>
-      <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>

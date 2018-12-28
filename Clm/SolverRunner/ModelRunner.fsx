@@ -11,7 +11,7 @@ open Clm.OdeSolver.Visualization
 open Clm.OdeSolver.ResultSerialization
 
 //===========================================================
-let useResultsFolder = false
+let useResultsFolder = true
 
 let y0 = 10.0
 let tEnd = 50000.0

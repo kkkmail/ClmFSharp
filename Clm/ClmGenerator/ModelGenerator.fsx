@@ -21,8 +21,7 @@ let updateAllModels = true
 let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
-//let seed = newSeed()
-let seed = 296048539
+let seed = newSeed()
 printfn "seed = %A" seed
 let rnd = new Random(seed)
 //===========================================================

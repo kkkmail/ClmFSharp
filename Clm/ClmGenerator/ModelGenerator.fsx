@@ -16,12 +16,13 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Generator.ClmModel
 //===========================================================
-let updateAllModels = false
+let updateAllModels = true
 
 let numberOfAminoAcids = NumberOfAminoAcids.SevenAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
-let seed = newSeed()
+//let seed = newSeed()
+let seed = 296048539
 printfn "seed = %A" seed
 let rnd = new Random(seed)
 //===========================================================

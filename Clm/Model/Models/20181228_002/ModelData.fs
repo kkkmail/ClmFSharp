@@ -49622,10 +49622,12 @@ module ModelData =
         |]
         |> Array.sum
 
-    let update (x : array<double>) : array<double> = 
+
+    let update (xRaw : array<double>) : array<double> = 
 
         // printfn "update::Starting..."
 
+        let x = xRaw |> Array.map (fun e -> max e 0.0)
         let xSum = (x |> Array.sum) - x.[0]
 
 

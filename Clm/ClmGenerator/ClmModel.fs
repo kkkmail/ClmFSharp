@@ -495,8 +495,9 @@ module ClmModel =
                 updateOuterCode
                 @
                 [ 
-                    "    let update (xRaw : array<double>) : array<double> = " + nl
-                    "        // printfn \"update::Starting...\"" + nl
+                    nl
+                    "    let update (xRaw : array<double>) : array<double> = "
+                    "        // printfn \"update::Starting...\""
                     "        let x = xRaw |> Array.map (fun e -> max e 0.0)"
                     sumCode
                     sumCodeN

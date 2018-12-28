@@ -47,11 +47,16 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Builder.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="ContGenTest.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FakeLib">
+      <HintPath>..\packages\FAKE.5.8.4\tools\FakeLib.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>

@@ -30,7 +30,7 @@ module SettingExt =
         parent + c
 
 
-    let getFloatOpt (m : SystemSettingMap) po c n = 
+    let getDoubleOpt (m : SystemSettingMap) po c n = 
         getNameWithParent po c n 
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingFloat |> Some)
@@ -40,15 +40,16 @@ module SettingExt =
         with
 
         static member className = "DistributionParams"
+
         static member thresholdName = "threshold"
         static member scaleName = "scale"
         static member shiftName = "shift"
 
-        static member tryGet (m : SystemSettingMap) po = 
+        static member getValue (m : SystemSettingMap) po = 
             {
-                threshold = getFloatOpt m po DistributionParams.className DistributionParams.thresholdName
-                scale = getFloatOpt m po DistributionParams.className DistributionParams.scaleName
-                shift = getFloatOpt m po DistributionParams.className DistributionParams.shiftName
+                threshold = getDoubleOpt m po DistributionParams.className DistributionParams.thresholdName
+                scale = getDoubleOpt m po DistributionParams.className DistributionParams.scaleName
+                shift = getDoubleOpt m po DistributionParams.className DistributionParams.shiftName
             }
 
 
@@ -132,16 +133,20 @@ module SettingExt =
 
         static member className = "SynthesisRandomParam"
         static member synthesisDistributionName = "synthesisDistribution"
+        static member forwardScaleName = "forwardScale"
+        static member backwardScaleName = "backwardScale"
 
 
-        static member tryGet (m : SystemSettingMap) = 
-            match SynthesisRandomParam.synthesisDistributionName |> SynthesisRandomParam.getFullName |> tryFindByName m with 
-            //match tryFindByName m WasteRecyclingParam.wasteRecyclingRateName with 
-            | Some v -> 
+        static member tryGet (m : SystemSettingMap) seed = 
+            let po = (Some SynthesisRandomParam.className)
+            let getDoubleOpt = getDoubleOpt m po SynthesisRandomParam.className
+
+            match Distribution.tryGet m po with 
+            | Some d -> 
                 {
-                    synthesisDistribution = failwith ""
-                    forwardScale = None
-                    backwardScale = None
+                    synthesisDistribution = d seed (DistributionParams.getValue m po)
+                    forwardScale = getDoubleOpt SynthesisRandomParam.forwardScaleName
+                    backwardScale = getDoubleOpt SynthesisRandomParam.backwardScaleName
                 }
                 |> Some
             | None -> None

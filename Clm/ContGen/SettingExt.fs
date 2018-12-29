@@ -54,7 +54,7 @@ module SettingExt =
 
 
     type Distribution
-        with 
+        with
         static member className = "Distribution"
 
         static member tryGet (m : SystemSettingMap) po =
@@ -71,6 +71,37 @@ module SettingExt =
                     | _ -> None
                 | None -> None
             | None -> None
+
+    //type RateMultiplierDistribution = 
+    //    | NoneRateMult
+    //    | RateMultDistr of Distribution
+
+
+    //type CatRatesEeParam = 
+    //    {
+    //        rateMultiplierDistr : RateMultiplierDistribution
+    //        eeForwardDistribution : EeDistribution option
+    //        eeBackwardDistribution : EeDistribution option
+    //    }
+
+    type CatRatesEeParam
+        with 
+        static member className = "CatRatesEeParam"
+
+        static member tryGet (m : SystemSettingMap) po = failwith ""
+            //match getClassNameWithParent po Distribution.className |> tryFindByName m with 
+            //| Some v -> 
+            //    match v.settingText with 
+            //    | Some s -> 
+            //        match s with
+            //        | "Delta" -> (fun s p -> DeltaDistribution (s, p) |> Delta) |> Some
+            //        | "BiDelta" -> (fun s p -> BiDeltaDistribution (s, p) |> BiDelta) |> Some
+            //        | "Uniform" -> (fun s p -> UniformDistribution (s, p) |> Uniform) |> Some
+            //        | "Triangular" -> (fun s p -> TriangularDistribution (s, p) |> Triangular) |> Some
+            //        | "SymmetricTriangular" -> (fun s p -> SymmetricTriangularDistribution (s, p) |> SymmetricTriangular) |> Some
+            //        | _ -> None
+            //    | None -> None
+            //| None -> None
 
 
     type FoodCreationParam
@@ -93,10 +124,10 @@ module SettingExt =
         with
 
         static member className = "WasteRemovalParam"
-        static member wasteRemovalRateName = "WasteRemovalParam.wasteRemovalRate"
+        static member wasteRemovalRateName = "wasteRemovalRate"
 
         static member tryGet (m : SystemSettingMap) = 
-            match tryFindByName m WasteRemovalParam.wasteRemovalRateName with 
+            match getFullName WasteRemovalParam.className WasteRemovalParam.wasteRemovalRateName |> tryFindByName m with
             | Some v -> 
                 {
                     wasteRemovalRate = v.settingFloat
@@ -108,10 +139,11 @@ module SettingExt =
     type WasteRecyclingParam
         with
 
-        static member wasteRecyclingRateName = "WasteRecyclingParam.wasteRecyclingRate"
+        static member className = "WasteRecyclingParam"
+        static member wasteRecyclingRateName = "wasteRecyclingRate"
 
         static member tryGet (m : SystemSettingMap) = 
-            match tryFindByName m WasteRecyclingParam.wasteRecyclingRateName with 
+            match getFullName WasteRecyclingParam.className WasteRecyclingParam.wasteRecyclingRateName |> tryFindByName m with
             | Some v -> 
                 {
                     wasteRecyclingRate = v.settingFloat
@@ -120,29 +152,21 @@ module SettingExt =
             | None -> None
 
 
-    //type SynthesisRandomParam = 
-    //    {
-    //        synthesisDistribution : Distribution
-    //        forwardScale : double option
-    //        backwardScale : double option
-    //    }
-
-
     type SynthesisRandomParam
         with
 
         static member className = "SynthesisRandomParam"
+
         static member synthesisDistributionName = "synthesisDistribution"
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
-
 
         static member tryGet (m : SystemSettingMap) seed = 
             let po = (Some SynthesisRandomParam.className)
             let getDoubleOpt = getDoubleOpt m po SynthesisRandomParam.className
 
-            match Distribution.tryGet m po with 
-            | Some d -> 
+            match Distribution.tryGet m po with
+            | Some d ->
                 {
                     synthesisDistribution = d seed (DistributionParams.getValue m po)
                     forwardScale = getDoubleOpt SynthesisRandomParam.forwardScaleName
@@ -150,3 +174,11 @@ module SettingExt =
                 }
                 |> Some
             | None -> None
+
+
+    //type CatalyticSynthesisRandomParam = 
+    //    {
+    //        catSynthRndEeParams : CatRatesEeParam
+    //    }
+
+

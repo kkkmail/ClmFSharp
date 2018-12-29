@@ -43,15 +43,28 @@ module DatabaseTypes =
         static member create (r : SystemSettingTableRow) = 
             {
                 systemSettingId = r.systemSettingId
-                settingName = 
-                    r.settingName + 
-                    match r.settingField1 with 
+                settingName =
+                    r.settingName +
+                    match r.settingField1 with
                     | EmptyString -> EmptyString
-                    | s -> 
+                    | s ->
                         SystemSetting.separator + s +
-                        match r.settingField2 with 
+                        match r.settingField2 with
                         | EmptyString -> EmptyString
-                        | s -> SystemSetting.separator + s
+                        | s ->
+                            SystemSetting.separator + s +
+                            match r.settingField3 with
+                            | EmptyString -> EmptyString
+                            | s ->
+                                SystemSetting.separator + s +
+                                match r.settingField4 with
+                                | EmptyString -> EmptyString
+                                | s ->
+                                    SystemSetting.separator + s +
+                                    match r.settingField5 with
+                                    | EmptyString -> EmptyString
+                                    | s ->
+                                        SystemSetting.separator + s
 
                 settingOrderId = r.settingOrderId
                 settingBit = r.settingBit

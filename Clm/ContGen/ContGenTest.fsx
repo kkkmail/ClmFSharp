@@ -19,7 +19,8 @@ Target.create "Clean" (fun _ ->
 )
 
 Target.create "BuildApp" (fun _ ->
-  !! @"..\SolverRunner\SolverRunner.fsproj"
+  //!! @"..\SolverRunner\SolverRunner.fsproj"
+  [ @"C:\GitHub\ClmFSharp\Clm\SolverRunner\SolverRunner.fsproj" ]
     |> MSBuild.runRelease id buildDir "Build"
     |> Trace.logItems "AppBuild-Output: "
 )

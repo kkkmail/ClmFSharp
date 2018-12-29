@@ -9,6 +9,10 @@ open Configuration
 open DynamicSql
 
 module DatabaseTypes = 
+    open System
+
+    [<Literal>]
+    let EmptyString = ""
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
@@ -18,13 +22,60 @@ module DatabaseTypes =
     type SystemSettingTableData = SqlCommandProvider<"select * from dbo.SystemSetting", ClmConnectionString, ResultType.DataReader>
 
 
+    type SystemSetting = 
+        {
+            systemSettingId : int64
+            settingName : string
+            settingOrderId : int64
+            settingBit : bool
+            settingLong : int64
+            settingMoney : decimal
+            settingFloat : float
+            settingDate : DateTime option
+            settingText : string option
+            settingMemo : string option
+            settingGUID : Guid option
+            settingInfo : string option
+        }
+
+        static member separator = "."
+
+        static member create (r : SystemSettingTableRow) = 
+            {
+                systemSettingId = r.systemSettingId
+                settingName = 
+                    r.settingName + 
+                    match r.settingField1 with 
+                    | EmptyString -> EmptyString
+                    | s -> 
+                        SystemSetting.separator + s +
+                        match r.settingField2 with 
+                        | EmptyString -> EmptyString
+                        | s -> SystemSetting.separator + s
+
+                settingOrderId = r.settingOrderId
+                settingBit = r.settingBit
+                settingLong = r.settingLong
+                settingMoney = r.settingMoney
+                settingFloat = r.settingFloat
+                settingDate = r.settingDate
+                settingText = r.settingText
+                settingMemo = r.settingMemo
+                settingGUID = r.settingGUID
+                settingInfo = r.settingInfo
+            }
+
+
+    type SystemSettingMap = Map<string, Map<int64, SystemSetting>>
+
+
     let openConnIfClosed (conn : SqlConnection) = 
         match conn.State with 
         | ConnectionState.Closed -> do conn.Open()
         | _ -> ignore ()
 
 
-    let loadSettings (connStr : string) =
+    let loadSettings (connStr : string) = //: SystemSettingMap =
         use conn : SqlConnection = new SqlConnection (connStr)
         conn.Open()
 
@@ -33,8 +84,9 @@ module DatabaseTypes =
 
         systemSettingTable.Rows
         |> List.ofSeq
-        |> List.groupBy (fun e -> e.SettingName)
-        |> List.map (fun (e, v) -> e, v |> List.groupBy (fun r -> r.SettingOrderId) |> Map.ofList)
+        |> List.map (fun e -> SystemSetting.create e)
+        |> List.groupBy (fun e -> e.settingName)
+        |> List.map (fun (e, v) -> e, v |> List.map (fun r -> r.settingOrderId, r) |> Map.ofList)
         |> Map.ofList
 
 

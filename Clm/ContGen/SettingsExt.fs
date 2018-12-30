@@ -40,7 +40,7 @@ module SettingsExt =
                 shift = getDoubleOpt m po DistributionParams.shiftName
             }
 
-        member this.setValue s po = 
+        member this.setValue po s = 
             [
                 setDoubleOpt po DistributionParams.thresholdName this.threshold
                 setDoubleOpt po DistributionParams.scaleName this.scale
@@ -76,8 +76,9 @@ module SettingsExt =
                 | _ -> None
             | None -> None
 
-        member this.setValue s po =
-            this.distributionParams.setValue s (addParent po this.name)
+        member this.setValue po s =
+            s
+            |> this.distributionParams.setValue (addParent po this.name)
             |> add [ setText po Distribution.className this.name ]
 
 
@@ -97,10 +98,10 @@ module SettingsExt =
                 | _ -> None
             | None -> None
 
-        member this.setValue s po =
+        member this.setValue po s =
             match this with
             | NoneRateMult -> s
-            | RateMultDistr d -> d.setValue s (addParent po this.name)
+            | RateMultDistr d -> d.setValue (addParent po this.name) s
             |> add [ setText po RateMultiplierDistribution.className this.name ]
 
 
@@ -119,9 +120,9 @@ module SettingsExt =
                 | _ -> None
             | None -> None
 
-        member this.setValue s po =
+        member this.setValue po s =
             match this with
-            | EeDistribution d -> d.setValue s (addParent po this.name)
+            | EeDistribution d -> d.setValue (addParent po this.name) s
             |> add [ setText po EeDistribution.className this.name ]
 
 
@@ -142,6 +143,17 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s = 
+            let setEeOpt (eo : EeDistribution option) p sx = 
+                match eo with
+                | Some e -> e.setValue p sx
+                | None -> sx
+
+            s
+            |> this.rateMultiplierDistr.setValue (addParent po CatRatesEeParam.rateMultiplierDistrName)
+            |> setEeOpt this.eeForwardDistribution (addParent po CatRatesEeParam.eeForwardDistributionName)
+            |> setEeOpt this.eeBackwardDistribution (addParent po CatRatesEeParam.eeBackwardDistributionName)
+
 
     type RateMultiplierDistributionGetter
         with
@@ -158,6 +170,10 @@ module SettingsExt =
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> add [ setText po RateMultiplierDistributionGetter.className this.name ]
+
 
     type EeDistributionGetter
         with
@@ -172,6 +188,10 @@ module SettingsExt =
                 | "CenteredEeDistributionGetter" -> CenteredEeDistributionGetter |> Some
                 | _ -> None
             | None -> None
+
+        member this.setValue po s =
+            s
+            |> add [ setText po EeDistributionGetter.className this.name ]
 
 
     type CatRatesSimilarityParam

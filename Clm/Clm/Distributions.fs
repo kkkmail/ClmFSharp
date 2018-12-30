@@ -265,6 +265,12 @@ module Distributions =
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
 
+        member ee.name = 
+            match ee with 
+            | NoneEeGetter -> "NoneEeGetter"
+            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
+            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
+
 
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
@@ -301,9 +307,16 @@ module Distributions =
         | TriangularRateMultDistrGetter
         | SymmetricTriangularRateMultDistrGetter
 
-        member this.getDistr seeder threshold rate = 
+        member this.getDistr seeder threshold rate =
             match this with
             | NoneRateMultDistrGetter -> RateMultiplierDistribution.createNone
             | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
             | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular seeder threshold rate
             | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular seeder threshold rate
+
+        member this.name =
+            match this with
+            | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
+            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
+            | TriangularRateMultDistrGetter -> "TriangularRateMultDistrGetter"
+            | SymmetricTriangularRateMultDistrGetter -> "SymmetricTriangularRateMultDistrGetter"

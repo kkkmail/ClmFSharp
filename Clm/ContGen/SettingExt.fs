@@ -395,46 +395,119 @@ module SettingExt =
             | None -> None
 
 
-    //type LigationRandomParam = 
-    //    {
-    //        ligationDistribution : Distribution
-    //        forwardScale : double option
-    //        backwardScale : double option
-    //    }
+    type LigationRandomParam
+        with
+        static member ligationDistributionName = "ligationDistribution"
+        static member forwardScaleName = "forwardScale"
+        static member backwardScaleName = "backwardScale"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po LigationRandomParam.ligationDistributionName |> Distribution.tryGet m seeder with
+            | Some d ->
+                {
+                    ligationDistribution = d
+                    forwardScale = getDoubleOpt m po LigationRandomParam.forwardScaleName
+                    backwardScale = getDoubleOpt m po LigationRandomParam.backwardScaleName
+                }
+                |> Some
+            | None -> None
 
 
-    //type LigationParam = 
-    //    | LigRndParam of LigationRandomParam
+    type LigationParam
+        with
+        static member className = "LigationParam"
 
-    //type CatalyticLigationRandomParam = 
-    //    {
-    //        catLigRndEeParams : CatRatesEeParam
-    //    }
-
-
-    //type CatalyticLigationParam = 
-    //    | CatLigRndParam of CatalyticLigationRandomParam
-
-    //type RacemizationRandomParam = 
-    //    {
-    //        racemizationDistribution : Distribution
-    //        forwardScale : double option
-    //    }
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po LigationParam.className with
+            | Some s -> 
+                match s with
+                | "LigRndParam" -> 
+                    addParent po "LigRndParam"
+                    |> LigationRandomParam.tryGet m seeder
+                    |> Option.bind (fun e -> e |> LigRndParam |> Some)
+                | _ -> None
+            | None -> None
 
 
-    //type RacemizationParam = 
-    //    | RacemRndParam of RacemizationRandomParam
+    type CatalyticLigationRandomParam
+        with
+        static member catLigRndEeParamsName = "catLigRndEeParams"
 
-    //type CatalyticRacemizationRandomParam = 
-    //    {
-    //        catRacemRndEeParams : CatRatesEeParam
-    //    }
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po CatalyticLigationRandomParam.catLigRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            | Some d ->
+                {
+                    catLigRndEeParams = d
+                }
+                |> Some
+            | None -> None
+
+
+    type CatalyticLigationParam
+        with
+        static member className = "CatalyticLigationParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po CatalyticLigationParam.className with
+            | Some s -> 
+                match s with
+                | "CatLigRndParam" -> 
+                    addParent po "CatLigRndParam" 
+                    |> CatalyticLigationRandomParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatLigRndParam |> Some)
+                | _ -> None
+            | None -> None
+
+
+    type RacemizationRandomParam
+        with
+        static member racemizationDistributionName = "racemizationDistribution"
+        static member forwardScaleName = "forwardScale"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po RacemizationRandomParam.racemizationDistributionName |> Distribution.tryGet m seeder with
+            | Some d ->
+                {
+                    racemizationDistribution = d
+                    forwardScale = getDoubleOpt m po RacemizationRandomParam.forwardScaleName
+                }
+                |> Some
+            | None -> None
+
+
+    type RacemizationParam
+        with
+        static member className = "RacemizationParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po RacemizationParam.className with
+            | Some s -> 
+                match s with
+                | "RacemRndParam" -> 
+                    addParent po "RacemRndParam"
+                    |> RacemizationRandomParam.tryGet m seeder
+                    |> Option.bind (fun e -> e |> RacemRndParam |> Some)
+                | _ -> None
+            | None -> None
+
+
+    type CatalyticRacemizationRandomParam
+        with
+        static member catRacemRndEeParamsName = "catRacemRndEeParams"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po CatalyticRacemizationRandomParam.catRacemRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            | Some d ->
+                {
+                    catRacemRndEeParams = d
+                }
+                |> Some
+            | None -> None
 
 
     //type CatalyticRacemizationSimilarParam =
     //    {
     //        simRacemDistribution : Distribution
-    //        aminoAcids : list<AminoAcid>
     //    }
 
 
@@ -457,5 +530,3 @@ module SettingExt =
     //    | SedimentationAllRateParam of SedimentationAllParam
     //    | RacemizationRateParam of RacemizationParam
     //    | CatalyticRacemizationRateParam of CatalyticRacemizationParam
-
-

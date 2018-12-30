@@ -17,16 +17,15 @@ module DatabaseTypes =
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
-    type SystemSettingTable = ClmDB.dbo.Tables.SystemSetting
-    type SystemSettingTableRow = SystemSettingTable.Row
-    type SystemSettingTableData = SqlCommandProvider<"select * from dbo.SystemSetting", ClmConnectionString, ResultType.DataReader>
+    type SettingTable = ClmDB.dbo.Tables.Setting
+    type SettingTableRow = SettingTable.Row
+    type SettingTableData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
 
 
     type SystemSetting = 
         {
-            systemSettingId : int64
-            settingName : list<string>
-            settingOrderId : int64
+            settingId : int64
+            settingPath : list<string * int>
             settingBit : bool
             settingLong : int64
             settingMoney : decimal
@@ -35,23 +34,23 @@ module DatabaseTypes =
             settingText : string option
             settingMemo : string option
             settingGUID : Guid option
-            settingInfo : string option
         }
 
         static member separator = "."
 
-        static member create (r : SystemSettingTableRow) = 
+        static member create (r : SettingTableRow) = 
             {
-                systemSettingId = r.systemSettingId
-                settingName =
-                    [ r.settingName ]
-                    @ match r.settingField1 with | EmptyString -> [] | s -> [ s ]
-                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s ]
-                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s ]
-                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s ]
-                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s ]
+                settingId = r.settingId
+                settingPath =
+                    match r.settingField1 with | EmptyString -> [] | s -> [ s, r.settingOrderId1 ]
+                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s, r.settingOrderId2 ]
+                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s, r.settingOrderId3 ]
+                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s, r.settingOrderId4 ]
+                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s, r.settingOrderId5 ]
+                    @ match r.settingField6 with | EmptyString -> [] | s -> [ s, r.settingOrderId6 ]
+                    @ match r.settingField7 with | EmptyString -> [] | s -> [ s, r.settingOrderId7 ]
+                    @ match r.settingField8 with | EmptyString -> [] | s -> [ s, r.settingOrderId8 ]
 
-                settingOrderId = r.settingOrderId
                 settingBit = r.settingBit
                 settingLong = r.settingLong
                 settingMoney = r.settingMoney
@@ -60,11 +59,10 @@ module DatabaseTypes =
                 settingText = r.settingText
                 settingMemo = r.settingMemo
                 settingGUID = r.settingGUID
-                settingInfo = r.settingInfo
             }
 
 
-    type SystemSettingMap = Map<list<string>, Map<int64, SystemSetting>>
+    type SystemSettingMap = Map<list<string * int>, SystemSetting>
 
 
     let openConnIfClosed (conn : SqlConnection) = 
@@ -73,18 +71,17 @@ module DatabaseTypes =
         | _ -> ignore ()
 
 
-    let loadSettings (connStr : string) = //: SystemSettingMap =
+    let loadSettings (connStr : string) =
         use conn : SqlConnection = new SqlConnection (connStr)
         conn.Open()
 
-        let systemSettingTable = new SystemSettingTable()
-        (new SystemSettingTableData(conn)).Execute() |> systemSettingTable.Load
+        let settingTable = new SettingTable()
+        (new SettingTableData(conn)).Execute() |> settingTable.Load
 
-        systemSettingTable.Rows
+        settingTable.Rows
         |> List.ofSeq
         |> List.map (fun e -> SystemSetting.create e)
-        |> List.groupBy (fun e -> e.settingName)
-        |> List.map (fun (e, v) -> e, v |> List.map (fun r -> r.settingOrderId, r) |> Map.ofList)
+        |> List.map (fun e -> e.settingPath, e)
         |> Map.ofList
 
 

@@ -6,8 +6,8 @@ open DatabaseTypes
 
 module SettingExt = 
 
-    let tryFindByName (m : SystemSettingMap) n = m.TryFind n |> Option.bind (fun v -> v.TryFind 0L)
-    let addParent p np = p @ [ np ]
+    let tryFindByName (m : SystemSettingMap) n = m.TryFind n
+    let addParent p np = p @ [ (np, 0) ]
 
     let getDoubleOpt (m : SystemSettingMap) po n = 
         addParent po n
@@ -89,6 +89,62 @@ module SettingExt =
                 }
                 |> Some
             | None -> None
+
+
+    type RateMultiplierDistributionGetter
+        with
+        static member className = "RateMultiplierDistributionGetter"
+
+        static member tryGet (m : SystemSettingMap) po =
+            match getTextOpt m po RateMultiplierDistributionGetter.className with
+            | Some s -> 
+                match s with
+                | "NoneRateMultDistrGetter" -> NoneRateMultDistrGetter |> Some
+                | "DeltaRateMultDistrGetter" -> DeltaRateMultDistrGetter |> Some
+                | "TriangularRateMultDistrGetter" -> TriangularRateMultDistrGetter |> Some
+                | "SymmetricTriangularRateMultDistrGetter" -> SymmetricTriangularRateMultDistrGetter |> Some
+                | _ -> None
+            | None -> None
+
+
+    type EeDistributionGetter
+        with
+        static member className = "EeDistributionGetter"
+
+        static member tryGet (m : SystemSettingMap) po =
+            match getTextOpt m po EeDistributionGetter.className with
+            | Some s -> 
+                match s with
+                | "NoneEeGetter" -> NoneEeGetter |> Some
+                | "DeltaEeDistributionGetter" -> DeltaEeDistributionGetter |> Some
+                | "CenteredEeDistributionGetter" -> CenteredEeDistributionGetter |> Some
+                | _ -> None
+            | None -> None
+
+
+    type CatRatesSimilarityParam
+        with
+        static member simBaseDistributionName = "simBaseDistribution"
+        static member getRateMultiplierDistrName = "getRateMultiplierDistr"
+        static member getForwardEeDistrName = "getForwardEeDistr"
+        static member getBackwardEeDistrName = "getBackwardEeDistr"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            let d() = addParent po CatRatesSimilarityParam.simBaseDistributionName |> Distribution.tryGet m seeder
+            let r() = addParent po CatRatesSimilarityParam.getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
+            let f() = addParent po CatRatesSimilarityParam.getForwardEeDistrName |> EeDistributionGetter.tryGet m
+            let b() = addParent po CatRatesSimilarityParam.getBackwardEeDistrName |> EeDistributionGetter.tryGet m
+
+            match d(), r(), f(), b() with
+            | Some d1, Some r1, Some f1, Some b1 ->
+                {
+                    simBaseDistribution = d1
+                    getRateMultiplierDistr = r1
+                    getForwardEeDistr = f1
+                    getBackwardEeDistr = b1
+                }
+                |> Some
+            | _ -> None
 
 
     type FoodCreationParam
@@ -187,62 +243,6 @@ module SettingExt =
             | None -> None
 
 
-    type RateMultiplierDistributionGetter
-        with
-        static member className = "RateMultiplierDistributionGetter"
-
-        static member tryGet (m : SystemSettingMap) po =
-            match getTextOpt m po RateMultiplierDistributionGetter.className with
-            | Some s -> 
-                match s with
-                | "NoneRateMultDistrGetter" -> NoneRateMultDistrGetter |> Some
-                | "DeltaRateMultDistrGetter" -> DeltaRateMultDistrGetter |> Some
-                | "TriangularRateMultDistrGetter" -> TriangularRateMultDistrGetter |> Some
-                | "SymmetricTriangularRateMultDistrGetter" -> SymmetricTriangularRateMultDistrGetter |> Some
-                | _ -> None
-            | None -> None
-
-
-    type EeDistributionGetter 
-        with
-        static member className = "EeDistributionGetter"
-
-        static member tryGet (m : SystemSettingMap) po =
-            match getTextOpt m po EeDistributionGetter.className with
-            | Some s -> 
-                match s with
-                | "NoneEeGetter" -> NoneEeGetter |> Some
-                | "DeltaEeDistributionGetter" -> DeltaEeDistributionGetter |> Some
-                | "CenteredEeDistributionGetter" -> CenteredEeDistributionGetter |> Some
-                | _ -> None
-            | None -> None
-
-
-    type CatRatesSimilarityParam
-        with
-        static member simBaseDistributionName = "simBaseDistribution"
-        static member getRateMultiplierDistrName = "getRateMultiplierDistr"
-        static member getForwardEeDistrName = "getForwardEeDistr"
-        static member getBackwardEeDistrName = "getBackwardEeDistr"
-
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
-            let d() = addParent po CatRatesSimilarityParam.simBaseDistributionName |> Distribution.tryGet m seeder
-            let r() = addParent po CatRatesSimilarityParam.getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
-            let f() = addParent po CatRatesSimilarityParam.getForwardEeDistrName |> EeDistributionGetter.tryGet m
-            let b() = addParent po CatRatesSimilarityParam.getBackwardEeDistrName |> EeDistributionGetter.tryGet m
-
-            match d(), r(), f(), b() with
-            | Some d1, Some r1, Some f1, Some b1 ->
-                {
-                    simBaseDistribution = d1
-                    getRateMultiplierDistr = r1
-                    getForwardEeDistr = f1
-                    getBackwardEeDistr = b1
-                }
-                |> Some
-            | _ -> None
-
-
     type CatalyticSynthesisParam
         with
         static member className = "CatalyticSynthesisParam"
@@ -263,47 +263,136 @@ module SettingExt =
             | None -> None
 
 
-    //type DestructionRandomParam = 
-    //    {
-    //        destructionDistribution : Distribution
-    //        forwardScale : double option
-    //        backwardScale : double option
-    //    }
+    type DestructionRandomParam
+        with
+        static member destructionDistributionName = "destructionDistribution"
+        static member forwardScaleName = "forwardScale"
+        static member backwardScaleName = "backwardScale"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po DestructionRandomParam.destructionDistributionName |> Distribution.tryGet m seeder with
+            | Some d ->
+                {
+                    destructionDistribution = d
+                    forwardScale = getDoubleOpt m po DestructionRandomParam.forwardScaleName
+                    backwardScale = getDoubleOpt m po DestructionRandomParam.backwardScaleName
+                }
+                |> Some
+            | None -> None
 
 
-    //type DestructionParam = 
-    //    | DestrRndParam of DestructionRandomParam
+    type DestructionParam
+        with
+        static member className = "DestructionParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po DestructionParam.className with
+            | Some s -> 
+                match s with
+                | "DestrRndParam" -> 
+                    addParent po "DestrRndParam"
+                    |> DestructionRandomParam.tryGet m seeder
+                    |> Option.bind (fun e -> e |> DestrRndParam |> Some)
+                | _ -> None
+            | None -> None
 
 
-    //type CatalyticDestructionRandomParam = 
-    //    {
-    //        catDestrRndEeParams : CatRatesEeParam
-    //    }
+    type CatalyticDestructionRandomParam
+        with
+        static member catDestrRndEeParamsName = "catDestrRndEeParams"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po CatalyticDestructionRandomParam.catDestrRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            | Some d ->
+                {
+                    catDestrRndEeParams = d
+                }
+                |> Some
+            | None -> None
 
 
-    //type CatalyticDestructionParam = 
-    //    | CatDestrRndParam of CatalyticDestructionRandomParam
-    //    | CatDestrSimParam of CatRatesSimilarityParam
+    type CatalyticDestructionParam
+        with
+        static member className = "CatalyticDestructionParam"
 
-    //type SedimentationDirectRandomParam = 
-    //    {
-    //        sedimentationDirectDistribution : Distribution
-    //        forwardScale : double option
-    //    }
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po CatalyticDestructionParam.className with
+            | Some s -> 
+                match s with
+                | "CatDestrRndParam" -> 
+                    addParent po "CatDestrRndParam" 
+                    |> CatalyticDestructionRandomParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatDestrRndParam |> Some)
+                | "CatDestrSimParam" -> 
+                    addParent po "CatDestrSimParam" 
+                    |> CatRatesSimilarityParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatDestrSimParam |> Some)
+                | _ -> None
+            | None -> None
 
 
-    //type SedimentationDirectParam = 
-    //    | SedDirRndParam of SedimentationDirectRandomParam
+    type SedimentationDirectRandomParam
+        with
+        static member sedimentationDirectDistributionName = "sedimentationDirectDistribution"
+        static member forwardScaleName = "forwardScale"
 
-    //type SedimentationAllRandomParam = 
-    //    {
-    //        sedimentationAllDistribution : Distribution
-    //        forwardScale : double option
-    //    }
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po SedimentationDirectRandomParam.sedimentationDirectDistributionName |> Distribution.tryGet m seeder with
+            | Some d ->
+                {
+                    sedimentationDirectDistribution = d
+                    forwardScale = getDoubleOpt m po SedimentationDirectRandomParam.forwardScaleName
+                }
+                |> Some
+            | None -> None
 
 
-    //type SedimentationAllParam = 
-    //    | SedAllRndParam of SedimentationAllRandomParam
+    type SedimentationDirectParam
+        with
+        static member className = "SedimentationDirectParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po SedimentationDirectParam.className with
+            | Some s -> 
+                match s with
+                | "SedDirRndParam" -> 
+                    addParent po "SedDirRndParam"
+                    |> SedimentationDirectRandomParam.tryGet m seeder
+                    |> Option.bind (fun e -> e |> SedDirRndParam |> Some)
+                | _ -> None
+            | None -> None
+
+
+    type SedimentationAllRandomParam
+        with
+        static member sedimentationAllDistributionName = "sedimentationAllDistribution"
+        static member forwardScaleName = "forwardScale"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po SedimentationAllRandomParam.sedimentationAllDistributionName |> Distribution.tryGet m seeder with
+            | Some d ->
+                {
+                    sedimentationAllDistribution = d
+                    forwardScale = getDoubleOpt m po SedimentationAllRandomParam.forwardScaleName
+                }
+                |> Some
+            | None -> None
+
+
+    type SedimentationAllParam
+        with
+        static member className = "SedimentationAllParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po SedimentationAllParam.className with
+            | Some s -> 
+                match s with
+                | "SedAllRndParam" -> 
+                    addParent po "SedAllRndParam"
+                    |> SedimentationAllRandomParam.tryGet m seeder
+                    |> Option.bind (fun e -> e |> SedAllRndParam |> Some)
+                | _ -> None
+            | None -> None
 
 
     //type LigationRandomParam = 

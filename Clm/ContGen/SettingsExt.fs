@@ -4,18 +4,24 @@ open Clm.Distributions
 open Clm.ReactionRates
 open DatabaseTypes
 
-module SettingExt = 
+module SettingsExt = 
 
-    let tryFindByName (m : SystemSettingMap) n = m.TryFind n
-    let addParent p np = p @ [ (np, 0) ]
+    let tryFindByName (m : SettingMap) n = m.TryFind n
+    let addParent p n = p @ [ (n, 0) ]
+    let add a b = a @ b
 
-    let getDoubleOpt (m : SystemSettingMap) po n = 
+    let setDouble p n v = { Setting.defaultValue with settingPath = addParent p n; settingFloat = v }
+    let setText p n v = { Setting.defaultValue with settingPath = addParent p n; settingText = Some v }
+    let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue with settingPath = addParent p n; settingFloat = v } |> Some)
+
+
+    let getDoubleOpt (m : SettingMap) po n = 
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingFloat |> Some)
 
 
-    let getTextOpt (m : SystemSettingMap) po n = 
+    let getTextOpt (m : SettingMap) po n = 
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingText)
@@ -27,21 +33,30 @@ module SettingExt =
         static member scaleName = "scale"
         static member shiftName = "shift"
 
-        static member getValue (m : SystemSettingMap) po = 
+        static member getValue (m : SettingMap) po = 
             {
                 threshold = getDoubleOpt m po DistributionParams.thresholdName
                 scale = getDoubleOpt m po DistributionParams.scaleName
                 shift = getDoubleOpt m po DistributionParams.shiftName
             }
 
+        member this.setValue po s = 
+            [
+                setDoubleOpt po DistributionParams.thresholdName this.threshold
+                setDoubleOpt po DistributionParams.scaleName this.scale
+                setDoubleOpt po DistributionParams.shiftName this.shift
+            ]
+            |> List.choose id
+            |> add s
+
 
     type Distribution
         with
         static member className = "Distribution"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po Distribution.className with
-            | Some s -> 
+            | Some s ->
                 let p = DistributionParams.getValue m po
 
                 match s with
@@ -53,12 +68,23 @@ module SettingExt =
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            let x = this
+            [
+                setText po Distribution.className this.name
+                //setDoubleOpt po DistributionParams.thresholdName this.threshold
+                //setDoubleOpt po DistributionParams.scaleName this.scale
+                //setDoubleOpt po DistributionParams.shiftName this.shift
+            ]
+            //|> List.choose id
+            |> add s
+
 
     type RateMultiplierDistribution
         with
         static member className = "RateMultiplierDistribution"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po RateMultiplierDistribution.className with
             | Some s ->
                 match s with
@@ -69,7 +95,7 @@ module SettingExt =
 
 
     type EeDistribution with
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             Distribution.tryGet m seeder po |> Option.bind (fun d -> EeDistribution d |> Some)
 
 
@@ -79,7 +105,7 @@ module SettingExt =
         static member eeForwardDistributionName = "eeForwardDistribution"
         static member eeBackwardDistributionName = "eeBackwardDistribution"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match addParent po CatRatesEeParam.rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m seeder with
             | Some r ->
                 {
@@ -95,7 +121,7 @@ module SettingExt =
         with
         static member className = "RateMultiplierDistributionGetter"
 
-        static member tryGet (m : SystemSettingMap) po =
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po RateMultiplierDistributionGetter.className with
             | Some s -> 
                 match s with
@@ -111,7 +137,7 @@ module SettingExt =
         with
         static member className = "EeDistributionGetter"
 
-        static member tryGet (m : SystemSettingMap) po =
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po EeDistributionGetter.className with
             | Some s -> 
                 match s with
@@ -129,7 +155,7 @@ module SettingExt =
         static member getForwardEeDistrName = "getForwardEeDistr"
         static member getBackwardEeDistrName = "getBackwardEeDistr"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             let d() = addParent po CatRatesSimilarityParam.simBaseDistributionName |> Distribution.tryGet m seeder
             let r() = addParent po CatRatesSimilarityParam.getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
             let f() = addParent po CatRatesSimilarityParam.getForwardEeDistrName |> EeDistributionGetter.tryGet m
@@ -153,7 +179,7 @@ module SettingExt =
         static member className = "FoodCreationParam"
         static member foodCreationRateName = "foodCreationRate"
 
-        static member tryGet (m : SystemSettingMap) po = 
+        static member tryGet (m : SettingMap) po = 
             match getDoubleOpt m po FoodCreationParam.foodCreationRateName with
             | Some v ->
                 {
@@ -169,7 +195,7 @@ module SettingExt =
         static member className = "WasteRemovalParam"
         static member wasteRemovalRateName = "wasteRemovalRate"
 
-        static member tryGet (m : SystemSettingMap) po = 
+        static member tryGet (m : SettingMap) po = 
             match getDoubleOpt m po WasteRemovalParam.wasteRemovalRateName with
             | Some v -> 
                 {
@@ -185,7 +211,7 @@ module SettingExt =
         static member className = "WasteRecyclingParam"
         static member wasteRecyclingRateName = "wasteRecyclingRate"
 
-        static member tryGet (m : SystemSettingMap) po = 
+        static member tryGet (m : SettingMap) po = 
             match getDoubleOpt m po WasteRecyclingParam.wasteRecyclingRateName with
             | Some v -> 
                 {
@@ -201,7 +227,7 @@ module SettingExt =
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po SynthesisRandomParam.synthesisDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -217,7 +243,7 @@ module SettingExt =
         with
         static member className = "SynthesisParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po SynthesisParam.className with
             | Some s -> 
                 match s with
@@ -233,7 +259,7 @@ module SettingExt =
         with
         static member catSynthRndEeParamsName = "catSynthRndEeParams"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
@@ -247,7 +273,7 @@ module SettingExt =
         with
         static member className = "CatalyticSynthesisParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po CatalyticSynthesisParam.className with
             | Some s -> 
                 match s with
@@ -269,7 +295,7 @@ module SettingExt =
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po DestructionRandomParam.destructionDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -285,7 +311,7 @@ module SettingExt =
         with
         static member className = "DestructionParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po DestructionParam.className with
             | Some s -> 
                 match s with
@@ -301,7 +327,7 @@ module SettingExt =
         with
         static member catDestrRndEeParamsName = "catDestrRndEeParams"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po CatalyticDestructionRandomParam.catDestrRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
@@ -315,7 +341,7 @@ module SettingExt =
         with
         static member className = "CatalyticDestructionParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po CatalyticDestructionParam.className with
             | Some s -> 
                 match s with
@@ -336,7 +362,7 @@ module SettingExt =
         static member sedimentationDirectDistributionName = "sedimentationDirectDistribution"
         static member forwardScaleName = "forwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po SedimentationDirectRandomParam.sedimentationDirectDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -351,7 +377,7 @@ module SettingExt =
         with
         static member className = "SedimentationDirectParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po SedimentationDirectParam.className with
             | Some s -> 
                 match s with
@@ -368,7 +394,7 @@ module SettingExt =
         static member sedimentationAllDistributionName = "sedimentationAllDistribution"
         static member forwardScaleName = "forwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po SedimentationAllRandomParam.sedimentationAllDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -383,7 +409,7 @@ module SettingExt =
         with
         static member className = "SedimentationAllParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po SedimentationAllParam.className with
             | Some s -> 
                 match s with
@@ -401,7 +427,7 @@ module SettingExt =
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po LigationRandomParam.ligationDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -417,7 +443,7 @@ module SettingExt =
         with
         static member className = "LigationParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po LigationParam.className with
             | Some s -> 
                 match s with
@@ -433,7 +459,7 @@ module SettingExt =
         with
         static member catLigRndEeParamsName = "catLigRndEeParams"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po CatalyticLigationRandomParam.catLigRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
@@ -447,7 +473,7 @@ module SettingExt =
         with
         static member className = "CatalyticLigationParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po CatalyticLigationParam.className with
             | Some s -> 
                 match s with
@@ -464,7 +490,7 @@ module SettingExt =
         static member racemizationDistributionName = "racemizationDistribution"
         static member forwardScaleName = "forwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po RacemizationRandomParam.racemizationDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
@@ -479,7 +505,7 @@ module SettingExt =
         with
         static member className = "RacemizationParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po RacemizationParam.className with
             | Some s -> 
                 match s with
@@ -495,7 +521,7 @@ module SettingExt =
         with
         static member catRacemRndEeParamsName = "catRacemRndEeParams"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match addParent po CatalyticRacemizationRandomParam.catRacemRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
@@ -509,7 +535,7 @@ module SettingExt =
         with
         static member className = "CatalyticRacemizationParam"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po CatalyticRacemizationParam.className with
             | Some s -> 
                 match s with

@@ -22,7 +22,7 @@ module DatabaseTypes =
     type SettingTableData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
 
 
-    type SystemSetting = 
+    type Setting = 
         {
             settingId : int64
             settingPath : list<string * int>
@@ -35,8 +35,6 @@ module DatabaseTypes =
             settingMemo : string option
             settingGUID : Guid option
         }
-
-        static member separator = "."
 
         static member create (r : SettingTableRow) = 
             {
@@ -61,8 +59,22 @@ module DatabaseTypes =
                 settingGUID = r.settingGUID
             }
 
+        static member defaultValue = 
+            {
+                settingId = 0L
+                settingPath  = []
+                settingBit = false
+                settingLong = 0L
+                settingMoney = 0m
+                settingFloat = 0.0
+                settingDate = None
+                settingText = None
+                settingMemo = None
+                settingGUID = None
+            }
 
-    type SystemSettingMap = Map<list<string * int>, SystemSetting>
+
+    type SettingMap = Map<list<string * int>, Setting>
 
 
     let openConnIfClosed (conn : SqlConnection) = 
@@ -80,7 +92,7 @@ module DatabaseTypes =
 
         settingTable.Rows
         |> List.ofSeq
-        |> List.map (fun e -> SystemSetting.create e)
+        |> List.map (fun e -> Setting.create e)
         |> List.map (fun e -> e.settingPath, e)
         |> Map.ofList
 

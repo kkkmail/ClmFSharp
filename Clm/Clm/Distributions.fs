@@ -188,6 +188,21 @@ module Distributions =
             | Triangular d -> d.thresholded newThreshold |> Triangular
             | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
 
+        member this.name = 
+            match this with
+            | Delta _ -> "Delta"
+            | BiDelta _ -> "BiDelta"
+            | Uniform _ -> "Uniform"
+            | Triangular _ -> "Triangular"
+            | SymmetricTriangular _ -> "SymmetricTriangular"
+
+        member this.distributionParams = 
+            match this with
+            | Delta d -> d.distributionParams
+            | BiDelta d -> d.distributionParams
+            | Uniform d -> d.distributionParams
+            | Triangular d -> d.distributionParams
+            | SymmetricTriangular d -> d.distributionParams
 
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 

@@ -25,7 +25,7 @@ module DatabaseTypes =
     type SystemSetting = 
         {
             systemSettingId : int64
-            settingName : string
+            settingName : list<string>
             settingOrderId : int64
             settingBit : bool
             settingLong : int64
@@ -44,27 +44,12 @@ module DatabaseTypes =
             {
                 systemSettingId = r.systemSettingId
                 settingName =
-                    r.settingName +
-                    match r.settingField1 with
-                    | EmptyString -> EmptyString
-                    | s ->
-                        SystemSetting.separator + s +
-                        match r.settingField2 with
-                        | EmptyString -> EmptyString
-                        | s ->
-                            SystemSetting.separator + s +
-                            match r.settingField3 with
-                            | EmptyString -> EmptyString
-                            | s ->
-                                SystemSetting.separator + s +
-                                match r.settingField4 with
-                                | EmptyString -> EmptyString
-                                | s ->
-                                    SystemSetting.separator + s +
-                                    match r.settingField5 with
-                                    | EmptyString -> EmptyString
-                                    | s ->
-                                        SystemSetting.separator + s
+                    [ r.settingName ]
+                    @ match r.settingField1 with | EmptyString -> [] | s -> [ s ]
+                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s ]
+                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s ]
+                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s ]
+                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s ]
 
                 settingOrderId = r.settingOrderId
                 settingBit = r.settingBit
@@ -79,7 +64,7 @@ module DatabaseTypes =
             }
 
 
-    type SystemSettingMap = Map<string, Map<int64, SystemSetting>>
+    type SystemSettingMap = Map<list<string>, Map<int64, SystemSetting>>
 
 
     let openConnIfClosed (conn : SqlConnection) = 

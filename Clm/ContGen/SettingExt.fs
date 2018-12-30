@@ -7,45 +7,17 @@ open DatabaseTypes
 module SettingExt = 
 
     let tryFindByName (m : SystemSettingMap) n = m.TryFind n |> Option.bind (fun v -> v.TryFind 0L)
-    let tryFindByNameOpt (m : SystemSettingMap) no = no |> Option.bind (fun n -> tryFindByName m n)
-
-
-    let getFullName c n = c + SystemSetting.separator + n
-
-
-    let addParent (po : string option) (np : string) = 
-        match po with
-        | Some p -> p + np |> Some
-        | None -> Some np
-
-
-    //let getNameWithParent po c n = 
-    //    let parent = 
-    //        match po with 
-    //        | Some p -> p + SystemSetting.separator
-    //        | None -> EmptyString
-
-    //    parent + (getFullName c n)
-
-
-    //let getClassNameWithParent po c = 
-    //    let parent = 
-    //        match po with 
-    //        | Some p -> p + SystemSetting.separator
-    //        | None -> EmptyString
-
-    //    parent + c
-
+    let addParent p np = p @ [ np ]
 
     let getDoubleOpt (m : SystemSettingMap) po n = 
         addParent po n
-        |> tryFindByNameOpt m
+        |> tryFindByName m
         |> Option.bind (fun v -> v.settingFloat |> Some)
 
 
     let getTextOpt (m : SystemSettingMap) po n = 
         addParent po n
-        |> tryFindByNameOpt m
+        |> tryFindByName m
         |> Option.bind (fun v -> v.settingText)
 
 
@@ -126,11 +98,11 @@ module SettingExt =
         static member className = "FoodCreationParam"
         static member foodCreationRateName = "foodCreationRate"
 
-        static member tryGet (m : SystemSettingMap) = 
-            match getFullName FoodCreationParam.className FoodCreationParam.foodCreationRateName |> tryFindByName m with
+        static member tryGet (m : SystemSettingMap) po = 
+            match getDoubleOpt m po FoodCreationParam.foodCreationRateName with
             | Some v ->
                 {
-                    foodCreationRate = v.settingFloat
+                    foodCreationRate = v
                 }
                 |> Some
             | None -> None
@@ -142,11 +114,11 @@ module SettingExt =
         static member className = "WasteRemovalParam"
         static member wasteRemovalRateName = "wasteRemovalRate"
 
-        static member tryGet (m : SystemSettingMap) = 
-            match getFullName WasteRemovalParam.className WasteRemovalParam.wasteRemovalRateName |> tryFindByName m with
+        static member tryGet (m : SystemSettingMap) po = 
+            match getDoubleOpt m po WasteRemovalParam.wasteRemovalRateName with
             | Some v -> 
                 {
-                    wasteRemovalRate = v.settingFloat
+                    wasteRemovalRate = v
                 }
                 |> Some
             | None -> None
@@ -158,11 +130,11 @@ module SettingExt =
         static member className = "WasteRecyclingParam"
         static member wasteRecyclingRateName = "wasteRecyclingRate"
 
-        static member tryGet (m : SystemSettingMap) = 
-            match getFullName WasteRecyclingParam.className WasteRecyclingParam.wasteRecyclingRateName |> tryFindByName m with
+        static member tryGet (m : SystemSettingMap) po = 
+            match getDoubleOpt m po WasteRecyclingParam.wasteRecyclingRateName with
             | Some v -> 
                 {
-                    wasteRecyclingRate = v.settingFloat
+                    wasteRecyclingRate = v
                 }
                 |> Some
             | None -> None
@@ -170,32 +142,40 @@ module SettingExt =
 
     type SynthesisRandomParam
         with
-
-        static member className = "SynthesisRandomParam"
-
         static member synthesisDistributionName = "synthesisDistribution"
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
 
-        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) = 
-            let po = (Some SynthesisRandomParam.className)
-            let pdo = addParent po SynthesisRandomParam.synthesisDistributionName
-            let getDoubleOpt = getDoubleOpt m po SynthesisRandomParam.className
-
-            match Distribution.tryGet m pdo with
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po SynthesisRandomParam.synthesisDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
-                    synthesisDistribution = d (seeder()) (DistributionParams.getValue m pdo)
-                    forwardScale = getDoubleOpt SynthesisRandomParam.forwardScaleName
-                    backwardScale = getDoubleOpt SynthesisRandomParam.backwardScaleName
+                    synthesisDistribution = d
+                    forwardScale = getDoubleOpt m po SynthesisRandomParam.forwardScaleName
+                    backwardScale = getDoubleOpt m po SynthesisRandomParam.backwardScaleName
                 }
                 |> Some
             | None -> None
 
 
-    //type CatalyticSynthesisRandomParam = 
+    type CatalyticSynthesisRandomParam
+        with
+        static member catSynthRndEeParamsName = "catSynthRndEeParams"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            match addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            | Some d ->
+                {
+                    catSynthRndEeParams = d
+                }
+                |> Some
+            | None -> None
+
+
+    //type CatRatesSimilarityParam =
     //    {
-    //        catSynthRndEeParams : CatRatesEeParam
+    //        simBaseDistribution : Distribution
+    //        getRateMultiplierDistr : RateMultiplierDistributionGetter
+    //        getForwardEeDistr : EeDistributionGetter
+    //        getBackwardEeDistr : EeDistributionGetter
     //    }
-
-

@@ -164,7 +164,6 @@ module ReactionRates =
 
     type CatRatesSimilarityParam =
         {
-            aminoAcids : list<AminoAcid>
             simBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getForwardEeDistr : EeDistributionGetter
@@ -176,6 +175,7 @@ module ReactionRates =
         {
             reaction : 'R
             catalyst : 'C
+            aminoAcids : list<'A>
             getCatEnantiomer : 'C -> 'C
             catReactionCreator : ('R * 'C) -> 'RC
             simReactionCreator : 'A -> 'R
@@ -211,7 +211,7 @@ module ReactionRates =
 
         match (f, b) with
         | None, None -> 
-            i.simParams.aminoAcids
+            i.aminoAcids
             |> List.map (fun a -> i.simReactionCreator a)
             |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
@@ -240,7 +240,7 @@ module ReactionRates =
                     }
                 | false -> CatRatesEeParam.defaultValue
 
-            i.simParams.aminoAcids
+            i.aminoAcids
             |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined())
             |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
             |> ignore
@@ -366,6 +366,7 @@ module ReactionRates =
     type CatalyticSynthesisSimilarParamWithModel = 
         {
             catSynthModel : CatalyticSynthesisRandomModel
+            aminoAcids : list<AminoAcid>
             catSynthSimParam : CatRatesSimilarityParam
         }
 
@@ -381,6 +382,7 @@ module ReactionRates =
             {
                 reaction = s
                 catalyst = c
+                aminoAcids = p.aminoAcids
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticSynthesisReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -496,6 +498,7 @@ module ReactionRates =
     type CatalyticDestructionSimilarParamWithModel = 
         {
             catDestrSimParam : CatRatesSimilarityParam
+            aminoAcids : list<AminoAcid>
             catDestrModel : CatalyticDestructionRandomModel
         }
 
@@ -511,6 +514,7 @@ module ReactionRates =
             {
                 reaction = s
                 catalyst = c
+                aminoAcids = p.aminoAcids
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticDestructionReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -799,6 +803,7 @@ module ReactionRates =
     type CatalyticRacemizationSimilarParamWithModel = 
         {
             catRacemSimParam : CatRatesSimilarityParam
+            aminoAcids : list<AminoAcid>
             catRacemModel : CatalyticRacemizationRandomModel
         }
 
@@ -814,6 +819,7 @@ module ReactionRates =
             {
                 reaction = s
                 catalyst = c
+                aminoAcids = p.aminoAcids
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticRacemizationReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -1046,13 +1052,13 @@ module ReactionRates =
             {
                 catSynthSimParam = 
                     {
-                        aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
+                aminoAcids = aminoAcids
             }
             |> CatSynthSimParamWithModel
             |> CatalyticSynthesisModel.create
@@ -1083,13 +1089,13 @@ module ReactionRates =
             {
                 catDestrSimParam = 
                     {
-                        aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
+                aminoAcids = aminoAcids
             }
             |> CatDestrSimParamWithModel
             |> CatalyticDestructionModel.create
@@ -1171,13 +1177,13 @@ module ReactionRates =
             {
                 catRacemSimParam = 
                     {
-                        aminoAcids = aminoAcids
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
+                aminoAcids = aminoAcids
             }
             |> CatRacemSimParamWithModel
             |> CatalyticRacemizationModel.create

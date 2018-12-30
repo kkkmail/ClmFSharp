@@ -762,12 +762,6 @@ module ReactionRates =
         }
 
 
-    type CatalyticRacemizationSimilarParam =
-        {
-            simRacemDistribution : Distribution
-        }
-
-
     type CatalyticRacemizationParam = 
         | CatRacemRndParam of CatalyticRacemizationRandomParam
         | CatRacemSimParam of CatRatesSimilarityParam

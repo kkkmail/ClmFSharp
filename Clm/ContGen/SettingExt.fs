@@ -505,15 +505,24 @@ module SettingExt =
             | None -> None
 
 
-    //type CatalyticRacemizationSimilarParam =
-    //    {
-    //        simRacemDistribution : Distribution
-    //    }
+    type CatalyticRacemizationParam
+        with
+        static member className = "CatalyticRacemizationParam"
 
-
-    //type CatalyticRacemizationParam = 
-    //    | CatRacemRndParam of CatalyticRacemizationRandomParam
-    //    | CatRacemSimParam of CatRatesSimilarityParam
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po CatalyticRacemizationParam.className with
+            | Some s -> 
+                match s with
+                | "CatRacemRndParam" -> 
+                    addParent po "CatRacemRndParam" 
+                    |> CatalyticRacemizationRandomParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatRacemRndParam |> Some)
+                | "CatRacemSimParam" -> 
+                    addParent po "CatRacemSimParam" 
+                    |> CatRatesSimilarityParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatRacemSimParam |> Some)
+                | _ -> None
+            | None -> None
 
 
     //type ReactionRateModelParam = 

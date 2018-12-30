@@ -372,16 +372,6 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type CatalyticRacemizationSimilarParam
-        with
-
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
-            shift + "            {" + Nl +
-            shift + "                simRacemDistribution = " + p.simRacemDistribution.toFSharpCode + Nl +
-            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
-            shift + "            }" + Nl
-
-
     type CatalyticRacemizationParam
         with 
 

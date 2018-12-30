@@ -765,7 +765,6 @@ module ReactionRates =
     type CatalyticRacemizationSimilarParam =
         {
             simRacemDistribution : Distribution
-            aminoAcids : list<AminoAcid>
         }
 
 
@@ -778,6 +777,7 @@ module ReactionRates =
         {
             catRacemRndParam : CatalyticRacemizationRandomParam
             racemizationModel : RacemizationModel
+            aminoAcids : list<AminoAcid>
         }
 
 
@@ -1047,8 +1047,6 @@ module ReactionRates =
             |> CatalyticSynthesisModel.create
 
         static member defaultCatSynthSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
-            let aminoAcids = AminoAcid.getAminoAcids n
-
             {
                 catSynthSimParam = 
                     {
@@ -1058,7 +1056,7 @@ module ReactionRates =
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catSynthModel = ReactionRateProvider.defaultCatSynthRndParams rnd (m, threshold, mult) |> CatalyticSynthesisRandomModel
-                aminoAcids = aminoAcids
+                aminoAcids = AminoAcid.getAminoAcids n
             }
             |> CatSynthSimParamWithModel
             |> CatalyticSynthesisModel.create
@@ -1084,8 +1082,6 @@ module ReactionRates =
             |> CatalyticDestructionModel.create
 
         static member defaultCatDestrSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
-            let aminoAcids = AminoAcid.getAminoAcids n
-
             {
                 catDestrSimParam = 
                     {
@@ -1095,7 +1091,7 @@ module ReactionRates =
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
                 catDestrModel = ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult) |> CatalyticDestructionRandomModel
-                aminoAcids = aminoAcids
+                aminoAcids = AminoAcid.getAminoAcids n
             }
             |> CatDestrSimParamWithModel
             |> CatalyticDestructionModel.create
@@ -1151,7 +1147,7 @@ module ReactionRates =
             |> RacemRndParam
             |> RacemizationModel.create
 
-        static member defaultCatRacemRndParams (rnd : Random) (m, threshold, mult) =
+        static member defaultCatRacemRndParams (rnd : Random) (m, threshold, mult) n =
             {
                 catRacemRndParam = 
                     {
@@ -1164,16 +1160,15 @@ module ReactionRates =
 
                     }
                 racemizationModel = m
+                aminoAcids = AminoAcid.getAminoAcids n
             }
 
-        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) = 
-            ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult)
+        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) n = 
+            ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) n
             |> CatRacemRndParamWithModel
             |> CatalyticRacemizationModel.create
 
         static member defaultCatRacemSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
-            let aminoAcids = AminoAcid.getAminoAcids n
-
             {
                 catRacemSimParam = 
                     {
@@ -1182,8 +1177,8 @@ module ReactionRates =
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
-                catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) |> CatalyticRacemizationRandomModel
-                aminoAcids = aminoAcids
+                catRacemModel = ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) n |> CatalyticRacemizationRandomModel
+                aminoAcids = AminoAcid.getAminoAcids n
             }
             |> CatRacemSimParamWithModel
             |> CatalyticRacemizationModel.create

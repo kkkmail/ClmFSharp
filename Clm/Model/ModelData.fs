@@ -87148,7 +87148,7 @@ module ModelData =
                             |> WasteRecyclingRateParam
 
                             {
-                                aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
+                                //aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                                 simBaseDistribution = UniformDistribution(99390125, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter
@@ -87158,7 +87158,7 @@ module ModelData =
                             |> CatalyticSynthesisRateParam
 
                             {
-                                aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
+                                //aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                                 simBaseDistribution = UniformDistribution(1691466797, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                 getForwardEeDistr = DeltaEeDistributionGetter

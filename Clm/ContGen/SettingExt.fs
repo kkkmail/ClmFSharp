@@ -42,15 +42,14 @@ module SettingExt =
         static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
             match getTextOpt m po Distribution.className with
             | Some s -> 
-                let seed = seeder()
                 let p = DistributionParams.getValue m po
 
                 match s with
-                | "Delta" -> DeltaDistribution (seed, p) |> Delta |> Some
-                | "BiDelta" -> BiDeltaDistribution (seed, p) |> BiDelta |> Some
-                | "Uniform" -> UniformDistribution (seed, p) |> Uniform |> Some
-                | "Triangular" -> TriangularDistribution (seed, p) |> Triangular |> Some
-                | "SymmetricTriangular" -> SymmetricTriangularDistribution (seed, p) |> SymmetricTriangular |> Some
+                | "Delta" -> DeltaDistribution (seeder(), p) |> Delta |> Some
+                | "BiDelta" -> BiDeltaDistribution (seeder(), p) |> BiDelta |> Some
+                | "Uniform" -> UniformDistribution (seeder(), p) |> Uniform |> Some
+                | "Triangular" -> TriangularDistribution (seeder(), p) |> Triangular |> Some
+                | "SymmetricTriangular" -> SymmetricTriangularDistribution (seeder(), p) |> SymmetricTriangular |> Some
                 | _ -> None
             | None -> None
 
@@ -158,6 +157,22 @@ module SettingExt =
             | None -> None
 
 
+    type SynthesisParam
+        with
+        static member className = "SynthesisParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po SynthesisParam.className with
+            | Some s -> 
+                match s with
+                | "SynthRndParam" -> 
+                    addParent po "SynthRndParam" 
+                    |> SynthesisRandomParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> SynthRndParam |> Some)
+                | _ -> None
+            | None -> None
+
+
     type CatalyticSynthesisRandomParam
         with
         static member catSynthRndEeParamsName = "catSynthRndEeParams"
@@ -172,10 +187,186 @@ module SettingExt =
             | None -> None
 
 
-    //type CatRatesSimilarityParam =
+    type RateMultiplierDistributionGetter
+        with
+        static member className = "RateMultiplierDistributionGetter"
+
+        static member tryGet (m : SystemSettingMap) po =
+            match getTextOpt m po RateMultiplierDistributionGetter.className with
+            | Some s -> 
+                match s with
+                | "NoneRateMultDistrGetter" -> NoneRateMultDistrGetter |> Some
+                | "DeltaRateMultDistrGetter" -> DeltaRateMultDistrGetter |> Some
+                | "TriangularRateMultDistrGetter" -> TriangularRateMultDistrGetter |> Some
+                | "SymmetricTriangularRateMultDistrGetter" -> SymmetricTriangularRateMultDistrGetter |> Some
+                | _ -> None
+            | None -> None
+
+
+    type EeDistributionGetter 
+        with
+        static member className = "EeDistributionGetter"
+
+        static member tryGet (m : SystemSettingMap) po =
+            match getTextOpt m po EeDistributionGetter.className with
+            | Some s -> 
+                match s with
+                | "NoneEeGetter" -> NoneEeGetter |> Some
+                | "DeltaEeDistributionGetter" -> DeltaEeDistributionGetter |> Some
+                | "CenteredEeDistributionGetter" -> CenteredEeDistributionGetter |> Some
+                | _ -> None
+            | None -> None
+
+
+    type CatRatesSimilarityParam
+        with
+        static member simBaseDistributionName = "simBaseDistribution"
+        static member getRateMultiplierDistrName = "getRateMultiplierDistr"
+        static member getForwardEeDistrName = "getForwardEeDistr"
+        static member getBackwardEeDistrName = "getBackwardEeDistr"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po = 
+            let d() = addParent po CatRatesSimilarityParam.simBaseDistributionName |> Distribution.tryGet m seeder
+            let r() = addParent po CatRatesSimilarityParam.getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
+            let f() = addParent po CatRatesSimilarityParam.getForwardEeDistrName |> EeDistributionGetter.tryGet m
+            let b() = addParent po CatRatesSimilarityParam.getBackwardEeDistrName |> EeDistributionGetter.tryGet m
+
+            match d(), r(), f(), b() with
+            | Some d1, Some r1, Some f1, Some b1 ->
+                {
+                    simBaseDistribution = d1
+                    getRateMultiplierDistr = r1
+                    getForwardEeDistr = f1
+                    getBackwardEeDistr = b1
+                }
+                |> Some
+            | _ -> None
+
+
+    type CatalyticSynthesisParam
+        with
+        static member className = "CatalyticSynthesisParam"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po CatalyticSynthesisParam.className with
+            | Some s -> 
+                match s with
+                | "CatSynthRndParam" -> 
+                    addParent po "CatSynthRndParam" 
+                    |> CatalyticSynthesisRandomParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatSynthRndParam |> Some)
+                | "CatSynthSimParam" -> 
+                    addParent po "CatSynthSimParam" 
+                    |> CatRatesSimilarityParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatSynthSimParam |> Some)
+                | _ -> None
+            | None -> None
+
+
+    //type DestructionRandomParam = 
     //    {
-    //        simBaseDistribution : Distribution
-    //        getRateMultiplierDistr : RateMultiplierDistributionGetter
-    //        getForwardEeDistr : EeDistributionGetter
-    //        getBackwardEeDistr : EeDistributionGetter
+    //        destructionDistribution : Distribution
+    //        forwardScale : double option
+    //        backwardScale : double option
     //    }
+
+
+    //type DestructionParam = 
+    //    | DestrRndParam of DestructionRandomParam
+
+
+    //type CatalyticDestructionRandomParam = 
+    //    {
+    //        catDestrRndEeParams : CatRatesEeParam
+    //    }
+
+
+    //type CatalyticDestructionParam = 
+    //    | CatDestrRndParam of CatalyticDestructionRandomParam
+    //    | CatDestrSimParam of CatRatesSimilarityParam
+
+    //type SedimentationDirectRandomParam = 
+    //    {
+    //        sedimentationDirectDistribution : Distribution
+    //        forwardScale : double option
+    //    }
+
+
+    //type SedimentationDirectParam = 
+    //    | SedDirRndParam of SedimentationDirectRandomParam
+
+    //type SedimentationAllRandomParam = 
+    //    {
+    //        sedimentationAllDistribution : Distribution
+    //        forwardScale : double option
+    //    }
+
+
+    //type SedimentationAllParam = 
+    //    | SedAllRndParam of SedimentationAllRandomParam
+
+
+    //type LigationRandomParam = 
+    //    {
+    //        ligationDistribution : Distribution
+    //        forwardScale : double option
+    //        backwardScale : double option
+    //    }
+
+
+    //type LigationParam = 
+    //    | LigRndParam of LigationRandomParam
+
+    //type CatalyticLigationRandomParam = 
+    //    {
+    //        catLigRndEeParams : CatRatesEeParam
+    //    }
+
+
+    //type CatalyticLigationParam = 
+    //    | CatLigRndParam of CatalyticLigationRandomParam
+
+    //type RacemizationRandomParam = 
+    //    {
+    //        racemizationDistribution : Distribution
+    //        forwardScale : double option
+    //    }
+
+
+    //type RacemizationParam = 
+    //    | RacemRndParam of RacemizationRandomParam
+
+    //type CatalyticRacemizationRandomParam = 
+    //    {
+    //        catRacemRndEeParams : CatRatesEeParam
+    //    }
+
+
+    //type CatalyticRacemizationSimilarParam =
+    //    {
+    //        simRacemDistribution : Distribution
+    //        aminoAcids : list<AminoAcid>
+    //    }
+
+
+    //type CatalyticRacemizationParam = 
+    //    | CatRacemRndParam of CatalyticRacemizationRandomParam
+    //    | CatRacemSimParam of CatRatesSimilarityParam
+
+
+    //type ReactionRateModelParam = 
+    //    | FoodCreationRateParam of FoodCreationParam
+    //    | WasteRemovalRateParam of WasteRemovalParam
+    //    | WasteRecyclingRateParam of WasteRecyclingParam
+    //    | SynthesisRateParam of SynthesisParam
+    //    | DestructionRateParam of DestructionParam
+    //    | CatalyticSynthesisRateParam of CatalyticSynthesisParam
+    //    | CatalyticDestructionRateParam of CatalyticDestructionParam
+    //    | LigationRateParam of LigationParam
+    //    | CatalyticLigationRateParam of CatalyticLigationParam
+    //    | SedimentationDirectRateParam of SedimentationDirectParam
+    //    | SedimentationAllRateParam of SedimentationAllParam
+    //    | RacemizationRateParam of RacemizationParam
+    //    | CatalyticRacemizationRateParam of CatalyticRacemizationParam
+
+

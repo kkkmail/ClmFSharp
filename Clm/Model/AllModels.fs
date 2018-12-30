@@ -73,7 +73,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1868873990, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -83,7 +82,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1323386060, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -173,7 +171,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1086495220, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -183,7 +180,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1077894528, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -273,7 +269,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1579610761, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -283,7 +278,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.SevenAminoAcids
                             simBaseDistribution = UniformDistribution(1617167837, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -373,7 +367,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(299503970, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -383,7 +376,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(1211517322, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -473,7 +465,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(91537954, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -483,7 +474,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(1503993738, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -573,7 +563,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(441227815, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -583,7 +572,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(258585997, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -673,7 +661,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(551824354, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -683,7 +670,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(937158627, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -773,7 +759,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(469334260, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -783,7 +768,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(1679171839, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -873,7 +857,6 @@ module AllModels =
                         |> WasteRecyclingRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(99390125, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter
@@ -883,7 +866,6 @@ module AllModels =
                         |> CatalyticSynthesisRateParam
 
                         {
-                            aminoAcids = AminoAcid.getAminoAcids NumberOfAminoAcids.EightAminoAcids
                             simBaseDistribution = UniformDistribution(1691466797, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                             getRateMultiplierDistr = DeltaRateMultDistrGetter
                             getForwardEeDistr = DeltaEeDistributionGetter

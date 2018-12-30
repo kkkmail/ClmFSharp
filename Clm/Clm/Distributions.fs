@@ -204,13 +204,18 @@ module Distributions =
             | Triangular d -> d.distributionParams
             | SymmetricTriangular d -> d.distributionParams
 
+
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
         | EeDistribution of Distribution
 
-        member eed.nextDouble() : double = 
+        member eed.nextDouble() = 
             let (EeDistribution d) = eed
             max (min (d.nextDouble()) 1.0) (-1.0)
+
+        member eed.name =
+            match eed with
+            | EeDistribution _ -> "EeDistribution"
 
         static member createSymmetricTriangular (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
@@ -272,6 +277,11 @@ module Distributions =
             match this with 
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
+
+        member this.name =
+            match this with 
+            | NoneRateMult -> "NoneRateMult"
+            | RateMultDistr _ -> "RateMultDistr"
 
         static member createNone = NoneRateMult
 

@@ -40,7 +40,7 @@ module SettingsExt =
                 shift = getDoubleOpt m po DistributionParams.shiftName
             }
 
-        member this.setValue po s = 
+        member this.setValue s po = 
             [
                 setDoubleOpt po DistributionParams.thresholdName this.threshold
                 setDoubleOpt po DistributionParams.scaleName this.scale
@@ -57,27 +57,28 @@ module SettingsExt =
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po Distribution.className with
             | Some s ->
-                let p = DistributionParams.getValue m po
-
                 match s with
-                | "Delta" -> DeltaDistribution (seeder(), p) |> Delta |> Some
-                | "BiDelta" -> BiDeltaDistribution (seeder(), p) |> BiDelta |> Some
-                | "Uniform" -> UniformDistribution (seeder(), p) |> Uniform |> Some
-                | "Triangular" -> TriangularDistribution (seeder(), p) |> Triangular |> Some
-                | "SymmetricTriangular" -> SymmetricTriangularDistribution (seeder(), p) |> SymmetricTriangular |> Some
+                | "Delta" -> 
+                    let p = DistributionParams.getValue m (addParent po "Delta")
+                    DeltaDistribution (seeder(), p) |> Delta |> Some
+                | "BiDelta" -> 
+                    let p = DistributionParams.getValue m (addParent po "BiDelta")
+                    BiDeltaDistribution (seeder(), p) |> BiDelta |> Some
+                | "Uniform" -> 
+                    let p = DistributionParams.getValue m (addParent po "Uniform")
+                    UniformDistribution (seeder(), p) |> Uniform |> Some
+                | "Triangular" -> 
+                    let p = DistributionParams.getValue m (addParent po "Triangular")
+                    TriangularDistribution (seeder(), p) |> Triangular |> Some
+                | "SymmetricTriangular" -> 
+                    let p = DistributionParams.getValue m (addParent po "SymmetricTriangular")
+                    SymmetricTriangularDistribution (seeder(), p) |> SymmetricTriangular |> Some
                 | _ -> None
             | None -> None
 
-        member this.setValue po s =
-            let x = this
-            [
-                setText po Distribution.className this.name
-                //setDoubleOpt po DistributionParams.thresholdName this.threshold
-                //setDoubleOpt po DistributionParams.scaleName this.scale
-                //setDoubleOpt po DistributionParams.shiftName this.shift
-            ]
-            //|> List.choose id
-            |> add s
+        member this.setValue s po =
+            this.distributionParams.setValue s (addParent po this.name)
+            |> add [ setText po Distribution.className this.name ]
 
 
     type RateMultiplierDistribution
@@ -89,14 +90,39 @@ module SettingsExt =
             | Some s ->
                 match s with
                 | "NoneRateMult" -> NoneRateMult |> Some
-                | "RateMultDistr" -> Distribution.tryGet m seeder po |> Option.bind (fun d -> RateMultDistr d |> Some)
+                | "RateMultDistr" -> 
+                    addParent po "RateMultDistr"
+                    |> Distribution.tryGet m seeder
+                    |> Option.bind (fun d -> RateMultDistr d |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue s po =
+            match this with
+            | NoneRateMult -> s
+            | RateMultDistr d -> d.setValue s (addParent po this.name)
+            |> add [ setText po RateMultiplierDistribution.className this.name ]
 
-    type EeDistribution with
+
+    type EeDistribution
+        with
+        static member className = "EeDistribution"
+
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            Distribution.tryGet m seeder po |> Option.bind (fun d -> EeDistribution d |> Some)
+            match getTextOpt m po EeDistribution.className with
+            | Some s ->
+                match s with
+                | "EeDistribution" ->
+                    addParent po "EeDistribution"
+                    |> Distribution.tryGet m seeder
+                    |> Option.bind (fun d -> EeDistribution d |> Some)
+                | _ -> None
+            | None -> None
+
+        member this.setValue s po =
+            match this with
+            | EeDistribution d -> d.setValue s (addParent po this.name)
+            |> add [ setText po EeDistribution.className this.name ]
 
 
     type CatRatesEeParam

@@ -7,49 +7,59 @@ open DatabaseTypes
 module SettingExt = 
 
     let tryFindByName (m : SystemSettingMap) n = m.TryFind n |> Option.bind (fun v -> v.TryFind 0L)
+    let tryFindByNameOpt (m : SystemSettingMap) no = no |> Option.bind (fun n -> tryFindByName m n)
 
 
     let getFullName c n = c + SystemSetting.separator + n
 
 
-    let getNameWithParent po c n = 
-        let parent = 
-            match po with 
-            | Some p -> p + SystemSetting.separator
-            | None -> EmptyString
-
-        parent + (getFullName c n)
+    let addParent (po : string option) (np : string) = 
+        match po with
+        | Some p -> p + np |> Some
+        | None -> Some np
 
 
-    let getClassNameWithParent po c = 
-        let parent = 
-            match po with 
-            | Some p -> p + SystemSetting.separator
-            | None -> EmptyString
+    //let getNameWithParent po c n = 
+    //    let parent = 
+    //        match po with 
+    //        | Some p -> p + SystemSetting.separator
+    //        | None -> EmptyString
 
-        parent + c
+    //    parent + (getFullName c n)
 
 
-    let getDoubleOpt (m : SystemSettingMap) po c n = 
-        getNameWithParent po c n 
-        |> tryFindByName m
+    //let getClassNameWithParent po c = 
+    //    let parent = 
+    //        match po with 
+    //        | Some p -> p + SystemSetting.separator
+    //        | None -> EmptyString
+
+    //    parent + c
+
+
+    let getDoubleOpt (m : SystemSettingMap) po n = 
+        addParent po n
+        |> tryFindByNameOpt m
         |> Option.bind (fun v -> v.settingFloat |> Some)
+
+
+    let getTextOpt (m : SystemSettingMap) po n = 
+        addParent po n
+        |> tryFindByNameOpt m
+        |> Option.bind (fun v -> v.settingText)
 
 
     type DistributionParams
         with
-
-        static member className = "DistributionParams"
-
         static member thresholdName = "threshold"
         static member scaleName = "scale"
         static member shiftName = "shift"
 
         static member getValue (m : SystemSettingMap) po = 
             {
-                threshold = getDoubleOpt m po DistributionParams.className DistributionParams.thresholdName
-                scale = getDoubleOpt m po DistributionParams.className DistributionParams.scaleName
-                shift = getDoubleOpt m po DistributionParams.className DistributionParams.shiftName
+                threshold = getDoubleOpt m po DistributionParams.thresholdName
+                scale = getDoubleOpt m po DistributionParams.scaleName
+                shift = getDoubleOpt m po DistributionParams.shiftName
             }
 
 
@@ -57,51 +67,57 @@ module SettingExt =
         with
         static member className = "Distribution"
 
-        static member tryGet (m : SystemSettingMap) po =
-            match getClassNameWithParent po Distribution.className |> tryFindByName m with 
-            | Some v -> 
-                match v.settingText with 
-                | Some s -> 
-                    match s with
-                    | "Delta" -> (fun s p -> DeltaDistribution (s, p) |> Delta) |> Some
-                    | "BiDelta" -> (fun s p -> BiDeltaDistribution (s, p) |> BiDelta) |> Some
-                    | "Uniform" -> (fun s p -> UniformDistribution (s, p) |> Uniform) |> Some
-                    | "Triangular" -> (fun s p -> TriangularDistribution (s, p) |> Triangular) |> Some
-                    | "SymmetricTriangular" -> (fun s p -> SymmetricTriangularDistribution (s, p) |> SymmetricTriangular) |> Some
-                    | _ -> None
-                | None -> None
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po Distribution.className with
+            | Some s -> 
+                let seed = seeder()
+                let p = DistributionParams.getValue m po
+
+                match s with
+                | "Delta" -> DeltaDistribution (seed, p) |> Delta |> Some
+                | "BiDelta" -> BiDeltaDistribution (seed, p) |> BiDelta |> Some
+                | "Uniform" -> UniformDistribution (seed, p) |> Uniform |> Some
+                | "Triangular" -> TriangularDistribution (seed, p) |> Triangular |> Some
+                | "SymmetricTriangular" -> SymmetricTriangularDistribution (seed, p) |> SymmetricTriangular |> Some
+                | _ -> None
             | None -> None
 
-    //type RateMultiplierDistribution = 
-    //    | NoneRateMult
-    //    | RateMultDistr of Distribution
+
+    type RateMultiplierDistribution
+        with
+        static member className = "RateMultiplierDistribution"
+
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po RateMultiplierDistribution.className with
+            | Some s ->
+                match s with
+                | "NoneRateMult" -> NoneRateMult |> Some
+                | "RateMultDistr" -> Distribution.tryGet m seeder po |> Option.bind (fun d -> RateMultDistr d |> Some)
+                | _ -> None
+            | None -> None
 
 
-    //type CatRatesEeParam = 
-    //    {
-    //        rateMultiplierDistr : RateMultiplierDistribution
-    //        eeForwardDistribution : EeDistribution option
-    //        eeBackwardDistribution : EeDistribution option
-    //    }
+    type EeDistribution with
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            Distribution.tryGet m seeder po |> Option.bind (fun d -> EeDistribution d |> Some)
+
 
     type CatRatesEeParam
-        with 
-        static member className = "CatRatesEeParam"
+        with
+        static member rateMultiplierDistrName = "rateMultiplierDistr"
+        static member eeForwardDistributionName = "eeForwardDistribution"
+        static member eeBackwardDistributionName = "eeBackwardDistribution"
 
-        static member tryGet (m : SystemSettingMap) po = failwith ""
-            //match getClassNameWithParent po Distribution.className |> tryFindByName m with 
-            //| Some v -> 
-            //    match v.settingText with 
-            //    | Some s -> 
-            //        match s with
-            //        | "Delta" -> (fun s p -> DeltaDistribution (s, p) |> Delta) |> Some
-            //        | "BiDelta" -> (fun s p -> BiDeltaDistribution (s, p) |> BiDelta) |> Some
-            //        | "Uniform" -> (fun s p -> UniformDistribution (s, p) |> Uniform) |> Some
-            //        | "Triangular" -> (fun s p -> TriangularDistribution (s, p) |> Triangular) |> Some
-            //        | "SymmetricTriangular" -> (fun s p -> SymmetricTriangularDistribution (s, p) |> SymmetricTriangular) |> Some
-            //        | _ -> None
-            //    | None -> None
-            //| None -> None
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) po =
+            match addParent po CatRatesEeParam.rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m seeder with
+            | Some r ->
+                {
+                    rateMultiplierDistr = r
+                    eeForwardDistribution = addParent po CatRatesEeParam.eeForwardDistributionName |> EeDistribution.tryGet m seeder
+                    eeBackwardDistribution= addParent po CatRatesEeParam.eeBackwardDistributionName |> EeDistribution.tryGet m seeder
+                }
+                |> Some
+            | None -> None
 
 
     type FoodCreationParam
@@ -161,14 +177,15 @@ module SettingExt =
         static member forwardScaleName = "forwardScale"
         static member backwardScaleName = "backwardScale"
 
-        static member tryGet (m : SystemSettingMap) seed = 
+        static member tryGet (m : SystemSettingMap) (seeder : unit -> int) = 
             let po = (Some SynthesisRandomParam.className)
+            let pdo = addParent po SynthesisRandomParam.synthesisDistributionName
             let getDoubleOpt = getDoubleOpt m po SynthesisRandomParam.className
 
-            match Distribution.tryGet m po with
+            match Distribution.tryGet m pdo with
             | Some d ->
                 {
-                    synthesisDistribution = d seed (DistributionParams.getValue m po)
+                    synthesisDistribution = d (seeder()) (DistributionParams.getValue m pdo)
                     forwardScale = getDoubleOpt SynthesisRandomParam.forwardScaleName
                     backwardScale = getDoubleOpt SynthesisRandomParam.backwardScaleName
                 }

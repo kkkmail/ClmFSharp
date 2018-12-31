@@ -667,6 +667,11 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.racemizationDistribution.setValue (addParent po racemizationDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+
 
     type RacemizationParam
         with
@@ -680,6 +685,11 @@ module SettingsExt =
                     |> Option.bind (fun e -> e |> RacemRndParam |> Some)
                 | _ -> None
             | None -> None
+
+        member this.setValue po s =
+            match this with
+            | RacemRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po RacemizationParamName this.name ]
 
 
     [<Literal>]
@@ -696,6 +706,10 @@ module SettingsExt =
                 }
                 |> Some
             | None -> None
+
+        member this.setValue po s =
+            s
+            |> this.catRacemRndEeParams.setValue (addParent po catRacemRndEeParamsName)
 
 
     type CatalyticRacemizationParam
@@ -714,6 +728,12 @@ module SettingsExt =
                     |> Option.bind (fun e -> e |> CatRacemSimParam |> Some)
                 | _ -> None
             | None -> None
+
+        member this.setValue po s =
+            match this with
+            | CatRacemRndParam d -> d.setValue (addParent po this.name) s
+            | CatRacemSimParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po CatalyticRacemizationParamName this.name ]
 
 
     //type ReactionRateModelParam = 

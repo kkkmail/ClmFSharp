@@ -17,9 +17,9 @@ module SettingsExt =
         | None -> b
 
 
-    let setDouble p n v = { Setting.defaultValue with settingPath = addParent p n; settingFloat = v }
-    let setText p n v = { Setting.defaultValue with settingPath = addParent p n; settingText = Some v }
-    let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue with settingPath = addParent p n; settingFloat = v } |> Some)
+    let setDouble p n v = { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v }
+    let setText p n v = { Setting.defaultValue() with settingPath = addParent p n; settingText = Some v }
+    let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v } |> Some)
 
     let addDoubleOpt p n vo s = 
         match setDoubleOpt p n vo with

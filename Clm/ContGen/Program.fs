@@ -14,7 +14,10 @@ open System.Data.SqlClient
 let main argv = 
     printfn "%A" argv
 
-    let rnd = new Random()
+    let seed = (new Random()).Next()
+    let rnd = new Random(seed)
+    let rnd1 = new Random(seed)
+
     let rates = ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
     let settings = rates |> List.fold (fun acc e -> e.inputParams.setValue [ (e.inputParams.name, 0) ] acc) []
 
@@ -23,5 +26,14 @@ let main argv =
     settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
     let inserted = settingTable.Update(conn)
     printfn "inserted = %A" inserted
+
+    let m = loadSettings ClmConnectionString
+
+    let loaded = 
+        ReactionRateModelParam.allNames
+        |> List.map (fun e -> ReactionRateModelParam.tryGet m rnd1.Next [ (e, 0) ] )
+        |> List.choose id
+
+    printfn "loaded.Length = %A" (loaded.Length)
 
     0

@@ -23,7 +23,7 @@ module DatabaseTypes =
 
     type Setting = 
         {
-            settingId : int64
+            settingId : Guid option
             settingPath : list<string * int>
             settingBit : bool
             settingLong : int64
@@ -37,7 +37,7 @@ module DatabaseTypes =
 
         static member create (r : SettingTableRow) = 
             {
-                settingId = r.settingId
+                settingId = Some r.settingId
                 settingPath =
                     match r.settingField1 with | EmptyString -> [] | s -> [ s, r.settingOrderId1 ]
                     @ match r.settingField2 with | EmptyString -> [] | s -> [ s, r.settingOrderId2 ]
@@ -58,10 +58,10 @@ module DatabaseTypes =
                 settingGUID = r.settingGUID
             }
 
-        static member defaultValue = 
+        static member defaultValue() = 
             {
-                settingId = 0L
-                settingPath  = []
+                settingId = Guid.NewGuid() |> Some
+                settingPath = []
                 settingBit = false
                 settingLong = 0L
                 settingMoney = 0m

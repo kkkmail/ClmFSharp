@@ -1057,6 +1057,23 @@ module ReactionRates =
             | RacemizationRateParam _ -> RacemizationRateParamName
             | CatalyticRacemizationRateParam _ -> CatalyticRacemizationRateParamName
 
+        static member allNames = 
+            [
+                FoodCreationRateParamName
+                WasteRemovalRateParamName
+                WasteRecyclingRateParamName
+                SynthesisRateParamName
+                DestructionRateParamName
+                CatalyticSynthesisRateParamName
+                CatalyticDestructionRateParamName
+                LigationRateParamName
+                CatalyticLigationRateParamName
+                SedimentationDirectRateParamName
+                SedimentationAllRateParamName
+                RacemizationRateParamName
+                CatalyticRacemizationRateParamName
+            ]
+
 
     type ReactionRateModel = 
         | FoodCreationRateModel of FoodCreationModel

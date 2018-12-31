@@ -1427,20 +1427,20 @@ module ReactionRates =
                     //wasteModel |> WasteRemovalRateModel
                     wasteRecyclingModel |> WasteRecyclingRateModel
 
-                    synthModel |> SynthesisRateModel
-                    catSynthModel |> CatalyticSynthesisRateModel
+                    //synthModel |> SynthesisRateModel
+                    //catSynthModel |> CatalyticSynthesisRateModel
 
-                    destrModel |> DestructionRateModel
-                    catDestrModel |> CatalyticDestructionRateModel
+                    //destrModel |> DestructionRateModel
+                    //catDestrModel |> CatalyticDestructionRateModel
 
-                    ligModel |> LigationRateModel
-                    //catLigModel |> CatalyticLigationRateModel
+                    //ligModel |> LigationRateModel
+                    ////catLigModel |> CatalyticLigationRateModel
 
-                    sedDirModel |> SedimentationDirectRateModel
-                    //sedAllModel |> SedimentationAllRateModel
+                    //sedDirModel |> SedimentationDirectRateModel
+                    ////sedAllModel |> SedimentationAllRateModel
 
-                    //racemModel |> RacemizationRateModel
-                    //catRacemModel |> CatalyticRacemizationRateModel
+                    ////racemModel |> RacemizationRateModel
+                    ////catRacemModel |> CatalyticRacemizationRateModel
                 ]
             //===========================================================
 

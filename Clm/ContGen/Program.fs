@@ -18,10 +18,18 @@ let main argv =
     let rnd = new Random(seed)
     let rnd1 = new Random(seed)
 
-    let rates = ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
-    let settings = rates |> List.fold (fun acc e -> e.inputParams.setValue [ (e.inputParams.name, 0) ] acc) []
+    let rates = 
+        ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
+        |> List.map (fun e -> e.inputParams)
+
+    let settings = rates |> List.fold (fun acc e -> e.setValue [ (e.name, 0) ] acc) []
 
     use conn = new SqlConnection(ClmConnectionString)
+    openConnIfClosed conn
+
+    use truncateSettingTbl = new TruncateSettingTbl(conn)
+    truncateSettingTbl.Execute() |> ignore
+
     let settingTable = new SettingTable()
     settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
     let inserted = settingTable.Update(conn)

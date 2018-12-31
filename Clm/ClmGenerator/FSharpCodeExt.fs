@@ -217,9 +217,8 @@ module FSharpCodeExt =
     type CatRatesSimilarityParam
         with
 
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+        member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                aminoAcids = " + aminoAcidsCode + Nl +
             shift + "                simBaseDistribution = " + p.simBaseDistribution.toFSharpCode + Nl +
             shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
             shift + "                getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
@@ -230,10 +229,10 @@ module FSharpCodeExt =
     type CatalyticSynthesisParam
         with 
 
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+        member p.toFSharpCode (shift : string) = 
             match p with 
             | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthRndParam" + Nl)
-            | CatSynthSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatSynthSimParam" + Nl)
+            | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthSimParam" + Nl)
 
 
     type DestructionRandomParam
@@ -267,10 +266,10 @@ module FSharpCodeExt =
     type CatalyticDestructionParam
         with 
 
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+        member p.toFSharpCode (shift : string) = 
             match p with 
             | CatDestrRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatDestrRndParam" + Nl)
-            | CatDestrSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatDestrSimParam" + Nl)
+            | CatDestrSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatDestrSimParam" + Nl)
 
 
     type SedimentationDirectRandomParam
@@ -375,10 +374,10 @@ module FSharpCodeExt =
     type CatalyticRacemizationParam
         with 
 
-        member p.toFSharpCode (shift : string) (aminoAcidsCode : string) = 
+        member p.toFSharpCode (shift : string) = 
             match p with 
             | CatRacemRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatRacemRndParam" + Nl)
-            | CatRacemSimParam q -> (q.toFSharpCode shift aminoAcidsCode) + (shift + "            |> " + "CatRacemSimParam" + Nl)
+            | CatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatRacemSimParam" + Nl)
 
 
     type FSharpCodeParams = 
@@ -398,14 +397,14 @@ module FSharpCodeExt =
             | WasteRecyclingRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRecyclingRateParam" + Nl
             | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
             | DestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> DestructionRateParam" + Nl
-            | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl
-            | CatalyticDestructionRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticDestructionRateParam" + Nl
+            | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl
+            | CatalyticDestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticDestructionRateParam" + Nl
             | LigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> LigationRateParam" + Nl
             | CatalyticLigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticLigationRateParam" + Nl
             | SedimentationDirectRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationDirectRateParam" + Nl
             | SedimentationAllRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationAllRateParam" + Nl
             | RacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> RacemizationRateParam" + Nl
-            | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift p.aminoAcidsCode) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
+            | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
 
 
     type ReactionRateProvider

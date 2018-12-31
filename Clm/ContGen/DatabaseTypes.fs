@@ -20,6 +20,8 @@ module DatabaseTypes =
     type SettingTableRow = SettingTable.Row
     type SettingTableData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
 
+    type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
+
 
     type Setting = 
         {

@@ -354,7 +354,7 @@ module SettingsExt =
         member this.setValue po s =
             match this with
             | SynthRndParam d -> d.setValue (addParent po this.name) s
-            |> add [ setText po SynthRndParamName this.name ]
+            |> add [ setText po SynthesisParamName this.name ]
 
 
     [<Literal>]
@@ -441,7 +441,7 @@ module SettingsExt =
         member this.setValue po s =
             match this with
             | DestrRndParam d -> d.setValue (addParent po this.name) s
-            |> add [ setText po DestrRndParamName this.name ]
+            |> add [ setText po DestructionParamName this.name ]
 
 
     [<Literal>]
@@ -600,7 +600,7 @@ module SettingsExt =
             match getTextOpt m po LigationParamName with
             | Some s -> 
                 match s with
-                | LigRndParamName -> 
+                | LigRndParamName ->
                     addParent po LigRndParamName
                     |> LigationRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> LigRndParam |> Some)

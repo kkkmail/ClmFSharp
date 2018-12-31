@@ -3,10 +3,9 @@
 open System.Data
 open System.Data.SqlClient
 open FSharp.Data
-open Microsoft.SqlServer.Types
+//open Microsoft.SqlServer.Types
 
 open Configuration
-open DynamicSql
 
 module DatabaseTypes = 
     open System

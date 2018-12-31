@@ -255,7 +255,7 @@ module SettingsExt =
 
     type FoodCreationParam
         with
-        static member tryGet (m : SettingMap) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match getDoubleOpt m po foodCreationRateName with
             | Some v ->
                 {
@@ -275,7 +275,7 @@ module SettingsExt =
 
     type WasteRemovalParam
         with
-        static member tryGet (m : SettingMap) po = 
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
             match getDoubleOpt m po wasteRemovalRateName with
             | Some v -> 
                 {
@@ -294,7 +294,7 @@ module SettingsExt =
 
     type WasteRecyclingParam
         with
-        static member tryGet (m : SettingMap) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getDoubleOpt m po wasteRecyclingRateName with
             | Some v -> 
                 {
@@ -718,13 +718,13 @@ module SettingsExt =
             match getTextOpt m po CatalyticRacemizationParamName with
             | Some s -> 
                 match s with
-                | CatRacemRndParamName -> 
+                | CatRacemRndParamName ->
                     addParent po CatRacemRndParamName 
                     |> CatalyticRacemizationRandomParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatRacemRndParam |> Some)
-                | CatRacemSimParamName -> 
-                    addParent po CatRacemSimParamName 
-                    |> CatRatesSimilarityParam.tryGet m seeder 
+                | CatRacemSimParamName ->
+                    addParent po CatRacemSimParamName
+                    |> CatRatesSimilarityParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> CatRacemSimParam |> Some)
                 | _ -> None
             | None -> None
@@ -736,17 +736,81 @@ module SettingsExt =
             |> add [ setText po CatalyticRacemizationParamName this.name ]
 
 
-    //type ReactionRateModelParam = 
-    //    | FoodCreationRateParam of FoodCreationParam
-    //    | WasteRemovalRateParam of WasteRemovalParam
-    //    | WasteRecyclingRateParam of WasteRecyclingParam
-    //    | SynthesisRateParam of SynthesisParam
-    //    | DestructionRateParam of DestructionParam
-    //    | CatalyticSynthesisRateParam of CatalyticSynthesisParam
-    //    | CatalyticDestructionRateParam of CatalyticDestructionParam
-    //    | LigationRateParam of LigationParam
-    //    | CatalyticLigationRateParam of CatalyticLigationParam
-    //    | SedimentationDirectRateParam of SedimentationDirectParam
-    //    | SedimentationAllRateParam of SedimentationAllParam
-    //    | RacemizationRateParam of RacemizationParam
-    //    | CatalyticRacemizationRateParam of CatalyticRacemizationParam
+    // Generated. See ReactonRateModelParamGenerator.xlsx
+    type ReactionRateModelParam
+        with
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po ReactionRateModelParamName with
+            | Some s -> 
+                match s with
+                | FoodCreationRateParamName ->
+                    addParent po FoodCreationRateParamName 
+                    |> FoodCreationParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> FoodCreationRateParam |> Some)
+                | WasteRemovalRateParamName ->
+                    addParent po WasteRemovalRateParamName 
+                    |> WasteRemovalParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> WasteRemovalRateParam |> Some)
+                | WasteRecyclingRateParamName ->
+                    addParent po WasteRecyclingRateParamName 
+                    |> WasteRecyclingParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> WasteRecyclingRateParam |> Some)
+                | SynthesisRateParamName ->
+                    addParent po SynthesisRateParamName 
+                    |> SynthesisParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> SynthesisRateParam |> Some)
+                | DestructionRateParamName ->
+                    addParent po DestructionRateParamName 
+                    |> DestructionParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> DestructionRateParam |> Some)
+                | CatalyticSynthesisRateParamName ->
+                    addParent po CatalyticSynthesisRateParamName 
+                    |> CatalyticSynthesisParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatalyticSynthesisRateParam |> Some)
+                | CatalyticDestructionRateParamName ->
+                    addParent po CatalyticDestructionRateParamName 
+                    |> CatalyticDestructionParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatalyticDestructionRateParam |> Some)
+                | LigationRateParamName ->
+                    addParent po LigationRateParamName 
+                    |> LigationParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> LigationRateParam |> Some)
+                | CatalyticLigationRateParamName ->
+                    addParent po CatalyticLigationRateParamName 
+                    |> CatalyticLigationParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatalyticLigationRateParam |> Some)
+                | SedimentationDirectRateParamName ->
+                    addParent po SedimentationDirectRateParamName 
+                    |> SedimentationDirectParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> SedimentationDirectRateParam |> Some)
+                | SedimentationAllRateParamName ->
+                    addParent po SedimentationAllRateParamName 
+                    |> SedimentationAllParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> SedimentationAllRateParam |> Some)
+                | RacemizationRateParamName ->
+                    addParent po RacemizationRateParamName 
+                    |> RacemizationParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> RacemizationRateParam |> Some)
+                | CatalyticRacemizationRateParamName ->
+                    addParent po CatalyticRacemizationRateParamName 
+                    |> CatalyticRacemizationParam.tryGet m seeder 
+                    |> Option.bind (fun e -> e |> CatalyticRacemizationRateParam |> Some)
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            match this with
+            | FoodCreationRateParam d -> d.setValue (addParent po this.name) s
+            | WasteRemovalRateParam d -> d.setValue (addParent po this.name) s
+            | WasteRecyclingRateParam d -> d.setValue (addParent po this.name) s
+            | SynthesisRateParam d -> d.setValue (addParent po this.name) s
+            | DestructionRateParam d -> d.setValue (addParent po this.name) s
+            | CatalyticSynthesisRateParam d -> d.setValue (addParent po this.name) s
+            | CatalyticDestructionRateParam d -> d.setValue (addParent po this.name) s
+            | LigationRateParam d -> d.setValue (addParent po this.name) s
+            | CatalyticLigationRateParam d -> d.setValue (addParent po this.name) s
+            | SedimentationDirectRateParam d -> d.setValue (addParent po this.name) s
+            | SedimentationAllRateParam d -> d.setValue (addParent po this.name) s
+            | RacemizationRateParam d -> d.setValue (addParent po this.name) s
+            | CatalyticRacemizationRateParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po CatalyticRacemizationParamName this.name ]

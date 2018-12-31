@@ -983,6 +983,49 @@ module ReactionRates =
             | CatRacemSimParamWithModel q -> CatalyticRacemizationSimilarModel q |> CatRacemSimModel
 
 
+    [<Literal>]
+    let ReactionRateModelParamName = "ReactionRateModelParam"
+
+    [<Literal>]
+    let FoodCreationRateParamName = "FoodCreationRateParam"
+
+    [<Literal>]
+    let WasteRemovalRateParamName = "WasteRemovalRateParam"
+
+    [<Literal>]
+    let WasteRecyclingRateParamName = "WasteRecyclingRateParam"
+
+    [<Literal>]
+    let SynthesisRateParamName = "SynthesisRateParam"
+
+    [<Literal>]
+    let DestructionRateParamName = "DestructionRateParam"
+
+    [<Literal>]
+    let CatalyticSynthesisRateParamName = "CatalyticSynthesisRateParam"
+
+    [<Literal>]
+    let CatalyticDestructionRateParamName = "CatalyticDestructionRateParam"
+
+    [<Literal>]
+    let LigationRateParamName = "LigationRateParam"
+
+    [<Literal>]
+    let CatalyticLigationRateParamName = "CatalyticLigationRateParam"
+
+    [<Literal>]
+    let SedimentationDirectRateParamName = "SedimentationDirectRateParam"
+
+    [<Literal>]
+    let SedimentationAllRateParamName = "SedimentationAllRateParam"
+
+    [<Literal>]
+    let RacemizationRateParamName = "RacemizationRateParam"
+
+    [<Literal>]
+    let CatalyticRacemizationRateParamName = "CatalyticRacemizationRateParam"
+
+
     type ReactionRateModelParam = 
         | FoodCreationRateParam of FoodCreationParam
         | WasteRemovalRateParam of WasteRemovalParam
@@ -997,6 +1040,22 @@ module ReactionRates =
         | SedimentationAllRateParam of SedimentationAllParam
         | RacemizationRateParam of RacemizationParam
         | CatalyticRacemizationRateParam of CatalyticRacemizationParam
+
+        member this.name = 
+            match this with
+            | FoodCreationRateParam _ -> FoodCreationRateParamName
+            | WasteRemovalRateParam _ -> WasteRemovalRateParamName
+            | WasteRecyclingRateParam _ -> WasteRecyclingRateParamName
+            | SynthesisRateParam _ -> SynthesisRateParamName
+            | DestructionRateParam _ -> DestructionRateParamName
+            | CatalyticSynthesisRateParam _ -> CatalyticSynthesisRateParamName
+            | CatalyticDestructionRateParam _ -> CatalyticDestructionRateParamName
+            | LigationRateParam _ -> LigationRateParamName
+            | CatalyticLigationRateParam _ -> CatalyticLigationRateParamName
+            | SedimentationDirectRateParam _ -> SedimentationDirectRateParamName
+            | SedimentationAllRateParam _ -> SedimentationAllRateParamName
+            | RacemizationRateParam _ -> RacemizationRateParamName
+            | CatalyticRacemizationRateParam _ -> CatalyticRacemizationRateParamName
 
 
     type ReactionRateModel = 
@@ -1309,3 +1368,63 @@ module ReactionRates =
             }
             |> CatRacemSimParamWithModel
             |> CatalyticRacemizationModel.create
+
+
+        static member getDefaultRates (rnd : Random) numberOfAminoAcids = 
+            //===========================================================
+            let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.01
+            let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 10.0
+            let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
+            //===========================================================
+            let synthModel = ReactionRateProvider.defaultSynthRndModel rnd (0.001, 0.001)
+            //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
+            let catSynthRndParams = (synthModel, (Some 0.002), 10000.0)
+            //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
+            //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel rnd catSynthRndParams
+            let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel rnd catSynthRndParams (Some 0.3, numberOfAminoAcids)
+            //===========================================================
+            let destrModel = ReactionRateProvider.defaultDestrRndModel rnd (0.001, 0.001)
+            //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
+            let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
+            //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
+            //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
+            let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.3, numberOfAminoAcids)
+            //===========================================================
+            //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
+            //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)
+            let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 1.0)
+            let catLigModel = ReactionRateProvider.defaultCatLigRndModel rnd (ligModel, (Some 0.00005), 2000.0)
+            //===========================================================
+            let sedDirModel = ReactionRateProvider.defaultSedDirRndModel rnd (0.00001, 10000.0)
+            let sedAllModel = ReactionRateProvider.defaultSedAllRndModel rnd 0.1
+            //===========================================================
+            let racemModel = ReactionRateProvider.defaultRacemRndModel rnd 0.001
+            //let catRacemRndParams = (racemModel, (Some 0.02), 1000.0)
+            let catRacemRndParams = (racemModel, (Some 0.0005), 1000.0)
+            //let catRacemModel = ReactionRateProvider.defaultCatRacemRndModel rnd catRacemRndParams
+            let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel rnd catRacemRndParams (Some 0.2, numberOfAminoAcids)
+            //===========================================================
+            let rates = 
+                [
+                    //foodModel |> FoodCreationRateModel
+                    //wasteModel |> WasteRemovalRateModel
+                    wasteRecyclingModel |> WasteRecyclingRateModel
+
+                    synthModel |> SynthesisRateModel
+                    catSynthModel |> CatalyticSynthesisRateModel
+
+                    destrModel |> DestructionRateModel
+                    catDestrModel |> CatalyticDestructionRateModel
+
+                    ligModel |> LigationRateModel
+                    //catLigModel |> CatalyticLigationRateModel
+
+                    sedDirModel |> SedimentationDirectRateModel
+                    //sedAllModel |> SedimentationAllRateModel
+
+                    //racemModel |> RacemizationRateModel
+                    //catRacemModel |> CatalyticRacemizationRateModel
+                ]
+            //===========================================================
+
+            rates

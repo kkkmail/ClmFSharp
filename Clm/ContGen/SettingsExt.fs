@@ -37,25 +37,32 @@ module SettingsExt =
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingText)
 
+    [<Literal>]
+    let thresholdName = "threshold"
+
+
+    [<Literal>]
+    let scaleName = "scale"
+
+
+    [<Literal>]
+    let shiftName = "shift"
+
 
     type DistributionParams
         with
-        static member thresholdName = "threshold"
-        static member scaleName = "scale"
-        static member shiftName = "shift"
-
         static member getValue (m : SettingMap) po = 
             {
-                threshold = getDoubleOpt m po DistributionParams.thresholdName
-                scale = getDoubleOpt m po DistributionParams.scaleName
-                shift = getDoubleOpt m po DistributionParams.shiftName
+                threshold = getDoubleOpt m po thresholdName
+                scale = getDoubleOpt m po scaleName
+                shift = getDoubleOpt m po shiftName
             }
 
         member this.setValue po s = 
             [
-                setDoubleOpt po DistributionParams.thresholdName this.threshold
-                setDoubleOpt po DistributionParams.scaleName this.scale
-                setDoubleOpt po DistributionParams.shiftName this.shift
+                setDoubleOpt po thresholdName this.threshold
+                setDoubleOpt po scaleName this.scale
+                setDoubleOpt po shiftName this.shift
             ]
             |> List.choose id
             |> add s
@@ -131,19 +138,27 @@ module SettingsExt =
             |> add [ setText po EeDistributionName this.name ]
 
 
+    [<Literal>]
+    let rateMultiplierDistrName = "rateMultiplierDistr"
+
+
+    [<Literal>]
+    let  eeForwardDistributionName = "eeForwardDistribution"
+
+
+    [<Literal>]
+    let  eeBackwardDistributionName = "eeBackwardDistribution"
+
+
     type CatRatesEeParam
         with
-        static member rateMultiplierDistrName = "rateMultiplierDistr"
-        static member eeForwardDistributionName = "eeForwardDistribution"
-        static member eeBackwardDistributionName = "eeBackwardDistribution"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match addParent po CatRatesEeParam.rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m seeder with
+            match addParent po rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m seeder with
             | Some r ->
                 {
                     rateMultiplierDistr = r
-                    eeForwardDistribution = addParent po CatRatesEeParam.eeForwardDistributionName |> EeDistribution.tryGet m seeder
-                    eeBackwardDistribution= addParent po CatRatesEeParam.eeBackwardDistributionName |> EeDistribution.tryGet m seeder
+                    eeForwardDistribution = addParent po eeForwardDistributionName |> EeDistribution.tryGet m seeder
+                    eeBackwardDistribution= addParent po eeBackwardDistributionName |> EeDistribution.tryGet m seeder
                 }
                 |> Some
             | None -> None
@@ -155,9 +170,9 @@ module SettingsExt =
                 | None -> sx
 
             s
-            |> this.rateMultiplierDistr.setValue (addParent po CatRatesEeParam.rateMultiplierDistrName)
-            |> setEeOpt this.eeForwardDistribution (addParent po CatRatesEeParam.eeForwardDistributionName)
-            |> setEeOpt this.eeBackwardDistribution (addParent po CatRatesEeParam.eeBackwardDistributionName)
+            |> this.rateMultiplierDistr.setValue (addParent po rateMultiplierDistrName)
+            |> setEeOpt this.eeForwardDistribution (addParent po eeForwardDistributionName)
+            |> setEeOpt this.eeBackwardDistribution (addParent po eeBackwardDistributionName)
 
 
     type RateMultiplierDistributionGetter
@@ -195,18 +210,25 @@ module SettingsExt =
             |> add [ setText po EeDistributionGetterName this.name ]
 
 
+    [<Literal>]
+    let simBaseDistributionName = "simBaseDistribution"
+
+    [<Literal>]
+    let getRateMultiplierDistrName = "getRateMultiplierDistr"
+
+    [<Literal>]
+    let getForwardEeDistrName = "getForwardEeDistr"
+
+    [<Literal>]
+    let getBackwardEeDistrName = "getBackwardEeDistr"
+
     type CatRatesSimilarityParam
         with
-        static member simBaseDistributionName = "simBaseDistribution"
-        static member getRateMultiplierDistrName = "getRateMultiplierDistr"
-        static member getForwardEeDistrName = "getForwardEeDistr"
-        static member getBackwardEeDistrName = "getBackwardEeDistr"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            let d() = addParent po CatRatesSimilarityParam.simBaseDistributionName |> Distribution.tryGet m seeder
-            let r() = addParent po CatRatesSimilarityParam.getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
-            let f() = addParent po CatRatesSimilarityParam.getForwardEeDistrName |> EeDistributionGetter.tryGet m
-            let b() = addParent po CatRatesSimilarityParam.getBackwardEeDistrName |> EeDistributionGetter.tryGet m
+            let d() = addParent po simBaseDistributionName |> Distribution.tryGet m seeder
+            let r() = addParent po getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
+            let f() = addParent po getForwardEeDistrName |> EeDistributionGetter.tryGet m
+            let b() = addParent po getBackwardEeDistrName |> EeDistributionGetter.tryGet m
 
             match d(), r(), f(), b() with
             | Some d1, Some r1, Some f1, Some b1 ->
@@ -221,18 +243,20 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> this.simBaseDistribution.setValue (addParent po CatRatesSimilarityParam.simBaseDistributionName)
-            |> this.getRateMultiplierDistr.setValue (addParent po CatRatesSimilarityParam.getRateMultiplierDistrName)
-            |> this.getForwardEeDistr.setValue (addParent po CatRatesSimilarityParam.getForwardEeDistrName)
-            |> this.getBackwardEeDistr.setValue (addParent po CatRatesSimilarityParam.getBackwardEeDistrName)
+            |> this.simBaseDistribution.setValue (addParent po simBaseDistributionName)
+            |> this.getRateMultiplierDistr.setValue (addParent po getRateMultiplierDistrName)
+            |> this.getForwardEeDistr.setValue (addParent po getForwardEeDistrName)
+            |> this.getBackwardEeDistr.setValue (addParent po getBackwardEeDistrName)
+
+
+    [<Literal>]
+    let foodCreationRateName = "foodCreationRate"
 
 
     type FoodCreationParam
         with
-        static member foodCreationRateName = "foodCreationRate"
-
         static member tryGet (m : SettingMap) po = 
-            match getDoubleOpt m po FoodCreationParam.foodCreationRateName with
+            match getDoubleOpt m po foodCreationRateName with
             | Some v ->
                 {
                     foodCreationRate = v
@@ -242,15 +266,17 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> add [ setDouble po FoodCreationParam.foodCreationRateName this.foodCreationRate ]
+            |> add [ setDouble po foodCreationRateName this.foodCreationRate ]
+
+
+    [<Literal>]
+    let wasteRemovalRateName = "wasteRemovalRate"
 
 
     type WasteRemovalParam
         with
-        static member wasteRemovalRateName = "wasteRemovalRate"
-
         static member tryGet (m : SettingMap) po = 
-            match getDoubleOpt m po WasteRemovalParam.wasteRemovalRateName with
+            match getDoubleOpt m po wasteRemovalRateName with
             | Some v -> 
                 {
                     wasteRemovalRate = v
@@ -260,15 +286,16 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> add [ setDouble po WasteRemovalParam.wasteRemovalRateName this.wasteRemovalRate ]
+            |> add [ setDouble po wasteRemovalRateName this.wasteRemovalRate ]
 
+
+    [<Literal>]
+    let wasteRecyclingRateName = "wasteRecyclingRate"
 
     type WasteRecyclingParam
         with
-        static member wasteRecyclingRateName = "wasteRecyclingRate"
-
-        static member tryGet (m : SettingMap) po = 
-            match getDoubleOpt m po WasteRecyclingParam.wasteRecyclingRateName with
+        static member tryGet (m : SettingMap) po =
+            match getDoubleOpt m po wasteRecyclingRateName with
             | Some v -> 
                 {
                     wasteRecyclingRate = v
@@ -278,31 +305,37 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> add [ setDouble po WasteRecyclingParam.wasteRecyclingRateName this.wasteRecyclingRate ]
+            |> add [ setDouble po wasteRecyclingRateName this.wasteRecyclingRate ]
+
+
+    [<Literal>]
+    let synthesisDistributionName = "synthesisDistribution"
+
+    [<Literal>]
+    let forwardScaleName = "forwardScale"
+
+    [<Literal>]
+    let backwardScaleName = "backwardScale"
 
 
     type SynthesisRandomParam
         with
-        static member synthesisDistributionName = "synthesisDistribution"
-        static member forwardScaleName = "forwardScale"
-        static member backwardScaleName = "backwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po SynthesisRandomParam.synthesisDistributionName |> Distribution.tryGet m seeder with
+            match addParent po synthesisDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     synthesisDistribution = d
-                    forwardScale = getDoubleOpt m po SynthesisRandomParam.forwardScaleName
-                    backwardScale = getDoubleOpt m po SynthesisRandomParam.backwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
+                    backwardScale = getDoubleOpt m po backwardScaleName
                 }
                 |> Some
             | None -> None
 
         member this.setValue po s =
             s
-            |> this.synthesisDistribution.setValue (addParent po SynthesisRandomParam.synthesisDistributionName)
-            |> addDoubleOpt po SynthesisRandomParam.forwardScaleName this.forwardScale
-            |> addDoubleOpt po SynthesisRandomParam.backwardScaleName this.backwardScale
+            |> this.synthesisDistribution.setValue (addParent po synthesisDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+            |> addDoubleOpt po backwardScaleName this.backwardScale
 
 
     type SynthesisParam
@@ -323,12 +356,15 @@ module SettingsExt =
             | SynthRndParam d -> d.setValue (addParent po this.name) s
             |> add [ setText po SynthRndParamName this.name ]
 
+
+    [<Literal>]
+    let catSynthRndEeParamsName = "catSynthRndEeParams"
+
+
     type CatalyticSynthesisRandomParam
         with
-        static member catSynthRndEeParamsName = "catSynthRndEeParams"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            match addParent po catSynthRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
                     catSynthRndEeParams = d
@@ -338,7 +374,7 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> this.catSynthRndEeParams.setValue (addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName)
+            |> this.catSynthRndEeParams.setValue (addParent po catSynthRndEeParamsName)
 
 
     type CatalyticSynthesisParam
@@ -365,53 +401,57 @@ module SettingsExt =
             |> add [ setText po CatalyticSynthesisParamName this.name ]
 
 
+    [<Literal>]
+    let destructionDistributionName = "destructionDistribution"
+
+
     type DestructionRandomParam
         with
-        static member destructionDistributionName = "destructionDistribution"
-        static member forwardScaleName = "forwardScale"
-        static member backwardScaleName = "backwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po DestructionRandomParam.destructionDistributionName |> Distribution.tryGet m seeder with
+            match addParent po destructionDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     destructionDistribution = d
-                    forwardScale = getDoubleOpt m po DestructionRandomParam.forwardScaleName
-                    backwardScale = getDoubleOpt m po DestructionRandomParam.backwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
+                    backwardScale = getDoubleOpt m po backwardScaleName
                 }
                 |> Some
             | None -> None
 
         member this.setValue po s =
             s
-            |> this.destructionDistribution.setValue (addParent po DestructionRandomParam.destructionDistributionName)
-            |> addDoubleOpt po DestructionRandomParam.forwardScaleName this.forwardScale
-            |> addDoubleOpt po DestructionRandomParam.backwardScaleName this.backwardScale
+            |> this.destructionDistribution.setValue (addParent po destructionDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+            |> addDoubleOpt po backwardScaleName this.backwardScale
 
 
-// here
     type DestructionParam
         with
-        static member className = "DestructionParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po DestructionParam.className with
+            match getTextOpt m po DestructionParamName with
             | Some s -> 
                 match s with
-                | "DestrRndParam" -> 
-                    addParent po "DestrRndParam"
+                | DestrRndParamName -> 
+                    addParent po DestrRndParamName
                     |> DestructionRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> DestrRndParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | DestrRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po DestrRndParamName this.name ]
+
+
+    [<Literal>]
+    let catDestrRndEeParamsName = "catDestrRndEeParams"
+
 
     type CatalyticDestructionRandomParam
         with
-        static member catDestrRndEeParamsName = "catDestrRndEeParams"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po CatalyticDestructionRandomParam.catDestrRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            match addParent po catDestrRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
                     catDestrRndEeParams = d
@@ -419,131 +459,167 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.catDestrRndEeParams.setValue (addParent po catDestrRndEeParamsName)
+
 
     type CatalyticDestructionParam
         with
-        static member className = "CatalyticDestructionParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po CatalyticDestructionParam.className with
+            match getTextOpt m po CatalyticDestructionParamName with
             | Some s -> 
                 match s with
-                | "CatDestrRndParam" -> 
-                    addParent po "CatDestrRndParam" 
+                | CatDestrRndParamName -> 
+                    addParent po CatDestrRndParamName 
                     |> CatalyticDestructionRandomParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatDestrRndParam |> Some)
-                | "CatDestrSimParam" -> 
-                    addParent po "CatDestrSimParam" 
+                | CatDestrSimParamName -> 
+                    addParent po CatDestrSimParamName 
                     |> CatRatesSimilarityParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatDestrSimParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | CatDestrRndParam d -> d.setValue (addParent po this.name) s
+            | CatDestrSimParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po CatalyticDestructionParamName this.name ]
+
+
+    [<Literal>]
+    let sedimentationDirectDistributionName = "sedimentationDirectDistribution"
+
 
     type SedimentationDirectRandomParam
         with
-        static member sedimentationDirectDistributionName = "sedimentationDirectDistribution"
-        static member forwardScaleName = "forwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po SedimentationDirectRandomParam.sedimentationDirectDistributionName |> Distribution.tryGet m seeder with
+            match addParent po sedimentationDirectDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     sedimentationDirectDistribution = d
-                    forwardScale = getDoubleOpt m po SedimentationDirectRandomParam.forwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
                 }
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.sedimentationDirectDistribution.setValue (addParent po sedimentationDirectDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+
 
     type SedimentationDirectParam
         with
-        static member className = "SedimentationDirectParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po SedimentationDirectParam.className with
+            match getTextOpt m po SedimentationDirectParamName with
             | Some s -> 
                 match s with
-                | "SedDirRndParam" -> 
-                    addParent po "SedDirRndParam"
+                | SedDirRndParamName -> 
+                    addParent po SedDirRndParamName
                     |> SedimentationDirectRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> SedDirRndParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | SedDirRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po SedimentationDirectParamName this.name ]
+
+
+    [<Literal>]
+    let sedimentationAllDistributionName = "sedimentationAllDistribution"
+
 
     type SedimentationAllRandomParam
         with
-        static member sedimentationAllDistributionName = "sedimentationAllDistribution"
-        static member forwardScaleName = "forwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po SedimentationAllRandomParam.sedimentationAllDistributionName |> Distribution.tryGet m seeder with
+            match addParent po sedimentationAllDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     sedimentationAllDistribution = d
-                    forwardScale = getDoubleOpt m po SedimentationAllRandomParam.forwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
                 }
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.sedimentationAllDistribution.setValue (addParent po sedimentationAllDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+
 
     type SedimentationAllParam
         with
-        static member className = "SedimentationAllParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po SedimentationAllParam.className with
+            match getTextOpt m po SedimentationAllParamName with
             | Some s -> 
                 match s with
-                | "SedAllRndParam" -> 
-                    addParent po "SedAllRndParam"
+                | SedAllRndParamName -> 
+                    addParent po SedAllRndParamName
                     |> SedimentationAllRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> SedAllRndParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | SedAllRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po SedimentationAllParamName this.name ]
+
+
+    [<Literal>]
+    let ligationDistributionName = "ligationDistribution"
+
 
     type LigationRandomParam
         with
-        static member ligationDistributionName = "ligationDistribution"
-        static member forwardScaleName = "forwardScale"
-        static member backwardScaleName = "backwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po LigationRandomParam.ligationDistributionName |> Distribution.tryGet m seeder with
+            match addParent po ligationDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     ligationDistribution = d
-                    forwardScale = getDoubleOpt m po LigationRandomParam.forwardScaleName
-                    backwardScale = getDoubleOpt m po LigationRandomParam.backwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
+                    backwardScale = getDoubleOpt m po backwardScaleName
                 }
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.ligationDistribution.setValue (addParent po ligationDistributionName)
+            |> addDoubleOpt po forwardScaleName this.forwardScale
+            |> addDoubleOpt po backwardScaleName this.backwardScale
+
 
     type LigationParam
         with
-        static member className = "LigationParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po LigationParam.className with
+            match getTextOpt m po LigationParamName with
             | Some s -> 
                 match s with
-                | "LigRndParam" -> 
-                    addParent po "LigRndParam"
+                | LigRndParamName -> 
+                    addParent po LigRndParamName
                     |> LigationRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> LigRndParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | LigRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po LigationParamName this.name ]
+
+
+    [<Literal>]
+    let catLigRndEeParamsName = "catLigRndEeParams"
 
     type CatalyticLigationRandomParam
         with
-        static member catLigRndEeParamsName = "catLigRndEeParams"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po CatalyticLigationRandomParam.catLigRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            match addParent po catLigRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
                     catLigRndEeParams = d
@@ -551,34 +627,42 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.catLigRndEeParams.setValue (addParent po catLigRndEeParamsName)
+
 
     type CatalyticLigationParam
         with
-        static member className = "CatalyticLigationParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po CatalyticLigationParam.className with
+            match getTextOpt m po CatalyticLigationParamName with
             | Some s -> 
                 match s with
-                | "CatLigRndParam" -> 
-                    addParent po "CatLigRndParam" 
-                    |> CatalyticLigationRandomParam.tryGet m seeder 
+                | CatLigRndParamName -> 
+                    addParent po CatLigRndParamName
+                    |> CatalyticLigationRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> CatLigRndParam |> Some)
                 | _ -> None
             | None -> None
 
+        member this.setValue po s =
+            match this with
+            | CatLigRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po CatalyticLigationParamName this.name ]
+
+
+    [<Literal>]
+    let racemizationDistributionName = "racemizationDistribution"
+
 
     type RacemizationRandomParam
         with
-        static member racemizationDistributionName = "racemizationDistribution"
-        static member forwardScaleName = "forwardScale"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po RacemizationRandomParam.racemizationDistributionName |> Distribution.tryGet m seeder with
+            match addParent po racemizationDistributionName |> Distribution.tryGet m seeder with
             | Some d ->
                 {
                     racemizationDistribution = d
-                    forwardScale = getDoubleOpt m po RacemizationRandomParam.forwardScaleName
+                    forwardScale = getDoubleOpt m po forwardScaleName
                 }
                 |> Some
             | None -> None
@@ -586,26 +670,26 @@ module SettingsExt =
 
     type RacemizationParam
         with
-        static member className = "RacemizationParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po RacemizationParam.className with
+            match getTextOpt m po RacemizationParamName with
             | Some s -> 
                 match s with
-                | "RacemRndParam" -> 
-                    addParent po "RacemRndParam"
+                | RacemRndParamName -> 
+                    addParent po RacemRndParamName
                     |> RacemizationRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> RacemRndParam |> Some)
                 | _ -> None
             | None -> None
 
 
+    [<Literal>]
+    let catRacemRndEeParamsName = "catRacemRndEeParams"
+
+
     type CatalyticRacemizationRandomParam
         with
-        static member catRacemRndEeParamsName = "catRacemRndEeParams"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
-            match addParent po CatalyticRacemizationRandomParam.catRacemRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+            match addParent po catRacemRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
             | Some d ->
                 {
                     catRacemRndEeParams = d
@@ -616,18 +700,16 @@ module SettingsExt =
 
     type CatalyticRacemizationParam
         with
-        static member className = "CatalyticRacemizationParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po CatalyticRacemizationParam.className with
+            match getTextOpt m po CatalyticRacemizationParamName with
             | Some s -> 
                 match s with
-                | "CatRacemRndParam" -> 
-                    addParent po "CatRacemRndParam" 
+                | CatRacemRndParamName -> 
+                    addParent po CatRacemRndParamName 
                     |> CatalyticRacemizationRandomParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatRacemRndParam |> Some)
-                | "CatRacemSimParam" -> 
-                    addParent po "CatRacemSimParam" 
+                | CatRacemSimParamName -> 
+                    addParent po CatRacemSimParamName 
                     |> CatRatesSimilarityParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatRacemSimParam |> Some)
                 | _ -> None

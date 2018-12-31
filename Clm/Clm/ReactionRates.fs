@@ -456,8 +456,20 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let DestructionParamName = "DestructionParam"
+
+
+    [<Literal>]
+    let DestrRndParamName = "DestrRndParam"
+
+
     type DestructionParam = 
         | DestrRndParam of DestructionRandomParam
+
+        member this.name = 
+            match this with 
+            | DestrRndParam _ -> DestrRndParamName
 
 
     type DestructionRandomModel (p : DestructionRandomParam) =
@@ -493,9 +505,26 @@ module ReactionRates =
         }
 
 
-    type CatalyticDestructionParam = 
+    [<Literal>]
+    let CatalyticDestructionParamName = "CatalyticDestructionParam"
+
+
+    [<Literal>]
+    let CatDestrRndParamName = "CatDestrRndParam"
+
+
+    [<Literal>]
+    let CatDestrSimParamName = "CatDestrSimParam"
+
+
+    type CatalyticDestructionParam =
         | CatDestrRndParam of CatalyticDestructionRandomParam
         | CatDestrSimParam of CatRatesSimilarityParam
+
+        member this.name =
+            match this with
+            | CatDestrRndParam _ -> CatDestrRndParamName
+            | CatDestrSimParam _ -> CatDestrSimParamName
 
 
     type CatalyticDestructionRandomParamWithModel = 
@@ -587,8 +616,20 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let SedimentationDirectParamName = "SedimentationDirectParam"
+
+
+    [<Literal>]
+    let SedDirRndParamName = "SedDirRndParam"
+
+
     type SedimentationDirectParam = 
         | SedDirRndParam of SedimentationDirectRandomParam
+
+        member this.name =
+            match this with
+            | SedDirRndParam _ -> SedDirRndParamName
 
 
     type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
@@ -621,8 +662,20 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let SedimentationAllParamName = "SedimentationAllParam"
+
+
+    [<Literal>]
+    let SedAllRndParamName = "SedAllRndParam"
+
+
     type SedimentationAllParam = 
         | SedAllRndParam of SedimentationAllRandomParam
+
+        member this.name =
+            match this with
+            | SedAllRndParam _ -> SedAllRndParamName
 
 
     type SedimentationRandomAllModel (p : SedimentationAllRandomParam) =
@@ -656,8 +709,20 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let LigationParamName = "LigationParam"
+
+
+    [<Literal>]
+    let LigRndParamName = "LigRndParam"
+
+
     type LigationParam = 
         | LigRndParam of LigationRandomParam
+
+        member this.name =
+            match this with
+            | LigRndParam _ -> LigRndParamName
 
 
     type LigationRandomModel (p : LigationRandomParam) = 
@@ -693,8 +758,20 @@ module ReactionRates =
         }
 
 
-    type CatalyticLigationParam = 
+    [<Literal>]
+    let CatalyticLigationParamName = "CatalyticLigationParam"
+
+
+    [<Literal>]
+    let CatLigRndParamName = "CatLigRndParam"
+
+
+    type CatalyticLigationParam =
         | CatLigRndParam of CatalyticLigationRandomParam
+
+        member this.name =
+            match this with
+            | CatLigRndParam _ -> CatLigRndParamName
 
 
     type CatalyticLigationRandomParamWithModel = 
@@ -754,8 +831,20 @@ module ReactionRates =
         }
 
 
-    type RacemizationParam = 
+    [<Literal>]
+    let RacemizationParamName = "RacemizationParam"
+
+
+    [<Literal>]
+    let RacemRndParamName = "RacemRndParam"
+
+
+    type RacemizationParam =
         | RacemRndParam of RacemizationRandomParam
+
+        member this.name =
+            match this with
+            | RacemRndParam _ -> RacemRndParamName
 
 
     type RacemizationRandomModel (p : RacemizationRandomParam) =
@@ -791,9 +880,24 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let CatalyticRacemizationParamName = "CatalyticRacemizationParam"
+
+    [<Literal>]
+    let CatRacemRndParamName = "CatRacemRndParam"
+
+    [<Literal>]
+    let CatRacemSimParamName = "CatRacemSimParam"
+
+
     type CatalyticRacemizationParam = 
         | CatRacemRndParam of CatalyticRacemizationRandomParam
         | CatRacemSimParam of CatRatesSimilarityParam
+
+        member this.name =
+            match this with
+            | CatRacemRndParam _ -> CatRacemRndParamName
+            | CatRacemSimParam _ -> CatRacemSimParamName
 
 
     type CatalyticRacemizationRandomParamWithModel = 

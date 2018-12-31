@@ -1057,6 +1057,8 @@ module ReactionRates =
             | RacemizationRateParam _ -> RacemizationRateParamName
             | CatalyticRacemizationRateParam _ -> CatalyticRacemizationRateParamName
 
+        member this.variableName = this.name |> toVariableName
+
         static member allNames = 
             [
                 FoodCreationRateParamName
@@ -1073,6 +1075,10 @@ module ReactionRates =
                 RacemizationRateParamName
                 CatalyticRacemizationRateParamName
             ]
+
+        static member allVariableNames =
+            ReactionRateModelParam.allNames
+            |> List.map (fun e -> toVariableName e)
 
 
     type ReactionRateModel = 
@@ -1423,24 +1429,24 @@ module ReactionRates =
             //===========================================================
             let rates = 
                 [
-                    //foodModel |> FoodCreationRateModel
-                    //wasteModel |> WasteRemovalRateModel
-                    //wasteRecyclingModel |> WasteRecyclingRateModel
+                    foodModel |> FoodCreationRateModel
+                    wasteModel |> WasteRemovalRateModel
+                    wasteRecyclingModel |> WasteRecyclingRateModel
 
                     synthModel |> SynthesisRateModel
-                    //catSynthModel |> CatalyticSynthesisRateModel
+                    catSynthModel |> CatalyticSynthesisRateModel
 
-                    //destrModel |> DestructionRateModel
-                    //catDestrModel |> CatalyticDestructionRateModel
+                    destrModel |> DestructionRateModel
+                    catDestrModel |> CatalyticDestructionRateModel
 
-                    //ligModel |> LigationRateModel
-                    ////catLigModel |> CatalyticLigationRateModel
+                    ligModel |> LigationRateModel
+                    catLigModel |> CatalyticLigationRateModel
 
-                    //sedDirModel |> SedimentationDirectRateModel
-                    ////sedAllModel |> SedimentationAllRateModel
+                    sedDirModel |> SedimentationDirectRateModel
+                    sedAllModel |> SedimentationAllRateModel
 
-                    ////racemModel |> RacemizationRateModel
-                    ////catRacemModel |> CatalyticRacemizationRateModel
+                    racemModel |> RacemizationRateModel
+                    catRacemModel |> CatalyticRacemizationRateModel
                 ]
             //===========================================================
 

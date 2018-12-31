@@ -49,6 +49,8 @@ module DatabaseTypes =
                     @ match r.settingField6 with | EmptyString -> [] | s -> [ s, r.settingOrderId6 ]
                     @ match r.settingField7 with | EmptyString -> [] | s -> [ s, r.settingOrderId7 ]
                     @ match r.settingField8 with | EmptyString -> [] | s -> [ s, r.settingOrderId8 ]
+                    @ match r.settingField9 with | EmptyString -> [] | s -> [ s, r.settingOrderId9 ]
+                    @ match r.settingField10 with | EmptyString -> [] | s -> [ s, r.settingOrderId10 ]
 
                 settingBit = r.settingBit
                 settingLong = r.settingLong
@@ -90,8 +92,10 @@ module DatabaseTypes =
             let s6, r6 = getSR r5
             let s7, r7 = getSR r6
             let s8, r8 = getSR r7
+            let s9, r9 = getSR r8
+            let s10, r10 = getSR r9
 
-            if r8.IsEmpty |> not then failwith (sprintf "Path is too long: %A" r0)
+            if r10.IsEmpty |> not then failwith (sprintf "Path is too long: %A" r0)
 
             let newRow = 
                 t.NewRow(
@@ -103,6 +107,8 @@ module DatabaseTypes =
                         settingField6 = s6,
                         settingField7 = s7,
                         settingField8 = s8,
+                        settingField9 = s9,
+                        settingField10 = s10,
                         settingBit = r.settingBit,
                         settingLong = r.settingLong,
                         settingMoney = r.settingMoney,

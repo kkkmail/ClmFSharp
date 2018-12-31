@@ -10,6 +10,13 @@ open System
 ///        This distribution produces value near mean.
 module Distributions = 
 
+    let toVariableName (s : string) =
+        match s.Length with
+        | 0 -> s
+        | 1 -> s.ToLower()
+        | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
+
+
     type ReactionRate = 
         | ReactionRate of double
 

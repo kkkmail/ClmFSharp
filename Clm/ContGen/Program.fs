@@ -17,20 +17,18 @@ let saveSettings (settings : list<Setting>) conn =
     printfn "inserted = %A" inserted
 
 
-let testAll conn = 
-    let rnd = new Random()
-
+let testAll conn (rnd : Random) = 
     let rates = 
         ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
         |> List.map (fun e -> e.inputParams)
         |> List.sort
 
-    let settings = rates |> List.fold (fun acc e -> e.setValue [ (e.name, 0) ] acc) []
+    let settings = rates |> List.fold (fun acc e -> e.setValue [ (e.variableName, 0) ] acc) []
     saveSettings settings conn
     let m = loadSettings ClmConnectionString
 
     let loaded = 
-        ReactionRateModelParam.allNames
+        ReactionRateModelParam.allVariableNames
         |> List.map (fun e -> ReactionRateModelParam.tryGet m rnd.Next [ (e, 0) ] )
         |> List.choose id
         |> List.sort
@@ -38,7 +36,7 @@ let testAll conn =
     printfn "loaded.Length = %A" (loaded.Length)
 
     let check = rates = loaded
-    printfn "check= %A" check
+    printfn "check = %A" check
 
 
 let testDistr conn (rnd : Random) = 
@@ -81,6 +79,6 @@ let main argv =
 
     use truncateSettingTbl = new TruncateSettingTbl(conn)
     truncateSettingTbl.Execute() |> ignore
-    testSynthesisParam conn rnd
+    testAll conn rnd
 
     0

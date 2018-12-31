@@ -7,16 +7,21 @@ open ContGen.DatabaseTypes
 open ContGen.Settings
 open ContGen.SettingsExt
 open System
+open System.Data.SqlClient
 
 
 [<EntryPoint>]
 let main argv = 
-    let rnd = new Random()
-
-    let rates = ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
-
-    let x = rates |> List.head
-    let y = x.inputParams
-
     printfn "%A" argv
-    0 // return an integer exit code
+
+    let rnd = new Random()
+    let rates = ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
+    let settings = rates |> List.fold (fun acc e -> e.inputParams.setValue [ (e.inputParams.name, 0) ] acc) []
+
+    use conn = new SqlConnection(ClmConnectionString)
+    let settingTable = new SettingTable()
+    settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
+    let inserted = settingTable.Update(conn)
+    printfn "inserted = %A" inserted
+
+    0

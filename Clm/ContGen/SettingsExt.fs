@@ -813,4 +813,4 @@ module SettingsExt =
             | SedimentationAllRateParam d -> d.setValue (addParent po this.name) s
             | RacemizationRateParam d -> d.setValue (addParent po this.name) s
             | CatalyticRacemizationRateParam d -> d.setValue (addParent po this.name) s
-            |> add [ setText po CatalyticRacemizationParamName this.name ]
+            |> add [ setText po ReactionRateModelParamName this.name ]

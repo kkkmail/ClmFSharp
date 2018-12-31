@@ -72,6 +72,47 @@ module DatabaseTypes =
                 settingGUID = None
             }
 
+        member r.addRow (t : SettingTable) = 
+            let r0 = r.settingPath
+
+            let getSR x = 
+                match x with
+                | [] -> EmptyString, []
+                | (h, _) :: t -> h, t
+
+            let s1, r1 = getSR r0
+            let s2, r2 = getSR r1
+            let s3, r3 = getSR r2
+            let s4, r4 = getSR r3
+            let s5, r5 = getSR r4
+            let s6, r6 = getSR r5
+            let s7, r7 = getSR r6
+            let s8, r8 = getSR r7
+
+            if r8.IsEmpty |> not then failwith (sprintf "Path is too long: %A" r0)
+
+            let newRow = 
+                t.NewRow(
+                        settingField1 = s1,
+                        settingField2 = s2,
+                        settingField3 = s3,
+                        settingField4 = s4,
+                        settingField5 = s5,
+                        settingField6 = s6,
+                        settingField7 = s7,
+                        settingField8 = s8,
+                        settingBit = r.settingBit,
+                        settingLong = r.settingLong,
+                        settingMoney = r.settingMoney,
+                        settingFloat = r.settingFloat,
+                        settingDate = r.settingDate,
+                        settingText = r.settingText,
+                        settingMemo = r.settingMemo,
+                        settingGUID = r.settingGUID
+                        )
+
+            t.Rows.Add newRow
+
 
     type SettingMap = Map<list<string * int>, Setting>
 

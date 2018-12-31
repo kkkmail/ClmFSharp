@@ -295,8 +295,20 @@ module ReactionRates =
         }
 
 
-    type SynthesisParam = 
+    [<Literal>]
+    let SynthesisParamName = "SynthesisParam"
+
+
+    [<Literal>]
+    let SynthRndParamName = "SynthRndParam"
+
+
+    type SynthesisParam =
         | SynthRndParam of SynthesisRandomParam
+
+        member this.name = 
+            match this with 
+            | SynthRndParam _ -> SynthRndParamName
 
 
     type SynthesisRandomModel (p : SynthesisRandomParam) =
@@ -332,9 +344,26 @@ module ReactionRates =
         }
 
 
+    [<Literal>]
+    let CatalyticSynthesisParamName = "CatalyticSynthesisParam"
+
+
+    [<Literal>]
+    let CatSynthRndParamName = "CatSynthRndParam"
+
+
+    [<Literal>]
+    let CatSynthSimParamName = "CatSynthSimParam"
+
+
     type CatalyticSynthesisParam = 
         | CatSynthRndParam of CatalyticSynthesisRandomParam
         | CatSynthSimParam of CatRatesSimilarityParam
+
+        member this.name = 
+            match this with 
+            | CatSynthRndParam _ -> CatSynthRndParamName
+            | CatSynthSimParam _ -> CatSynthSimParamName
 
 
     type CatalyticSynthesisRandomParamWithModel = 

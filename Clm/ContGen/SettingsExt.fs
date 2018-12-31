@@ -63,10 +63,8 @@ module SettingsExt =
 
     type Distribution
         with
-        static member className = DistributionName
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po Distribution.className with
+            match getTextOpt m po DistributionName with
             | Some s ->
                 match s with
                 | DeltaName ->
@@ -90,15 +88,13 @@ module SettingsExt =
         member this.setValue po s =
             s
             |> this.distributionParams.setValue (addParent po this.name)
-            |> add [ setText po Distribution.className this.name ]
+            |> add [ setText po DistributionName this.name ]
 
 
     type RateMultiplierDistribution
         with
-        static member className = RateMultiplierDistributionName
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po RateMultiplierDistribution.className with
+            match getTextOpt m po RateMultiplierDistributionName with
             | Some s ->
                 match s with
                 | NoneRateMultName -> NoneRateMult |> Some
@@ -113,15 +109,13 @@ module SettingsExt =
             match this with
             | NoneRateMult -> s
             | RateMultDistr d -> d.setValue (addParent po this.name) s
-            |> add [ setText po RateMultiplierDistribution.className this.name ]
+            |> add [ setText po RateMultiplierDistributionName this.name ]
 
 
     type EeDistribution
         with
-        static member className = EeDistributionName
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po EeDistribution.className with
+            match getTextOpt m po EeDistributionName with
             | Some s ->
                 match s with
                 | EeDistributionName ->
@@ -134,7 +128,7 @@ module SettingsExt =
         member this.setValue po s =
             match this with
             | EeDistribution d -> d.setValue (addParent po this.name) s
-            |> add [ setText po EeDistribution.className this.name ]
+            |> add [ setText po EeDistributionName this.name ]
 
 
     type CatRatesEeParam
@@ -168,10 +162,8 @@ module SettingsExt =
 
     type RateMultiplierDistributionGetter
         with
-        static member className = RateMultiplierDistributionGetterName
-
         static member tryGet (m : SettingMap) po =
-            match getTextOpt m po RateMultiplierDistributionGetter.className with
+            match getTextOpt m po RateMultiplierDistributionGetterName with
             | Some s -> 
                 match s with
                 | NoneRateMultDistrGetterName -> NoneRateMultDistrGetter |> Some
@@ -183,15 +175,13 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> add [ setText po RateMultiplierDistributionGetter.className this.name ]
+            |> add [ setText po RateMultiplierDistributionGetterName this.name ]
 
 
     type EeDistributionGetter
         with
-        static member className = EeDistributionGetterName
-
         static member tryGet (m : SettingMap) po =
-            match getTextOpt m po EeDistributionGetter.className with
+            match getTextOpt m po EeDistributionGetterName with
             | Some s -> 
                 match s with
                 | NoneEeGetterName -> NoneEeGetter |> Some
@@ -202,7 +192,7 @@ module SettingsExt =
 
         member this.setValue po s =
             s
-            |> add [ setText po EeDistributionGetter.className this.name ]
+            |> add [ setText po EeDistributionGetterName this.name ]
 
 
     type CatRatesSimilarityParam
@@ -315,25 +305,25 @@ module SettingsExt =
             |> addDoubleOpt po SynthesisRandomParam.backwardScaleName this.backwardScale
 
 
-    // TODO Stopped here...
     type SynthesisParam
         with
-        static member className = "SynthesisParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po SynthesisParam.className with
+            match getTextOpt m po SynthesisParamName with
             | Some s -> 
                 match s with
-                | "SynthRndParam" -> 
-                    addParent po "SynthRndParam" 
+                | SynthRndParamName -> 
+                    addParent po SynthRndParamName
                     |> SynthesisRandomParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> SynthRndParam |> Some)
                 | _ -> None
             | None -> None
 
         member this.setValue po s =
+            s
+            |> add [ setText po SynthRndParamName this.name ]
+            |>
             match this with
-            | SynthRndParam d -> d.setValue (addParent po "SynthRndParam") s
+            | SynthRndParam d ->d.setValue (addParent po SynthRndParamName)
 
 
     type CatalyticSynthesisRandomParam
@@ -349,25 +339,31 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.catSynthRndEeParams.setValue (addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName)
 
+
+// here
     type CatalyticSynthesisParam
         with
-        static member className = "CatalyticSynthesisParam"
-
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
-            match getTextOpt m po CatalyticSynthesisParam.className with
+            match getTextOpt m po CatalyticSynthesisParamName with
             | Some s -> 
                 match s with
-                | "CatSynthRndParam" -> 
-                    addParent po "CatSynthRndParam" 
+                | CatSynthRndParamName ->
+                    addParent po CatSynthRndParamName
                     |> CatalyticSynthesisRandomParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatSynthRndParam |> Some)
-                | "CatSynthSimParam" -> 
-                    addParent po "CatSynthSimParam" 
+                | CatSynthSimParamName -> 
+                    addParent po CatSynthSimParamName
                     |> CatRatesSimilarityParam.tryGet m seeder 
                     |> Option.bind (fun e -> e |> CatSynthSimParam |> Some)
                 | _ -> None
             | None -> None
+
+        member this.setValue po s =
+            s
 
 
     type DestructionRandomParam

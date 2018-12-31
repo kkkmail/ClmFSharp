@@ -125,6 +125,30 @@ module Distributions =
         member distr.thresholded newThreshold = distr.createThresholded newThreshold SymmetricTriangularDistribution
 
 
+    [<Literal>]
+    let DistributionName = "Distribution"
+
+
+    [<Literal>]
+    let DeltaName = "Delta"
+
+
+    [<Literal>]
+    let BiDeltaName = "BiDelta"
+
+
+    [<Literal>]
+    let UniformName = "Uniform"
+
+
+    [<Literal>]
+    let TriangularName = "Triangular"
+
+
+    [<Literal>]
+    let SymmetricTriangularName = "SymmetricTriangular"
+
+
     type Distribution =
         | Delta of DeltaDistribution
         | BiDelta of BiDeltaDistribution
@@ -190,11 +214,11 @@ module Distributions =
 
         member this.name = 
             match this with
-            | Delta _ -> "Delta"
-            | BiDelta _ -> "BiDelta"
-            | Uniform _ -> "Uniform"
-            | Triangular _ -> "Triangular"
-            | SymmetricTriangular _ -> "SymmetricTriangular"
+            | Delta _ -> DeltaName
+            | BiDelta _ -> BiDeltaName
+            | Uniform _ -> UniformName
+            | Triangular _ -> TriangularName
+            | SymmetricTriangular _ -> SymmetricTriangularName
 
         member this.distributionParams = 
             match this with
@@ -203,6 +227,10 @@ module Distributions =
             | Uniform d -> d.distributionParams
             | Triangular d -> d.distributionParams
             | SymmetricTriangular d -> d.distributionParams
+
+
+    [<Literal>]
+    let EeDistributionName = "EeDistribution"
 
 
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
@@ -215,7 +243,7 @@ module Distributions =
 
         member eed.name =
             match eed with
-            | EeDistribution _ -> "EeDistribution"
+            | EeDistribution _ -> EeDistributionName
 
         static member createSymmetricTriangular (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
@@ -254,6 +282,22 @@ module Distributions =
         static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
 
 
+    [<Literal>]
+    let EeDistributionGetterName = "EeDistributionGetter"
+
+
+    [<Literal>]
+    let NoneEeGetterName = "NoneEeGetter"
+
+
+    [<Literal>]
+    let DeltaEeDistributionGetterName = "DeltaEeDistributionGetter"
+
+
+    [<Literal>]
+    let CenteredEeDistributionGetterName = "CenteredEeDistributionGetter"
+
+
     type EeDistributionGetter = 
         | NoneEeGetter
         | DeltaEeDistributionGetter
@@ -272,6 +316,18 @@ module Distributions =
             | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
 
 
+    [<Literal>]
+    let RateMultiplierDistributionName = "RateMultiplierDistribution"
+
+
+    [<Literal>]
+    let NoneRateMultName = "NoneRateMult"
+
+
+    [<Literal>]
+    let RateMultDistrName = "RateMultDistr"
+
+
     /// Distribution of rate multipliers for catalytic reactions.
     type RateMultiplierDistribution = 
         | NoneRateMult
@@ -286,8 +342,8 @@ module Distributions =
 
         member this.name =
             match this with 
-            | NoneRateMult -> "NoneRateMult"
-            | RateMultDistr _ -> "RateMultDistr"
+            | NoneRateMult -> NoneRateMultName
+            | RateMultDistr _ -> RateMultDistrName
 
         static member createNone = NoneRateMult
 
@@ -299,6 +355,26 @@ module Distributions =
 
         static member createSymmetricTriangular (seeder : unit -> int) threshold rate = 
             SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
+
+
+    [<Literal>]
+    let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"
+
+
+    [<Literal>]
+    let NoneRateMultDistrGetterName = "NoneRateMultDistrGetter"
+
+
+    [<Literal>]
+    let DeltaRateMultDistrGetterName = "DeltaRateMultDistrGetter"
+
+
+    [<Literal>]
+    let TriangularRateMultDistrGetterName = "TriangularRateMultDistrGetter"
+
+
+    [<Literal>]
+    let SymmetricTriangularRateMultDistrGetterName = "SymmetricTriangularRateMultDistrGetter"
 
 
     type RateMultiplierDistributionGetter =
@@ -316,7 +392,7 @@ module Distributions =
 
         member this.name =
             match this with
-            | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
-            | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
-            | TriangularRateMultDistrGetter -> "TriangularRateMultDistrGetter"
-            | SymmetricTriangularRateMultDistrGetter -> "SymmetricTriangularRateMultDistrGetter"
+            | NoneRateMultDistrGetter -> NoneRateMultDistrGetterName
+            | DeltaRateMultDistrGetter -> DeltaRateMultDistrGetterName
+            | TriangularRateMultDistrGetter -> TriangularRateMultDistrGetterName
+            | SymmetricTriangularRateMultDistrGetter -> SymmetricTriangularRateMultDistrGetterName

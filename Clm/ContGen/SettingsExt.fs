@@ -10,10 +10,21 @@ module SettingsExt =
     let addParent p n = p @ [ (n, 0) ]
     let add a b = a @ b
 
+
+    let addOpt ao b =
+        match ao with
+        | Some a -> a @ b
+        | None -> b
+
+
     let setDouble p n v = { Setting.defaultValue with settingPath = addParent p n; settingFloat = v }
     let setText p n v = { Setting.defaultValue with settingPath = addParent p n; settingText = Some v }
     let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue with settingPath = addParent p n; settingFloat = v } |> Some)
 
+    let addDoubleOpt p n vo s = 
+        match setDoubleOpt p n vo with
+        | Some x -> x :: s
+        | None -> s
 
     let getDoubleOpt (m : SettingMap) po n = 
         addParent po n
@@ -52,26 +63,26 @@ module SettingsExt =
 
     type Distribution
         with
-        static member className = "Distribution"
+        static member className = DistributionName
 
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po Distribution.className with
             | Some s ->
                 match s with
-                | "Delta" -> 
-                    let p = DistributionParams.getValue m (addParent po "Delta")
+                | DeltaName ->
+                    let p = DistributionParams.getValue m (addParent po DeltaName)
                     DeltaDistribution (seeder(), p) |> Delta |> Some
-                | "BiDelta" -> 
-                    let p = DistributionParams.getValue m (addParent po "BiDelta")
+                | BiDeltaName ->
+                    let p = DistributionParams.getValue m (addParent po BiDeltaName)
                     BiDeltaDistribution (seeder(), p) |> BiDelta |> Some
-                | "Uniform" -> 
-                    let p = DistributionParams.getValue m (addParent po "Uniform")
+                | UniformName ->
+                    let p = DistributionParams.getValue m (addParent po UniformName)
                     UniformDistribution (seeder(), p) |> Uniform |> Some
-                | "Triangular" -> 
-                    let p = DistributionParams.getValue m (addParent po "Triangular")
+                | TriangularName ->
+                    let p = DistributionParams.getValue m (addParent po TriangularName)
                     TriangularDistribution (seeder(), p) |> Triangular |> Some
-                | "SymmetricTriangular" -> 
-                    let p = DistributionParams.getValue m (addParent po "SymmetricTriangular")
+                | SymmetricTriangularName ->
+                    let p = DistributionParams.getValue m (addParent po SymmetricTriangularName)
                     SymmetricTriangularDistribution (seeder(), p) |> SymmetricTriangular |> Some
                 | _ -> None
             | None -> None
@@ -84,15 +95,15 @@ module SettingsExt =
 
     type RateMultiplierDistribution
         with
-        static member className = "RateMultiplierDistribution"
+        static member className = RateMultiplierDistributionName
 
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po RateMultiplierDistribution.className with
             | Some s ->
                 match s with
-                | "NoneRateMult" -> NoneRateMult |> Some
-                | "RateMultDistr" -> 
-                    addParent po "RateMultDistr"
+                | NoneRateMultName -> NoneRateMult |> Some
+                | RateMultDistrName -> 
+                    addParent po RateMultDistrName
                     |> Distribution.tryGet m seeder
                     |> Option.bind (fun d -> RateMultDistr d |> Some)
                 | _ -> None
@@ -107,14 +118,14 @@ module SettingsExt =
 
     type EeDistribution
         with
-        static member className = "EeDistribution"
+        static member className = EeDistributionName
 
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
             match getTextOpt m po EeDistribution.className with
             | Some s ->
                 match s with
-                | "EeDistribution" ->
-                    addParent po "EeDistribution"
+                | EeDistributionName ->
+                    addParent po EeDistributionName
                     |> Distribution.tryGet m seeder
                     |> Option.bind (fun d -> EeDistribution d |> Some)
                 | _ -> None
@@ -157,16 +168,16 @@ module SettingsExt =
 
     type RateMultiplierDistributionGetter
         with
-        static member className = "RateMultiplierDistributionGetter"
+        static member className = RateMultiplierDistributionGetterName
 
         static member tryGet (m : SettingMap) po =
             match getTextOpt m po RateMultiplierDistributionGetter.className with
             | Some s -> 
                 match s with
-                | "NoneRateMultDistrGetter" -> NoneRateMultDistrGetter |> Some
-                | "DeltaRateMultDistrGetter" -> DeltaRateMultDistrGetter |> Some
-                | "TriangularRateMultDistrGetter" -> TriangularRateMultDistrGetter |> Some
-                | "SymmetricTriangularRateMultDistrGetter" -> SymmetricTriangularRateMultDistrGetter |> Some
+                | NoneRateMultDistrGetterName -> NoneRateMultDistrGetter |> Some
+                | DeltaRateMultDistrGetterName -> DeltaRateMultDistrGetter |> Some
+                | TriangularRateMultDistrGetterName -> TriangularRateMultDistrGetter |> Some
+                | SymmetricTriangularRateMultDistrGetterName -> SymmetricTriangularRateMultDistrGetter |> Some
                 | _ -> None
             | None -> None
 
@@ -177,15 +188,15 @@ module SettingsExt =
 
     type EeDistributionGetter
         with
-        static member className = "EeDistributionGetter"
+        static member className = EeDistributionGetterName
 
         static member tryGet (m : SettingMap) po =
             match getTextOpt m po EeDistributionGetter.className with
             | Some s -> 
                 match s with
-                | "NoneEeGetter" -> NoneEeGetter |> Some
-                | "DeltaEeDistributionGetter" -> DeltaEeDistributionGetter |> Some
-                | "CenteredEeDistributionGetter" -> CenteredEeDistributionGetter |> Some
+                | NoneEeGetterName -> NoneEeGetter |> Some
+                | DeltaEeDistributionGetterName -> DeltaEeDistributionGetter |> Some
+                | CenteredEeDistributionGetterName -> CenteredEeDistributionGetter |> Some
                 | _ -> None
             | None -> None
 
@@ -218,11 +229,16 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
+        member this.setValue po s =
+            s
+            |> this.simBaseDistribution.setValue (addParent po CatRatesSimilarityParam.simBaseDistributionName)
+            |> this.getRateMultiplierDistr.setValue (addParent po CatRatesSimilarityParam.getRateMultiplierDistrName)
+            |> this.getForwardEeDistr.setValue (addParent po CatRatesSimilarityParam.getForwardEeDistrName)
+            |> this.getBackwardEeDistr.setValue (addParent po CatRatesSimilarityParam.getBackwardEeDistrName)
+
 
     type FoodCreationParam
         with
-
-        static member className = "FoodCreationParam"
         static member foodCreationRateName = "foodCreationRate"
 
         static member tryGet (m : SettingMap) po = 
@@ -234,11 +250,13 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> add [ setDouble po FoodCreationParam.foodCreationRateName this.foodCreationRate ]
+
 
     type WasteRemovalParam
         with
-
-        static member className = "WasteRemovalParam"
         static member wasteRemovalRateName = "wasteRemovalRate"
 
         static member tryGet (m : SettingMap) po = 
@@ -250,11 +268,13 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> add [ setDouble po WasteRemovalParam.wasteRemovalRateName this.wasteRemovalRate ]
+
 
     type WasteRecyclingParam
         with
-
-        static member className = "WasteRecyclingParam"
         static member wasteRecyclingRateName = "wasteRecyclingRate"
 
         static member tryGet (m : SettingMap) po = 
@@ -265,6 +285,10 @@ module SettingsExt =
                 }
                 |> Some
             | None -> None
+
+        member this.setValue po s =
+            s
+            |> add [ setDouble po WasteRecyclingParam.wasteRecyclingRateName this.wasteRecyclingRate ]
 
 
     type SynthesisRandomParam
@@ -284,7 +308,14 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.synthesisDistribution.setValue (addParent po SynthesisRandomParam.synthesisDistributionName)
+            |> addDoubleOpt po SynthesisRandomParam.forwardScaleName this.forwardScale
+            |> addDoubleOpt po SynthesisRandomParam.backwardScaleName this.backwardScale
 
+
+    // TODO Stopped here...
     type SynthesisParam
         with
         static member className = "SynthesisParam"
@@ -299,6 +330,10 @@ module SettingsExt =
                     |> Option.bind (fun e -> e |> SynthRndParam |> Some)
                 | _ -> None
             | None -> None
+
+        member this.setValue po s =
+            match this with
+            | SynthRndParam d -> d.setValue (addParent po "SynthRndParam") s
 
 
     type CatalyticSynthesisRandomParam

@@ -149,6 +149,8 @@ module Distributions =
     let SymmetricTriangularName = "SymmetricTriangular"
 
 
+    [<CustomEquality>]
+    [<CustomComparison>]
     type Distribution =
         | Delta of DeltaDistribution
         | BiDelta of BiDeltaDistribution
@@ -212,7 +214,7 @@ module Distributions =
             | Triangular d -> d.thresholded newThreshold |> Triangular
             | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
 
-        member this.name = 
+        member this.name =
             match this with
             | Delta _ -> DeltaName
             | BiDelta _ -> BiDeltaName
@@ -220,13 +222,31 @@ module Distributions =
             | Triangular _ -> TriangularName
             | SymmetricTriangular _ -> SymmetricTriangularName
 
-        member this.distributionParams = 
+        member this.distributionParams =
             match this with
             | Delta d -> d.distributionParams
             | BiDelta d -> d.distributionParams
             | Uniform d -> d.distributionParams
             | Triangular d -> d.distributionParams
             | SymmetricTriangular d -> d.distributionParams
+
+        override this.Equals (o: obj) =
+            match o with
+            | :? Distribution as d -> this.distributionParams = d.distributionParams
+            | _ -> false
+
+        override this.GetHashCode() = hash (this.name, this.distributionParams)
+
+        interface IEquatable<Distribution> with
+            member this.Equals(that : Distribution) = this.Equals(that)
+
+        interface IComparable with
+            member this.CompareTo(thatObj) =
+                match thatObj with
+                | :? Distribution as that ->
+                    compare (this.name, this.distributionParams) (that.name, that.distributionParams)
+                | _ ->
+                    raise <| ArgumentException("Can't compare instances of different types.")
 
 
     [<Literal>]

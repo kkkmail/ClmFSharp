@@ -21,6 +21,7 @@ let main argv =
     let rates = 
         ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
         |> List.map (fun e -> e.inputParams)
+        |> List.sort
 
     let settings = rates |> List.fold (fun acc e -> e.setValue [ (e.name, 0) ] acc) []
 
@@ -41,7 +42,11 @@ let main argv =
         ReactionRateModelParam.allNames
         |> List.map (fun e -> ReactionRateModelParam.tryGet m rnd1.Next [ (e, 0) ] )
         |> List.choose id
+        |> List.sort
 
     printfn "loaded.Length = %A" (loaded.Length)
+
+    let check = rates = loaded
+    printfn "check= %A" check
 
     0

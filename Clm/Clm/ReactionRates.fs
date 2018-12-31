@@ -1425,9 +1425,9 @@ module ReactionRates =
                 [
                     //foodModel |> FoodCreationRateModel
                     //wasteModel |> WasteRemovalRateModel
-                    wasteRecyclingModel |> WasteRecyclingRateModel
+                    //wasteRecyclingModel |> WasteRecyclingRateModel
 
-                    //synthModel |> SynthesisRateModel
+                    synthModel |> SynthesisRateModel
                     //catSynthModel |> CatalyticSynthesisRateModel
 
                     //destrModel |> DestructionRateModel

@@ -346,7 +346,7 @@ module SettingsExt =
                 match s with
                 | SynthRndParamName -> 
                     addParent po SynthRndParamName
-                    |> SynthesisRandomParam.tryGet m seeder 
+                    |> SynthesisRandomParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> SynthRndParam |> Some)
                 | _ -> None
             | None -> None

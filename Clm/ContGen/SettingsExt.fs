@@ -319,12 +319,9 @@ module SettingsExt =
             | None -> None
 
         member this.setValue po s =
-            s
-            |> add [ setText po SynthRndParamName this.name ]
-            |>
             match this with
-            | SynthRndParam d ->d.setValue (addParent po SynthRndParamName)
-
+            | SynthRndParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po SynthRndParamName this.name ]
 
     type CatalyticSynthesisRandomParam
         with
@@ -344,7 +341,6 @@ module SettingsExt =
             |> this.catSynthRndEeParams.setValue (addParent po CatalyticSynthesisRandomParam.catSynthRndEeParamsName)
 
 
-// here
     type CatalyticSynthesisParam
         with
         static member tryGet (m : SettingMap) (seeder : unit -> int) po =
@@ -363,7 +359,10 @@ module SettingsExt =
             | None -> None
 
         member this.setValue po s =
-            s
+            match this with
+            | CatSynthRndParam d -> d.setValue (addParent po this.name) s
+            | CatSynthSimParam d -> d.setValue (addParent po this.name) s
+            |> add [ setText po CatalyticSynthesisParamName this.name ]
 
 
     type DestructionRandomParam
@@ -383,7 +382,14 @@ module SettingsExt =
                 |> Some
             | None -> None
 
+        member this.setValue po s =
+            s
+            |> this.destructionDistribution.setValue (addParent po DestructionRandomParam.destructionDistributionName)
+            |> addDoubleOpt po DestructionRandomParam.forwardScaleName this.forwardScale
+            |> addDoubleOpt po DestructionRandomParam.backwardScaleName this.backwardScale
 
+
+// here
     type DestructionParam
         with
         static member className = "DestructionParam"

@@ -407,13 +407,13 @@ module FSharpCodeExt =
             | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
 
 
-    type ReactionRateModelParamUsage
+    type ReactionRateModelParamWithUsage
         with
 
         member rrmp.toFSharpCode (p : FSharpCodeParams) =
             p.shift + "            {" + Nl +
-            p.shift + "                modelParam = " + Nl + (rrmp.toFSharpCode { p with shift = increaseShift p.shift} ) +
-            p.shift + "                usage = " + Nl + rrmp.usage.ToString() + Nl +
+            p.shift + "                modelParam = " + Nl + (rrmp.modelParam.toFSharpCode { p with shift = p.shift |> increaseShift |> increaseShift } ) +
+            p.shift + "                usage = " + rrmp.usage.ToString() + Nl +
             p.shift + "            }" + Nl
 
 

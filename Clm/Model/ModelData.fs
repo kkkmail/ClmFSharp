@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 402143473
+    let seedValue = 93150634
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1722,7 +1722,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.5.0.0"
                             versionNumber = "1.5.0.0"
                             seedValue = seedValue
-                            modelName = "20181231_001"
+                            modelName = "20190101_001"
                             numberOfSubstances = 87
                             numberOfAminoAcids = TwoAminoAcids
                             maxPeptideLength = ThreeMax
@@ -1733,80 +1733,116 @@ module ModelData =
                     allParams = 
                         [
                             {
-                                synthesisDistribution = DeltaDistribution(2055952223, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                forwardScale = Some 0.001
-                                backwardScale = Some 0.001
+                                modelParam = 
+                                    {
+                                        catDestrRndEeParams = 
+                                        {
+                                            rateMultiplierDistr = TriangularDistribution(1357851746, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(123497173, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(1733608909, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                        }
+                                    }
+                                    |> CatDestrRndParam
+                                    |> CatalyticDestructionRateParam
+                                usage = DependsOnParam
                             }
-                            |> SynthRndParam
-                            |> SynthesisRateParam
 
                             {
-                                catSynthRndEeParams = 
-                                {
-                                    rateMultiplierDistr = TriangularDistribution(1812408807, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = BiDeltaDistribution(2042450443, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                    eeBackwardDistribution = BiDeltaDistribution(1299839947, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                }
+                                modelParam = 
+                                    {
+                                        simBaseDistribution = UniformDistribution(760931960, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        getRateMultiplierDistr = DeltaRateMultDistrGetter
+                                        getForwardEeDistr = DeltaEeDistributionGetter
+                                        getBackwardEeDistr = DeltaEeDistributionGetter
+                                    }
+                                    |> CatDestrSimParam
+                                    |> CatalyticDestructionRateParam
+                                usage = PrimaryParam
                             }
-                            |> CatSynthRndParam
-                            |> CatalyticSynthesisRateParam
 
                             {
-                                destructionDistribution = DeltaDistribution(1256919281, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                forwardScale = Some 0.001
-                                backwardScale = Some 0.001
+                                modelParam = 
+                                    {
+                                        catSynthRndEeParams = 
+                                        {
+                                            rateMultiplierDistr = TriangularDistribution(514097827, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(1857602165, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(230089490, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                        }
+                                    }
+                                    |> CatSynthRndParam
+                                    |> CatalyticSynthesisRateParam
+                                usage = DependsOnParam
                             }
-                            |> DestrRndParam
-                            |> DestructionRateParam
 
                             {
-                                catDestrRndEeParams = 
-                                {
-                                    rateMultiplierDistr = TriangularDistribution(1159856999, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                    eeForwardDistribution = BiDeltaDistribution(1181463644, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                    eeBackwardDistribution = BiDeltaDistribution(756161134, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                }
+                                modelParam = 
+                                    {
+                                        simBaseDistribution = UniformDistribution(157288109, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        getRateMultiplierDistr = DeltaRateMultDistrGetter
+                                        getForwardEeDistr = DeltaEeDistributionGetter
+                                        getBackwardEeDistr = DeltaEeDistributionGetter
+                                    }
+                                    |> CatSynthSimParam
+                                    |> CatalyticSynthesisRateParam
+                                usage = PrimaryParam
                             }
-                            |> CatDestrRndParam
-                            |> CatalyticDestructionRateParam
 
                             {
-                                wasteRecyclingRate = 0.1
+                                modelParam = 
+                                    {
+                                        destructionDistribution = DeltaDistribution(649777478, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        forwardScale = Some 0.001
+                                        backwardScale = Some 0.001
+                                    }
+                                    |> DestrRndParam
+                                    |> DestructionRateParam
+                                usage = PrimaryParam
                             }
-                            |> WasteRecyclingRateParam
 
                             {
-                                simBaseDistribution = UniformDistribution(1584522749, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
-                                getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                getForwardEeDistr = DeltaEeDistributionGetter
-                                getBackwardEeDistr = DeltaEeDistributionGetter
+                                modelParam = 
+                                    {
+                                        ligationDistribution = DeltaDistribution(121997795, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        forwardScale = Some 1.0
+                                        backwardScale = Some 1.0
+                                    }
+                                    |> LigRndParam
+                                    |> LigationRateParam
+                                usage = PrimaryParam
                             }
-                            |> CatSynthSimParam
-                            |> CatalyticSynthesisRateParam
 
                             {
-                                simBaseDistribution = UniformDistribution(805635352, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
-                                getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                getForwardEeDistr = DeltaEeDistributionGetter
-                                getBackwardEeDistr = DeltaEeDistributionGetter
+                                modelParam = 
+                                    {
+                                        sedimentationDirectDistribution = TriangularDistribution(121122217, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                        forwardScale = Some 10000.0
+                                    }
+                                    |> SedDirRndParam
+                                    |> SedimentationDirectRateParam
+                                usage = PrimaryParam
                             }
-                            |> CatDestrSimParam
-                            |> CatalyticDestructionRateParam
 
                             {
-                                ligationDistribution = DeltaDistribution(995177595, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                forwardScale = Some 1.0
-                                backwardScale = Some 1.0
+                                modelParam = 
+                                    {
+                                        synthesisDistribution = DeltaDistribution(2062894689, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        forwardScale = Some 0.001
+                                        backwardScale = Some 0.001
+                                    }
+                                    |> SynthRndParam
+                                    |> SynthesisRateParam
+                                usage = PrimaryParam
                             }
-                            |> LigRndParam
-                            |> LigationRateParam
 
                             {
-                                sedimentationDirectDistribution = TriangularDistribution(142263264, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
-                                forwardScale = Some 10000.0
+                                modelParam = 
+                                    {
+                                        wasteRecyclingRate = 0.1
+                                    }
+                                    |> WasteRecyclingRateParam
+                                usage = PrimaryParam
                             }
-                            |> SedDirRndParam
-                            |> SedimentationDirectRateParam
 
                         ]
                 }

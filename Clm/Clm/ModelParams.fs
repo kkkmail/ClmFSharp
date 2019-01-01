@@ -32,7 +32,7 @@ module ModelParams =
     type ModelDataParams = 
         {
             modelInfo : ModelInfo
-            allParams : list<ReactionRateModelParam>
+            allParams : list<ReactionRateModelParamWithUsage>
         }
 
 

@@ -1081,15 +1081,15 @@ module ReactionRates =
             |> List.map (fun e -> toVariableName e)
 
 
-    type ReactionRateModelParamUsageType =
+    type ReactionRateModelParamUsage =
         | PrimaryParam
         | DependsOnParam
 
 
-    type ReactionRateModelParamUsage =
+    type ReactionRateModelParamWithUsage =
         {
             modelParam : ReactionRateModelParam
-            usage : ReactionRateModelParamUsageType
+            usage : ReactionRateModelParamUsage
         }
 
 
@@ -1216,10 +1216,10 @@ module ReactionRates =
         | l -> l |> List.fold (fun a r -> allDep r (r :: a)) acc
 
 
-    type ReactionRateModelUsage =
+    type ReactionRateModelWithUsage =
         {
             model : ReactionRateModel
-            usage : ReactionRateModelParamUsageType
+            usage : ReactionRateModelParamUsage
         }
 
 

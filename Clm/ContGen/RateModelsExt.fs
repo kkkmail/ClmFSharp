@@ -1,11 +1,9 @@
 ﻿namespace ContGen
 
 open Clm.Substances
-open Clm.Distributions
 open Clm.ReactionRates
-open DatabaseTypes
 
-module RateModelsExt = 
+module RateModelsExt =
 
     type ModelsAndParams = 
         {
@@ -211,11 +209,11 @@ module RateModelsExt =
             | _ -> None
 
 
-    type SynthesisModel
+    type SynthesisRandomModel
         with
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
-            | SynthesisRateModel d -> Some d
+            | SynthesisRateModel (SynthRndModel d) -> Some d
             | _ -> None
 
 
@@ -236,6 +234,19 @@ module RateModelsExt =
                     aminoAcids = q.aminoAcids
                 }
             | None, _ -> mp
+
+
+    type SynthesisModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SynthesisRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> SynthesisRandomModel.tryCreate
 
 
     type CatalyticSynthesisRandomParam
@@ -329,6 +340,14 @@ module RateModelsExt =
                     | Some m -> create d m u x
                     | None -> x
             | None, _ -> mp
+
+
+    type CatalyticSynthesisModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> CatalyticSynthesisRandomModel.tryCreate
+            |> CatalyticSynthesisSimilarModel.tryCreate
 
 
     type DestructionRandomParam
@@ -668,4 +687,39 @@ module RateModelsExt =
                     | Some m -> create d m u x
                     | None -> x
             | None, _ -> mp
+
+
+    //type ReactionRateModel =
+    //    | FoodCreationRateModel of FoodCreationModel
+    //    | WasteRemovalRateModel of WasteRemovalModel
+    //    | WasteRecyclingRateModel of WasteRecyclingModel
+    //    | SynthesisRateModel of SynthesisModel
+    //    | DestructionRateModel of DestructionModel
+    //    | CatalyticSynthesisRateModel of CatalyticSynthesisModel
+    //    | CatalyticDestructionRateModel of CatalyticDestructionModel
+    //    | LigationRateModel of LigationModel
+    //    | CatalyticLigationRateModel of CatalyticLigationModel
+    //    | SedimentationDirectRateModel of SedimentationDirectModel
+    //    | SedimentationAllRateModel of SedimentationAllModel
+    //    | RacemizationRateModel of RacemizationModel
+    //    | CatalyticRacemizationRateModel of CatalyticRacemizationModel
+
+    type ReactionRateModel
+        with
+        static member tryCreateAll = 
+            [
+                FoodCreationModel.tryCreate
+                WasteRemovalModel.tryCreate
+                WasteRecyclingModel.tryCreate
+                SynthesisModel.tryCreate
+                DestructionModel.tryCreate
+                CatalyticSynthesisModel.tryCreate
+                //CatalyticDestructionModel.tryCreate
+                //LigationModel.tryCreate
+                //CatalyticLigationModel.tryCreate
+                //SedimentationDirectModel.tryCreate
+                //SedimentationAllModel.tryCreate
+                //RacemizationModel.tryCreate
+                //CatalyticRacemizationModel.tryCreate
+            ]
 

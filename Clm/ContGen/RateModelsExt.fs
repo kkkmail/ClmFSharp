@@ -166,6 +166,13 @@ module RateModelsExt =
             | None, _ -> mp
 
 
+    type SedimentationDirectModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> SedimentationDirectRandomModel.tryCreate
+
+
     type SedimentationAllRandomParam
         with
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
@@ -478,6 +485,14 @@ module RateModelsExt =
             | None, _ -> mp
 
 
+    type CatalyticDestructionModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> CatalyticDestructionRandomModel.tryCreate
+            |> CatalyticDestructionSimilarModel.tryCreate
+
+
     type LigationRandomParam
         with
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
@@ -486,11 +501,11 @@ module RateModelsExt =
             | _ -> None
 
 
-    type LigationModel
+    type LigationRandomModel
         with
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
-            | LigationRateModel d -> Some d
+            | LigationRateModel (LigRndModel d) -> Some d
             | _ -> None
 
 
@@ -511,6 +526,19 @@ module RateModelsExt =
                     aminoAcids = q.aminoAcids
                 }
             | None, _ -> mp
+
+
+    type LigationModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | LigationRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> LigationRandomModel.tryCreate
 
 
     type CatalyticLigationRandomParam
@@ -558,6 +586,13 @@ module RateModelsExt =
                     | Some m -> create d m u x
                     | None -> x
             | None, _ -> mp
+
+
+    type CatalyticLigationModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> CatalyticLigationRandomModel.tryCreate
 
 
     type RacemizationRandomParam
@@ -714,10 +749,10 @@ module RateModelsExt =
                 SynthesisModel.tryCreate
                 DestructionModel.tryCreate
                 CatalyticSynthesisModel.tryCreate
-                //CatalyticDestructionModel.tryCreate
-                //LigationModel.tryCreate
-                //CatalyticLigationModel.tryCreate
-                //SedimentationDirectModel.tryCreate
+                CatalyticDestructionModel.tryCreate
+                LigationModel.tryCreate
+                CatalyticLigationModel.tryCreate
+                SedimentationDirectModel.tryCreate
                 //SedimentationAllModel.tryCreate
                 //RacemizationModel.tryCreate
                 //CatalyticRacemizationModel.tryCreate

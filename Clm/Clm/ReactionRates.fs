@@ -1545,7 +1545,6 @@ module ReactionRates =
             |> DestrRndParam
             |> DestructionModel.create
 
-
         static member defaultCatSynthRndParams (rnd : Random) (m, threshold, mult) =
             {
                 catSynthRndParam = 
@@ -1701,7 +1700,6 @@ module ReactionRates =
             }
             |> CatRacemSimParamWithModel
             |> CatalyticRacemizationModel.create
-
 
         static member getDefaultRateModels (rnd : Random) numberOfAminoAcids = 
             //===========================================================

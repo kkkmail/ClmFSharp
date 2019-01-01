@@ -248,10 +248,20 @@ module ReactionRates =
         (f, b)
 
 
+    [<Literal>]
+    let FoodCreationParamName = "FoodCreationParam"
+
     type FoodCreationParam = 
         {
             foodCreationRate : double
         }
+
+        member this.name = FoodCreationParamName
+
+        static member allNames =
+            [
+                FoodCreationParamName
+            ]
 
 
     type FoodCreationModel (p : FoodCreationParam) = 
@@ -261,10 +271,20 @@ module ReactionRates =
         member __.inputParams = p
 
 
+    [<Literal>]
+    let WasteRemovalParamName = "WasteRemovalParam"
+
     type WasteRemovalParam = 
         {
             wasteRemovalRate : double
         }
+
+        member this.name = WasteRemovalParamName
+
+        static member allNames =
+            [
+                WasteRemovalParamName
+            ]
 
 
     type WasteRemovalModel (p : WasteRemovalParam) = 
@@ -274,10 +294,20 @@ module ReactionRates =
         member __.inputParams = p
 
 
+    [<Literal>]
+    let WasteRecyclingParamName = "WasteRecyclingParam"
+
     type WasteRecyclingParam = 
         {
             wasteRecyclingRate : double
         }
+
+        member this.name = WasteRecyclingParamName
+
+        static member allNames =
+            [
+                WasteRecyclingParamName
+            ]
 
 
     type WasteRecyclingModel (p : WasteRecyclingParam) = 
@@ -287,12 +317,22 @@ module ReactionRates =
         member __.inputParams = p
 
 
-    type SynthesisRandomParam = 
+    [<Literal>]
+    let SynthesisRandomParamName = "SynthesisRandomParam"
+
+    type SynthesisRandomParam =
         {
             synthesisDistribution : Distribution
             forwardScale : double option
             backwardScale : double option
         }
+
+        member this.name = SynthesisRandomParamName
+
+        static member allNames =
+            [
+                SynthesisRandomParamName
+            ]
 
 
     [<Literal>]
@@ -309,6 +349,11 @@ module ReactionRates =
         member this.name = 
             match this with 
             | SynthRndParam _ -> SynthRndParamName
+
+        static member allNames =
+            [
+                SynthRndParamName
+            ]
 
 
     type SynthesisRandomModel (p : SynthesisRandomParam) =
@@ -338,10 +383,20 @@ module ReactionRates =
             | SynthRndParam q -> SynthesisRandomModel q |> SynthRndModel
 
 
+    [<Literal>]
+    let CatalyticSynthesisRandomParamName = "CatalyticSynthesisRandomParam"
+
     type CatalyticSynthesisRandomParam =
         {
             catSynthRndEeParams : CatRatesEeParam
         }
+
+        member this.name = CatalyticSynthesisRandomParamName
+
+        static member allNames =
+            [
+                CatalyticSynthesisRandomParamName
+            ]
 
 
     [<Literal>]
@@ -364,6 +419,12 @@ module ReactionRates =
             match this with
             | CatSynthRndParam _ -> CatSynthRndParamName
             | CatSynthSimParam _ -> CatSynthSimParamName
+
+        static member allNames =
+            [
+                CatSynthRndParamName
+                CatSynthSimParamName
+            ]
 
 
     type CatalyticSynthesisRandomParamWithModel =
@@ -448,12 +509,22 @@ module ReactionRates =
             | CatSynthSimParamWithModel q -> CatalyticSynthesisSimilarModel q |> CatSynthSimModel
 
 
+    [<Literal>]
+    let DestructionRandomParamName = "DestructionRandomParam"
+
     type DestructionRandomParam =
         {
             destructionDistribution : Distribution
             forwardScale : double option
             backwardScale : double option
         }
+
+        member this.name = DestructionRandomParamName
+
+        static member allNames =
+            [
+                DestructionRandomParamName
+            ]
 
 
     [<Literal>]
@@ -470,6 +541,11 @@ module ReactionRates =
         member this.name = 
             match this with 
             | DestrRndParam _ -> DestrRndParamName
+
+        static member allNames =
+            [
+                DestrRndParamName
+            ]
 
 
     type DestructionRandomModel (p : DestructionRandomParam) =
@@ -499,10 +575,15 @@ module ReactionRates =
             | DestrRndParam q -> DestructionRandomModel q |> DestrRndModel
 
 
+    [<Literal>]
+    let CatalyticDestructionRandomParamName = "CatalyticDestructionRandomParam"
+
     type CatalyticDestructionRandomParam =
         {
             catDestrRndEeParams : CatRatesEeParam
         }
+
+        member this.name = CatalyticDestructionRandomParamName
 
 
     [<Literal>]
@@ -525,6 +606,12 @@ module ReactionRates =
             match this with
             | CatDestrRndParam _ -> CatDestrRndParamName
             | CatDestrSimParam _ -> CatDestrSimParamName
+
+        static member allNames =
+            [
+                CatDestrRndParamName
+                CatDestrSimParamName
+            ]
 
 
     type CatalyticDestructionRandomParamWithModel =
@@ -609,11 +696,21 @@ module ReactionRates =
             | CatDestrSimParamWithModel q -> CatalyticDestructionSimilarModel q |> CatDestrSimModel
 
 
+    [<Literal>]
+    let SedimentationDirectRandomParamName = "SedimentationDirectRandomParam"
+
     type SedimentationDirectRandomParam =
         {
             sedimentationDirectDistribution : Distribution
             forwardScale : double option
         }
+
+        member this.name = SedimentationDirectRandomParamName
+
+        static member allNames =
+            [
+                SedimentationDirectRandomParamName
+            ]
 
 
     [<Literal>]
@@ -630,6 +727,11 @@ module ReactionRates =
         member this.name =
             match this with
             | SedDirRndParam _ -> SedDirRndParamName
+
+        static member allNames =
+            [
+                SedDirRndParamName
+            ]
 
 
     type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
@@ -655,11 +757,21 @@ module ReactionRates =
             | SedDirRndParam q -> SedimentationDirectRandomModel q |> SedDirRndModel
 
 
+    [<Literal>]
+    let SedimentationAllRandomParamName = "SedimentationAllRandomParam"
+
     type SedimentationAllRandomParam =
         {
             sedimentationAllDistribution : Distribution
             forwardScale : double option
         }
+
+        member this.name = SedimentationAllRandomParamName
+
+        static member allNames =
+            [
+                SedimentationAllRandomParamName
+            ]
 
 
     [<Literal>]
@@ -676,6 +788,11 @@ module ReactionRates =
         member this.name =
             match this with
             | SedAllRndParam _ -> SedAllRndParamName
+
+        static member allNames =
+            [
+                SedAllRndParamName
+            ]
 
 
     type SedimentationRandomAllModel (p : SedimentationAllRandomParam) =
@@ -701,12 +818,22 @@ module ReactionRates =
             | SedAllRndParam q -> SedimentationRandomAllModel q |> SedAllRndModel
 
 
+    [<Literal>]
+    let LigationRandomParamName = "LigationRandomParam"
+
     type LigationRandomParam =
         {
             ligationDistribution : Distribution
             forwardScale : double option
             backwardScale : double option
         }
+
+        member this.name = LigationRandomParamName
+
+        static member allNames =
+            [
+                LigationRandomParamName
+            ]
 
 
     [<Literal>]
@@ -723,6 +850,11 @@ module ReactionRates =
         member this.name =
             match this with
             | LigRndParam _ -> LigRndParamName
+
+        static member allNames =
+            [
+                LigRndParamName
+            ]
 
 
     type LigationRandomModel (p : LigationRandomParam) =
@@ -752,10 +884,20 @@ module ReactionRates =
             | LigRndParam q -> LigationRandomModel q |> LigRndModel
 
 
+    [<Literal>]
+    let CatalyticLigationRandomParamName = "CatalyticLigationRandomParam"
+
     type CatalyticLigationRandomParam =
         {
             catLigRndEeParams : CatRatesEeParam
         }
+
+        member this.name = CatalyticLigationRandomParamName
+
+        static member allNames =
+            [
+                CatalyticLigationRandomParamName
+            ]
 
 
     [<Literal>]
@@ -772,6 +914,11 @@ module ReactionRates =
         member this.name =
             match this with
             | CatLigRndParam _ -> CatLigRndParamName
+
+        static member allNames =
+            [
+                CatLigRndParamName
+            ]
 
 
     type CatalyticLigationRandomParamWithModel =
@@ -824,11 +971,21 @@ module ReactionRates =
             | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
 
 
+    [<Literal>]
+    let RacemizationRandomParamName = "RacemizationRandomParam"
+
     type RacemizationRandomParam =
         {
             racemizationDistribution : Distribution
             forwardScale : double option
         }
+
+        member this.name = RacemizationRandomParamName
+
+        static member allNames =
+            [
+                RacemizationRandomParamName
+            ]
 
 
     [<Literal>]
@@ -845,6 +1002,11 @@ module ReactionRates =
         member this.name =
             match this with
             | RacemRndParam _ -> RacemRndParamName
+
+        static member allNames =
+            [
+                RacemRndParamName
+            ]
 
 
     type RacemizationRandomModel (p : RacemizationRandomParam) =
@@ -874,10 +1036,20 @@ module ReactionRates =
             | RacemRndParam q -> RacemizationRandomModel q |> RacemRndModel
 
 
+    [<Literal>]
+    let CatalyticRacemizationRandomParamName = "CatalyticRacemizationRandomParam"
+
     type CatalyticRacemizationRandomParam =
         {
             catRacemRndEeParams : CatRatesEeParam
         }
+
+        member this.name = CatalyticRacemizationRandomParamName
+
+        static member allNames =
+            [
+                CatalyticRacemizationRandomParamName
+            ]
 
 
     [<Literal>]
@@ -898,6 +1070,12 @@ module ReactionRates =
             match this with
             | CatRacemRndParam _ -> CatRacemRndParamName
             | CatRacemSimParam _ -> CatRacemSimParamName
+
+        static member allNames =
+            [
+                CatRacemRndParamName
+                CatRacemSimParamName
+            ]
 
 
     type CatalyticRacemizationRandomParamWithModel =
@@ -1057,7 +1235,24 @@ module ReactionRates =
             | RacemizationRateParam _ -> RacemizationRateParamName
             | CatalyticRacemizationRateParam _ -> CatalyticRacemizationRateParamName
 
+        member this.paramName =
+            match this with
+            | FoodCreationRateParam p -> p.name
+            | WasteRemovalRateParam p -> p.name
+            | WasteRecyclingRateParam p -> p.name
+            | SynthesisRateParam p -> p.name
+            | DestructionRateParam p -> p.name
+            | CatalyticSynthesisRateParam p -> p.name
+            | CatalyticDestructionRateParam p -> p.name
+            | LigationRateParam p -> p.name
+            | CatalyticLigationRateParam p -> p.name
+            | SedimentationDirectRateParam p -> p.name
+            | SedimentationAllRateParam p -> p.name
+            | RacemizationRateParam p -> p.name
+            | CatalyticRacemizationRateParam p -> p.name
+
         member this.variableName = this.name |> toVariableName
+        member this.variableParamName = this.paramName |> toVariableName
 
         static member allNames =
             [
@@ -1077,13 +1272,47 @@ module ReactionRates =
             ]
 
         static member allVariableNames =
-            ReactionRateModelParam.allNames
-            |> List.map (fun e -> toVariableName e)
+            ReactionRateModelParam.allNames |> List.map (fun e -> toVariableName e)
 
+        static member allParamNames =
+            [
+                FoodCreationParam.allNames
+                WasteRemovalParam.allNames
+                WasteRecyclingParam.allNames
+                SynthesisParam.allNames
+                DestructionParam.allNames
+                CatalyticSynthesisParam.allNames
+                CatalyticDestructionParam.allNames
+                LigationParam.allNames
+                CatalyticLigationParam.allNames
+                SedimentationDirectParam.allNames
+                SedimentationAllParam.allNames
+                RacemizationParam.allNames
+                CatalyticRacemizationParam.allNames
+            ]
+            |> List.concat
+
+        static member allVariableParamNames =
+            ReactionRateModelParam.allParamNames |> List.map (fun e -> toVariableName e)
+
+
+    [<Literal>]
+    let ReactionRateModelParamUsageName = "ReactionRateModelParamUsage"
+
+    [<Literal>]
+    let PrimaryParamName = "PrimaryParam"
+
+    [<Literal>]
+    let DependsOnParamName = "DependsOnParam"
 
     type ReactionRateModelParamUsage =
         | PrimaryParam
         | DependsOnParam
+
+        member this.name =
+            match this with
+            | PrimaryParam -> PrimaryParamName
+            | DependsOnParam -> DependsOnParamName
 
 
     type ReactionRateModelParamWithUsage =

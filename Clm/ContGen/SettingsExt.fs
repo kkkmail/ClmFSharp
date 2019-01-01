@@ -814,3 +814,46 @@ module SettingsExt =
             | RacemizationRateParam d -> d.setValue (addParent po this.name) s
             | CatalyticRacemizationRateParam d -> d.setValue (addParent po this.name) s
             |> add [ setText po ReactionRateModelParamName this.name ]
+
+
+    type ReactionRateModelParamUsage
+        with
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po =
+            match getTextOpt m po ReactionRateModelParamUsageName with
+            | Some s ->
+                match s with
+                | PrimaryParamName -> Some PrimaryParam
+                | DependsOnParamName -> Some DependsOnParam
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            add [ setText po ReactionRateModelParamUsageName this.name ] s
+
+
+    [<Literal>]
+    let modelParamName = "modelParam"
+
+    [<Literal>]
+    let usageParamName = "usage"
+
+    type ReactionRateModelParamWithUsage
+        with
+        static member tryGet (m : SettingMap) (seeder : unit -> int) po = 
+            let p() = addParent po modelParamName |> ReactionRateModelParam.tryGet m seeder
+            let u() = addParent po usageParamName |> ReactionRateModelParamUsage.tryGet m seeder
+
+            match p(), u() with
+            | Some a, Some b ->
+                {
+                    modelParam = a
+                    usage = b
+                }
+                |> Some
+            | _ -> None
+
+        member this.setValue po s =
+            s
+            |> this.modelParam.setValue (addParent po modelParamName)
+            |> this.usage.setValue (addParent po usageParamName)
+

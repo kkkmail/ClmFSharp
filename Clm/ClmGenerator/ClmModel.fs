@@ -435,7 +435,7 @@ module ClmModel =
                         [
 " 
                         + 
-                        (allParamsCode { shift = "                "; aminoAcidsCode = aminoAcidsCode}) + @"
+                        (allParamsCode { shift = "                "; aminoAcidsCode = aminoAcidsCode }) + @"
                         ]
                 }
 

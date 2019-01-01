@@ -19,7 +19,7 @@ let saveSettings (settings : list<Setting>) conn =
 
 let testAll conn (rnd : Random) = 
     let rates = 
-        ReactionRateProvider.getDefaultRates rnd TwoAminoAcids
+        (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allModels
         |> List.map (fun e -> e.inputParams)
         |> List.sort
 

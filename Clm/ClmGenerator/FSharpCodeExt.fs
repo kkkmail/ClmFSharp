@@ -407,20 +407,19 @@ module FSharpCodeExt =
             | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
 
 
+    type ReactionRateModelParamUsage
+        with
+
+        member rrmp.toFSharpCode (p : FSharpCodeParams) =
+            p.shift + "            {" + Nl +
+            p.shift + "                modelParam = " + Nl + (rrmp.toFSharpCode { p with shift = increaseShift p.shift} ) +
+            p.shift + "                usage = " + Nl + rrmp.usage.ToString() + Nl +
+            p.shift + "            }" + Nl
+
+
     type ReactionRateProvider
         with
 
-        member rrp.toParamFSharpCode shift = 
-            let rec allDep (rm : ReactionRateModel) (acc : list<ReactionRateModel>) = 
-                match rm.dependsOn with 
-                | [] -> acc
-                | l -> l |> List.fold (fun a r -> allDep r (r :: a)) acc
-
-            let dep =
-                rrp.providerParams.rateModels
-                |> List.map (fun e -> allDep e [])
-                |> List.concat
-
-            (dep @ rrp.providerParams.rateModels)
-            |> List.distinct
-            |> List.map (fun e -> e.inputParams.toFSharpCode shift) |> String.concat Nl
+        member rrp.toParamFSharpCode (p : FSharpCodeParams) =
+            rrp.providerParams.allParams
+            |> List.map (fun e -> e.toFSharpCode p) |> String.concat Nl

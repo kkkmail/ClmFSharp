@@ -24,7 +24,7 @@ let maxPeptideLength = MaxPeptideLength.ThreeMax
 let seed = newSeed()
 printfn "seed = %A" seed
 let rnd = new Random(seed)
-let rates = ReactionRateProvider.getDefaultRates rnd numberOfAminoAcids
+let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
 //===========================================================
 let modelGenerationParams = 
     {
@@ -33,7 +33,7 @@ let modelGenerationParams =
         seedValue = Some seed
         numberOfAminoAcids = numberOfAminoAcids
         maxPeptideLength = maxPeptideLength
-        reactionRateModels = rates
+        reactionRateModels = rates.rateModels
         updateFuncType = UseFunctions
         modelLocationData = ModelLocationInputData.defaultValue
         updateAllModels = updateAllModels

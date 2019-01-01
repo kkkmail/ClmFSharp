@@ -34,7 +34,8 @@ module RateModelsExt =
         static member tryCreate (r : list<ReactionRateModelWithUsage>) (p : list<ReactionRateModelParamWithUsage>) =
             let x = 
                 match tryGetParam p SynthesisModel.tryToSynthRndParam with
-                | Some (u, d) -> 0
-                | None -> 0
+                | Some (u, d) -> 
+                    { model = d |> SynthesisRandomModel |> SynthRndModel |> SynthesisRateModel; usage = u } |> Some
+                | None -> None
             0
 

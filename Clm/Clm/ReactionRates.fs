@@ -795,7 +795,7 @@ module ReactionRates =
             ]
 
 
-    type SedimentationRandomAllModel (p : SedimentationAllRandomParam) =
+    type SedimentationAllRandomModel (p : SedimentationAllRandomParam) =
         let rateDictionaryImpl = new Dictionary<SedimentationAllReaction, (ReactionRate option * ReactionRate option)>()
         let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble() |> Some)
         member __.getRates r = getRatesImpl rateDictionaryImpl getEnantiomer calculateRates r
@@ -803,7 +803,7 @@ module ReactionRates =
 
 
     type SedimentationAllModel =
-        | SedAllRndModel of SedimentationRandomAllModel
+        | SedAllRndModel of SedimentationAllRandomModel
 
         member model.getRates r =
             match model with
@@ -815,7 +815,7 @@ module ReactionRates =
 
         static member create p =
             match p with 
-            | SedAllRndParam q -> SedimentationRandomAllModel q |> SedAllRndModel
+            | SedAllRndParam q -> SedimentationAllRandomModel q |> SedAllRndModel
 
 
     [<Literal>]

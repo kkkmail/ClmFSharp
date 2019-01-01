@@ -7,21 +7,6 @@ open DatabaseTypes
 
 module RateModelsExt = 
 
-    //type ReactionRateModelParam =
-    //    | FoodCreationRateParam of FoodCreationParam
-    //    | WasteRemovalRateParam of WasteRemovalParam
-    //    | WasteRecyclingRateParam of WasteRecyclingParam
-    //    | SedimentationDirectRateParam of SedimentationDirectParam
-    //    | SedimentationAllRateParam of SedimentationAllParam
-
-    //type ReactionRateModel =
-    //    | FoodCreationRateModel of FoodCreationModel
-    //    | WasteRemovalRateModel of WasteRemovalModel
-    //    | WasteRecyclingRateModel of WasteRecyclingModel
-    //    | SedimentationDirectRateModel of SedimentationDirectModel
-    //    | SedimentationAllRateModel of SedimentationAllModel
-
-
     type ModelsAndParams = 
         {
             models : list<ReactionRateModelWithUsage>
@@ -44,6 +29,178 @@ module RateModelsExt =
 
 
     let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter
+
+
+    type FoodCreationParam
+        with
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | FoodCreationRateParam d -> Some (p.usage, d)
+            | _ -> None
+
+
+    type FoodCreationModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | FoodCreationRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            match tryPickParam FoodCreationParam.paramGetter mp with
+            | Some (u, d), q ->
+                {
+                    models =
+                        {
+                            model =
+                                d
+                                |> FoodCreationModel
+                                |> FoodCreationRateModel
+                            usage = u
+                        } :: q.models
+                    modelParams = q.modelParams
+                    aminoAcids = q.aminoAcids
+                }
+            | None, _ -> mp
+
+
+    type WasteRemovalParam
+        with
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | WasteRemovalRateParam d -> Some (p.usage, d)
+            | _ -> None
+
+
+    type WasteRemovalModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | WasteRemovalRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            match tryPickParam WasteRemovalParam.paramGetter mp with
+            | Some (u, d), q ->
+                {
+                    models =
+                        {
+                            model =
+                                d
+                                |> WasteRemovalModel
+                                |> WasteRemovalRateModel
+                            usage = u
+                        } :: q.models
+                    modelParams = q.modelParams
+                    aminoAcids = q.aminoAcids
+                }
+            | None, _ -> mp
+
+
+    type WasteRecyclingParam
+        with
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | WasteRecyclingRateParam d -> Some (p.usage, d)
+            | _ -> None
+
+
+    type WasteRecyclingModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | WasteRecyclingRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            match tryPickParam WasteRecyclingParam.paramGetter mp with
+            | Some (u, d), q ->
+                {
+                    models =
+                        {
+                            model =
+                                d
+                                |> WasteRecyclingModel
+                                |> WasteRecyclingRateModel
+                            usage = u
+                        } :: q.models
+                    modelParams = q.modelParams
+                    aminoAcids = q.aminoAcids
+                }
+            | None, _ -> mp
+
+
+    type SedimentationDirectRandomParam
+        with
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | SedimentationDirectRateParam (SedDirRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type SedimentationDirectRandomModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SedimentationDirectRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            match tryPickParam SedimentationDirectRandomParam.paramGetter mp with
+            | Some (u, d), q ->
+                {
+                    models =
+                        {
+                            model =
+                                d
+                                |> SedimentationDirectRandomModel
+                                |> SedDirRndModel
+                                |> SedimentationDirectRateModel
+                            usage = u
+                        } :: q.models
+                    modelParams = q.modelParams
+                    aminoAcids = q.aminoAcids
+                }
+            | None, _ -> mp
+
+
+    type SedimentationAllRandomParam
+        with
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | SedimentationAllRateParam (SedAllRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type SedimentationAllRandomModel
+        with
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SedimentationAllRateModel d -> Some d
+            | _ -> None
+
+
+        static member tryCreate (mp : ModelsAndParams) =
+            match tryPickParam SedimentationAllRandomParam.paramGetter mp with
+            | Some (u, d), q ->
+                {
+                    models =
+                        {
+                            model =
+                                d
+                                |> SedimentationAllRandomModel
+                                |> SedAllRndModel
+                                |> SedimentationAllRateModel
+                            usage = u
+                        } :: q.models
+                    modelParams = q.modelParams
+                    aminoAcids = q.aminoAcids
+                }
+            | None, _ -> mp
 
 
     type SynthesisRandomParam

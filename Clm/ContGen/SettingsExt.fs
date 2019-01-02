@@ -22,7 +22,9 @@ module SettingsExt =
 
     let setDouble p n v = { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v }
     let setInt p n v = { Setting.defaultValue() with settingPath = addParent p n; settingLong = int64 v }
+    let setIntOpt p n vo = vo |> Option.bind (fun v -> setInt p n v |> Some)
     let setText p n v = { Setting.defaultValue() with settingPath = addParent p n; settingText = Some v }
+    let setBool p n v = { Setting.defaultValue() with settingPath = addParent p n; settingBit = v }
     let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v } |> Some)
 
 
@@ -50,10 +52,16 @@ module SettingsExt =
         |> Option.bind (fun v -> v.settingText)
 
 
+    let getBoolOpt (m : SettingMap) po n =
+        addParent po n
+        |> tryFindByName m
+        |> Option.bind (fun v -> v.settingBit |> Some)
+
+
     type NumberOfAminoAcids
         with
-        static member getValue (m : SettingMap) po =
-            getIntOpt m po NumberOfAminoAcidsName
+        static member tryGet (m : SettingMap) po =
+            getIntOpt m po NumberOfAminoAcidsName |> Option.bind (fun i -> NumberOfAminoAcids.tryCreate i)
 
         member this.setValue po s =
             add s [ setInt po NumberOfAminoAcidsName this.length]
@@ -61,8 +69,8 @@ module SettingsExt =
 
     type MaxPeptideLength
         with
-        static member getValue (m : SettingMap) po =
-            getIntOpt m po MaxPeptideLengthName
+        static member tryGet (m : SettingMap) po =
+            getIntOpt m po MaxPeptideLengthName |> Option.bind (fun i -> MaxPeptideLength.tryCreate i)
 
         member this.setValue po s =
             add s [ setInt po MaxPeptideLengthName this.length]
@@ -888,7 +896,7 @@ module SettingsExt =
 
     type UpdateFuncType
         with
-        static member getValue (m : SettingMap) po =
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po UpdateFuncTypeName with
             | Some s -> 
                 match s with
@@ -926,26 +934,30 @@ module SettingsExt =
     [<Literal>]
     let allResultsFileName = "allResultsFile"
 
-
-    //    {
-    //         : string
-    //         : string
-    //         : int
-    //         : string
-    //         : string
-    //    }
     type ModelLocationInputData
         with
-        static member getValue (m : SettingMap) po =
-            {
-                threshold = getDoubleOpt m po thresholdName
-                scale = getDoubleOpt m po scaleName
-                shift = getDoubleOpt m po shiftName
-            }
+        static member tryGet (m : SettingMap) po =
+            let a() = getTextOpt m po startingFolderName
+            let b() = getTextOpt m po separatorName
+            let c() = getIntOpt m po scaleName
+            let d() = getTextOpt m po allModelsFileName
+            let e() = getTextOpt m po allResultsFileName
+
+            match a(), b(), c(), d(), e() with
+            | Some a1, Some b1, Some c1, Some d1, Some e1 ->
+                {
+                    startingFolder = a1
+                    separator = b1
+                    padLength = c1
+                    allModelsFile = d1
+                    allResultsFile = e1
+                }
+                |> Some
+            | _ -> None
 
         member this.setValue po s =
             [
-                setText po thresholdName this.startingFolder
+                setText po startingFolderName this.startingFolder
                 setText po separatorName this.separator
                 setInt po scaleName this.padLength
                 setText po allModelsFileName this.allModelsFile
@@ -954,16 +966,79 @@ module SettingsExt =
             |> add s
 
 
+    [<Literal>]
+    let fileStructureVersionNumberName = "fileStructureVersionNumber"
+
+    [<Literal>]
+    let versionNumberName = "versionNumber"
+
+    [<Literal>]
+    let seedValueName = "seedValue"
+
+    [<Literal>]
+    let numberOfAminoAcidsName = "numberOfAminoAcids"
+
+    [<Literal>]
+    let maxPeptideLengthName = "maxPeptideLength"
+
+    [<Literal>]
+    let reactionRateModelsName = "reactionRateModels"
+
+    [<Literal>]
+    let updateFuncTypeName = "updateFuncType"
+
+    [<Literal>]
+    let modelLocationDataName = "modelLocationData"
+
+    [<Literal>]
+    let updateAllModelsName = "updateAllModels"
+
+    type ModelGenerationParams
+        with
+        static member tryGet (m : SettingMap) po =
+            let a() = getTextOpt m po fileStructureVersionNumberName
+            let b() = getTextOpt m po versionNumberName
+            let c() = getIntOpt m po seedValueName
+            let d() = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
+            let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
+            let f() = addParent po reactionRateModelsName
+            let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
+            let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
+            let i() = getBoolOpt m po updateAllModelsName
+
+            match a(), b(), d(), e(),    g(), h(), i() with
+            | Some a1, Some b1, Some d1, Some e1,    Some g1, Some h1, Some i1 ->
+                {
+                    fileStructureVersionNumber = a1
+                    versionNumber = b1
+                    seedValue = c()
+                    numberOfAminoAcids = d1
+                    maxPeptideLength = e1
+                    reactionRateModels= []
+                    updateFuncType = g1
+                    modelLocationData = h1
+                    updateAllModels = i1
+                }
+                |> Some
+            | _ -> None
+
+        member this.setValue po s =
+            [
+                setText po fileStructureVersionNumberName this.fileStructureVersionNumber |> Some
+                setText po versionNumberName this.versionNumber |> Some
+                setIntOpt po seedValueName this.seedValue
+                setBool po updateAllModelsName this.updateAllModels |> Some
+            ]
+            |> List.choose id
+            |> add s
+            |> this.numberOfAminoAcids.setValue (addParent po numberOfAminoAcidsName)
+            |> this.maxPeptideLength.setValue (addParent po numberOfAminoAcidsName)
+            |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
+            |> this.modelLocationData.setValue (addParent po modelLocationDataName)
+
     //type ModelGenerationParams = 
     //    {
-    //        fileStructureVersionNumber : string
-    //        versionNumber : string
-    //        seedValue : int option
-    //        numberOfAminoAcids : NumberOfAminoAcids
-    //        maxPeptideLength : MaxPeptideLength
-    //        reactionRateModels : List<ReactionRateModel>
-    //        updateFuncType : UpdateFuncType
-    //        modelLocationData : ModelLocationInputData
-    //        updateAllModels : bool
-    //    }
 
+    //        reactionRateModels : List<ReactionRateModel>
+
+    //    }

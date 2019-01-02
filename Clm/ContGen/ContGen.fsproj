@@ -50,8 +50,8 @@
     <Compile Include="Configuration.fs" />
     <Compile Include="DynamicSql.fs" />
     <Compile Include="DatabaseTypes.fs" />
-    <Compile Include="SettingsExt.fs" />
     <Compile Include="RateModelsExt.fs" />
+    <Compile Include="SettingsExt.fs" />
     <Compile Include="Settings.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Program.fs" />

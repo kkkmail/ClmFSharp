@@ -103,8 +103,6 @@ let main argv =
     //testAll conn rnd
     //testModelGenerationParams conn rnd
 
-    //let r = saveDetaultModelDataTable conn
-
     let modelId = getNewModelDataId conn
 
     use d = new ModelDataTableData(conn)

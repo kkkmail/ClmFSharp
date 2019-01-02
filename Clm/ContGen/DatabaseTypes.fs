@@ -149,7 +149,6 @@ module DatabaseTypes =
         |> Map.ofList
 
 
-
     let truncateSettings (conn : SqlConnection) =
         use truncateSettingTbl = new TruncateSettingTbl(conn)
         truncateSettingTbl.Execute() |> ignore
@@ -162,9 +161,11 @@ module DatabaseTypes =
         printfn "inserted = %A" inserted
 
 
-    let getNewModelDataId (conn : SqlConnection) =
-        let t = new ModelDataTable()
-        let r = 
+    let getNewModelDataId conn =
+        openConnIfClosed conn
+        use t = new ModelDataTable()
+
+        let r =
             t.NewRow(
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
@@ -175,6 +176,13 @@ module DatabaseTypes =
                     )
 
         t.Rows.Add r
-        t.Update(conn) |> ignore
+        t.Update conn |> ignore
         r.modelId
 
+
+    let tryFindModelDataRow conn modelId =
+        openConnIfClosed conn
+        use d = new ModelDataTableData(conn)
+        let t = new ModelDataTable()
+        d.Execute(modelId = modelId) |> t.Load
+        t.Rows |> Seq.tryFind (fun e -> e.modelId = modelId)

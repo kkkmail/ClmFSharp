@@ -20,6 +20,11 @@ module DataLocation =
     [<Literal>]
     let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
 
+    type ModeName =
+        | DoGenerate
+        | GeneratedName of string
+        | ConsecutiveName of int64
+
 
     [<Literal>]
     let ModelLocationInputDataName = "ModelLocationInputData"
@@ -31,18 +36,18 @@ module DataLocation =
             padLength : int
             allModelsFile : string
             allResultsFile : string
-            modelName : string option
+            modelName : ModeName
             useDefaultModeData : bool
         }
 
-        static member defaultValue = 
+        static member defaultValue =
             {
                 startingFolder = DefaultStartingFolder
                 separator = "_"
                 padLength = 3
                 allModelsFile = DefaultAllModelsFile
                 allResultsFile = DefaultAllResultsFile
-                modelName = None
+                modelName = DoGenerate
                 useDefaultModeData = false
             }
 

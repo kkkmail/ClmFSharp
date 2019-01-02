@@ -104,10 +104,21 @@ let main argv =
     //testModelGenerationParams conn rnd
 
     //let r = saveDetaultModelDataTable conn
+
     let t = new ModelDataTable()
     let r = addDefaultModelDataTable t
     t.Update(conn) |> ignore
 
-    r.fileStructureVersion <- FileStructureVersionNumber
-    t.Update(conn) |> ignore
+    //r.fileStructureVersion <- FileStructureVersionNumber
+    //t.Update(conn) |> ignore
+
+    use d = new ModelDataTableData(conn)
+    let t1 = new ModelDataTable()
+    d.Execute(modelId = r.modelId) |> t1.Load
+
+    let r1 = t1.Rows |> Seq.find (fun e -> e.modelId = r.modelId)
+
+    r1.fileStructureVersion <- FileStructureVersionNumber
+    t1.Update(conn) |> ignore
+
     0

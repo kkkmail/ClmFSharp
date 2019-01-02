@@ -24,9 +24,10 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
+    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelId = @modelId", ClmConnectionString, ResultType.DataReader>
 
 
-    type Setting = 
+    type Setting =
         {
             settingId : Guid option
             settingPath : list<string * int>

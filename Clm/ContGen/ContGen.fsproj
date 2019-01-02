@@ -62,6 +62,9 @@
     <None Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FakeLib">
+      <HintPath>..\packages\FAKE.5.8.4\tools\FakeLib.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
@@ -81,6 +84,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Reactive">
+      <HintPath>..\packages\FAKE.5.8.4\tools\System.Reactive.dll</HintPath>
+    </Reference>
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>

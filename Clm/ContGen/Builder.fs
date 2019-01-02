@@ -1,5 +1,9 @@
 ﻿namespace ContGen
 
+open System
+open System.Diagnostics
+open System.Threading
+
 //open Fake.DotNet
 //open Fake.Core
 //open Fake.IO

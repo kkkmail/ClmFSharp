@@ -9,9 +9,9 @@ open Clm.OdeSolver.Solver
 open Clm.Generator.FSharpCodeExt
 open Microsoft.FSharp.Core
 
-module ResultSerialization = 
+module ResultSerialization =
 
-    type OdeResult 
+    type OdeResult
         with 
         member o.toFSharpCode (shift : string) = 
             shift + "        [" + Nl +
@@ -23,7 +23,7 @@ module ResultSerialization =
             shift + "                endTime = " + (doubleFSharpString o.endTime) + Nl +
             shift + "                t= " + (arrayToFSharpString o.t String.Empty) + Nl +
             shift + "                x = " + Nl +
-            shift + "                    array2D " + Nl + (array2DToFSharpString o.x "                        ") + 
+            shift + "                    array2D " + Nl + (array2DToFSharpString o.x "                        ") +
             shift + "            }" + Nl +
             shift + "        ]" + Nl
 

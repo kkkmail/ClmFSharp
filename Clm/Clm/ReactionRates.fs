@@ -1479,7 +1479,7 @@ module ReactionRates =
             |> Set.union (dep |> Set.map (fun e -> { model = e; usage = DependsOnParam }))
             |> Set.toList
 
-        member p.allParams = p.allModels |> List.map (fun e -> { modelParam = e.model.inputParams; usage = e.usage })
+        member p.allParams = p.allModels |> List.map (fun e -> { modelParam = e.model.inputParams; usage = e.usage }) |> List.sort
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
         static let defaultRateMultiplierDistr (rnd : Random) threshold mult =

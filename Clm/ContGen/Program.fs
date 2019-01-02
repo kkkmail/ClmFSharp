@@ -46,7 +46,7 @@ let testModelGenerationParams conn (rnd : Random) =
             seedValue = rnd.Next() |> Some
             numberOfAminoAcids = numberOfAminoAcids
             maxPeptideLength = ThreeMax
-            reactionRateModels = rates.rateModels |> List.sort
+            reactionRateModels = rates.rateModels
             updateFuncType = UseFunctions
             modelLocationData = ModelLocationInputData.defaultValue
             updateAllModels = false
@@ -58,10 +58,10 @@ let testModelGenerationParams conn (rnd : Random) =
     let m = loadSettings ClmConnectionString
     let loaded = ModelGenerationParams.tryGet m rnd.Next
 
-    match loaded with 
+    match loaded with
     | Some l ->
         printfn  "Loaded."
-        let check = modelGenerationParams = l
+        let check = rates.allParams = { rateModels = l.reactionRateModels }.allParams
         printfn "check = %A" check
     | None -> printfn "Failed to load."
 
@@ -106,7 +106,7 @@ let main argv =
 
     use truncateSettingTbl = new TruncateSettingTbl(conn)
     truncateSettingTbl.Execute() |> ignore
-    testAll conn rnd
-    //testModelGenerationParams conn rnd
+    //testAll conn rnd
+    testModelGenerationParams conn rnd
 
     0

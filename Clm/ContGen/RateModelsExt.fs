@@ -741,20 +741,29 @@ module RateModelsExt =
 
     type ReactionRateModel
         with
-        static member tryCreateAll (mp : ModelsAndParams) =
-            [
-                FoodCreationModel.tryCreate
-                WasteRemovalModel.tryCreate
-                WasteRecyclingModel.tryCreate
-                SynthesisModel.tryCreate
-                DestructionModel.tryCreate
-                CatalyticSynthesisModel.tryCreate
-                CatalyticDestructionModel.tryCreate
-                LigationModel.tryCreate
-                CatalyticLigationModel.tryCreate
-                SedimentationDirectModel.tryCreate
-                SedimentationAllModel.tryCreate
-                RacemizationModel.tryCreate
-                CatalyticRacemizationModel.tryCreate
-            ]
-            |> List.fold (fun acc r -> r acc) mp
+        static member createAll (p : list<ReactionRateModelParamWithUsage>) (n : NumberOfAminoAcids) =
+            let mp =
+                {
+                    models = []
+                    modelParams = p
+                    aminoAcids= AminoAcid.getAminoAcids n
+                }
+            (
+                [
+                    FoodCreationModel.tryCreate
+                    WasteRemovalModel.tryCreate
+                    WasteRecyclingModel.tryCreate
+                    SynthesisModel.tryCreate
+                    DestructionModel.tryCreate
+                    CatalyticSynthesisModel.tryCreate
+                    CatalyticDestructionModel.tryCreate
+                    LigationModel.tryCreate
+                    CatalyticLigationModel.tryCreate
+                    SedimentationDirectModel.tryCreate
+                    SedimentationAllModel.tryCreate
+                    RacemizationModel.tryCreate
+                    CatalyticRacemizationModel.tryCreate
+                ]
+                |> List.fold (fun acc r -> r acc) mp
+            ).models
+

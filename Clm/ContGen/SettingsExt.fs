@@ -888,10 +888,19 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
+        static member getAll (m : SettingMap) (seeder : unit -> int) = 
+            ReactionRateModelParam.allVariableParamNames
+            |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m seeder [ (e, 0) ] )
+            |> List.choose id
+            |> List.sort
+
         member this.setValue po s =
             s
             |> this.modelParam.setValue (addParent po modelParamName)
             |> this.usage.setValue (addParent po usageParamName)
+
+        static member setAll (rates : list<ReactionRateModelParamWithUsage>) s =
+            rates |> List.fold (fun acc e -> e.setValue [ (e.modelParam.variableParamName, 0) ] acc) s
 
 
     type UpdateFuncType
@@ -909,15 +918,6 @@ module SettingsExt =
         member this.setValue po s =
             add s [ setText po UpdateFuncTypeName (this.ToString()) ]
 
-
-    //type ModelLocationInputData = 
-    //    {
-    //        startingFolder : string
-    //        separator : string
-    //        padLength : int
-    //        allModelsFile : string
-    //        allResultsFile : string
-    //    }
 
     [<Literal>]
     let startingFolderName = "startingFolder"

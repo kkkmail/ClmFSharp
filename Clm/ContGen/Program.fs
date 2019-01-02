@@ -18,19 +18,11 @@ let saveSettings (settings : list<Setting>) conn =
 
 
 let testAll conn (rnd : Random) = 
-    let rates = 
-        (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allParams
-        |> List.sort
-
-    let settings = rates |> List.fold (fun acc e -> e.setValue [ (e.modelParam.variableParamName, 0) ] acc) []
+    let rates = (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allParams |> List.sort
+    let settings = ReactionRateModelParamWithUsage.setAll rates []
     saveSettings settings conn
     let m = loadSettings ClmConnectionString
-
-    let loaded = 
-        ReactionRateModelParam.allVariableParamNames
-        |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m rnd.Next [ (e, 0) ] )
-        |> List.choose id
-        |> List.sort
+    let loaded = ReactionRateModelParamWithUsage.getAll m rnd.Next
 
     printfn "loaded.Length = %A" (loaded.Length)
 

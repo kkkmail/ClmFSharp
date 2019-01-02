@@ -4,7 +4,6 @@ open Clm.ReactionRates
 
 open ContGen.Configuration
 open ContGen.DatabaseTypes
-open ContGen.Settings
 open ContGen.SettingsExt
 open System
 open System.Data.SqlClient
@@ -13,12 +12,7 @@ open Clm.VersionInfo
 open Clm.DataLocation
 open Clm.Generator.ClmModel
 
-
-let saveSettings (settings : list<Setting>) conn = 
-    let settingTable = new SettingTable()
-    settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
-    let inserted = settingTable.Update(conn)
-    printfn "inserted = %A" inserted
+let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
 
 let testAll conn (rnd : Random) = 
@@ -27,7 +21,7 @@ let testAll conn (rnd : Random) =
     saveSettings settings conn
 
     let m = loadSettings ClmConnectionString
-    let loaded = ReactionRateModelParamWithUsage.getAll m rnd.Next
+    let loaded = ReactionRateModelParamWithUsage.getAll m (seeder rnd)
 
     printfn "loaded.Length = %A" (loaded.Length)
 
@@ -56,7 +50,7 @@ let testModelGenerationParams conn (rnd : Random) =
     saveSettings settings conn
 
     let m = loadSettings ClmConnectionString
-    let loaded = ModelGenerationParams.tryGet m rnd.Next
+    let loaded = ModelGenerationParams.tryGet m (seeder rnd)
 
     match loaded with
     | Some l ->
@@ -71,7 +65,7 @@ let testDistr conn (rnd : Random) =
     let settings = d.setValue [ (d.name, 0) ] []
     saveSettings settings conn
     let m = loadSettings ClmConnectionString
-    let d1 = Distribution.tryGet m rnd.Next [ (d.name, 0) ]
+    let d1 = Distribution.tryGet m (seeder rnd) [ (d.name, 0) ]
 
     match d1 with 
     | Some dd -> 
@@ -86,7 +80,7 @@ let testSynthesisParam conn (rnd : Random) =
     let settings = d.setValue [] []
     saveSettings settings conn
     let m = loadSettings ClmConnectionString
-    let d1 = SynthesisParam.tryGet m rnd.Next []
+    let d1 = SynthesisParam.tryGet m (seeder rnd) []
 
     match d1 with 
     | Some dd -> 
@@ -104,8 +98,8 @@ let main argv =
     use conn = new SqlConnection(ClmConnectionString)
     openConnIfClosed conn
 
-    use truncateSettingTbl = new TruncateSettingTbl(conn)
-    truncateSettingTbl.Execute() |> ignore
+    truncateSettings conn
+
     //testAll conn rnd
     testModelGenerationParams conn rnd
 

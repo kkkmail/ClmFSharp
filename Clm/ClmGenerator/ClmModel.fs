@@ -586,6 +586,8 @@ module ClmModel =
 
             printfn "Done."
 
+            s
+
         member model.allSubstances = allSubst
         member model.allReactions = allReac
         member model.allModelData = allModelDataImpl

@@ -22,6 +22,9 @@ module DatabaseTypes =
 
     type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
+    type ModelDataTable = ClmDB.dbo.Tables.ModelData
+    type ModelDataTableRow = ModelDataTable.Row
+
 
     type Setting = 
         {
@@ -145,10 +148,15 @@ module DatabaseTypes =
         |> Map.ofList
 
 
-    //let loadSettings (conn : SqlConnection) = 
-    //    openConnIfClosed conn
-    //    use data = new SystemSettingTableData(conn)
-    //    use reader = new DynamicSqlDataReader(data.Execute())
-    //    [ while reader.Read() do yield (reader?City, reader?CityOriginalName) |> City.tryCreate ]
 
+    let truncateSettings (conn : SqlConnection) =
+        use truncateSettingTbl = new TruncateSettingTbl(conn)
+        truncateSettingTbl.Execute() |> ignore
+
+
+    let saveSettings (settings : list<Setting>) (conn : SqlConnection) =
+        let settingTable = new SettingTable()
+        settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
+        let inserted = settingTable.Update(conn)
+        printfn "inserted = %A" inserted
 

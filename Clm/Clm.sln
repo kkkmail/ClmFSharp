@@ -17,8 +17,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Plotly", "FSharp.Plo
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmGenerator", "ClmGenerator\ClmGenerator.fsproj", "{F91606FF-90B6-481F-A2AC-2F4FC54A228A}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Results", "Results\Results.fsproj", "{4EFEE0DF-76CA-4152-94F6-F561472379E1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,10 +51,6 @@ Global
 		{F91606FF-90B6-481F-A2AC-2F4FC54A228A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F91606FF-90B6-481F-A2AC-2F4FC54A228A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F91606FF-90B6-481F-A2AC-2F4FC54A228A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4EFEE0DF-76CA-4152-94F6-F561472379E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4EFEE0DF-76CA-4152-94F6-F561472379E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4EFEE0DF-76CA-4152-94F6-F561472379E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4EFEE0DF-76CA-4152-94F6-F561472379E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

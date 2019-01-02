@@ -237,6 +237,14 @@ module Distributions =
             | Triangular d -> d.distributionParams
             | SymmetricTriangular d -> d.distributionParams
 
+        member this.seedValue =
+            match this with
+            | Delta d -> d.seedValue
+            | BiDelta d -> d.seedValue
+            | Uniform d -> d.seedValue
+            | Triangular d -> d.seedValue
+            | SymmetricTriangular d -> d.seedValue
+
         override this.Equals (o: obj) =
             match o with
             | :? Distribution as d -> this.distributionParams = d.distributionParams

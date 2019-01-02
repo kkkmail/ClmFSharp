@@ -1,7 +1,10 @@
 ﻿namespace ContGen
 
+open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.DataLocation
+open Clm.Generator.ClmModel
 open DatabaseTypes
 
 module SettingsExt = 
@@ -18,47 +21,72 @@ module SettingsExt =
 
 
     let setDouble p n v = { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v }
+    let setInt p n v = { Setting.defaultValue() with settingPath = addParent p n; settingLong = int64 v }
     let setText p n v = { Setting.defaultValue() with settingPath = addParent p n; settingText = Some v }
     let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v } |> Some)
+
 
     let addDoubleOpt p n vo s = 
         match setDoubleOpt p n vo with
         | Some x -> x :: s
         | None -> s
 
-    let getDoubleOpt (m : SettingMap) po n = 
+
+    let getDoubleOpt (m : SettingMap) po n =
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingFloat |> Some)
 
 
-    let getTextOpt (m : SettingMap) po n = 
+    let getIntOpt (m : SettingMap) po n =
+        addParent po n
+        |> tryFindByName m
+        |> Option.bind (fun v -> v.settingLong |> int |> Some)
+
+
+    let getTextOpt (m : SettingMap) po n =
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingText)
 
+
+    type NumberOfAminoAcids
+        with
+        static member getValue (m : SettingMap) po =
+            getIntOpt m po NumberOfAminoAcidsName
+
+        member this.setValue po s =
+            add s [ setInt po NumberOfAminoAcidsName this.length]
+
+
+    type MaxPeptideLength
+        with
+        static member getValue (m : SettingMap) po =
+            getIntOpt m po MaxPeptideLengthName
+
+        member this.setValue po s =
+            add s [ setInt po MaxPeptideLengthName this.length]
+
+
     [<Literal>]
     let thresholdName = "threshold"
-
 
     [<Literal>]
     let scaleName = "scale"
 
-
     [<Literal>]
     let shiftName = "shift"
 
-
     type DistributionParams
         with
-        static member getValue (m : SettingMap) po = 
+        static member getValue (m : SettingMap) po =
             {
                 threshold = getDoubleOpt m po thresholdName
                 scale = getDoubleOpt m po scaleName
                 shift = getDoubleOpt m po shiftName
             }
 
-        member this.setValue po s = 
+        member this.setValue po s =
             [
                 setDoubleOpt po thresholdName this.threshold
                 setDoubleOpt po scaleName this.scale
@@ -856,4 +884,86 @@ module SettingsExt =
             s
             |> this.modelParam.setValue (addParent po modelParamName)
             |> this.usage.setValue (addParent po usageParamName)
+
+
+    type UpdateFuncType
+        with
+        static member getValue (m : SettingMap) po =
+            match getTextOpt m po UpdateFuncTypeName with
+            | Some s -> 
+                match s with
+                | UseArrayName -> Some UseArray
+                | UseVariablesName -> Some UseVariables
+                | UseFunctionsName -> Some UseFunctions
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            add s [ setText po UpdateFuncTypeName (this.ToString()) ]
+
+
+    //type ModelLocationInputData = 
+    //    {
+    //        startingFolder : string
+    //        separator : string
+    //        padLength : int
+    //        allModelsFile : string
+    //        allResultsFile : string
+    //    }
+
+    [<Literal>]
+    let startingFolderName = "startingFolder"
+
+    [<Literal>]
+    let separatorName = "separator"
+
+    [<Literal>]
+    let padLengthName = "padLength"
+
+    [<Literal>]
+    let allModelsFileName = "allModelsFile"
+
+    [<Literal>]
+    let allResultsFileName = "allResultsFile"
+
+
+    //    {
+    //         : string
+    //         : string
+    //         : int
+    //         : string
+    //         : string
+    //    }
+    type ModelLocationInputData
+        with
+        static member getValue (m : SettingMap) po =
+            {
+                threshold = getDoubleOpt m po thresholdName
+                scale = getDoubleOpt m po scaleName
+                shift = getDoubleOpt m po shiftName
+            }
+
+        member this.setValue po s =
+            [
+                setText po thresholdName this.startingFolder
+                setText po separatorName this.separator
+                setInt po scaleName this.padLength
+                setText po allModelsFileName this.allModelsFile
+                setText po allResultsFileName this.allResultsFile
+            ]
+            |> add s
+
+
+    //type ModelGenerationParams = 
+    //    {
+    //        fileStructureVersionNumber : string
+    //        versionNumber : string
+    //        seedValue : int option
+    //        numberOfAminoAcids : NumberOfAminoAcids
+    //        maxPeptideLength : MaxPeptideLength
+    //        reactionRateModels : List<ReactionRateModel>
+    //        updateFuncType : UpdateFuncType
+    //        modelLocationData : ModelLocationInputData
+    //        updateAllModels : bool
+    //    }
 

@@ -21,6 +21,9 @@ module DataLocation =
     let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
 
 
+    [<Literal>]
+    let ModelLocationInputDataName = "ModelLocationInputData"
+
     type ModelLocationInputData = 
         {
             startingFolder : string

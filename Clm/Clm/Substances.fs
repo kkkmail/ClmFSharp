@@ -2,7 +2,10 @@
 
 module Substances = 
 
-    type NumberOfAminoAcids = 
+    [<Literal>]
+    let NumberOfAminoAcidsName = "NumberOfAminoAcids"
+
+    type NumberOfAminoAcids =
         | OneAminoAcid
         | TwoAminoAcids
         | ThreeAminoAcids
@@ -39,6 +42,32 @@ module Substances =
             | FifteenAminoAcids -> 15
             | SixteenAminoAcids -> 16
 
+        static member all =
+            [
+                OneAminoAcid
+                TwoAminoAcids
+                ThreeAminoAcids
+                FourAminoAcids
+                FiveAminoAcids
+                SixAminoAcids
+                SevenAminoAcids
+                EightAminoAcids
+                NineAminoAcids
+                TenAminoAcids
+                ElevenAminoAcids
+                TwelveAminoAcids
+                ThirteenAminoAcids
+                FourteenAminoAcids
+                FifteenAminoAcids
+                SixteenAminoAcids
+            ]
+
+        static member tryCreate n = 
+            NumberOfAminoAcids.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
+
+
+    [<Literal>]
+    let MaxPeptideLengthName = "MaxPeptideLength"
 
     type MaxPeptideLength = 
         | TwoMax
@@ -52,6 +81,17 @@ module Substances =
             | ThreeMax -> 3
             | FourMax -> 4
             | FiveMax -> 5
+
+        static member all =
+            [
+                TwoMax
+                ThreeMax
+                FourMax
+                FiveMax
+            ]
+
+        static member tryCreate n = 
+            MaxPeptideLength.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
 
     type AchiralSubst =

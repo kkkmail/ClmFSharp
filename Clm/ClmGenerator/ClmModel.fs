@@ -19,11 +19,26 @@ module ClmModel =
     let newSeed() = (new Random()).Next()
 
 
+    [<Literal>]
+    let UpdateFuncTypeName = "UpdateFuncType"
+
+    [<Literal>]
+    let UseArrayName = "UseArray"
+
+    [<Literal>]
+    let UseVariablesName = "UseVariables"
+
+    [<Literal>]
+    let UseFunctionsName = "UseFunctions"
+
     type UpdateFuncType = 
         | UseArray
         | UseVariables
         | UseFunctions
 
+
+    [<Literal>]
+    let ModelGenerationParamsName = "ModelGenerationParams"
 
     type ModelGenerationParams = 
         {

@@ -129,8 +129,8 @@ module DatabaseTypes =
     type SettingMap = Map<list<string * int>, Setting>
 
 
-    let openConnIfClosed (conn : SqlConnection) = 
-        match conn.State with 
+    let openConnIfClosed (conn : SqlConnection) =
+        match conn.State with
         | ConnectionState.Closed -> do conn.Open()
         | _ -> ignore ()
 
@@ -162,8 +162,9 @@ module DatabaseTypes =
         printfn "inserted = %A" inserted
 
 
-    let addDefaultModelDataTable (t : ModelDataTable) =
-        let newRow = 
+    let getNewModelDataId (conn : SqlConnection) =
+        let t = new ModelDataTable()
+        let r = 
             t.NewRow(
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
@@ -173,12 +174,7 @@ module DatabaseTypes =
                     createdOn = DateTime.Now
                     )
 
-        t.Rows.Add newRow
-        newRow
-
-
-    let saveDetaultModelDataTable (conn : SqlConnection) =
-        let t = new ModelDataTable()
-        let r = addDefaultModelDataTable t
+        t.Rows.Add r
         t.Update(conn) |> ignore
-        r
+        r.modelId
+

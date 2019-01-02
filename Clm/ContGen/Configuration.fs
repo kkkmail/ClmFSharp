@@ -24,4 +24,3 @@ module Configuration =
 
     [<Literal>]
     let ClmSqlProviderName : string = "name=" + ClmDbName
-

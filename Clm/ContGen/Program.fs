@@ -46,7 +46,7 @@ let testModelGenerationParams conn (rnd : Random) =
             seedValue = rnd.Next() |> Some
             numberOfAminoAcids = numberOfAminoAcids
             maxPeptideLength = ThreeMax
-            reactionRateModels = rates.rateModels
+            reactionRateModels = rates.rateModels |> List.sort
             updateFuncType = UseFunctions
             modelLocationData = ModelLocationInputData.defaultValue
             updateAllModels = false
@@ -106,7 +106,7 @@ let main argv =
 
     use truncateSettingTbl = new TruncateSettingTbl(conn)
     truncateSettingTbl.Execute() |> ignore
-    //testAll conn rnd
-    testModelGenerationParams conn rnd
+    testAll conn rnd
+    //testModelGenerationParams conn rnd
 
     0

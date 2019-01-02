@@ -1044,7 +1044,7 @@ module SettingsExt =
             |> List.choose id
             |> add s
             |> this.numberOfAminoAcids.setValue (addParent po numberOfAminoAcidsName)
-            |> this.maxPeptideLength.setValue (addParent po numberOfAminoAcidsName)
+            |> this.maxPeptideLength.setValue (addParent po maxPeptideLengthName)
             |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
             |> this.modelLocationData.setValue (addParent po modelLocationDataName)
             |> ReactionRateModelParamWithUsage.setAll rates

@@ -6,6 +6,7 @@ open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Generator.ClmModel
 open DatabaseTypes
+open RateModelsExt
 
 module SettingsExt = 
 
@@ -982,9 +983,6 @@ module SettingsExt =
     let maxPeptideLengthName = "maxPeptideLength"
 
     [<Literal>]
-    let reactionRateModelsName = "reactionRateModels"
-
-    [<Literal>]
     let updateFuncTypeName = "updateFuncType"
 
     [<Literal>]
@@ -995,26 +993,32 @@ module SettingsExt =
 
     type ModelGenerationParams
         with
-        static member tryGet (m : SettingMap) po =
+        static member tryGet (m : SettingMap) (seeder : unit -> int) =
+            let po = []
             let a() = getTextOpt m po fileStructureVersionNumberName
             let b() = getTextOpt m po versionNumberName
             let c() = getIntOpt m po seedValueName
             let d() = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
             let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
-            let f() = addParent po reactionRateModelsName
             let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
             let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
             let i() = getBoolOpt m po updateAllModelsName
 
-            match a(), b(), d(), e(),    g(), h(), i() with
+            match a(), b(), d(), e(), g(), h(), i() with
             | Some a1, Some b1, Some d1, Some e1,    Some g1, Some h1, Some i1 ->
+                let p = ReactionRateModelParamWithUsage.getAll m seeder
+
+                let models =
+                    ReactionRateModel.createAll p d1
+                    |> List.choose (fun e -> match e.usage with | PrimaryParam -> Some e.model | DependsOnParam -> None)
+
                 {
                     fileStructureVersionNumber = a1
                     versionNumber = b1
                     seedValue = c()
                     numberOfAminoAcids = d1
                     maxPeptideLength = e1
-                    reactionRateModels= []
+                    reactionRateModels = models
                     updateFuncType = g1
                     modelLocationData = h1
                     updateAllModels = i1
@@ -1022,7 +1026,15 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
-        member this.setValue po s =
+        member this.setValue s =
+            let po = []
+
+            let rates =
+                {
+                    rateModels = this.reactionRateModels
+                }.allParams
+                |> List.sort
+
             [
                 setText po fileStructureVersionNumberName this.fileStructureVersionNumber |> Some
                 setText po versionNumberName this.versionNumber |> Some
@@ -1035,10 +1047,4 @@ module SettingsExt =
             |> this.maxPeptideLength.setValue (addParent po numberOfAminoAcidsName)
             |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
             |> this.modelLocationData.setValue (addParent po modelLocationDataName)
-
-    //type ModelGenerationParams = 
-    //    {
-
-    //        reactionRateModels : List<ReactionRateModel>
-
-    //    }
+            |> ReactionRateModelParamWithUsage.setAll rates

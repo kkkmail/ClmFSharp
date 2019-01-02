@@ -9,6 +9,10 @@ open ContGen.SettingsExt
 open System
 open System.Data.SqlClient
 
+open Clm.VersionInfo
+open Clm.DataLocation
+open Clm.Generator.ClmModel
+
 
 let saveSettings (settings : list<Setting>) conn = 
     let settingTable = new SettingTable()
@@ -21,6 +25,7 @@ let testAll conn (rnd : Random) =
     let rates = (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allParams |> List.sort
     let settings = ReactionRateModelParamWithUsage.setAll rates []
     saveSettings settings conn
+
     let m = loadSettings ClmConnectionString
     let loaded = ReactionRateModelParamWithUsage.getAll m rnd.Next
 
@@ -28,6 +33,37 @@ let testAll conn (rnd : Random) =
 
     let check = rates = loaded
     printfn "check = %A" check
+
+
+let testModelGenerationParams conn (rnd : Random) =
+    let numberOfAminoAcids = TwoAminoAcids
+    let rates = ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids
+
+    let modelGenerationParams = 
+        {
+            fileStructureVersionNumber = FileStructureVersionNumber
+            versionNumber = VersionNumber
+            seedValue = rnd.Next() |> Some
+            numberOfAminoAcids = numberOfAminoAcids
+            maxPeptideLength = ThreeMax
+            reactionRateModels = rates.rateModels
+            updateFuncType = UseFunctions
+            modelLocationData = ModelLocationInputData.defaultValue
+            updateAllModels = false
+        }
+
+    let settings = modelGenerationParams.setValue []
+    saveSettings settings conn
+
+    let m = loadSettings ClmConnectionString
+    let loaded = ModelGenerationParams.tryGet m rnd.Next
+
+    match loaded with 
+    | Some l ->
+        printfn  "Loaded."
+        let check = modelGenerationParams = l
+        printfn "check = %A" check
+    | None -> printfn "Failed to load."
 
 
 let testDistr conn (rnd : Random) = 
@@ -70,6 +106,7 @@ let main argv =
 
     use truncateSettingTbl = new TruncateSettingTbl(conn)
     truncateSettingTbl.Execute() |> ignore
-    testAll conn rnd
+    //testAll conn rnd
+    testModelGenerationParams conn rnd
 
     0

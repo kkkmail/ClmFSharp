@@ -98,9 +98,16 @@ let main argv =
     use conn = new SqlConnection(ClmConnectionString)
     openConnIfClosed conn
 
-    truncateSettings conn
+    //truncateSettings conn
 
     //testAll conn rnd
-    testModelGenerationParams conn rnd
+    //testModelGenerationParams conn rnd
 
+    //let r = saveDetaultModelDataTable conn
+    let t = new ModelDataTable()
+    let r = addDefaultModelDataTable t
+    t.Update(conn) |> ignore
+
+    r.fileStructureVersion <- FileStructureVersionNumber
+    t.Update(conn) |> ignore
     0

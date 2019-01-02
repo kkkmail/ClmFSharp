@@ -160,3 +160,24 @@ module DatabaseTypes =
         let inserted = settingTable.Update(conn)
         printfn "inserted = %A" inserted
 
+
+    let addDefaultModelDataTable (t : ModelDataTable) =
+        let newRow = 
+            t.NewRow(
+                    numberOfAminoAcids = 0,
+                    maxPeptideLength = 0,
+                    seed = 0,
+                    fileStructureVersion = "",
+                    modelData = "",
+                    createdOn = DateTime.Now
+                    )
+
+        t.Rows.Add newRow
+        newRow
+
+
+    let saveDetaultModelDataTable (conn : SqlConnection) =
+        let t = new ModelDataTable()
+        let r = addDefaultModelDataTable t
+        t.Update(conn) |> ignore
+        r

@@ -208,6 +208,13 @@ module RateModelsExt =
             | None, _ -> mp
 
 
+    type SedimentationAllModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> SedimentationAllRandomModel.tryCreate
+
+
     type SynthesisRandomParam
         with
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
@@ -724,24 +731,17 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    //type ReactionRateModel =
-    //    | FoodCreationRateModel of FoodCreationModel
-    //    | WasteRemovalRateModel of WasteRemovalModel
-    //    | WasteRecyclingRateModel of WasteRecyclingModel
-    //    | SynthesisRateModel of SynthesisModel
-    //    | DestructionRateModel of DestructionModel
-    //    | CatalyticSynthesisRateModel of CatalyticSynthesisModel
-    //    | CatalyticDestructionRateModel of CatalyticDestructionModel
-    //    | LigationRateModel of LigationModel
-    //    | CatalyticLigationRateModel of CatalyticLigationModel
-    //    | SedimentationDirectRateModel of SedimentationDirectModel
-    //    | SedimentationAllRateModel of SedimentationAllModel
-    //    | RacemizationRateModel of RacemizationModel
-    //    | CatalyticRacemizationRateModel of CatalyticRacemizationModel
+    type CatalyticRacemizationModel
+        with
+        static member tryCreate (mp : ModelsAndParams) =
+            mp
+            |> CatalyticRacemizationRandomModel.tryCreate
+            |> CatalyticRacemizationSimilarModel.tryCreate
+
 
     type ReactionRateModel
         with
-        static member tryCreateAll = 
+        static member tryCreateAll (mp : ModelsAndParams) =
             [
                 FoodCreationModel.tryCreate
                 WasteRemovalModel.tryCreate
@@ -753,8 +753,8 @@ module RateModelsExt =
                 LigationModel.tryCreate
                 CatalyticLigationModel.tryCreate
                 SedimentationDirectModel.tryCreate
-                //SedimentationAllModel.tryCreate
-                //RacemizationModel.tryCreate
-                //CatalyticRacemizationModel.tryCreate
+                SedimentationAllModel.tryCreate
+                RacemizationModel.tryCreate
+                CatalyticRacemizationModel.tryCreate
             ]
-
+            |> List.fold (fun acc r -> r acc) mp

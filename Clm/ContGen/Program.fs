@@ -137,6 +137,6 @@ let main argv =
     //runner.run() |> ignore
     //let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
 
-    saveDefaults conn FourAminoAcids |> ignore
+    //saveDefaults conn FourAminoAcids |> ignore
 
     0

@@ -135,6 +135,12 @@ module Runner =
             runProc exeName commandLineParams None |> ignore
             modelId
 
+        //let runner = 
+        //    {
+        //        generate = failwith ""
+        //        run = failwith ""
+        //    }
+
     //type Runner =
     //    {
     //        generate : unit -> int64

@@ -3,9 +3,38 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
+open Clm
 
 module AsyncRun =
-    open Clm
+
+    [<Literal>]
+    let ModelCommandLineParamName = "ModelCommandLineParam"
+
+    type ModelCommandLineParam =
+        {
+            tEnd : double
+            y0 : double
+            useAbundant : bool option
+        }
+
+        static member defaultValue =
+            {
+                tEnd = 100_000.0
+                y0 = 10.0
+                useAbundant = None
+            }
+
+        override this.ToString() =
+            [
+                this.tEnd.ToString() |> Some
+                this.y0.ToString() |> Some
+                this.useAbundant |> Option.bind (fun e -> (if e then "1" else "") |> Some)
+            ]
+            |> List.choose id
+            |> String.concat " "
+
+        static member name = ModelCommandLineParamName
+        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName
 
     let runProc filename args startDir =
         let timer = Stopwatch.StartNew()
@@ -52,10 +81,24 @@ module AsyncRun =
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
 
-    type RunnerState =
+    type RunInfo = 
+        {
+            run : int64 -> int64
+            modelId : int64
+        }
+
+
+    type GeneratorInfo =
+        {
+            generate : unit -> list<RunInfo>
+        }
+
+
+    type AsyncRunnerState =
         {
             generating : bool
             running : int
+            queue : list<RunInfo>
             shuttingDown : bool
         }
 
@@ -63,37 +106,31 @@ module AsyncRun =
             {
                 generating = false
                 running = 0
+                queue = []
                 shuttingDown = false
             }
 
 
-    type Runner =
-        {
-            generate : unit -> int64
-            run : int64 -> int64
-        }
-
-
     type RunnerMessage =
         | StartGenerate of AsyncRunner
-        | CompleteGenerate of AsyncRunner * int64
-        | StartRun of AsyncRunner * int64
+        | CompleteGenerate of AsyncRunner * list<RunInfo>
+        | StartRun of AsyncRunner * list<RunInfo>
         | CompleteRun of AsyncRunner * int64
-        | GetState of AsyncReplyChannel<RunnerState>
+        | GetState of AsyncReplyChannel<AsyncRunnerState>
         | RequestShutDown
 
 
-    and AsyncRunner (runner : Runner) =
+    and AsyncRunner (generatorInfo : GeneratorInfo) =
         let generate (a : AsyncRunner) =
             async
                 {
-                    return! doAsyncTask(fun () -> runner.generate () |> a.completeGenerate)
+                    return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate)
                 }
 
-        let run (a : AsyncRunner) n =
+        let run (a : AsyncRunner) runner n =
             async
                 {
-                    return! doAsyncTask(fun () -> runner.run n |> a.completeRun)
+                    return! doAsyncTask(fun () -> runner n |> a.completeRun)
                 }
 
         let messageLoop =
@@ -110,16 +147,39 @@ module AsyncRun =
                                 else
                                     generate a |> Async.Start
                                     return! loop { s with generating = true }
-                            | CompleteGenerate (a, n) ->
-                                a.startRun n
-                                if s.running < Environment.ProcessorCount then a.startGenerate()
+                            | CompleteGenerate (a, r) ->
+                                a.startRun r
+                                if s.running < Environment.ProcessorCount && (s.shuttingDown |> not) then a.startGenerate()
                                 return! loop { s with generating = false }
-                            | StartRun (a, n) ->
-                                run a n |> Async.Start
-                                return! loop { s with running = s.running + 1 }
-                            | CompleteRun (a, n) ->
-                                if s.generating |> not then a.startGenerate()
-                                return! loop { s with running = s.running - 1 }
+                            | StartRun (a, r) ->
+                                if s.shuttingDown
+                                then return! loop s
+                                else
+                                    let p, q =
+                                        s.queue @ r
+                                        |> List.mapi (fun i e -> (i + s.running + 1, e))
+                                        |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
+
+                                    p |> List.map (fun (_, e) -> run a e.run e.modelId |> Async.Start) |> ignore
+                                    return! loop { s with running = s.running + r.Length; queue = q |> List.map (fun (_, e) -> e) }
+                            | CompleteRun (a, _) ->
+                                if s.shuttingDown
+                                then return! loop { s with running = s.running - 1 }
+                                else
+                                    let x = 
+                                        if s.queue.IsEmpty
+                                        then s.queue
+                                        else
+                                            let p, q =
+                                                s.queue
+                                                |> List.mapi (fun i e -> (i + s.running, e))
+                                                |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
+
+                                            p |> List.map (fun (_, e) -> run a e.run e.modelId |> Async.Start) |> ignore
+                                            q |> List.map (fun (_, e) -> e)
+
+                                    if s.generating |> not then a.startGenerate()
+                                    return! loop { s with running = s.running - 1; queue = x }
                             | GetState r ->
                                 r.Reply s
                                 return! loop s
@@ -127,41 +187,11 @@ module AsyncRun =
                                 return! loop { s with shuttingDown = true }
                         }
 
-                loop RunnerState.defaultValue
+                loop AsyncRunnerState.defaultValue
                 )
 
         member this.startGenerate () = StartGenerate this |> messageLoop.Post
-        member this.completeGenerate n = CompleteGenerate (this, n) |> messageLoop.Post
-        member this.startRun n = StartRun (this, n) |> messageLoop.Post
+        member this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
+        member this.startRun r = StartRun (this, r) |> messageLoop.Post
         member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
-
-
-    [<Literal>]
-    let ModelCommandLineParamName = "ModelCommandLineParam"
-
-    type ModelCommandLineParam =
-        {
-            tEnd : double
-            y0 : double
-            useAbundant : bool option
-        }
-
-        static member defaultValue =
-            {
-                tEnd = 100_000.0
-                y0 = 10.0
-                useAbundant = None
-            }
-
-        override this.ToString() =
-            [
-                this.tEnd.ToString() |> Some
-                this.y0.ToString() |> Some
-                this.useAbundant |> Option.bind (fun e -> (if e then "1" else "") |> Some)
-            ]
-            |> List.choose id
-            |> String.concat " "
-
-        static member name = ModelCommandLineParamName
-        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName

@@ -17,6 +17,8 @@ open System.Text
 open Clm.VersionInfo
 open Clm.DataLocation
 open Clm.Generator.ClmModel
+open Clm.Generator
+open System.Threading.Tasks
 
 open Fake.DotNet
 open Fake.Core
@@ -25,8 +27,6 @@ open Fake.Core.TargetOperators
 //open Fake.IO.Globbing.Operators //enables !! and globbing
 
 module Builder =
-    open Clm.Generator
-    open System.Threading.Tasks
 
     let runProc filename args startDir =
         let timer = Stopwatch.StartNew()
@@ -69,41 +69,6 @@ module Builder =
         cleanOut outputs, cleanOut errors
 
 
-    //type IUpdater<'P, 'S> = 
-    //    abstract member init : unit -> 'S
-    //    abstract member update : 'P -> 'S -> 'S
-    //    abstract member remove : 'P -> 'S -> 'S
-
-
-    //type Updater<'T> = MailboxProcessor<'T>
-
-
-    //type UpdatatableStorage<'P, 'S> = 
-    //  | UpdateContent of 'P
-    //  | GetContent of AsyncReplyChannel<'S>
-    //  | RemoveContent of 'P
-
-
-    //type AsyncUpdater<'P, 'S> (updater : IUpdater<'P, 'S>) =
-    //    let chat = Updater.Start(fun u -> 
-    //      let rec loop s = async {
-    //        let! m = u.Receive()
-
-    //        match m with 
-    //        | UpdateContent p -> 
-    //            return! loop (updater.update p s)
-    //        | GetContent r -> 
-    //            r.Reply s
-    //            return! loop s 
-    //        | RemoveContent p -> 
-    //            return! loop (updater.remove p s) }
-
-    //      updater.init () |> loop)
-
-    //    member this.updateContent p = UpdateContent p |> chat.Post
-    //    member this.getContent () = chat.PostAndReply GetContent
-
-
     let doAsyncTask  (f : unit->'a) = 
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
@@ -123,22 +88,22 @@ module Builder =
             }
 
 
-    type RunnerMessage =
-        | StartGenerate of AsyncRunner
-        | CompleteGenerate of int64
-        | StartRun of AsyncRunner * int64
-        | CompleteRun of int64
-        | GetState of AsyncReplyChannel<RunnerState>
-
-
-    and Runner =
+    type Runner =
         {
             generate : unit -> int64
             run : int64 -> int64
         }
 
 
-    // Environment.ProcessorCount
+    type RunnerMessage =
+        | StartGenerate of AsyncRunner
+        | CompleteGenerate of AsyncRunner * int64
+        | StartRun of AsyncRunner * int64
+        | CompleteRun of AsyncRunner * int64
+        | GetState of AsyncReplyChannel<RunnerState>
+        | RequestShutDown
+
+
     and AsyncRunner (runner : Runner) =
         let generate (a : AsyncRunner) =
             async
@@ -161,85 +126,92 @@ module Builder =
 
                             match m with
                             | StartGenerate a ->
-                                generate a |> Async.Start
-                                return! loop s
-                            | CompleteGenerate n ->
-                                //r.Reply s
-                                return! loop s
+                                if s.generating
+                                then return! loop s
+                                else
+                                    generate a |> Async.Start
+                                    return! loop { s with generating = true }
+                            | CompleteGenerate (a, n) ->
+                                a.startRun n
+                                if s.running < Environment.ProcessorCount then a.startGenerate()
+                                return! loop { s with generating = false }
                             | StartRun (a, n) ->
                                 run a n |> Async.Start
-                                return! loop s
-                            | CompleteRun n ->
-                                //return! loop (updater s)
-                                return! loop s
+                                return! loop { s with running = s.running + 1 }
+                            | CompleteRun (a, n) ->
+                                if s.generating |> not then a.startGenerate()
+                                return! loop { s with running = s.running - 1 }
                             | GetState r ->
                                 r.Reply s
                                 return! loop s
+                            | RequestShutDown ->
+                                return! loop { s with shuttingDown = true }
                         }
 
-                //updater.init () |> loop
                 loop RunnerState.defaultValue
                 )
 
         member this.startGenerate () = StartGenerate this |> messageLoop.Post
-        member this.completeGenerate n = CompleteGenerate n |> messageLoop.Post
-        member this.startRun n = StartRun n |> messageLoop.Post
-        member this.completeRun n = CompleteRun n |> messageLoop.Post
+        member this.completeGenerate n = CompleteGenerate (this, n) |> messageLoop.Post
+        member this.startRun n = StartRun (this, n) |> messageLoop.Post
+        member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
 
 
-    //type MessageBasedCounter () =
+    type ModelCommandLineParam =
+        {
+            tEnd : double option
+            y0 : double option
+            useAbundant : bool option
+        }
 
-    //    static let updateState (count,sum) msg = 
+        static member defaultValue =
+            {
+                tEnd = Some 100_000.0
+                y0 = Some 10.0
+                useAbundant = None
+            }
 
-    //        // increment the counters and...
-    //        let newSum = sum + msg
-    //        let newCount = count + 1
-    //        printfn "Count is: %i. Sum is: %i" newCount newSum 
-
-    //        // ...emulate a short delay
-    //        //Utility.RandomSleep()
-
-    //        // return the new state
-    //        (newCount,newSum)
-
-    //    // create the agent
-    //    static let agent = MailboxProcessor.Start(fun inbox -> 
-
-    //        // the message processing function
-    //        let rec messageLoop oldState = async{
-
-    //            // read a message
-    //            let! msg = inbox.Receive()
-
-    //            // do the core logic
-    //            let newState = updateState oldState msg
-
-    //            // loop to top
-    //            return! messageLoop newState
-    //            }
-
-    //        // start the loop 
-    //        messageLoop (0,0)
-    //        )
-
-    //    // public interface to hide the implementation
-    //    static member Add i = agent.Post i
+        override this.ToString() =
+            [
+                this.tEnd |> Option.bind (fun e -> e.ToString() |> Some)
+                this.y0 |> Option.bind (fun e -> e.ToString() |> Some)
+                this.useAbundant |> Option.bind (fun e -> e.ToString() |> Some)
+            ]
+            |> List.choose id
+            |> String.concat " "
 
 
+    type ModelRunnerParam = 
+        {
+            connectionString : string
+            rootBuildFolder : string
+            buildTarget : string
+            exeName : string
+        }
 
-    type X (connStr) =
-        let getModelId () = 
-            use conn = new SqlConnection (connStr)
+        static member defaultValue =
+            {
+                connectionString = ClmConnectionString
+                rootBuildFolder = @"C:\Temp\Clm\"
+                buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
+                exeName = @"SolverRunner.exe"
+            }
+
+
+    type ModelRunner (p : ModelRunnerParam) =
+        let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
+        let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+
+
+        let getModelId () =
+            use conn = new SqlConnection (p.connectionString)
             openConnIfClosed conn
             getNewModelDataId conn
 
 
-        //let modelId = getModelId ()
-
-
         let loadParams seeder modelId =
-            use conn = new SqlConnection (connStr)
+            use conn = new SqlConnection (p.connectionString)
             openConnIfClosed conn
 
             let m = loadSettings conn
@@ -261,32 +233,31 @@ module Builder =
             code
 
 
-        let saveModel (code : list<string>) (p : ModelGenerationParams) modelId =
+        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelId =
             let sb = new StringBuilder()
             code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
 
             let m =
                 {
                     modelId = modelId
-                    numberOfAminoAcids = p.numberOfAminoAcids
-                    maxPeptideLength = p.maxPeptideLength
-                    seedValue = p.seedValue
-                    fileStructureVersion = p.fileStructureVersionNumber
+                    numberOfAminoAcids = pm.numberOfAminoAcids
+                    maxPeptideLength = pm.maxPeptideLength
+                    seedValue = pm.seedValue
+                    fileStructureVersion = pm.fileStructureVersionNumber
                     modelData = sb.ToString()
                 }
 
-            use conn = new SqlConnection (connStr)
+            use conn = new SqlConnection (p.connectionString)
             openConnIfClosed conn
             tryUpdateModelData conn m
 
 
-        let compile modelId =
+        let compileModel modelId =
             let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
             Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
 
             // Properties
-            let buildDir = @"C:\Temp\Clm\" + (toModelName modelId) + @"\"
-            let buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
+            let buildDir = getBuildDir modelId
 
             // Targets
             Target.create "Clean" (fun _ ->
@@ -294,7 +265,7 @@ module Builder =
             )
 
             Target.create "BuildApp" (fun _ ->
-              [ buildTarget ]
+              [ p.buildTarget ]
                 |> MSBuild.runRelease id buildDir "Build"
                 |> Trace.logItems "AppBuild-Output: "
             )
@@ -311,9 +282,11 @@ module Builder =
             Target.runOrDefault "Default"
 
 
-        // https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.exited?view=netframework-4.7.2
-        let runModel modelId =
-            0
+        let runModel modelId (p : ModelCommandLineParam) =
+            let exeName = getExeName modelId
+            let commandLineParams = p.ToString()
+            runProc exeName commandLineParams None |> ignore
+            modelId
 
 
         member fake.sucks() = 0

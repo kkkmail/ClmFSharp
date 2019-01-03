@@ -11,6 +11,9 @@ open System.Data.SqlClient
 open Clm.VersionInfo
 open Clm.DataLocation
 open Clm.Generator.ClmModel
+open ContGen
+
+open Builder
 
 let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
@@ -93,23 +96,27 @@ let testSynthesisParam conn (rnd : Random) =
 [<EntryPoint>]
 let main argv = 
     printfn "%A" argv
-    let rnd = new Random()
+    //let rnd = new Random()
 
-    use conn = new SqlConnection(ClmConnectionString)
-    openConnIfClosed conn
+    //use conn = new SqlConnection(ClmConnectionString)
+    //openConnIfClosed conn
 
-    //truncateSettings conn
+    ////truncateSettings conn
 
-    //testAll conn rnd
-    //testModelGenerationParams conn rnd
+    ////testAll conn rnd
+    ////testModelGenerationParams conn rnd
 
-    let modelId = getNewModelDataId conn
+    //let modelId = getNewModelDataId conn
 
-    use d = new ModelDataTableData(conn)
-    let t1 = new ModelDataTable()
-    d.Execute(modelId = modelId) |> t1.Load
-    let r1 = t1.Rows |> Seq.find (fun e -> e.modelId = modelId)
-    r1.fileStructureVersion <- FileStructureVersionNumber
-    t1.Update(conn) |> ignore
+    //use d = new ModelDataTableData(conn)
+    //let t1 = new ModelDataTable()
+    //d.Execute(modelId = modelId) |> t1.Load
+    //let r1 = t1.Rows |> Seq.find (fun e -> e.modelId = modelId)
+    //r1.fileStructureVersion <- FileStructureVersionNumber
+    //t1.Update(conn) |> ignore
+
+    //let runner = Runner("")
+    //runner.run() |> ignore
+    let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
 
     0

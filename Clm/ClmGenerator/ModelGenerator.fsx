@@ -18,7 +18,7 @@ open Clm.Generator.ClmModel
 //===========================================================
 let updateAllModels = false
 
-let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 //===========================================================
 let seed = newSeed()
@@ -49,7 +49,7 @@ printfn "allSubstances.Length = %A" model.allSubstances.Length
 printfn "allReactions.Length = %A" model.allReactions.Length
 
 #time
-do model.generateCode()
+let code = model.generateCode()
 #time
 printfn "... completed."
 //===========================================================

@@ -3,7 +3,10 @@
 open System.IO
 open System
 
-module DataLocation = 
+module DataLocation =
+
+    let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
+
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
@@ -100,7 +103,7 @@ module DataLocation =
         | ConsecutiveName n -> 
             {
                 modelFolder = String.Empty
-                modelName = n.ToString().PadLeft(6, '0')
+                modelName = toModelName n
                 useDefaultModeData = i.useDefaultModeData
             }
         | GenerateName ->

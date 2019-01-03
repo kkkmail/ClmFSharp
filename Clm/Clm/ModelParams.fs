@@ -6,9 +6,9 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 
-module ModelParams = 
+module ModelParams =
 
-    type ModelInfo = 
+    type ModelInfo =
         {
             fileStructureVersionNumber : string
             versionNumber : string
@@ -22,21 +22,21 @@ module ModelParams =
         }
 
 
-    type ModelInfoWithModels = 
+    type ModelInfoWithModels =
         {
             modelInfo : ModelInfo
             allModels : list<ReactionRateModel>
         }
 
 
-    type ModelDataParams = 
+    type ModelDataParams =
         {
             modelInfo : ModelInfo
             allParams : list<ReactionRateModelParamWithUsage>
         }
 
 
-    type ModelDataParamsWithExtraData = 
+    type ModelDataParamsWithExtraData =
         {
             modelDataParams : ModelDataParams
             getTotals : array<double> -> array<double * double>
@@ -46,3 +46,53 @@ module ModelParams =
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
         }
+
+
+    [<Literal>]
+    let ModelCommandLineParamName = "ModelCommandLineParam"
+
+    type ModelCommandLineParam =
+        {
+            tEnd : double
+            y0 : double
+            useAbundant : bool option
+        }
+
+        static member defaultValues =
+            [
+                {
+                    tEnd = 10_000.0
+                    y0 = 10.0
+                    useAbundant = None
+                }
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 10.0
+                    useAbundant = None
+                }
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 5.0
+                    useAbundant = None
+                }
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 20.0
+                    useAbundant = None
+                }
+            ]
+
+        override this.ToString() =
+            [
+                this.tEnd.ToString() |> Some
+                this.y0.ToString() |> Some
+                this.useAbundant |> Option.bind (fun e -> (if e then Some "1" else None))
+            ]
+            |> List.choose id
+            |> String.concat " "
+
+        static member name = ModelCommandLineParamName
+        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName

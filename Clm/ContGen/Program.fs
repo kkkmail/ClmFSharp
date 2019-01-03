@@ -11,12 +11,29 @@ open System.Data.SqlClient
 open Clm.VersionInfo
 open Clm.DataLocation
 open Clm.Generator.ClmModel
+open Clm.ModelParams
 open ContGen
 
 open AsyncRun
 open Runner
 
 let seeder (rnd : Random) (seed : int option) = rnd.Next ()
+
+
+let saveDefaults conn na =
+    let rnd = new Random()
+
+    truncateSettings conn
+
+    let rates = (ReactionRateProvider.getDefaultRateModels rnd na).allParams |> List.sort
+
+    let settings =
+        []
+        |> ReactionRateModelParamWithUsage.setAll rates
+        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
+
+    saveSettings settings conn
+    0
 
 
 let testAll conn (rnd : Random) =
@@ -37,7 +54,7 @@ let testModelGenerationParams conn (rnd : Random) =
     let numberOfAminoAcids = TwoAminoAcids
     let rates = ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids
 
-    let modelGenerationParams = 
+    let modelGenerationParams =
         {
             fileStructureVersionNumber = FileStructureVersionNumber
             versionNumber = VersionNumber
@@ -99,8 +116,8 @@ let main argv =
     printfn "%A" argv
     //let rnd = new Random()
 
-    //use conn = new SqlConnection(ClmConnectionString)
-    //openConnIfClosed conn
+    use conn = new SqlConnection(ClmConnectionString)
+    openConnIfClosed conn
 
     ////truncateSettings conn
 
@@ -119,5 +136,7 @@ let main argv =
     //let runner = Runner("")
     //runner.run() |> ignore
     //let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
+
+    saveDefaults conn FourAminoAcids |> ignore
 
     0

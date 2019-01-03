@@ -3,39 +3,10 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
-open Clm
 
 module AsyncRun =
 
-    [<Literal>]
-    let ModelCommandLineParamName = "ModelCommandLineParam"
-
-    type ModelCommandLineParam =
-        {
-            tEnd : double
-            y0 : double
-            useAbundant : bool option
-        }
-
-        static member defaultValue =
-            {
-                tEnd = 100_000.0
-                y0 = 10.0
-                useAbundant = None
-            }
-
-        override this.ToString() =
-            [
-                this.tEnd.ToString() |> Some
-                this.y0.ToString() |> Some
-                this.useAbundant |> Option.bind (fun e -> (if e then "1" else "") |> Some)
-            ]
-            |> List.choose id
-            |> String.concat " "
-
-        static member name = ModelCommandLineParamName
-        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName
-
+    /// http://www.fssnip.net/sw/title/RunProcess
     let runProc filename args startDir =
         let timer = Stopwatch.StartNew()
 
@@ -81,7 +52,7 @@ module AsyncRun =
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
 
-    type RunInfo = 
+    type RunInfo =
         {
             run : int64 -> int64
             modelId : int64

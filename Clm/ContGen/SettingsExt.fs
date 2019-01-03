@@ -7,7 +7,7 @@ open Clm.DataLocation
 open Clm.Generator.ClmModel
 open DatabaseTypes
 open RateModelsExt
-open AsyncRun
+open Clm.ModelParams
 
 module SettingsExt =
 

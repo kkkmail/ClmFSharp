@@ -1,24 +1,16 @@
 ﻿namespace ContGen
 
 open System
-open System.Diagnostics
-open System.Threading
-open Clm.Distributions
-open Clm.Substances
-open Clm.ReactionRates
 open Clm.DataLocation
+open Clm.ModelParams
 
 open ContGen.Configuration
 open ContGen.DatabaseTypes
 open ContGen.SettingsExt
 open System.Data.SqlClient
 open System.Text
-
-open Clm.VersionInfo
-open Clm.DataLocation
 open Clm.Generator.ClmModel
 open Clm.Generator
-open System.Threading.Tasks
 open AsyncRun
 
 open Fake.DotNet

@@ -7,6 +7,7 @@ open Clm.DataLocation
 open Clm.Generator.ClmModel
 open DatabaseTypes
 open RateModelsExt
+open AsyncRun
 
 module SettingsExt =
 
@@ -29,7 +30,8 @@ module SettingsExt =
     let setText p n v = { Setting.defaultValue() with settingPath = addParent p n; settingText = Some v }
     let setTextOpt p n vo = vo |> Option.bind (fun v -> setText p n v |> Some)
     let setBool p n v = { Setting.defaultValue() with settingPath = addParent p n; settingBit = v }
-    let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v } |> Some)
+    let setDoubleOpt p n vo = vo |> Option.bind (fun v -> setDouble p n v |> Some)
+    let setBoolOpt p n vo = vo |> Option.bind (fun v -> setBool p n v |> Some)
     let setLong p n v = { Setting.defaultValue() with settingPath = addParent p n; settingLong = v }
 
 
@@ -1100,3 +1102,48 @@ module SettingsExt =
             |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
             |> this.modelLocationData.setValue (addParent po modelLocationDataName)
             |> ReactionRateModelParamWithUsage.setAll rates
+
+
+    [<Literal>]
+    let tEndName = "tEnd"
+
+    [<Literal>]
+    let y0Name = "y0"
+
+    [<Literal>]
+    let useAbundantName = "useAbundant"
+
+    type ModelCommandLineParam
+        with
+        static member getValues (m : SettingMap) =
+            let tryGet (m : SettingMap) po = 
+                let t() = getDoubleOpt m po tEndName
+                let y() = getDoubleOpt m po y0Name
+
+                match t(), y() with
+                | Some t1, Some y1 -> 
+                    {
+                        tEnd = t1
+                        y0 = y1
+                        useAbundant = getBoolOpt m po useAbundantName
+                    }
+                    |> Some
+                | _ -> None
+
+            [ for i in 0..100 -> i ]
+            |> List.map (fun e -> [ (ModelCommandLineParam.variableName, e) ] |> tryGet m)
+            |> List.choose id
+
+        static member setValues (p : list<ModelCommandLineParam>) s =
+            let setValue (q : ModelCommandLineParam) po s = 
+                [
+                    setDouble po tEndName q.tEnd |> Some
+                    setDouble po y0Name q.y0 |> Some
+                    setBoolOpt po useAbundantName q.useAbundant
+                ]
+                |> List.choose id
+                |> add s
+
+            p
+            |> List.mapi (fun i e -> (e, [ (ModelCommandLineParam.variableName, i) ]))
+            |> List.fold (fun acc (q, po) -> setValue q po acc) s

@@ -2,31 +2,10 @@
 
 open System
 open System.Diagnostics
-open System.Threading
-open Clm.Distributions
-open Clm.Substances
-open Clm.ReactionRates
-open Clm.DataLocation
-
-open ContGen.Configuration
-open ContGen.DatabaseTypes
-open ContGen.SettingsExt
-open System.Data.SqlClient
-open System.Text
-
-open Clm.VersionInfo
-open Clm.DataLocation
-open Clm.Generator.ClmModel
-open Clm.Generator
 open System.Threading.Tasks
 
-open Fake.DotNet
-open Fake.Core
-open Fake.IO
-open Fake.Core.TargetOperators
-//open Fake.IO.Globbing.Operators //enables !! and globbing
-
-module Builder =
+module AsyncRun =
+    open Clm
 
     let runProc filename args startDir =
         let timer = Stopwatch.StartNew()
@@ -158,152 +137,31 @@ module Builder =
         member this.getState () = messageLoop.PostAndReply GetState
 
 
+    [<Literal>]
+    let ModelCommandLineParamName = "ModelCommandLineParam"
+
     type ModelCommandLineParam =
         {
-            tEnd : double option
-            y0 : double option
+            tEnd : double
+            y0 : double
             useAbundant : bool option
         }
 
         static member defaultValue =
             {
-                tEnd = Some 100_000.0
-                y0 = Some 10.0
+                tEnd = 100_000.0
+                y0 = 10.0
                 useAbundant = None
             }
 
         override this.ToString() =
             [
-                this.tEnd |> Option.bind (fun e -> e.ToString() |> Some)
-                this.y0 |> Option.bind (fun e -> e.ToString() |> Some)
-                this.useAbundant |> Option.bind (fun e -> e.ToString() |> Some)
+                this.tEnd.ToString() |> Some
+                this.y0.ToString() |> Some
+                this.useAbundant |> Option.bind (fun e -> (if e then "1" else "") |> Some)
             ]
             |> List.choose id
             |> String.concat " "
 
-
-    type ModelRunnerParam = 
-        {
-            connectionString : string
-            rootBuildFolder : string
-            buildTarget : string
-            exeName : string
-        }
-
-        static member defaultValue =
-            {
-                connectionString = ClmConnectionString
-                rootBuildFolder = @"C:\Temp\Clm\"
-                buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
-                exeName = @"SolverRunner.exe"
-            }
-
-
-    type ModelRunner (p : ModelRunnerParam) =
-        let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
-        let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-
-
-        let getModelId () =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            getNewModelDataId conn
-
-
-        let loadParams seeder modelId =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-
-            let m = loadSettings conn
-
-            match ModelGenerationParams.tryGet m seeder with
-            | Some m ->
-                { m with modelLocationData = { m.modelLocationData with modelName = ConsecutiveName modelId; useDefaultModeData = true } }
-                |> Some
-            | None -> None
-
-
-        let generateModel modelGenerationParams =
-            printfn "Creating model..."
-            printfn "Starting at: %A" DateTime.Now
-
-            let model = ClmModel modelGenerationParams
-            let code = model.generateCode()
-            printfn "... completed."
-            code
-
-
-        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelId =
-            let sb = new StringBuilder()
-            code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
-
-            let m =
-                {
-                    modelId = modelId
-                    numberOfAminoAcids = pm.numberOfAminoAcids
-                    maxPeptideLength = pm.maxPeptideLength
-                    seedValue = pm.seedValue
-                    fileStructureVersion = pm.fileStructureVersionNumber
-                    modelData = sb.ToString()
-                }
-
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            tryUpdateModelData conn m
-
-
-        let compileModel modelId =
-            let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
-            Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
-
-            // Properties
-            let buildDir = getBuildDir modelId
-
-            // Targets
-            Target.create "Clean" (fun _ ->
-              Shell.cleanDir buildDir
-            )
-
-            Target.create "BuildApp" (fun _ ->
-              [ p.buildTarget ]
-                |> MSBuild.runRelease id buildDir "Build"
-                |> Trace.logItems "AppBuild-Output: "
-            )
-
-            Target.create "Default" (fun _ ->
-              Trace.trace "Built completed."
-            )
-
-            "Clean"
-              ==> "BuildApp"
-              ==> "Default"
-              |> ignore
-
-            Target.runOrDefault "Default"
-
-
-        let runModel modelId (p : ModelCommandLineParam) =
-            let exeName = getExeName modelId
-            let commandLineParams = p.ToString()
-            runProc exeName commandLineParams None |> ignore
-            modelId
-
-
-        member fake.sucks() = 0
-
-
-    //type Runner (command : string) =
-    //    let myProcess_Exited(e : System.EventArgs) = 
-    //        printfn "Completed."
-
-    //    let myProcess = new Process()
-    //    let startInfo = new ProcessStartInfo()
-
-    //    do myProcess.StartInfo.FileName <- @"C:\Temp\WTF\SolverRunner.exe"
-    //    do myProcess.StartInfo.Arguments <- "10000 10"
-    //    do myProcess.EnableRaisingEvents <- true
-    //    do myProcess.Exited.Add(myProcess_Exited)
-
-
-    //    member this.run() =
-    //        myProcess.Start()
+        static member name = ModelCommandLineParamName
+        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName

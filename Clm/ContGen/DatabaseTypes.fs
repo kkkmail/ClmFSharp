@@ -82,36 +82,46 @@ module DatabaseTypes =
         member r.addRow (t : SettingTable) = 
             let r0 = r.settingPath
 
-            let getSR x = 
+            let getSR (x : list<string * int>) =
                 match x with
-                | [] -> EmptyString, []
-                | (h, _) :: t -> h, t
+                | [] -> EmptyString, 0, []
+                | (h, i) :: t -> h, i, t
 
-            let s1, r1 = getSR r0
-            let s2, r2 = getSR r1
-            let s3, r3 = getSR r2
-            let s4, r4 = getSR r3
-            let s5, r5 = getSR r4
-            let s6, r6 = getSR r5
-            let s7, r7 = getSR r6
-            let s8, r8 = getSR r7
-            let s9, r9 = getSR r8
-            let s10, r10 = getSR r9
+            let s1, i1, r1 = getSR r0
+            let s2, i2, r2 = getSR r1
+            let s3, i3, r3 = getSR r2
+            let s4, i4, r4 = getSR r3
+            let s5, i5, r5 = getSR r4
+            let s6, i6, r6 = getSR r5
+            let s7, i7, r7 = getSR r6
+            let s8, i8, r8 = getSR r7
+            let s9, i9, r9 = getSR r8
+            let s10, i10, r10 = getSR r9
 
             if r10.IsEmpty |> not then failwith (sprintf "Path is too long: %A" r0)
 
-            let newRow = 
+            let newRow =
                 t.NewRow(
                         settingField1 = s1,
+                        settingOrderId1 = i1,
                         settingField2 = s2,
+                        settingOrderId2 = i2,
                         settingField3 = s3,
+                        settingOrderId3 = i3,
                         settingField4 = s4,
+                        settingOrderId4 = i4,
                         settingField5 = s5,
+                        settingOrderId5 = i5,
                         settingField6 = s6,
+                        settingOrderId6 = i6,
                         settingField7 = s7,
+                        settingOrderId7 = i7,
                         settingField8 = s8,
+                        settingOrderId8 = i8,
                         settingField9 = s9,
+                        settingOrderId9 = i9,
                         settingField10 = s10,
+                        settingOrderId10 = i10,
                         settingBit = r.settingBit,
                         settingLong = r.settingLong,
                         settingMoney = r.settingMoney,

@@ -40,36 +40,54 @@ module Builder =
     //)
 
 
-    type X () = 
+    type X (connStr) =
 
-        let loadParams() : unit = failwith ""
+        let loadParams seeder =
+            use conn = new SqlConnection (connStr)
+            openConnIfClosed conn
 
-        let generateModel seeder =
-            let m = loadSettings ClmConnectionString
+            let n = getNewModelDataId conn
+            let m = loadSettings conn
+
             match ModelGenerationParams.tryGet m seeder with
             | Some m ->
-                printfn "Creating model..."
-                printfn "Starting at: %A" DateTime.Now
-
-                let modelGenerationParams = 
-                    { m with modelLocationData = { m.modelLocationData with modelName = Some ""; useDefaultModeData = true } }
-
-                let model = ClmModel modelGenerationParams
-                let code = model.generateCode()
-                printfn "... completed."
-                Some code
-            | None ->
-                printfn "Failed to generate model."
-                None
+                { m with modelLocationData = { m.modelLocationData with modelName = ConsecutiveName n; useDefaultModeData = true } }
+                |> Some
+            | None -> None
 
 
-        let saveModel (conn : SqlConnection) (code : list<string>) =
-            let sb = new StringBuilder()
-            code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
+        let generateModel modelGenerationParams =
+            printfn "Creating model..."
+            printfn "Starting at: %A" DateTime.Now
 
-            0
+            let model = ClmModel modelGenerationParams
+            let code = model.generateCode()
+            printfn "... completed."
+            code
 
-        let compile() : unit = failwith ""
+
+        let saveModel (conn : SqlConnection) (code : list<string>) (p : ModelGenerationParams) =
+            match p.modelLocationData.modelName with
+            | ConsecutiveName n ->
+                let sb = new StringBuilder()
+                code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
+
+                let m =
+                    {
+                        modelId = n
+                        numberOfAminoAcids = p.numberOfAminoAcids
+                        maxPeptideLength = p.maxPeptideLength
+                        seedValue = p.seedValue
+                        fileStructureVersion = p.fileStructureVersionNumber
+                        modelData = sb.ToString()
+                    }
+
+                tryUpdateModelData conn m
+            | GenerateName -> false
+
+
+        let compile() = 
+            failwith ""
 
         let copyToExecLocation() : unit = failwith ""
 

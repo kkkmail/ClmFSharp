@@ -30,6 +30,7 @@ module SettingsExt =
     let setTextOpt p n vo = vo |> Option.bind (fun v -> setText p n v |> Some)
     let setBool p n v = { Setting.defaultValue() with settingPath = addParent p n; settingBit = v }
     let setDoubleOpt p n vo = vo |> Option.bind (fun v -> { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v } |> Some)
+    let setLong p n v = { Setting.defaultValue() with settingPath = addParent p n; settingLong = v }
 
 
     let addDoubleOpt p n vo s = 
@@ -48,6 +49,12 @@ module SettingsExt =
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingLong |> int |> Some)
+
+
+    let getLongOpt (m : SettingMap) po n =
+        addParent po n
+        |> tryFindByName m
+        |> Option.bind (fun v -> v.settingLong |> Some)
 
 
     let getTextOpt (m : SettingMap) po n =
@@ -935,6 +942,27 @@ module SettingsExt =
             add s [ setText po UpdateFuncTypeName (this.ToString()) ]
 
 
+    type ModeName
+        with
+        static member tryGet (m : SettingMap) po =
+            match getTextOpt m po ModeNameName with
+            | Some s -> 
+                match s with
+                | GenerateNameName -> Some GenerateName
+                | ConsecutiveNameName ->
+                    getLongOpt m po ConsecutiveNameName
+                    |> Option.bind (fun n -> n |> ConsecutiveName |> Some)
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            match this with
+            | GenerateName -> []
+            | ConsecutiveName n -> [ setLong po ConsecutiveNameName n ]
+            |> add [ setText po ModeNameName this.name ]
+            |> add s
+
+
     [<Literal>]
     let startingFolderName = "startingFolder"
 
@@ -964,16 +992,17 @@ module SettingsExt =
             let c() = getIntOpt m po scaleName
             let d() = getTextOpt m po allModelsFileName
             let e() = getTextOpt m po allResultsFileName
+            let f() = ModeName.tryGet m (addParent po modelNameName)
 
-            match a(), b(), c(), d(), e() with
-            | Some a1, Some b1, Some c1, Some d1, Some e1 ->
+            match a(), b(), c(), d(), e(), f() with
+            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1 ->
                 {
                     startingFolder = a1
                     separator = b1
                     padLength = c1
                     allModelsFile = d1
                     allResultsFile = e1
-                    modelName = getTextOpt m po modelNameName
+                    modelName = f1
                     useDefaultModeData = getBool m po useDefaultModeDataName
                 }
                 |> Some
@@ -986,10 +1015,10 @@ module SettingsExt =
                 setInt po scaleName this.padLength |> Some
                 setText po allModelsFileName this.allModelsFile |> Some
                 setText po allResultsFileName this.allResultsFile |> Some
-                setTextOpt po modelNameName this.modelName
                 setBool po useDefaultModeDataName this.useDefaultModeData |> Some
             ]
             |> List.choose id
+            |> this.modelName.setValue (addParent po modelNameName)
             |> add s
 
 

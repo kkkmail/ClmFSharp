@@ -3,12 +3,11 @@
 open System.Data
 open System.Data.SqlClient
 open FSharp.Data
-//open Microsoft.SqlServer.Types
-
 open Configuration
+open System
+open Clm.Substances
 
-module DatabaseTypes = 
-    open System
+module DatabaseTypes =
 
     [<Literal>]
     let EmptyString = ""
@@ -129,16 +128,24 @@ module DatabaseTypes =
     type SettingMap = Map<list<string * int>, Setting>
 
 
+    type ModelData =
+        {
+            modelId : int64
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+            seedValue : int option
+            fileStructureVersion : string
+            modelData : string
+        }
+
+
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
         | _ -> ignore ()
 
 
-    let loadSettings (connStr : string) =
-        use conn : SqlConnection = new SqlConnection (connStr)
-        conn.Open()
-
+    let loadSettings (conn : SqlConnection) =
         let settingTable = new SettingTable()
         (new SettingTableData(conn)).Execute() |> settingTable.Load
 
@@ -169,7 +176,7 @@ module DatabaseTypes =
             t.NewRow(
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
-                    seed = 0,
+                    seedValue = None,
                     fileStructureVersion = "",
                     modelData = "",
                     createdOn = DateTime.Now
@@ -180,9 +187,18 @@ module DatabaseTypes =
         r.modelId
 
 
-    let tryFindModelDataRow conn modelId =
+    let tryUpdateModelData conn (m : ModelData) =
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
-        d.Execute(modelId = modelId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.modelId = modelId)
+        d.Execute(modelId = m.modelId) |> t.Load
+        match t.Rows |> Seq.tryFind (fun e -> e.modelId = m.modelId) with
+        | Some r ->
+            r.numberOfAminoAcids <- m.numberOfAminoAcids.length
+            r.maxPeptideLength <- m.maxPeptideLength.length
+            r.seedValue <- m.seedValue
+            r.fileStructureVersion <- m.fileStructureVersion
+            r.modelData <- m.modelData
+            t.Update(conn) |> ignore
+            true
+        | None -> false

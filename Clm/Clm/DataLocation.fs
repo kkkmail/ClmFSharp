@@ -20,10 +20,24 @@ module DataLocation =
     [<Literal>]
     let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
 
+
+    [<Literal>]
+    let ModeNameName = "ModeName"
+
+    [<Literal>]
+    let GenerateNameName = "GenerateName"
+
+    [<Literal>]
+    let ConsecutiveNameName = "ConsecutiveName"
+
     type ModeName =
-        | DoGenerate
-        | GeneratedName of string
+        | GenerateName
         | ConsecutiveName of int64
+
+        member this.name =
+            match this with
+            | GenerateName -> GenerateNameName
+            | ConsecutiveName _ -> ConsecutiveNameName
 
 
     [<Literal>]
@@ -47,7 +61,7 @@ module DataLocation =
                 padLength = 3
                 allModelsFile = DefaultAllModelsFile
                 allResultsFile = DefaultAllResultsFile
-                modelName = DoGenerate
+                modelName = GenerateName
                 useDefaultModeData = false
             }
 
@@ -83,13 +97,13 @@ module DataLocation =
 
     let createModelLocationInfo (i : ModelLocationInputData) =
         match i.modelName with
-        | Some n -> 
+        | ConsecutiveName n -> 
             {
                 modelFolder = String.Empty
-                modelName = n
+                modelName = n.ToString().PadLeft(6, '0')
                 useDefaultModeData = i.useDefaultModeData
             }
-        | None ->
+        | GenerateName ->
             let dirs = Directory.EnumerateDirectories(i.startingFolder) |> List.ofSeq |> List.map Path.GetFileName
             let today = DateTime.Now
             let todayPrefix = today.ToString "yyyyMMdd"

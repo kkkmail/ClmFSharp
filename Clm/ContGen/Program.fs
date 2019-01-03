@@ -15,12 +15,12 @@ open Clm.Generator.ClmModel
 let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
 
-let testAll conn (rnd : Random) = 
+let testAll conn (rnd : Random) =
     let rates = (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allParams |> List.sort
     let settings = ReactionRateModelParamWithUsage.setAll rates []
     saveSettings settings conn
 
-    let m = loadSettings ClmConnectionString
+    let m = loadSettings conn
     let loaded = ReactionRateModelParamWithUsage.getAll m (seeder rnd)
 
     printfn "loaded.Length = %A" (loaded.Length)
@@ -49,7 +49,7 @@ let testModelGenerationParams conn (rnd : Random) =
     let settings = modelGenerationParams.setValue []
     saveSettings settings conn
 
-    let m = loadSettings ClmConnectionString
+    let m = loadSettings conn
     let loaded = ModelGenerationParams.tryGet m (seeder rnd)
 
     match loaded with
@@ -64,7 +64,7 @@ let testDistr conn (rnd : Random) =
     let d = TriangularDistribution (rnd.Next(), { threshold = Some 0.7; scale = Some 1.5; shift = Some 0.5 }) |> Triangular
     let settings = d.setValue [ (d.name, 0) ] []
     saveSettings settings conn
-    let m = loadSettings ClmConnectionString
+    let m = loadSettings conn
     let d1 = Distribution.tryGet m (seeder rnd) [ (d.name, 0) ]
 
     match d1 with 
@@ -79,7 +79,7 @@ let testSynthesisParam conn (rnd : Random) =
     let d = (ReactionRateProvider.defaultSynthRndModel rnd (0.1, 0.01)).inputParams
     let settings = d.setValue [] []
     saveSettings settings conn
-    let m = loadSettings ClmConnectionString
+    let m = loadSettings conn
     let d1 = SynthesisParam.tryGet m (seeder rnd) []
 
     match d1 with 

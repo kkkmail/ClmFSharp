@@ -26,6 +26,7 @@ open Fake.Core.TargetOperators
 
 module Builder =
     open Clm.Generator
+    open System.Threading.Tasks
 
     let runProc filename args startDir =
         let timer = Stopwatch.StartNew()
@@ -103,66 +104,127 @@ module Builder =
     //    member this.getContent () = chat.PostAndReply GetContent
 
 
-    //type RunnerMessage =
-    //    | StartRun
-    //    | CompleteRun
+    let doAsyncTask  (f : unit->'a) = 
+         async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
-    //type AsyncUpdater (updater) =
-    //    let chat = MailboxProcessor.Start(fun u -> 
-    //      let rec loop s = async {
-    //        let! m = u.Receive()
 
-    //        match m with 
-    //        | StartRun -> 
-    //            return! loop (updater s)
-    //        //| CompleteRun r -> 
-    //        //    r.Reply s
-    //        //    return! loop s 
-    //        | CompleteRun -> 
-    //            return! loop (updater s) }
+    type RunnerState =
+        {
+            generating : bool
+            running : int
+            shuttingDown : bool
+        }
 
-    //      updater.init () |> loop)
+        static member defaultValue =
+            {
+                generating = false
+                running = 0
+                shuttingDown = false
+            }
 
-    //    member this.updateContent p = UpdateContent p |> chat.Post
-    //    member this.getContent () = chat.PostAndReply GetContent
 
-    type MessageBasedCounter () =
+    type RunnerMessage =
+        | StartGenerate of AsyncRunner
+        | CompleteGenerate of int64
+        | StartRun of AsyncRunner * int64
+        | CompleteRun of int64
+        | GetState of AsyncReplyChannel<RunnerState>
 
-        static let updateState (count,sum) msg = 
 
-            // increment the counters and...
-            let newSum = sum + msg
-            let newCount = count + 1
-            printfn "Count is: %i. Sum is: %i" newCount newSum 
+    and Runner =
+        {
+            generate : unit -> int64
+            run : int64 -> int64
+        }
 
-            // ...emulate a short delay
-            //Utility.RandomSleep()
 
-            // return the new state
-            (newCount,newSum)
-
-        // create the agent
-        static let agent = MailboxProcessor.Start(fun inbox -> 
-
-            // the message processing function
-            let rec messageLoop oldState = async{
-
-                // read a message
-                let! msg = inbox.Receive()
-
-                // do the core logic
-                let newState = updateState oldState msg
-
-                // loop to top
-                return! messageLoop newState
+    // Environment.ProcessorCount
+    and AsyncRunner (runner : Runner) =
+        let generate (a : AsyncRunner) =
+            async
+                {
+                    return! doAsyncTask(fun () -> runner.generate () |> a.completeGenerate)
                 }
 
-            // start the loop 
-            messageLoop (0,0)
-            )
+        let run (a : AsyncRunner) n =
+            async
+                {
+                    return! doAsyncTask(fun () -> runner.run n |> a.completeRun)
+                }
 
-        // public interface to hide the implementation
-        static member Add i = agent.Post i
+        let messageLoop =
+            MailboxProcessor.Start(fun u ->
+                let rec loop s =
+                    async
+                        {
+                            let! m = u.Receive()
+
+                            match m with
+                            | StartGenerate a ->
+                                generate a |> Async.Start
+                                return! loop s
+                            | CompleteGenerate n ->
+                                //r.Reply s
+                                return! loop s
+                            | StartRun (a, n) ->
+                                run a n |> Async.Start
+                                return! loop s
+                            | CompleteRun n ->
+                                //return! loop (updater s)
+                                return! loop s
+                            | GetState r ->
+                                r.Reply s
+                                return! loop s
+                        }
+
+                //updater.init () |> loop
+                loop RunnerState.defaultValue
+                )
+
+        member this.startGenerate () = StartGenerate this |> messageLoop.Post
+        member this.completeGenerate n = CompleteGenerate n |> messageLoop.Post
+        member this.startRun n = StartRun n |> messageLoop.Post
+        member this.completeRun n = CompleteRun n |> messageLoop.Post
+        member this.getState () = messageLoop.PostAndReply GetState
+
+
+    //type MessageBasedCounter () =
+
+    //    static let updateState (count,sum) msg = 
+
+    //        // increment the counters and...
+    //        let newSum = sum + msg
+    //        let newCount = count + 1
+    //        printfn "Count is: %i. Sum is: %i" newCount newSum 
+
+    //        // ...emulate a short delay
+    //        //Utility.RandomSleep()
+
+    //        // return the new state
+    //        (newCount,newSum)
+
+    //    // create the agent
+    //    static let agent = MailboxProcessor.Start(fun inbox -> 
+
+    //        // the message processing function
+    //        let rec messageLoop oldState = async{
+
+    //            // read a message
+    //            let! msg = inbox.Receive()
+
+    //            // do the core logic
+    //            let newState = updateState oldState msg
+
+    //            // loop to top
+    //            return! messageLoop newState
+    //            }
+
+    //        // start the loop 
+    //        messageLoop (0,0)
+    //        )
+
+    //    // public interface to hide the implementation
+    //    static member Add i = agent.Post i
 
 
 
@@ -257,18 +319,18 @@ module Builder =
         member fake.sucks() = 0
 
 
-    type Runner (command : string) =
-        let myProcess_Exited(e : System.EventArgs) = 
-            printfn "Completed."
+    //type Runner (command : string) =
+    //    let myProcess_Exited(e : System.EventArgs) = 
+    //        printfn "Completed."
 
-        let myProcess = new Process()
-        let startInfo = new ProcessStartInfo()
+    //    let myProcess = new Process()
+    //    let startInfo = new ProcessStartInfo()
 
-        do myProcess.StartInfo.FileName <- @"C:\Temp\WTF\SolverRunner.exe"
-        do myProcess.StartInfo.Arguments <- "10000 10"
-        do myProcess.EnableRaisingEvents <- true
-        do myProcess.Exited.Add(myProcess_Exited)
+    //    do myProcess.StartInfo.FileName <- @"C:\Temp\WTF\SolverRunner.exe"
+    //    do myProcess.StartInfo.Arguments <- "10000 10"
+    //    do myProcess.EnableRaisingEvents <- true
+    //    do myProcess.Exited.Add(myProcess_Exited)
 
 
-        member this.run() =
-            myProcess.Start()
+    //    member this.run() =
+    //        myProcess.Start()

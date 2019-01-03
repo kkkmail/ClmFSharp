@@ -2,7 +2,7 @@ CREATE TABLE dbo.ModelData(
 	modelId bigint IDENTITY(1,1) NOT NULL,
 	numberOfAminoAcids int NOT NULL,
 	maxPeptideLength int NOT NULL,
-	seed int NOT NULL,
+	seedValue int NULL,
 	fileStructureVersion nvarchar(50) NOT NULL,
 	modelData nvarchar(max) NOT NULL,
 	createdOn datetime NOT NULL,

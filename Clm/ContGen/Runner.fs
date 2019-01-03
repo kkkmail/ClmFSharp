@@ -29,7 +29,7 @@ open Fake.Core.TargetOperators
 
 module Runner =
 
-    type ModelRunnerParam = 
+    type ModelRunnerParam =
         {
             connectionString : string
             rootBuildFolder : string
@@ -47,8 +47,15 @@ module Runner =
 
 
     type ModelRunner (p : ModelRunnerParam) =
+        let rnd = new Random()
         let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
         let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+        let getRandomSeeder (seed : int option) = rnd.Next ()
+
+        let getDeterministicSeeder (seed : int option) = 
+            match seed with 
+            | Some s -> s 
+            | None -> rnd.Next ()
 
 
         let getModelId () =
@@ -60,12 +67,20 @@ module Runner =
         let loadParams seeder modelId =
             use conn = new SqlConnection (p.connectionString)
             openConnIfClosed conn
-
             let m = loadSettings conn
 
             match ModelGenerationParams.tryGet m seeder with
-            | Some m ->
-                { m with modelLocationData = { m.modelLocationData with modelName = ConsecutiveName modelId; useDefaultModeData = true } }
+            | Some q ->
+                (
+                    { q with
+                        modelLocationData =
+                            { q.modelLocationData with
+                                modelName = ConsecutiveName modelId
+                                useDefaultModeData = true
+                            }
+                    },
+                    ModelCommandLineParam.getValues m
+                )
                 |> Some
             | None -> None
 
@@ -129,25 +144,40 @@ module Runner =
             Target.runOrDefault "Default"
 
 
-        let runModel modelId (p : ModelCommandLineParam) =
+        let runModel (p : ModelCommandLineParam) modelId =
             let exeName = getExeName modelId
             let commandLineParams = p.ToString()
             runProc exeName commandLineParams None |> ignore
             modelId
 
-        //let runner = 
-        //    {
-        //        generate = failwith ""
-        //        run = failwith ""
-        //    }
 
-    //type Runner =
-    //    {
-    //        generate : unit -> int64
-    //        run : int64 -> int64
-    //    }
+        let generate() =
+            try
+                let modelId = getModelId ()
+
+                match loadParams getRandomSeeder modelId with
+                | Some (p, r) ->
+                    let code = generateModel p
+                    match saveModel code p modelId with
+                    | true ->
+                        compileModel modelId
+                        r |> List.map (fun e -> { run = runModel e; modelId = modelId })
+                    | false ->
+                        printfn "Cannot save modelId: %A." modelId
+                        []
+                | None ->
+                    printfn "Cannot load parameters for modelId: %A." modelId
+                    []
+            with
+                | e ->
+                    printfn "Exception: %A" e
+                    []
 
 
+        let createGeneratorImpl() =
+            {
+                generate = generate
+            }
 
-        member fake.sucks() = 0
 
+        member __.createGenerator = createGeneratorImpl

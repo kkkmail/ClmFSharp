@@ -118,6 +118,6 @@ let main argv =
 
     //let runner = Runner("")
     //runner.run() |> ignore
-    let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
+    //let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
 
     0

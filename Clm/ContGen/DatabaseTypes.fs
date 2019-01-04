@@ -23,7 +23,7 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
-    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelId = @modelId", ClmConnectionString, ResultType.DataReader>
+    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionString, ResultType.DataReader>
 
 
     type Setting =
@@ -140,7 +140,7 @@ module DatabaseTypes =
 
     type ModelData =
         {
-            modelId : int64
+            modelDataId : int64
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
@@ -194,15 +194,15 @@ module DatabaseTypes =
 
         t.Rows.Add r
         t.Update conn |> ignore
-        r.modelId
+        r.modelDataId
 
 
     let tryUpdateModelData conn (m : ModelData) =
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
-        d.Execute(modelId = m.modelId) |> t.Load
-        match t.Rows |> Seq.tryFind (fun e -> e.modelId = m.modelId) with
+        d.Execute(modelDataId = m.modelDataId) |> t.Load
+        match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
         | Some r ->
             r.numberOfAminoAcids <- m.numberOfAminoAcids.length
             r.maxPeptideLength <- m.maxPeptideLength.length

@@ -87,13 +87,13 @@ module Runner =
             code
 
 
-        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelId =
+        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelDataId =
             let sb = new StringBuilder()
             code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
 
             let m =
                 {
-                    modelId = modelId
+                    modelDataId = modelDataId
                     numberOfAminoAcids = pm.numberOfAminoAcids
                     maxPeptideLength = pm.maxPeptideLength
                     seedValue = pm.seedValue

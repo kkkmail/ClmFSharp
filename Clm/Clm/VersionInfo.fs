@@ -24,3 +24,7 @@ module VersionInfo =
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
     let VersionNumber = "1.5.0.0"
+
+
+    [<Literal>]
+    let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov © 2015 - 2019."

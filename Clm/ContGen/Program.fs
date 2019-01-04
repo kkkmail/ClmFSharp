@@ -17,6 +17,7 @@ open ContGen
 open AsyncRun
 open Runner
 open System.Threading
+open Newtonsoft.Json
 
 let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
@@ -40,6 +41,24 @@ let saveDefaults conn numberOfAminoAcids =
             modelLocationData = ModelLocationInputData.defaultValue
             updateAllModels = false
         }
+
+
+    //let x =
+    //    [
+    //        AminoAcid.A01 |> ChiralAminoAcid.L |> Chiral
+    //        Abundant |> Simple
+    //        AminoAcid.A02 |> ChiralAminoAcid.R |> Chiral
+    //        [ AminoAcid.A01 |> ChiralAminoAcid.L; AminoAcid.A02 |> ChiralAminoAcid.R ] |> Peptide |> PeptideChain
+    //    ]
+
+    //let json = JsonConvert.SerializeObject x
+    //let d = JsonConvert.DeserializeObject<list<Substance>>(json)
+    //printfn "(x = d) = %A" (x = d)
+
+
+    //let json = JsonConvert.SerializeObject modelGenerationParams
+    //let d = JsonConvert.DeserializeObject<ModelGenerationParams>(json)
+    //printfn "(modelGenerationParams = d) = %A" (modelGenerationParams = d)
 
     let settings =
         []
@@ -162,10 +181,11 @@ let main argv =
 
     saveDefaults conn FourAminoAcids |> ignore
 
-    let a = createRunner ModelRunnerParam.defaultValue
-    a.startGenerate()
+    //let a = createRunner ModelRunnerParam.defaultValue
+    //a.startGenerate()
 
-    while a.getState().shuttingDown |> not do
-        let x = rnd.Next()
-        Thread.Sleep(10000)
+    //while a.getState().shuttingDown |> not do
+    //    let x = rnd.Next()
+    //    Thread.Sleep(10000)
+
     0

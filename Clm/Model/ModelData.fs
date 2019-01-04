@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1375550091
+    let seedValue = 567099488
     let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 587
@@ -2157,6 +2157,22 @@ module ModelData =
     // 1 - Y
     let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            10.8596196923136 * x.[10] * x.[242] // d + Cad | catalytic synthesis: Y + Cad <-> d + Cad
+            -10.8596196923136 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> d + Cad
+            10.8596196923136 * x.[6] * x.[462] // D + cAD | catalytic synthesis: Y + cAD <-> D + cAD
+            -10.8596196923136 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> D + cAD
+            0.2784517869824 * x.[10] * x.[462] // d + cAD | catalytic synthesis: Y + cAD <-> d + cAD
+            -0.2784517869824 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> d + cAD
+            0.2784517869824 * x.[6] * x.[242] // D + Cad | catalytic synthesis: Y + Cad <-> D + Cad
+            -0.2784517869824 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> D + Cad
+            10.8596196923136 * x.[7] * x.[242] // a + Cad | catalytic synthesis: Y + Cad <-> a + Cad
+            -10.8596196923136 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> a + Cad
+            10.8596196923136 * x.[3] * x.[462] // A + cAD | catalytic synthesis: Y + cAD <-> A + cAD
+            -10.8596196923136 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> A + cAD
+            0.2784517869824 * x.[7] * x.[462] // a + cAD | catalytic synthesis: Y + cAD <-> a + cAD
+            -0.2784517869824 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> a + cAD
+            0.2784517869824 * x.[3] * x.[242] // A + Cad | catalytic synthesis: Y + Cad <-> A + Cad
+            -0.2784517869824 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> A + Cad
             0.001 * x.[10] // d | synthesis: Y <-> d
             -0.001 * x.[1] // Y | synthesis: Y <-> d
             0.001 * x.[6] // D | synthesis: Y <-> D
@@ -2181,6 +2197,14 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1.86944041143998 * x.[2] * x.[268] // Z + DAB | catalytic destruction: a + DAB <-> Z + DAB
+            1.86944041143998 * x.[7] * x.[268] // a + DAB | catalytic destruction: a + DAB <-> Z + DAB
+            -1.86944041143998 * x.[2] * x.[560] // Z + dab | catalytic destruction: A + dab <-> Z + dab
+            1.86944041143998 * x.[3] * x.[560] // A + dab | catalytic destruction: A + dab <-> Z + dab
+            -0.0479343695241022 * x.[2] * x.[560] // Z + dab | catalytic destruction: a + dab <-> Z + dab
+            0.0479343695241022 * x.[7] * x.[560] // a + dab | catalytic destruction: a + dab <-> Z + dab
+            -0.0479343695241022 * x.[2] * x.[268] // Z + DAB | catalytic destruction: A + DAB <-> Z + DAB
+            0.0479343695241022 * x.[3] * x.[268] // A + DAB | catalytic destruction: A + DAB <-> Z + DAB
             -0.001 * x.[2] // Z | destruction: d <-> Z
             0.001 * x.[10] // d | destruction: d <-> Z
             -0.001 * x.[2] // Z | destruction: D <-> Z
@@ -2359,6 +2383,14 @@ module ModelData =
             1.0 * x.[11] // AA | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
+            1.86944041143998 * x.[2] * x.[560] // Z + dab | catalytic destruction: A + dab <-> Z + dab
+            -1.86944041143998 * x.[3] * x.[560] // A + dab | catalytic destruction: A + dab <-> Z + dab
+            0.0479343695241022 * x.[2] * x.[268] // Z + DAB | catalytic destruction: A + DAB <-> Z + DAB
+            -0.0479343695241022 * x.[3] * x.[268] // A + DAB | catalytic destruction: A + DAB <-> Z + DAB
+            -10.8596196923136 * x.[3] * x.[462] // A + cAD | catalytic synthesis: Y + cAD <-> A + cAD
+            10.8596196923136 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> A + cAD
+            -0.2784517869824 * x.[3] * x.[242] // A + Cad | catalytic synthesis: Y + Cad <-> A + Cad
+            0.2784517869824 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> A + Cad
             0.001 * x.[2] // Z | destruction: A <-> Z
             -0.001 * x.[3] // A | destruction: A <-> Z
             -0.001 * x.[3] // A | synthesis: Y <-> A
@@ -2854,6 +2886,10 @@ module ModelData =
             -1.0 * x.[7] * x.[6] // a + D | ligation: a + D <-> aD
             1.0 * x.[14] // AD | ligation: A + D <-> AD
             -1.0 * x.[3] * x.[6] // A + D | ligation: A + D <-> AD
+            -10.8596196923136 * x.[6] * x.[462] // D + cAD | catalytic synthesis: Y + cAD <-> D + cAD
+            10.8596196923136 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> D + cAD
+            -0.2784517869824 * x.[6] * x.[242] // D + Cad | catalytic synthesis: Y + Cad <-> D + Cad
+            0.2784517869824 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> D + Cad
             0.001 * x.[2] // Z | destruction: D <-> Z
             -0.001 * x.[6] // D | destruction: D <-> Z
             -0.001 * x.[6] // D | synthesis: Y <-> D
@@ -3019,6 +3055,14 @@ module ModelData =
             1.0 * x.[47] // aa | ligation: a + a <-> aa
             -1.0 * x.[7] * x.[7] // a + a | ligation: a + a <-> aa
             -1.0 * x.[7] * x.[7] // a + a | ligation: a + a <-> aa
+            1.86944041143998 * x.[2] * x.[268] // Z + DAB | catalytic destruction: a + DAB <-> Z + DAB
+            -1.86944041143998 * x.[7] * x.[268] // a + DAB | catalytic destruction: a + DAB <-> Z + DAB
+            0.0479343695241022 * x.[2] * x.[560] // Z + dab | catalytic destruction: a + dab <-> Z + dab
+            -0.0479343695241022 * x.[7] * x.[560] // a + dab | catalytic destruction: a + dab <-> Z + dab
+            -10.8596196923136 * x.[7] * x.[242] // a + Cad | catalytic synthesis: Y + Cad <-> a + Cad
+            10.8596196923136 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> a + Cad
+            -0.2784517869824 * x.[7] * x.[462] // a + cAD | catalytic synthesis: Y + cAD <-> a + cAD
+            0.2784517869824 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> a + cAD
             0.001 * x.[2] // Z | destruction: a <-> Z
             -0.001 * x.[7] // a | destruction: a <-> Z
             -0.001 * x.[7] // a | synthesis: Y <-> a
@@ -3514,6 +3558,10 @@ module ModelData =
             -1.0 * x.[3] * x.[10] // A + d | ligation: A + d <-> Ad
             1.0 * x.[50] // ad | ligation: a + d <-> ad
             -1.0 * x.[7] * x.[10] // a + d | ligation: a + d <-> ad
+            -10.8596196923136 * x.[10] * x.[242] // d + Cad | catalytic synthesis: Y + Cad <-> d + Cad
+            10.8596196923136 * x.[1] * x.[242] // Y + Cad | catalytic synthesis: Y + Cad <-> d + Cad
+            -0.2784517869824 * x.[10] * x.[462] // d + cAD | catalytic synthesis: Y + cAD <-> d + cAD
+            0.2784517869824 * x.[1] * x.[462] // Y + cAD | catalytic synthesis: Y + cAD <-> d + cAD
             0.001 * x.[2] // Z | destruction: d <-> Z
             -0.001 * x.[10] // d | destruction: d <-> Z
             -0.001 * x.[10] // d | synthesis: Y <-> d
@@ -11492,7 +11540,7 @@ module ModelData =
                             fileStructureVersionNumber = "1.5.0.0"
                             versionNumber = "1.5.0.0"
                             seedValue = seedValue
-                            modelName = "20190103_001"
+                            modelName = "000016"
                             numberOfSubstances = 587
                             numberOfAminoAcids = FourAminoAcids
                             maxPeptideLength = ThreeMax
@@ -11514,7 +11562,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        synthesisDistribution = DeltaDistribution(429085792, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        synthesisDistribution = DeltaDistribution(688997484, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 0.001
                                         backwardScale = Some 0.001
                                     }
@@ -11526,7 +11574,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        destructionDistribution = DeltaDistribution(141311038, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        destructionDistribution = DeltaDistribution(859069373, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 0.001
                                         backwardScale = Some 0.001
                                     }
@@ -11540,9 +11588,9 @@ module ModelData =
                                     {
                                         catSynthRndEeParams = 
                                         {
-                                            rateMultiplierDistr = TriangularDistribution(1454637437, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                            eeForwardDistribution = BiDeltaDistribution(318422883, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                            eeBackwardDistribution = BiDeltaDistribution(1343464192, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            rateMultiplierDistr = TriangularDistribution(1515749197, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(25451187, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(78307772, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                         }
                                     }
                                     |> CatSynthRndParam
@@ -11553,7 +11601,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        simBaseDistribution = UniformDistribution(2028140115, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        simBaseDistribution = UniformDistribution(1865052441, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                         getRateMultiplierDistr = DeltaRateMultDistrGetter
                                         getForwardEeDistr = DeltaEeDistributionGetter
                                         getBackwardEeDistr = DeltaEeDistributionGetter
@@ -11568,9 +11616,9 @@ module ModelData =
                                     {
                                         catDestrRndEeParams = 
                                         {
-                                            rateMultiplierDistr = TriangularDistribution(832194571, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                            eeForwardDistribution = BiDeltaDistribution(1052986097, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                            eeBackwardDistribution = BiDeltaDistribution(411953387, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            rateMultiplierDistr = TriangularDistribution(753456001, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(2109848479, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(754273271, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                         }
                                     }
                                     |> CatDestrRndParam
@@ -11581,7 +11629,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        simBaseDistribution = UniformDistribution(100858025, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        simBaseDistribution = UniformDistribution(508950813, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                         getRateMultiplierDistr = DeltaRateMultDistrGetter
                                         getForwardEeDistr = DeltaEeDistributionGetter
                                         getBackwardEeDistr = DeltaEeDistributionGetter
@@ -11594,7 +11642,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        ligationDistribution = DeltaDistribution(95099209, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        ligationDistribution = DeltaDistribution(168052707, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 1.0
                                         backwardScale = Some 1.0
                                     }
@@ -11606,7 +11654,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        sedimentationDirectDistribution = TriangularDistribution(1234204532, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                        sedimentationDirectDistribution = TriangularDistribution(156553780, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
                                         forwardScale = Some 10000.0
                                     }
                                     |> SedDirRndParam
@@ -11644,6 +11692,8 @@ module ModelData =
                     (WasteRecyclingName, 1)
                     (SynthesisName, 8)
                     (DestructionName, 8)
+                    (CatalyticSynthesisName, 8)
+                    (CatalyticDestructionName, 4)
                     (LigationName, 564)
                 ]
         }

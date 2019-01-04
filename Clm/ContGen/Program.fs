@@ -41,7 +41,11 @@ let saveDefaults conn numberOfAminoAcids =
             updateAllModels = false
         }
 
-    let settings = modelGenerationParams.setValue []
+    let settings =
+        []
+        |> modelGenerationParams.setValue
+        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
+
     saveSettings settings conn
 
     //let rates = (ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids).allParams |> List.sort

@@ -5,6 +5,7 @@ open System.Data.SqlClient
 open FSharp.Data
 open Configuration
 open System
+open Clm.VersionInfo
 open Clm.Substances
 open Clm.GeneralData
 
@@ -20,14 +21,22 @@ module DatabaseTypes =
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
-    type SettingTable = ClmDB.dbo.Tables.Setting
-    type SettingTableRow = SettingTable.Row
-    type SettingTableData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
-    type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
-
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
     type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionString, ResultType.DataReader>
+
+    type ResultDataTable = ClmDB.dbo.Tables.ResultData
+    type ResultDataTableRow = ResultDataTable.Row
+    type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionString, ResultType.DataReader>
+
+    type ResultSettingTable = ClmDB.dbo.Tables.ResultSetting
+    type ResultSettingTableRow = ResultSettingTable.Row
+    type ResultSettingTableData = SqlCommandProvider<"select * from dbo.ResultSetting where resultDataId = @resultDataId", ClmConnectionString, ResultType.DataReader>
+
+    type SettingTable = ClmDB.dbo.Tables.Setting
+    type SettingTableRow = SettingTable.Row
+    type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
+    type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
     type Setting =
@@ -155,7 +164,7 @@ module DatabaseTypes =
 
     let loadSettings (conn : SqlConnection) =
         let settingTable = new SettingTable()
-        (new SettingTableData(conn)).Execute() |> settingTable.Load
+        (new SettingTableAllData(conn)).Execute() |> settingTable.Load
 
         settingTable.Rows
         |> List.ofSeq
@@ -185,7 +194,7 @@ module DatabaseTypes =
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
                     seedValue = None,
-                    fileStructureVersion = EmptyString,
+                    fileStructureVersion = FileStructureVersionNumber,
                     modelData = EmptyString,
                     createdOn = DateTime.Now
                     )
@@ -200,6 +209,7 @@ module DatabaseTypes =
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
         d.Execute(modelDataId = m.modelDataId) |> t.Load
+
         match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
         | Some r ->
             r.numberOfAminoAcids <- m.numberOfAminoAcids.length

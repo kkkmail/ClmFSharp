@@ -1,4 +1,4 @@
-﻿namespace ContGen
+﻿namespace DbData
 
 open System.Data
 open System.Data.SqlClient
@@ -8,7 +8,14 @@ open System
 open Clm.Substances
 open Clm.GeneralData
 
+/// You must add reference to System.Configuration !
 module DatabaseTypes =
+
+    let openConnIfClosed (conn : SqlConnection) =
+        match conn.State with
+        | ConnectionState.Closed -> do conn.Open()
+        | _ -> ignore ()
+
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
@@ -16,7 +23,6 @@ module DatabaseTypes =
     type SettingTable = ClmDB.dbo.Tables.Setting
     type SettingTableRow = SettingTable.Row
     type SettingTableData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
-
     type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
@@ -147,12 +153,6 @@ module DatabaseTypes =
         }
 
 
-    let openConnIfClosed (conn : SqlConnection) =
-        match conn.State with
-        | ConnectionState.Closed -> do conn.Open()
-        | _ -> ignore ()
-
-
     let loadSettings (conn : SqlConnection) =
         let settingTable = new SettingTable()
         (new SettingTableData(conn)).Execute() |> settingTable.Load
@@ -185,8 +185,8 @@ module DatabaseTypes =
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
                     seedValue = None,
-                    fileStructureVersion = "",
-                    modelData = "",
+                    fileStructureVersion = EmptyString,
+                    modelData = EmptyString,
                     createdOn = DateTime.Now
                     )
 

@@ -1,7 +1,8 @@
-﻿namespace ContGen
+﻿namespace DbData
+
 open FSharp.Data
 
-module Configuration = 
+module Configuration =
 
     [<Literal>]
     let ClmDbName : string = "Clm"

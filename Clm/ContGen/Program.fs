@@ -2,8 +2,8 @@
 open Clm.Substances
 open Clm.ReactionRates
 
-open ContGen.Configuration
-open ContGen.DatabaseTypes
+open DbData.Configuration
+open DbData.DatabaseTypes
 open ContGen.SettingsExt
 open System
 open System.Data.SqlClient

@@ -5,7 +5,7 @@ open Clm.Distributions
 open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.Generator.ClmModel
-open DatabaseTypes
+open DbData.DatabaseTypes
 open RateModelsExt
 open Clm.ModelParams
 

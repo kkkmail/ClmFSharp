@@ -4,8 +4,8 @@ open System
 open Clm.DataLocation
 open Clm.ModelParams
 
-open ContGen.Configuration
-open ContGen.DatabaseTypes
+open DbData.Configuration
+open DbData.DatabaseTypes
 open ContGen.SettingsExt
 open System.Data.SqlClient
 open System.Text

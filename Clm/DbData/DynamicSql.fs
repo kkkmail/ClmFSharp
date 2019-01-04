@@ -1,4 +1,4 @@
-﻿namespace ContGen
+﻿namespace DbData
 
 open System
 open System.Data

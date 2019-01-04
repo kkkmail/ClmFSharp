@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="GeneralData.fs" />
     <Compile Include="Distributions.fs" />
     <Compile Include="Substances.fs" />
     <Compile Include="ReactionTypes.fs" />

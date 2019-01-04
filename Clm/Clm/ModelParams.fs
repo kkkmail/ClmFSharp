@@ -5,6 +5,7 @@ open FSharp.Collections
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
+open Clm.GeneralData
 
 module ModelParams =
 
@@ -95,4 +96,4 @@ module ModelParams =
             |> String.concat " "
 
         static member name = ModelCommandLineParamName
-        static member variableName = ModelCommandLineParam.name |> Distributions.toVariableName
+        static member variableName = ModelCommandLineParam.name |> toVariableName

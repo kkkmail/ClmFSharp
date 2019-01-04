@@ -1,5 +1,6 @@
 ﻿namespace Clm
 open System
+open GeneralData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
@@ -9,13 +10,6 @@ open System
 ///        They must produce values on (0, infinity) with mean of 1.
 ///        This distribution produces value near mean.
 module Distributions = 
-
-    let toVariableName (s : string) =
-        match s.Length with
-        | 0 -> s
-        | 1 -> s.ToLower()
-        | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
-
 
     type ReactionRate = 
         | ReactionRate of double

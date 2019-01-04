@@ -9,7 +9,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmGenerator", "ClmGenerato
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGen", "ContGen\ContGen.fsproj", "{CAA251EE-1F75-42C9-9655-3A692944FC7D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmData", "ClmData\ClmData.fsproj", "{19E4D7D7-C472-495D-91D1-6B279F69ECAE}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DbData", "DbData\DbData.fsproj", "{19E4D7D7-C472-495D-91D1-6B279F69ECAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

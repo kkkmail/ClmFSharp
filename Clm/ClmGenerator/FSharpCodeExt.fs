@@ -2,12 +2,9 @@
 
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.GeneralData
 
 module FSharpCodeExt = 
-
-    [<Literal>]
-    let Nl = "\r\n"
-
 
     let increaseShift shift = shift + "    "
     let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray

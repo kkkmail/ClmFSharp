@@ -6,11 +6,9 @@ open FSharp.Data
 open Configuration
 open System
 open Clm.Substances
+open Clm.GeneralData
 
 module DatabaseTypes =
-
-    [<Literal>]
-    let EmptyString = ""
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 

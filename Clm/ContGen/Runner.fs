@@ -10,7 +10,7 @@ open ContGen.SettingsExt
 open System.Data.SqlClient
 open System.Text
 open Clm.Generator.ClmModel
-open Clm.Generator
+open Clm.GeneralData
 open AsyncRun
 
 open Fake.DotNet
@@ -89,7 +89,7 @@ module Runner =
 
         let saveModel (code : list<string>) (pm : ModelGenerationParams) modelDataId =
             let sb = new StringBuilder()
-            code |> List.map(fun s -> sb.Append (s + FSharpCodeExt.Nl)) |> ignore
+            code |> List.map(fun s -> sb.Append (s + Nl)) |> ignore
 
             let m =
                 {

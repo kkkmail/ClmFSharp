@@ -1049,17 +1049,33 @@ module SettingsExt =
         with
         static member tryGet (m : SettingMap) (seeder : Seeder) =
             let po = []
-            let a() = getTextOpt m po fileStructureVersionNumberName
-            let b() = getTextOpt m po versionNumberName
-            let c() = getIntOpt m po seedValueName
-            let d() = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
-            let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
-            let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
-            let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
-            let i() = getBoolOpt m po updateAllModelsName
+            let a() = 
+                let x = getTextOpt m po fileStructureVersionNumberName
+                x
+            let b() = 
+                let x = getTextOpt m po versionNumberName
+                x
+            let c() = 
+                let x = getIntOpt m po seedValueName
+                x
+            let d() = 
+                let x = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
+                x
+            let e() = 
+                let x = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
+                x
+            let g() = 
+                let x = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
+                x
+            let h() = 
+                let x = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
+                x
+            let i() = 
+                let x = getBoolOpt m po updateAllModelsName
+                x
 
             match a(), b(), d(), e(), g(), h(), i() with
-            | Some a1, Some b1, Some d1, Some e1,    Some g1, Some h1, Some i1 ->
+            | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
                 let p = ReactionRateModelParamWithUsage.getAll m seeder
 
                 let models =

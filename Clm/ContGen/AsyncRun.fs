@@ -114,7 +114,8 @@ module AsyncRun =
                             match m with
                             | StartGenerate a ->
                                 if s.generating
-                                then return! loop s
+                                then 
+                                    return! loop s
                                 else
                                     generate a |> Async.Start
                                     return! loop { s with generating = true }
@@ -124,7 +125,8 @@ module AsyncRun =
                                 return! loop { s with generating = false }
                             | StartRun (a, r) ->
                                 if s.shuttingDown
-                                then return! loop s
+                                then 
+                                    return! loop s
                                 else
                                     let p, q =
                                         s.queue @ r
@@ -135,9 +137,10 @@ module AsyncRun =
                                     return! loop { s with running = s.running + r.Length; queue = q |> List.map (fun (_, e) -> e) }
                             | CompleteRun (a, _) ->
                                 if s.shuttingDown
-                                then return! loop { s with running = s.running - 1 }
+                                then 
+                                    return! loop { s with running = s.running - 1 }
                                 else
-                                    let x = 
+                                    let x =
                                         if s.queue.IsEmpty
                                         then s.queue
                                         else

@@ -16,23 +16,42 @@ open ContGen
 
 open AsyncRun
 open Runner
+open System.Threading
 
 let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
 
-let saveDefaults conn na =
+let saveDefaults conn numberOfAminoAcids =
     let rnd = new Random()
 
     truncateSettings conn
 
-    let rates = (ReactionRateProvider.getDefaultRateModels rnd na).allParams |> List.sort
+    let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
 
-    let settings =
-        []
-        |> ReactionRateModelParamWithUsage.setAll rates
-        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
+    let modelGenerationParams =
+        {
+            fileStructureVersionNumber = FileStructureVersionNumber
+            versionNumber = VersionNumber
+            seedValue = rnd.Next() |> Some
+            numberOfAminoAcids = numberOfAminoAcids
+            maxPeptideLength = ThreeMax
+            reactionRateModels = rates.rateModels
+            updateFuncType = UseFunctions
+            modelLocationData = ModelLocationInputData.defaultValue
+            updateAllModels = false
+        }
 
+    let settings = modelGenerationParams.setValue []
     saveSettings settings conn
+
+    //let rates = (ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids).allParams |> List.sort
+
+    //let settings =
+    //    []
+    //    |> ReactionRateModelParamWithUsage.setAll rates
+    //    |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
+
+    //saveSettings settings conn
     0
 
 
@@ -52,7 +71,7 @@ let testAll conn (rnd : Random) =
 
 let testModelGenerationParams conn (rnd : Random) =
     let numberOfAminoAcids = TwoAminoAcids
-    let rates = ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids
+    let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
 
     let modelGenerationParams =
         {
@@ -114,7 +133,7 @@ let testSynthesisParam conn (rnd : Random) =
 [<EntryPoint>]
 let main argv = 
     printfn "%A" argv
-    //let rnd = new Random()
+    let rnd = new Random()
 
     use conn = new SqlConnection(ClmConnectionString)
     openConnIfClosed conn
@@ -137,6 +156,12 @@ let main argv =
     //runner.run() |> ignore
     //let results = runProc @"C:\Temp\WTF\SolverRunner.exe" "10000 10" None
 
-    //saveDefaults conn FourAminoAcids |> ignore
+    saveDefaults conn FourAminoAcids |> ignore
 
+    let a = createRunner ModelRunnerParam.defaultValue
+    a.startGenerate()
+
+    while a.getState().shuttingDown |> not do
+        let x = rnd.Next()
+        Thread.Sleep(10000)
     0

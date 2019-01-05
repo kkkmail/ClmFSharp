@@ -82,6 +82,20 @@ let main argv =
         use conn = new SqlConnection(ClmConnectionString)
         saveResultData r conn |> ignore
 
+        //match r.resultDataId with
+        //| Some v ->
+        //    let rs =
+        //        {
+        //            resultDataId = v
+        //            settings = failwith ""
+        //        }
+
+        //    failwith ""
+        //| None -> ignore()
+
+            //SettingMap
+
+
         match results.TryGetResult PlotResults with
         | Some v when v = true ->
             printfn "Plotting."

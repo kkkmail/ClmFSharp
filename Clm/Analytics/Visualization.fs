@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Clm.Substances
+open Clm.ReactionTypes
 open Clm.ModelParams
 open Clm.DataLocation
 open OdeSolver.Solver
@@ -39,12 +40,12 @@ module Visualization =
             | PlotEnantiomericExcess -> "ee"
             | PlotTotalSubst -> "ts"
 
-        member ct.getFileName (i : PlotDataInfo) (p : ModelDataParamsWithExtraData) (o : OdeResult) =
+        member ct.getFileName (i : PlotDataInfo) (o : OdeResult) =
             let suff = ct.fileSuffix
 
             let fileName =
                 [
-                    p.modelDataParams.modelInfo.modelName
+                    o.modelName
                     i.resultInfo.separator
                     (int o.y0).ToString().PadLeft(3, '0')
                     (int o.endTime).ToString().PadLeft(5, '0')
@@ -56,22 +57,22 @@ module Visualization =
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
 
-    type Plotter(i : PlotDataInfo, p : ModelDataParamsWithExtraData, o : OdeResult) =
+    type Plotter(i : PlotDataInfo, p : ModelData, o : OdeResult) =
         let foodIdx = p.allInd.TryFind (AchiralSubst.Food |> Simple)
         let wasteIdx = p.allInd.TryFind (AchiralSubst.Waste |> Simple)
-        let getFileName (ct : ChartType) = ct.getFileName i p o
+        let getFileName (ct : ChartType) = ct.getFileName i o
 
 
         let description =
             [
                 "Comleted at", sprintf "%A" (o.endTime)
                 "run time", sprintf "%A" (o.endTime - o.startTime)
-                "model name", p.modelDataParams.modelInfo.modelName
+                "model name", o.modelName
                 "end time", sprintf "%A" o.endTime
                 "y0", sprintf "%A" o.y0
-                "number of amino acids", sprintf "%A" p.modelDataParams.modelInfo.numberOfAminoAcids.length
-                "max peptide length", sprintf "%A" p.modelDataParams.modelInfo.maxPeptideLength.length
-                "number of substances", sprintf "%A" p.modelDataParams.modelInfo.numberOfSubstances
+                "number of amino acids", sprintf "%A" p.aminoAcids.Length
+                "max peptide length", sprintf "%A" p.maxPeptideLength.length
+                "number of substances", sprintf "%A" p.allSubst.Length
             ]
             @
             (p.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
@@ -88,7 +89,7 @@ module Visualization =
 
 
         let plotAllImpl (r : OdeResult) =
-            let fn = [ for i in 0..p.modelDataParams.modelInfo.numberOfSubstances - 1 -> i ]
+            let fn = [ for i in 0..p.allSubst.Length - 1 -> i ]
             let tIdx = [ for i in 0..o.noOfOutputPoints -> i ]
 
             let getFuncData i = 
@@ -101,7 +102,7 @@ module Visualization =
 
 
         let plotChiralAminoAcidsImpl (r : OdeResult) =
-            let fn = [ for i in 0..(p.modelDataParams.modelInfo.numberOfAminoAcids.length * 2 - 1) -> i ]
+            let fn = [ for i in 0..(p.aminoAcids.Length * 2 - 1) -> i ]
 
             let name i = 
                 let idx = i / 2
@@ -122,7 +123,7 @@ module Visualization =
 
 
         let plotAminoAcidsImpl (r : OdeResult) =
-            let fn = [ for i in 0..(p.modelDataParams.modelInfo.numberOfAminoAcids.length - 1) -> i ]
+            let fn = [ for i in 0..(p.aminoAcids.Length - 1) -> i ]
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let tIdx = [ for i in 0..o.noOfOutputPoints -> i ]
             let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals r.x.[t,*])
@@ -135,7 +136,7 @@ module Visualization =
 
 
         let plotEnantiomericExcessImpl (r : OdeResult) =
-            let fn = [ for i in 0..(p.modelDataParams.modelInfo.numberOfAminoAcids.length - 1) -> i ]
+            let fn = [ for i in 0..(p.aminoAcids.Length - 1) -> i ]
 
             let name (i : int) = 
                 let l = AminoAcid.toString i
@@ -180,7 +181,7 @@ module Visualization =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ for level in 1..p.modelDataParams.modelInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                @ [ for level in 1..p.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
                 |> List.choose id
 
 

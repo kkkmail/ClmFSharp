@@ -53,9 +53,13 @@
     <Compile Include="DataLocation.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
+    <Compile Include="CommandLine.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Collections.ParallelSeq">
       <HintPath>..\packages\FSharp.Collections.ParallelSeq.1.1.2\lib\net45\FSharp.Collections.ParallelSeq.dll</HintPath>
     </Reference>

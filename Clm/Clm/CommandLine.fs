@@ -1,4 +1,4 @@
-﻿namespace SolverRunner
+﻿namespace Clm
 open Argu
 
 module CommandLine =
@@ -38,7 +38,7 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>]  EndTime of float
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y0")>] TotalAmount of float
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-o")>]  OutputResults of bool
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
 
     with
         static member defaultValues =
@@ -46,7 +46,7 @@ module CommandLine =
                 EndTime 10_000.0
                 TotalAmount 10.0
                 UseAbundant false
-                OutputResults true
+                PlotResults true
             ]
 
         interface IArgParserTemplate with
@@ -55,5 +55,4 @@ module CommandLine =
                 | EndTime _ -> "specify tEnd."
                 | TotalAmount _ -> "specify t0."
                 | UseAbundant _ -> "specify if abundant substance is used."
-                | OutputResults _ -> "specify if output charts to web browser."
-
+                | PlotResults _ -> "specify if output charts to web browser."

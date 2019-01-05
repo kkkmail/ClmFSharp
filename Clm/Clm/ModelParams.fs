@@ -37,6 +37,21 @@ module ModelParams =
         }
 
 
+    type ModelData =
+        {
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+            aminoAcids : list<AminoAcid>
+            allSubst : list<Substance>
+            allInd : Map<Substance, int>
+            allRawReactions : list<ReactionName * int>
+            allReactions : list<ReactionName * int>
+        }
+
+        member md.getTotals x = getTotalsValue md.allInd md.allSubst md.aminoAcids x
+        member md.getTotalSubst x = getTotalSubstValue md.allInd md.allSubst x
+
+
     type ModelDataParamsWithExtraData =
         {
             modelDataParams : ModelDataParams
@@ -47,6 +62,17 @@ module ModelParams =
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
         }
+
+        member mdp.getModelData() =
+            {
+                numberOfAminoAcids = mdp.modelDataParams.modelInfo.numberOfAminoAcids
+                maxPeptideLength = mdp.modelDataParams.modelInfo.maxPeptideLength
+                aminoAcids = AminoAcid.getAminoAcids mdp.modelDataParams.modelInfo.numberOfAminoAcids
+                allSubst = mdp.allSubst
+                allInd =  mdp.allInd
+                allRawReactions = mdp.allRawReactions
+                allReactions =  mdp.allReactions
+            }
 
 
     [<Literal>]

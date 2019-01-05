@@ -426,7 +426,7 @@ module Substances =
             |> List.choose id
             |> List.sum
 
-        aminoAcids |> List.map (fun a -> a, L a |> g, R a |> g)
+        aminoAcids |> List.map (fun a -> L a |> g, R a |> g)
 
 
     let getTotalSubstValue (allInd : Map<Substance, int>) (allSubst : list<Substance>)  (x : array<double>) = 

@@ -354,7 +354,7 @@ module DatabaseTypes =
         truncateSettingTbl.Execute() |> ignore
 
 
-    let saveSettings (settings : list<Setting>) (conn : SqlConnection) =
+    let saveSettings (conn : SqlConnection) (settings : list<Setting>) =
         let settingTable = new SettingTable()
         settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
         let inserted = settingTable.Update(conn)

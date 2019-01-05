@@ -1,6 +1,7 @@
 ﻿namespace ContGen
 
 open System
+open Clm.Substances
 open Clm.GeneralData
 open Clm.DataLocation
 open Clm.ModelParams
@@ -176,3 +177,16 @@ module Runner =
         let r = ModelRunner p
         let a = r.createGenerator() |> AsyncRunner
         a
+
+
+    let saveDefaults conn n m =
+        let rnd = new Random()
+        truncateSettings conn
+        let p = AllParams.getDefaultValue rnd n m
+
+        let settings =
+            []
+            |> p.modelGenerationParams.setValue []
+            |> ModelCommandLineParam.setValues p.modelCommandLineParams []
+
+        saveSettings conn settings

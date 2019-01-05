@@ -37,19 +37,29 @@ module ModelParams =
         }
 
 
-    type ModelDataInfo =
+    type ResultData =
         {
+            resultDataId : int64
+            modelDataId : int64
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
+
             aminoAcids : list<AminoAcid>
             allSubst : list<Substance>
             allInd : Map<Substance, int>
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
+
+            y0 : decimal
+            tEnd : decimal
+            useAbundant : bool
+            x : double [,]
+            t : double []
+            maxEe : double
         }
 
-        member md.getTotals x = getTotalsValue md.allInd md.allSubst md.aminoAcids x
-        member md.getTotalSubst x = getTotalSubstValue md.allInd md.allSubst x
+        member rd.getTotals x = getTotalsValue rd.allInd rd.allSubst rd.aminoAcids x
+        member rd.getTotalSubst x = getTotalSubstValue rd.allInd rd.allSubst x
 
 
     type ModelDataParamsWithExtraData =
@@ -63,16 +73,16 @@ module ModelParams =
             allReactions : list<ReactionName * int>
         }
 
-        member mdp.getModelDataInfo() =
-            {
-                numberOfAminoAcids = mdp.modelDataParams.modelInfo.numberOfAminoAcids
-                maxPeptideLength = mdp.modelDataParams.modelInfo.maxPeptideLength
-                aminoAcids = AminoAcid.getAminoAcids mdp.modelDataParams.modelInfo.numberOfAminoAcids
-                allSubst = mdp.allSubst
-                allInd =  mdp.allInd
-                allRawReactions = mdp.allRawReactions
-                allReactions =  mdp.allReactions
-            }
+        //member mdp.getModelDataInfo() =
+        //    {
+        //        numberOfAminoAcids = mdp.modelDataParams.modelInfo.numberOfAminoAcids
+        //        maxPeptideLength = mdp.modelDataParams.modelInfo.maxPeptideLength
+        //        aminoAcids = AminoAcid.getAminoAcids mdp.modelDataParams.modelInfo.numberOfAminoAcids
+        //        allSubst = mdp.allSubst
+        //        allInd =  mdp.allInd
+        //        allRawReactions = mdp.allRawReactions
+        //        allReactions =  mdp.allReactions
+        //    }
 
 
     [<Literal>]

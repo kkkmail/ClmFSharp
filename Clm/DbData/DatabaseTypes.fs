@@ -253,45 +253,49 @@ module DatabaseTypes =
             rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
 
 
-    type ResultData =
-        {
-            resultDataId : int64
-            modelDataId : int64
-            y0 : decimal
-            tEnd : decimal
-            allSubst : list<Substance>
-            allInd : Map<Substance, int>
-            allRawReactions : list<ReactionName * int>
-            allReactions : list<ReactionName * int>
-            x : double [,]
-            t : double []
-            maxEe : double
-        }
+    type ResultData
+        with
 
-        static member create (r : ResultDataTableRow) =
-            {
-                resultDataId = r.resultDataId
-                modelDataId = r.modelDataId
-                y0 = r.y0
-                tEnd = r.tEnd
-                allSubst = JsonConvert.DeserializeObject<list<Substance>>(r.allSubst)
-                allInd = JsonConvert.DeserializeObject<list<Substance * int>>(r.allInd) |> Map.ofList
-                allRawReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allRawReactions)
-                allReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allReactions)
-                x = JsonConvert.DeserializeObject<double [,]>(r.x)
-                t = JsonConvert.DeserializeObject<double []>(r.t)
-                maxEe = r.maxEe
-            }
+        static member tryCreate (r : ResultDataTableRow) =
+            match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
+            | Some numberOfAminoAcids, Some maxPeptideLength -> 
+                {
+                    resultDataId = r.resultDataId
+                    modelDataId = r.modelDataId
+                    numberOfAminoAcids = numberOfAminoAcids
+                    maxPeptideLength = maxPeptideLength
+
+                    aminoAcids = JsonConvert.DeserializeObject<list<AminoAcid>>(r.aminoAcids)
+                    allSubst = JsonConvert.DeserializeObject<list<Substance>>(r.allSubst)
+                    allInd = JsonConvert.DeserializeObject<list<Substance * int>>(r.allInd) |> Map.ofList
+                    allRawReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allRawReactions)
+                    allReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allReactions)
+
+                    y0 = r.y0
+                    tEnd = r.tEnd
+                    useAbundant = r.useAbundant
+                    x = JsonConvert.DeserializeObject<double [,]>(r.x)
+                    t = JsonConvert.DeserializeObject<double []>(r.t)
+                    maxEe = r.maxEe
+                }
+                |> Some
+            | _ -> None
 
         member r.addRow (t : ResultDataTable) =
             let newRow =
                 t.NewRow(
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
+                        numberOfAminoAcids = r.numberOfAminoAcids.length,
+                        maxPeptideLength = r.maxPeptideLength.length,
+
+                        aminoAcids = JsonConvert.SerializeObject r.aminoAcids,
                         allSubst = JsonConvert.SerializeObject r.allSubst,
                         allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject),
                         allRawReactions = JsonConvert.SerializeObject r.allRawReactions,
                         allReactions = JsonConvert.SerializeObject r.allReactions,
+
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant,
                         x = JsonConvert.SerializeObject r.x,
                         t = JsonConvert.SerializeObject r.t,
                         maxEe = r.maxEe
@@ -310,16 +314,6 @@ module DatabaseTypes =
             fileStructureVersion : string
             modelData : string
         }
-
-        //static member create (r : ModelDataTableRow) =
-        //    {
-        //        modelDataId : int64
-        //        numberOfAminoAcids : NumberOfAminoAcids
-        //        maxPeptideLength : MaxPeptideLength
-        //        seedValue : int option
-        //        fileStructureVersion : string
-        //        modelData : string
-        //    }
 
 
     let loadSettings (conn : SqlConnection) =
@@ -381,7 +375,7 @@ module DatabaseTypes =
         r.modelDataId
 
 
-    let tryGetModelData conn modelDataId = 
+    let tryLoadModelData conn modelDataId =
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
@@ -407,56 +401,10 @@ module DatabaseTypes =
         | None -> false
 
 
-    let tryGetResultData conn resultDataId = 
+    let tryLoadResultData conn resultDataId = 
         openConnIfClosed conn
         use d = new ResultDataTableData(conn)
         let t = new ResultDataTable()
         d.Execute(resultDataId = resultDataId) |> t.Load
         t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
-        |> Option.bind (fun e -> ResultData.create e |> Some)
-
-
-
-        //let loadParams seeder modelId =
-        //    use conn = new SqlConnection (p.connectionString)
-        //    openConnIfClosed conn
-        //    let m = loadSettings conn
-
-        //    match ModelGenerationParams.tryGet m seeder [] with
-        //    | Some q ->
-        //        (
-        //            { q with
-        //                modelLocationData =
-        //                    { q.modelLocationData with
-        //                        modelName = ConsecutiveName modelId
-        //                        useDefaultModeData = true
-        //                    }
-        //            },
-        //            ModelCommandLineParam.getValues m []
-        //        )
-        //        |> Some
-        //    | None -> None
-
-
-    //let tryGetModelDataInfo conn resultDataId =
-    //    match tryGetResultData conn resultDataId with
-    //    | Some r ->
-    //        let m = loadResultSettings conn
-    //        match ModelGenerationParams.tryGet m seeder [] with
-    //        | Some q ->
-    //            failwith ""
-    //        | None -> failwith ""
-    //        //match tryGetModelData conn r.modelDataId with
-    //        //| Some m ->
-    //        //    {
-    //        //        numberOfAminoAcids = failwith ""
-    //        //        maxPeptideLength = failwith ""
-    //        //        aminoAcids = failwith ""
-    //        //        allSubst = failwith ""
-    //        //        allInd = failwith ""
-    //        //        allRawReactions = failwith ""
-    //        //        allReactions = failwith ""
-    //        //    }
-    //        //    |> Some
-    //        | None -> None
-    //    | None -> None
+        |> Option.bind ResultData.tryCreate

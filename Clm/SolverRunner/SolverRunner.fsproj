@@ -84,6 +84,11 @@
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Name>DbData</Name>
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.fsproj">
       <Name>Model</Name>
       <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>

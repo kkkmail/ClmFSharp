@@ -54,6 +54,9 @@
     <None Include="ModelRunner.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
@@ -69,6 +72,11 @@
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
       <Name>AlgLib</Name>
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj">
+      <Name>Analytics</Name>
+      <Project>{5ce359db-d713-46be-84df-f9732de85e26}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Clm\Clm.fsproj">

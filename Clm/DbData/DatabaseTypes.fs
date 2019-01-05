@@ -2,6 +2,7 @@
 
 open System.Data
 open System.Data.SqlClient
+open Newtonsoft.Json
 open FSharp.Data
 open Configuration
 open System
@@ -11,6 +12,7 @@ open Clm.GeneralData
 
 /// You must add reference to System.Configuration !
 module DatabaseTypes =
+    open Clm.ReactionTypes
 
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
@@ -148,58 +150,40 @@ module DatabaseTypes =
             t.Rows.Add newRow
 
 
+    type SettingMap = Map<list<string * int>, Setting>
+
+
     type ResultSettings =
         {
             resultDataId : int64
-            settings : list<Setting>
+            settings : SettingMap
         }
 
-        //static member create (r : ResultSettingTableRow) =
-        //    {
-        //        resultDataId = r.resultDataId
-        //        setting =
-        //            {
-        //                settingId = Some r.resultSettingId
-        //                settingPath =
-        //                    match r.settingField1 with | EmptyString -> [] | s -> [ s, r.settingOrderId1 ]
-        //                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s, r.settingOrderId2 ]
-        //                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s, r.settingOrderId3 ]
-        //                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s, r.settingOrderId4 ]
-        //                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s, r.settingOrderId5 ]
-        //                    @ match r.settingField6 with | EmptyString -> [] | s -> [ s, r.settingOrderId6 ]
-        //                    @ match r.settingField7 with | EmptyString -> [] | s -> [ s, r.settingOrderId7 ]
-        //                    @ match r.settingField8 with | EmptyString -> [] | s -> [ s, r.settingOrderId8 ]
-        //                    @ match r.settingField9 with | EmptyString -> [] | s -> [ s, r.settingOrderId9 ]
-        //                    @ match r.settingField10 with | EmptyString -> [] | s -> [ s, r.settingOrderId10 ]
+        static member createSetting (r : ResultSettingTableRow) =
+            {
+                settingId = Some r.resultSettingId
+                settingPath =
+                    match r.settingField1 with | EmptyString -> [] | s -> [ s, r.settingOrderId1 ]
+                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s, r.settingOrderId2 ]
+                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s, r.settingOrderId3 ]
+                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s, r.settingOrderId4 ]
+                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s, r.settingOrderId5 ]
+                    @ match r.settingField6 with | EmptyString -> [] | s -> [ s, r.settingOrderId6 ]
+                    @ match r.settingField7 with | EmptyString -> [] | s -> [ s, r.settingOrderId7 ]
+                    @ match r.settingField8 with | EmptyString -> [] | s -> [ s, r.settingOrderId8 ]
+                    @ match r.settingField9 with | EmptyString -> [] | s -> [ s, r.settingOrderId9 ]
+                    @ match r.settingField10 with | EmptyString -> [] | s -> [ s, r.settingOrderId10 ]
 
-        //                settingBit = r.settingBit
-        //                settingLong = r.settingLong
-        //                settingMoney = r.settingMoney
-        //                settingFloat = r.settingFloat
-        //                settingDate = r.settingDate
-        //                settingText = r.settingText
-        //                settingMemo = r.settingMemo
-        //                settingGUID = r.settingGUID
-        //            }
-        //    }
+                settingBit = r.settingBit
+                settingLong = r.settingLong
+                settingMoney = r.settingMoney
+                settingFloat = r.settingFloat
+                settingDate = r.settingDate
+                settingText = r.settingText
+                settingMemo = r.settingMemo
+                settingGUID = r.settingGUID
+            }
 
-        //static member defaultValue resultDataId =
-        //    {
-        //        resultDataId = resultDataId
-        //        setting =
-        //        {
-        //            settingId = Guid.NewGuid() |> Some
-        //            settingPath = []
-        //            settingBit = false
-        //            settingLong = 0L
-        //            settingMoney = 0m
-        //            settingFloat = 0.0
-        //            settingDate = None
-        //            settingText = None
-        //            settingMemo = None
-        //            settingGUID = None
-        //        }
-        //    }
 
         member rs.addRows (t : ResultSettingTable) =
             let addRow (r : Setting) =
@@ -264,10 +248,55 @@ module DatabaseTypes =
 
                 t.Rows.Add newRow
 
-            rs.settings |> List.map (fun s -> addRow s) |> ignore
+            rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
 
 
-    type SettingMap = Map<list<string * int>, Setting>
+    type ResultData =
+        {
+            resultDataId : int64
+            modelDataId : int64
+            y0 : decimal
+            tEnd : decimal
+            allSubst : list<Substance>
+            allInd : Map<Substance, int>
+            allRawReactions : list<ReactionName * int>
+            allReactions : list<ReactionName * int>
+            x : double [,]
+            t : double []
+            maxEe : double
+        }
+
+        static member create (r : ResultDataTableRow) =
+            {
+                resultDataId = r.resultDataId
+                modelDataId = r.modelDataId
+                y0 = r.y0
+                tEnd = r.tEnd
+                allSubst = JsonConvert.DeserializeObject<list<Substance>>(r.allSubst)
+                allInd = JsonConvert.DeserializeObject<list<Substance * int>>(r.allInd) |> Map.ofList
+                allRawReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allRawReactions)
+                allReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allReactions)
+                x = JsonConvert.DeserializeObject<double [,]>(r.x)
+                t = JsonConvert.DeserializeObject<double []>(r.t)
+                maxEe = r.maxEe
+            }
+
+        member r.addRow (t : ResultDataTable) =
+            let newRow =
+                t.NewRow(
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        allSubst = JsonConvert.SerializeObject r.allSubst,
+                        allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject),
+                        allRawReactions = JsonConvert.SerializeObject r.allRawReactions,
+                        allReactions = JsonConvert.SerializeObject r.allReactions,
+                        x = JsonConvert.SerializeObject r.x,
+                        t = JsonConvert.SerializeObject r.t,
+                        maxEe = r.maxEe
+                        )
+
+            newRow.modelDataId <- r.modelDataId
+            t.Rows.Add newRow
 
 
     type ModelData =
@@ -290,6 +319,23 @@ module DatabaseTypes =
         |> List.map (fun e -> Setting.create e)
         |> List.map (fun e -> e.settingPath, e)
         |> Map.ofList
+
+
+    let loadResultSettings (conn : SqlConnection) resultDataId =
+        let settingTable = new ResultSettingTable()
+        (new ResultSettingTableData(conn)).Execute resultDataId |> settingTable.Load
+
+        let settings =
+            settingTable.Rows
+            |> List.ofSeq
+            |> List.map (fun e -> ResultSettings.createSetting e)
+            |> List.map (fun e -> e.settingPath, e)
+            |> Map.ofList
+
+        {
+            resultDataId = resultDataId
+            settings = settings
+        }
 
 
     let truncateSettings (conn : SqlConnection) =

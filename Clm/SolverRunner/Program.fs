@@ -3,8 +3,9 @@ open Microsoft.FSharp.Core
 open Clm.ModelParams
 open Clm.ModelInit
 open Clm.Model.ModelData
-open Clm.OdeSolver.Solver
-open Clm.OdeSolver.Visualization
+open OdeSolver.Solver
+open Analytics.Visualization
+open Argu
 
 
 [<EntryPoint>]

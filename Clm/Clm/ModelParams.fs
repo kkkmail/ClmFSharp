@@ -37,7 +37,7 @@ module ModelParams =
         }
 
 
-    type ModelData =
+    type ModelDataInfo =
         {
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
@@ -63,7 +63,7 @@ module ModelParams =
             allReactions : list<ReactionName * int>
         }
 
-        member mdp.getModelData() =
+        member mdp.getModelDataInfo() =
             {
                 numberOfAminoAcids = mdp.modelDataParams.modelInfo.numberOfAminoAcids
                 maxPeptideLength = mdp.modelDataParams.modelInfo.maxPeptideLength

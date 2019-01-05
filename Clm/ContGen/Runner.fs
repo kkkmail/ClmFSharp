@@ -1,6 +1,7 @@
 ﻿namespace ContGen
 
 open System
+open Clm.GeneralData
 open Clm.DataLocation
 open Clm.ModelParams
 
@@ -42,12 +43,8 @@ module Runner =
         let rnd = new Random()
         let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
         let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-        let getRandomSeeder (seed : int option) = rnd.Next ()
-
-        let getDeterministicSeeder (seed : int option) = 
-            match seed with 
-            | Some s -> s 
-            | None -> rnd.Next ()
+        let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
+        let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
 
         let getModelId () =

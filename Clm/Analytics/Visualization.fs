@@ -57,7 +57,7 @@ module Visualization =
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
 
-    type Plotter(i : PlotDataInfo, p : ModelData, o : OdeResult) =
+    type Plotter(i : PlotDataInfo, p : ModelDataInfo, o : OdeResult) =
         let foodIdx = p.allInd.TryFind (AchiralSubst.Food |> Simple)
         let wasteIdx = p.allInd.TryFind (AchiralSubst.Waste |> Simple)
         let getFileName (ct : ChartType) = ct.getFileName i o

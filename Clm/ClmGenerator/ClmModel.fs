@@ -45,7 +45,7 @@ module ClmModel =
     [<Literal>]
     let ModelGenerationParamsName = "ModelGenerationParams"
 
-    type ModelGenerationParams = 
+    type ModelGenerationParams =
         {
             fileStructureVersionNumber : string
             versionNumber : string

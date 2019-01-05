@@ -31,10 +31,12 @@ let main argv =
 
         let result = nSolve p
 
-        match results.TryGetResult OutputResults with
+        printfn "Saving."
+
+        match results.TryGetResult PlotResults with
         | Some v when v = true ->
             printfn "Plotting."
-            let plotter = new Plotter(PlotDataInfo.defaultValue, modelDataParamsWithExtraData.getModelData(), result)
+            let plotter = new Plotter(PlotDataInfo.defaultValue, modelDataParamsWithExtraData.getModelDataInfo(), result)
             plotter.plotAminoAcids()
             plotter.plotTotalSubst()
             plotter.plotEnantiomericExcess()

@@ -311,6 +311,16 @@ module DatabaseTypes =
             modelData : string
         }
 
+        //static member create (r : ModelDataTableRow) =
+        //    {
+        //        modelDataId : int64
+        //        numberOfAminoAcids : NumberOfAminoAcids
+        //        maxPeptideLength : MaxPeptideLength
+        //        seedValue : int option
+        //        fileStructureVersion : string
+        //        modelData : string
+        //    }
+
 
     let loadSettings (conn : SqlConnection) =
         let settingTable = new SettingTable()
@@ -371,6 +381,14 @@ module DatabaseTypes =
         r.modelDataId
 
 
+    let tryGetModelData conn modelDataId = 
+        openConnIfClosed conn
+        use d = new ModelDataTableData(conn)
+        let t = new ModelDataTable()
+        d.Execute(modelDataId = modelDataId) |> t.Load
+        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
+
+
     let tryUpdateModelData conn (m : ModelData) =
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
@@ -388,18 +406,57 @@ module DatabaseTypes =
             true
         | None -> false
 
-    //type ModelDataParamsWithExtraData =
-    //    {
-    //        modelDataParams : ModelDataParams
-    //        getTotals : array<double> -> array<double * double>
-    //        getTotalSubst : array<double> -> double
-    //        allSubst : list<Substance>
-    //        allInd : Map<Substance, int>
-    //        allRawReactions : list<ReactionName * int>
-    //        allReactions : list<ReactionName * int>
-    //    }
 
-    type ModelDataParamsWithExtraData
-        with
-        static member tryLoad conn modelDataId =
-            0
+    let tryGetResultData conn resultDataId = 
+        openConnIfClosed conn
+        use d = new ResultDataTableData(conn)
+        let t = new ResultDataTable()
+        d.Execute(resultDataId = resultDataId) |> t.Load
+        t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
+        |> Option.bind (fun e -> ResultData.create e |> Some)
+
+
+
+        //let loadParams seeder modelId =
+        //    use conn = new SqlConnection (p.connectionString)
+        //    openConnIfClosed conn
+        //    let m = loadSettings conn
+
+        //    match ModelGenerationParams.tryGet m seeder [] with
+        //    | Some q ->
+        //        (
+        //            { q with
+        //                modelLocationData =
+        //                    { q.modelLocationData with
+        //                        modelName = ConsecutiveName modelId
+        //                        useDefaultModeData = true
+        //                    }
+        //            },
+        //            ModelCommandLineParam.getValues m []
+        //        )
+        //        |> Some
+        //    | None -> None
+
+
+    //let tryGetModelDataInfo conn resultDataId =
+    //    match tryGetResultData conn resultDataId with
+    //    | Some r ->
+    //        let m = loadResultSettings conn
+    //        match ModelGenerationParams.tryGet m seeder [] with
+    //        | Some q ->
+    //            failwith ""
+    //        | None -> failwith ""
+    //        //match tryGetModelData conn r.modelDataId with
+    //        //| Some m ->
+    //        //    {
+    //        //        numberOfAminoAcids = failwith ""
+    //        //        maxPeptideLength = failwith ""
+    //        //        aminoAcids = failwith ""
+    //        //        allSubst = failwith ""
+    //        //        allInd = failwith ""
+    //        //        allRawReactions = failwith ""
+    //        //        allReactions = failwith ""
+    //        //    }
+    //        //    |> Some
+    //        | None -> None
+    //    | None -> None

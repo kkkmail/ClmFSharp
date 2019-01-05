@@ -39,7 +39,7 @@ module ModelParams =
 
     type ResultData =
         {
-            resultDataId : int64
+            resultDataId : int64 option
             modelDataId : int64
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength

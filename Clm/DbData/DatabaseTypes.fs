@@ -260,7 +260,7 @@ module DatabaseTypes =
             match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
             | Some numberOfAminoAcids, Some maxPeptideLength -> 
                 {
-                    resultDataId = r.resultDataId
+                    resultDataId = r.resultDataId |> Some
                     modelDataId = r.modelDataId
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
@@ -302,6 +302,11 @@ module DatabaseTypes =
                         )
 
             newRow.modelDataId <- r.modelDataId
+
+            match r.resultDataId with
+            | Some v -> newRow.modelDataId <- v
+            | None -> ignore()
+
             t.Rows.Add newRow
 
 

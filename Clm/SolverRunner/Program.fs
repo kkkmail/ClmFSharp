@@ -35,7 +35,7 @@ let main argv =
 
         printfn "Saving."
 
-        /// TODO kk:20190105 - There is some duplicate code here and plotEnantiomericExcessImpl. Consolidate.
+        /// TODO kk:20190105 - There is some duplicate code here and in plotEnantiomericExcessImpl. Consolidate.
         let maxEe =
             let noOfOutputPoints = result.t.Length - 1
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
@@ -55,7 +55,7 @@ let main argv =
 
         let r =
             {
-                resultDataId = 0L
+                resultDataId = None
                 modelDataId = 0L
                 numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                 maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength

@@ -8,6 +8,9 @@ open OdeSolver.Solver
 open Analytics.Visualization
 open Argu
 open Clm.Substances
+open DbData.Configuration
+open DbData.DatabaseTypes
+open System.Data.SqlClient
 
 
 [<EntryPoint>]
@@ -56,7 +59,9 @@ let main argv =
         let r =
             {
                 resultDataId = None
-                modelDataId = 0L
+                // TODO kk:20190105 - This should be fixed from the bottom by removing model name and converting it into modelId.
+                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName.Replace("_", "") |> Int64.Parse
+
                 numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                 maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
 
@@ -73,6 +78,9 @@ let main argv =
                 t = result.t
                 maxEe = maxEe
             }
+
+        use conn = new SqlConnection(ClmConnectionString)
+        saveResultData r conn |> ignore
 
         match results.TryGetResult PlotResults with
         | Some v when v = true ->

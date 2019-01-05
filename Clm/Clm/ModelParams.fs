@@ -73,17 +73,6 @@ module ModelParams =
             allReactions : list<ReactionName * int>
         }
 
-        //member mdp.getModelDataInfo() =
-        //    {
-        //        numberOfAminoAcids = mdp.modelDataParams.modelInfo.numberOfAminoAcids
-        //        maxPeptideLength = mdp.modelDataParams.modelInfo.maxPeptideLength
-        //        aminoAcids = AminoAcid.getAminoAcids mdp.modelDataParams.modelInfo.numberOfAminoAcids
-        //        allSubst = mdp.allSubst
-        //        allInd =  mdp.allInd
-        //        allRawReactions = mdp.allRawReactions
-        //        allReactions =  mdp.allReactions
-        //    }
-
 
     [<Literal>]
     let ModelCommandLineParamName = "ModelCommandLineParam"

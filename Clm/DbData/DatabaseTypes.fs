@@ -406,6 +406,12 @@ module DatabaseTypes =
         | None -> false
 
 
+    let saveResultData (r : ResultData) (conn : SqlConnection) =
+        let t = new ResultDataTable()
+        r.addRow t |> ignore
+        t.Update(conn)
+
+
     let tryLoadResultData conn resultDataId = 
         openConnIfClosed conn
         use d = new ResultDataTableData(conn)

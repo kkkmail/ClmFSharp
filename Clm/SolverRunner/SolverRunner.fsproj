@@ -26,6 +26,7 @@
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--warnaserror+:25</OtherFlags>
+    <StartArguments>-t=1000 -y0=10 -p=true</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

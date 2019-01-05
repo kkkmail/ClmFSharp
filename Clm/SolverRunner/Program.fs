@@ -47,7 +47,7 @@ let main argv =
 
             let getFuncData i = tIdx |> List.map (fun t -> d t i)
 
-            [ for i in 0..(modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length) -> i ]
+            [ for i in 0..(modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
             |> List.map (fun i -> getFuncData i)
             |> List.concat
             |> List.map (fun e -> abs e)

@@ -7,9 +7,9 @@ open Clm.Substances
 open Clm.ModelParams
 
 
-module ModelInit = 
+module ModelInit =
 
-    type ModelInitValuesParams = 
+    type ModelInitValuesParams =
         {
             modelDataParams : ModelDataParamsWithExtraData
             distr : Distribution
@@ -22,10 +22,10 @@ module ModelInit =
         static member defaultMult = 0.001
         static member defaultMultEe = 0.001
 
-        static member getDefaultValue p so a = 
-            let distr = 
-                let seed = 
-                    match so with 
+        static member getDefaultValue p so a =
+            let distr =
+                let seed =
+                    match so with
                     | Some s -> s
                     | None -> 0
                 UniformDistribution seed |> Uniform
@@ -40,20 +40,20 @@ module ModelInit =
             }
 
 
-    let defaultInit (p : ModelInitValuesParams) y0 = 
-        let mult = 
-            match p.multiplier with 
+    let defaultInit (p : ModelInitValuesParams) y0 =
+        let mult =
+            match p.multiplier with
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMult
 
-        let allIndRev = 
+        let allIndRev =
             p.modelDataParams.allInd
             |> Map.toList
             |> List.map (fun (s, i) -> (i, s))
             |> Map.ofList
 
-        let multEe = 
-            match p.multEe with 
+        let multEe =
+            match p.multEe with
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMultEe
 
@@ -71,19 +71,19 @@ module ModelInit =
         let initValsMap = initVals |> Map.ofList
         let total = initVals |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
 
-        let getValue i = 
+        let getValue i =
             let s = allIndRev.[i]
-            match s with 
-            | Simple i -> 
-                match i with 
-                | Abundant -> 
-                    match p.useAbundant with 
+            match s with
+            | Simple i ->
+                match i with
+                | Abundant ->
+                    match p.useAbundant with
                     | true -> 1.0
                     | false -> 0.0
                 | Food -> y0 - 2.0 * total
                 | Waste -> 0.0
             | _ ->
-                match initValsMap.TryFind s, initValsMap.TryFind s.enantiomer with 
+                match initValsMap.TryFind s, initValsMap.TryFind s.enantiomer with
                 | Some _, Some _ -> 0.0
                 | Some (v, e), None -> v * (1.0 + e)
                 | None, Some (v, e) -> v * (1.0 - e)

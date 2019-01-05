@@ -51,9 +51,9 @@
     <Compile Include="ReactionRates.fs" />
     <Compile Include="Reactions.fs" />
     <Compile Include="DataLocation.fs" />
+    <Compile Include="CommandLine.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
-    <Compile Include="CommandLine.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

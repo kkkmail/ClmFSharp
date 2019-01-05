@@ -16,24 +16,24 @@ module ModelCommandLineParamExt =
                 {
                     tEnd = 10_000.0
                     y0 = 10.0
-                    useAbundant = None
+                    useAbundant = false
                 }
 
                 {
                     tEnd = 100_000.0
                     y0 = 10.0
-                    useAbundant = None
+                    useAbundant = false
                 }
 
                 {
                     tEnd = 100_000.0
                     y0 = 5.0
-                    useAbundant = None
+                    useAbundant = false
                 }
 
                 {
                     tEnd = 100_000.0
                     y0 = 20.0
-                    useAbundant = None
+                    useAbundant = false
                 }
             ]

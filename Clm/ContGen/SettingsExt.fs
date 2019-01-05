@@ -1138,7 +1138,10 @@ module SettingsExt =
                     {
                         tEnd = t1
                         y0 = y1
-                        useAbundant = getBoolOpt m qo useAbundantName
+                        useAbundant = 
+                            match getBoolOpt m qo useAbundantName with
+                            | Some v -> v
+                            | None -> false
                     }
                     |> Some
                 | _ -> None
@@ -1150,11 +1153,10 @@ module SettingsExt =
         static member setValues (p : list<ModelCommandLineParam>) po s =
             let setValue (q : ModelCommandLineParam) qo s =
                 [
-                    setDouble qo tEndName q.tEnd |> Some
-                    setDouble qo y0Name q.y0 |> Some
-                    setBoolOpt qo useAbundantName q.useAbundant
+                    setDouble qo tEndName q.tEnd
+                    setDouble qo y0Name q.y0
+                    setBool qo useAbundantName q.useAbundant
                 ]
-                |> List.choose id
                 |> add s
 
             p

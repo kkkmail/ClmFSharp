@@ -6,6 +6,8 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.GeneralData
+open Clm.CommandLine
+open Argu
 
 module ModelParams =
 
@@ -81,18 +83,18 @@ module ModelParams =
         {
             tEnd : double
             y0 : double
-            useAbundant : bool option
+            useAbundant : bool
         }
 
         override this.ToString() =
+            let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = "SolverRunner.exe")
             [
-                this.tEnd.ToString() |> Some
-                this.y0.ToString() |> Some
-                this.useAbundant |> Option.bind (fun e -> (if e then Some "1" else None))
+                EndTime this.tEnd
+                TotalAmount this.y0
+                UseAbundant this.useAbundant
+                PlotResults true
             ]
-            |> List.choose id
-            |> String.concat " "
+            |> parser.PrintCommandLineArgumentsFlat
 
         static member name = ModelCommandLineParamName
         static member variableName = ModelCommandLineParam.name |> toVariableName
-

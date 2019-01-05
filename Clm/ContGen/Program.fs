@@ -56,15 +56,6 @@ let saveDefaults conn numberOfAminoAcids =
         |> ModelCommandLineParam.setValues p.modelCommandLineParams []
 
     saveSettings settings conn
-
-    //let rates = (ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids).allParams |> List.sort
-
-    //let settings =
-    //    []
-    //    |> ReactionRateModelParamWithUsage.setAll rates
-    //    |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
-
-    //saveSettings settings conn
     0
 
 
@@ -171,11 +162,11 @@ let main argv =
 
     saveDefaults conn FourAminoAcids |> ignore
 
-    //let a = createRunner ModelRunnerParam.defaultValue
-    //a.startGenerate()
+    let a = createRunner ModelRunnerParam.defaultValue
+    a.startGenerate()
 
-    //while a.getState().shuttingDown |> not do
-    //    let x = rnd.Next()
-    //    Thread.Sleep(10000)
+    while a.getState().shuttingDown |> not do
+        let x = rnd.Next()
+        Thread.Sleep(10000)
 
     0

@@ -1,4 +1,4 @@
-﻿namespace ContGen
+﻿namespace Clm
 
 open Clm.Substances
 open Clm.ReactionRates
@@ -766,4 +766,3 @@ module RateModelsExt =
                 ]
                 |> List.fold (fun acc r -> r acc) mp
             ).models
-

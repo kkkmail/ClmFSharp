@@ -8,11 +8,11 @@ open Clm.ModelParams
 
 open DbData.Configuration
 open DbData.DatabaseTypes
-open ContGen.SettingsExt
+open Clm.SettingsExt
+open Clm.Generator.SettingGenExt
 open System.Data.SqlClient
 open System.Text
 open Clm.Generator.ClmModel
-open Clm.GeneralData
 open AsyncRun
 
 open Fake.DotNet

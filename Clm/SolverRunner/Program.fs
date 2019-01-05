@@ -82,16 +82,16 @@ let main argv =
         use conn = new SqlConnection(ClmConnectionString)
         saveResultData r conn |> ignore
 
-        //match r.resultDataId with
-        //| Some v ->
-        //    let rs =
-        //        {
-        //            resultDataId = v
-        //            settings = failwith ""
-        //        }
+        match r.resultDataId with
+        | Some v ->
+            let rs =
+                {
+                    resultDataId = v
+                    settings = failwith ""
+                }
 
-        //    failwith ""
-        //| None -> ignore()
+            failwith ""
+        | None -> ignore()
 
             //SettingMap
 

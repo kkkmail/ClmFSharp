@@ -48,8 +48,6 @@
   <ItemGroup>
     <Compile Include="AsyncRun.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="RateModelsExt.fs" />
-    <Compile Include="SettingsExt.fs" />
     <Compile Include="Runner.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />

@@ -5,7 +5,8 @@ open Clm.Generator.ReactionRatesExt
 open Clm.GeneralData
 open DbData.Configuration
 open DbData.DatabaseTypes
-open ContGen.SettingsExt
+open Clm.SettingsExt
+open Clm.Generator.SettingGenExt
 open System
 open System.Data.SqlClient
 

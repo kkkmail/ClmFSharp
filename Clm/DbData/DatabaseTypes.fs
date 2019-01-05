@@ -42,20 +42,8 @@ module DatabaseTypes =
     type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
     type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
-
-    type Setting =
-        {
-            settingId : Guid option
-            settingPath : list<string * int>
-            settingBit : bool
-            settingLong : int64
-            settingMoney : decimal
-            settingFloat : float
-            settingDate : DateTime option
-            settingText : string option
-            settingMemo : string option
-            settingGUID : Guid option
-        }
+    type Setting
+        with
 
         static member create (r : SettingTableRow) =
             {
@@ -80,20 +68,6 @@ module DatabaseTypes =
                 settingText = r.settingText
                 settingMemo = r.settingMemo
                 settingGUID = r.settingGUID
-            }
-
-        static member defaultValue() =
-            {
-                settingId = Guid.NewGuid() |> Some
-                settingPath = []
-                settingBit = false
-                settingLong = 0L
-                settingMoney = 0m
-                settingFloat = 0.0
-                settingDate = None
-                settingText = None
-                settingMemo = None
-                settingGUID = None
             }
 
         member r.addRow (t : SettingTable) = 
@@ -152,14 +126,8 @@ module DatabaseTypes =
             t.Rows.Add newRow
 
 
-    type SettingMap = Map<list<string * int>, Setting>
-
-
-    type ResultSettings =
-        {
-            resultDataId : int64
-            settings : SettingMap
-        }
+    type ResultSettings
+        with
 
         static member createSetting (r : ResultSettingTableRow) =
             {
@@ -308,17 +276,6 @@ module DatabaseTypes =
             | None -> ignore()
 
             t.Rows.Add newRow
-
-
-    type ModelData =
-        {
-            modelDataId : int64
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
-            seedValue : int option
-            fileStructureVersion : string
-            modelData : string
-        }
 
 
     let loadSettings (conn : SqlConnection) =

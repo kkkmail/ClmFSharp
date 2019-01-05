@@ -61,7 +61,7 @@ module Runner =
             openConnIfClosed conn
             let m = loadSettings conn
 
-            match ModelGenerationParams.tryGet m seeder with
+            match ModelGenerationParams.tryGet m seeder [] with
             | Some q ->
                 (
                     { q with
@@ -71,7 +71,7 @@ module Runner =
                                 useDefaultModeData = true
                             }
                     },
-                    ModelCommandLineParam.getValues m
+                    ModelCommandLineParam.getValues m []
                 )
                 |> Some
             | None -> None

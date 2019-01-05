@@ -9,29 +9,29 @@ open Clm.OdeSolver.Solver
 open Microsoft.FSharp.Core
 open FSharp.Plotly
 
-module Visualization = 
+module Visualization =
 
-    type PlotDataInfo = 
+    type PlotDataInfo =
         {
             resultInfo : ResultInfo
             useTempFolder : bool
         }
 
-        static member defaultValue = 
+        static member defaultValue =
             {
                 resultInfo = ResultInfo.defautlValue
                 useTempFolder = false
             }
 
 
-    type ChartType = 
+    type ChartType =
         | PlotAllSubst
         | PlotChiralAminoAcids
         | PlotAminoAcids
         | PlotEnantiomericExcess
         | PlotTotalSubst
 
-        member ct.fileSuffix = 
+        member ct.fileSuffix =
             match ct with 
             | PlotAllSubst -> "as"
             | PlotChiralAminoAcids -> "ca"
@@ -39,10 +39,10 @@ module Visualization =
             | PlotEnantiomericExcess -> "ee"
             | PlotTotalSubst -> "ts"
 
-        member ct.getFileName (i : PlotDataInfo) (p : ModelDataParamsWithExtraData) (o : OdeResult) = 
+        member ct.getFileName (i : PlotDataInfo) (p : ModelDataParamsWithExtraData) (o : OdeResult) =
             let suff = ct.fileSuffix
 
-            let fileName = 
+            let fileName =
                 [
                     p.modelDataParams.modelInfo.modelName
                     i.resultInfo.separator
@@ -62,7 +62,7 @@ module Visualization =
         let getFileName (ct : ChartType) = ct.getFileName i p o
 
 
-        let description = 
+        let description =
             [
                 "Comleted at", sprintf "%A" (o.endTime)
                 "run time", sprintf "%A" (o.endTime - o.startTime)
@@ -81,7 +81,7 @@ module Visualization =
             |> String.concat ", "
 
 
-        let showChart fileName = 
+        let showChart fileName =
             match i.useTempFolder with 
             | true -> Chart.ShowWithDescription
             | false -> Chart.ShowFileWithDescription fileName
@@ -164,8 +164,8 @@ module Visualization =
             let foodData = Option.bind (fun i -> tIdx |> List.map (fun t -> r.t.[t], r.x.[t,i]) |> Some) foodIdx
             let wasteData = Option.bind (fun i -> tIdx |> List.map (fun t -> r.t.[t], r.x.[t,i]) |> Some) wasteIdx
 
-            let levelData level = 
-                let levelSubst = 
+            let levelData level =
+                let levelSubst =
                     p.allSubst
                     |> List.filter (fun s -> s.length = level)
                     |> List.map (fun s -> p.allInd.[s])

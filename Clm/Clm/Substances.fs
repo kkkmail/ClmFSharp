@@ -405,15 +405,29 @@ module Substances =
 
 
     /// TODO 20181029 Check.
-    let orderPairs (a : list<ChiralAminoAcid>, b : list<ChiralAminoAcid>) = 
+    let orderPairs (a : list<ChiralAminoAcid>, b : list<ChiralAminoAcid>) =
         if a.Length < b.Length
         then (a, b)
         else 
             if a.Length > b.Length
             then (b, a)
-            else 
+            else
                 if a <= b then (a, b)
                 else (b, a)
 
 
     let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
+
+
+    let getTotalsValue (allInd : Map<Substance, int>) (allSubst : list<Substance>) (aminoAcids : list<AminoAcid>) (x : array<double>) =
+        let g a =
+            allSubst
+            |> List.map (fun s -> match s.noOfAminoAcid a with | Some i -> Some (x.[allInd.[s]] * (double i)) | None -> None)
+            |> List.choose id
+            |> List.sum
+
+        aminoAcids |> List.map (fun a -> a, L a |> g, R a |> g)
+
+
+    let getTotalSubstValue (allInd : Map<Substance, int>) (allSubst : list<Substance>)  (x : array<double>) = 
+        allSubst |> List.map (fun s -> x.[allInd.[s]] * (double s.atoms)) |> List.sum

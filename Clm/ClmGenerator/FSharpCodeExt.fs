@@ -1,5 +1,6 @@
 ﻿namespace Clm.Generator
 
+open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.GeneralData
@@ -8,6 +9,7 @@ module FSharpCodeExt =
 
     let increaseShift shift = shift + "    "
     let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+
 
     let fold f state (arr: 'a [,]) =
         Seq.cast<'a> arr
@@ -24,10 +26,6 @@ module FSharpCodeExt =
 
 
     let doubleFSharpString (d : double) = d.ToString() |> toFloat
-        //let s = d.ToString()
-        //match s.Contains(".") with
-        //| true -> s
-        //| false -> s + ".0"
 
 
     let doubleOptFSharpString (d : double option) = 
@@ -56,6 +54,11 @@ module FSharpCodeExt =
         shift + "[| " + Nl + 
         s + Nl + 
         shift + "|]" + Nl
+
+
+    type Substance
+        with
+            member this.toFSharpCode shift = shift + (this.ToString())
 
 
     type DistributionParams

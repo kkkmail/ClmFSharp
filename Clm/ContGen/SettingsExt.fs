@@ -913,9 +913,9 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
-        static member getAll (m : SettingMap) (seeder : Seeder) = 
+        static member getAll (m : SettingMap) (seeder : Seeder) po = 
             ReactionRateModelParam.allVariableParamNames
-            |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m seeder [ (e, 0) ] )
+            |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m seeder (addParent po e) )
             |> List.choose id
             |> List.sort
 
@@ -924,8 +924,8 @@ module SettingsExt =
             |> this.modelParam.setValue (addParent po modelParamName)
             |> this.usage.setValue (addParent po usageParamName)
 
-        static member setAll (rates : list<ReactionRateModelParamWithUsage>) s =
-            rates |> List.fold (fun acc e -> e.setValue [ (e.modelParam.variableParamName, 0) ] acc) s
+        static member setAll (rates : list<ReactionRateModelParamWithUsage>) po s =
+            rates |> List.fold (fun acc e -> e.setValue (addParent po e.modelParam.variableParamName) acc) s
 
 
     type UpdateFuncType
@@ -1047,8 +1047,7 @@ module SettingsExt =
 
     type ModelGenerationParams
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) =
-            let po = []
+        static member tryGet (m : SettingMap) (seeder : Seeder) po =
             let a() = 
                 let x = getTextOpt m po fileStructureVersionNumberName
                 x
@@ -1076,7 +1075,7 @@ module SettingsExt =
 
             match a(), b(), d(), e(), g(), h(), i() with
             | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
-                let p = ReactionRateModelParamWithUsage.getAll m seeder
+                let p = ReactionRateModelParamWithUsage.getAll m seeder po
 
                 let models =
                     ReactionRateModel.createAll p d1
@@ -1096,9 +1095,7 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
-        member this.setValue s =
-            let po = []
-
+        member this.setValue po s =
             let rates =
                 {
                     rateModels = this.reactionRateModels
@@ -1117,7 +1114,7 @@ module SettingsExt =
             |> this.maxPeptideLength.setValue (addParent po maxPeptideLengthName)
             |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
             |> this.modelLocationData.setValue (addParent po modelLocationDataName)
-            |> ReactionRateModelParamWithUsage.setAll rates
+            |> ReactionRateModelParamWithUsage.setAll rates po
 
 
     [<Literal>]
@@ -1131,35 +1128,35 @@ module SettingsExt =
 
     type ModelCommandLineParam
         with
-        static member getValues (m : SettingMap) =
-            let tryGet (m : SettingMap) po = 
-                let t() = getDoubleOpt m po tEndName
-                let y() = getDoubleOpt m po y0Name
+        static member getValues (m : SettingMap) po =
+            let tryGet (m : SettingMap) qo = 
+                let t() = getDoubleOpt m qo tEndName
+                let y() = getDoubleOpt m qo y0Name
 
                 match t(), y() with
-                | Some t1, Some y1 -> 
+                | Some t1, Some y1 ->
                     {
                         tEnd = t1
                         y0 = y1
-                        useAbundant = getBoolOpt m po useAbundantName
+                        useAbundant = getBoolOpt m qo useAbundantName
                     }
                     |> Some
                 | _ -> None
 
             [ for i in 0..100 -> i ]
-            |> List.map (fun e -> [ (ModelCommandLineParam.variableName, e) ] |> tryGet m)
+            |> List.map (fun e -> po @ [ (ModelCommandLineParam.variableName, e) ] |> tryGet m)
             |> List.choose id
 
-        static member setValues (p : list<ModelCommandLineParam>) s =
-            let setValue (q : ModelCommandLineParam) po s = 
+        static member setValues (p : list<ModelCommandLineParam>) po s =
+            let setValue (q : ModelCommandLineParam) qo s =
                 [
-                    setDouble po tEndName q.tEnd |> Some
-                    setDouble po y0Name q.y0 |> Some
-                    setBoolOpt po useAbundantName q.useAbundant
+                    setDouble qo tEndName q.tEnd |> Some
+                    setDouble qo y0Name q.y0 |> Some
+                    setBoolOpt qo useAbundantName q.useAbundant
                 ]
                 |> List.choose id
                 |> add s
 
             p
-            |> List.mapi (fun i e -> (e, [ (ModelCommandLineParam.variableName, i) ]))
-            |> List.fold (fun acc (q, po) -> setValue q po acc) s
+            |> List.mapi (fun i e -> (e, po @ [ (ModelCommandLineParam.variableName, i) ]))
+            |> List.fold (fun acc (q, qo) -> setValue q qo acc) s

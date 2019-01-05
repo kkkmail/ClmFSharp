@@ -55,15 +55,15 @@ module ClmModel =
         }
 
 
-    type ClmModel (modelParams : ModelGenerationParams) = 
+    type ClmModel (modelParams : ModelGenerationParams) =
 
-        let reactionShift = 
+        let reactionShift =
             match modelParams.updateFuncType with
             | UseArray -> "    "
             | UseVariables -> "    "
             | UseFunctions -> ""
 
-        let seedValue = 
+        let seedValue =
             match modelParams.seedValue with 
             | Some s -> s
             | None -> 
@@ -103,7 +103,7 @@ module ClmModel =
         //    |> List.map (fun (s, c) -> printfn "s: %A, c: %A" s c)
         //    |> ignore
 
-        let noOfRawReactions n = 
+        let noOfRawReactions n =
             match n with 
             | FoodCreationName -> 1
             | WasteRemovalName -> 1
@@ -120,7 +120,7 @@ module ClmModel =
             | CatalyticRacemizationName -> catRacemPairs.Length
 
 
-        let allSubst = 
+        let allSubst =
             Substance.allSimple
             @
             (chiralAminoAcids |> List.map (fun a -> Chiral a))
@@ -146,7 +146,7 @@ module ClmModel =
     let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
 "
 
-        let allNamesMap = 
+        let allNamesMap =
             allSubst
             |> List.map (fun s -> s, s.name)
             |> Map.ofList
@@ -212,7 +212,7 @@ module ClmModel =
             |> String.concat Nl
 
 
-        let allReacMap = 
+        let allReacMap =
             allReac
             |> List.map (fun e -> e, e.fullName)
             |> Map.ofList
@@ -288,7 +288,7 @@ module ClmModel =
                 @
                 (update rv.reaction.info.output rv.reaction.info.input rv.backwardRate true rc)
 
-        let generateTotals () = 
+        let generateTotals () =
             let g a =
                 allSubst
                 |> List.map (fun s -> match s.noOfAminoAcid a with | Some i -> Some (s, i) | None -> None)
@@ -316,7 +316,7 @@ module ClmModel =
             x +
             "        |]"
 
-        let generateTotalSubst() = 
+        let generateTotalSubst() =
             let x =
                 allSubst
                 |> List.map (fun s -> s, s.atoms)

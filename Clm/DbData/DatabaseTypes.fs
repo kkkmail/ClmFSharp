@@ -53,7 +53,7 @@ module DatabaseTypes =
             settingGUID : Guid option
         }
 
-        static member create (r : SettingTableRow) = 
+        static member create (r : SettingTableRow) =
             {
                 settingId = Some r.settingId
                 settingPath =
@@ -78,7 +78,7 @@ module DatabaseTypes =
                 settingGUID = r.settingGUID
             }
 
-        static member defaultValue() = 
+        static member defaultValue() =
             {
                 settingId = Guid.NewGuid() |> Some
                 settingPath = []
@@ -146,6 +146,125 @@ module DatabaseTypes =
                         )
 
             t.Rows.Add newRow
+
+
+    type ResultSettings =
+        {
+            resultDataId : int64
+            settings : list<Setting>
+        }
+
+        //static member create (r : ResultSettingTableRow) =
+        //    {
+        //        resultDataId = r.resultDataId
+        //        setting =
+        //            {
+        //                settingId = Some r.resultSettingId
+        //                settingPath =
+        //                    match r.settingField1 with | EmptyString -> [] | s -> [ s, r.settingOrderId1 ]
+        //                    @ match r.settingField2 with | EmptyString -> [] | s -> [ s, r.settingOrderId2 ]
+        //                    @ match r.settingField3 with | EmptyString -> [] | s -> [ s, r.settingOrderId3 ]
+        //                    @ match r.settingField4 with | EmptyString -> [] | s -> [ s, r.settingOrderId4 ]
+        //                    @ match r.settingField5 with | EmptyString -> [] | s -> [ s, r.settingOrderId5 ]
+        //                    @ match r.settingField6 with | EmptyString -> [] | s -> [ s, r.settingOrderId6 ]
+        //                    @ match r.settingField7 with | EmptyString -> [] | s -> [ s, r.settingOrderId7 ]
+        //                    @ match r.settingField8 with | EmptyString -> [] | s -> [ s, r.settingOrderId8 ]
+        //                    @ match r.settingField9 with | EmptyString -> [] | s -> [ s, r.settingOrderId9 ]
+        //                    @ match r.settingField10 with | EmptyString -> [] | s -> [ s, r.settingOrderId10 ]
+
+        //                settingBit = r.settingBit
+        //                settingLong = r.settingLong
+        //                settingMoney = r.settingMoney
+        //                settingFloat = r.settingFloat
+        //                settingDate = r.settingDate
+        //                settingText = r.settingText
+        //                settingMemo = r.settingMemo
+        //                settingGUID = r.settingGUID
+        //            }
+        //    }
+
+        //static member defaultValue resultDataId =
+        //    {
+        //        resultDataId = resultDataId
+        //        setting =
+        //        {
+        //            settingId = Guid.NewGuid() |> Some
+        //            settingPath = []
+        //            settingBit = false
+        //            settingLong = 0L
+        //            settingMoney = 0m
+        //            settingFloat = 0.0
+        //            settingDate = None
+        //            settingText = None
+        //            settingMemo = None
+        //            settingGUID = None
+        //        }
+        //    }
+
+        member rs.addRows (t : ResultSettingTable) =
+            let addRow (r : Setting) =
+                let r0 = r.settingPath
+
+                let getSR (x : list<string * int>) =
+                    match x with
+                    | [] -> EmptyString, 0, []
+                    | (h, i) :: t -> h, i, t
+
+                let s1, i1, r1 = getSR r0
+                let s2, i2, r2 = getSR r1
+                let s3, i3, r3 = getSR r2
+                let s4, i4, r4 = getSR r3
+                let s5, i5, r5 = getSR r4
+                let s6, i6, r6 = getSR r5
+                let s7, i7, r7 = getSR r6
+                let s8, i8, r8 = getSR r7
+                let s9, i9, r9 = getSR r8
+                let s10, i10, r10 = getSR r9
+
+                if r10.IsEmpty |> not then failwith (sprintf "Path is too long: %A" r0)
+
+                let resultSettingId =
+                    match r.settingId with
+                    | Some g -> g
+                    | None -> Guid.NewGuid()
+
+                let newRow =
+                    t.NewRow(
+                            resultSettingId = resultSettingId,
+                            resultDataId = rs.resultDataId,
+                            settingField1 = s1,
+                            settingOrderId1 = i1,
+                            settingField2 = s2,
+                            settingOrderId2 = i2,
+                            settingField3 = s3,
+                            settingOrderId3 = i3,
+                            settingField4 = s4,
+                            settingOrderId4 = i4,
+                            settingField5 = s5,
+                            settingOrderId5 = i5,
+                            settingField6 = s6,
+                            settingOrderId6 = i6,
+                            settingField7 = s7,
+                            settingOrderId7 = i7,
+                            settingField8 = s8,
+                            settingOrderId8 = i8,
+                            settingField9 = s9,
+                            settingOrderId9 = i9,
+                            settingField10 = s10,
+                            settingOrderId10 = i10,
+                            settingBit = r.settingBit,
+                            settingLong = r.settingLong,
+                            settingMoney = r.settingMoney,
+                            settingFloat = r.settingFloat,
+                            settingDate = r.settingDate,
+                            settingText = r.settingText,
+                            settingMemo = r.settingMemo,
+                            settingGUID = r.settingGUID
+                            )
+
+                t.Rows.Add newRow
+
+            rs.settings |> List.map (fun s -> addRow s) |> ignore
 
 
     type SettingMap = Map<list<string * int>, Setting>

@@ -1,6 +1,7 @@
 ﻿open Clm.Distributions
 open Clm.Substances
 open Clm.ReactionRates
+open Clm.Generator.FSharpCodeExt
 
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -51,6 +52,9 @@ let saveDefaults conn numberOfAminoAcids =
     //        [ AminoAcid.A01 |> ChiralAminoAcid.L; AminoAcid.A02 |> ChiralAminoAcid.R ] |> Peptide |> PeptideChain
     //    ]
 
+    //let y = x |> List.map (fun e -> e.toFSharpCode "")
+    //let z = PeptideChain (Peptide [L A01; R A02])
+
     //let json = JsonConvert.SerializeObject x
     //let d = JsonConvert.DeserializeObject<list<Substance>>(json)
     //printfn "(x = d) = %A" (x = d)
@@ -62,8 +66,8 @@ let saveDefaults conn numberOfAminoAcids =
 
     let settings =
         []
-        |> modelGenerationParams.setValue
-        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues
+        |> modelGenerationParams.setValue []
+        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues []
 
     saveSettings settings conn
 
@@ -80,11 +84,11 @@ let saveDefaults conn numberOfAminoAcids =
 
 let testAll conn (rnd : Random) =
     let rates = (ReactionRateProvider.getDefaultRateModels rnd TwoAminoAcids).allParams |> List.sort
-    let settings = ReactionRateModelParamWithUsage.setAll rates []
+    let settings = ReactionRateModelParamWithUsage.setAll rates [] []
     saveSettings settings conn
 
     let m = loadSettings conn
-    let loaded = ReactionRateModelParamWithUsage.getAll m (seeder rnd)
+    let loaded = ReactionRateModelParamWithUsage.getAll m (seeder rnd) []
 
     printfn "loaded.Length = %A" (loaded.Length)
 
@@ -109,11 +113,11 @@ let testModelGenerationParams conn (rnd : Random) =
             updateAllModels = false
         }
 
-    let settings = modelGenerationParams.setValue []
+    let settings = modelGenerationParams.setValue [] []
     saveSettings settings conn
 
     let m = loadSettings conn
-    let loaded = ModelGenerationParams.tryGet m (seeder rnd)
+    let loaded = ModelGenerationParams.tryGet m (seeder rnd) []
 
     match loaded with
     | Some l ->

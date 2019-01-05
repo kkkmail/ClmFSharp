@@ -44,6 +44,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Content Include="packages.config" />
+    <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ModelCommandLineParamExt.fs" />
     <Compile Include="FSharpCodeExt.fs" />
     <Compile Include="ClmModel.fs" />
     <None Include="References.fsx" />

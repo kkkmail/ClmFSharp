@@ -59,33 +59,6 @@ module ModelParams =
             useAbundant : bool option
         }
 
-        static member defaultValues =
-            [
-                {
-                    tEnd = 10_000.0
-                    y0 = 10.0
-                    useAbundant = None
-                }
-
-                {
-                    tEnd = 100_000.0
-                    y0 = 10.0
-                    useAbundant = None
-                }
-
-                {
-                    tEnd = 100_000.0
-                    y0 = 5.0
-                    useAbundant = None
-                }
-
-                {
-                    tEnd = 100_000.0
-                    y0 = 20.0
-                    useAbundant = None
-                }
-            ]
-
         override this.ToString() =
             [
                 this.tEnd.ToString() |> Some
@@ -97,3 +70,4 @@ module ModelParams =
 
         static member name = ModelCommandLineParamName
         static member variableName = ModelCommandLineParam.name |> toVariableName
+

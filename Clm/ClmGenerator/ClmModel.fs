@@ -4,6 +4,7 @@ open System
 open System.IO
 open FSharp.Collections
 
+open Clm.VersionInfo
 open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions
@@ -14,6 +15,9 @@ open Clm.DataLocation
 open Clm.GeneralData
 
 open Clm.Generator.FSharpCodeExt
+open Clm.Generator.ModelCommandLineParamExt
+open Clm.Generator.ReactionRatesExt
+
 
 module ClmModel = 
 
@@ -53,6 +57,32 @@ module ClmModel =
             modelLocationData : ModelLocationInputData
             updateAllModels : bool
         }
+
+
+    type AllParams =
+        {
+            modelGenerationParams : ModelGenerationParams
+            modelCommandLineParams : list<ModelCommandLineParam>
+        }
+
+        static member getDefaultValue rnd numberOfAminoAcids maxPeptideLength =
+            let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
+
+            {
+                modelGenerationParams = 
+                    {
+                        fileStructureVersionNumber = FileStructureVersionNumber
+                        versionNumber = VersionNumber
+                        seedValue = rnd.Next() |> Some
+                        numberOfAminoAcids = numberOfAminoAcids
+                        maxPeptideLength = maxPeptideLength
+                        reactionRateModels = rates.rateModels
+                        updateFuncType = UseFunctions
+                        modelLocationData = ModelLocationInputData.defaultValue
+                        updateAllModels = false
+                    }
+                modelCommandLineParams = ModelCommandLineParam.defaultValues
+            }
 
 
     type ClmModel (modelParams : ModelGenerationParams) =

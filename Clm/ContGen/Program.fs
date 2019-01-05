@@ -2,6 +2,8 @@
 open Clm.Substances
 open Clm.ReactionRates
 open Clm.Generator.FSharpCodeExt
+open Clm.Generator.ReactionRatesExt
+open Clm.Generator.ModelCommandLineParamExt
 
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -25,24 +27,8 @@ let seeder (rnd : Random) (seed : int option) = rnd.Next ()
 
 let saveDefaults conn numberOfAminoAcids =
     let rnd = new Random()
-
     truncateSettings conn
-
-    let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
-
-    let modelGenerationParams =
-        {
-            fileStructureVersionNumber = FileStructureVersionNumber
-            versionNumber = VersionNumber
-            seedValue = rnd.Next() |> Some
-            numberOfAminoAcids = numberOfAminoAcids
-            maxPeptideLength = ThreeMax
-            reactionRateModels = rates.rateModels
-            updateFuncType = UseFunctions
-            modelLocationData = ModelLocationInputData.defaultValue
-            updateAllModels = false
-        }
-
+    let p = AllParams.getDefaultValue rnd numberOfAminoAcids ThreeMax
 
     //let x =
     //    [
@@ -66,8 +52,8 @@ let saveDefaults conn numberOfAminoAcids =
 
     let settings =
         []
-        |> modelGenerationParams.setValue []
-        |> ModelCommandLineParam.setValues ModelCommandLineParam.defaultValues []
+        |> p.modelGenerationParams.setValue []
+        |> ModelCommandLineParam.setValues p.modelCommandLineParams []
 
     saveSettings settings conn
 

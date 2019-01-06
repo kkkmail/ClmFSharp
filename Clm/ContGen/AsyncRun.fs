@@ -104,6 +104,16 @@ module AsyncRun =
                     return! doAsyncTask(fun () -> runner n |> a.completeRun)
                 }
 
+        let partition q n =
+            let (a, b) =
+                q
+                |> List.mapi (fun i e -> (i + n + 1, e))
+                |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
+
+            (a |> List.map snd, b |> List.map snd)
+
+        let start a p = p |> List.map (fun e -> run a e.run e.modelId |> Async.Start) |> ignore
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -114,7 +124,7 @@ module AsyncRun =
                             match m with
                             | StartGenerate a ->
                                 if s.generating
-                                then 
+                                then
                                     return! loop s
                                 else
                                     generate a |> Async.Start
@@ -125,35 +135,21 @@ module AsyncRun =
                                 return! loop { s with generating = false }
                             | StartRun (a, r) ->
                                 if s.shuttingDown
-                                then 
+                                then
                                     return! loop s
                                 else
-                                    let p, q =
-                                        s.queue @ r
-                                        |> List.mapi (fun i e -> (i + s.running + 1, e))
-                                        |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
-
-                                    p |> List.map (fun (_, e) -> run a e.run e.modelId |> Async.Start) |> ignore
-                                    return! loop { s with running = s.running + r.Length; queue = q |> List.map (fun (_, e) -> e) }
+                                    let p, q = partition (s.queue @ r) s.running
+                                    start a p
+                                    return! loop { s with running = s.running + p.Length; queue = q }
                             | CompleteRun (a, _) ->
                                 if s.shuttingDown
-                                then 
+                                then
                                     return! loop { s with running = s.running - 1 }
                                 else
-                                    let x =
-                                        if s.queue.IsEmpty
-                                        then s.queue
-                                        else
-                                            let p, q =
-                                                s.queue
-                                                |> List.mapi (fun i e -> (i + s.running, e))
-                                                |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
-
-                                            p |> List.map (fun (_, e) -> run a e.run e.modelId |> Async.Start) |> ignore
-                                            q |> List.map (fun (_, e) -> e)
-
-                                    if s.generating |> not then a.startGenerate()
-                                    return! loop { s with running = s.running - 1; queue = x }
+                                    a.startGenerate()
+                                    let p, q = partition s.queue (s.running - 1)
+                                    start a p
+                                    return! loop { s with running = s.running + p.Length - 1; queue = q }
                             | GetState r ->
                                 r.Reply s
                                 return! loop s

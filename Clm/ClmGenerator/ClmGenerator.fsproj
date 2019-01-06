@@ -43,16 +43,19 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Content Include="packages.config" />
+    <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ModelCommandLineParamExt.fs" />
     <Compile Include="FSharpCodeExt.fs" />
     <Compile Include="ClmModel.fs" />
+    <Compile Include="SettingGenExt.fs" />
+    <Content Include="packages.config" />
     <None Include="References.fsx" />
     <None Include="ModelGenerator.fsx" />
     <None Include="FileSystemTests.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

@@ -44,8 +44,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Solver.fs" />
-    <Compile Include="Visualization.fs" />
-    <Compile Include="ResultSerialization.fs" />
     <None Include="References.fsx" />
     <None Include="SolverTest.fsx" />
     <Content Include="packages.config" />
@@ -69,11 +67,6 @@
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
       <Name>AlgLib</Name>
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
-      <Name>ClmGenerator</Name>
-      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Clm\Clm.fsproj">

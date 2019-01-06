@@ -26,6 +26,7 @@
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--warnaserror+:25</OtherFlags>
+    <StartArguments>-t=10 -y0=10 -p=true</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,16 +55,24 @@
     <None Include="ModelRunner.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Data.SqlClient">
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.1\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
@@ -71,9 +80,19 @@
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj">
+      <Name>Analytics</Name>
+      <Project>{5ce359db-d713-46be-84df-f9732de85e26}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Clm\Clm.fsproj">
       <Name>Clm</Name>
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Name>DbData</Name>
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Model\Model.fsproj">

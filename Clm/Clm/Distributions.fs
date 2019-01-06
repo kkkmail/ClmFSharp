@@ -1,5 +1,6 @@
 ﻿namespace Clm
 open System
+open GeneralData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
@@ -125,6 +126,32 @@ module Distributions =
         member distr.thresholded newThreshold = distr.createThresholded newThreshold SymmetricTriangularDistribution
 
 
+    [<Literal>]
+    let DistributionName = "Distribution"
+
+
+    [<Literal>]
+    let DeltaName = "Delta"
+
+
+    [<Literal>]
+    let BiDeltaName = "BiDelta"
+
+
+    [<Literal>]
+    let UniformName = "Uniform"
+
+
+    [<Literal>]
+    let TriangularName = "Triangular"
+
+
+    [<Literal>]
+    let SymmetricTriangularName = "SymmetricTriangular"
+
+
+    [<CustomEquality>]
+    [<CustomComparison>]
     type Distribution =
         | Delta of DeltaDistribution
         | BiDelta of BiDeltaDistribution
@@ -188,14 +215,64 @@ module Distributions =
             | Triangular d -> d.thresholded newThreshold |> Triangular
             | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
 
+        member this.name =
+            match this with
+            | Delta _ -> DeltaName
+            | BiDelta _ -> BiDeltaName
+            | Uniform _ -> UniformName
+            | Triangular _ -> TriangularName
+            | SymmetricTriangular _ -> SymmetricTriangularName
+
+        member this.distributionParams =
+            match this with
+            | Delta d -> d.distributionParams
+            | BiDelta d -> d.distributionParams
+            | Uniform d -> d.distributionParams
+            | Triangular d -> d.distributionParams
+            | SymmetricTriangular d -> d.distributionParams
+
+        member this.seedValue =
+            match this with
+            | Delta d -> d.seedValue
+            | BiDelta d -> d.seedValue
+            | Uniform d -> d.seedValue
+            | Triangular d -> d.seedValue
+            | SymmetricTriangular d -> d.seedValue
+
+        override this.Equals (o: obj) =
+            match o with
+            | :? Distribution as d -> this.distributionParams = d.distributionParams
+            | _ -> false
+
+        override this.GetHashCode() = hash (this.name, this.distributionParams)
+
+        interface IEquatable<Distribution> with
+            member this.Equals(that : Distribution) = this.Equals(that)
+
+        interface IComparable with
+            member this.CompareTo(thatObj) =
+                match thatObj with
+                | :? Distribution as that ->
+                    compare (this.name, this.distributionParams) (that.name, that.distributionParams)
+                | _ ->
+                    raise <| ArgumentException("Can't compare instances of different types.")
+
+
+    [<Literal>]
+    let EeDistributionName = "EeDistribution"
+
 
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution = 
         | EeDistribution of Distribution
 
-        member eed.nextDouble() : double = 
+        member eed.nextDouble() = 
             let (EeDistribution d) = eed
             max (min (d.nextDouble()) 1.0) (-1.0)
+
+        member eed.name =
+            match eed with
+            | EeDistribution _ -> EeDistributionName
 
         static member createSymmetricTriangular (seeder : unit -> int) = 
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
@@ -234,6 +311,22 @@ module Distributions =
         static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
 
 
+    [<Literal>]
+    let EeDistributionGetterName = "EeDistributionGetter"
+
+
+    [<Literal>]
+    let NoneEeGetterName = "NoneEeGetter"
+
+
+    [<Literal>]
+    let DeltaEeDistributionGetterName = "DeltaEeDistributionGetter"
+
+
+    [<Literal>]
+    let CenteredEeDistributionGetterName = "CenteredEeDistributionGetter"
+
+
     type EeDistributionGetter = 
         | NoneEeGetter
         | DeltaEeDistributionGetter
@@ -244,6 +337,24 @@ module Distributions =
             | NoneEeGetter -> (fun _ _ _ -> None)
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
+
+        member ee.name = 
+            match ee with 
+            | NoneEeGetter -> "NoneEeGetter"
+            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
+            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
+
+
+    [<Literal>]
+    let RateMultiplierDistributionName = "RateMultiplierDistribution"
+
+
+    [<Literal>]
+    let NoneRateMultName = "NoneRateMult"
+
+
+    [<Literal>]
+    let RateMultDistrName = "RateMultDistr"
 
 
     /// Distribution of rate multipliers for catalytic reactions.
@@ -258,6 +369,11 @@ module Distributions =
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
 
+        member this.name =
+            match this with 
+            | NoneRateMult -> NoneRateMultName
+            | RateMultDistr _ -> RateMultDistrName
+
         static member createNone = NoneRateMult
 
         static member createDelta (seeder : unit -> int) threshold rate = 
@@ -270,15 +386,42 @@ module Distributions =
             SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
 
 
+    [<Literal>]
+    let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"
+
+
+    [<Literal>]
+    let NoneRateMultDistrGetterName = "NoneRateMultDistrGetter"
+
+
+    [<Literal>]
+    let DeltaRateMultDistrGetterName = "DeltaRateMultDistrGetter"
+
+
+    [<Literal>]
+    let TriangularRateMultDistrGetterName = "TriangularRateMultDistrGetter"
+
+
+    [<Literal>]
+    let SymmetricTriangularRateMultDistrGetterName = "SymmetricTriangularRateMultDistrGetter"
+
+
     type RateMultiplierDistributionGetter =
         | NoneRateMultDistrGetter
         | DeltaRateMultDistrGetter
         | TriangularRateMultDistrGetter
         | SymmetricTriangularRateMultDistrGetter
 
-        member this.getDistr seeder threshold rate = 
+        member this.getDistr seeder threshold rate =
             match this with
             | NoneRateMultDistrGetter -> RateMultiplierDistribution.createNone
             | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
             | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular seeder threshold rate
             | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular seeder threshold rate
+
+        member this.name =
+            match this with
+            | NoneRateMultDistrGetter -> NoneRateMultDistrGetterName
+            | DeltaRateMultDistrGetter -> DeltaRateMultDistrGetterName
+            | TriangularRateMultDistrGetter -> TriangularRateMultDistrGetterName
+            | SymmetricTriangularRateMultDistrGetter -> SymmetricTriangularRateMultDistrGetterName

@@ -17,10 +17,14 @@ module VersionInfo =
     /// Update major version, e.g. "*.0.0.0", when the changes are completely incompatible with previous version.
     ///     Subsequently, it is not possible to update affected files at all (due to lack of information) and / or without extreme efforts.
     [<Literal>]
-    let FileStructureVersionNumber = "1.4.0.0"
+    let FileStructureVersionNumber = "1.5.0.0"
 
 
     /// This is a version of the Code Generator.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "1.4.0.0"
+    let VersionNumber = "1.5.0.0"
+
+
+    [<Literal>]
+    let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov © 2015 - 2019."

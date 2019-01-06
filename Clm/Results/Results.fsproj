@@ -50,15 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.ValueTuple">
-      <Private>True</Private>
-    </Reference>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
       <Name>AlgLib</Name>
       <Project>{5d23cbc1-d7c8-4942-b9c4-22993f4f5e30}</Project>
@@ -89,6 +86,9 @@
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <Reference Include="System.ValueTuple">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

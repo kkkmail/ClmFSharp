@@ -30,25 +30,10 @@ module SettingGenExt =
 
 
     [<Literal>]
-    let fileStructureVersionNumberName = "fileStructureVersionNumber"
-
-    [<Literal>]
-    let versionNumberName = "versionNumber"
-
-    [<Literal>]
-    let numberOfAminoAcidsName = "numberOfAminoAcids"
-
-    [<Literal>]
-    let maxPeptideLengthName = "maxPeptideLength"
-
-    [<Literal>]
     let updateFuncTypeName = "updateFuncType"
 
     [<Literal>]
     let modelLocationDataName = "modelLocationData"
-
-    [<Literal>]
-    let updateAllModelsName = "updateAllModels"
 
     type ModelGenerationParams
         with

@@ -277,6 +277,7 @@ module DatabaseTypes =
             | None -> ignore()
 
             t.Rows.Add newRow
+            newRow
 
 
     let loadSettings (conn : SqlConnection) =
@@ -372,8 +373,9 @@ module DatabaseTypes =
 
     let saveResultData (r : ResultData) (conn : SqlConnection) =
         let t = new ResultDataTable()
-        r.addRow t |> ignore
-        t.Update(conn)
+        let newRow = r.addRow t
+        t.Update(conn) |> ignore
+        newRow.resultDataId
 
 
     let tryLoadResultData conn resultDataId = 

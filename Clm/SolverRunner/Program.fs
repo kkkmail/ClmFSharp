@@ -81,7 +81,7 @@ let main argv =
             }
 
         use conn = new SqlConnection(ClmConnectionString)
-        saveResultData r conn |> ignore
+        let resultDataId = saveResultData r conn
 
         let settings =
             modelDataParamsWithExtraData.modelDataParams.setValue [] []
@@ -90,7 +90,7 @@ let main argv =
 
         let rs =
             {
-                resultDataId = 0L
+                resultDataId = resultDataId
                 settings = settings
             }
 

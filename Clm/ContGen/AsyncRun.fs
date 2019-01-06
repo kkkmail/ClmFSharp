@@ -112,7 +112,12 @@ module AsyncRun =
 
             (a |> List.map snd, b |> List.map snd)
 
-        let start a p = p |> List.map (fun e -> run a e.run e.modelId |> Async.Start) |> ignore
+        let start a p =
+            p
+            |> List.map (fun e ->
+                            printfn "Starting modelId: %A..." e.modelId
+                            run a e.run e.modelId |> Async.Start)
+            |> ignore
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -123,9 +128,7 @@ module AsyncRun =
 
                             match m with
                             | StartGenerate a ->
-                                if s.generating
-                                then
-                                    return! loop s
+                                if s.generating then return! loop s
                                 else
                                     generate a |> Async.Start
                                     return! loop { s with generating = true }
@@ -134,17 +137,13 @@ module AsyncRun =
                                 if s.running < Environment.ProcessorCount && (s.shuttingDown |> not) then a.startGenerate()
                                 return! loop { s with generating = false }
                             | StartRun (a, r) ->
-                                if s.shuttingDown
-                                then
-                                    return! loop s
+                                if s.shuttingDown then return! loop s
                                 else
                                     let p, q = partition (s.queue @ r) s.running
                                     start a p
                                     return! loop { s with running = s.running + p.Length; queue = q }
                             | CompleteRun (a, _) ->
-                                if s.shuttingDown
-                                then
-                                    return! loop { s with running = s.running - 1 }
+                                if s.shuttingDown then return! loop { s with running = s.running - 1 }
                                 else
                                     a.startGenerate()
                                     let p, q = partition s.queue (s.running - 1)

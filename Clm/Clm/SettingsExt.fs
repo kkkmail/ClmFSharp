@@ -4,8 +4,6 @@ open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.DataLocation
-//open Clm.Generator.ClmModel
-open Clm.RateModelsExt
 open Clm.ModelParams
 
 module SettingsExt =
@@ -804,16 +802,16 @@ module SettingsExt =
             | Some s -> 
                 match s with
                 | FoodCreationRateParamName ->
-                    addParent po FoodCreationRateParamName 
-                    |> FoodCreationParam.tryGet m seeder 
+                    addParent po FoodCreationRateParamName
+                    |> FoodCreationParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> FoodCreationRateParam |> Some)
                 | WasteRemovalRateParamName ->
-                    addParent po WasteRemovalRateParamName 
-                    |> WasteRemovalParam.tryGet m seeder 
+                    addParent po WasteRemovalRateParamName
+                    |> WasteRemovalParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> WasteRemovalRateParam |> Some)
                 | WasteRecyclingRateParamName ->
-                    addParent po WasteRecyclingRateParamName 
-                    |> WasteRecyclingParam.tryGet m seeder 
+                    addParent po WasteRecyclingRateParamName
+                    |> WasteRecyclingParam.tryGet m seeder
                     |> Option.bind (fun e -> e |> WasteRecyclingRateParam |> Some)
                 | SynthesisRateParamName ->
                     addParent po SynthesisRateParamName 
@@ -899,7 +897,7 @@ module SettingsExt =
 
     type ReactionRateModelParamWithUsage
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
+        static member tryGet (m : SettingMap) (seeder : Seeder) po =
             let p() = addParent po modelParamName |> ReactionRateModelParam.tryGet m seeder
             let u() = addParent po usageParamName |> ReactionRateModelParamUsage.tryGet m seeder
 
@@ -912,7 +910,7 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
-        static member getAll (m : SettingMap) (seeder : Seeder) po = 
+        static member getAll (m : SettingMap) (seeder : Seeder) po =
             ReactionRateModelParam.allVariableParamNames
             |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m seeder (addParent po e) )
             |> List.choose id
@@ -925,6 +923,107 @@ module SettingsExt =
 
         static member setAll (rates : list<ReactionRateModelParamWithUsage>) po s =
             rates |> List.fold (fun acc e -> e.setValue (addParent po e.modelParam.variableParamName) acc) s
+
+
+    [<Literal>]
+    let fileStructureVersionNumberName = "fileStructureVersionNumber"
+
+    [<Literal>]
+    let versionNumberName = "versionNumber"
+
+    [<Literal>]
+    let modelNameName = "modelName"
+
+    [<Literal>]
+    let numberOfSubstancesName = "numberOfSubstances"
+
+    [<Literal>]
+    let numberOfAminoAcidsName = "numberOfAminoAcids"
+
+    [<Literal>]
+    let maxPeptideLengthName = "maxPeptideLength"
+
+    [<Literal>]
+    let updateAllModelsName = "updateAllModels"
+
+    [<Literal>]
+    let allResultsFileName = "allResultsFile"
+
+    type ModelInfo
+        with
+        static member tryGet (m : SettingMap) po =
+            let a() = getTextOpt m po fileStructureVersionNumberName
+            let b() = getTextOpt m po versionNumberName
+            let c() = getIntOpt m po seedValueName
+            let d() = getTextOpt m po modelNameName
+            let e() = getIntOpt m po numberOfSubstancesName
+            let f() = getIntOpt m po numberOfAminoAcidsName
+            let g() = getIntOpt m po maxPeptideLengthName
+            let h() = getBoolOpt m po updateAllModelsName
+            let i() = getTextOpt m po allResultsFileName
+
+            match a(), b(), c(), d(), e(), f(), g(), h(), i() with
+            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some h1, Some i1 ->
+                match NumberOfAminoAcids.tryCreate f1, MaxPeptideLength.tryCreate g1 with
+                | Some f2, Some g2 ->
+                    {
+                        fileStructureVersionNumber = a1
+                        versionNumber = b1
+                        seedValue = c1
+                        modelName = d1
+                        numberOfSubstances = e1
+                        numberOfAminoAcids = f2
+                        maxPeptideLength = g2
+                        updateAllModels = h1
+                        allResultsFile = i1
+                    }
+                    |> Some
+                | _ -> None
+            | _ -> None
+
+        member this.setValue po s =
+            [
+                setText po fileStructureVersionNumberName this.fileStructureVersionNumber
+                setText po versionNumberName this.versionNumber
+                setInt po seedValueName this.seedValue
+                setText po modelNameName this.modelName
+                setInt po numberOfSubstancesName this.numberOfSubstances
+                setInt po numberOfAminoAcidsName this.numberOfAminoAcids.length
+                setInt po maxPeptideLengthName this.maxPeptideLength.length
+                setBool po updateAllModelsName this.updateAllModels
+                setText po allResultsFileName this.allResultsFile
+            ]
+            |> add s
+
+
+    //type ModelDataParams =
+    //    {
+    //        modelInfo : ModelInfo
+    //        allParams : list<ReactionRateModelParamWithUsage>
+    //    }
+
+    [<Literal>]
+    let modelInfoName = "modelInfo"
+
+    [<Literal>]
+    let allParamsName = "allParams"
+
+    type ModelDataParams
+        with
+        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+            match ModelInfo.tryGet m (addParent po modelInfoName) with
+            | Some a ->
+                {
+                    modelInfo = a
+                    allParams = ReactionRateModelParamWithUsage.getAll m seeder (addParent po allParamsName)
+                }
+                |> Some
+            | None -> None
+
+        member this.setValue po s =
+            s
+            |> this.modelInfo.setValue (addParent po modelInfoName)
+            |> ReactionRateModelParamWithUsage.setAll this.allParams (addParent po allParamsName)
 
 
     type ModeName
@@ -960,11 +1059,11 @@ module SettingsExt =
     [<Literal>]
     let allModelsFileName = "allModelsFile"
 
-    [<Literal>]
-    let allResultsFileName = "allResultsFile"
+    //[<Literal>]
+    //let allResultsFileName = "allResultsFile"
 
-    [<Literal>]
-    let modelNameName = "modelName"
+    //[<Literal>]
+    //let modelNameName = "modelName"
 
     [<Literal>]
     let useDefaultModeDataName = "useDefaultModeData"

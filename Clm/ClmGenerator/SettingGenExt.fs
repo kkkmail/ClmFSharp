@@ -120,5 +120,3 @@ module SettingGenExt =
             |> this.updateFuncType.setValue (addParent po updateFuncTypeName)
             |> this.modelLocationData.setValue (addParent po modelLocationDataName)
             |> ReactionRateModelParamWithUsage.setAll rates po
-
-

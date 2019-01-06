@@ -6,7 +6,6 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ModelParams
 open Clm.DataLocation
-open OdeSolver.Solver
 open Microsoft.FSharp.Core
 open FSharp.Plotly
 

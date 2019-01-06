@@ -68,11 +68,6 @@
       <Project>{c609d8ec-f1ea-4917-a43c-12efb173b8f3}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
-      <Name>OdeSolver</Name>
-      <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

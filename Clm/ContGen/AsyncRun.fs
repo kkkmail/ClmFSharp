@@ -124,7 +124,9 @@ module AsyncRun =
                 let rec loop s =
                     async
                         {
+                            printfn "s = %A" s
                             let! m = u.Receive()
+                            printfn "m = %A" m
 
                             match m with
                             | StartGenerate a ->

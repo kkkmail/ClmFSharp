@@ -68,6 +68,7 @@ module Runner =
                                 modelName = ConsecutiveName modelId
                                 useDefaultModeData = true
                             }
+                        seedValue = rnd.Next() |> Some
                     },
                     ModelCommandLineParam.getValues m []
                 )

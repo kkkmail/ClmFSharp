@@ -92,7 +92,7 @@ module ModelParams =
                 EndTime this.tEnd
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
-                PlotResults true
+                PlotResults false
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

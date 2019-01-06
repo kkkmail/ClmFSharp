@@ -12,7 +12,7 @@ module VersionInfo =
     ///     A single change to DU or single renaming would qualify as revision update.
     ///
     /// Update minor number, e.g. "1.*.0.0", when the changes are manually manageable but painful.
-    ///     For example, adding an extra layer for multpile DUs, which requires updating all affected DUs, qualifies as minor upgrade.
+    ///     For example, adding an extra layer for multpile DUs, which requires updating all affected DUs, qualifies as a minor upgrade.
     ///
     /// Update major version, e.g. "*.0.0.0", when the changes are completely incompatible with previous version.
     ///     Subsequently, it is not possible to update affected files at all (due to lack of information) and / or without extreme efforts.
@@ -20,7 +20,7 @@ module VersionInfo =
     let FileStructureVersionNumber = "1.5.0.0"
 
 
-    /// This is a version of the Code Generator.
+    /// This is a version of Code Generator / Runner / Plotter.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
     let VersionNumber = "1.5.0.2"

@@ -127,7 +127,9 @@ let main argv =
     a.startGenerate()
 
     while a.getState().shuttingDown |> not do
-        let x = rnd.Next()
-        Thread.Sleep(10000)
+        Thread.Sleep(30000)
+        let state = a.getState()
+        printfn "a.getState() = %A" state
+        if state.queue.Length = 0 then a.startGenerate()
 
     0

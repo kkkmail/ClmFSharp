@@ -35,8 +35,8 @@ module AsyncRun =
                 ex.Data.Add("filename", filename)
                 reraise()
 
-        if not started then
-            failwithf "Failed to start process %s" filename
+        if not started then failwithf "Failed to start process %s" filename
+        else p.PriorityClass <- ProcessPriorityClass.BelowNormal
 
         printfn "Started %s with pid %i" p.ProcessName p.Id
         p.BeginOutputReadLine()
@@ -124,7 +124,7 @@ module AsyncRun =
                 let rec loop s =
                     async
                         {
-                            printfn "s = %A" s
+                            printfn "s = %A, Environment.ProcessorCount = %A" s Environment.ProcessorCount
                             let! m = u.Receive()
                             printfn "m = %A" m
 

@@ -129,7 +129,7 @@ module AsyncRun =
                 let rec loop s =
                     async
                         {
-                            printfn "s = %A, Environment.ProcessorCount = %A" s Environment.ProcessorCount
+                            printfn "s = %A, Environment.ProcessorCount = %A" (s.ToString()) Environment.ProcessorCount
                             let! m = u.Receive()
                             printfn "m = %A" m
 

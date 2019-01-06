@@ -62,6 +62,7 @@ module AsyncRun =
     type GeneratorInfo =
         {
             generate : unit -> list<RunInfo>
+            maxQueueLength : int
         }
 
 
@@ -80,6 +81,10 @@ module AsyncRun =
                 queue = []
                 shuttingDown = false
             }
+
+        override s.ToString() =
+            let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
+            sprintf "{ generating: %A, runnin: %A, queue: %A (%A), shuttingDown: %A }" s.generating s.running s.queue.Length q s.shuttingDown
 
 
     type RunnerMessage =
@@ -130,7 +135,7 @@ module AsyncRun =
 
                             match m with
                             | StartGenerate a ->
-                                if s.generating then return! loop s
+                                if s.generating || s.running >= generatorInfo.maxQueueLength then return! loop s
                                 else
                                     generate a |> Async.Start
                                     return! loop { s with generating = true }

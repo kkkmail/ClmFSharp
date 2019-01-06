@@ -168,6 +168,7 @@ module Runner =
         let createGeneratorImpl() =
             {
                 generate = generate
+                maxQueueLength = 4
             }
 
 

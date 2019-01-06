@@ -216,6 +216,7 @@ module DatabaseTypes =
                             settingGUID = r.settingGUID
                             )
 
+                newRow.resultDataId <- rs.resultDataId
                 t.Rows.Add newRow
 
             rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
@@ -316,6 +317,12 @@ module DatabaseTypes =
         settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
         let inserted = settingTable.Update(conn)
         printfn "inserted = %A" inserted
+
+
+    let saveResultSettings (conn : SqlConnection) (rs : ResultSettings) =
+        let t = new ResultSettingTable()
+        rs.addRows(t) |> ignore
+        t.Update(conn) |> ignore
 
 
     let getNewModelDataId conn =

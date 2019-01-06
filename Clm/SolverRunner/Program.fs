@@ -4,6 +4,7 @@ open Clm.ModelInit
 open Clm.Model.ModelData
 open Clm.ModelParams
 open Clm.CommandLine
+open Clm.SettingsExt
 open OdeSolver.Solver
 open Analytics.Visualization
 open Argu
@@ -81,6 +82,19 @@ let main argv =
 
         use conn = new SqlConnection(ClmConnectionString)
         saveResultData r conn |> ignore
+
+        let settings =
+            modelDataParamsWithExtraData.modelDataParams.setValue [] []
+            |> List.map (fun e -> e.settingPath, e)
+            |> Map.ofList
+
+        let rs =
+            {
+                resultDataId = 0L
+                settings = settings
+            }
+
+        saveResultSettings conn rs
 
         match r.resultDataId with
         | Some v ->

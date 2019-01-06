@@ -996,12 +996,6 @@ module SettingsExt =
             |> add s
 
 
-    //type ModelDataParams =
-    //    {
-    //        modelInfo : ModelInfo
-    //        allParams : list<ReactionRateModelParamWithUsage>
-    //    }
-
     [<Literal>]
     let modelInfoName = "modelInfo"
 
@@ -1058,12 +1052,6 @@ module SettingsExt =
 
     [<Literal>]
     let allModelsFileName = "allModelsFile"
-
-    //[<Literal>]
-    //let allResultsFileName = "allResultsFile"
-
-    //[<Literal>]
-    //let modelNameName = "modelName"
 
     [<Literal>]
     let useDefaultModeDataName = "useDefaultModeData"

@@ -83,6 +83,28 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj">
+      <Name>Analytics</Name>
+      <Project>{5ce359db-d713-46be-84df-f9732de85e26}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Name>DbData</Name>
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSharp.Plotly\FSharp.Plotly.fsproj">
+      <Name>FSharp.Plotly</Name>
+      <Project>{c609d8ec-f1ea-4917-a43c-12efb173b8f3}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

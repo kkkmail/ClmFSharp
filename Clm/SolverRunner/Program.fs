@@ -96,18 +96,16 @@ let main argv =
 
         saveResultSettings conn rs
 
-        match r.resultDataId with
-        | Some v ->
-            let rs =
-                {
-                    resultDataId = v
-                    settings = failwith ""
-                }
+        //match r.resultDataId with
+        //| Some v ->
+        //    let rs =
+        //        {
+        //            resultDataId = v
+        //            settings = failwith ""
+        //        }
 
-            failwith ""
-        | None -> ignore()
-
-            //SettingMap
+        //    failwith ""
+        //| None -> ignore()
 
 
         match results.TryGetResult PlotResults with

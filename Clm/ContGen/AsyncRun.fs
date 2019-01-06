@@ -84,7 +84,7 @@ module AsyncRun =
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            sprintf "{ generating: %A, runnin: %A, queue: %A (%A), shuttingDown: %A }" s.generating s.running s.queue.Length q s.shuttingDown
+            sprintf "{ generating: %A, running: %A, queue: %A, [ %A ], shuttingDown: %A }" s.generating s.running s.queue.Length q s.shuttingDown
 
 
     type RunnerMessage =
@@ -129,7 +129,7 @@ module AsyncRun =
                 let rec loop s =
                     async
                         {
-                            printfn "s = %A, Environment.ProcessorCount = %A" (s.ToString()) Environment.ProcessorCount
+                            printfn "s = %s, Environment.ProcessorCount = %A" (s.ToString()) Environment.ProcessorCount
                             let! m = u.Receive()
                             printfn "m = %A" m
 

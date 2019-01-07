@@ -95,6 +95,17 @@ module AsyncRun =
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | RequestShutDown
 
+        override m.ToString() =
+            let toStr r = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
+
+            match m with
+            | StartGenerate _ -> "StartGenerate"
+            | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
+            | StartRun (_, r) -> "StartRun: " + (toStr r)
+            | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
+            | GetState _ -> "GetState"
+            | RequestShutDown -> "RequestShutDown"
+
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
         let generate (a : AsyncRunner) =
@@ -131,7 +142,7 @@ module AsyncRun =
                         {
                             printfn "s = %s" (s.ToString())
                             let! m = u.Receive()
-                            printfn "m = %A" m
+                            printfn "m = %s" (m.ToString())
 
                             match m with
                             | StartGenerate a ->

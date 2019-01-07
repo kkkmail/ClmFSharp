@@ -4,7 +4,7 @@ CREATE TABLE [dbo].[ModelData](
 	[maxPeptideLength] [int] NOT NULL,
 	[seedValue] [int] NULL,
 	[fileStructureVersion] [nvarchar](50) NOT NULL,
-	[modelData] [nvarchar](max) NOT NULL,
+	[modelData] [varbinary](max) NOT NULL,
 	[createdOn] [datetime] NOT NULL,
  CONSTRAINT [PK_ModelData] PRIMARY KEY CLUSTERED 
 (

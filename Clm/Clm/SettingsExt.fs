@@ -955,7 +955,7 @@ module SettingsExt =
             let a() = getTextOpt m po fileStructureVersionNumberName
             let b() = getTextOpt m po versionNumberName
             let c() = getIntOpt m po seedValueName
-            let d() = getTextOpt m po modelNameName
+            let d() = getLongOpt m po modelNameName
             let e() = getIntOpt m po numberOfSubstancesName
             let f() = getIntOpt m po numberOfAminoAcidsName
             let g() = getIntOpt m po maxPeptideLengthName
@@ -970,7 +970,7 @@ module SettingsExt =
                         fileStructureVersionNumber = a1
                         versionNumber = b1
                         seedValue = c1
-                        modelName = d1
+                        modelDataId = d1
                         numberOfSubstances = e1
                         numberOfAminoAcids = f2
                         maxPeptideLength = g2
@@ -986,7 +986,7 @@ module SettingsExt =
                 setText po fileStructureVersionNumberName this.fileStructureVersionNumber
                 setText po versionNumberName this.versionNumber
                 setInt po seedValueName this.seedValue
-                setText po modelNameName this.modelName
+                setLong po modelNameName this.modelDataId
                 setInt po numberOfSubstancesName this.numberOfSubstances
                 setInt po numberOfAminoAcidsName this.numberOfAminoAcids.length
                 setInt po maxPeptideLengthName this.maxPeptideLength.length
@@ -1115,10 +1115,11 @@ module SettingsExt =
                     {
                         tEnd = t1
                         y0 = y1
-                        useAbundant = 
+                        useAbundant =
                             match getBoolOpt m qo useAbundantName with
                             | Some v -> v
                             | None -> false
+                        saveModelSettings = false // This field is not serialized / deserialized.
                     }
                     |> Some
                 | _ -> None

@@ -15,8 +15,7 @@ open Clm.DataLocation
 open Clm.GeneralData
 
 open Clm.Generator.FSharpCodeExt
-open Clm.Generator.ModelCommandLineParamExt
-open Clm.Generator.ReactionRatesExt
+open Clm.Generator.DefaultValuesExt
 
 
 module ClmModel =
@@ -455,18 +454,18 @@ module ClmModel =
             let sumCodeN = "        let " + xSumNameN + " = " + Nl + "            [|" + Nl + sc + Nl + "            |]" + Nl + "            |> Array.sum" + Nl + Nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + Nl + "            [|" + Nl + sc2 + Nl + "            |]" + Nl + "            |> Array.sum" + Nl
 
-            let modelDataParamsCode = 
+            let modelDataParamsCode =
                 @"
-    let modelDataParamsWithExtraData = 
+    let modelDataParamsWithExtraData =
         {
-            modelDataParams = 
+            modelDataParams =
                 {
-                    modelInfo = 
+                    modelInfo =
                         {
                             fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                             versionNumber = """ + modelParams.versionNumber + @"""
                             seedValue = seedValue
-                            modelName = """ + modelLocationInfo.modelName + @"""
+                            modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"L
                             numberOfSubstances = " + allSubst.Length.ToString() + @"
                             numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
@@ -577,12 +576,12 @@ module ClmModel =
         @
         [
             {
-                modelInfo = 
+                modelInfo =
                     {
                         fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                         versionNumber = """ + modelParams.versionNumber + @"""
                         seedValue = " + seedValue.ToString() + @"
-                        modelName = """ + modelLocationInfo.modelName + @"""
+                        modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"
                         numberOfSubstances = " + (allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"

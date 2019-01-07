@@ -7,13 +7,14 @@ CREATE TABLE [dbo].[ResultData](
 	[y0] [money] NOT NULL,
 	[tEnd] [money] NOT NULL,
 	[useAbundant] [bit] NOT NULL,
-	[aminoAcids] [nvarchar](max) NOT NULL,
-	[allSubst] [nvarchar](max) NOT NULL,
-	[allInd] [nvarchar](max) NOT NULL,
-	[allRawReactions] [nvarchar](max) NOT NULL,
-	[allReactions] [nvarchar](max) NOT NULL,
-	[x] [nvarchar](max) NOT NULL,
-	[t] [nvarchar](max) NOT NULL,
+	[aminoAcids] [varbinary](max) NOT NULL,
+	[allSubst] [varbinary](max) NOT NULL,
+	[allInd] [varbinary](max) NOT NULL,
+	[allRawReactions] [varbinary](max) NOT NULL,
+	[allReactions] [varbinary](max) NOT NULL,
+	[x] [varbinary](max) NOT NULL,
+	[t] [varbinary](max) NOT NULL,
+	[createdOn] [datetime] NOT NULL,
  CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
 (
 	[resultDataId] ASC
@@ -22,6 +23,9 @@ CREATE TABLE [dbo].[ResultData](
 GO
 
 ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_useAbundant]  DEFAULT ((0)) FOR [useAbundant]
+GO
+
+ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_createdOn]  DEFAULT (getdate()) FOR [createdOn]
 GO
 
 ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_ResultData] FOREIGN KEY([modelDataId])

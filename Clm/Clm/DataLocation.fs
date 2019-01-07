@@ -7,6 +7,9 @@ module DataLocation =
 
     let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
 
+    /// TODO kk:20190107 - This should be exposed as a command line parameter.
+    [<Literal>]
+    let DefaultRootFolder = @"C:\Clm\"
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
@@ -21,7 +24,8 @@ module DataLocation =
     let DefaultAllResultsFile = __SOURCE_DIRECTORY__ + @"\..\Results\AllResults.fs"
 
     [<Literal>]
-    let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
+    //let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
+    let DefaultResultLocationFolder = DefaultRootFolder + @"Results\Data"
 
 
     [<Literal>]
@@ -69,12 +73,15 @@ module DataLocation =
             }
 
 
-    type ModelLocationInfo = 
+    type ModelLocationInfo =
         {
             modelFolder : string
-            modelName : string
+            modelDataId : int64
             useDefaultModeData : bool
         }
+
+        //member this.modelName = toModelName this.modelDataId
+
 
         static member modelDataName = "ModelData"
 
@@ -103,30 +110,28 @@ module DataLocation =
         | ConsecutiveName n -> 
             {
                 modelFolder = String.Empty
-                modelName = toModelName n
+                modelDataId = n
                 useDefaultModeData = i.useDefaultModeData
             }
         | GenerateName ->
             let dirs = Directory.EnumerateDirectories(i.startingFolder) |> List.ofSeq |> List.map Path.GetFileName
-            let today = DateTime.Now
-            let todayPrefix = today.ToString "yyyyMMdd"
 
-            let todayMaxDirNumber = 
+            let todayMaxDirNumber =
                 (
-                    dirs 
-                    |> List.filter(fun d -> d.StartsWith(todayPrefix))
-                    |> List.map (fun d -> d.Substring(todayPrefix.Length).Replace("_", ""))
-                    |> List.choose (fun n -> match Int32.TryParse n with | (true, i) -> Some i | (false, _) -> None)
+                    dirs
+                    |> List.map (fun d -> d.Replace("_", ""))
+                    |> List.choose (fun n -> match Int64.TryParse n with | (true, i) -> Some i | (false, _) -> None)
                 )
-                @ [ 0 ]
+                @ [ 0L ]
                 |> List.max
 
-            let modelName = todayPrefix + i.separator + (todayMaxDirNumber + 1).ToString().PadLeft(i.padLength, '0')
+            let modelDataId = todayMaxDirNumber + 1L
+            let modelName = modelDataId |> toModelName
             let fullNextDir = Path.Combine(i.startingFolder, modelName)
             Directory.CreateDirectory(fullNextDir) |> ignore
 
             {
                 modelFolder = fullNextDir
-                modelName = modelName
+                modelDataId = modelDataId
                 useDefaultModeData = false
             }

@@ -5,9 +5,9 @@ open System
 
 module Solver = 
 
-    type OdeParams = 
+    type OdeParams =
         {
-            modelName : string
+            modelDataId : int64
             startTime : double
             endTime : double
             stepSize : double
@@ -18,7 +18,7 @@ module Solver =
 
         static member defaultValue =
             {
-                modelName = String.Empty
+                modelDataId = 0L
                 startTime = 0.0
                 endTime = 10.0
                 stepSize = 0.01
@@ -28,9 +28,9 @@ module Solver =
             }
 
 
-    type OdeResult = 
+    type OdeResult =
         {
-            modelName : string
+            modelDataId : int64
             y0 : double
             noOfOutputPoints : int
             startTime : double
@@ -42,7 +42,7 @@ module Solver =
 
     type NSolveParam = 
         {
-            modelName : string
+            modelDataId : int64
             tEnd : double
             g : double[] -> double[]
             h : double -> double[]
@@ -57,7 +57,7 @@ module Solver =
 
         let mutable progressCount = 0
 
-        let p = { OdeParams.defaultValue with modelName = n.modelName; endTime = n.tEnd }
+        let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; endTime = n.tEnd }
 
         let f (x : double[]) (t : double) : double[] = 
             match p.noOfProgressPoints with 
@@ -88,7 +88,7 @@ module Solver =
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 
         {
-            modelName = p.modelName
+            modelDataId = p.modelDataId
             y0 = n.y0
             noOfOutputPoints = nt
             startTime = p.startTime

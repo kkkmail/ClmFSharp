@@ -34,7 +34,7 @@ module Runner =
         static member defaultValue =
             {
                 connectionString = ClmConnectionString
-                rootBuildFolder = @"C:\Temp\Clm\"
+                rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = @"SolverRunner.exe"
             }
@@ -145,6 +145,7 @@ module Runner =
         let generate() =
             try
                 let modelId = getModelId ()
+                let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
 
                 match loadParams getRandomSeeder modelId with
                 | Some (p, r) ->
@@ -152,7 +153,7 @@ module Runner =
                     match saveModel code p modelId with
                     | true ->
                         compileModel modelId
-                        r |> List.map (fun e -> { run = runModel e; modelId = modelId })
+                        r |> List.mapi (fun i e -> { run = cmd i e |> runModel; modelId = modelId })
                     | false ->
                         printfn "Cannot save modelId: %A." modelId
                         []

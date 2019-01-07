@@ -16,7 +16,7 @@ open System.Data.SqlClient
 let main argv =
     printfn "%A" argv
 
-    let resultDataId = 8L
+    let resultDataId = 2L
 
     use conn = new SqlConnection(ClmConnectionString)
 

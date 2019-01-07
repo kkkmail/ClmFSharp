@@ -24,11 +24,30 @@ let main argv =
         let a = results.GetResult (UseAbundant, defaultValue = false)
         printfn "Starting at: %A" DateTime.Now
         let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
+
+        match results.TryGetResult SaveModelSettings with
+        | Some v when v ->
+            printfn "Saving model settings..."
+            let settings =
+                modelDataParamsWithExtraData.modelDataParams.setValue [] []
+                |> List.map (fun e -> e.settingPath, e)
+                |> Map.ofList
+
+            let rs =
+                {
+                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                    settings = settings
+                }
+
+            use conn = new SqlConnection(ClmConnectionString)
+            saveModelSettings conn rs
+        | _ -> ignore()
+
         printfn "Calling nSolve..."
 
         let p =
             {
-                modelName = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName
+                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
                 tEnd = tEnd
                 g = update
                 h = getInitValues
@@ -60,8 +79,7 @@ let main argv =
         let r =
             {
                 resultDataId = None
-                // TODO kk:20190105 - This should be fixed from the bottom by removing model name and converting it into modelId.
-                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName.Replace("_", "") |> Int64.Parse
+                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
 
                 numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                 maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
@@ -81,32 +99,7 @@ let main argv =
             }
 
         use conn = new SqlConnection(ClmConnectionString)
-        let resultDataId = saveResultData r conn
-
-        let settings =
-            modelDataParamsWithExtraData.modelDataParams.setValue [] []
-            |> List.map (fun e -> e.settingPath, e)
-            |> Map.ofList
-
-        let rs =
-            {
-                resultDataId = resultDataId
-                settings = settings
-            }
-
-        saveResultSettings conn rs
-
-        //match r.resultDataId with
-        //| Some v ->
-        //    let rs =
-        //        {
-        //            resultDataId = v
-        //            settings = failwith ""
-        //        }
-
-        //    failwith ""
-        //| None -> ignore()
-
+        saveResultData r conn |> ignore
 
         match results.TryGetResult PlotResults with
         | Some v when v = true ->
@@ -119,7 +112,7 @@ let main argv =
         | _ -> ignore()
 
         0
-    | _ -> 
+    | _ ->
         let usage = parser.PrintUsage()
         printfn "%A" usage
         -1

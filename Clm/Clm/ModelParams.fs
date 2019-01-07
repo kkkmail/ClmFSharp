@@ -15,11 +15,11 @@ module ModelParams =
         {
             fileStructureVersionNumber : string
             versionNumber : string
-            seedValue : int
-            modelName : string
+            modelDataId : int64
             numberOfSubstances : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
+            seedValue : int
             updateAllModels : bool // true if updating AllModels.fs file was done. This is needed to update / do not update all results.
             allResultsFile : string
         }
@@ -84,6 +84,7 @@ module ModelParams =
             tEnd : double
             y0 : double
             useAbundant : bool
+            saveModelSettings : bool
         }
 
         override this.ToString() =
@@ -93,6 +94,7 @@ module ModelParams =
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 PlotResults false
+                SaveModelSettings this.saveModelSettings
             ]
             |> parser.PrintCommandLineArgumentsFlat
 
@@ -135,6 +137,13 @@ module ModelParams =
     type ResultSettings =
         {
             resultDataId : int64
+            settings : SettingMap
+        }
+
+
+    type ModelSettings =
+        {
+            modelDataId : int64
             settings : SettingMap
         }
 

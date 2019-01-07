@@ -11,7 +11,7 @@ open ContGen
 open AsyncRun
 open Runner
 
-module Tasks =
+module ContGenTasks =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type RunContGenArgs =
@@ -56,6 +56,7 @@ module Tasks =
             | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("update")>]   UpdateParameters of ParseResults<UpdateParametersArgs>
             | [<Unique>] [<AltCommandLine("shutdown")>] RequestShutDown of ParseResults<RequestShutDownArgs>
+            | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
 
         with
             interface IArgParserTemplate with
@@ -64,6 +65,7 @@ module Tasks =
                     | RunContGen _ -> "run Continuous Generation."
                     | UpdateParameters _ -> "update parameters."
                     | RequestShutDown _ -> "request shut down."
+                    | GenerateModel -> "generate a single model."
 
 
     let runContGen (p :list<RunContGenArgs>) =
@@ -75,6 +77,7 @@ module Tasks =
             let state = a.getState()
             printfn "a.getState() = %s" (state.ToString())
             if state.queue.Length = 0 then a.startGenerate()
+        0
 
 
     let updateParameters (p :list<UpdateParametersArgs>) =
@@ -93,24 +96,36 @@ module Tasks =
             use conn = new SqlConnection(ClmConnectionString)
             openConnIfClosed conn
             saveDefaults conn n m |> ignore
-        | _ -> printfn "updateParameters: Incorrect number of amino acids and/or max peptide length specified."
+            0
+        | _ ->
+            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length specified."
+            -1
 
 
     /// TODO kk:20190107 - Implement.
     let requestShutDown (p :list<RequestShutDownArgs>) =
         printfn "requestShutDown is not implemented yet."
+        -1
+
+
+    /// TODO kk:20190107 - Implement.
+    let generateModel () =
+        printfn "generateModel is not implemented yet."
+        -1
 
 
     type ContGenTask =
         | RunContGenTask of list<RunContGenArgs>
         | UpdateParametersTask of list<UpdateParametersArgs>
         | RequestShutDownTask of list<RequestShutDownArgs>
+        | GenerateModelTask
 
         member task.run() =
             match task with
             | RunContGenTask p -> runContGen p
             | UpdateParametersTask p -> updateParameters p
             | RequestShutDownTask p -> requestShutDown p
+            | GenerateModelTask -> generateModel ()
 
         static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | RunContGen q -> q.GetAllResults() |> RunContGenTask |> Some | _ -> None)
@@ -121,14 +136,15 @@ module Tasks =
         static member private tryCreateRequestShutDownTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | RequestShutDown q -> q.GetAllResults() |> RequestShutDownTask |> Some | _ -> None)
 
+        static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
+            p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
+
         static member tryCreate (p : list<ContGenArguments>) =
-            match ContGenTask.tryCreateRequestShutDownTask p with
-            | Some t -> Some t
-            | None ->
-                match ContGenTask.tryCreateUpdateParametersTask p with
-                | Some t -> Some t
-                | None ->
-                    match ContGenTask.tryCreateRunContGenTask p with
-                    | Some t -> Some t
-                    | None -> None
+            [
+                ContGenTask.tryCreateRequestShutDownTask
+                ContGenTask.tryCreateUpdateParametersTask
+                ContGenTask.tryCreateGenerateModelTask
+                ContGenTask.tryCreateRunContGenTask
+            ]
+            |> List.tryPick (fun e -> e p)
 

@@ -5,10 +5,11 @@ open Argu
 [<EntryPoint>]
 let main argv =
     let parser = ArgumentParser.Create<ContGenArguments>(programName = "ContGen.exe")
-    let results = (parser.Parse argv).GetAllResults()
+    let results = parser.Parse argv
 
-    match ContGenTask.tryCreate results with
+    match results.GetAllResults() |> ContGenTask.tryCreate with
     | Some task -> task.run()
-    | None -> 
+    | None ->
         printfn "%s" (parser.PrintUsage())
         -1
+

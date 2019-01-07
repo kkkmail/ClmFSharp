@@ -93,6 +93,7 @@ module ContGenTasks =
 
         match n, m with
         | Some n, Some m ->
+            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A." (n.length) (m.length)
             use conn = new SqlConnection(ClmConnectionString)
             openConnIfClosed conn
             saveDefaults conn n m |> ignore

@@ -234,17 +234,17 @@ module DatabaseTypes =
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
 
-                    aminoAcids = JsonConvert.DeserializeObject<list<AminoAcid>>(r.aminoAcids)
-                    allSubst = JsonConvert.DeserializeObject<list<Substance>>(r.allSubst)
-                    allInd = JsonConvert.DeserializeObject<list<Substance * int>>(r.allInd) |> Map.ofList
-                    allRawReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allRawReactions)
-                    allReactions = JsonConvert.DeserializeObject<list<ReactionName * int>>(r.allReactions)
+                    aminoAcids = r.aminoAcids |> unZip |> JsonConvert.DeserializeObject<list<AminoAcid>>
+                    allSubst = r.allSubst |> unZip |> JsonConvert.DeserializeObject<list<Substance>>
+                    allInd = r.allInd |> unZip |> JsonConvert.DeserializeObject<list<Substance * int>> |> Map.ofList
+                    allRawReactions = r.allRawReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
+                    allReactions = r.allReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
 
                     y0 = r.y0
                     tEnd = r.tEnd
                     useAbundant = r.useAbundant
-                    x = JsonConvert.DeserializeObject<double [,]>(r.x)
-                    t = JsonConvert.DeserializeObject<double []>(r.t)
+                    x = r.x |> unZip |> JsonConvert.DeserializeObject<double [,]>
+                    t = r.t |> unZip |> JsonConvert.DeserializeObject<double []>
                     maxEe = r.maxEe
                 }
                 |> Some
@@ -256,17 +256,17 @@ module DatabaseTypes =
                         numberOfAminoAcids = r.numberOfAminoAcids.length,
                         maxPeptideLength = r.maxPeptideLength.length,
 
-                        aminoAcids = JsonConvert.SerializeObject r.aminoAcids,
-                        allSubst = JsonConvert.SerializeObject r.allSubst,
-                        allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject),
-                        allRawReactions = JsonConvert.SerializeObject r.allRawReactions,
-                        allReactions = JsonConvert.SerializeObject r.allReactions,
+                        aminoAcids = (r.aminoAcids |> JsonConvert.SerializeObject |> zip),
+                        allSubst = (r.allSubst |> JsonConvert.SerializeObject |> zip),
+                        allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip),
+                        allRawReactions = (r.allRawReactions |> JsonConvert.SerializeObject |> zip),
+                        allReactions = (r.allReactions |> JsonConvert.SerializeObject |> zip),
 
                         y0 = r.y0,
                         tEnd = r.tEnd,
                         useAbundant = r.useAbundant,
-                        x = JsonConvert.SerializeObject r.x,
-                        t = JsonConvert.SerializeObject r.t,
+                        x = (r.x |> JsonConvert.SerializeObject |> zip),
+                        t = (r.t |> JsonConvert.SerializeObject |> zip),
                         maxEe = r.maxEe
                         )
 
@@ -336,7 +336,7 @@ module DatabaseTypes =
                     maxPeptideLength = 0,
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
-                    modelData = EmptyString,
+                    modelData = [||],
                     createdOn = DateTime.Now
                     )
 
@@ -365,7 +365,7 @@ module DatabaseTypes =
             r.maxPeptideLength <- m.maxPeptideLength.length
             r.seedValue <- m.seedValue
             r.fileStructureVersion <- m.fileStructureVersion
-            r.modelData <- m.modelData
+            r.modelData <- (m.modelData |> zip)
             t.Update(conn) |> ignore
             true
         | None -> false

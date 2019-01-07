@@ -95,18 +95,6 @@ let main argv =
 
         saveResultSettings conn rs
 
-        //match r.resultDataId with
-        //| Some v ->
-        //    let rs =
-        //        {
-        //            resultDataId = v
-        //            settings = failwith ""
-        //        }
-
-        //    failwith ""
-        //| None -> ignore()
-
-
         match results.TryGetResult PlotResults with
         | Some v when v = true ->
             printfn "Plotting."
@@ -118,7 +106,7 @@ let main argv =
         | _ -> ignore()
 
         0
-    | _ -> 
+    | _ ->
         let usage = parser.PrintUsage()
         printfn "%A" usage
         -1

@@ -7,6 +7,9 @@ module DataLocation =
 
     let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
 
+    /// TODO kk:20190107 - This should be exposed as a command line parameter.
+    [<Literal>]
+    let DefaultRootFolder = @"C:\Clm\"
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
@@ -21,7 +24,8 @@ module DataLocation =
     let DefaultAllResultsFile = __SOURCE_DIRECTORY__ + @"\..\Results\AllResults.fs"
 
     [<Literal>]
-    let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
+    //let DefaultResultLocationFolder = __SOURCE_DIRECTORY__ + @"\..\Results\Data"
+    let DefaultResultLocationFolder = DefaultRootFolder + @"Results\Data"
 
 
     [<Literal>]

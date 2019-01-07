@@ -34,7 +34,7 @@ module Runner =
         static member defaultValue =
             {
                 connectionString = ClmConnectionString
-                rootBuildFolder = @"C:\Temp\Clm\"
+                rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = @"SolverRunner.exe"
             }

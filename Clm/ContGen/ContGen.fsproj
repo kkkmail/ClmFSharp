@@ -82,6 +82,9 @@
     <None Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
     <Reference Include="FakeLib">
       <HintPath>..\packages\FAKE.5.8.4\tools\FakeLib.dll</HintPath>
     </Reference>

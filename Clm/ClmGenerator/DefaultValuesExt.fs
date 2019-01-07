@@ -4,9 +4,50 @@ open System
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.ModelParams
 
 
-module ReactionRatesExt =
+module DefaultValuesExt =
+
+    type NumberOfAminoAcids
+        with
+        static member defaultValue = EightAminoAcids
+
+
+    type MaxPeptideLength
+        with
+        static member defaultValue = ThreeMax
+
+
+    type ModelCommandLineParam
+        with
+
+        static member defaultValues =
+            [
+                //{
+                //    tEnd = 10_000.0
+                //    y0 = 10.0
+                //    useAbundant = false
+                //}
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 10.0
+                    useAbundant = false
+                }
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 5.0
+                    useAbundant = false
+                }
+
+                {
+                    tEnd = 100_000.0
+                    y0 = 20.0
+                    useAbundant = false
+                }
+            ]
 
     let defaultRateMultiplierDistr (rnd : Random) threshold mult =
         TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
@@ -14,6 +55,7 @@ module ReactionRatesExt =
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
+
 
     type ReactionRateProvider
         with

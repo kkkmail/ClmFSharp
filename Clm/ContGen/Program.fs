@@ -1,7 +1,7 @@
 ﻿open Clm.Distributions
 open Clm.Substances
 open Clm.ReactionRates
-open Clm.Generator.ReactionRatesExt
+open Clm.Generator.DefaultValuesExt
 open Clm.GeneralData
 open DbData.Configuration
 open DbData.DatabaseTypes

@@ -15,8 +15,7 @@ open Clm.DataLocation
 open Clm.GeneralData
 
 open Clm.Generator.FSharpCodeExt
-open Clm.Generator.ModelCommandLineParamExt
-open Clm.Generator.ReactionRatesExt
+open Clm.Generator.DefaultValuesExt
 
 
 module ClmModel =

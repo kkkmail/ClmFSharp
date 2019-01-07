@@ -28,7 +28,7 @@ let main argv =
 
         let p =
             {
-                modelName = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName
+                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
                 tEnd = tEnd
                 g = update
                 h = getInitValues
@@ -60,8 +60,7 @@ let main argv =
         let r =
             {
                 resultDataId = None
-                // TODO kk:20190105 - This should be fixed from the bottom by removing model name and converting it into modelId.
-                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelName.Replace("_", "") |> Int64.Parse
+                modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
 
                 numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                 maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength

@@ -466,7 +466,7 @@ module ClmModel =
                             fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                             versionNumber = """ + modelParams.versionNumber + @"""
                             seedValue = seedValue
-                            modelName = """ + modelLocationInfo.modelName + @"""
+                            modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"
                             numberOfSubstances = " + allSubst.Length.ToString() + @"
                             numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
@@ -577,12 +577,12 @@ module ClmModel =
         @
         [
             {
-                modelInfo = 
+                modelInfo =
                     {
                         fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                         versionNumber = """ + modelParams.versionNumber + @"""
                         seedValue = " + seedValue.ToString() + @"
-                        modelName = """ + modelLocationInfo.modelName + @"""
+                        modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"
                         numberOfSubstances = " + (allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"

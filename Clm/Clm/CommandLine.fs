@@ -11,14 +11,6 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
 
     with
-        static member defaultValues =
-            [
-                EndTime 10_000.0
-                TotalAmount 10.0
-                UseAbundant false
-                PlotResults true
-            ]
-
         interface IArgParserTemplate with
             member s.Usage =
                 match s with

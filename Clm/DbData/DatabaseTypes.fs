@@ -378,7 +378,7 @@ module DatabaseTypes =
         newRow.resultDataId
 
 
-    let tryLoadResultData conn resultDataId = 
+    let tryLoadResultData conn resultDataId =
         openConnIfClosed conn
         use d = new ResultDataTableData(conn)
         let t = new ResultDataTable()

@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1709479541
+    let seedValue = 1271648792
     let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 587
@@ -2181,10 +2181,8 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            6.0 * 12851.8052352652 * x.[501] * x.[255] // cbC + Cca | sedimentation direct: cbC + Cca -> 6 Z
-            6.0 * 12851.8052352652 * x.[217] * x.[475] // CBc + cCA | sedimentation direct: CBc + cCA -> 6 Z
-            6.0 * 13896.5415643403 * x.[437] * x.[477] // bbC + cCC | sedimentation direct: bbC + cCC -> 6 Z
-            6.0 * 13896.5415643403 * x.[153] * x.[257] // BBc + Ccc | sedimentation direct: BBc + Ccc -> 6 Z
+            6.0 * 6889.97416567578 * x.[440] * x.[284] // bbb + DCB | sedimentation direct: bbb + DCB -> 6 Z
+            6.0 * 6889.97416567578 * x.[148] * x.[576] // BBB + dcb | sedimentation direct: BBB + dcb -> 6 Z
             -0.001 * x.[2] // Z | destruction: d <-> Z
             0.001 * x.[10] // d | destruction: d <-> Z
             -0.001 * x.[2] // Z | destruction: D <-> Z
@@ -5762,6 +5760,7 @@ module ModelData =
     // 148 - BBB
     let d148 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6889.97416567578 * x.[148] * x.[576] // BBB + dcb | sedimentation direct: BBB + dcb -> 6 Z
             -1.0 * x.[148] // BBB | ligation: B + BB <-> BBB
             1.0 * x.[4] * x.[20] // B + BB | ligation: B + BB <-> BBB
         |]
@@ -5807,7 +5806,6 @@ module ModelData =
     // 153 - BBc
     let d153 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13896.5415643403 * x.[153] * x.[257] // BBc + Ccc | sedimentation direct: BBc + Ccc -> 6 Z
             -1.0 * x.[153] // BBc | ligation: B + Bc <-> BBc
             1.0 * x.[4] * x.[25] // B + Bc | ligation: B + Bc <-> BBc
         |]
@@ -6384,7 +6382,6 @@ module ModelData =
     // 217 - CBc
     let d217 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12851.8052352652 * x.[217] * x.[475] // CBc + cCA | sedimentation direct: CBc + cCA -> 6 Z
             -1.0 * x.[217] // CBc | ligation: C + Bc <-> CBc
             1.0 * x.[5] * x.[25] // C + Bc | ligation: C + Bc <-> CBc
         |]
@@ -6727,7 +6724,6 @@ module ModelData =
     // 255 - Cca
     let d255 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12851.8052352652 * x.[501] * x.[255] // cbC + Cca | sedimentation direct: cbC + Cca -> 6 Z
             -1.0 * x.[255] // Cca | ligation: C + ca <-> Cca
             1.0 * x.[5] * x.[63] // C + ca | ligation: C + ca <-> Cca
         |]
@@ -6746,7 +6742,6 @@ module ModelData =
     // 257 - Ccc
     let d257 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13896.5415643403 * x.[153] * x.[257] // BBc + Ccc | sedimentation direct: BBc + Ccc -> 6 Z
             -1.0 * x.[257] // Ccc | ligation: C + cc <-> Ccc
             1.0 * x.[5] * x.[65] // C + cc | ligation: C + cc <-> Ccc
         |]
@@ -6990,6 +6985,7 @@ module ModelData =
     // 284 - DCB
     let d284 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6889.97416567578 * x.[440] * x.[284] // bbb + DCB | sedimentation direct: bbb + DCB -> 6 Z
             -1.0 * x.[284] // DCB | ligation: D + CB <-> DCB
             1.0 * x.[6] * x.[28] // D + CB | ligation: D + CB <-> DCB
         |]
@@ -8367,7 +8363,6 @@ module ModelData =
     // 437 - bbC
     let d437 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13896.5415643403 * x.[437] * x.[477] // bbC + cCC | sedimentation direct: bbC + cCC -> 6 Z
             -1.0 * x.[437] // bbC | ligation: b + bC <-> bbC
             1.0 * x.[8] * x.[53] // b + bC | ligation: b + bC <-> bbC
         |]
@@ -8395,6 +8390,7 @@ module ModelData =
     // 440 - bbb
     let d440 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6889.97416567578 * x.[440] * x.[284] // bbb + DCB | sedimentation direct: bbb + DCB -> 6 Z
             -1.0 * x.[440] // bbb | ligation: b + bb <-> bbb
             1.0 * x.[8] * x.[56] // b + bb | ligation: b + bb <-> bbb
         |]
@@ -8710,7 +8706,6 @@ module ModelData =
     // 475 - cCA
     let d475 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12851.8052352652 * x.[217] * x.[475] // CBc + cCA | sedimentation direct: CBc + cCA -> 6 Z
             -1.0 * x.[475] // cCA | ligation: c + CA <-> cCA
             1.0 * x.[9] * x.[27] // c + CA | ligation: c + CA <-> cCA
         |]
@@ -8729,7 +8724,6 @@ module ModelData =
     // 477 - cCC
     let d477 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -13896.5415643403 * x.[437] * x.[477] // bbC + cCC | sedimentation direct: bbC + cCC -> 6 Z
             -1.0 * x.[477] // cCC | ligation: c + CC <-> cCC
             1.0 * x.[9] * x.[29] // c + CC | ligation: c + CC <-> cCC
         |]
@@ -8946,7 +8940,6 @@ module ModelData =
     // 501 - cbC
     let d501 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -12851.8052352652 * x.[501] * x.[255] // cbC + Cca | sedimentation direct: cbC + Cca -> 6 Z
             -1.0 * x.[501] // cbC | ligation: c + bC <-> cbC
             1.0 * x.[9] * x.[53] // c + bC | ligation: c + bC <-> cbC
         |]
@@ -9622,6 +9615,7 @@ module ModelData =
     // 576 - dcb
     let d576 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -6889.97416567578 * x.[148] * x.[576] // BBB + dcb | sedimentation direct: BBB + dcb -> 6 Z
             -1.0 * x.[576] // dcb | ligation: d + cb <-> dcb
             1.0 * x.[10] * x.[64] // d + cb | ligation: d + cb <-> dcb
         |]
@@ -11495,16 +11489,16 @@ module ModelData =
         |]
 
 
-    let modelDataParamsWithExtraData = 
+    let modelDataParamsWithExtraData =
         {
-            modelDataParams = 
+            modelDataParams =
                 {
-                    modelInfo = 
+                    modelInfo =
                         {
                             fileStructureVersionNumber = "1.5.0.0"
                             versionNumber = "1.5.0.3"
                             seedValue = seedValue
-                            modelDataId = 5L
+                            modelDataId = 57L
                             numberOfSubstances = 587
                             numberOfAminoAcids = FourAminoAcids
                             maxPeptideLength = ThreeMax
@@ -11526,7 +11520,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        synthesisDistribution = DeltaDistribution(1044175364, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        synthesisDistribution = DeltaDistribution(2092134293, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 0.001
                                         backwardScale = Some 0.001
                                     }
@@ -11538,7 +11532,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        destructionDistribution = DeltaDistribution(1209401890, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        destructionDistribution = DeltaDistribution(1114159509, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 0.001
                                         backwardScale = Some 0.001
                                     }
@@ -11552,9 +11546,9 @@ module ModelData =
                                     {
                                         catSynthRndEeParams = 
                                         {
-                                            rateMultiplierDistr = TriangularDistribution(163171582, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                            eeForwardDistribution = BiDeltaDistribution(1921948477, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                            eeBackwardDistribution = BiDeltaDistribution(186618728, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            rateMultiplierDistr = TriangularDistribution(2146997712, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(192659644, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(1743798964, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                         }
                                     }
                                     |> CatSynthRndParam
@@ -11565,7 +11559,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        simBaseDistribution = UniformDistribution(653036525, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        simBaseDistribution = UniformDistribution(1977691336, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                         getRateMultiplierDistr = DeltaRateMultDistrGetter
                                         getForwardEeDistr = DeltaEeDistributionGetter
                                         getBackwardEeDistr = DeltaEeDistributionGetter
@@ -11580,9 +11574,9 @@ module ModelData =
                                     {
                                         catDestrRndEeParams = 
                                         {
-                                            rateMultiplierDistr = TriangularDistribution(1083040929, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                            eeForwardDistribution = BiDeltaDistribution(373541505, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                            eeBackwardDistribution = BiDeltaDistribution(8480492, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            rateMultiplierDistr = TriangularDistribution(115062137, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                            eeForwardDistribution = BiDeltaDistribution(2078367040, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                            eeBackwardDistribution = BiDeltaDistribution(393008279, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                         }
                                     }
                                     |> CatDestrRndParam
@@ -11593,7 +11587,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        simBaseDistribution = UniformDistribution(304743050, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                        simBaseDistribution = UniformDistribution(116267269, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                         getRateMultiplierDistr = DeltaRateMultDistrGetter
                                         getForwardEeDistr = DeltaEeDistributionGetter
                                         getBackwardEeDistr = DeltaEeDistributionGetter
@@ -11606,7 +11600,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        ligationDistribution = DeltaDistribution(1652623590, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                        ligationDistribution = DeltaDistribution(670468246, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                         forwardScale = Some 1.0
                                         backwardScale = Some 1.0
                                     }
@@ -11618,7 +11612,7 @@ module ModelData =
                             {
                                 modelParam = 
                                     {
-                                        sedimentationDirectDistribution = TriangularDistribution(1695306545, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
+                                        sedimentationDirectDistribution = TriangularDistribution(180036880, { threshold = Some 1E-05; scale = None; shift = None }) |> Triangular
                                         forwardScale = Some 10000.0
                                     }
                                     |> SedDirRndParam
@@ -11657,7 +11651,7 @@ module ModelData =
                     (SynthesisName, 8)
                     (DestructionName, 8)
                     (LigationName, 564)
-                    (SedimentationDirectName, 4)
+                    (SedimentationDirectName, 2)
                 ]
         }
 

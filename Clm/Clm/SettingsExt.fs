@@ -1115,10 +1115,11 @@ module SettingsExt =
                     {
                         tEnd = t1
                         y0 = y1
-                        useAbundant = 
+                        useAbundant =
                             match getBoolOpt m qo useAbundantName with
                             | Some v -> v
                             | None -> false
+                        saveModelSettings = false // This field is not serialized / deserialized.
                     }
                     |> Some
                 | _ -> None

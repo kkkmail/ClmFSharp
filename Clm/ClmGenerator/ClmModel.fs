@@ -454,13 +454,13 @@ module ClmModel =
             let sumCodeN = "        let " + xSumNameN + " = " + Nl + "            [|" + Nl + sc + Nl + "            |]" + Nl + "            |> Array.sum" + Nl + Nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + Nl + "            [|" + Nl + sc2 + Nl + "            |]" + Nl + "            |> Array.sum" + Nl
 
-            let modelDataParamsCode = 
+            let modelDataParamsCode =
                 @"
-    let modelDataParamsWithExtraData = 
+    let modelDataParamsWithExtraData =
         {
-            modelDataParams = 
+            modelDataParams =
                 {
-                    modelInfo = 
+                    modelInfo =
                         {
                             fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                             versionNumber = """ + modelParams.versionNumber + @"""

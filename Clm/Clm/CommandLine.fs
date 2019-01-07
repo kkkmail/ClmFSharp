@@ -9,6 +9,7 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y0")>] TotalAmount of float
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>]  SaveModelSettings of bool
 
     with
         interface IArgParserTemplate with
@@ -18,3 +19,4 @@ module CommandLine =
                 | TotalAmount _ -> "specify t0."
                 | UseAbundant _ -> "specify if abundant substance is used."
                 | PlotResults _ -> "specify if output charts to web browser."
+                | SaveModelSettings _ -> "if true then saves model settings into the database."

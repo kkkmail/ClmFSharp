@@ -28,24 +28,28 @@ module DefaultValuesExt =
                 //    tEnd = 10_000.0
                 //    y0 = 10.0
                 //    useAbundant = false
+                //    saveModelSettings = false
                 //}
 
                 {
-                    tEnd = 100_000.0
+                    tEnd = 50_000.0
                     y0 = 10.0
                     useAbundant = false
+                    saveModelSettings = false
                 }
 
                 {
-                    tEnd = 100_000.0
+                    tEnd = 50_000.0
                     y0 = 5.0
                     useAbundant = false
+                    saveModelSettings = false
                 }
 
                 {
-                    tEnd = 100_000.0
+                    tEnd = 50_000.0
                     y0 = 20.0
                     useAbundant = false
+                    saveModelSettings = false
                 }
             ]
 

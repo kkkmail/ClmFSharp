@@ -24,6 +24,25 @@ let main argv =
         let a = results.GetResult (UseAbundant, defaultValue = false)
         printfn "Starting at: %A" DateTime.Now
         let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
+
+        match results.TryGetResult SaveModelSettings with
+        | Some v when v ->
+            printfn "Saving model settings..."
+            let settings =
+                modelDataParamsWithExtraData.modelDataParams.setValue [] []
+                |> List.map (fun e -> e.settingPath, e)
+                |> Map.ofList
+
+            let rs =
+                {
+                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                    settings = settings
+                }
+
+            use conn = new SqlConnection(ClmConnectionString)
+            saveModelSettings conn rs
+        | _ -> ignore()
+
         printfn "Calling nSolve..."
 
         let p =
@@ -80,20 +99,7 @@ let main argv =
             }
 
         use conn = new SqlConnection(ClmConnectionString)
-        let resultDataId = saveResultData r conn
-
-        let settings =
-            modelDataParamsWithExtraData.modelDataParams.setValue [] []
-            |> List.map (fun e -> e.settingPath, e)
-            |> Map.ofList
-
-        let rs =
-            {
-                resultDataId = resultDataId
-                settings = settings
-            }
-
-        saveResultSettings conn rs
+        saveResultData r conn |> ignore
 
         match results.TryGetResult PlotResults with
         | Some v when v = true ->

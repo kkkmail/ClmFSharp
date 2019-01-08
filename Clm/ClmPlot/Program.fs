@@ -1,34 +1,15 @@
-﻿open System
-open Microsoft.FSharp.Core
-open Clm.ModelInit
-open Clm.ModelParams
-open Clm.CommandLine
-open Clm.SettingsExt
-open Analytics.Visualization
+﻿open Microsoft.FSharp.Core
 open Argu
-open Clm.Substances
-open DbData.Configuration
-open DbData.DatabaseTypes
-open System.Data.SqlClient
+open ClmPlot.PlotTasks
 
 
 [<EntryPoint>]
 let main argv =
-    printfn "%A" argv
+    let parser = ArgumentParser.Create<ClmPlotArguments>(programName = "ClmPlot.exe")
+    let results = parser.Parse argv
 
-    let resultDataId = 2L
-
-    use conn = new SqlConnection(ClmConnectionString)
-
-    match tryLoadResultData conn resultDataId with
-    | Some r ->
-        printfn "Plotting."
-        let plotter = new Plotter(PlotDataInfo.defaultValue, r)
-        plotter.plotAminoAcids()
-        plotter.plotTotalSubst()
-        plotter.plotEnantiomericExcess()
-        printfn "Completed."
+    match results.GetAllResults() |> ClmPlotTask.tryCreate with
+    | Some task -> task.run()
     | None ->
-        printfn "Failed to load resultDataId: %A" resultDataId
-
-    0
+        printfn "%s" (parser.PrintUsage())
+        -1

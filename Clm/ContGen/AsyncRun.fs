@@ -85,7 +85,7 @@ module AsyncRun =
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
             let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.modelId e.processId e.started) |> String.concat ", "
-            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: %s, shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
+            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
 
 
     type RunnerMessage =

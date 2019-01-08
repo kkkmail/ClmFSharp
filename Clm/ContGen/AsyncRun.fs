@@ -84,7 +84,8 @@ module AsyncRun =
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            sprintf "{ generating: %A, running: %A, queue: %A, [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q s.shuttingDown
+            let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.modelId e.processId e.started) |> String.concat ", "
+            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: %s, shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
 
 
     type RunnerMessage =
@@ -116,11 +117,13 @@ module AsyncRun =
                     return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate)
                 }
 
+
         let run (a : AsyncRunner) runner n =
             async
                 {
                     return! doAsyncTask(fun () -> runner n |> a.completeRun)
                 }
+
 
         let partition q n =
             let (a, b) =
@@ -130,6 +133,7 @@ module AsyncRun =
 
             (a |> List.map snd, b |> List.map snd)
 
+
         let start a (p :list<RunInfo>) =
             p
             |> List.map (fun e ->
@@ -137,8 +141,10 @@ module AsyncRun =
                             run a (e.run { notifyOnStarted = a.started; modelId = e.modelId } ) e.modelId |> Async.Start)
             |> ignore
 
+
         let logIfFailed x =
             ignore()
+
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->

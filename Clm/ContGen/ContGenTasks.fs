@@ -51,21 +51,39 @@ module ContGenTasks =
 
 
     and
+        [<CliPrefix(CliPrefix.Dash)>]
+        RunModelArgs =
+            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelDataId of int
+            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of double
+            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of double
+
+        with
+            interface IArgParserTemplate with
+                member this.Usage =
+                    match this with
+                    | ModelDataId _ -> "id of the modelData to run."
+                    | Y0 _ -> "value of total y0."
+                    | TEnd _ -> "value of tEnd."
+
+
+    and
         [<CliPrefix(CliPrefix.None)>]
         ContGenArguments =
             | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("update")>]   UpdateParameters of ParseResults<UpdateParametersArgs>
             | [<Unique>] [<AltCommandLine("shutdown")>] RequestShutDown of ParseResults<RequestShutDownArgs>
             | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
+            | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | RunContGen _ -> "run Continuous Generation."
-                    | UpdateParameters _ -> "update parameters."
-                    | RequestShutDown _ -> "request shut down."
-                    | GenerateModel -> "generate a single model."
+                    | RunContGen _ -> "runs Continuous Generation."
+                    | UpdateParameters _ -> "updates parameters."
+                    | RequestShutDown _ -> "requests shut down."
+                    | GenerateModel -> "generates a single model."
+                    | RunModel _ -> "runs a given model."
 
 
     let runContGen (p :list<RunContGenArgs>) =
@@ -115,11 +133,18 @@ module ContGenTasks =
         -1
 
 
+    /// TODO kk:20190107 - Implement.
+    let runModel (p :list<RunModelArgs>) =
+        printfn "runModel is not implemented yet."
+        -1
+
+
     type ContGenTask =
         | RunContGenTask of list<RunContGenArgs>
         | UpdateParametersTask of list<UpdateParametersArgs>
         | RequestShutDownTask of list<RequestShutDownArgs>
         | GenerateModelTask
+        | RunModelTask of list<RunModelArgs>
 
         member task.run() =
             match task with
@@ -127,6 +152,7 @@ module ContGenTasks =
             | UpdateParametersTask p -> updateParameters p
             | RequestShutDownTask p -> requestShutDown p
             | GenerateModelTask -> generateModel ()
+            | RunModelTask p -> runModel p
 
         static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | RunContGen q -> q.GetAllResults() |> RunContGenTask |> Some | _ -> None)
@@ -140,12 +166,15 @@ module ContGenTasks =
         static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
 
+        static member private tryCreateRunModelTask (p : list<ContGenArguments>) =
+            p |> List.tryPick (fun e -> match e with | RunModel q -> q.GetAllResults() |> RunModelTask |> Some | _ -> None)
+
         static member tryCreate (p : list<ContGenArguments>) =
             [
                 ContGenTask.tryCreateRequestShutDownTask
                 ContGenTask.tryCreateUpdateParametersTask
                 ContGenTask.tryCreateGenerateModelTask
+                ContGenTask.tryCreateRunModelTask
                 ContGenTask.tryCreateRunContGenTask
             ]
             |> List.tryPick (fun e -> e p)
-

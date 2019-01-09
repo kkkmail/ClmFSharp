@@ -73,6 +73,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="SolverRunnerTasks.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
@@ -128,6 +129,16 @@
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
       <Name>OdeSolver</Name>
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
+      <Name>ProgressNotifierClient</Name>
+      <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressNotifier\ProgressNotifier.fsproj">
+      <Name>ProgressNotifier</Name>
+      <Project>{fcce5871-0e44-49b5-a857-713eb62eedfd}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

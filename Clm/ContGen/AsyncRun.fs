@@ -20,14 +20,14 @@ module AsyncRun =
 
     type ProcessStartInfo =
         {
-            processId : int
-            modelId : int64
+            startedProcessId : int
+            startedModelId : int64
         }
 
 
     type ProcessResult =
         {
-            processId : int
+            exitedProcessId : int
             exitCode : int
             runTime : int64
             outputs : seq<string>
@@ -38,7 +38,7 @@ module AsyncRun =
     type ProcessStartedCallBack =
         {
             notifyOnStarted : ProcessStartInfo -> unit
-            modelId : int64
+            calledBackModelId : int64
         }
 
 
@@ -52,8 +52,9 @@ module AsyncRun =
     type RunningProcessInfo =
         {
             started : DateTime
-            processId : int
-            modelId : int64
+            runningProcessId : int
+            runningModelId : int64
+            progress : TaskProgress
         }
 
 
@@ -84,7 +85,7 @@ module AsyncRun =
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.modelId e.processId e.started) |> String.concat ", "
+            let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
             sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
 
 
@@ -134,11 +135,11 @@ module AsyncRun =
             (a |> List.map snd, b |> List.map snd)
 
 
-        let start a (p :list<RunInfo>) =
+        let start a p =
             p
             |> List.map (fun e ->
                             printfn "Starting modelId: %A..." e.modelId
-                            run a (e.run { notifyOnStarted = a.started; modelId = e.modelId } ) e.modelId |> Async.Start)
+                            run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId } ) e.modelId |> Async.Start)
             |> ignore
 
 
@@ -178,8 +179,9 @@ module AsyncRun =
                                 let r =
                                     {
                                         started = DateTime.Now
-                                        processId = p.processId
-                                        modelId = p.modelId
+                                        runningProcessId = p.startedProcessId
+                                        runningModelId = p.startedModelId
+                                        progress = TaskProgress.create 0.0m
                                     }
                                 return! loop { s with running = r :: s.running}
                             | CompleteRun (a, x) ->
@@ -189,7 +191,7 @@ module AsyncRun =
                                     a.startGenerate()
                                     let p, q = partition s.queue (s.runningCount - 1)
                                     start a p
-                                    let r = removeFirst (fun e -> e.processId = x.processId) s.running
+                                    let r = removeFirst (fun e -> e.runningProcessId = x.exitedProcessId) s.running
                                     return! loop { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = r }
                             | GetState r ->
                                 r.Reply s
@@ -243,7 +245,7 @@ module AsyncRun =
         let processId = p.Id
 
         printfn "Started %s with pid %i" p.ProcessName processId
-        c.notifyOnStarted { processId = processId; modelId = c.modelId }
+        c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId }
 
         p.BeginOutputReadLine()
         p.BeginErrorReadLine()
@@ -257,5 +259,5 @@ module AsyncRun =
             runTime = timer.ElapsedMilliseconds
             outputs = cleanOut outputs
             errors = cleanOut errors
-            processId = processId
+            exitedProcessId = processId
         }

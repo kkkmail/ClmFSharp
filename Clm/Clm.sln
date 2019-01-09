@@ -19,6 +19,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DbData", "DbData\DbData.fsp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Analytics", "Analytics\Analytics.fsproj", "{5CE359DB-D713-46BE-84DF-F9732DE85E26}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifier", "ProgressNotifier\ProgressNotifier.fsproj", "{FCCE5871-0E44-49B5-A857-713EB62EEDFD}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifierClient", "ProgressNotifierClient\ProgressNotifierClient.fsproj", "{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +95,22 @@ Global
 		{5CE359DB-D713-46BE-84DF-F9732DE85E26}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5CE359DB-D713-46BE-84DF-F9732DE85E26}.Release|x64.ActiveCfg = Release|x64
 		{5CE359DB-D713-46BE-84DF-F9732DE85E26}.Release|x64.Build.0 = Release|x64
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Debug|x64.Build.0 = Debug|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Release|x64.ActiveCfg = Release|Any CPU
+		{FCCE5871-0E44-49B5-A857-713EB62EEDFD}.Release|x64.Build.0 = Release|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Debug|x64.Build.0 = Debug|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|x64.ActiveCfg = Release|Any CPU
+		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -14,7 +14,7 @@ module Interfaces =
             | _ -> Completed
 
 
-    type ProgressUpdate =
+    type ProgressUpdateInfo =
         {
             updatedProcessId : int
             progress : TaskProgress
@@ -22,5 +22,5 @@ module Interfaces =
 
 
     type IProgressNotifier =
-        abstract notifyOfProgress : ProgressUpdate -> unit
+        abstract notifyOfProgress : ProgressUpdateInfo -> unit
 

@@ -13,11 +13,6 @@ open ContGenService.ServiceImplementation
 open ContGenService.WindowsService
 
 module Program =
-    //open DiscoverInterface.Configuration
-    //open DiscoverInterface.Serialization
-    //open DiscoverInterface.Service
-    //open DiscoverService.WindowsService
-
 
     // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
     let getInstaller () : AssemblyInstaller =
@@ -29,10 +24,10 @@ module Program =
     let installService () : bool =
         try
             printfn "Attempting to install service %s ..." ServiceName
-            let installer : AssemblyInstaller = getInstaller()
-            let dic = new System.Collections.Hashtable()
-            installer.Install(dic)
-            installer.Commit(dic)
+            let i : AssemblyInstaller = getInstaller()
+            let d = new System.Collections.Hashtable()
+            i.Install(d)
+            i.Commit(d)
             printfn "... service installed successfully.\n"
             true
         with
@@ -45,9 +40,9 @@ module Program =
     let uninstallService () : bool =
         try
             printfn "Attempting to uninstall service %s ..." ServiceName
-            let installer = getInstaller()
-            let dic = new System.Collections.Hashtable()
-            installer.Uninstall(dic)
+            let i = getInstaller()
+            let d = new System.Collections.Hashtable()
+            i.Uninstall(d)
             printfn "... service uninstalled successfully.\n"
             true
         with
@@ -68,7 +63,7 @@ module Program =
             printfn "... service started successfully.\n"
             true
         with
-            | e -> 
+            | e ->
                 printfn "FAILED to start service!"
                 printfn "    Error message : %s\n" (e.Message)
                 false
@@ -87,25 +82,12 @@ module Program =
             | e -> 
                 printfn "FAILED to stop service!"
                 printfn "    Error message : %s\n" (e.Message)
-                false        
+                false
 
-        
+
     [<EntryPoint>]
     let main (args : string[]) : int = 
         let timeOut = 10000.0
-
-//        let servicePort =
-//            match Configuration.ConfigurationManager.AppSettings.["DiscoverServicePort"] |> Int32.TryParse with
-//            | true, x -> Some x
-//            | false, _ -> None
-//
-//        let conn = 
-//            match ConfigurationManager.ConnectionStrings.[DiscoverAdmConnStr] with
-//            | null -> Some "!!! NULL !!!"
-//            | x -> if String.IsNullOrWhiteSpace x.ConnectionString then None else Some x.ConnectionString
-//
-//        printfn "DiscoverServicePort = %A" servicePort 
-//        printfn "conn = %A" conn 
 
         let usage () : unit = 
             let msg : string = 

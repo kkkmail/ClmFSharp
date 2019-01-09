@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
+open ProgressNotifier.Interfaces
 
 module AsyncRun =
 
@@ -69,7 +70,7 @@ module AsyncRun =
         {
             generating : bool
             runningCount : int
-            running : list<RunningProcessInfo>
+            running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
             shuttingDown : bool
         }
@@ -78,15 +79,23 @@ module AsyncRun =
             {
                 generating = false
                 runningCount = 0
-                running = []
+                running = Map.empty
                 queue = []
                 shuttingDown = false
             }
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
+            let r = 
+                s.running 
+                |> Map.toList
+                |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
             sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
+
+        member this.updateProgress (p : ProgressUpdateInfo) =
+            match this.running.TryFind p.updatedProcessId with
+            | Some e -> { this with running = this.running.Add(p.updatedProcessId, { e with progress = p.progress })}
+            | None -> this
 
 
     type RunnerMessage =
@@ -94,6 +103,7 @@ module AsyncRun =
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner * list<RunInfo>
         | Started of ProcessStartInfo
+        | ProgressUpdate of ProgressUpdateInfo
         | CompleteRun of AsyncRunner * ProcessResult
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | RequestShutDown
@@ -106,6 +116,7 @@ module AsyncRun =
             | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
             | StartRun (_, r) -> "StartRun: " + (toStr r)
             | Started p -> "Started: " + (p.ToString())
+            | ProgressUpdate p -> "ProgressUpdate: " + (p.ToString())
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
             | RequestShutDown -> "RequestShutDown"
@@ -183,7 +194,9 @@ module AsyncRun =
                                         runningModelId = p.startedModelId
                                         progress = TaskProgress.create 0.0m
                                     }
-                                return! loop { s with running = r :: s.running}
+                                return! loop { s with running = s.running.Add(r.runningProcessId, r)}
+                            | ProgressUpdate p ->
+                                return! loop (s.updateProgress p)
                             | CompleteRun (a, x) ->
                                 if s.shuttingDown then return! loop { s with runningCount = s.runningCount - 1 }
                                 else
@@ -191,8 +204,7 @@ module AsyncRun =
                                     a.startGenerate()
                                     let p, q = partition s.queue (s.runningCount - 1)
                                     start a p
-                                    let r = removeFirst (fun e -> e.runningProcessId = x.exitedProcessId) s.running
-                                    return! loop { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = r }
+                                    return! loop { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
                             | GetState r ->
                                 r.Reply s
                                 return! loop s

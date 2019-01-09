@@ -18,10 +18,18 @@ open System.Data.SqlClient
 open ProgressNotifier.Interfaces
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
+open ProgressNotifierClient
 
 
 module SolverRunnerTasks =
-    open ProgressNotifierClient
+
+    let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
+        try
+            r.progressNotifierService.notifyOfProgress p
+        with
+            | e ->
+                printfn "Exception occurred: %A, progress: %A." e.Message p
+
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount with
@@ -61,8 +69,8 @@ module SolverRunnerTasks =
                     y0 = y0
                     progressCallBack =
                         match n with
-                        | Some s ->
-                            (fun r -> s.progressNotifierService.notifyOfProgress
+                        | Some svc ->
+                            (fun r -> progressNotifier svc
                                             {
                                                 updatedProcessId = Process.GetCurrentProcess().Id
                                                 progress = TaskProgress.create r

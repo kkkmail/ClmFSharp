@@ -77,7 +77,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="AppLog.fs" />
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
@@ -90,16 +89,29 @@
     <None Include="TestService.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ProgressNotifier\ProgressNotifier.fsproj">
+      <Name>ProgressNotifier</Name>
+      <Project>{fcce5871-0e44-49b5-a857-713eb62eedfd}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceInfo\ServiceInfo.fsproj">
       <Name>ServiceInfo</Name>
       <Project>{0c69a1b6-c7e2-48d1-8808-867741990e5f}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Configuration">
+      <HintPath>..\packages\FSharp.Configuration.1.5.0\lib\net45\FSharp.Configuration.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.0.0.1\lib\net40\FSharp.Core.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="SharpYaml">
+      <HintPath>..\packages\FSharp.Configuration.1.5.0\lib\net45\SharpYaml.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.Install" />
@@ -107,6 +119,9 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.ValueTuple">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">

@@ -172,6 +172,7 @@ module AsyncRun =
                                     start a p
                                     return! loop { s with runningCount = s.runningCount + p.Length; queue = q }
                             | Started p ->
+                                printfn "Started: %A" p
                                 let r =
                                     {
                                         started = DateTime.Now

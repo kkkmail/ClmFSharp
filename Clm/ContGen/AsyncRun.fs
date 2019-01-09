@@ -142,7 +142,9 @@ module AsyncRun =
             |> ignore
 
 
+        /// TODO kk:20190109 - Implement.
         let logIfFailed x =
+            printfn "logIfFailed is not implemented yet."
             ignore()
 
 

@@ -74,6 +74,7 @@
     <Compile Include="Reactions.fs" />
     <Compile Include="DataLocation.fs" />
     <Compile Include="CommandLine.fs" />
+    <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
     <Compile Include="RateModelsExt.fs" />

@@ -135,11 +135,10 @@ module Runner =
             Target.runOrDefault "Default"
 
 
-        let runModel (p : ModelCommandLineParam) modelId =
+        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) modelId =
             let exeName = getExeName modelId
             let commandLineParams = p.ToString()
-            runProc exeName commandLineParams None |> ignore
-            modelId
+            runProc c exeName commandLineParams None
 
 
         let generate() =

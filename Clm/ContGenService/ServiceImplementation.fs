@@ -7,7 +7,7 @@ open ProgressNotifier.Interfaces
 open ContGen.AsyncRun
 open ContGen.Runner
 
-module ServiceImplementation = 
+module ServiceImplementation =
     type ContGenService () =
         inherit MarshalByRefObject()
 
@@ -20,6 +20,4 @@ module ServiceImplementation =
 
         interface IProgressNotifier with
             member this.notifyOfProgress (p : ProgressUpdateInfo) : unit =
-                //a.completeRun
-                failwith ""
-
+                a.progressUpdate p

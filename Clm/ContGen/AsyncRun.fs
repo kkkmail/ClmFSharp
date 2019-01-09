@@ -219,6 +219,7 @@ module AsyncRun =
         member this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
         member this.startRun r = StartRun (this, r) |> messageLoop.Post
         member this.started p = Started p |> messageLoop.Post
+        member this.progressUpdate p = ProgressUpdate p |> messageLoop.Post
         member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
 

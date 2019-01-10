@@ -1,4 +1,4 @@
-﻿namespace ProgressNotifierClient
+﻿namespace ContGenAdm
 
 open System
 open ContGenServiceInfo.ServiceInfo

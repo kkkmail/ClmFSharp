@@ -1,7 +1,13 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
+﻿open ContGenAdm.ContGenServiceResponse
+open System.Threading
 
 [<EntryPoint>]
-let main argv = 
-    printfn "%A" argv
-    0 // return an integer exit code
+let main argv =
+    let service = new ContGenResponseHandler()
+
+    while true do
+        let state = service.contGenService.getState()
+        printfn "state = %A" state
+        Thread.Sleep(10_000)
+
+    0

@@ -77,7 +77,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ContGenServiceInfo.fs" />
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
@@ -92,14 +91,9 @@
     <None Include="TestService.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProgressNotifier\ProgressNotifier.fsproj">
-      <Name>ProgressNotifier</Name>
-      <Project>{fcce5871-0e44-49b5-a857-713eb62eedfd}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceInfo\ServiceInfo.fsproj">
-      <Name>ServiceInfo</Name>
-      <Project>{0c69a1b6-c7e2-48d1-8808-867741990e5f}</Project>
+    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
+      <Name>ProgressNotifierServiceInfo</Name>
+      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
       <Private>True</Private>
     </ProjectReference>
     <Reference Include="Argu">
@@ -135,6 +129,11 @@
     <ProjectReference Include="..\Clm\Clm.fsproj">
       <Name>Clm</Name>
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ContGen\ContGen.fsproj">

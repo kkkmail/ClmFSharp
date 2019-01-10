@@ -3,14 +3,23 @@
 open System
 open System.IO
 open System.Diagnostics
-open ProgressNotifier.Interfaces
+open ProgressNotifierServiceInfo.ServiceInfo
 open ContGen.AsyncRun
 open ContGen.Runner
-open ContGenService.ContGenServiceInfo
+open ContGenServiceInfo.ServiceInfo
 open ContGen.AsyncRun
 
 module ServiceImplementation =
+
     let a = createRunner ModelRunnerParam.defaultValue
+
+    type AsyncRunnerState
+        with
+        member s.runnerState : ContGenRunnerState =
+            {
+                generating = s.generating
+                runningCount = s.runningCount
+            }
 
     type ProgressNotifierService () =
         inherit MarshalByRefObject()
@@ -30,7 +39,7 @@ module ServiceImplementation =
         do initService ()
 
         interface IContGenService with
-            member this.getState() : AsyncRunnerState = a.getState()
+            member this.getState() = a.getState().runnerState
             member this.startGenerating() = a.startGenerate()
 
             member this.stopGenerating()=

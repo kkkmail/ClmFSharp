@@ -3,10 +3,10 @@
 open System
 open System.Configuration.Install
 open System.ServiceProcess
-open ServiceInfo.ServiceConfiguration
 open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
-open ContGenService.ContGenServiceInfo
+open ContGenServiceInfo.ServiceInfo
+open ProgressNotifierServiceInfo.ServiceInfo
 
 module ContGenServiceTasks =
 

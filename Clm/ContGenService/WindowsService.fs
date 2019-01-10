@@ -4,9 +4,10 @@ open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 
-open ServiceInfo.ServiceConfiguration
 open ContGenService.ServiceImplementation
-open ContGenService.ContGenServiceInfo
+open ContGenServiceInfo.ServiceInfo
+open ProgressNotifierServiceInfo.ServiceInfo
+
 
 module WindowsService =
 

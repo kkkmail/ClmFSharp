@@ -81,6 +81,8 @@
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
+    <Compile Include="SvcCommandLine.fs" />
+    <Compile Include="ContGenServiceTasks.fs" />
     <Compile Include="Program.fs" />
     <Content Include="db.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

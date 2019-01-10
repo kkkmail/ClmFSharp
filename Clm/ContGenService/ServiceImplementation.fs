@@ -1,12 +1,9 @@
 ﻿namespace ContGenService
 
 open System
-open System.IO
-open System.Diagnostics
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
-open ContGen.AsyncRun
 
 module ServiceImplementation =
 

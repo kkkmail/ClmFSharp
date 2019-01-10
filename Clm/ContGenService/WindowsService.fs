@@ -9,30 +9,6 @@ open ContGenServiceInfo.ServiceInfo
 
 module WindowsService =
 
-    //type public ProgressNotifierWindowsService () =
-    //    inherit ServiceBase (ServiceName = ProgressNotifierServiceName)
-
-    //    let initService () = ()
-    //    do initService ()
-
-    //    override service.OnStart (args:string[]) =
-    //        base.OnStart(args)
-    //        let servicePort = ProgressNotifierServicePort
-
-    //        try
-    //            let channel = new Tcp.TcpChannel (servicePort)
-    //            ChannelServices.RegisterChannel (channel, false)
-
-    //            RemotingConfiguration.RegisterWellKnownServiceType
-    //                ( typeof<ProgressNotifierService>, ProgressNotifierServiceName, WellKnownObjectMode.Singleton )
-    //        with
-    //            | e ->
-    //                ignore()
-
-    //    override service.OnStop () =
-    //        base.OnStop()
-
-
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 

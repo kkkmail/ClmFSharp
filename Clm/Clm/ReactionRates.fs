@@ -11,14 +11,14 @@ open Clm.GeneralData
 
 module ReactionRates = 
 
-    type RelatedReactions<'R> = 
+    type RelatedReactions<'R> =
         {
             primary : (ReactionRate option * ReactionRate option)
             similar : list<'R * (ReactionRate option * ReactionRate option)>
         }
 
 
-    let dictionaryToList (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) = 
+    let dictionaryToList (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) =
         d
         |> List.ofSeq
         |> List.map (fun e -> e.Key, e.Value)

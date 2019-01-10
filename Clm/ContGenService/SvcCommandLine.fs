@@ -18,4 +18,3 @@ module SvcCommandLine =
                 | Uninstall -> "uninstall services."
                 | Start -> "start services."
                 | Stop -> "stop services."
-

@@ -5,7 +5,7 @@ open Clm.ReactionRates
 
 module RateModelsExt =
 
-    type ModelsAndParams = 
+    type ModelsAndParams =
         {
             models : list<ReactionRateModelWithUsage>
             modelParams : list<ReactionRateModelParamWithUsage>

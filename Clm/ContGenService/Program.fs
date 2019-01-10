@@ -19,13 +19,8 @@ module Program =
             | Some task ->
                 task.run() |> ignore
                 0
-            | None ->
-                ServiceBase.Run
-                    [|
-                        //new ProgressNotifierWindowsService() :> ServiceBase
-                        new ContGenWindowsService() :> ServiceBase
-                    |]
-
+            | None -> 
+                ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
                 0
         with
             | exn ->

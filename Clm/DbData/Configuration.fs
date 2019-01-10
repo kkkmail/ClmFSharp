@@ -1,7 +1,5 @@
 ﻿namespace DbData
 
-open FSharp.Data
-
 module Configuration =
 
     [<Literal>]

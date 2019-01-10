@@ -11,20 +11,29 @@ open System.Text
 open ServiceInfo.ServiceConfiguration
 open ContGenService.ServiceImplementation
 open ContGenService.WindowsService
+open ServiceInfo.ServiceConfiguration
+open ContGenService.ContGenServiceInfo
 
 module Program =
 
     // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
-    let getInstaller () : AssemblyInstaller =
-        let installer : AssemblyInstaller = new AssemblyInstaller(typedefof<ContGenWindowsService>.Assembly, null);
+    let getInstaller serviceName =
+        let installer =
+            match serviceName with
+            | ProgressNotifierServiceName -> 
+                //new AssemblyInstaller(typedefof<ProgressNotifierWindowsService>.Assembly, null);
+                new AssemblyInstaller(typedefof<ProgressNotifierWindowsService>.Assembly, [| "/name=" + serviceName |]);
+            | ContGenServiceName -> 
+                new AssemblyInstaller(typedefof<ContGenWindowsService>.Assembly, [| "/name=" + serviceName |]);
+            | _ -> failwith "Invalid name specified."
         installer.UseNewContext <- true
         installer
 
 
-    let installService () : bool =
+    let installService serviceName =
         try
-            printfn "Attempting to install service %s ..." ServiceName
-            let i : AssemblyInstaller = getInstaller()
+            printfn "Attempting to install service %s ..." serviceName
+            let i = getInstaller serviceName
             let d = new System.Collections.Hashtable()
             i.Install(d)
             i.Commit(d)
@@ -37,10 +46,10 @@ module Program =
                 false
 
 
-    let uninstallService () : bool =
+    let uninstallService serviceName =
         try
-            printfn "Attempting to uninstall service %s ..." ServiceName
-            let i = getInstaller()
+            printfn "Attempting to uninstall service %s ..." serviceName
+            let i = getInstaller serviceName
             let d = new System.Collections.Hashtable()
             i.Uninstall(d)
             printfn "... service uninstalled successfully.\n"
@@ -52,10 +61,10 @@ module Program =
                 false
 
 
-    let startService (timeoutMilliseconds : float) : bool = 
+    let startService serviceName timeoutMilliseconds =
         try
-            printfn "Attempting to start service %s ..." ServiceName
-            let service : ServiceController = new ServiceController(ServiceName)
+            printfn "Attempting to start service %s ..." serviceName
+            let service : ServiceController = new ServiceController(serviceName)
             let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
 
             service.Start ()
@@ -68,10 +77,10 @@ module Program =
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
-    let stopService (timeoutMilliseconds : float) : bool = 
+    let stopService serviceName timeoutMilliseconds =
         try
-            printfn "Attempting to stop service %s ..." ServiceName
-            let service : ServiceController = new ServiceController(ServiceName)
+            printfn "Attempting to stop service %s ..." serviceName
+            let service : ServiceController = new ServiceController(serviceName)
             let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
 
             service.Stop ()
@@ -108,15 +117,26 @@ module Program =
         | 1 -> 
             match (args.[0].ToLower()) with
             |"-install"   | "-i" -> 
-                if installService () then startService timeOut |> ignore
+                if installService ProgressNotifierServiceName then startService ProgressNotifierServiceName timeOut |> ignore
+                //if installService ContGenServiceName then startService ContGenServiceName timeOut |> ignore
             |"-uninstall" | "-u" -> 
-                stopService timeOut |> ignore // Service may be already stopped
-                uninstallService () |> ignore
-            |"-start" -> 
-                startService timeOut |> ignore
+                stopService ProgressNotifierServiceName timeOut |> ignore // Service may be already stopped
+                stopService ContGenServiceName timeOut |> ignore // Service may be already stopped
+
+                uninstallService ProgressNotifierServiceName |> ignore
+                //uninstallService ContGenServiceName |> ignore
+            |"-start" ->
+                startService ProgressNotifierServiceName timeOut |> ignore
+                startService ContGenServiceName timeOut |> ignore
             |"-stop" -> 
-                stopService timeOut |> ignore
+                stopService ProgressNotifierServiceName timeOut |> ignore
+                stopService ContGenServiceName timeOut |> ignore
             |_-> usage ()
-        | _ -> ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
+        | _ -> 
+            ServiceBase.Run
+                [|
+                    new ProgressNotifierWindowsService() :> ServiceBase
+                    new ContGenWindowsService() :> ServiceBase
+                |]
 
         0

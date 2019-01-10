@@ -18,17 +18,31 @@ open System.Data.SqlClient
 open ProgressNotifier.Interfaces
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
+open System.Threading.Tasks
 open ProgressNotifierClient
 
 
 module SolverRunnerTasks =
 
+    /// This is a copy from AsyncRun.fs
+    let doAsyncTask  (f : unit->'a) = 
+         async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
+
+
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
-        try
-            r.progressNotifierService.notifyOfProgress p
-        with
-            | e ->
-                printfn "Exception occurred: %A, progress: %A." e.Message p
+        async
+            {
+                return! doAsyncTask(fun () ->
+                    try
+                        printfn "Notifying of progress: %A." p
+                        r.progressNotifierService.notifyOfProgress p
+                        printfn "...completed."
+                    with
+                        | e ->
+                            printfn "Exception occurred: %A, progress: %A." e.Message p
+                )
+            }
+        |> Async.Start
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =

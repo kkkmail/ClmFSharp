@@ -3,12 +3,8 @@
 module ServiceConfiguration =
 
     [<Literal>]
-    let ServiceName = "ContGenService"
+    let ProgressNotifierServiceName = "ProgressNotifierService"
 
-    [<Literal>]
-    let ServiceConfigFileName : string = "ContGenService.config"
-
-
-    type IContGenService =
-        abstract x : unit -> unit
+    //[<Literal>]
+    //let ServiceConfigFileName : string = "ContGenService.config"
 

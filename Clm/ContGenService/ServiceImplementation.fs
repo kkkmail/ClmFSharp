@@ -6,18 +6,28 @@ open System.Diagnostics
 open ProgressNotifier.Interfaces
 open ContGen.AsyncRun
 open ContGen.Runner
+open ContGenService.ContGenServiceInfo
 
 module ServiceImplementation =
-    type ContGenService () =
+    let a = createRunner ModelRunnerParam.defaultValue
+
+    type ProgressNotifierService () =
         inherit MarshalByRefObject()
 
-        let a = createRunner ModelRunnerParam.defaultValue
-
-        let initService () =
-            a.startGenerate()
-
+        let initService () = ()
         do initService ()
 
         interface IProgressNotifier with
+            member this.notifyOfProgress (p : ProgressUpdateInfo) : unit =
+                a.progressUpdate p
+
+
+    type ContGenService () =
+        inherit MarshalByRefObject()
+
+        let initService () = ()
+        do initService ()
+
+        interface IContGenService with
             member this.notifyOfProgress (p : ProgressUpdateInfo) : unit =
                 a.progressUpdate p

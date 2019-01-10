@@ -11,6 +11,15 @@ module AsyncRun =
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
 
+    let partition maxVal q n =
+        let (a, b) =
+            q
+            |> List.mapi (fun i e -> (i + n + 1, e))
+            |> List.partition (fun (i, _) -> i <= maxVal)
+
+        (a |> List.map snd, b |> List.map snd)
+
+
     //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
     let rec removeFirst pred lst =
         match lst with
@@ -60,6 +69,7 @@ module AsyncRun =
     type AsyncRunnerState =
         {
             generating : bool
+            runLimit : int
             runningCount : int
             running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
@@ -69,6 +79,7 @@ module AsyncRun =
         static member defaultValue =
             {
                 generating = false
+                runLimit = Environment.ProcessorCount
                 runningCount = 0
                 running = Map.empty
                 queue = []
@@ -77,16 +88,39 @@ module AsyncRun =
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            let r = 
-                s.running 
+            let r =
+                s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
             sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
 
-        member this.updateProgress (p : ProgressUpdateInfo) =
-            match this.running.TryFind p.updatedProcessId with
-            | Some e -> { this with running = this.running.Add(p.updatedProcessId, { e with progress = p.progress })}
-            | None -> this
+        member s.updateProgress (p : ProgressUpdateInfo) =
+            match s.running.TryFind p.updatedProcessId with
+            | Some e -> { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
+            | None -> 
+                let e =
+                    {
+                        started = DateTime.Now
+                        runningProcessId = p.updatedProcessId
+                        runningModelId = -1L
+                        progress = p.progress
+                    }
+                { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
+
+        member s.completeRun startGenerate start (x : ProcessResult) =
+            if s.shuttingDown then { s with runningCount = s.runningCount - 1 }
+            else
+                startGenerate()
+
+                match s.running.TryFind x.exitedProcessId with
+                | Some _ ->
+                    let p, q = partition s.runLimit s.queue (s.runningCount - 1)
+                    start p
+                    { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
+                | None ->
+                    let p, q = partition s.runLimit s.queue s.runningCount
+                    start p
+                    { s with runningCount = s.runningCount + p.Length; queue = q }
 
 
     type RunnerMessage =
@@ -115,26 +149,11 @@ module AsyncRun =
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
         let generate (a : AsyncRunner) =
-            async
-                {
-                    return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate)
-                }
+            async { return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate) }
 
 
         let run (a : AsyncRunner) runner n =
-            async
-                {
-                    return! doAsyncTask(fun () -> runner n |> a.completeRun)
-                }
-
-
-        let partition q n =
-            let (a, b) =
-                q
-                |> List.mapi (fun i e -> (i + n + 1, e))
-                |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
-
-            (a |> List.map snd, b |> List.map snd)
+            async { return! doAsyncTask(fun () -> runner n |> a.completeRun) }
 
 
         let start a p =
@@ -173,7 +192,7 @@ module AsyncRun =
                             | StartRun (a, r) ->
                                 if s.shuttingDown then return! loop s
                                 else
-                                    let p, q = partition (s.queue @ r) s.runningCount
+                                    let p, q = partition s.runLimit (s.queue @ r) s.runningCount
                                     start a p
                                     return! loop { s with runningCount = s.runningCount + p.Length; queue = q }
                             | Started p ->
@@ -189,13 +208,7 @@ module AsyncRun =
                             | ProgressUpdate p ->
                                 return! loop (s.updateProgress p)
                             | CompleteRun (a, x) ->
-                                if s.shuttingDown then return! loop { s with runningCount = s.runningCount - 1 }
-                                else
-                                    logIfFailed x
-                                    a.startGenerate()
-                                    let p, q = partition s.queue (s.runningCount - 1)
-                                    start a p
-                                    return! loop { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
+                                return! loop (s.completeRun a.startGenerate (start a) x)
                             | GetState r ->
                                 r.Reply s
                                 return! loop s

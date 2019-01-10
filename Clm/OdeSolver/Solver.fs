@@ -71,6 +71,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
+                    printfn "\nStep: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
                     notify t progressCount k
             | _ -> ignore()
 

@@ -51,11 +51,8 @@ module ServiceInfo =
         }
 
 
-    type IProgressNotifier =
-        abstract notifyOfProgress : ProgressUpdateInfo -> unit
-
     type IContGenService =
-        inherit IProgressNotifier
         abstract getState : unit -> ContGenRunnerState
         abstract startGenerating : unit -> unit
         abstract stopGenerating : unit -> unit
+        abstract notifyOfProgress : ProgressUpdateInfo -> unit

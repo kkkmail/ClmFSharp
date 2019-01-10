@@ -15,8 +15,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenService", "ContGenSe
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenServiceInfo", "ContGenServiceInfo\ContGenServiceInfo.fsproj", "{421101C3-190A-432C-82C9-0E390E131057}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifierServiceInfo", "ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj", "{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenAdm", "ContGenAdm\ContGenAdm.fsproj", "{297160A2-3509-467C-A821-566C6B678BE1}"
 EndProject
 Global
@@ -75,14 +73,6 @@ Global
 		{421101C3-190A-432C-82C9-0E390E131057}.Release|Any CPU.Build.0 = Release|Any CPU
 		{421101C3-190A-432C-82C9-0E390E131057}.Release|x64.ActiveCfg = Release|Any CPU
 		{421101C3-190A-432C-82C9-0E390E131057}.Release|x64.Build.0 = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|x64.ActiveCfg = Debug|x64
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|x64.Build.0 = Debug|x64
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.ActiveCfg = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.Build.0 = Release|Any CPU
 		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|x64.ActiveCfg = Debug|x64

@@ -21,7 +21,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Analytics", "Analytics\Anal
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifierClient", "ProgressNotifierClient\ProgressNotifierClient.fsproj", "{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifierServiceInfo", "ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj", "{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenServiceInfo", "ContGenServiceInfo\ContGenServiceInfo.fsproj", "{421101C3-190A-432C-82C9-0E390E131057}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,14 +103,14 @@ Global
 		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|x64.ActiveCfg = Release|Any CPU
 		{6779F3DF-43D1-40CD-9C30-91B1F3A92A1F}.Release|x64.Build.0 = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|x64.ActiveCfg = Debug|x64
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Debug|x64.Build.0 = Debug|x64
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.ActiveCfg = Release|x64
-		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.Build.0 = Release|x64
+		{421101C3-190A-432C-82C9-0E390E131057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{421101C3-190A-432C-82C9-0E390E131057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{421101C3-190A-432C-82C9-0E390E131057}.Debug|x64.ActiveCfg = Debug|x64
+		{421101C3-190A-432C-82C9-0E390E131057}.Debug|x64.Build.0 = Debug|x64
+		{421101C3-190A-432C-82C9-0E390E131057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{421101C3-190A-432C-82C9-0E390E131057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{421101C3-190A-432C-82C9-0E390E131057}.Release|x64.ActiveCfg = Release|x64
+		{421101C3-190A-432C-82C9-0E390E131057}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

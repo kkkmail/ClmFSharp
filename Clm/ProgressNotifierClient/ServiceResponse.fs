@@ -1,13 +1,14 @@
 ﻿namespace ProgressNotifierClient
 
 open System
-open ProgressNotifierServiceInfo.ServiceInfo
+open ContGenServiceInfo.ServiceInfo
 
 module ServiceResponse =
     type ResponseHandler () =
-        let url = "tcp://localhost:" + ProgressNotifierServicePort + "/" + ProgressNotifierServiceName
-        let service : IProgressNotifier = Activator.GetObject (typeof<IProgressNotifier>, url) :?> IProgressNotifier
-        member this.progressNotifierService : IProgressNotifier = service
+        let url = "tcp://localhost:" + (ContGenServicePort.ToString()) + "/" + ContGenServiceName
+        let service : IContGenService = Activator.GetObject (typeof<IContGenService>, url) :?> IContGenService
+
+        member this.progressNotifierService : IProgressNotifier = service :> IProgressNotifier
 
         static member tryCreate() =
             try

@@ -91,11 +91,6 @@
     <None Include="TestService.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
-      <Name>ProgressNotifierServiceInfo</Name>
-      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="Argu">
       <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
     </Reference>

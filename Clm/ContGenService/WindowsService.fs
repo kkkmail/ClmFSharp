@@ -6,8 +6,6 @@ open System.Runtime.Remoting.Channels
 
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
-open ProgressNotifierServiceInfo.ServiceInfo
-
 
 module WindowsService =
 

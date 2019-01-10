@@ -3,7 +3,6 @@
 open System.ServiceProcess
 open Argu
 open ContGenServiceInfo.ServiceInfo
-open ProgressNotifierServiceInfo.ServiceInfo
 open ContGenService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
 open ContGenService.WindowsService

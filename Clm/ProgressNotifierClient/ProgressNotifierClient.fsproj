@@ -58,9 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
-      <Name>ProgressNotifierServiceInfo</Name>
-      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

@@ -3,7 +3,6 @@
 open System
 open System.IO
 open System.Diagnostics
-open ProgressNotifierServiceInfo.ServiceInfo
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
@@ -21,16 +20,6 @@ module ServiceImplementation =
                 runningCount = s.runningCount
             }
 
-    type ProgressNotifierService () =
-        inherit MarshalByRefObject()
-
-        let initService () = ()
-        do initService ()
-
-        interface IProgressNotifier with
-            member this.notifyOfProgress (p : ProgressUpdateInfo) : unit =
-                a.progressUpdate p
-
 
     type ContGenService () =
         inherit MarshalByRefObject()
@@ -44,3 +33,6 @@ module ServiceImplementation =
 
             member this.stopGenerating()=
                 failwith ""
+
+            member this.notifyOfProgress (p : ProgressUpdateInfo) : unit
+                = failwith ""

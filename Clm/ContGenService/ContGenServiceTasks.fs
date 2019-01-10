@@ -6,7 +6,6 @@ open System.ServiceProcess
 open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
-open ProgressNotifierServiceInfo.ServiceInfo
 
 module ContGenServiceTasks =
 
@@ -23,7 +22,7 @@ module ContGenServiceTasks =
 
     let installServices () =
         try
-            printfn "Attempting to install services %s, %s ..." ContGenServiceName ProgressNotifierServiceName
+            printfn "Attempting to install service %s ..." ContGenServiceName
             let i = getInstaller ()
             let d = new System.Collections.Hashtable()
             i.Install(d)
@@ -39,7 +38,7 @@ module ContGenServiceTasks =
 
     let uninstallServices () =
         try
-            printfn "Attempting to uninstall services %s, %s ..." ContGenServiceName ProgressNotifierServiceName
+            printfn "Attempting to uninstall service %s ..." ContGenServiceName
             let i = getInstaller ()
             let d = new System.Collections.Hashtable()
             i.Uninstall(d)

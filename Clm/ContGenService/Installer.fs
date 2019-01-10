@@ -8,7 +8,6 @@ open System.Linq
 open System.ServiceProcess
 
 open ContGenServiceInfo.ServiceInfo
-open ProgressNotifierServiceInfo.ServiceInfo
 open ContGenService.ServiceImplementation
 open ContGenService.WindowsService
 open ContGenServiceInfo

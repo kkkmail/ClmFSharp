@@ -3,7 +3,7 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
-open ProgressNotifierServiceInfo.ServiceInfo
+open ContGenServiceInfo.ServiceInfo
 
 module AsyncRun =
 

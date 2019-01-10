@@ -143,11 +143,6 @@
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
-      <Name>ProgressNotifierServiceInfo</Name>
-      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

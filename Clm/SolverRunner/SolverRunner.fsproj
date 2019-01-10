@@ -116,6 +116,11 @@
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\DbData\DbData.fsproj">
       <Name>DbData</Name>
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
@@ -134,11 +139,6 @@
     <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
       <Name>ProgressNotifierClient</Name>
       <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
-      <Name>ProgressNotifierServiceInfo</Name>
-      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

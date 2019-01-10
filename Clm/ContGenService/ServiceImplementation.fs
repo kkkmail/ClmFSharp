@@ -29,9 +29,5 @@ module ServiceImplementation =
 
         interface IContGenService with
             member this.getState() = a.getState().runnerState
-            member this.startGenerating() = a.startGenerate()
-
-            //member this.stopGenerating()=
-            //    failwith ""
-
-            member this.progressUpdate p = a.progressUpdate p
+            member this.startGenerate() = a.startGenerate()
+            member this.updateProgress p = a.updateProgress p

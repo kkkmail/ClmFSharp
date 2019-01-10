@@ -96,16 +96,24 @@ module AsyncRun =
 
         member s.updateProgress (p : ProgressUpdateInfo) =
             match s.running.TryFind p.updatedProcessId with
-            | Some e -> { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
-            | None -> 
-                let e =
-                    {
-                        started = DateTime.Now
-                        runningProcessId = p.updatedProcessId
-                        runningModelId = -1L
-                        progress = p.progress
-                    }
-                { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
+            | Some e ->
+                match p.progress with
+                | NotStarted | InProgress _ ->
+                    { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
+                | Completed ->
+                    { s with running = s.running.Remove p.updatedProcessId; runningCount = s.runningCount - 1 }
+            | None ->
+                match p.progress with
+                | NotStarted | InProgress _ ->
+                    let e =
+                        {
+                            started = DateTime.Now
+                            runningProcessId = p.updatedProcessId
+                            runningModelId = -1L
+                            progress = p.progress
+                        }
+                    { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
+                | Completed -> s
 
         member s.completeRun startGenerate start (x : ProcessResult) =
             if s.shuttingDown then { s with runningCount = s.runningCount - 1 }
@@ -128,7 +136,7 @@ module AsyncRun =
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner * list<RunInfo>
         | Started of ProcessStartInfo
-        | ProgressUpdate of ProgressUpdateInfo
+        | UpdateProgress of ProgressUpdateInfo
         | CompleteRun of AsyncRunner * ProcessResult
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | RequestShutDown
@@ -141,7 +149,7 @@ module AsyncRun =
             | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
             | StartRun (_, r) -> "StartRun: " + (toStr r)
             | Started p -> "Started: " + (p.ToString())
-            | ProgressUpdate p -> "ProgressUpdate: " + (p.ToString())
+            | UpdateProgress p -> "ProgressUpdate: " + (p.ToString())
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
             | RequestShutDown -> "RequestShutDown"
@@ -162,12 +170,6 @@ module AsyncRun =
                             printfn "Starting modelId: %A..." e.modelId
                             run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId } ) e.modelId |> Async.Start)
             |> ignore
-
-
-        /// TODO kk:20190109 - Implement.
-        let logIfFailed x =
-            printfn "logIfFailed is not implemented yet."
-            ignore()
 
 
         let messageLoop =
@@ -205,10 +207,8 @@ module AsyncRun =
                                         progress = TaskProgress.create 0.0m
                                     }
                                 return! loop { s with running = s.running.Add(r.runningProcessId, r)}
-                            | ProgressUpdate p ->
-                                return! loop (s.updateProgress p)
-                            | CompleteRun (a, x) ->
-                                return! loop (s.completeRun a.startGenerate (start a) x)
+                            | UpdateProgress p -> return! loop (s.updateProgress p)
+                            | CompleteRun (a, x) -> return! loop (s.completeRun a.startGenerate (start a) x)
                             | GetState r ->
                                 r.Reply s
                                 return! loop s
@@ -223,7 +223,7 @@ module AsyncRun =
         member this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
         member this.startRun r = StartRun (this, r) |> messageLoop.Post
         member this.started p = Started p |> messageLoop.Post
-        member this.progressUpdate p = ProgressUpdate p |> messageLoop.Post
+        member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
 

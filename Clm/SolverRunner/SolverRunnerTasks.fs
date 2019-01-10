@@ -35,7 +35,7 @@ module SolverRunnerTasks =
                 return! doAsyncTask(fun () ->
                     try
                         printfn "Notifying of progress: %A." p
-                        r.progressNotifierService.progressUpdate p
+                        r.progressNotifierService.updateProgress p
                         printfn "...completed."
                     with
                         | e ->
@@ -43,6 +43,24 @@ module SolverRunnerTasks =
                 )
             }
         |> Async.Start
+
+
+    type RunProgress =
+        | Running of decimal
+        | Completed
+
+
+    let notify svc p =
+        let t =
+            match p with
+            | Running d -> TaskProgress.create d
+            | Completed -> TaskProgress.Completed
+
+        progressNotifier svc
+            {
+                updatedProcessId = Process.GetCurrentProcess().Id
+                progress = t
+            }
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
@@ -81,20 +99,15 @@ module SolverRunnerTasks =
                     g = update
                     h = getInitValues
                     y0 = y0
-                    progressCallBack =
-                        match n with
-                        | Some svc ->
-                            (fun r -> progressNotifier svc
-                                            {
-                                                updatedProcessId = Process.GetCurrentProcess().Id
-                                                progress = TaskProgress.create r
-                                            })
-                            |> Some
-                        | None -> None
+                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify svc (Running r)) |> Some)
                 }
 
-
             let result = nSolve p
+
+            // Notify of completion just in case.
+            match n with
+            | Some svc -> notify svc Completed
+            | None -> ignore()
 
             printfn "Saving."
 

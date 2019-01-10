@@ -1,18 +1,18 @@
-﻿namespace ServiceInfo.AssemblyInfo
+﻿namespace ContGenAdm.AssemblyInfo
 
 open System.Reflection
+open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-open Clm.VersionInfo
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("ServiceInfo")>]
+[<assembly: AssemblyTitle("ContGenAdm")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("ServiceInfo")>]
-[<assembly: AssemblyCopyright(CopyrightInfo)>]
+[<assembly: AssemblyProduct("ContGenAdm")>]
+[<assembly: AssemblyCopyright("Copyright ©  2019")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
@@ -22,9 +22,20 @@ open Clm.VersionInfo
 [<assembly: ComVisible(false)>]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[<assembly: Guid("0c69a1b6-c7e2-48d1-8808-867741990e5f")>]
-[<assembly: AssemblyVersion(VersionNumber)>]
-[<assembly: AssemblyFileVersion(VersionNumber)>]
+[<assembly: Guid("297160a2-3509-467c-a821-566c6b678be1")>]
+
+// Version information for an assembly consists of the following four values:
+//
+//       Major Version
+//       Minor Version
+//       Build Number
+//       Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers
+// by using the '*' as shown below:
+// [<assembly: AssemblyVersion("1.0.*")>]
+[<assembly: AssemblyVersion("1.0.0.0")>]
+[<assembly: AssemblyFileVersion("1.0.0.0")>]
 
 do
     ()

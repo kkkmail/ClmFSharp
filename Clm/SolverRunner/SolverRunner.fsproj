@@ -136,9 +136,9 @@
       <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ProgressNotifier\ProgressNotifier.fsproj">
-      <Name>ProgressNotifier</Name>
-      <Project>{fcce5871-0e44-49b5-a857-713eb62eedfd}</Project>
+    <ProjectReference Include="..\ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj">
+      <Name>ProgressNotifierServiceInfo</Name>
+      <Project>{2e1eb0c6-7900-49d5-8878-4d3c669afdd0}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

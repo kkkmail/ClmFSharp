@@ -15,7 +15,7 @@ open Clm.Substances
 open DbData.Configuration
 open DbData.DatabaseTypes
 open System.Data.SqlClient
-open ProgressNotifier.Interfaces
+open ProgressNotifierServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
 open System.Threading.Tasks

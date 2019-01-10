@@ -17,6 +17,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenServiceInfo", "ContG
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ProgressNotifierServiceInfo", "ProgressNotifierServiceInfo\ProgressNotifierServiceInfo.fsproj", "{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenAdm", "ContGenAdm\ContGenAdm.fsproj", "{297160A2-3509-467C-A821-566C6B678BE1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,14 @@ Global
 		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.ActiveCfg = Release|Any CPU
 		{2E1EB0C6-7900-49D5-8878-4D3C669AFDD0}.Release|x64.Build.0 = Release|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|x64.ActiveCfg = Debug|x64
+		{297160A2-3509-467C-A821-566C6B678BE1}.Debug|x64.Build.0 = Debug|x64
+		{297160A2-3509-467C-A821-566C6B678BE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Release|x64.ActiveCfg = Release|Any CPU
+		{297160A2-3509-467C-A821-566C6B678BE1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

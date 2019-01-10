@@ -6,7 +6,11 @@ module ServiceInfo =
     let ContGenServiceName = "ContGenService"
 
     [<Literal>]
+    let ContGenServicePort = "12346"
+
+    [<Literal>]
     let ProgramName = "ContGenService.exe"
+
 
     type ContGenRunnerState =
         {

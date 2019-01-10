@@ -31,8 +31,7 @@ module ServiceImplementation =
             member this.getState() = a.getState().runnerState
             member this.startGenerating() = a.startGenerate()
 
-            member this.stopGenerating()=
-                failwith ""
+            //member this.stopGenerating()=
+            //    failwith ""
 
-            member this.notifyOfProgress (p : ProgressUpdateInfo) : unit
-                = failwith ""
+            member this.progressUpdate p = a.progressUpdate p

@@ -35,7 +35,7 @@ module SolverRunnerTasks =
                 return! doAsyncTask(fun () ->
                     try
                         printfn "Notifying of progress: %A." p
-                        r.progressNotifierService.notifyOfProgress p
+                        r.progressNotifierService.progressUpdate p
                         printfn "...completed."
                     with
                         | e ->

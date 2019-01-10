@@ -1,4 +1,5 @@
 ﻿namespace ContGenServiceInfo
+open System
 
 module ServiceInfo =
 
@@ -10,6 +11,7 @@ module ServiceInfo =
 
     [<Literal>]
     let ProgramName = "ContGenService.exe"
+
 
     type TaskProgress =
         | NotStarted
@@ -30,13 +32,22 @@ module ServiceInfo =
         }
 
 
+    type RunningProcessInfo =
+        {
+            started : DateTime
+            runningProcessId : int
+            runningModelId : int64
+            progress : TaskProgress
+        }
+
+
     type ContGenRunnerState =
         {
             generating : bool
             runningCount : int
-            //running : Map<int, RunningProcessInfo>
-            //queue : list<RunInfo>
-            //shuttingDown : bool
+            running : RunningProcessInfo[]
+            queue : int64[]
+            shuttingDown : bool
         }
 
 

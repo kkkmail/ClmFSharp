@@ -50,15 +50,6 @@ module AsyncRun =
         }
 
 
-    type RunningProcessInfo =
-        {
-            started : DateTime
-            runningProcessId : int
-            runningModelId : int64
-            progress : TaskProgress
-        }
-
-
     type GeneratorInfo =
         {
             generate : unit -> list<RunInfo>

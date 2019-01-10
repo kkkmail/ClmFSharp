@@ -22,12 +22,12 @@ type ContGenServiceInstaller() =
         new ServiceProcessInstaller(Account = ServiceAccount.LocalSystem)
         |> base.Installers.Add |> ignore
 
-        // Specify properties of the service running inside the process.
-        new ServiceInstaller
-          ( DisplayName = ProgressNotifierServiceName,
-            ServiceName = ProgressNotifierServiceName,
-            StartType = ServiceStartMode.Automatic )
-        |> base.Installers.Add |> ignore
+        //// Specify properties of the service running inside the process.
+        //new ServiceInstaller
+        //  ( DisplayName = ProgressNotifierServiceName,
+        //    ServiceName = ProgressNotifierServiceName,
+        //    StartType = ServiceStartMode.Automatic )
+        //|> base.Installers.Add |> ignore
 
         // Specify properties of the service running inside the process.
         new ServiceInstaller
@@ -40,6 +40,6 @@ type ContGenServiceInstaller() =
 module Main =
     ServiceBase.Run
         [|
-            new ProgressNotifierWindowsService() :> ServiceBase
+            //new ProgressNotifierWindowsService() :> ServiceBase
             new ContGenWindowsService() :> ServiceBase
         |]

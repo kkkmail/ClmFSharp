@@ -5,9 +5,13 @@ open System.Threading
 let main argv =
     let service = new ContGenResponseHandler()
 
-    while true do
-        let state = service.contGenService.getState()
-        printfn "state = %A" state
-        Thread.Sleep(10_000)
+    try
+        service.contGenService.startGenerating()
 
+        while true do
+            let state = service.contGenService.getState()
+            printfn "state = %A" state
+            Thread.Sleep(10_000)
+    with
+        | e -> printfn "Exception: %A" e.Message
     0

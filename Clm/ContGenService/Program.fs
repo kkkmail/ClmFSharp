@@ -23,7 +23,7 @@ module Program =
             | None ->
                 ServiceBase.Run
                     [|
-                        new ProgressNotifierWindowsService() :> ServiceBase
+                        //new ProgressNotifierWindowsService() :> ServiceBase
                         new ContGenWindowsService() :> ServiceBase
                     |]
 

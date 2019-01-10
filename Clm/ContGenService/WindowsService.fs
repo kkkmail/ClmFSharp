@@ -11,28 +11,28 @@ open ProgressNotifierServiceInfo.ServiceInfo
 
 module WindowsService =
 
-    type public ProgressNotifierWindowsService () =
-        inherit ServiceBase (ServiceName = ProgressNotifierServiceName)
+    //type public ProgressNotifierWindowsService () =
+    //    inherit ServiceBase (ServiceName = ProgressNotifierServiceName)
 
-        let initService () = ()
-        do initService ()
+    //    let initService () = ()
+    //    do initService ()
 
-        override service.OnStart (args:string[]) =
-            base.OnStart(args)
-            let servicePort = 12345
+    //    override service.OnStart (args:string[]) =
+    //        base.OnStart(args)
+    //        let servicePort = ProgressNotifierServicePort
 
-            try
-                let channel = new Tcp.TcpChannel (servicePort)
-                ChannelServices.RegisterChannel (channel, false)
+    //        try
+    //            let channel = new Tcp.TcpChannel (servicePort)
+    //            ChannelServices.RegisterChannel (channel, false)
 
-                RemotingConfiguration.RegisterWellKnownServiceType
-                    ( typeof<ProgressNotifierService>, ProgressNotifierServiceName, WellKnownObjectMode.Singleton )
-            with
-                | e ->
-                    ignore()
+    //            RemotingConfiguration.RegisterWellKnownServiceType
+    //                ( typeof<ProgressNotifierService>, ProgressNotifierServiceName, WellKnownObjectMode.Singleton )
+    //        with
+    //            | e ->
+    //                ignore()
 
-        override service.OnStop () =
-            base.OnStop()
+    //    override service.OnStop () =
+    //        base.OnStop()
 
 
     type public ContGenWindowsService () =
@@ -43,7 +43,7 @@ module WindowsService =
 
         override service.OnStart (args:string[]) =
             base.OnStart(args)
-            let servicePort = 12346
+            let servicePort = ContGenServicePort
 
             try
                 let channel = new Tcp.TcpChannel (servicePort)

@@ -69,7 +69,7 @@ module ContGenServiceTasks =
                 false
 
     let startServices timeoutMilliseconds =
-        (startService ProgressNotifierServiceName timeoutMilliseconds) &&
+        //(startService ProgressNotifierServiceName timeoutMilliseconds) &&
         (startService ContGenServiceName timeoutMilliseconds)
 
 
@@ -91,7 +91,7 @@ module ContGenServiceTasks =
 
 
     let stopServices timeoutMilliseconds =
-        (stopService ProgressNotifierServiceName timeoutMilliseconds) &&
+        //(stopService ProgressNotifierServiceName timeoutMilliseconds) &&
         (stopService ContGenServiceName timeoutMilliseconds)
 
 

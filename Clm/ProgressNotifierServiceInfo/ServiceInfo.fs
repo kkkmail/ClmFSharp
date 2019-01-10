@@ -5,7 +5,7 @@ module ServiceInfo =
     let ProgressNotifierServiceName = "ProgressNotifierService"
 
     [<Literal>]
-    let ProgressNotifierServicePort = "12345"
+    let ProgressNotifierServicePort = 12345
 
 
     type TaskProgress =

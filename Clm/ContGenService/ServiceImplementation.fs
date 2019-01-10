@@ -7,6 +7,7 @@ open ProgressNotifier.Interfaces
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenService.ContGenServiceInfo
+open ContGen.AsyncRun
 
 module ServiceImplementation =
     let a = createRunner ModelRunnerParam.defaultValue
@@ -29,5 +30,8 @@ module ServiceImplementation =
         do initService ()
 
         interface IContGenService with
-            member this.notifyOfProgress (p : ProgressUpdateInfo) : unit =
-                a.progressUpdate p
+            member this.getState() : AsyncRunnerState = a.getState()
+            member this.startGenerating() = a.startGenerate()
+
+            member this.stopGenerating()=
+                failwith ""

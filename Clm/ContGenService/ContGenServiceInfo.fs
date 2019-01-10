@@ -14,5 +14,6 @@ module ContGenServiceInfo =
 
 
     type IContGenService =
-        abstract notifyOfProgress : ProgressUpdateInfo -> unit
-
+        abstract getState : unit -> AsyncRunnerState
+        abstract startGenerating : unit -> unit
+        abstract stopGenerating : unit -> unit

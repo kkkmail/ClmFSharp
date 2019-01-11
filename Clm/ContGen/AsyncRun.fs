@@ -70,6 +70,7 @@ module AsyncRun =
         {
             generating : bool
             runLimit : int
+            maxQueueLength : int
             runningCount : int
             running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
@@ -80,6 +81,7 @@ module AsyncRun =
             {
                 generating = false
                 runLimit = Environment.ProcessorCount
+                maxQueueLength = 4
                 runningCount = 0
                 running = Map.empty
                 queue = []
@@ -93,6 +95,12 @@ module AsyncRun =
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
             sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
+
+        member s.startGenerate generate =
+            if s.generating || s.queue.Length >= s.maxQueueLength then s
+            else
+                generate |> Async.Start
+                { s with generating = true }
 
         member s.updateProgress (p : ProgressUpdateInfo) =
             match s.running.TryFind p.updatedProcessId with
@@ -115,6 +123,11 @@ module AsyncRun =
                     { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
                 | Completed -> s
 
+        member s.completeGenerate startRun startGenerate r =
+            startRun r
+            if s.runningCount < Environment.ProcessorCount && (s.shuttingDown |> not) then startGenerate()
+            { s with generating = false }
+
         member s.completeRun startGenerate start (x : ProcessResult) =
             if s.shuttingDown then { s with runningCount = s.runningCount - 1 }
             else
@@ -129,6 +142,31 @@ module AsyncRun =
                     let p, q = partition s.runLimit s.queue s.runningCount
                     start p
                     { s with runningCount = s.runningCount + p.Length; queue = q }
+
+        member s.startRun start r =
+            if s.shuttingDown then s
+            else
+                let p, q = partition s.runLimit (s.queue @ r) s.runningCount
+                start p
+                { s with runningCount = s.runningCount + p.Length; queue = q }
+
+        member s.started p =
+            printfn "Started: %A" p
+            let r =
+                {
+                    started = DateTime.Now
+                    runningProcessId = p.startedProcessId
+                    runningModelId = p.startedModelId
+                    progress = TaskProgress.create 0.0m
+                }
+            { s with running = s.running.Add(r.runningProcessId, r)}
+
+        member s.requestShutDown() =
+            { s with shuttingDown = true }
+
+        member s.getState reply =
+            reply s
+            s
 
 
     type RunnerMessage =
@@ -174,7 +212,7 @@ module AsyncRun =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop s =
+                let rec loop (s : AsyncRunnerState) =
                     async
                         {
                             printfn "s = %s" (s.ToString())
@@ -182,38 +220,14 @@ module AsyncRun =
                             printfn "m = %s" (m.ToString())
 
                             match m with
-                            | StartGenerate a ->
-                                if s.generating || s.queue.Length >= generatorInfo.maxQueueLength then return! loop s
-                                else
-                                    generate a |> Async.Start
-                                    return! loop { s with generating = true }
-                            | CompleteGenerate (a, r) ->
-                                a.startRun r
-                                if s.runningCount < Environment.ProcessorCount && (s.shuttingDown |> not) then a.startGenerate()
-                                return! loop { s with generating = false }
-                            | StartRun (a, r) ->
-                                if s.shuttingDown then return! loop s
-                                else
-                                    let p, q = partition s.runLimit (s.queue @ r) s.runningCount
-                                    start a p
-                                    return! loop { s with runningCount = s.runningCount + p.Length; queue = q }
-                            | Started p ->
-                                printfn "Started: %A" p
-                                let r =
-                                    {
-                                        started = DateTime.Now
-                                        runningProcessId = p.startedProcessId
-                                        runningModelId = p.startedModelId
-                                        progress = TaskProgress.create 0.0m
-                                    }
-                                return! loop { s with running = s.running.Add(r.runningProcessId, r)}
+                            | StartGenerate a -> return! loop (s.startGenerate (generate a))
+                            | CompleteGenerate (a, r) -> return! loop (s.completeGenerate a.startRun a.startGenerate r)
+                            | StartRun (a, r) -> return! loop (s.startRun (start a) r)
+                            | Started p -> return! loop (s.started p)
                             | UpdateProgress p -> return! loop (s.updateProgress p)
                             | CompleteRun (a, x) -> return! loop (s.completeRun a.startGenerate (start a) x)
-                            | GetState r ->
-                                r.Reply s
-                                return! loop s
-                            | RequestShutDown ->
-                                return! loop { s with shuttingDown = true }
+                            | GetState r -> return! loop (s.getState r.Reply)
+                            | RequestShutDown -> return! loop (s.requestShutDown())
                         }
 
                 loop AsyncRunnerState.defaultValue

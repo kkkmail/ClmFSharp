@@ -1,6 +1,6 @@
 ﻿open Microsoft.FSharp.Core
 open Clm.CommandLine
-open Clm
+open ClmSys
 open Argu
 open SolverRunner.SolverRunnerTasks
 

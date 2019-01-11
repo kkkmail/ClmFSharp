@@ -119,7 +119,7 @@ module Runner =
 
             Target.create "BuildApp" (fun _ ->
               [ p.buildTarget ]
-                |> MSBuild.runRelease id buildDir "Build"
+                |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
                 |> Trace.logItems "AppBuild-Output: "
             )
 

@@ -168,6 +168,12 @@ module AsyncRun =
             reply s
             s
 
+        member s.stopGenerate() =
+            s
+
+        member s.configureService (p : ContGenConfigParam) =
+            s
+
 
     type RunnerMessage =
         | StartGenerate of AsyncRunner
@@ -178,6 +184,8 @@ module AsyncRun =
         | CompleteRun of AsyncRunner * ProcessResult
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | RequestShutDown
+        | StopGenerate
+        | ConfigureService of ContGenConfigParam
 
         override m.ToString() =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
@@ -191,6 +199,8 @@ module AsyncRun =
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
             | RequestShutDown -> "RequestShutDown"
+            | StopGenerate -> "StopGenerate"
+            | ConfigureService _ -> "ConfigureService"
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
@@ -228,6 +238,8 @@ module AsyncRun =
                             | CompleteRun (a, x) -> return! loop (s.completeRun a.startGenerate (start a) x)
                             | GetState r -> return! loop (s.getState r.Reply)
                             | RequestShutDown -> return! loop (s.requestShutDown())
+                            | StopGenerate -> return! loop (s.stopGenerate())
+                            | ConfigureService p -> return! loop (s.configureService p)
                         }
 
                 loop AsyncRunnerState.defaultValue
@@ -240,10 +252,9 @@ module AsyncRun =
         member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
-
-        member this.stopGenerate() = failwith "stopGenerate is not implemented yet."
-        member this.requestShutDown() = failwith "requestShutDown is not implemented yet."
-        member this.configureService (p : ContGenConfigParam) = failwith "configureService is not implemented yet."
+        member this.stopGenerate() = StopGenerate |> messageLoop.Post
+        member this.requestShutDown() = RequestShutDown |> messageLoop.Post
+        member this.configureService (p : ContGenConfigParam) = ConfigureService p |> messageLoop.Post
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.

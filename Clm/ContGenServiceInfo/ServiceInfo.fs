@@ -55,3 +55,6 @@ module ServiceInfo =
         abstract getState : unit -> ContGenRunnerState
         abstract startGenerate : unit -> unit
         abstract updateProgress : ProgressUpdateInfo -> unit
+        abstract requestShutDown : unit -> unit
+        abstract stopGenerate : unit -> unit
+

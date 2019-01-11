@@ -4,7 +4,7 @@ open System
 open System.IO
 open FSharp.Collections
 
-open Clm.VersionInfo
+open ClmSys.VersionInfo
 open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions

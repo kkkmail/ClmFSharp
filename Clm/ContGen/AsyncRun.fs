@@ -227,6 +227,10 @@ module AsyncRun =
         member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
 
+        member this.stopGenerate() = failwith "stopGenerate is not implemented yet."
+        member this.requestShutDown() = failwith "requestShutDown is not implemented yet."
+        member this.configureService (p : ContGenConfigParam) = failwith "configureService is not implemented yet."
+
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
     let runProc (c : ProcessStartedCallBack) filename args startDir =

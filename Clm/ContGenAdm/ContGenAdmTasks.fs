@@ -103,7 +103,7 @@ module ContGenAdmTasks =
                 printfn "Exception: %A" e.Message
                 -1
 
-    let configureService (service : IContGenService) (p :list<MonitorArgs>) =
+    let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
         try
             let state = service.getState()
             0

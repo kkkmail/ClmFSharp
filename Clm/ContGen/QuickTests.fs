@@ -12,7 +12,7 @@ open Clm.Generator.SettingGenExt
 open System
 open System.Data.SqlClient
 
-open Clm.VersionInfo
+open ClmSys.VersionInfo
 open Clm.DataLocation
 open Clm.Generator.ClmModel
 open ContGen

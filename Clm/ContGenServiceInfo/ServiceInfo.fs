@@ -25,6 +25,12 @@ module ServiceInfo =
             | _ -> Completed
 
 
+    type WorkState =
+        | Idle
+        | CanGenerate
+        | ShuttingDown
+
+
     type ProgressUpdateInfo =
         {
             updatedProcessId : int
@@ -47,14 +53,14 @@ module ServiceInfo =
             runningCount : int
             running : RunningProcessInfo[]
             queue : int64[]
-            shuttingDown : bool
+            //shuttingDown : bool
         }
 
 
     type ContGenConfigParam =
-        {
-            dummy : int option
-        }
+        | SetToIdle
+        | SetToCanGenerate
+        | RequestShutDown of waitForCompletion : bool
 
 
     type IContGenService =

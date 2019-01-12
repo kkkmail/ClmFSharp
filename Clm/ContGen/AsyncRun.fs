@@ -75,12 +75,6 @@ module AsyncRun =
         }
 
 
-    type WorkState =
-        | Idle
-        | CanGenerate
-        | ShuttingDown
-
-
     type AsyncRunnerState =
         {
             generating : bool
@@ -206,7 +200,16 @@ module AsyncRun =
             s
 
         member s.configureService (p : ContGenConfigParam) =
-            s
+            match p with
+            | SetToIdle -> { s with workState = Idle }
+            | SetToCanGenerate -> { s with workState = CanGenerate }
+            | RequestShutDown _ -> { s with workState = ShuttingDown }
+
+        member s.isShuttingDown =
+            match s.workState with
+            | Idle | CanGenerate -> false
+            | ShuttingDown -> true
+
 
 
     type RunnerMessage =

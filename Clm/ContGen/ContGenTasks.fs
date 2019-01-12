@@ -59,7 +59,6 @@ module ContGenTasks =
         ContGenArguments =
             | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("update")>]   UpdateParameters of ParseResults<UpdateParametersArgs>
-            | [<Unique>] [<AltCommandLine("shutdown")>] RequestShutDown of ParseResults<RequestShutDownArgs>
             | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
             | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
 
@@ -69,7 +68,6 @@ module ContGenTasks =
                     match this with
                     | RunContGen _ -> "runs Continuous Generation."
                     | UpdateParameters _ -> "updates parameters."
-                    | RequestShutDown _ -> "requests shut down."
                     | GenerateModel -> "generates a single model."
                     | RunModel _ -> "runs a given model."
 
@@ -78,7 +76,7 @@ module ContGenTasks =
         let a = createRunner ModelRunnerParam.defaultValue
         a.startGenerate()
 
-        while a.getState().shuttingDown |> not do
+        while a.getState().isShuttingDown |> not do
             Thread.Sleep(30000)
             let state = a.getState()
             printfn "a.getState() = %s" (state.ToString())
@@ -110,12 +108,6 @@ module ContGenTasks =
 
 
     /// TODO kk:20190107 - Implement.
-    let requestShutDown (p :list<RequestShutDownArgs>) =
-        printfn "requestShutDown is not implemented yet."
-        -1
-
-
-    /// TODO kk:20190107 - Implement.
     let generateModel () =
         printfn "generateModel is not implemented yet."
         -1
@@ -130,7 +122,6 @@ module ContGenTasks =
     type ContGenTask =
         | RunContGenTask of list<RunContGenArgs>
         | UpdateParametersTask of list<UpdateParametersArgs>
-        | RequestShutDownTask of list<RequestShutDownArgs>
         | GenerateModelTask
         | RunModelTask of list<RunModelArgs>
 
@@ -138,7 +129,6 @@ module ContGenTasks =
             match task with
             | RunContGenTask p -> runContGen p
             | UpdateParametersTask p -> updateParameters p
-            | RequestShutDownTask p -> requestShutDown p
             | GenerateModelTask -> generateModel ()
             | RunModelTask p -> runModel p
 
@@ -148,9 +138,6 @@ module ContGenTasks =
         static member private tryCreateUpdateParametersTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | UpdateParameters q -> q.GetAllResults() |> UpdateParametersTask |> Some | _ -> None)
 
-        static member private tryCreateRequestShutDownTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | RequestShutDown q -> q.GetAllResults() |> RequestShutDownTask |> Some | _ -> None)
-
         static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
 
@@ -159,7 +146,6 @@ module ContGenTasks =
 
         static member tryCreate (p : list<ContGenArguments>) =
             [
-                ContGenTask.tryCreateRequestShutDownTask
                 ContGenTask.tryCreateUpdateParametersTask
                 ContGenTask.tryCreateGenerateModelTask
                 ContGenTask.tryCreateRunModelTask

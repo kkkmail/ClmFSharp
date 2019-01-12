@@ -20,6 +20,15 @@ module AsyncRun =
         (a |> List.map snd, b |> List.map snd)
 
 
+    type Map<'k, 'v when 'k : comparison>
+        with
+
+        member m.tryRemove k =
+            match m.ContainsKey k with
+            | true -> m.Remove k
+            | false -> m
+
+
     //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
     let rec removeFirst pred lst =
         match lst with
@@ -66,6 +75,12 @@ module AsyncRun =
         }
 
 
+    type WorkState =
+        | Idle
+        | CanGenerate
+        | ShuttingDown
+
+
     type AsyncRunnerState =
         {
             generating : bool
@@ -74,7 +89,7 @@ module AsyncRun =
             runningCount : int
             running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
-            shuttingDown : bool
+            workState : WorkState
         }
 
         static member defaultValue =
@@ -85,7 +100,7 @@ module AsyncRun =
                 runningCount = 0
                 running = Map.empty
                 queue = []
-                shuttingDown = false
+                workState = Idle
             }
 
         override s.ToString() =
@@ -94,13 +109,17 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
-            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
+            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.workState
 
         member s.startGenerate generate =
-            if s.generating || s.queue.Length >= s.maxQueueLength then s
-            else
-                generate |> Async.Start
-                { s with generating = true }
+            match s.workState with
+            | Idle -> s
+            | CanGenerate ->
+                if s.generating || s.queue.Length >= s.maxQueueLength then s
+                else
+                    generate |> Async.Start
+                    { s with generating = true }
+            | ShuttingDown -> s
 
         member s.updateProgress (p : ProgressUpdateInfo) =
             match s.running.TryFind p.updatedProcessId with
@@ -124,15 +143,19 @@ module AsyncRun =
                 | Completed -> s
 
         member s.completeGenerate startRun startGenerate r =
-            startRun r
-            if s.runningCount < Environment.ProcessorCount && (s.shuttingDown |> not) then startGenerate()
-            { s with generating = false }
+            let w() =
+                startRun r
+                { s with generating = false }
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate ->
+                if s.runningCount < s.runLimit then startGenerate()
+                w()
+            | ShuttingDown -> s
 
         member s.completeRun startGenerate start (x : ProcessResult) =
-            if s.shuttingDown then { s with runningCount = s.runningCount - 1 }
-            else
-                startGenerate()
-
+            let w() =
                 match s.running.TryFind x.exitedProcessId with
                 | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
@@ -143,12 +166,23 @@ module AsyncRun =
                     start p
                     { s with runningCount = s.runningCount + p.Length; queue = q }
 
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate ->
+                startGenerate()
+                w()
+            | ShuttingDown -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove x.exitedProcessId }
+
         member s.startRun start r =
-            if s.shuttingDown then s
-            else
+            let w() =
                 let p, q = partition s.runLimit (s.queue @ r) s.runningCount
                 start p
                 { s with runningCount = s.runningCount + p.Length; queue = q }
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate -> w()
+            | ShuttingDown -> s
 
         member s.started p =
             printfn "Started: %A" p
@@ -161,8 +195,8 @@ module AsyncRun =
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
 
-        member s.requestShutDown() =
-            { s with shuttingDown = true }
+        member s.requestShutDown() = 
+            { s with workState = ShuttingDown }
 
         member s.getState reply =
             reply s

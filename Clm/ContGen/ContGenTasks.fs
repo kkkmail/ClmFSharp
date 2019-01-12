@@ -40,18 +40,6 @@ module ContGenTasks =
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
-        RequestShutDownArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-w")>] WaitForCompletion of bool
-
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | WaitForCompletion _ -> "wait for completion of already running tasks (this might take many days)."
-
-
-    and
-        [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelDataId of int
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of double

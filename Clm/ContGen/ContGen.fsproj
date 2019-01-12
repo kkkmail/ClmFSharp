@@ -75,7 +75,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Runner.fs" />
     <Compile Include="ContGenTasks.fs" />
-    <Compile Include="QuickTests.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

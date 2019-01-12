@@ -5,8 +5,8 @@ open Argu
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
 
-
 module ContGenAdmTasks =
+
     [<CliPrefix(CliPrefix.Dash)>]
     type MonitorArgs =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] RefreshInterval of int
@@ -152,5 +152,3 @@ module ContGenAdmTasks =
                 ContGenAdmTask.tryCreateMonitorTask
             ]
             |> List.tryPick (fun e -> e s p)
-
-

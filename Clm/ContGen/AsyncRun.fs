@@ -81,7 +81,7 @@ module AsyncRun =
             generate : unit -> Async<unit>
             startGenerate : unit -> unit
             startRun : list<RunInfo> -> unit
-            start : list<RunInfo> -> unit
+            startModels : list<RunInfo> -> unit
         }
 
 
@@ -115,13 +115,13 @@ module AsyncRun =
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
             sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.workState
 
-        member s.startGenerate generate =
+        member s.startGenerate h =
             match s.workState with
             | Idle -> s
             | CanGenerate ->
                 if s.generating || s.queue.Length >= s.maxQueueLength then s
                 else
-                    generate |> Async.Start
+                    h.generate() |> Async.Start
                     { s with generating = true }
             | ShuttingDown -> s
 
@@ -163,11 +163,11 @@ module AsyncRun =
                 match s.running.TryFind x.exitedProcessId with
                 | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
-                    h.start p
+                    h.startModels p
                     { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
                 | None ->
                     let p, q = partition s.runLimit s.queue s.runningCount
-                    h.start p
+                    h.startModels p
                     { s with runningCount = s.runningCount + p.Length; queue = q }
 
             match s.workState with
@@ -180,7 +180,7 @@ module AsyncRun =
         member s.startRun h r =
             let w() =
                 let p, q = partition s.runLimit (s.queue @ r) s.runningCount
-                h.start p
+                h.startModels p
                 { s with runningCount = s.runningCount + p.Length; queue = q }
 
             match s.workState with
@@ -199,14 +199,8 @@ module AsyncRun =
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
 
-        member s.requestShutDown() =
-            { s with workState = ShuttingDown }
-
         member s.getState reply =
             reply s
-            s
-
-        member s.stopGenerate() =
             s
 
         member s.configureService h (p : ContGenConfigParam) =
@@ -215,7 +209,10 @@ module AsyncRun =
             | SetToCanGenerate -> { s with workState = CanGenerate }
             | RequestShutDown _ -> { s with workState = ShuttingDown }
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
-            | CancelTask i -> failwith ""
+            | CancelTask i ->
+                match h.cancelProcess i with
+                | true -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove i}
+                | false -> s
 
         member s.isShuttingDown =
             match s.workState with
@@ -231,8 +228,6 @@ module AsyncRun =
         | UpdateProgress of ProgressUpdateInfo
         | CompleteRun of AsyncRunner * ProcessResult
         | GetState of AsyncReplyChannel<AsyncRunnerState>
-        | RequestShutDown
-        | StopGenerate
         | ConfigureService of AsyncRunner * ContGenConfigParam
 
         override m.ToString() =
@@ -246,8 +241,6 @@ module AsyncRun =
             | UpdateProgress p -> "ProgressUpdate: " + (p.ToString())
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
-            | RequestShutDown -> "RequestShutDown"
-            | StopGenerate -> "StopGenerate"
             | ConfigureService _ -> "ConfigureService"
 
 
@@ -260,7 +253,7 @@ module AsyncRun =
             async { return! doAsyncTask(fun () -> runner n |> a.completeRun) }
 
 
-        let start a p =
+        let startModels a p =
             p
             |> List.map (fun e ->
                             printfn "Starting modelId: %A..." e.modelId
@@ -280,7 +273,7 @@ module AsyncRun =
                 generate = fun () -> generate a
                 startGenerate = a.startGenerate
                 startRun = a.startRun
-                start = start a
+                startModels = startModels a
             }
 
         let messageLoop =
@@ -293,31 +286,30 @@ module AsyncRun =
                             printfn "m = %s" (m.ToString())
 
                             match m with
-                            | StartGenerate a -> return! loop (s.startGenerate (generate a))
+                            | StartGenerate a -> return! loop (s.startGenerate (h a))
                             | CompleteGenerate (a, r) -> return! loop (s.completeGenerate (h a) r)
                             | StartRun (a, r) -> return! loop (s.startRun (h a) r)
                             | Started p -> return! loop (s.started p)
                             | UpdateProgress p -> return! loop (s.updateProgress p)
                             | CompleteRun (a, x) -> return! loop (s.completeRun (h a) x)
                             | GetState r -> return! loop (s.getState r.Reply)
-                            | RequestShutDown -> return! loop (s.requestShutDown())
-                            | StopGenerate -> return! loop (s.stopGenerate())
                             | ConfigureService (a, p) -> return! loop (s.configureService (h a) p)
                         }
 
                 loop AsyncRunnerState.defaultValue
                 )
 
+        member private this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
+        member private this.startRun r = StartRun (this, r) |> messageLoop.Post
+        member private this.started p = Started p |> messageLoop.Post
+        member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
+
         member this.startGenerate () = StartGenerate this |> messageLoop.Post
-        member this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
-        member this.startRun r = StartRun (this, r) |> messageLoop.Post
-        member this.started p = Started p |> messageLoop.Post
         member this.updateProgress p = UpdateProgress p |> messageLoop.Post
-        member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
-        member this.stopGenerate() = StopGenerate |> messageLoop.Post
-        member this.requestShutDown() = RequestShutDown |> messageLoop.Post
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
+        member this.start() = SetToCanGenerate |> this.configureService
+        member this.stop() = SetToIdle |> this.configureService
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.

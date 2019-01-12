@@ -22,33 +22,37 @@ module ContGenAdmTasks =
         [<CliPrefix(CliPrefix.Dash)>]
         ConfigureServiceArgs =
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-c")>] NumberOfCores of int
+            | [<Unique>] [<AltCommandLine("-start")>] Start
+            | [<Unique>] [<AltCommandLine("-stop")>] Stop
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
                     | NumberOfCores _ -> "number of logical cores to use."
+                    | Start -> "starts generating models."
+                    | Stop -> "stops generating models."
+
+            member this.configParam =
+                match this with
+                | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
+                | Start -> SetToCanGenerate
+                | Stop -> SetToIdle
 
 
-    and
-        [<CliPrefix(CliPrefix.Dash)>]
-        RequestShutDownArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-w")>] WaitForCompletion of bool
-
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | WaitForCompletion _ -> "wait for completion of already running tasks (this might take many days)."
+        //with
+        //    interface IArgParserTemplate with
+        //        member this.Usage =
+        //            match this with
+        //            | WaitForCompletion _ -> "wait for completion of already running tasks (this might take many days)."
 
 
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenAdmArguments =
             | [<Unique>] [<AltCommandLine("run")>]      Monitor of ParseResults<MonitorArgs>
-            | [<Unique>] [<AltCommandLine("start")>]    StartGenerate
-            | [<Unique>] [<AltCommandLine("shutdown")>] RequestShutDown of ParseResults<RequestShutDownArgs>
-            | [<Unique>] [<AltCommandLine("stop")>]     StopGenerate
+            //| [<Unique>] [<AltCommandLine("start")>]    StartGenerate
+            //| [<Unique>] [<AltCommandLine("stop")>]     StopGenerate
             | [<Unique>] [<AltCommandLine("rm")>]       ConfigureService of ParseResults<ConfigureServiceArgs>
 
         with
@@ -56,9 +60,8 @@ module ContGenAdmTasks =
                 member this.Usage =
                     match this with
                     | Monitor _ -> "starts monitor."
-                    | StartGenerate -> "starts continuos generation."
-                    | RequestShutDown _ -> "requests shut down."
-                    | StopGenerate -> "stops continuos generation."
+                    //| StartGenerate -> "starts continuos generation."
+                    //| StopGenerate -> "stops continuos generation."
                     | ConfigureService _ -> "reconfigures service."
 
 
@@ -85,27 +88,11 @@ module ContGenAdmTasks =
                 -1
 
 
-    let requestShutDown (service : IContGenService) (p :list<RequestShutDownArgs>) =
-        try
-            service.requestShutDown()
-            0
-        with
-            | e ->
-                printfn "Exception: %A" e.Message
-                -1
-
-    let stopGenerate (service : IContGenService) =
-        try
-            service.stopGenerate()
-            0
-        with
-            | e ->
-                printfn "Exception: %A" e.Message
-                -1
-
     let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
         try
-            let state = service.getState()
+            p
+            |> List.map (fun e -> e.configParam |> service.configureService)
+            |> ignore
             0
         with
             | e ->
@@ -116,16 +103,12 @@ module ContGenAdmTasks =
     type ContGenAdmTask =
         | MonitorTask of service : IContGenService * arguments : list<MonitorArgs>
         | StartGenerateTask of service : IContGenService
-        | RequestShutDownTask of service : IContGenService * list<RequestShutDownArgs>
-        | StopGenerateTask of service : IContGenService
         | ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
 
         member task.run() =
             match task with
             | MonitorTask (s, p) -> monitor s p
             | StartGenerateTask s -> startGenerate s
-            | RequestShutDownTask (s, p) -> requestShutDown s p
-            | StopGenerateTask s -> stopGenerate s
             | ConfigureServiceTask (s, p) -> configureService s p
 
         static member private tryCreateMonitorTask s p =
@@ -134,19 +117,11 @@ module ContGenAdmTasks =
         static member private tryCreateStartGenerateTask s p =
             p |> List.tryPick (fun e -> match e with | StartGenerate -> StartGenerateTask s |> Some | _ -> None)
 
-        static member private tryCreateRequestShutDownTask s p =
-            p |> List.tryPick (fun e -> match e with | RequestShutDown q -> (s, q.GetAllResults()) |> RequestShutDownTask |> Some | _ -> None)
-
-        static member private tryCreateStopGenerateTask s p =
-            p |> List.tryPick (fun e -> match e with | StopGenerate -> StopGenerateTask s |> Some | _ -> None)
-
         static member private tryCreatConfigureServiceTask s p =
             p |> List.tryPick (fun e -> match e with | ConfigureService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
 
         static member tryCreate s p =
             [
-                ContGenAdmTask.tryCreateRequestShutDownTask
-                ContGenAdmTask.tryCreateStopGenerateTask
                 ContGenAdmTask.tryCreateStartGenerateTask
                 ContGenAdmTask.tryCreatConfigureServiceTask
                 ContGenAdmTask.tryCreateMonitorTask

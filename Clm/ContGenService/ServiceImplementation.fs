@@ -31,6 +31,4 @@ module ServiceImplementation =
             member this.getState() = a.getState().runnerState
             member this.startGenerate() = a.startGenerate()
             member this.updateProgress p = a.updateProgress p
-            member this.stopGenerate() = a.stopGenerate()
-            member this.requestShutDown() = a.requestShutDown()
             member this.configureService (p : ContGenConfigParam) = a.configureService p

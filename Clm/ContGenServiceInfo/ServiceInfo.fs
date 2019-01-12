@@ -61,6 +61,8 @@ module ServiceInfo =
         | SetToIdle
         | SetToCanGenerate
         | RequestShutDown of waitForCompletion : bool
+        | SetRunLimit of int
+        | CancelTask of processId : int
 
 
     type IContGenService =

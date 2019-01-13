@@ -78,6 +78,7 @@ module ContGenTasks =
 
     let runContGen (p :list<RunContGenArgs>) =
         let a = createRunner ModelRunnerParam.defaultValue
+        a.start()
         a.startGenerate()
 
         while a.getState().isShuttingDown |> not do

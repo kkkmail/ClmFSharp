@@ -209,7 +209,15 @@ module AsyncRun =
             | SetToCanGenerate ->
                 h.startGenerate() |> Async.Start
                 { s with workState = CanGenerate }
-            | RequestShutDown _ -> { s with workState = ShuttingDown }
+            | RequestShutDown b ->
+                match b with
+                | false ->
+                    let s1 =
+                        s.running
+                        |> Map.toList
+                        |> List.fold (fun (acc : AsyncRunnerState) (i, _) -> acc.configureService h (CancelTask i)) s
+                    { s1 with workState = ShuttingDown; queue = [] }
+                | true -> { s with workState = ShuttingDown }
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
             | CancelTask i ->
                 match h.cancelProcess i with

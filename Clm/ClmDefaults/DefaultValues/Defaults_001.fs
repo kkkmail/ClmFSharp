@@ -81,21 +81,21 @@ module Defaults_001 =
                     //}
 
                     {
-                        tEnd = 200_000.0
+                        tEnd = 250_000.0
                         y0 = 10.0
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 200_000.0
+                        tEnd = 250_000.0
                         y0 = 5.0
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 50_000.0
+                        tEnd = 250_000.0
                         y0 = 20.0
                         useAbundant = false
                         saveModelSettings = false

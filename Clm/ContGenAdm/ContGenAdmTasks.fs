@@ -3,7 +3,6 @@
 open System.Threading
 open Argu
 open ContGenServiceInfo.ServiceInfo
-open ContGenAdm.ContGenServiceResponse
 
 module ContGenAdmTasks =
 
@@ -21,10 +20,10 @@ module ContGenAdmTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         ConfigureServiceArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-cores")>] NumberOfCores of int
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-c")>] NumberOfCores of int
             | [<Unique>] Start
             | [<Unique>] Stop
-            | [<Unique>] ShutDown of bool
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>] ShutDown of bool
 
         with
             interface IArgParserTemplate with

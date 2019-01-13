@@ -221,7 +221,7 @@ module AsyncRun =
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
             | CancelTask i ->
                 match h.cancelProcess i with
-                | true -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove i}
+                | true -> { s with runningCount = max (s.runningCount - 1) 0; running = s.running.tryRemove i}
                 | false -> s
 
         member s.isShuttingDown =

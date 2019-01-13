@@ -79,9 +79,9 @@ module AsyncRun =
         {
             cancelProcess : int -> bool
             generate : unit -> Async<unit>
-            startGenerate : unit -> unit
-            startRun : list<RunInfo> -> unit
-            startModels : list<RunInfo> -> unit
+            startGenerate : unit -> Async<unit>
+            startRun : list<RunInfo> -> Async<unit>
+            startModels : list<RunInfo> -> Async<unit>
         }
 
 
@@ -148,13 +148,13 @@ module AsyncRun =
 
         member s.completeGenerate h r =
             let w() =
-                h.startRun r
+                h.startRun r |> Async.Start
                 { s with generating = false }
 
             match s.workState with
             | Idle -> w()
             | CanGenerate ->
-                if s.runningCount < s.runLimit then h.startGenerate()
+                if s.runningCount < s.runLimit then h.startGenerate() |> Async.Start
                 w()
             | ShuttingDown -> s
 
@@ -163,24 +163,24 @@ module AsyncRun =
                 match s.running.TryFind x.exitedProcessId with
                 | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
-                    h.startModels p
+                    h.startModels p |> Async.Start
                     { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
                 | None ->
                     let p, q = partition s.runLimit s.queue s.runningCount
-                    h.startModels p
+                    h.startModels p |> Async.Start
                     { s with runningCount = s.runningCount + p.Length; queue = q }
 
             match s.workState with
             | Idle -> w()
             | CanGenerate ->
-                h.startGenerate()
+                h.startGenerate() |> Async.Start
                 w()
             | ShuttingDown -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove x.exitedProcessId }
 
         member s.startRun h r =
             let w() =
                 let p, q = partition s.runLimit (s.queue @ r) s.runningCount
-                h.startModels p
+                h.startModels p |> Async.Start
                 { s with runningCount = s.runningCount + p.Length; queue = q }
 
             match s.workState with
@@ -271,9 +271,9 @@ module AsyncRun =
             {
                 cancelProcess = cancelProcess
                 generate = fun () -> generate a
-                startGenerate = a.startGenerate
-                startRun = a.startRun
-                startModels = startModels a
+                startGenerate = fun () -> doAsyncTask a.startGenerate
+                startRun = fun r -> doAsyncTask (fun () -> (a.startRun r))
+                startModels = fun r -> doAsyncTask (fun () -> (startModels a r))
             }
 
         let messageLoop =
@@ -300,11 +300,11 @@ module AsyncRun =
                 )
 
         member private this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
-        member private this.startRun r = StartRun (this, r) |> messageLoop.Post
+        member private this.startRun r : unit = StartRun (this, r) |> messageLoop.Post
         member private this.started p = Started p |> messageLoop.Post
         member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
 
-        member this.startGenerate () = StartGenerate this |> messageLoop.Post
+        member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
         member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post

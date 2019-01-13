@@ -21,9 +21,9 @@ module ContGenAdmTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         ConfigureServiceArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-c")>] NumberOfCores of int
-            | [<Unique>] [<AltCommandLine("-start")>] Start
-            | [<Unique>] [<AltCommandLine("-stop")>] Stop
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-cores")>] NumberOfCores of int
+            | [<Unique>] Start
+            | [<Unique>] Stop
 
         with
             interface IArgParserTemplate with
@@ -40,29 +40,22 @@ module ContGenAdmTasks =
                 | Stop -> SetToIdle
 
 
-        //with
-        //    interface IArgParserTemplate with
-        //        member this.Usage =
-        //            match this with
-        //            | WaitForCompletion _ -> "wait for completion of already running tasks (this might take many days)."
-
-
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenAdmArguments =
-            | [<Unique>] [<AltCommandLine("run")>]      Monitor of ParseResults<MonitorArgs>
-            //| [<Unique>] [<AltCommandLine("start")>]    StartGenerate
-            //| [<Unique>] [<AltCommandLine("stop")>]     StopGenerate
-            | [<Unique>] [<AltCommandLine("rm")>]       ConfigureService of ParseResults<ConfigureServiceArgs>
+            | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
+            | [<Unique>] [<AltCommandLine("c")>]       ConfigureService of ParseResults<ConfigureServiceArgs>
+
+            // For debugging...
+            | [<Unique>] [<AltCommandLine("s")>]    StartGenerate
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
                     | Monitor _ -> "starts monitor."
-                    //| StartGenerate -> "starts continuos generation."
-                    //| StopGenerate -> "stops continuos generation."
                     | ConfigureService _ -> "reconfigures service."
+                    | StartGenerate -> "starts continuos generation."
 
 
     let monitor (service : IContGenService) (p :list<MonitorArgs>) =
@@ -78,16 +71,6 @@ module ContGenAdmTasks =
         0
 
 
-    let startGenerate (service : IContGenService) =
-        try
-            service.startGenerate()
-            0
-        with
-            | e ->
-                printfn "Exception: %A" e.Message
-                -1
-
-
     let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
         try
             p
@@ -100,30 +83,40 @@ module ContGenAdmTasks =
                 -1
 
 
+    let startGenerate (service : IContGenService) =
+        try
+            service.startGenerate()
+            0
+        with
+            | e ->
+                printfn "Exception: %A" e.Message
+                -1
+
+
     type ContGenAdmTask =
         | MonitorTask of service : IContGenService * arguments : list<MonitorArgs>
-        | StartGenerateTask of service : IContGenService
         | ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
+        | StartGenerateTask of service : IContGenService
 
         member task.run() =
             match task with
             | MonitorTask (s, p) -> monitor s p
-            | StartGenerateTask s -> startGenerate s
             | ConfigureServiceTask (s, p) -> configureService s p
+            | StartGenerateTask s -> startGenerate s
 
         static member private tryCreateMonitorTask s p =
             p |> List.tryPick (fun e -> match e with | Monitor q -> (s, q.GetAllResults()) |> MonitorTask |> Some | _ -> None)
 
-        static member private tryCreateStartGenerateTask s p =
-            p |> List.tryPick (fun e -> match e with | StartGenerate -> StartGenerateTask s |> Some | _ -> None)
-
         static member private tryCreatConfigureServiceTask s p =
             p |> List.tryPick (fun e -> match e with | ConfigureService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
 
+        static member private tryCreateStartGenerateTask s p =
+            p |> List.tryPick (fun e -> match e with | StartGenerate -> StartGenerateTask s |> Some | _ -> None)
+
         static member tryCreate s p =
             [
-                ContGenAdmTask.tryCreateStartGenerateTask
                 ContGenAdmTask.tryCreatConfigureServiceTask
+                ContGenAdmTask.tryCreateStartGenerateTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]
             |> List.tryPick (fun e -> e s p)

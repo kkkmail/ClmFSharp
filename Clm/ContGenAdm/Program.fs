@@ -1,20 +1,21 @@
 ﻿open ContGenAdm.ContGenServiceResponse
 open System.Threading
+open Argu
+open ContGenAdm.ContGenAdmTasks
 
 [<EntryPoint>]
 let main argv =
-    let service = new ContGenResponseHandler()
+    try
+        let service = new ContGenResponseHandler()
+        let parser = ArgumentParser.Create<ContGenAdmArguments>(programName = "ContGenAdm.exe")
+        let results = parser.Parse argv
 
-    //service.contGenService.startGenerating()
-
-    while true do
-        try
-            printfn "Getting state..."
-            let state = service.contGenService.getState()
-            printfn "...state = %A\n\n" state
-        with
-            | e -> printfn "Exception: %A\n" e.Message
-
-        Thread.Sleep(5_000)
-
-    0
+        match results.GetAllResults() |> ContGenAdmTask.tryCreate service.contGenService with
+        | Some task -> task.run()
+        | None ->
+            printfn "%s" (parser.PrintUsage())
+            -1
+    with
+        | exn ->
+            printfn "%s" exn.Message
+            -1

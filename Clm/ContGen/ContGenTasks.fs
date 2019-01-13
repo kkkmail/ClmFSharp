@@ -4,7 +4,8 @@ open System.Data.SqlClient
 open System.Threading
 open Argu
 open Clm.Substances
-open Clm.Generator.DefaultValuesExt
+open ClmDefaults.DefaultValuesExt
+open ClmDefaults.AllDefaults
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGen
@@ -12,6 +13,7 @@ open AsyncRun
 open Runner
 
 module ContGenTasks =
+    open ClmDefaults
 
     [<CliPrefix(CliPrefix.Dash)>]
     type RunContGenArgs =
@@ -29,6 +31,7 @@ module ContGenTasks =
         UpdateParametersArgs =
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] MaxPeptideLength of int
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] IndexOfDefault of int
 
         with
             interface IArgParserTemplate with
@@ -36,18 +39,7 @@ module ContGenTasks =
                     match this with
                     | NumberOfAminoAcids _ -> "number of amino acids."
                     | MaxPeptideLength _ -> "max peptide length."
-
-
-    and
-        [<CliPrefix(CliPrefix.Dash)>]
-        RequestShutDownArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-w")>] WaitForCompletion of bool
-
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | WaitForCompletion _ -> "wait for completion of already running tasks (this might take many days)."
+                    | IndexOfDefault _ -> "0-based index of default value in an array of defaults."
 
 
     and
@@ -71,7 +63,6 @@ module ContGenTasks =
         ContGenArguments =
             | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("update")>]   UpdateParameters of ParseResults<UpdateParametersArgs>
-            | [<Unique>] [<AltCommandLine("shutdown")>] RequestShutDown of ParseResults<RequestShutDownArgs>
             | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
             | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
 
@@ -81,7 +72,6 @@ module ContGenTasks =
                     match this with
                     | RunContGen _ -> "runs Continuous Generation."
                     | UpdateParameters _ -> "updates parameters."
-                    | RequestShutDown _ -> "requests shut down."
                     | GenerateModel -> "generates a single model."
                     | RunModel _ -> "runs a given model."
 
@@ -90,7 +80,7 @@ module ContGenTasks =
         let a = createRunner ModelRunnerParam.defaultValue
         a.startGenerate()
 
-        while a.getState().shuttingDown |> not do
+        while a.getState().isShuttingDown |> not do
             Thread.Sleep(30000)
             let state = a.getState()
             printfn "a.getState() = %s" (state.ToString())
@@ -109,22 +99,23 @@ module ContGenTasks =
             | Some n -> MaxPeptideLength.tryCreate n
             | None -> MaxPeptideLength.defaultValue |> Some
 
-        match n, m with
-        | Some n, Some m ->
-            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A." (n.length) (m.length)
+        let i =
+            match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
+            | Some i ->
+                if i >= 0 && i < AllDefaults.defaultValues.Length then Some i
+                else None
+            | None -> Some 0
+
+        match i, n, m with
+        | Some i, Some n, Some m ->
+            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
             use conn = new SqlConnection(ClmConnectionString)
             openConnIfClosed conn
-            saveDefaults conn n m |> ignore
+            saveDefaults conn (AllDefaults.defaultValues.[i]) n m |> ignore
             0
         | _ ->
-            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length specified."
+            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
             -1
-
-
-    /// TODO kk:20190107 - Implement.
-    let requestShutDown (p :list<RequestShutDownArgs>) =
-        printfn "requestShutDown is not implemented yet."
-        -1
 
 
     /// TODO kk:20190107 - Implement.
@@ -142,7 +133,6 @@ module ContGenTasks =
     type ContGenTask =
         | RunContGenTask of list<RunContGenArgs>
         | UpdateParametersTask of list<UpdateParametersArgs>
-        | RequestShutDownTask of list<RequestShutDownArgs>
         | GenerateModelTask
         | RunModelTask of list<RunModelArgs>
 
@@ -150,7 +140,6 @@ module ContGenTasks =
             match task with
             | RunContGenTask p -> runContGen p
             | UpdateParametersTask p -> updateParameters p
-            | RequestShutDownTask p -> requestShutDown p
             | GenerateModelTask -> generateModel ()
             | RunModelTask p -> runModel p
 
@@ -160,9 +149,6 @@ module ContGenTasks =
         static member private tryCreateUpdateParametersTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | UpdateParameters q -> q.GetAllResults() |> UpdateParametersTask |> Some | _ -> None)
 
-        static member private tryCreateRequestShutDownTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | RequestShutDown q -> q.GetAllResults() |> RequestShutDownTask |> Some | _ -> None)
-
         static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
 
@@ -171,7 +157,6 @@ module ContGenTasks =
 
         static member tryCreate (p : list<ContGenArguments>) =
             [
-                ContGenTask.tryCreateRequestShutDownTask
                 ContGenTask.tryCreateUpdateParametersTask
                 ContGenTask.tryCreateGenerateModelTask
                 ContGenTask.tryCreateRunModelTask

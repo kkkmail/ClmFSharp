@@ -64,9 +64,7 @@
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="GeneralData.fs" />
     <Compile Include="Distributions.fs" />
     <Compile Include="Substances.fs" />
     <Compile Include="ReactionTypes.fs" />
@@ -74,7 +72,6 @@
     <Compile Include="Reactions.fs" />
     <Compile Include="DataLocation.fs" />
     <Compile Include="CommandLine.fs" />
-    <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
     <Compile Include="RateModelsExt.fs" />
@@ -98,6 +95,13 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
+      <Name>ClmSys</Name>
+      <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

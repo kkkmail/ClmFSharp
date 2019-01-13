@@ -6,7 +6,7 @@ open Newtonsoft.Json
 open FSharp.Data
 open Configuration
 open System
-open Clm.VersionInfo
+open ClmSys.VersionInfo
 open Clm.Substances
 open Clm.GeneralData
 open Clm.ModelParams

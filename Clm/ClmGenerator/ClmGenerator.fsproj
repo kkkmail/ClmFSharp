@@ -65,7 +65,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="DefaultValuesExt.fs" />
     <Compile Include="FSharpCodeExt.fs" />
     <Compile Include="ClmModel.fs" />
     <Compile Include="SettingGenExt.fs" />
@@ -87,6 +86,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
+      <Name>ClmDefaults</Name>
+      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
+      <Name>ClmSys</Name>
+      <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Clm\Clm.fsproj">
       <Name>Clm</Name>
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>

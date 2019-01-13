@@ -56,7 +56,7 @@
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
-    <StartArguments>-t=10 -y0=10 -p=true</StartArguments>
+    <StartArguments>-t=1000 -y0=10 -p=true</StartArguments>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
@@ -73,6 +73,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="SolverRunnerTasks.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
@@ -110,9 +111,19 @@
       <Project>{5ce359db-d713-46be-84df-f9732de85e26}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
+      <Name>ClmSys</Name>
+      <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Clm\Clm.fsproj">
       <Name>Clm</Name>
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\DbData\DbData.fsproj">
@@ -128,6 +139,11 @@
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
       <Name>OdeSolver</Name>
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
+      <Name>ProgressNotifierClient</Name>
+      <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

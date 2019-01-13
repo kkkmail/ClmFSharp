@@ -47,6 +47,7 @@ module Solver =
             g : double[] -> double[]
             h : double -> double[]
             y0 : double
+            progressCallBack : (decimal -> unit) option
         }
 
 
@@ -59,13 +60,19 @@ module Solver =
 
         let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; endTime = n.tEnd }
 
-        let f (x : double[]) (t : double) : double[] = 
+        let notify t r m =
+            match n.progressCallBack with
+            | Some c -> (decimal r) / (decimal m) |> c
+            | None -> printfn "Step: %A, time: %A, t = %A of %A." r (DateTime.Now) t n.tEnd
+
+        let f (x : double[]) (t : double) : double[] =
             match p.noOfProgressPoints with 
             | Some k when k > 0 && n.tEnd > 0.0 ->
                 if t > (double progressCount) * (n.tEnd / (double k))
-                then 
+                then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "Step: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
+                    printfn "\nStep: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
+                    notify t progressCount k
             | _ -> ignore()
 
             n.g x

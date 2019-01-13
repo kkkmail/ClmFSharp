@@ -10,6 +10,7 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>]  SaveModelSettings of bool
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>]  NotifyAddress of string
 
     with
         interface IArgParserTemplate with
@@ -20,3 +21,4 @@ module CommandLine =
                 | UseAbundant _ -> "specify if abundant substance is used."
                 | PlotResults _ -> "specify if output charts to web browser."
                 | SaveModelSettings _ -> "if true then saves model settings into the database."
+                | NotifyAddress _ -> "notify specified web address about progress."

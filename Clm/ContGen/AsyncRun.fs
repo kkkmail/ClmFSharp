@@ -3,11 +3,30 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
+open ContGenServiceInfo.ServiceInfo
 
 module AsyncRun =
 
     let doAsyncTask  (f : unit->'a) = 
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
+
+
+    let partition maxVal q n =
+        let (a, b) =
+            q
+            |> List.mapi (fun i e -> (i + n + 1, e))
+            |> List.partition (fun (i, _) -> i <= maxVal)
+
+        (a |> List.map snd, b |> List.map snd)
+
+
+    type Map<'k, 'v when 'k : comparison>
+        with
+
+        member m.tryRemove k =
+            match m.ContainsKey k with
+            | true -> m.Remove k
+            | false -> m
 
 
     //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
@@ -20,14 +39,14 @@ module AsyncRun =
 
     type ProcessStartInfo =
         {
-            processId : int
-            modelId : int64
+            startedProcessId : int
+            startedModelId : int64
         }
 
 
     type ProcessResult =
         {
-            processId : int
+            exitedProcessId : int
             exitCode : int
             runTime : int64
             outputs : seq<string>
@@ -38,21 +57,13 @@ module AsyncRun =
     type ProcessStartedCallBack =
         {
             notifyOnStarted : ProcessStartInfo -> unit
-            modelId : int64
+            calledBackModelId : int64
         }
 
 
     type RunInfo =
         {
             run : ProcessStartedCallBack -> int64 -> ProcessResult
-            modelId : int64
-        }
-
-
-    type RunningProcessInfo =
-        {
-            started : DateTime
-            processId : int
             modelId : int64
         }
 
@@ -64,28 +75,159 @@ module AsyncRun =
         }
 
 
+    type AsyncRunnerHelper =
+        {
+            cancelProcess : int -> bool
+            generate : unit -> Async<unit>
+            startGenerate : unit -> Async<unit>
+            startRun : list<RunInfo> -> Async<unit>
+            startModels : list<RunInfo> -> Async<unit>
+        }
+
+
     type AsyncRunnerState =
         {
             generating : bool
+            runLimit : int
+            maxQueueLength : int
             runningCount : int
-            running : list<RunningProcessInfo>
+            running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
-            shuttingDown : bool
+            workState : WorkState
         }
 
         static member defaultValue =
             {
                 generating = false
+                runLimit = Environment.ProcessorCount
+                maxQueueLength = 4
                 runningCount = 0
-                running = []
+                running = Map.empty
                 queue = []
-                shuttingDown = false
+                workState = Idle
             }
 
         override s.ToString() =
             let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
-            let r = s.running |> List.map (fun e -> sprintf "(modelId: %A, processId: %A, started: %A)" e.modelId e.processId e.started) |> String.concat ", "
-            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.shuttingDown
+            let r =
+                s.running
+                |> Map.toList
+                |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
+            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], shuttingDown: %A }" s.generating s.runningCount s.queue.Length q r s.workState
+
+        member s.startGenerate h =
+            match s.workState with
+            | Idle -> s
+            | CanGenerate ->
+                if s.generating || s.queue.Length >= s.maxQueueLength then s
+                else
+                    h.generate() |> Async.Start
+                    { s with generating = true }
+            | ShuttingDown -> s
+
+        member s.updateProgress (p : ProgressUpdateInfo) =
+            match s.running.TryFind p.updatedProcessId with
+            | Some e ->
+                match p.progress with
+                | NotStarted | InProgress _ ->
+                    { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
+                | Completed ->
+                    { s with running = s.running.Remove p.updatedProcessId; runningCount = s.runningCount - 1 }
+            | None ->
+                match p.progress with
+                | NotStarted | InProgress _ ->
+                    let e =
+                        {
+                            started = DateTime.Now
+                            runningProcessId = p.updatedProcessId
+                            runningModelId = -1L
+                            progress = p.progress
+                        }
+                    { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
+                | Completed -> s
+
+        member s.completeGenerate h r =
+            let w() =
+                h.startRun r |> Async.Start
+                { s with generating = false }
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate ->
+                if s.runningCount < s.runLimit then h.startGenerate() |> Async.Start
+                w()
+            | ShuttingDown -> s
+
+        member s.completeRun h (x : ProcessResult) =
+            let w() =
+                match s.running.TryFind x.exitedProcessId with
+                | Some _ ->
+                    let p, q = partition s.runLimit s.queue (s.runningCount - 1)
+                    h.startModels p |> Async.Start
+                    { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
+                | None ->
+                    let p, q = partition s.runLimit s.queue s.runningCount
+                    h.startModels p |> Async.Start
+                    { s with runningCount = s.runningCount + p.Length; queue = q }
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate ->
+                h.startGenerate() |> Async.Start
+                w()
+            | ShuttingDown -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove x.exitedProcessId }
+
+        member s.startRun h r =
+            let w() =
+                let p, q = partition s.runLimit (s.queue @ r) s.runningCount
+                h.startModels p |> Async.Start
+                { s with runningCount = s.runningCount + p.Length; queue = q }
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate -> w()
+            | ShuttingDown -> s
+
+        member s.started p =
+            printfn "Started: %A" p
+            let r =
+                {
+                    started = DateTime.Now
+                    runningProcessId = p.startedProcessId
+                    runningModelId = p.startedModelId
+                    progress = TaskProgress.create 0.0m
+                }
+            { s with running = s.running.Add(r.runningProcessId, r)}
+
+        member s.getState reply =
+            async { return! doAsyncTask(fun () -> reply s) } |> Async.Start
+            s
+
+        member s.configureService h (p : ContGenConfigParam) =
+            match p with
+            | SetToIdle -> { s with workState = Idle }
+            | SetToCanGenerate ->
+                h.startGenerate() |> Async.Start
+                { s with workState = CanGenerate }
+            | RequestShutDown b ->
+                match b with
+                | false ->
+                    let s1 =
+                        s.running
+                        |> Map.toList
+                        |> List.fold (fun (acc : AsyncRunnerState) (i, _) -> acc.configureService h (CancelTask i)) s
+                    { s1 with workState = ShuttingDown; queue = [] }
+                | true -> { s with workState = ShuttingDown }
+            | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
+            | CancelTask i ->
+                match h.cancelProcess i with
+                | true -> { s with runningCount = max (s.runningCount - 1) 0; running = s.running.tryRemove i}
+                | false -> s
+
+        member s.isShuttingDown =
+            match s.workState with
+            | Idle | CanGenerate -> false
+            | ShuttingDown -> true
 
 
     type RunnerMessage =
@@ -93,9 +235,10 @@ module AsyncRun =
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner * list<RunInfo>
         | Started of ProcessStartInfo
+        | UpdateProgress of ProgressUpdateInfo
         | CompleteRun of AsyncRunner * ProcessResult
         | GetState of AsyncReplyChannel<AsyncRunnerState>
-        | RequestShutDown
+        | ConfigureService of AsyncRunner * ContGenConfigParam
 
         override m.ToString() =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
@@ -105,52 +248,43 @@ module AsyncRun =
             | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
             | StartRun (_, r) -> "StartRun: " + (toStr r)
             | Started p -> "Started: " + (p.ToString())
+            | UpdateProgress p -> "ProgressUpdate: " + (p.ToString())
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
-            | RequestShutDown -> "RequestShutDown"
+            | ConfigureService _ -> "ConfigureService"
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
-        let generate (a : AsyncRunner) =
-            async
-                {
-                    return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate)
-                }
-
-
         let run (a : AsyncRunner) runner n =
-            async
-                {
-                    return! doAsyncTask(fun () -> runner n |> a.completeRun)
-                }
+            async { return! doAsyncTask(fun () -> runner n |> a.completeRun) }
 
 
-        let partition q n =
-            let (a, b) =
-                q
-                |> List.mapi (fun i e -> (i + n + 1, e))
-                |> List.partition (fun (i, _) -> i <= Environment.ProcessorCount)
-
-            (a |> List.map snd, b |> List.map snd)
-
-
-        let start a (p :list<RunInfo>) =
+        let startModels a p =
             p
             |> List.map (fun e ->
                             printfn "Starting modelId: %A..." e.modelId
-                            run a (e.run { notifyOnStarted = a.started; modelId = e.modelId } ) e.modelId |> Async.Start)
+                            run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId } ) e.modelId |> Async.Start)
             |> ignore
 
+        let cancelProcess i =
+            try
+                (Process.GetProcessById i).Kill()
+                true
+            with
+                | e -> false
 
-        /// TODO kk:20190109 - Implement.
-        let logIfFailed x =
-            printfn "logIfFailed is not implemented yet."
-            ignore()
-
+        let h (a : AsyncRunner) =
+            {
+                cancelProcess = cancelProcess
+                generate = fun () -> async { return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate) }
+                startGenerate = fun () -> async { return! doAsyncTask a.startGenerate }
+                startRun = fun r -> async { return! doAsyncTask (fun () -> (a.startRun r)) }
+                startModels = fun r -> async { return! doAsyncTask (fun () -> (startModels a r)) }
+            }
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop s =
+                let rec loop (s : AsyncRunnerState) =
                     async
                         {
                             printfn "s = %s" (s.ToString())
@@ -158,55 +292,30 @@ module AsyncRun =
                             printfn "m = %s" (m.ToString())
 
                             match m with
-                            | StartGenerate a ->
-                                if s.generating || s.queue.Length >= generatorInfo.maxQueueLength then return! loop s
-                                else
-                                    generate a |> Async.Start
-                                    return! loop { s with generating = true }
-                            | CompleteGenerate (a, r) ->
-                                a.startRun r
-                                if s.runningCount < Environment.ProcessorCount && (s.shuttingDown |> not) then a.startGenerate()
-                                return! loop { s with generating = false }
-                            | StartRun (a, r) ->
-                                if s.shuttingDown then return! loop s
-                                else
-                                    let p, q = partition (s.queue @ r) s.runningCount
-                                    start a p
-                                    return! loop { s with runningCount = s.runningCount + p.Length; queue = q }
-                            | Started p ->
-                                printfn "Started: %A" p
-                                let r =
-                                    {
-                                        started = DateTime.Now
-                                        processId = p.processId
-                                        modelId = p.modelId
-                                    }
-                                return! loop { s with running = r :: s.running}
-                            | CompleteRun (a, x) ->
-                                if s.shuttingDown then return! loop { s with runningCount = s.runningCount - 1 }
-                                else
-                                    logIfFailed x
-                                    a.startGenerate()
-                                    let p, q = partition s.queue (s.runningCount - 1)
-                                    start a p
-                                    let r = removeFirst (fun e -> e.processId = x.processId) s.running
-                                    return! loop { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = r }
-                            | GetState r ->
-                                r.Reply s
-                                return! loop s
-                            | RequestShutDown ->
-                                return! loop { s with shuttingDown = true }
+                            | StartGenerate a -> return! loop (s.startGenerate (h a))
+                            | CompleteGenerate (a, r) -> return! loop (s.completeGenerate (h a) r)
+                            | StartRun (a, r) -> return! loop (s.startRun (h a) r)
+                            | Started p -> return! loop (s.started p)
+                            | UpdateProgress p -> return! loop (s.updateProgress p)
+                            | CompleteRun (a, x) -> return! loop (s.completeRun (h a) x)
+                            | GetState r -> return! loop (s.getState r.Reply)
+                            | ConfigureService (a, p) -> return! loop (s.configureService (h a) p)
                         }
 
                 loop AsyncRunnerState.defaultValue
                 )
 
-        member this.startGenerate () = StartGenerate this |> messageLoop.Post
-        member this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
-        member this.startRun r = StartRun (this, r) |> messageLoop.Post
-        member this.started p = Started p |> messageLoop.Post
-        member this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
+        member private this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
+        member private this.startRun r : unit = StartRun (this, r) |> messageLoop.Post
+        member private this.started p = Started p |> messageLoop.Post
+        member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
+
+        member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
+        member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
+        member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
+        member this.start() = SetToCanGenerate |> this.configureService
+        member this.stop() = SetToIdle |> this.configureService
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
@@ -243,7 +352,7 @@ module AsyncRun =
         let processId = p.Id
 
         printfn "Started %s with pid %i" p.ProcessName processId
-        c.notifyOnStarted { processId = processId; modelId = c.modelId }
+        c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId }
 
         p.BeginOutputReadLine()
         p.BeginErrorReadLine()
@@ -257,5 +366,5 @@ module AsyncRun =
             runTime = timer.ElapsedMilliseconds
             outputs = cleanOut outputs
             errors = cleanOut errors
-            processId = processId
+            exitedProcessId = processId
         }

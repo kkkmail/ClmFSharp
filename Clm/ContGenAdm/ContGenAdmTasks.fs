@@ -24,6 +24,7 @@ module ContGenAdmTasks =
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-cores")>] NumberOfCores of int
             | [<Unique>] Start
             | [<Unique>] Stop
+            | [<Unique>] ShutDown of bool
 
         with
             interface IArgParserTemplate with
@@ -32,12 +33,14 @@ module ContGenAdmTasks =
                     | NumberOfCores _ -> "number of logical cores to use."
                     | Start -> "starts generating models."
                     | Stop -> "stops generating models."
+                    | ShutDown _ -> "shut down."
 
             member this.configParam =
                 match this with
                 | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
                 | Start -> SetToCanGenerate
                 | Stop -> SetToIdle
+                | ShutDown b -> RequestShutDown b
 
 
     and
@@ -59,6 +62,11 @@ module ContGenAdmTasks =
 
 
     let monitor (service : IContGenService) (p :list<MonitorArgs>) =
+        let i =
+            match p |> List.tryPick (fun e -> match e with | RefreshInterval i -> Some i) with
+            | Some i -> i
+            | None -> 5_000
+
         while true do
             try
                 printfn "Getting state..."
@@ -67,7 +75,8 @@ module ContGenAdmTasks =
             with
                 | e -> printfn "Exception: %A\n" e.Message
 
-            Thread.Sleep(5_000)
+            Thread.Sleep(i)
+
         0
 
 

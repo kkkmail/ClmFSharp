@@ -19,6 +19,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenAdm", "ContGenAdm\Co
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmSys", "ClmSys\ClmSys.fsproj", "{BCE818CA-581B-4B54-8352-89AA27DF066E}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{740464F5-6E8C-4038-AB98-51DFA5A09EC1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,14 @@ Global
 		{BCE818CA-581B-4B54-8352-89AA27DF066E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BCE818CA-581B-4B54-8352-89AA27DF066E}.Release|x64.ActiveCfg = Release|Any CPU
 		{BCE818CA-581B-4B54-8352-89AA27DF066E}.Release|x64.Build.0 = Release|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Debug|x64.ActiveCfg = Debug|x64
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Debug|x64.Build.0 = Debug|x64
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.ActiveCfg = Release|Any CPU
+		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

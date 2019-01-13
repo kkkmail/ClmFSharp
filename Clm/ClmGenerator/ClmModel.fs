@@ -15,7 +15,6 @@ open Clm.DataLocation
 open Clm.GeneralData
 
 open Clm.Generator.FSharpCodeExt
-open Clm.Generator.DefaultValuesExt
 
 
 module ClmModel =
@@ -64,8 +63,8 @@ module ClmModel =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue rnd numberOfAminoAcids maxPeptideLength =
-            let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
+        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
+            let rates = d.getDefaultRateModels rnd numberOfAminoAcids
 
             {
                 modelGenerationParams = 

@@ -206,7 +206,9 @@ module AsyncRun =
         member s.configureService h (p : ContGenConfigParam) =
             match p with
             | SetToIdle -> { s with workState = Idle }
-            | SetToCanGenerate -> { s with workState = CanGenerate }
+            | SetToCanGenerate ->
+                h.startGenerate() |> Async.Start
+                { s with workState = CanGenerate }
             | RequestShutDown _ -> { s with workState = ShuttingDown }
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
             | CancelTask i ->

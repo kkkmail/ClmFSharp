@@ -65,7 +65,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="DefaultValuesExt.fs" />
     <Compile Include="FSharpCodeExt.fs" />
     <Compile Include="ClmModel.fs" />
     <Compile Include="SettingGenExt.fs" />

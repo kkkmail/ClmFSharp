@@ -4,7 +4,8 @@ open System.Data.SqlClient
 open System.Threading
 open Argu
 open Clm.Substances
-open Clm.Generator.DefaultValuesExt
+open ClmDefaults.DefaultValuesExt
+open ClmDefaults.AllDefaults
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGen

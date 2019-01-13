@@ -15,7 +15,7 @@ open Clm.DataLocation
 open Clm.GeneralData
 
 open Clm.Generator.FSharpCodeExt
-
+open ClmDefaults.DefaultValuesExt
 
 module ClmModel =
 
@@ -79,7 +79,7 @@ module ClmModel =
                         modelLocationData = ModelLocationInputData.defaultValue
                         updateAllModels = false
                     }
-                modelCommandLineParams = ModelCommandLineParam.defaultValues
+                modelCommandLineParams = d.modelCommandLineParams
             }
 
 

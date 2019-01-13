@@ -13,6 +13,7 @@ open AsyncRun
 open Runner
 
 module ContGenTasks =
+    open ClmDefaults
 
     [<CliPrefix(CliPrefix.Dash)>]
     type RunContGenArgs =
@@ -30,6 +31,7 @@ module ContGenTasks =
         UpdateParametersArgs =
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] MaxPeptideLength of int
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] IndexOfDefault of int
 
         with
             interface IArgParserTemplate with
@@ -37,6 +39,7 @@ module ContGenTasks =
                     match this with
                     | NumberOfAminoAcids _ -> "number of amino acids."
                     | MaxPeptideLength _ -> "max peptide length."
+                    | IndexOfDefault _ -> "0-based index of default value in an array of defaults."
 
 
     and
@@ -96,15 +99,22 @@ module ContGenTasks =
             | Some n -> MaxPeptideLength.tryCreate n
             | None -> MaxPeptideLength.defaultValue |> Some
 
-        match n, m with
-        | Some n, Some m ->
+        let d =
+            match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
+            | Some i ->
+                if i >= 0 && i < AllDefaults.defaultValues.Length then Some AllDefaults.defaultValues.[i]
+                else None
+            | None -> Some AllDefaults.defaultValues.[0]
+
+        match d, n, m with
+        | Some d, Some n, Some m ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A." (n.length) (m.length)
             use conn = new SqlConnection(ClmConnectionString)
             openConnIfClosed conn
-            saveDefaults conn n m |> ignore
+            saveDefaults conn d n m |> ignore
             0
         | _ ->
-            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length specified."
+            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
             -1
 
 

@@ -181,10 +181,10 @@ module Runner =
         a
 
 
-    let saveDefaults conn n m =
+    let saveDefaults conn d n m =
         let rnd = new Random()
         truncateSettings conn
-        let p = AllParams.getDefaultValue rnd n m
+        let p = AllParams.getDefaultValue rnd d n m
 
         let settings =
             []

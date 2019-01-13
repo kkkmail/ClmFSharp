@@ -56,10 +56,12 @@ module ServiceInfo =
     type ContGenRunnerState =
         {
             generating : bool
+            runLimit : int
+            maxQueueLength : int
             runningCount : int
             running : RunningProcessInfo[]
             queue : int64[]
-            //shuttingDown : bool
+            workState : WorkState
         }
 
 

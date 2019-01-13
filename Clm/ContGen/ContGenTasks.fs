@@ -99,19 +99,19 @@ module ContGenTasks =
             | Some n -> MaxPeptideLength.tryCreate n
             | None -> MaxPeptideLength.defaultValue |> Some
 
-        let d =
+        let i =
             match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
             | Some i ->
-                if i >= 0 && i < AllDefaults.defaultValues.Length then Some AllDefaults.defaultValues.[i]
+                if i >= 0 && i < AllDefaults.defaultValues.Length then Some i
                 else None
-            | None -> Some AllDefaults.defaultValues.[0]
+            | None -> Some 0
 
-        match d, n, m with
-        | Some d, Some n, Some m ->
-            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A." (n.length) (m.length)
+        match i, n, m with
+        | Some i, Some n, Some m ->
+            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
             use conn = new SqlConnection(ClmConnectionString)
             openConnIfClosed conn
-            saveDefaults conn d n m |> ignore
+            saveDefaults conn (AllDefaults.defaultValues.[i]) n m |> ignore
             0
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."

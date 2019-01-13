@@ -66,6 +66,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="DefaultValuesExt.fs" />
     <Compile Include="DefaultValues\Defaults_000.fs" />
+    <Compile Include="DefaultValues\Defaults_001.fs" />
     <Compile Include="AllDefaults.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

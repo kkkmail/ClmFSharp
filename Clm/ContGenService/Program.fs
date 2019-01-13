@@ -19,7 +19,7 @@ module Program =
             | Some task ->
                 task.run() |> ignore
                 0
-            | None -> 
+            | None ->
                 ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
                 0
         with

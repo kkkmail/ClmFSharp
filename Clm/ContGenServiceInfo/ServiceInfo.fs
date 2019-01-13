@@ -4,13 +4,19 @@ open System
 module ServiceInfo =
 
     [<Literal>]
+    let ContGenServiceAddress = "localhost"
+
+    [<Literal>]
     let ContGenServiceName = "ContGenService"
 
     [<Literal>]
-    let ContGenServicePort = 12346
+    let ContGenServicePort = 12345
 
     [<Literal>]
     let ProgramName = "ContGenService.exe"
+
+
+    let getServiceUrl() = "tcp://" + ContGenServiceAddress + ":" + (ContGenServicePort.ToString()) + "/" + ContGenServiceName
 
 
     type TaskProgress =

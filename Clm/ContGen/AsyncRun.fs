@@ -200,7 +200,7 @@ module AsyncRun =
             { s with running = s.running.Add(r.runningProcessId, r)}
 
         member s.getState reply =
-            reply s
+            async { return! doAsyncTask(fun () -> reply s) } |> Async.Start
             s
 
         member s.configureService h (p : ContGenConfigParam) =
@@ -245,10 +245,6 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
-        let generate (a : AsyncRunner) =
-            async { return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate) }
-
-
         let run (a : AsyncRunner) runner n =
             async { return! doAsyncTask(fun () -> runner n |> a.completeRun) }
 
@@ -270,10 +266,10 @@ module AsyncRun =
         let h (a : AsyncRunner) =
             {
                 cancelProcess = cancelProcess
-                generate = fun () -> generate a
-                startGenerate = fun () -> doAsyncTask a.startGenerate
-                startRun = fun r -> doAsyncTask (fun () -> (a.startRun r))
-                startModels = fun r -> doAsyncTask (fun () -> (startModels a r))
+                generate = fun () -> async { return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate) }
+                startGenerate = fun () -> async { return! doAsyncTask a.startGenerate }
+                startRun = fun r -> async { return! doAsyncTask (fun () -> (a.startRun r)) }
+                startModels = fun r -> async { return! doAsyncTask (fun () -> (startModels a r)) }
             }
 
         let messageLoop =

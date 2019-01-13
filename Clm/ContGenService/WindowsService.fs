@@ -17,10 +17,9 @@ module WindowsService =
 
         override service.OnStart (args:string[]) =
             base.OnStart(args)
-            let servicePort = ContGenServicePort
 
             try
-                let channel = new Tcp.TcpChannel (servicePort)
+                let channel = new Tcp.TcpChannel (ContGenServicePort)
                 ChannelServices.RegisterChannel (channel, false)
 
                 RemotingConfiguration.RegisterWellKnownServiceType

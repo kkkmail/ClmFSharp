@@ -61,9 +61,10 @@ module ClmModel =
         {
             modelGenerationParams : ModelGenerationParams
             modelCommandLineParams : list<ModelCommandLineParam>
+            defaultSetIndex : int
         }
 
-        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
+        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
             let rates = d.getDefaultRateModels rnd numberOfAminoAcids
 
             {
@@ -80,6 +81,7 @@ module ClmModel =
                         updateAllModels = false
                     }
                 modelCommandLineParams = d.modelCommandLineParams
+                defaultSetIndex = i
             }
 
 

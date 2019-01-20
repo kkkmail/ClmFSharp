@@ -47,18 +47,21 @@ module ModelParams =
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
 
+            y0 : decimal
+            tEnd : decimal
+            useAbundant : bool
+
+            maxEe : double
+            maxAverageEe : double
+
             aminoAcids : list<AminoAcid>
             allSubst : list<Substance>
             allInd : Map<Substance, int>
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
 
-            y0 : decimal
-            tEnd : decimal
-            useAbundant : bool
             x : double [,]
             t : double []
-            maxEe : double
         }
 
         member rd.getTotals x = getTotalsValue rd.allInd rd.allSubst rd.aminoAcids x

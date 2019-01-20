@@ -1,12 +1,14 @@
 CREATE TABLE [dbo].[ResultData](
 	[resultDataId] [bigint] IDENTITY(1,1) NOT NULL,
 	[modelDataId] [bigint] NOT NULL,
-	[maxEe] [float] NOT NULL,
 	[numberOfAminoAcids] [int] NOT NULL,
 	[maxPeptideLength] [int] NOT NULL,
 	[y0] [money] NOT NULL,
 	[tEnd] [money] NOT NULL,
 	[useAbundant] [bit] NOT NULL,
+	[maxEe] [float] NOT NULL,
+	[maxAverageEe] [float] NOT NULL,
+	[createdOn] [datetime] NOT NULL,
 	[aminoAcids] [varbinary](max) NOT NULL,
 	[allSubst] [varbinary](max) NOT NULL,
 	[allInd] [varbinary](max) NOT NULL,
@@ -14,7 +16,6 @@ CREATE TABLE [dbo].[ResultData](
 	[allReactions] [varbinary](max) NOT NULL,
 	[x] [varbinary](max) NOT NULL,
 	[t] [varbinary](max) NOT NULL,
-	[createdOn] [datetime] NOT NULL,
  CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
 (
 	[resultDataId] ASC
@@ -23,6 +24,12 @@ CREATE TABLE [dbo].[ResultData](
 GO
 
 ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_useAbundant]  DEFAULT ((0)) FOR [useAbundant]
+GO
+
+ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_maxEe]  DEFAULT ((0)) FOR [maxEe]
+GO
+
+ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_averageEe]  DEFAULT ((0)) FOR [maxAverageEe]
 GO
 
 ALTER TABLE [dbo].[ResultData] ADD  CONSTRAINT [DF_ResultData_createdOn]  DEFAULT (getdate()) FOR [createdOn]

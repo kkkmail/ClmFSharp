@@ -334,18 +334,21 @@ module DatabaseTypes =
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
 
+                    y0 = r.y0
+                    tEnd = r.tEnd
+                    useAbundant = r.useAbundant
+
+                    maxEe = r.maxEe
+                    maxAverageEe = r.maxAverageEe
+
                     aminoAcids = r.aminoAcids |> unZip |> JsonConvert.DeserializeObject<list<AminoAcid>>
                     allSubst = r.allSubst |> unZip |> JsonConvert.DeserializeObject<list<Substance>>
                     allInd = r.allInd |> unZip |> JsonConvert.DeserializeObject<list<Substance * int>> |> Map.ofList
                     allRawReactions = r.allRawReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
                     allReactions = r.allReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
 
-                    y0 = r.y0
-                    tEnd = r.tEnd
-                    useAbundant = r.useAbundant
                     x = r.x |> unZip |> JsonConvert.DeserializeObject<double [,]>
                     t = r.t |> unZip |> JsonConvert.DeserializeObject<double []>
-                    maxEe = r.maxEe
                 }
                 |> Some
             | _ -> None
@@ -356,18 +359,21 @@ module DatabaseTypes =
                         numberOfAminoAcids = r.numberOfAminoAcids.length,
                         maxPeptideLength = r.maxPeptideLength.length,
 
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant,
+
+                        maxEe = r.maxEe,
+                        maxAverageEe = r.maxAverageEe,
+
                         aminoAcids = (r.aminoAcids |> JsonConvert.SerializeObject |> zip),
                         allSubst = (r.allSubst |> JsonConvert.SerializeObject |> zip),
                         allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip),
                         allRawReactions = (r.allRawReactions |> JsonConvert.SerializeObject |> zip),
                         allReactions = (r.allReactions |> JsonConvert.SerializeObject |> zip),
 
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant,
                         x = (r.x |> JsonConvert.SerializeObject |> zip),
-                        t = (r.t |> JsonConvert.SerializeObject |> zip),
-                        maxEe = r.maxEe
+                        t = (r.t |> JsonConvert.SerializeObject |> zip)
                         )
 
             newRow.modelDataId <- r.modelDataId

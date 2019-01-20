@@ -14,6 +14,7 @@ module ServiceImplementation =
     let timer = new System.Timers.Timer(60_000.0)
     do timer.AutoReset <- true
     do timer.Elapsed.Add eventHandler
+    do timer.Start()
 
 
     type AsyncRunnerState

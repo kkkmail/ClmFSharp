@@ -116,6 +116,11 @@
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
+      <Name>ClmDefaults</Name>
+      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
       <Name>ClmGenerator</Name>
       <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
@@ -129,6 +134,11 @@
     <ProjectReference Include="..\Clm\Clm.fsproj">
       <Name>Clm</Name>
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenAdm\ContGenAdm.fsproj">
+      <Name>ContGenAdm</Name>
+      <Project>{297160a2-3509-467c-a821-566c6b678be1}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">

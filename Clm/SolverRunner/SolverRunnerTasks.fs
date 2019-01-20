@@ -107,23 +107,37 @@ module SolverRunnerTasks =
 
             printfn "Saving."
 
+            /// Amino acids are in the list and time-depended values are in the array.
             /// TODO kk:20190105 - There is some duplicate code here and in plotEnantiomericExcessImpl. Consolidate.
-            let maxEe =
+            let maxEe, maxAverageEe =
+                let aa = [ for i in 0..(modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
+
                 let noOfOutputPoints = result.t.Length - 1
-                let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-                let a = tIdx |> Array.ofList |> Array.map (fun t -> modelDataParamsWithExtraData.getTotals result.x.[t,*])
+                let tIdx = [| for i in 0..noOfOutputPoints -> i |]
+                let a = tIdx |> Array.map (fun t -> modelDataParamsWithExtraData.getTotals result.x.[t,*])
 
                 let d t i =
                     let (l, d) = a.[t].[i]
                     if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
 
-                let getFuncData i = tIdx |> List.map (fun t -> d t i)
+                let getFuncData i = tIdx |> Array.map (fun t -> d t i)
 
-                [ for i in 0..(modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
-                |> List.map (fun i -> getFuncData i)
-                |> List.concat
-                |> List.map (fun e -> abs e)
-                |> List.max
+                let maxEe =
+                    aa
+                    |> List.map (fun i -> getFuncData i |> List.ofArray)
+                    |> List.concat
+                    |> List.map (fun e -> abs e)
+                    |> List.max
+
+                let maxAverageEe =
+                    aa
+                    |> List.map (fun i -> getFuncData i)
+                    |> List.map (fun e -> e |> Array.average)
+                    |> List.map (fun e -> abs e)
+                    |> List.max
+
+                maxEe, maxAverageEe
+
 
             let r =
                 {
@@ -133,18 +147,21 @@ module SolverRunnerTasks =
                     numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                     maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
 
+                    y0 = decimal y0
+                    tEnd = decimal tEnd
+                    useAbundant = false // TODO kk:20190105 This should be propagated...
+
+                    maxEe = maxEe
+                    maxAverageEe = maxAverageEe
+
                     aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                     allSubst = modelDataParamsWithExtraData.allSubst
                     allInd = modelDataParamsWithExtraData.allInd
                     allRawReactions = modelDataParamsWithExtraData.allRawReactions
                     allReactions = modelDataParamsWithExtraData.allReactions
 
-                    y0 = decimal y0
-                    tEnd = decimal tEnd
-                    useAbundant = false // TODO kk:20190105 This should be propagated...
                     x = result.x
                     t = result.t
-                    maxEe = maxEe
                 }
 
             use conn = new SqlConnection(ClmConnectionString)

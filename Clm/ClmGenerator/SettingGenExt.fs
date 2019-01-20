@@ -1,10 +1,9 @@
 ﻿namespace Clm.Generator
 
 open Clm.Substances
-open Clm.Distributions
 open Clm.DataLocation
 open Clm.ReactionRates
-open Clm.GeneralData
+open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams

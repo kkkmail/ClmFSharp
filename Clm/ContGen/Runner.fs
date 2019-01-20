@@ -1,11 +1,9 @@
 ﻿namespace ContGen
 
 open System
-open Clm.Substances
-open Clm.GeneralData
+open ClmSys.GeneralData
 open Clm.DataLocation
 open Clm.ModelParams
-
 open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.SettingsExt

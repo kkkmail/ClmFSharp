@@ -2,7 +2,8 @@
 
 open System
 open Microsoft.FSharp.Core
-open ClmSys
+open ClmSys.GeneralData
+open ClmSys.ExitErrorCodes
 open Clm.ModelInit
 open Clm.Model.ModelData
 open Clm.ModelParams
@@ -18,16 +19,9 @@ open System.Data.SqlClient
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
-open System.Threading.Tasks
-open ProgressNotifierClient
 
 
 module SolverRunnerTasks =
-
-    /// This is a copy from AsyncRun.fs
-    let doAsyncTask  (f : unit->'a) = 
-         async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
-
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
         async
@@ -50,7 +44,7 @@ module SolverRunnerTasks =
         | Completed
 
 
-    let notify svc p =
+    let notify m svc p =
         let t =
             match p with
             | Running d -> TaskProgress.create d
@@ -59,6 +53,7 @@ module SolverRunnerTasks =
         progressNotifier svc
             {
                 updatedProcessId = Process.GetCurrentProcess().Id
+                updateModelId = m
                 progress = t
             }
 
@@ -91,22 +86,23 @@ module SolverRunnerTasks =
             | _ -> ignore()
 
             printfn "Calling nSolve..."
+            let modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
 
             let p =
                 {
-                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                    modelDataId = modelDataId
                     tEnd = tEnd
                     g = update
                     h = getInitValues
                     y0 = y0
-                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify svc (Running r)) |> Some)
+                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
                 }
 
             let result = nSolve p
 
             // Notify of completion just in case.
             match n with
-            | Some svc -> notify svc Completed
+            | Some svc -> notify modelDataId svc Completed
             | None -> ignore()
 
             printfn "Saving."
@@ -164,7 +160,7 @@ module SolverRunnerTasks =
                 printfn "Completed."
             | _ -> ignore()
 
-            ExitErrorCodes.CompletedSuccessfully
+            CompletedSuccessfully
         | _ ->
             printfn "%s" usage
-            ExitErrorCodes.InvalidCommandLineArgs
+            InvalidCommandLineArgs

@@ -1,6 +1,6 @@
 ﻿namespace Clm
 open System
-open GeneralData
+open ClmSys.GeneralData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.

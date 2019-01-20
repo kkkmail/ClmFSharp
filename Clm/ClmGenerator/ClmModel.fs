@@ -12,8 +12,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
-open Clm.GeneralData
-
+open ClmSys.GeneralData
 open Clm.Generator.FSharpCodeExt
 open ClmDefaults.DefaultValuesExt
 

@@ -5,7 +5,7 @@ open FSharp.Collections
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
-open Clm.GeneralData
+open ClmSys.GeneralData
 open Clm.CommandLine
 open Argu
 

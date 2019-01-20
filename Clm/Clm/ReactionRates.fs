@@ -7,7 +7,7 @@ open FSharp.Collections
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionTypes
-open Clm.GeneralData
+open ClmSys.GeneralData
 
 module ReactionRates = 
 

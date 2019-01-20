@@ -40,6 +40,7 @@ module ServiceInfo =
     type ProgressUpdateInfo =
         {
             updatedProcessId : int
+            updateModelId : int64
             progress : TaskProgress
         }
 
@@ -78,4 +79,3 @@ module ServiceInfo =
         abstract startGenerate : unit -> unit
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
-

@@ -1,8 +1,9 @@
-﻿namespace Clm
+﻿namespace ClmSys
 open System
 open System.IO
 open System.IO.Compression
 open System.Text
+open System.Threading.Tasks
 
 module GeneralData =
 
@@ -53,3 +54,8 @@ module GeneralData =
         i.Close()
         o.Close()
         Encoding.UTF8.GetString(o.ToArray())
+
+
+    let doAsyncTask  (f : unit->'a) =
+         async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
+

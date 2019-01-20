@@ -9,6 +9,13 @@ module ServiceImplementation =
 
     let a = createRunner ModelRunnerParam.defaultValue
 
+    // Send startGenerate in case runner stops due to some reason.
+    let eventHandler _ = a.startGenerate()
+    let timer = new System.Timers.Timer(60_000.0)
+    do timer.AutoReset <- true
+    do timer.Elapsed.Add eventHandler
+    do timer.Start()
+
 
     type AsyncRunnerState
         with

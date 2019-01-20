@@ -1,10 +1,9 @@
 ﻿namespace Clm.Generator
 
 open Clm.Substances
-open Clm.Distributions
 open Clm.DataLocation
 open Clm.ReactionRates
-open Clm.GeneralData
+open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams
@@ -38,30 +37,15 @@ module SettingGenExt =
     type ModelGenerationParams
         with
         static member tryGet (m : SettingMap) (seeder : Seeder) po =
-            let a() = 
-                let x = getTextOpt m po fileStructureVersionNumberName
-                x
-            let b() = 
-                let x = getTextOpt m po versionNumberName
-                x
-            let c() = 
-                let x = getIntOpt m po seedValueName
-                x
-            let d() = 
-                let x = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
-                x
-            let e() = 
-                let x = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
-                x
-            let g() = 
-                let x = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
-                x
-            let h() = 
-                let x = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
-                x
-            let i() = 
-                let x = getBoolOpt m po updateAllModelsName
-                x
+            let a() = getTextOpt m po fileStructureVersionNumberName
+            let b() = getTextOpt m po versionNumberName
+            let c() = getIntOpt m po seedValueName
+            let d() = addParent po numberOfAminoAcidsName |> NumberOfAminoAcids.tryGet m
+            let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
+            let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
+            let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
+            let i() = getBoolOpt m po updateAllModelsName
+            let j() = getIntOpt m po defaultSetIndexName
 
             match a(), b(), d(), e(), g(), h(), i() with
             | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
@@ -70,6 +54,13 @@ module SettingGenExt =
                 let models =
                     ReactionRateModel.createAll p d1
                     |> List.choose (fun e -> match e.usage with | PrimaryParam -> Some e.model | DependsOnParam -> None)
+
+                let j1 =
+                    match j() with
+                    | Some v -> v
+                    | None ->
+                        printfn "ModelGenerationParams.defaultSetIndex is not found. Setting it to -1."
+                        -1
 
                 {
                     fileStructureVersionNumber = a1
@@ -81,6 +72,7 @@ module SettingGenExt =
                     updateFuncType = g1
                     modelLocationData = h1
                     updateAllModels = i1
+                    defaultSetIndex = j1
                 }
                 |> Some
             | _ -> None
@@ -97,6 +89,7 @@ module SettingGenExt =
                 setText po versionNumberName this.versionNumber |> Some
                 setIntOpt po seedValueName this.seedValue
                 setBool po updateAllModelsName this.updateAllModels |> Some
+                setInt po defaultSetIndexName this.defaultSetIndex |> Some
             ]
             |> List.choose id
             |> add s

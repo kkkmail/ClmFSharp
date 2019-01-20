@@ -8,7 +8,7 @@ open Configuration
 open System
 open ClmSys.VersionInfo
 open Clm.Substances
-open Clm.GeneralData
+open ClmSys.GeneralData
 open Clm.ModelParams
 
 

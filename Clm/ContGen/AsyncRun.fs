@@ -2,14 +2,10 @@
 
 open System
 open System.Diagnostics
-open System.Threading.Tasks
+open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 
 module AsyncRun =
-
-    let doAsyncTask  (f : unit->'a) = 
-         async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
-
 
     let partition maxVal q n =
         let (a, b) =
@@ -104,7 +100,7 @@ module AsyncRun =
                 runningCount = 0
                 running = Map.empty
                 queue = []
-                workState = Idle
+                workState = CanGenerate
             }
 
         override s.ToString() =
@@ -113,7 +109,7 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
-            sprintf "{ generating: %A, runningCount: %A, queue: %A, [%s], running: [%s], workState: %A }" s.generating s.runningCount s.queue.Length q r s.workState
+            sprintf "{ queue: %A, [%s], generating: %A, runningCount: %A, running: [%s], workState: %A }" s.queue.Length q s.generating s.runningCount r s.workState
 
         member s.startGenerate h =
             match s.workState with
@@ -140,7 +136,7 @@ module AsyncRun =
                         {
                             started = DateTime.Now
                             runningProcessId = p.updatedProcessId
-                            runningModelId = -1L
+                            runningModelId = p.updateModelId
                             progress = p.progress
                         }
                     { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }

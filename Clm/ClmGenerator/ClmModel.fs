@@ -12,8 +12,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
-open Clm.GeneralData
-
+open ClmSys.GeneralData
 open Clm.Generator.FSharpCodeExt
 open ClmDefaults.DefaultValuesExt
 
@@ -54,6 +53,7 @@ module ClmModel =
             updateFuncType : UpdateFuncType
             modelLocationData : ModelLocationInputData
             updateAllModels : bool
+            defaultSetIndex : int
         }
 
 
@@ -63,7 +63,7 @@ module ClmModel =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
+        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
             let rates = d.getDefaultRateModels rnd numberOfAminoAcids
 
             {
@@ -78,6 +78,7 @@ module ClmModel =
                         updateFuncType = UseFunctions
                         modelLocationData = ModelLocationInputData.defaultValue
                         updateAllModels = false
+                        defaultSetIndex = i
                     }
                 modelCommandLineParams = d.modelCommandLineParams
             }
@@ -470,6 +471,7 @@ module ClmModel =
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
                             updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                             allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
+                            defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                         }
 
                     allParams = 
@@ -586,6 +588,7 @@ module ClmModel =
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
                         updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                         allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
+                        defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                     }
 
                 allParams = 

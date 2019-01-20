@@ -54,6 +54,7 @@ module ClmModel =
             updateFuncType : UpdateFuncType
             modelLocationData : ModelLocationInputData
             updateAllModels : bool
+            defaultSetIndex : int
         }
 
 
@@ -61,7 +62,6 @@ module ClmModel =
         {
             modelGenerationParams : ModelGenerationParams
             modelCommandLineParams : list<ModelCommandLineParam>
-            defaultSetIndex : int
         }
 
         static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
@@ -79,9 +79,9 @@ module ClmModel =
                         updateFuncType = UseFunctions
                         modelLocationData = ModelLocationInputData.defaultValue
                         updateAllModels = false
+                        defaultSetIndex = i
                     }
                 modelCommandLineParams = d.modelCommandLineParams
-                defaultSetIndex = i
             }
 
 
@@ -472,6 +472,7 @@ module ClmModel =
                             maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
                             updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                             allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
+                            defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                         }
 
                     allParams = 
@@ -588,6 +589,7 @@ module ClmModel =
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
                         updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                         allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
+                        defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                     }
 
                 allParams = 

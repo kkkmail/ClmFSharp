@@ -949,6 +949,9 @@ module SettingsExt =
     [<Literal>]
     let allResultsFileName = "allResultsFile"
 
+    [<Literal>]
+    let defaultSetIndexName = "defaultSetIndex"
+
     type ModelInfo
         with
         static member tryGet (m : SettingMap) po =
@@ -961,11 +964,18 @@ module SettingsExt =
             let g() = getIntOpt m po maxPeptideLengthName
             let h() = getBoolOpt m po updateAllModelsName
             let i() = getTextOpt m po allResultsFileName
+            let j() = getIntOpt m po defaultSetIndexName
 
             match a(), b(), c(), d(), e(), f(), g(), h(), i() with
             | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some h1, Some i1 ->
                 match NumberOfAminoAcids.tryCreate f1, MaxPeptideLength.tryCreate g1 with
                 | Some f2, Some g2 ->
+                    let j1 =
+                        match j() with
+                        | Some v -> v
+                        | None ->
+                            printfn "ModelInfo.defaultSetIndex is not found. Setting it to -1."
+                            -1
                     {
                         fileStructureVersionNumber = a1
                         versionNumber = b1
@@ -976,6 +986,7 @@ module SettingsExt =
                         maxPeptideLength = g2
                         updateAllModels = h1
                         allResultsFile = i1
+                        defaultSetIndex = j1
                     }
                     |> Some
                 | _ -> None
@@ -992,6 +1003,7 @@ module SettingsExt =
                 setInt po maxPeptideLengthName this.maxPeptideLength.length
                 setBool po updateAllModelsName this.updateAllModels
                 setText po allResultsFileName this.allResultsFile
+                setInt po defaultSetIndexName this.defaultSetIndex
             ]
             |> add s
 

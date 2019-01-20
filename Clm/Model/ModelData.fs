@@ -37300,6 +37300,7 @@ module ModelData =
                             maxPeptideLength = ThreeMax
                             updateAllModels = false
                             allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
+                            defaultSetIndex = -1
                         }
 
                     allParams = 

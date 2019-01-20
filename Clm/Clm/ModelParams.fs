@@ -157,4 +157,5 @@ module ModelParams =
             seedValue : int option
             fileStructureVersion : string
             modelData : string
+            defaultSetIndex : int
         }

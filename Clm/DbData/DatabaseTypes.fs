@@ -459,6 +459,7 @@ module DatabaseTypes =
                     maxPeptideLength = 0,
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
+                    defaultSetIndex = -1,
                     modelData = [||],
                     createdOn = DateTime.Now
                     )
@@ -488,6 +489,7 @@ module DatabaseTypes =
             r.maxPeptideLength <- m.maxPeptideLength.length
             r.seedValue <- m.seedValue
             r.fileStructureVersion <- m.fileStructureVersion
+            r.defaultSetIndex <- m.defaultSetIndex
             r.modelData <- (m.modelData |> zip)
             t.Update(conn) |> ignore
             true

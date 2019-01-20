@@ -96,6 +96,7 @@ module Runner =
                     seedValue = pm.seedValue
                     fileStructureVersion = pm.fileStructureVersionNumber
                     modelData = sb.ToString()
+                    defaultSetIndex = pm.defaultSetIndex
                 }
 
             use conn = new SqlConnection (p.connectionString)

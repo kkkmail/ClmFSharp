@@ -3,7 +3,7 @@ CREATE TABLE [dbo].[ModelData](
 	[numberOfAminoAcids] [int] NOT NULL,
 	[maxPeptideLength] [int] NOT NULL,
 	[seedValue] [int] NULL,
-	[defaultSetId] [int] NOT NULL,
+	[defaultSetIndex] [int] NOT NULL,
 	[fileStructureVersion] [nvarchar](50) NOT NULL,
 	[modelData] [varbinary](max) NOT NULL,
 	[createdOn] [datetime] NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE [dbo].[ModelData](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-ALTER TABLE [dbo].[ModelData] ADD  CONSTRAINT [DF_ModelData_defaultSetId]  DEFAULT ((-1)) FOR [defaultSetId]
+ALTER TABLE [dbo].[ModelData] ADD  CONSTRAINT [DF_ModelData_defaultSetId]  DEFAULT ((-1)) FOR [defaultSetIndex]
 GO
 
 ALTER TABLE [dbo].[ModelData] ADD  CONSTRAINT [DF_ModelData_createdOn]  DEFAULT (getdate()) FOR [createdOn]

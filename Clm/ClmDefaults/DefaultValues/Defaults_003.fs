@@ -5,9 +5,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_002 =
+module Defaults_003 =
 
-    let description = "Decreased defaultCatDestrSimModel -> simThreshold to 0.1 in comparision to Defaults_001."
+    let description = "Increased defaultCatDestrSimModel -> simThreshold to 0.7 in comparision to Defaults_001."
 
     let getDefaultRateModels (rnd : Random) numberOfAminoAcids =
         //===========================================================
@@ -27,7 +27,7 @@ module Defaults_002 =
         let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
         //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
         //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
-        let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.1, numberOfAminoAcids)
+        let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.7, numberOfAminoAcids)
         //===========================================================
         //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
         //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)

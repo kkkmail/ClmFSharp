@@ -7,6 +7,7 @@ module AllDefaults =
             Defaults_000.defaultValue
             Defaults_001.defaultValue
             Defaults_002.defaultValue
+            Defaults_003.defaultValue
         |]
 
 

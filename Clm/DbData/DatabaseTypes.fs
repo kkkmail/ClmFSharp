@@ -491,14 +491,42 @@ module DatabaseTypes =
 
         match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
         | Some r ->
-            r.numberOfAminoAcids <- m.numberOfAminoAcids.length
-            r.maxPeptideLength <- m.maxPeptideLength.length
-            r.seedValue <- m.seedValue
-            r.fileStructureVersion <- m.fileStructureVersion
-            r.defaultSetIndex <- m.defaultSetIndex
-            r.modelData <- (m.modelData |> zip)
-            t.Update(conn) |> ignore
-            true
+            do
+                let connectionString = conn.ConnectionString
+                use cmd = new SqlCommandProvider<"
+                    UPDATE dbo.ModelData
+                       SET numberOfAminoAcids = @numberOfAminoAcids
+                          ,maxPeptideLength = @maxPeptideLength
+                          ,seedValue = @seedValue
+                          ,defaultSetIndex = @defaultSetIndex
+                          ,fileStructureVersion = @fileStructureVersion
+                          ,modelData = @modelData
+                          ,createdOn = @createdOn
+                    WHERE modelDataId = @modelDataId
+                ", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+
+                let recordsUpdated =
+                    cmd.Execute(
+                        numberOfAminoAcids = m.numberOfAminoAcids.length,
+                        maxPeptideLength = m.maxPeptideLength.length,
+                        seedValue = m.seedValue,
+                        defaultSetIndex = m.defaultSetIndex,
+                        fileStructureVersion = m.fileStructureVersion,
+                        modelData = (m.modelData |> zip),
+                        createdOn = DateTime.Now,
+                        modelDataId = m.modelDataId)
+
+                if recordsUpdated = 1 then true else false
+
+
+            //r.numberOfAminoAcids <- m.numberOfAminoAcids.length
+            //r.maxPeptideLength <- m.maxPeptideLength.length
+            //r.seedValue <- m.seedValue
+            //r.fileStructureVersion <- m.fileStructureVersion
+            //r.defaultSetIndex <- m.defaultSetIndex
+            //r.modelData <- (m.modelData |> zip)
+            //t.Update(conn) |> ignore
+            //true
         | None -> false
 
 

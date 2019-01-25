@@ -483,30 +483,125 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
 
 
+    //let tryUpdateModelDataOld conn (m : ModelData) =
+    //    openConnIfClosed conn
+    //    use d = new ModelDataTableData(conn)
+    //    let t = new ModelDataTable()
+    //    d.Execute(modelDataId = m.modelDataId) |> t.Load
+
+    //    match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
+    //    | Some r ->
+    //        r.numberOfAminoAcids <- m.numberOfAminoAcids.length
+    //        r.maxPeptideLength <- m.maxPeptideLength.length
+    //        r.seedValue <- m.seedValue
+    //        r.fileStructureVersion <- m.fileStructureVersion
+    //        r.defaultSetIndex <- m.defaultSetIndex
+    //        r.modelData <- (m.modelData |> zip)
+    //        t.Update(conn) |> ignore
+    //        true
+    //    | None -> false
+
+
     let tryUpdateModelData conn (m : ModelData) =
         openConnIfClosed conn
-        use d = new ModelDataTableData(conn)
-        let t = new ModelDataTable()
-        d.Execute(modelDataId = m.modelDataId) |> t.Load
+        let connectionString = conn.ConnectionString
 
-        match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
-        | Some r ->
-            r.numberOfAminoAcids <- m.numberOfAminoAcids.length
-            r.maxPeptideLength <- m.maxPeptideLength.length
-            r.seedValue <- m.seedValue
-            r.fileStructureVersion <- m.fileStructureVersion
-            r.defaultSetIndex <- m.defaultSetIndex
-            r.modelData <- (m.modelData |> zip)
-            t.Update(conn) |> ignore
-            true
-        | None -> false
+        use cmd = new SqlCommandProvider<"
+            UPDATE dbo.ModelData
+                SET numberOfAminoAcids = @numberOfAminoAcids
+                    ,maxPeptideLength = @maxPeptideLength
+                    ,seedValue = @seedValue
+                    ,defaultSetIndex = @defaultSetIndex
+                    ,fileStructureVersion = @fileStructureVersion
+                    ,modelData = @modelData
+                    ,createdOn = @createdOn
+            WHERE modelDataId = @modelDataId
+        ", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        let recordsUpdated =
+            cmd.Execute(
+                numberOfAminoAcids = m.numberOfAminoAcids.length,
+                maxPeptideLength = m.maxPeptideLength.length,
+                seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                defaultSetIndex = m.defaultSetIndex,
+                fileStructureVersion = m.fileStructureVersion,
+                modelData = (m.modelData |> zip),
+                createdOn = DateTime.Now,
+                modelDataId = m.modelDataId)
+
+        if recordsUpdated = 1 then true else false
+
+
+    //let saveResultDataOld (r : ResultData) (conn : SqlConnection) =
+    //    let t = new ResultDataTable()
+    //    let newRow = r.addRow t
+    //    t.Update(conn) |> ignore
+    //    newRow.resultDataId
 
 
     let saveResultData (r : ResultData) (conn : SqlConnection) =
-        let t = new ResultDataTable()
-        let newRow = r.addRow t
-        t.Update(conn) |> ignore
-        newRow.resultDataId
+        openConnIfClosed conn
+        let connectionString = conn.ConnectionString
+
+        use cmd = new SqlCommandProvider<"
+            INSERT INTO dbo.ResultData
+                       (modelDataId
+                       ,numberOfAminoAcids
+                       ,maxPeptideLength
+                       ,y0
+                       ,tEnd
+                       ,useAbundant
+                       ,maxEe
+                       ,maxAverageEe
+                       ,createdOn
+                       ,aminoAcids
+                       ,allSubst
+                       ,allInd
+                       ,allRawReactions
+                       ,allReactions
+                       ,x
+                       ,t)
+                 OUTPUT Inserted.resultDataId
+                 VALUES
+                       (@modelDataId
+                       ,@numberOfAminoAcids
+                       ,@maxPeptideLength
+                       ,@y0
+                       ,@tEnd
+                       ,@useAbundant
+                       ,@maxEe
+                       ,@maxAverageEe
+                       ,@createdOn
+                       ,@aminoAcids
+                       ,@allSubst
+                       ,@allInd
+                       ,@allRawReactions
+                       ,@allReactions
+                       ,@x
+                       ,@t)
+        ", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        let resultDataId =
+            cmd.Execute(
+                        modelDataId = r.modelDataId
+                       ,numberOfAminoAcids = r.numberOfAminoAcids.length
+                       ,maxPeptideLength = r.maxPeptideLength.length
+                       ,y0 = r.y0
+                       ,tEnd = r.tEnd
+                       ,useAbundant = r.useAbundant
+                       ,maxEe = r.maxEe
+                       ,maxAverageEe = r.maxAverageEe
+                       ,createdOn = DateTime.Now
+                       ,aminoAcids = (r.aminoAcids |> JsonConvert.SerializeObject |> zip)
+                       ,allSubst =(r.allSubst |> JsonConvert.SerializeObject |> zip)
+                       ,allInd =(r.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip)
+                       ,allRawReactions =(r.allRawReactions |> JsonConvert.SerializeObject |> zip)
+                       ,allReactions =(r.allReactions |> JsonConvert.SerializeObject |> zip)
+                       ,x = (r.x |> JsonConvert.SerializeObject |> zip)
+                       ,t = (r.t |> JsonConvert.SerializeObject |> zip)
+                )
+
+        resultDataId |> Seq.head
 
 
     let tryLoadResultData conn resultDataId =

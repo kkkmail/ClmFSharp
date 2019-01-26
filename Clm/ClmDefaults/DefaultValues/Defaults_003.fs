@@ -105,4 +105,5 @@ module Defaults_003 =
                 ]
 
             getDefaultRateModels = getDefaultRateModels
+            description = Some description
         }

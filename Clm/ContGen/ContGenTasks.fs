@@ -110,9 +110,7 @@ module ContGenTasks =
         match i, n, m with
         | Some i, Some n, Some m ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
-            use conn = new SqlConnection(ClmConnectionString)
-            openConnIfClosed conn
-            saveDefaults conn (AllDefaults.getDefaultValues i) n m |> ignore
+            saveDefaults ClmConnectionString (AllDefaults.getDefaultValues i) n m |> ignore
             0
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."

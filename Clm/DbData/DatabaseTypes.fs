@@ -399,14 +399,14 @@ module DatabaseTypes =
         |> Map.ofList
 
 
-    let truncateSettings (dummy : int) (connectionString : string) =
+    let truncateSettings (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use truncateSettingTbl = new TruncateSettingTbl(conn)
         truncateSettingTbl.Execute() |> ignore
 
 
-    let saveSettings (dummy : int) (connectionString : string) (settings : list<Setting>) =
+    let saveSettings (settings : list<Setting>) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new SettingTable()
@@ -415,7 +415,7 @@ module DatabaseTypes =
         printfn "inserted = %A" inserted
 
 
-    let loadResultSettings (dummy : int) (connectionString : string) resultDataId =
+    let loadResultSettings resultDataId (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new ResultSettingTable()
@@ -434,7 +434,7 @@ module DatabaseTypes =
         }
 
 
-    let saveResultSettings (dummy : int) (connectionString : string) (rs : ResultSettings) =
+    let saveResultSettings (rs : ResultSettings) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let t = new ResultSettingTable()
@@ -442,7 +442,7 @@ module DatabaseTypes =
         t.Update(conn) |> ignore
 
 
-    let loadModelSettings (dummy : int) (connectionString : string) modelDataId =
+    let loadModelSettings modelDataId (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new ModelSettingTable()
@@ -461,7 +461,7 @@ module DatabaseTypes =
         }
 
 
-    let saveModelSettings (dummy : int) (connectionString : string) (rs : ModelSettings) =
+    let saveModelSettings (rs : ModelSettings) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let t = new ModelSettingTable()
@@ -490,7 +490,7 @@ module DatabaseTypes =
         r.modelDataId
 
 
-    let tryLoadModelData (dummy : int) (connectionString : string) modelDataId =
+    let tryLoadModelData modelDataId (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
@@ -556,7 +556,7 @@ module DatabaseTypes =
     //    newRow.resultDataId
 
 
-    let saveResultData (dummy : int) (connectionString : string) (r : ResultData)  =
+    let saveResultData (r : ResultData) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
@@ -622,7 +622,7 @@ module DatabaseTypes =
         resultDataId |> Seq.head
 
 
-    let tryLoadResultData (dummy : int) (connectionString : string) resultDataId =
+    let tryLoadResultData resultDataId (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ResultDataTableData(conn)

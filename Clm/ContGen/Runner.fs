@@ -9,7 +9,6 @@ open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.SettingsExt
 open Clm.Generator.SettingGenExt
-open System.Data.SqlClient
 open System.Text
 open Clm.Generator.ClmModel
 open AsyncRun
@@ -46,22 +45,8 @@ module Runner =
         let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
         let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
-        let logError e =
-            printfn "Error: %A" e
-
-
-        let tryDbFun f =
-            try
-                (retry {
-                    let! b = rm (fun _ -> f p.connectionString)
-                    return Some b
-                }) defaultRetryParams
-            with
-                | e ->
-                    logError e
-                    None
-
-
+        let logError e = printfn "Error: %A" e
+        let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelId () = tryDbFun getNewModelDataId
 
 
@@ -177,7 +162,7 @@ module Runner =
                         []
             with
                 | e ->
-                    printfn "Exception: %A" e
+                    logError (sprintf "Exception: %A" e)
                     []
 
 
@@ -197,9 +182,9 @@ module Runner =
         a
 
 
-    let saveDefaults conn (d, i) n m =
+    let saveDefaults connectionString (d, i) n m =
         let rnd = new Random()
-        truncateSettings conn
+        truncateSettings connectionString
         let p = AllParams.getDefaultValue rnd d n m i
 
         let settings =
@@ -207,4 +192,4 @@ module Runner =
             |> p.modelGenerationParams.setValue []
             |> ModelCommandLineParam.setValues p.modelCommandLineParams []
 
-        saveSettings conn settings
+        saveSettings settings connectionString

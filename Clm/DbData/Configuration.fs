@@ -12,7 +12,7 @@ module Configuration =
     let ClmConnectionString : string = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
 
     [<Literal>]
-    let ClmCommandTimeout = 3600
+    let ClmCommandTimeout = 7200
 
     [<Literal>]
     let ClmSqlProviderName : string = "name=" + ClmDbName
@@ -23,4 +23,3 @@ module Configuration =
             Some (sprintf "Server=localhost;Database=%s;Integrated Security=SSPI" key) 
         ]
         |> List.pick (fun x -> x)
-

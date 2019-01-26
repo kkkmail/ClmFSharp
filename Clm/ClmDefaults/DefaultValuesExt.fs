@@ -13,6 +13,7 @@ module DefaultValuesExt =
         {
             modelCommandLineParams : list<ModelCommandLineParam>
             getDefaultRateModels : Random -> NumberOfAminoAcids -> ReactionRateProviderParams
+            description : string option
         }
 
 
@@ -25,40 +26,6 @@ module DefaultValuesExt =
         with
         static member defaultValue = ThreeMax
 
-
-    //type ModelCommandLineParam
-    //    with
-
-    //    static member defaultValues =
-    //        [
-    //            //{
-    //            //    tEnd = 10_000.0
-    //            //    y0 = 10.0
-    //            //    useAbundant = false
-    //            //    saveModelSettings = false
-    //            //}
-
-    //            {
-    //                tEnd = 50_000.0
-    //                y0 = 10.0
-    //                useAbundant = false
-    //                saveModelSettings = false
-    //            }
-
-    //            {
-    //                tEnd = 50_000.0
-    //                y0 = 5.0
-    //                useAbundant = false
-    //                saveModelSettings = false
-    //            }
-
-    //            {
-    //                tEnd = 50_000.0
-    //                y0 = 20.0
-    //                useAbundant = false
-    //                saveModelSettings = false
-    //            }
-    //        ]
 
     let defaultRateMultiplierDistr (rnd : Random) threshold mult =
         TriangularDistribution(rnd.Next(), { threshold = threshold; scale = Some mult; shift = None }) |> Triangular |> RateMultDistr
@@ -157,14 +124,14 @@ module DefaultValuesExt =
                 destructionModel = m
             }
 
-        static member defaultCatDestrRndModel (rnd : Random) (m, threshold, mult) = 
+        static member defaultCatDestrRndModel (rnd : Random) (m, threshold, mult) =
             ReactionRateProvider.defaultCatDestrRndParams rnd (m, threshold, mult)
             |> CatDestrRndParamWithModel
             |> CatalyticDestructionModel.create
 
         static member defaultCatDestrSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
             {
-                catDestrSimParam = 
+                catDestrSimParam =
                     {
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter
@@ -189,7 +156,7 @@ module DefaultValuesExt =
 
         static member defaultCatLigRndModel (rnd : Random) (m, threshold, mult) =
             {
-                catLigationParam = 
+                catLigationParam =
                     {
                         catLigRndEeParams =
                             {
@@ -230,7 +197,7 @@ module DefaultValuesExt =
 
         static member defaultCatRacemRndParams (rnd : Random) (m, threshold, mult) n =
             {
-                catRacemRndParam = 
+                catRacemRndParam =
                     {
                         catRacemRndEeParams =
                             {
@@ -244,14 +211,14 @@ module DefaultValuesExt =
                 aminoAcids = AminoAcid.getAminoAcids n
             }
 
-        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) n = 
+        static member defaultCatRacemRndModel (rnd : Random) (m, threshold, mult) n =
             ReactionRateProvider.defaultCatRacemRndParams rnd (m, threshold, mult) n
             |> CatRacemRndParamWithModel
             |> CatalyticRacemizationModel.create
 
         static member defaultCatRacemSimModel (rnd : Random) (m, threshold, mult) (simThreshold, n) =
             {
-                catRacemSimParam = 
+                catRacemSimParam =
                     {
                         simBaseDistribution = UniformDistribution(rnd.Next(), { threshold = simThreshold; scale = None; shift = Some 1.0 }) |> Uniform
                         getForwardEeDistr = defaultEeDistributionGetter

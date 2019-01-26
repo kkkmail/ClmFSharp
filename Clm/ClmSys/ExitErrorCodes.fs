@@ -10,3 +10,6 @@ module ExitErrorCodes =
 
     [<Literal>]
     let UnknownException = -2
+
+    [<Literal>]
+    let DatabaseErrorOccurred = -3

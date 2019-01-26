@@ -4,6 +4,7 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
+open ClmSys.Retry
 open Clm.ModelInit
 open Clm.Model.ModelData
 open Clm.ModelParams
@@ -15,13 +16,16 @@ open Argu
 open Clm.Substances
 open DbData.Configuration
 open DbData.DatabaseTypes
-open System.Data.SqlClient
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
 
 
 module SolverRunnerTasks =
+
+    let logError e = printfn "Error: %A." e
+    let tryDbFun f = tryDbFun logError ClmConnectionString f
+
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
         async
@@ -81,8 +85,7 @@ module SolverRunnerTasks =
                         settings = settings
                     }
 
-                use conn = new SqlConnection(ClmConnectionString)
-                saveModelSettings conn rs
+                tryDbFun (saveModelSettings rs) |> ignore
             | _ -> ignore()
 
             printfn "Calling nSolve..."
@@ -164,8 +167,7 @@ module SolverRunnerTasks =
                     t = result.t
                 }
 
-            use conn = new SqlConnection(ClmConnectionString)
-            saveResultData r conn |> ignore
+            tryDbFun (saveResultData r) |> ignore
 
             match results.TryGetResult PlotResults with
             | Some v when v = true ->

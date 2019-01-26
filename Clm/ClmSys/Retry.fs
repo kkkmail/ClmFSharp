@@ -47,9 +47,20 @@ module Retry =
             )
 
         member this.Return (x : 'a) = fun defaultRetryParams -> x
-
         member this.Run(m : RetryMonad<'a>) = m
-
         member this.Delay(f : unit -> RetryMonad<'a>) = f ()
 
+
     let retry = RetryBuilder()
+
+
+    let tryDbFun logger connectionString f =
+        try
+            (retry {
+                let! b = rm (fun _ -> f connectionString)
+                return Some b
+            }) defaultRetryParams
+        with
+            | e ->
+                logger e
+                None

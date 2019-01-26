@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.GeneralData
+open ClmSys.Retry
 open Clm.DataLocation
 open Clm.ModelParams
 open DbData.Configuration
@@ -45,33 +46,44 @@ module Runner =
         let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
         let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
+        let logError e =
+            printfn "Error: %A" e
 
-        let getModelId () =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            getNewModelDataId conn
+
+        let tryDbFun f =
+            try
+                (retry {
+                    let! b = rm (fun _ -> f p.connectionString)
+                    return Some b
+                }) defaultRetryParams
+            with
+                | e ->
+                    logError e
+                    None
+
+
+        let getModelId () = tryDbFun getNewModelDataId
 
 
         let loadParams seeder modelId =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            let m = loadSettings conn
-
-            match ModelGenerationParams.tryGet m seeder [] with
-            | Some q ->
-                (
-                    { q with
-                        modelLocationData =
-                            { q.modelLocationData with
-                                modelName = ConsecutiveName modelId
-                                useDefaultModeData = true
-                            }
-                        seedValue = rnd.Next() |> Some
-                    },
-                    ModelCommandLineParam.getValues m []
-                )
-                |> Some
-            | None -> None
+            match tryDbFun loadSettings with
+                | Some m ->
+                    match ModelGenerationParams.tryGet m seeder [] with
+                    | Some q ->
+                        (
+                            { q with
+                                modelLocationData =
+                                    { q.modelLocationData with
+                                        modelName = ConsecutiveName modelId
+                                        useDefaultModeData = true
+                                    }
+                                seedValue = rnd.Next() |> Some
+                            },
+                            ModelCommandLineParam.getValues m []
+                        )
+                        |> Some
+                    | None -> None
+                | None -> None
 
 
         let generateModel modelGenerationParams =
@@ -99,9 +111,7 @@ module Runner =
                     defaultSetIndex = pm.defaultSetIndex
                 }
 
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            tryUpdateModelData conn m
+            tryDbFun (tryUpdateModelData m)
 
 
         let compileModel modelId =
@@ -142,22 +152,29 @@ module Runner =
 
         let generate() =
             try
-                let modelId = getModelId ()
-                let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
+                match getModelId () with
+                    | Some modelId ->
+                        let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
 
-                match loadParams getRandomSeeder modelId with
-                | Some (p, r) ->
-                    let code = generateModel p
-                    match saveModel code p modelId with
-                    | true ->
-                        compileModel modelId
-                        r |> List.mapi (fun i e -> { run = cmd i e |> runModel; modelId = modelId })
-                    | false ->
-                        printfn "Cannot save modelId: %A." modelId
+                        match loadParams getRandomSeeder modelId with
+                        | Some (p, r) ->
+                            let code = generateModel p
+                            match saveModel code p modelId with
+                            | Some true ->
+                                compileModel modelId
+                                r |> List.mapi (fun i e -> { run = cmd i e |> runModel; modelId = modelId })
+                            | Some false ->
+                                logError (sprintf "Cannot save modelId: %A." modelId)
+                                []
+                            | None ->
+                                logError (sprintf "Exception occurred while saving modelId: %A." modelId)
+                                []
+                        | None ->
+                            logError (sprintf "Cannot load parameters for modelId: %A." modelId)
+                            []
+                    | None ->
+                        logError (sprintf "Cannot get modelId.")
                         []
-                | None ->
-                    printfn "Cannot load parameters for modelId: %A." modelId
-                    []
             with
                 | e ->
                     printfn "Exception: %A" e

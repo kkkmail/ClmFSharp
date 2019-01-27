@@ -149,7 +149,7 @@ module AsyncRun =
                             runningProcessId = p.updatedProcessId
                             runningModelId = p.updateModelId
                             progress = p.progress
-                            runQueueId = None // We don't have the queue when the external process attaches to the service.
+                            runQueueId = None // We don't have the queue id when the external process attaches to the service.
                         }
                     { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
                 | Completed -> s

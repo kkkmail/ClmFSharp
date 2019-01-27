@@ -182,7 +182,7 @@ module AsyncRun =
                 match s.running.TryFind x.exitedProcessId with
                 | Some r ->
                     match r.runQueueId with
-                    | Some i -> h.removeFromQueue  i |> Async.Start
+                    | Some i -> h.removeFromQueue i |> Async.Start
                     | None -> ignore()
 
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
@@ -329,9 +329,9 @@ module AsyncRun =
                 let rec loop (s : AsyncRunnerState) =
                     async
                         {
-                            printfn "s = %s" (s.ToString())
+                            //printfn "s = %s" (s.ToString())
                             let! m = u.Receive()
-                            printfn "m = %s" (m.ToString())
+                            //printfn "m = %s" (m.ToString())
 
                             match m with
                             | StartQueue a -> return! loop (s.startQueue (h a))

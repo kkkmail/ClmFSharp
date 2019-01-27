@@ -670,7 +670,7 @@ module DatabaseTypes =
         let r = RunQueueInfo.fromModelCommandLineParam p modelId
         let row = r.addRow t
         t.Update conn |> ignore
-        row.modelDataId
+        row.runQueueId
 
 
     let deleteRunQueueEntry runQueueId (connectionString : string) =

@@ -135,6 +135,12 @@ module Runner =
             runProc c exeName commandLineParams None
 
 
+        let getQueueId (p : ModelCommandLineParam) (modelId : int64) =
+            match tryDbFun (saveRunQueueEntry p modelId) with
+            | Some q -> q
+            | None -> -1L
+
+
         let generate() =
             try
                 match getModelId () with
@@ -147,7 +153,12 @@ module Runner =
                             match saveModel code p modelId with
                             | Some true ->
                                 compileModel modelId
-                                r |> List.mapi (fun i e -> { run = cmd i e |> runModel; modelId = modelId })
+                                r |> List.mapi (fun i e -> 
+                                                    {
+                                                        run = cmd i e |> runModel
+                                                        modelId = modelId
+                                                        runQueueId = getQueueId e modelId
+                                                    })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)
                                 []
@@ -166,9 +177,30 @@ module Runner =
                     []
 
 
+        let getQueue () =
+            match tryDbFun loadRunQueue with
+            | Some q -> q |> List.map (fun e -> 
+                                        {
+                                            run = e.modelCommandLineParam |> runModel
+                                            modelId = e.modelDataId
+                                            runQueueId = -e.runQueueId
+                                        })
+            | None -> []
+
+
+        let removeFromQueue runQueueId =
+            match tryDbFun (deleteRunQueueEntry runQueueId) with
+            | Some v -> ignore()
+            | None ->
+                logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
+                ignore()
+
+
         let createGeneratorImpl() =
             {
                 generate = generate
+                getQueue = getQueue
+                removeFromQueue = removeFromQueue
                 maxQueueLength = 4
             }
 
@@ -179,6 +211,7 @@ module Runner =
     let createRunner p =
         let r = ModelRunner p
         let a = r.createGenerator() |> AsyncRunner
+        a.startQueue()
         a
 
 

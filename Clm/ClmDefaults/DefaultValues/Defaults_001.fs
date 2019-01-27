@@ -74,29 +74,29 @@ module Defaults_001 =
             modelCommandLineParams =
                 [
                     //{
-                    //    tEnd = 10_000.0
-                    //    y0 = 10.0
+                    //    tEnd = 10_000.0m
+                    //    y0 = 10.0m
                     //    useAbundant = false
                     //    saveModelSettings = false
                     //}
 
                     {
-                        tEnd = 250_000.0
-                        y0 = 10.0
+                        tEnd = 250_000.0m
+                        y0 = 10.0m
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 250_000.0
-                        y0 = 5.0
+                        tEnd = 250_000.0m
+                        y0 = 5.0m
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 250_000.0
-                        y0 = 20.0
+                        tEnd = 250_000.0m
+                        y0 = 20.0m
                         useAbundant = false
                         saveModelSettings = false
                     }

@@ -46,6 +46,11 @@ module DatabaseTypes =
     type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
     type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
+    type RunQueueTable = ClmDB.dbo.Tables.RunQueue
+    type RunQueueTableRow = RunQueueTable.Row
+    type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionString, ResultType.DataReader>
+
+
     type Setting
         with
 
@@ -386,6 +391,35 @@ module DatabaseTypes =
             newRow
 
 
+    type RunQueue
+        with
+
+        static member create (r : RunQueueTableRow) =
+            {
+                runQueueId = r.runQueueId
+                modelDataId = r.runQueueId
+                y0 = r.y0
+                tEnd = r.tEnd
+                useAbundant = r.useAbundant
+                statusId = r.statusId
+            }
+
+
+        member r.addRow (t : RunQueueTable) =
+            let newRow =
+                t.NewRow(
+                        modelDataId = r.modelDataId,
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant
+                        )
+
+            newRow.statusId <- 0
+
+            t.Rows.Add newRow
+            newRow
+
+
     let loadSettings (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
@@ -499,25 +533,6 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
 
 
-    //let tryUpdateModelDataOld conn (m : ModelData) =
-    //    openConnIfClosed conn
-    //    use d = new ModelDataTableData(conn)
-    //    let t = new ModelDataTable()
-    //    d.Execute(modelDataId = m.modelDataId) |> t.Load
-
-    //    match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = m.modelDataId) with
-    //    | Some r ->
-    //        r.numberOfAminoAcids <- m.numberOfAminoAcids.length
-    //        r.maxPeptideLength <- m.maxPeptideLength.length
-    //        r.seedValue <- m.seedValue
-    //        r.fileStructureVersion <- m.fileStructureVersion
-    //        r.defaultSetIndex <- m.defaultSetIndex
-    //        r.modelData <- (m.modelData |> zip)
-    //        t.Update(conn) |> ignore
-    //        true
-    //    | None -> false
-
-
     let tryUpdateModelData (m : ModelData) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
@@ -547,13 +562,6 @@ module DatabaseTypes =
                 modelDataId = m.modelDataId)
 
         if recordsUpdated = 1 then true else false
-
-
-    //let saveResultDataOld (r : ResultData) (conn : SqlConnection) =
-    //    let t = new ResultDataTable()
-    //    let newRow = r.addRow t
-    //    t.Update(conn) |> ignore
-    //    newRow.resultDataId
 
 
     let saveResultData (r : ResultData) (connectionString : string) =
@@ -630,3 +638,35 @@ module DatabaseTypes =
         d.Execute(resultDataId = resultDataId) |> t.Load
         t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
         |> Option.bind ResultData.tryCreate
+
+
+    let loadRunQueue (connectionString : string) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        let runQueueTable = new RunQueueTable()
+        (new RunQueueTableData(conn)).Execute() |> runQueueTable.Load
+
+        runQueueTable.Rows
+        |> List.ofSeq
+        |> List.map (fun e -> RunQueue.create e)
+
+
+    let saveRunQueueEntry (p : ModelCommandLineParam) (modelId : int64) (connectionString : string) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new RunQueueTable()
+        let r = RunQueue.fromModelCommandLineParam p modelId
+        let row = r.addRow t
+        t.Update conn |> ignore
+        row.modelDataId
+
+
+    let deleteRunQueueEntry runQueueId (connectionString : string) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+
+        use cmd = new SqlCommandProvider<"
+            DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        let rowsAffected = cmd.Execute(runQueueId = runQueueId)
+        rowsAffected

@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
+open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 
 module AsyncRun =
@@ -61,12 +62,15 @@ module AsyncRun =
         {
             run : ProcessStartedCallBack -> int64 -> ProcessResult
             modelId : int64
+            runQueueId : int64
         }
 
 
     type GeneratorInfo =
         {
             generate : unit -> list<RunInfo>
+            getQueue : unit -> list<RunInfo>
+            removeFromQueue : int64 -> unit
             maxQueueLength : int
         }
 
@@ -78,6 +82,8 @@ module AsyncRun =
             startGenerate : unit -> Async<unit>
             startRun : list<RunInfo> -> Async<unit>
             startModels : list<RunInfo> -> Async<unit>
+            getQueue : unit -> list<RunInfo>
+            removeFromQueue : int64 -> unit
         }
 
 
@@ -154,6 +160,16 @@ module AsyncRun =
                 w()
             | ShuttingDown -> s
 
+        member s.startQueue h =
+            let w() =
+                let r = h.getQueue()
+                s.completeGenerate h r
+
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate -> w()
+            | ShuttingDown -> s
+
         member s.completeRun h (x : ProcessResult) =
             let w() =
                 match s.running.TryFind x.exitedProcessId with
@@ -227,6 +243,7 @@ module AsyncRun =
 
 
     type RunnerMessage =
+        | StartQueue of AsyncRunner
         | StartGenerate of AsyncRunner
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner * list<RunInfo>
@@ -240,6 +257,7 @@ module AsyncRun =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
 
             match m with
+            | StartQueue _ -> "StartQueue"
             | StartGenerate _ -> "StartGenerate"
             | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
             | StartRun (_, r) -> "StartRun: " + (toStr r)
@@ -276,6 +294,8 @@ module AsyncRun =
                 startGenerate = fun () -> async { return! doAsyncTask a.startGenerate }
                 startRun = fun r -> async { return! doAsyncTask (fun () -> (a.startRun r)) }
                 startModels = fun r -> async { return! doAsyncTask (fun () -> (startModels a r)) }
+                getQueue = generatorInfo.getQueue
+                removeFromQueue = generatorInfo.removeFromQueue
             }
 
         let messageLoop =
@@ -288,6 +308,7 @@ module AsyncRun =
                             printfn "m = %s" (m.ToString())
 
                             match m with
+                            | StartQueue a -> return! loop (s.startQueue (h a))
                             | StartGenerate a -> return! loop (s.startGenerate (h a))
                             | CompleteGenerate (a, r) -> return! loop (s.completeGenerate (h a) r)
                             | StartRun (a, r) -> return! loop (s.startRun (h a) r)
@@ -306,6 +327,7 @@ module AsyncRun =
         member private this.started p = Started p |> messageLoop.Post
         member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
 
+        member this.startQueue () : unit = StartQueue this |> messageLoop.Post
         member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
         member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState

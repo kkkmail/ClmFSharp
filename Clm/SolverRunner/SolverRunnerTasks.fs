@@ -28,19 +28,16 @@ module SolverRunnerTasks =
 
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
-        async
-            {
-                return! doAsyncTask(fun () ->
-                    try
-                        printfn "Notifying of progress: %A." p
-                        r.progressNotifierService.updateProgress p
-                        printfn "...completed."
-                    with
-                        | e ->
-                            printfn "Exception occurred: %A, progress: %A." e.Message p
-                )
-            }
-        |> Async.Start
+        let notify() =
+            try
+                printfn "Notifying of progress: %A." p
+                r.progressNotifierService.updateProgress p
+                printfn "...completed."
+            with
+                | e ->
+                    printfn "Exception occurred: %A, progress: %A." e.Message p
+
+        notify |> toAsync |> Async.Start
 
 
     type RunProgress =

@@ -5,6 +5,7 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
+open System.Threading
 
 module AsyncRun =
 
@@ -86,12 +87,14 @@ module AsyncRun =
             startModels : list<RunInfo> -> Async<unit>
             getQueue : unit -> Async<unit>
             removeFromQueue : int64 -> Async<unit>
+            tryAcquireGenerating : unit -> bool
+            releaseGenerating : unit -> unit
         }
 
 
     type AsyncRunnerState =
         {
-            generating : bool
+            //generating : bool
             runLimit : int
             maxQueueLength : int
             runningCount : int
@@ -102,7 +105,7 @@ module AsyncRun =
 
         static member defaultValue =
             {
-                generating = false
+                //generating = false
                 runLimit = Environment.ProcessorCount
                 maxQueueLength = 4
                 runningCount = 0
@@ -117,16 +120,16 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
-            sprintf "{ queue: %A, [%s], generating: %A, runningCount: %A, running: [%s], workState: %A }" s.queue.Length q s.generating s.runningCount r s.workState
+            sprintf "{ queue: %A, [%s], runningCount: %A, running: [%s], workState: %A }" s.queue.Length q s.runningCount r s.workState
 
         member s.startGenerate h =
             match s.workState with
             | Idle -> s
             | CanGenerate ->
-                if s.generating || s.queue.Length >= s.maxQueueLength then s
-                else
-                    h.generate() |> Async.Start
-                    { s with generating = true }
+                if s.queue.Length <= s.maxQueueLength
+                then
+                    if h.tryAcquireGenerating() then h.generate() |> Async.Start
+                s
             | ShuttingDown -> s
 
         member s.updateProgress (p : ProgressUpdateInfo) =
@@ -154,7 +157,8 @@ module AsyncRun =
         member s.completeGenerate h r =
             let w() =
                 h.startRun r |> Async.Start
-                { s with generating = false }
+                h.releaseGenerating()
+                s
 
             match s.workState with
             | Idle -> w()
@@ -220,7 +224,7 @@ module AsyncRun =
             { s with running = s.running.Add(r.runningProcessId, r)}
 
         member s.getState reply =
-            async { return! doAsyncTask(fun () -> reply s) } |> Async.Start
+            toAsync (fun () -> reply s) |> Async.Start
             s
 
         member s.configureService h (p : ContGenConfigParam) =
@@ -277,8 +281,19 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
+        let mutable generating = 0
+
+        // Returns true if successfully acquired generating flag
+        let tryAcquireGenerating() =
+            let x = Interlocked.CompareExchange(&generating, 1, 0) 
+            x = 0
+
+        let releaseGenerating() = 
+            Interlocked.Exchange(&generating, 0) |> ignore
+
+
         let run (a : AsyncRunner) runner n =
-            async { return! doAsyncTask(fun () -> runner n |> a.completeRun) }
+            toAsync (fun () -> runner n |> a.completeRun)
 
 
         let startModels a p =
@@ -299,12 +314,14 @@ module AsyncRun =
         let h (a : AsyncRunner) =
             {
                 cancelProcess = cancelProcess
-                generate = fun () -> async { return! doAsyncTask(fun () -> generatorInfo.generate () |> a.completeGenerate) }
-                startGenerate = fun () -> async { return! doAsyncTask a.startGenerate }
-                startRun = fun r -> async { return! doAsyncTask (fun () -> (a.startRun r)) }
-                startModels = fun r -> async { return! doAsyncTask (fun () -> (startModels a r)) }
-                getQueue = fun () -> async { return! doAsyncTask(fun () -> generatorInfo.getQueue() |> a.completeGenerate) }
-                removeFromQueue = fun i -> async { return! doAsyncTask(fun () -> generatorInfo.removeFromQueue i) }
+                generate = fun () -> toAsync (fun () -> generatorInfo.generate () |> a.completeGenerate)
+                startGenerate = fun () -> a.startGenerate |> toAsync
+                startRun = fun r -> (fun () -> a.startRun r) |> toAsync
+                startModels = fun r -> (fun () -> startModels a r) |> toAsync
+                getQueue = fun () -> toAsync (fun () -> generatorInfo.getQueue() |> a.startRun)
+                removeFromQueue = fun i -> (fun () -> generatorInfo.removeFromQueue i) |> toAsync
+                tryAcquireGenerating = tryAcquireGenerating
+                releaseGenerating = releaseGenerating
             }
 
         let messageLoop =
@@ -331,7 +348,7 @@ module AsyncRun =
                 loop AsyncRunnerState.defaultValue
                 )
 
-        member private this.completeGenerate r = CompleteGenerate (this, r) |> messageLoop.Post
+        member private this.completeGenerate (r : list<RunInfo>) : unit = CompleteGenerate (this, r) |> messageLoop.Post
         member private this.startRun r : unit = StartRun (this, r) |> messageLoop.Post
         member private this.started p = Started p |> messageLoop.Post
         member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post

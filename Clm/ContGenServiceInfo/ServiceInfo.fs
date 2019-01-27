@@ -57,7 +57,7 @@ module ServiceInfo =
 
     type ContGenRunnerState =
         {
-            generating : bool
+            //generating : bool
             runLimit : int
             maxQueueLength : int
             runningCount : int

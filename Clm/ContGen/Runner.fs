@@ -182,7 +182,7 @@ module Runner =
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = { e.modelCommandLineParam with saveModelSettings = true } |> runModel
-                                            modelId = e.modelDataId
+                                            modelId = e.info.modelDataId
                                             runQueueId = e.runQueueId
                                         })
             | None -> []

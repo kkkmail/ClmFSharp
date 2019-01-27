@@ -164,30 +164,35 @@ module ModelParams =
         }
 
 
-    type RunQueue =
+    type RunQueueInfo =
         {
-            runQueueId : int64
             modelDataId : int64
             y0 : decimal
             tEnd : decimal
             useAbundant : bool
+        }
+
+        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : int64) =
+            {
+                modelDataId = modelDataId
+                y0 = p.y0
+                tEnd = p.y0
+                useAbundant = p.useAbundant
+            }
+
+
+    type RunQueue =
+        {
+            runQueueId : int64
+            info : RunQueueInfo
             statusId : int
         }
 
         member q.modelCommandLineParam =
             {
-                tEnd = q.tEnd
-                y0 = q.y0
-                useAbundant = q.useAbundant
+                tEnd = q.info.tEnd
+                y0 = q.info.y0
+                useAbundant = q.info.useAbundant
                 saveModelSettings = false
             }
 
-        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : int64) =
-            {
-                runQueueId = 0L
-                modelDataId = modelDataId
-                y0 = p.y0
-                tEnd = p.y0
-                useAbundant = p.useAbundant
-                statusId = 0
-            }

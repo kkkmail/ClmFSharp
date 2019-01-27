@@ -397,13 +397,19 @@ module DatabaseTypes =
         static member create (r : RunQueueTableRow) =
             {
                 runQueueId = r.runQueueId
-                modelDataId = r.runQueueId
-                y0 = r.y0
-                tEnd = r.tEnd
-                useAbundant = r.useAbundant
+                info =
+                    {
+                        modelDataId = r.modelDataId
+                        y0 = r.y0
+                        tEnd = r.tEnd
+                        useAbundant = r.useAbundant
+                    }
                 statusId = r.statusId
             }
 
+
+    type RunQueueInfo
+        with
 
         member r.addRow (t : RunQueueTable) =
             let newRow =
@@ -661,7 +667,7 @@ module DatabaseTypes =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new RunQueueTable()
-        let r = RunQueue.fromModelCommandLineParam p modelId
+        let r = RunQueueInfo.fromModelCommandLineParam p modelId
         let row = r.addRow t
         t.Update conn |> ignore
         row.modelDataId

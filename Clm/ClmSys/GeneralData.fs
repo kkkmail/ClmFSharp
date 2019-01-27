@@ -56,6 +56,8 @@ module GeneralData =
         Encoding.UTF8.GetString(o.ToArray())
 
 
-    let doAsyncTask  (f : unit->'a) =
+    let doAsyncTask (f : unit-> 'a) =
          async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
+
+    let toAsyncTask (f : unit-> unit) = async { do f() }
 

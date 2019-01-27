@@ -94,10 +94,10 @@ module SolverRunnerTasks =
             let p =
                 {
                     modelDataId = modelDataId
-                    tEnd = tEnd
+                    tEnd = double tEnd
                     g = update
                     h = getInitValues
-                    y0 = y0
+                    y0 = double y0
                     progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
                 }
 

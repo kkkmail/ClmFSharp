@@ -179,11 +179,11 @@ module Runner =
 
         let getQueue () =
             match tryDbFun loadRunQueue with
-            | Some q -> q |> List.map (fun e -> 
+            | Some q -> q |> List.map (fun e ->
                                         {
-                                            run = e.modelCommandLineParam |> runModel
+                                            run = { e.modelCommandLineParam with saveModelSettings = true } |> runModel
                                             modelId = e.modelDataId
-                                            runQueueId = -e.runQueueId
+                                            runQueueId = e.runQueueId
                                         })
             | None -> []
 

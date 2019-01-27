@@ -38,6 +38,7 @@ module AsyncRun =
         {
             startedProcessId : int
             startedModelId : int64
+            startedRunQueueId : int64
         }
 
 
@@ -55,6 +56,7 @@ module AsyncRun =
         {
             notifyOnStarted : ProcessStartInfo -> unit
             calledBackModelId : int64
+            runQueueId : int64
         }
 
 
@@ -82,8 +84,8 @@ module AsyncRun =
             startGenerate : unit -> Async<unit>
             startRun : list<RunInfo> -> Async<unit>
             startModels : list<RunInfo> -> Async<unit>
-            getQueue : unit -> list<RunInfo>
-            removeFromQueue : int64 -> unit
+            getQueue : unit -> Async<unit>
+            removeFromQueue : int64 -> Async<unit>
         }
 
 
@@ -144,6 +146,7 @@ module AsyncRun =
                             runningProcessId = p.updatedProcessId
                             runningModelId = p.updateModelId
                             progress = p.progress
+                            runQueueId = None // We don't have the queue when the external process attaches to the service.
                         }
                     { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
                 | Completed -> s
@@ -162,8 +165,8 @@ module AsyncRun =
 
         member s.startQueue h =
             let w() =
-                let r = h.getQueue()
-                s.completeGenerate h r
+                h.getQueue() |> Async.Start
+                s
 
             match s.workState with
             | Idle -> w()
@@ -173,7 +176,11 @@ module AsyncRun =
         member s.completeRun h (x : ProcessResult) =
             let w() =
                 match s.running.TryFind x.exitedProcessId with
-                | Some _ ->
+                | Some r ->
+                    match r.runQueueId with
+                    | Some i -> h.removeFromQueue  i |> Async.Start
+                    | None -> ignore()
+
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
                     h.startModels p |> Async.Start
                     { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
@@ -208,6 +215,7 @@ module AsyncRun =
                     runningProcessId = p.startedProcessId
                     runningModelId = p.startedModelId
                     progress = TaskProgress.create 0.0m
+                    runQueueId = Some p.startedRunQueueId
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
 
@@ -277,7 +285,7 @@ module AsyncRun =
             p
             |> List.map (fun e ->
                             printfn "Starting modelId: %A..." e.modelId
-                            run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId } ) e.modelId |> Async.Start)
+                            run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } ) e.modelId |> Async.Start)
             |> ignore
 
         let cancelProcess i =
@@ -287,6 +295,7 @@ module AsyncRun =
             with
                 | e -> false
 
+
         let h (a : AsyncRunner) =
             {
                 cancelProcess = cancelProcess
@@ -294,8 +303,8 @@ module AsyncRun =
                 startGenerate = fun () -> async { return! doAsyncTask a.startGenerate }
                 startRun = fun r -> async { return! doAsyncTask (fun () -> (a.startRun r)) }
                 startModels = fun r -> async { return! doAsyncTask (fun () -> (startModels a r)) }
-                getQueue = generatorInfo.getQueue
-                removeFromQueue = generatorInfo.removeFromQueue
+                getQueue = fun () -> async { return! doAsyncTask(fun () -> generatorInfo.getQueue() |> a.completeGenerate) }
+                removeFromQueue = fun i -> async { return! doAsyncTask(fun () -> generatorInfo.removeFromQueue i) }
             }
 
         let messageLoop =
@@ -370,7 +379,7 @@ module AsyncRun =
         let processId = p.Id
 
         printfn "Started %s with pid %i" p.ProcessName processId
-        c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId }
+        c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId; startedRunQueueId = c.runQueueId }
 
         p.BeginOutputReadLine()
         p.BeginErrorReadLine()

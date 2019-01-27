@@ -498,6 +498,12 @@ module DatabaseTypes =
     let saveModelSettings (rs : ModelSettings) (connectionString : string) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
+
+        use cmd = new SqlCommandProvider<"
+            DELETE FROM dbo.ModelSetting where modelDataId = @modelDataId", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        cmd.Execute(modelDataId = rs.modelDataId) |> ignore
+
         let t = new ModelSettingTable()
         rs.addRows(t) |> ignore
         t.Update(conn) |> ignore

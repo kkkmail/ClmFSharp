@@ -46,6 +46,8 @@ module AsyncRun =
     type ProcessResult =
         {
             exitedProcessId : int
+            exitedModelId : ModelDataId
+            exitedRunQueueId : RunQueueId
             exitCode : int
             runTime : int64
             outputs : seq<string>
@@ -149,7 +151,6 @@ module AsyncRun =
                             runningProcessId = p.updatedProcessId
                             runningModelId = p.updateModelId
                             progress = p.progress
-                            runQueueId = None // We don't have the queue id when the external process attaches to the service.
                         }
                     { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
                 | Completed -> s
@@ -179,12 +180,10 @@ module AsyncRun =
 
         member s.completeRun h (x : ProcessResult) =
             let w() =
-                match s.running.TryFind x.exitedProcessId with
-                | Some r ->
-                    match r.runQueueId with
-                    | Some i -> h.removeFromQueue i |> Async.Start
-                    | None -> ignore()
+                h.removeFromQueue x.exitedRunQueueId |> Async.Start
 
+                match s.running.TryFind x.exitedProcessId with
+                | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
                     h.startModels p |> Async.Start
                     { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
@@ -219,7 +218,6 @@ module AsyncRun =
                     runningProcessId = p.startedProcessId
                     runningModelId = p.startedModelId
                     progress = TaskProgress.create 0.0m
-                    runQueueId = Some p.startedRunQueueId
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
 
@@ -403,6 +401,8 @@ module AsyncRun =
 
         {
             exitCode = p.ExitCode
+            exitedModelId = c.calledBackModelId
+            exitedRunQueueId = c.runQueueId
             runTime = timer.ElapsedMilliseconds
             outputs = cleanOut outputs
             errors = cleanOut errors

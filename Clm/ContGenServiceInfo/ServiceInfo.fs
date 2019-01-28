@@ -51,7 +51,6 @@ module ServiceInfo =
             started : DateTime
             runningProcessId : int
             runningModelId : ModelDataId
-            runQueueId : RunQueueId option
             progress : TaskProgress
         }
 

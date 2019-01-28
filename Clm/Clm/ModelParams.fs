@@ -176,7 +176,7 @@ module ModelParams =
             {
                 modelDataId = modelDataId
                 y0 = p.y0
-                tEnd = p.y0
+                tEnd = p.tEnd
                 useAbundant = p.useAbundant
             }
 

@@ -24,7 +24,7 @@ open System.Diagnostics
 module SolverRunnerTasks =
 
     let logError e = printfn "Error: %A." e
-    let tryDbFun f = tryDbFun logError ClmConnectionString f
+    let tryDbFun f = tryDbFun logError clmConnectionString f
 
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
@@ -78,7 +78,7 @@ module SolverRunnerTasks =
 
                 let rs =
                     {
-                        modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                        modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
                         settings = settings
                     }
 
@@ -95,14 +95,14 @@ module SolverRunnerTasks =
                     g = update
                     h = getInitValues
                     y0 = double y0
-                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify (ModelDataId modelDataId) svc (Running r)) |> Some)
                 }
 
             let result = nSolve p
 
             // Notify of completion just in case.
             match n with
-            | Some svc -> notify modelDataId svc Completed
+            | Some svc -> notify (ModelDataId modelDataId) svc Completed
             | None -> ignore()
 
             printfn "Saving."
@@ -142,7 +142,7 @@ module SolverRunnerTasks =
             let r =
                 {
                     resultDataId = None
-                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
 
                     numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                     maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength

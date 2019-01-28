@@ -63,7 +63,7 @@ module AsyncRun =
 
     type RunInfo =
         {
-            run : ProcessStartedCallBack -> ModelDataId -> ProcessResult
+            run : ProcessStartedCallBack -> ProcessResult
             modelId : ModelDataId
             runQueueId : RunQueueId
         }
@@ -292,15 +292,11 @@ module AsyncRun =
             Interlocked.Exchange(&generating, 0) |> ignore
 
 
-        let run (a : AsyncRunner) runner n =
-            toAsync (fun () -> runner n |> a.completeRun)
-
-
-        let startModels a p =
+        let startModels (a : AsyncRunner) p =
             p
             |> List.map (fun e ->
                             printfn "Starting modelId: %A..." e.modelId
-                            run a (e.run { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } ) e.modelId |> Async.Start)
+                            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) |> Async.Start)
             |> ignore
 
         let cancelProcess i =

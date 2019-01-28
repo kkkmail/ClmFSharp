@@ -40,8 +40,8 @@ module Runner =
 
     type ModelRunner (p : ModelRunnerParam) =
         let rnd = new Random()
-        let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
-        let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
+        let getExeName (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
         let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
         let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
@@ -99,7 +99,7 @@ module Runner =
             tryDbFun (tryUpdateModelData m)
 
 
-        let compileModel (ModelDataId modelId) =
+        let compileModel modelId =
             let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
             Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
 
@@ -129,8 +129,8 @@ module Runner =
             Target.runOrDefault "Default"
 
 
-        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) (ModelDataId modelId) =
-            let exeName = getExeName modelId
+        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
+            let exeName = getExeName (c.calledBackModelId)
             let commandLineParams = p.ToString()
             runProc c exeName commandLineParams None
 

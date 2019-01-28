@@ -2,10 +2,10 @@
 
 open System
 open FSharp.Collections
+open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
-open ClmSys.GeneralData
 open Clm.CommandLine
 open Argu
 
@@ -42,8 +42,8 @@ module ModelParams =
 
     type ResultData =
         {
-            resultDataId : int64 option
-            modelDataId : int64
+            resultDataId : ResultDataId option
+            modelDataId : ModelDataId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
 
@@ -140,21 +140,21 @@ module ModelParams =
 
     type ResultSettings =
         {
-            resultDataId : int64
+            resultDataId : ResultDataId
             settings : SettingMap
         }
 
 
     type ModelSettings =
         {
-            modelDataId : int64
+            modelDataId : ModelDataId
             settings : SettingMap
         }
 
 
     type ModelData =
         {
-            modelDataId : int64
+            modelDataId : ModelDataId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
@@ -166,13 +166,13 @@ module ModelParams =
 
     type RunQueueInfo =
         {
-            modelDataId : int64
+            modelDataId : ModelDataId
             y0 : decimal
             tEnd : decimal
             useAbundant : bool
         }
 
-        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : int64) =
+        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : ModelDataId) =
             {
                 modelDataId = modelDataId
                 y0 = p.y0
@@ -183,7 +183,7 @@ module ModelParams =
 
     type RunQueue =
         {
-            runQueueId : int64
+            runQueueId : RunQueueId
             info : RunQueueInfo
             statusId : int
         }

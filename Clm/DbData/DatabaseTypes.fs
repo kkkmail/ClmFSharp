@@ -16,6 +16,7 @@ open Clm.ModelParams
 module DatabaseTypes =
     open Clm.ReactionTypes
 
+
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
@@ -27,28 +28,28 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
-    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionString, ResultType.DataReader>
+    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
     type ResultDataTableRow = ResultDataTable.Row
-    type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionString, ResultType.DataReader>
+    type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ResultSettingTable = ClmDB.dbo.Tables.ResultSetting
     type ResultSettingTableRow = ResultSettingTable.Row
-    type ResultSettingTableData = SqlCommandProvider<"select * from dbo.ResultSetting where resultDataId = @resultDataId", ClmConnectionString, ResultType.DataReader>
+    type ResultSettingTableData = SqlCommandProvider<"select * from dbo.ResultSetting where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ModelSettingTable = ClmDB.dbo.Tables.ModelSetting
     type ModelSettingTableRow = ModelSettingTable.Row
-    type ModelSettingTableData = SqlCommandProvider<"select * from dbo.ModelSetting where modelDataId = @modelDataId", ClmConnectionString, ResultType.DataReader>
+    type ModelSettingTableData = SqlCommandProvider<"select * from dbo.ModelSetting where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
     type SettingTable = ClmDB.dbo.Tables.Setting
     type SettingTableRow = SettingTable.Row
-    type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionString, ResultType.DataReader>
+    type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionStringValue, ResultType.DataReader>
     type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
-    type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionString, ResultType.DataReader>
+    type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type Setting
@@ -194,7 +195,7 @@ module DatabaseTypes =
                 let newRow =
                     t.NewRow(
                             resultSettingId = resultSettingId,
-                            resultDataId = rs.resultDataId,
+                            resultDataId = rs.resultDataId.value,
                             settingField1 = s1,
                             settingOrderId1 = i1,
                             settingField2 = s2,
@@ -225,7 +226,7 @@ module DatabaseTypes =
                             settingGUID = r.settingGUID
                             )
 
-                newRow.resultDataId <- rs.resultDataId
+                newRow.resultDataId <- rs.resultDataId.value
                 t.Rows.Add newRow
 
             rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
@@ -290,7 +291,7 @@ module DatabaseTypes =
                 let newRow =
                     t.NewRow(
                             modelSettingId = modelSettingId,
-                            modelDataId = rs.modelDataId,
+                            modelDataId = rs.modelDataId.value,
                             settingField1 = s1,
                             settingOrderId1 = i1,
                             settingField2 = s2,
@@ -321,7 +322,7 @@ module DatabaseTypes =
                             settingGUID = r.settingGUID
                             )
 
-                newRow.modelDataId <- rs.modelDataId
+                newRow.modelDataId <- rs.modelDataId.value
                 t.Rows.Add newRow
 
             rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
@@ -334,8 +335,8 @@ module DatabaseTypes =
             match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
             | Some numberOfAminoAcids, Some maxPeptideLength -> 
                 {
-                    resultDataId = r.resultDataId |> Some
-                    modelDataId = r.modelDataId
+                    resultDataId = r.resultDataId |> ResultDataId |> Some
+                    modelDataId = r.modelDataId |> ModelDataId
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
 
@@ -381,10 +382,10 @@ module DatabaseTypes =
                         t = (r.t |> JsonConvert.SerializeObject |> zip)
                         )
 
-            newRow.modelDataId <- r.modelDataId
+            newRow.modelDataId <- r.modelDataId.value
 
             match r.resultDataId with
-            | Some v -> newRow.modelDataId <- v
+            | Some v -> newRow.modelDataId <- v.value
             | None -> ignore()
 
             t.Rows.Add newRow
@@ -396,10 +397,10 @@ module DatabaseTypes =
 
         static member create (r : RunQueueTableRow) =
             {
-                runQueueId = r.runQueueId
+                runQueueId = RunQueueId r.runQueueId
                 info =
                     {
-                        modelDataId = r.modelDataId
+                        modelDataId = ModelDataId r.modelDataId
                         y0 = r.y0
                         tEnd = r.tEnd
                         useAbundant = r.useAbundant
@@ -414,7 +415,7 @@ module DatabaseTypes =
         member r.addRow (t : RunQueueTable) =
             let newRow =
                 t.NewRow(
-                        modelDataId = r.modelDataId,
+                        modelDataId = r.modelDataId.value,
                         y0 = r.y0,
                         tEnd = r.tEnd,
                         useAbundant = r.useAbundant
@@ -426,7 +427,7 @@ module DatabaseTypes =
             newRow
 
 
-    let loadSettings (connectionString : string) =
+    let loadSettings (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new SettingTable()
@@ -439,14 +440,14 @@ module DatabaseTypes =
         |> Map.ofList
 
 
-    let truncateSettings (connectionString : string) =
+    let truncateSettings (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use truncateSettingTbl = new TruncateSettingTbl(conn)
         truncateSettingTbl.Execute() |> ignore
 
 
-    let saveSettings (settings : list<Setting>) (connectionString : string) =
+    let saveSettings (settings : list<Setting>) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new SettingTable()
@@ -455,7 +456,7 @@ module DatabaseTypes =
         printfn "inserted = %A" inserted
 
 
-    let loadResultSettings resultDataId (connectionString : string) =
+    let loadResultSettings (ResultDataId resultDataId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new ResultSettingTable()
@@ -469,12 +470,12 @@ module DatabaseTypes =
             |> Map.ofList
 
         {
-            resultDataId = resultDataId
+            resultDataId = ResultDataId resultDataId
             settings = settings
         }
 
 
-    let saveResultSettings (rs : ResultSettings) (connectionString : string) =
+    let saveResultSettings (rs : ResultSettings) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let t = new ResultSettingTable()
@@ -482,7 +483,7 @@ module DatabaseTypes =
         t.Update(conn) |> ignore
 
 
-    let loadModelSettings modelDataId (connectionString : string) =
+    let loadModelSettings (ModelDataId modelDataId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let settingTable = new ModelSettingTable()
@@ -496,26 +497,26 @@ module DatabaseTypes =
             |> Map.ofList
 
         {
-            modelDataId = modelDataId
+            modelDataId = ModelDataId modelDataId
             settings = settings
         }
 
 
-    let saveModelSettings (rs : ModelSettings) (connectionString : string) =
+    let saveModelSettings (rs : ModelSettings) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
 
         use cmd = new SqlCommandProvider<"
-            DELETE FROM dbo.ModelSetting where modelDataId = @modelDataId", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+            DELETE FROM dbo.ModelSetting where modelDataId = @modelDataId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        cmd.Execute(modelDataId = rs.modelDataId) |> ignore
+        cmd.Execute(modelDataId = rs.modelDataId.value) |> ignore
 
         let t = new ModelSettingTable()
         rs.addRows(t) |> ignore
         t.Update(conn) |> ignore
 
 
-    let getNewModelDataId (connectionString : string) =
+    let getNewModelDataId (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new ModelDataTable()
@@ -533,10 +534,10 @@ module DatabaseTypes =
 
         t.Rows.Add r
         t.Update conn |> ignore
-        r.modelDataId
+        ModelDataId r.modelDataId
 
 
-    let tryLoadModelData modelDataId (connectionString : string) =
+    let tryLoadModelData (ModelDataId modelDataId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
@@ -545,7 +546,7 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
 
 
-    let tryUpdateModelData (m : ModelData) (connectionString : string) =
+    let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
@@ -560,7 +561,7 @@ module DatabaseTypes =
                     ,modelData = @modelData
                     ,createdOn = @createdOn
             WHERE modelDataId = @modelDataId
-        ", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
         let recordsUpdated =
             cmd.Execute(
@@ -571,12 +572,12 @@ module DatabaseTypes =
                 fileStructureVersion = m.fileStructureVersion,
                 modelData = (m.modelData |> zip),
                 createdOn = DateTime.Now,
-                modelDataId = m.modelDataId)
+                modelDataId = m.modelDataId.value)
 
         if recordsUpdated = 1 then true else false
 
 
-    let saveResultData (r : ResultData) (connectionString : string) =
+    let saveResultData (r : ResultData) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
@@ -617,11 +618,11 @@ module DatabaseTypes =
                        ,@allReactions
                        ,@x
                        ,@t)
-        ", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
         let resultDataId =
             cmd.Execute(
-                        modelDataId = r.modelDataId
+                        modelDataId = r.modelDataId.value
                        ,numberOfAminoAcids = r.numberOfAminoAcids.length
                        ,maxPeptideLength = r.maxPeptideLength.length
                        ,y0 = r.y0
@@ -639,10 +640,10 @@ module DatabaseTypes =
                        ,t = (r.t |> JsonConvert.SerializeObject |> zip)
                 )
 
-        resultDataId |> Seq.head
+        resultDataId |> Seq.head |> ResultDataId
 
 
-    let tryLoadResultData resultDataId (connectionString : string) =
+    let tryLoadResultData (ResultDataId resultDataId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ResultDataTableData(conn)
@@ -652,7 +653,7 @@ module DatabaseTypes =
         |> Option.bind ResultData.tryCreate
 
 
-    let loadRunQueue (connectionString : string) =
+    let loadRunQueue (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let runQueueTable = new RunQueueTable()
@@ -663,22 +664,22 @@ module DatabaseTypes =
         |> List.map (fun e -> RunQueue.create e)
 
 
-    let saveRunQueueEntry (p : ModelCommandLineParam) (modelId : int64) (connectionString : string) =
+    let saveRunQueueEntry (p : ModelCommandLineParam) (ModelDataId modelId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new RunQueueTable()
-        let r = RunQueueInfo.fromModelCommandLineParam p modelId
+        let r = RunQueueInfo.fromModelCommandLineParam p (ModelDataId modelId)
         let row = r.addRow t
         t.Update conn |> ignore
-        row.runQueueId
+        row.runQueueId |> RunQueueId
 
 
-    let deleteRunQueueEntry runQueueId (connectionString : string) =
+    let deleteRunQueueEntry (RunQueueId runQueueId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
 
         use cmd = new SqlCommandProvider<"
-            DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionString>(connectionString, commandTimeout = ClmCommandTimeout)
+            DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
         let rowsAffected = cmd.Execute(runQueueId = runQueueId)
         rowsAffected

@@ -23,7 +23,7 @@ module Runner =
 
     type ModelRunnerParam =
         {
-            connectionString : string
+            connectionString : ConnectionString
             rootBuildFolder : string
             buildTarget : string
             exeName : string
@@ -31,7 +31,7 @@ module Runner =
 
         static member defaultValue =
             {
-                connectionString = ClmConnectionString
+                connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = @"SolverRunner.exe"
@@ -50,7 +50,7 @@ module Runner =
         let getModelId () = tryDbFun getNewModelDataId
 
 
-        let loadParams seeder modelId =
+        let loadParams seeder (ModelDataId modelId) =
             match tryDbFun loadSettings with
                 | Some m ->
                     match ModelGenerationParams.tryGet m seeder [] with
@@ -99,7 +99,7 @@ module Runner =
             tryDbFun (tryUpdateModelData m)
 
 
-        let compileModel modelId =
+        let compileModel (ModelDataId modelId) =
             let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
             Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
 
@@ -129,16 +129,16 @@ module Runner =
             Target.runOrDefault "Default"
 
 
-        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) modelId =
+        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) (ModelDataId modelId) =
             let exeName = getExeName modelId
             let commandLineParams = p.ToString()
             runProc c exeName commandLineParams None
 
 
-        let getQueueId (p : ModelCommandLineParam) (modelId : int64) =
+        let getQueueId (p : ModelCommandLineParam) modelId =
             match tryDbFun (saveRunQueueEntry p modelId) with
             | Some q -> q
-            | None -> -1L
+            | None -> RunQueueId -1L
 
 
         let generate() =

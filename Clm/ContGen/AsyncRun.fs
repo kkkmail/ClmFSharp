@@ -38,8 +38,8 @@ module AsyncRun =
     type ProcessStartInfo =
         {
             startedProcessId : int
-            startedModelId : int64
-            startedRunQueueId : int64
+            startedModelId : ModelDataId
+            startedRunQueueId : RunQueueId
         }
 
 
@@ -56,16 +56,16 @@ module AsyncRun =
     type ProcessStartedCallBack =
         {
             notifyOnStarted : ProcessStartInfo -> unit
-            calledBackModelId : int64
-            runQueueId : int64
+            calledBackModelId : ModelDataId
+            runQueueId : RunQueueId
         }
 
 
     type RunInfo =
         {
-            run : ProcessStartedCallBack -> int64 -> ProcessResult
-            modelId : int64
-            runQueueId : int64
+            run : ProcessStartedCallBack -> ModelDataId -> ProcessResult
+            modelId : ModelDataId
+            runQueueId : RunQueueId
         }
 
 
@@ -73,7 +73,7 @@ module AsyncRun =
         {
             generate : unit -> list<RunInfo>
             getQueue : unit -> list<RunInfo>
-            removeFromQueue : int64 -> unit
+            removeFromQueue : RunQueueId -> unit
             maxQueueLength : int
         }
 
@@ -86,7 +86,7 @@ module AsyncRun =
             startRun : list<RunInfo> -> Async<unit>
             startModels : list<RunInfo> -> Async<unit>
             getQueue : unit -> Async<unit>
-            removeFromQueue : int64 -> Async<unit>
+            removeFromQueue : RunQueueId -> Async<unit>
             tryAcquireGenerating : unit -> bool
             releaseGenerating : unit -> unit
         }

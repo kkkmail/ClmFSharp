@@ -1,6 +1,7 @@
 ﻿namespace DbData
 
 module Configuration =
+    open ClmSys.GeneralData
 
     [<Literal>]
     let ClmDbName : string = "Clm"
@@ -9,7 +10,9 @@ module Configuration =
     let AppConfigFile : string = __SOURCE_DIRECTORY__ + "\.\App.config"
 
     [<Literal>]
-    let ClmConnectionString : string = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
+    let ClmConnectionStringValue = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
+
+    let clmConnectionString = ConnectionString ClmConnectionStringValue
 
     [<Literal>]
     let ClmCommandTimeout = 7200

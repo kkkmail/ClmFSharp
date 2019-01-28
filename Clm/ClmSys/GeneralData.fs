@@ -60,3 +60,27 @@ module GeneralData =
     //     async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
     let toAsync (f : unit-> unit) = async { do f() }
+
+
+    type ConnectionString =
+        | ConnectionString of string
+
+        member this.value = let (ConnectionString v) = this in v
+
+
+    type ModelDataId =
+        | ModelDataId of int64
+
+        member this.value = let (ModelDataId v) = this in v
+
+
+    type ResultDataId =
+        | ResultDataId of int64
+
+        member this.value = let (ResultDataId v) = this in v
+
+
+    type RunQueueId =
+        | RunQueueId of int64
+
+        member this.value = let (RunQueueId v) = this in v

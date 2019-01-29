@@ -14,6 +14,7 @@ open Clm.ModelParams
 open Clm.DataLocation
 open ClmSys.GeneralData
 open Clm.Generator.FSharpCodeExt
+open Clm.Generator.ReactionRatesExt
 open ClmDefaults.DefaultValuesExt
 
 module ClmModelData =
@@ -184,6 +185,7 @@ module ClmModelData =
             listB : list<'B>
             distr : Distribution
             rateProvider : ReactionRateProvider
+            getReaction : 'A -> 'B -> Reaction
         }
 
 

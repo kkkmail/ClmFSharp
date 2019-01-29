@@ -1484,8 +1484,8 @@ module ReactionRates =
 
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
-        let getRatesImpl (a : Reaction) =
-            match a with 
+        let getRatesImpl a =
+            match a with
             | FoodCreation r -> getModelRates (p.tryFindFoodCreationModel()) r
             | WasteRemoval r -> getModelRates (p.tryFindWasteRemovalModel()) r
             | WasteRecycling r -> getModelRates (p.tryFindWasteRecyclingModel()) r
@@ -1494,11 +1494,28 @@ module ReactionRates =
             | CatalyticSynthesis r -> getModelRates (p.tryFindCatalyticSynthesisModel()) r
             | CatalyticDestruction r -> getModelRates (p.tryFindCatalyticDestructionModel()) r
             | Ligation r -> getModelRates (p.tryFindLigationModel()) r
-            | CatalyticLigation r ->  getModelRates (p.tryFindCatalyticLigationModel()) r
+            | CatalyticLigation r -> getModelRates (p.tryFindCatalyticLigationModel()) r
             | SedimentationDirect r -> getModelRates (p.tryFindSedimentationDirectModel()) r
             | SedimentationAll r -> getModelRates (p.tryFindSedimentationAllModel()) r
             | Racemization r -> getModelRates (p.tryFindRacemizationModel()) r
             | CatalyticRacemization r -> getModelRates (p.tryFindCatalyticRacemizationModel()) r
 
+        let getModelImpl n =
+            match n with
+            | FoodCreationName -> p.tryFindFoodCreationModel() |> Option.bind(fun e -> FoodCreationRateModel e |> Some)
+            | WasteRemovalName -> p.tryFindWasteRemovalModel() |> Option.bind(fun e -> WasteRemovalRateModel e |> Some)
+            | WasteRecyclingName -> p.tryFindWasteRecyclingModel() |> Option.bind(fun e -> WasteRecyclingRateModel e |> Some)
+            | SynthesisName -> p.tryFindSynthesisModel() |> Option.bind(fun e -> SynthesisRateModel e |> Some)
+            | DestructionName -> p.tryFindDestructionModel() |> Option.bind(fun e -> DestructionRateModel e |> Some)
+            | CatalyticSynthesisName -> p.tryFindCatalyticSynthesisModel() |> Option.bind(fun e -> CatalyticSynthesisRateModel e |> Some)
+            | CatalyticDestructionName -> p.tryFindCatalyticDestructionModel() |> Option.bind(fun e -> CatalyticDestructionRateModel e |> Some)
+            | LigationName -> p.tryFindLigationModel() |> Option.bind(fun e -> LigationRateModel e |> Some)
+            | CatalyticLigationName -> p.tryFindCatalyticLigationModel() |> Option.bind(fun e -> CatalyticLigationRateModel e |> Some)
+            | SedimentationDirectName -> p.tryFindSedimentationDirectModel() |> Option.bind(fun e -> SedimentationDirectRateModel e |> Some)
+            | SedimentationAllName -> p.tryFindSedimentationAllModel() |> Option.bind(fun e -> SedimentationAllRateModel e |> Some)
+            | RacemizationName -> p.tryFindRacemizationModel() |> Option.bind(fun e -> RacemizationRateModel e |> Some)
+            | CatalyticRacemizationName -> p.tryFindCatalyticRacemizationModel() |> Option.bind(fun e -> CatalyticRacemizationRateModel e |> Some)
+
         member __.providerParams = p
-        member __.getRates (a : Reaction) = getRatesImpl a
+        member __.getRates a = getRatesImpl a
+        member __.getModel n = getModelImpl n

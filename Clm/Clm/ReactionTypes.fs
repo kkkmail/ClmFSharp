@@ -2,9 +2,9 @@
 
 open Substances
 
-module ReactionTypes = 
+module ReactionTypes =
 
-    type ReactionName = 
+    type ReactionName =
         | FoodCreationName
         | WasteRemovalName
         | WasteRecyclingName
@@ -35,7 +35,7 @@ module ReactionTypes =
             | RacemizationName -> "racemization"
             | CatalyticRacemizationName -> "catalytic racemization"
 
-        static member all = 
+        static member all =
             [
                 FoodCreationName
                 WasteRemovalName
@@ -59,7 +59,7 @@ module ReactionTypes =
             output : list<Substance * int>
         }
 
-        member this.getName n a = 
+        member this.getName n a =
             let g (l : list<Substance * int>) = 
                 l
                 |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
@@ -68,10 +68,10 @@ module ReactionTypes =
             n + ": " + (g this.input) + a + (g this.output)
 
 
-    type FoodCreationReaction = 
+    type FoodCreationReaction =
         | FoodCreationReaction
 
-        member r.info = 
+        member r.info =
             {
                 input = [ (Simple Abundant, 0) ]
                 output = [ (Simple Food, 1) ]
@@ -80,10 +80,10 @@ module ReactionTypes =
         member r.enantiomer = r
 
 
-    type WasteRemovalReaction = 
+    type WasteRemovalReaction =
         | WasteRemovalReaction
 
-        member r.info = 
+        member r.info =
             {
                 input = [ (Simple Waste, 1) ]
                 output = []
@@ -92,10 +92,10 @@ module ReactionTypes =
         member r.enantiomer = r
 
 
-    type WasteRecyclingReaction = 
+    type WasteRecyclingReaction =
         | WasteRecyclingReaction
 
-        member r.info = 
+        member r.info =
             {
                 input = [ (Simple Waste, 1) ]
                 output = [ (Simple Food, 1) ]
@@ -104,37 +104,37 @@ module ReactionTypes =
         member r.enantiomer = r
 
 
-    type SynthesisReaction = 
+    type SynthesisReaction =
         | SynthesisReaction of ChiralAminoAcid
 
-        member r.info = 
+        member r.info =
             let (SynthesisReaction a) = r
             {
                 input = [ (Simple Food, 1) ]
                 output = [ (Chiral a, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (SynthesisReaction a) = r
             a.enantiomer |> SynthesisReaction
 
 
-    type DestructionReaction = 
+    type DestructionReaction =
         | DestructionReaction of ChiralAminoAcid
 
-        member r.info = 
+        member r.info =
             let (DestructionReaction a) = r
             {
                 input = [ (Chiral a, 1) ]
                 output = [ (Simple Waste, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (DestructionReaction a) = r
             a.enantiomer |> DestructionReaction
 
 
-    type SynthCatalyst = 
+    type SynthCatalyst =
         | SynthCatalyst of Peptide
 
         member c.enantiomer = 
@@ -142,18 +142,18 @@ module ReactionTypes =
             a.enantiomer |> SynthCatalyst
 
 
-    type DestrCatalyst = 
+    type DestrCatalyst =
         | DestrCatalyst of Peptide
 
-        member c.enantiomer = 
+        member c.enantiomer =
             let (DestrCatalyst a) = c
             a.enantiomer |> DestrCatalyst
 
 
-    type CatalyticSynthesisReaction = 
+    type CatalyticSynthesisReaction =
         | CatalyticSynthesisReaction of (SynthesisReaction * SynthCatalyst)
 
-        member r.info = 
+        member r.info =
             let (CatalyticSynthesisReaction (a, (SynthCatalyst c))) = r
             let p = c |> PeptideChain
 
@@ -162,19 +162,19 @@ module ReactionTypes =
                 output = a.info.output @ [ (p, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticSynthesisReaction
 
-        member r.withEnantiomerCatalyst = 
+        member r.withEnantiomerCatalyst =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticSynthesisReaction
 
 
-    type CatalyticDestructionReaction = 
+    type CatalyticDestructionReaction =
         | CatalyticDestructionReaction of (DestructionReaction * DestrCatalyst)
 
-        member r.info = 
+        member r.info =
             let (CatalyticDestructionReaction (a, (DestrCatalyst c))) = r
             let p = c |> PeptideChain
 
@@ -183,19 +183,19 @@ module ReactionTypes =
                 output = a.info.output @ [ (p, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (CatalyticDestructionReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticDestructionReaction
 
-        member r.withEnantiomerCatalyst = 
+        member r.withEnantiomerCatalyst =
             let (CatalyticDestructionReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticDestructionReaction
 
 
-    type LigationReaction = 
+    type LigationReaction =
         | LigationReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
 
-        member r.info = 
+        member r.info =
             let (LigationReaction (a, b)) = r
 
             {
@@ -203,7 +203,7 @@ module ReactionTypes =
                 output = [ (Substance.fromList (a @ b), 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (LigationReaction (a, b)) = r
             (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> LigationReaction
 
@@ -211,15 +211,15 @@ module ReactionTypes =
     type LigCatalyst =
         | LigCatalyst of Peptide
 
-        member c.enantiomer = 
+        member c.enantiomer =
             let (LigCatalyst a) = c
             a.enantiomer |> LigCatalyst
 
 
-    type CatalyticLigationReaction = 
+    type CatalyticLigationReaction =
         | CatalyticLigationReaction of (LigationReaction * LigCatalyst)
 
-        member r.info = 
+        member r.info =
             let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst c)) = r
 
             let p = c |> PeptideChain
@@ -228,19 +228,19 @@ module ReactionTypes =
                 output = [ (Substance.fromList (a @ b), 1); (p, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (CatalyticLigationReaction (l, c)) = r
             (l.enantiomer, c.enantiomer) |> CatalyticLigationReaction
 
-        member r.withEnantiomerCatalyst = 
+        member r.withEnantiomerCatalyst =
             let (CatalyticLigationReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticLigationReaction
 
 
-    type SedimentationDirectReaction = 
+    type SedimentationDirectReaction =
         | SedimentationDirectReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
 
-        member r.info = 
+        member r.info =
             let (SedimentationDirectReaction (a, b)) = r
 
             {
@@ -248,15 +248,15 @@ module ReactionTypes =
                 output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (SedimentationDirectReaction (a, b)) = r
             (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> SedimentationDirectReaction
 
 
-    type SedimentationAllReaction = 
+    type SedimentationAllReaction =
         | SedimentationAllReaction
 
-        member r.info = 
+        member r.info =
             {
                 input = []
                 output = []
@@ -265,10 +265,10 @@ module ReactionTypes =
         member r.enantiomer = r
 
 
-    type RacemizationReaction = 
+    type RacemizationReaction =
         | RacemizationReaction of ChiralAminoAcid
 
-        member r.info = 
+        member r.info =
             let (RacemizationReaction a) = r
             {
                 input = [ (Chiral a, 1) ]
@@ -280,18 +280,18 @@ module ReactionTypes =
             a.enantiomer |> RacemizationReaction
 
 
-    type RacemizationCatalyst = 
+    type RacemizationCatalyst =
         | RacemizationCatalyst of Peptide
 
-        member c.enantiomer = 
+        member c.enantiomer =
             let (RacemizationCatalyst a) = c
             a.enantiomer |> RacemizationCatalyst
 
 
-    type CatalyticRacemizationReaction = 
+    type CatalyticRacemizationReaction =
         | CatalyticRacemizationReaction of (RacemizationReaction * RacemizationCatalyst)
 
-        member r.info = 
+        member r.info =
             let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
             let p = c |> PeptideChain
             {
@@ -299,7 +299,7 @@ module ReactionTypes =
                 output = [ (Chiral a.enantiomer, 1); (p, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (CatalyticRacemizationReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticRacemizationReaction
 
@@ -308,7 +308,7 @@ module ReactionTypes =
     let inline getInfo i = ((^T) : (member info : 'T) (i))
 
 
-    type Reaction = 
+    type Reaction =
         | FoodCreation of FoodCreationReaction
         | WasteRemoval of WasteRemovalReaction
         | WasteRecycling of WasteRecyclingReaction
@@ -323,8 +323,8 @@ module ReactionTypes =
         | Racemization of RacemizationReaction
         | CatalyticRacemization of CatalyticRacemizationReaction
 
-        member r.name = 
-            match r with 
+        member r.name =
+            match r with
             | FoodCreation _ -> FoodCreationName
             | WasteRemoval _ -> WasteRemovalName
             | WasteRecycling _ -> WasteRecyclingName
@@ -339,8 +339,8 @@ module ReactionTypes =
             | Racemization _ -> RacemizationName
             | CatalyticRacemization _ -> CatalyticRacemizationName
 
-        member r.info = 
-            match r with 
+        member r.info =
+            match r with
             | FoodCreation r -> r.info
             | WasteRemoval r -> r.info
             | WasteRecycling r -> r.info
@@ -355,8 +355,8 @@ module ReactionTypes =
             | Racemization r -> r.info
             | CatalyticRacemization r -> r.info
 
-        member r.enantiomer = 
-            match r with 
+        member r.enantiomer =
+            match r with
             | FoodCreation r -> r.enantiomer |> FoodCreation
             | WasteRemoval r -> r.enantiomer |> WasteRemoval
             | WasteRecycling r -> r.enantiomer |> WasteRecycling

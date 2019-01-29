@@ -52,7 +52,7 @@ module Distributions =
             | None -> 0.0
 
         let noOfSuccessTriesImpl n =
-            
+            0
 
         member __.seedValue = seed
         member __.distributionParams = p

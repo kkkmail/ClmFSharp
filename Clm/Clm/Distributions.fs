@@ -364,6 +364,11 @@ module Distributions =
 
         static member private normalize d = d |> Option.bind (fun e -> max e 0.0 |> Some)
 
+        member this.value =
+            match this with
+            | NoneRateMult -> None
+            | RateMultDistr d -> Some d
+
         member this.nextDoubleOpt() = 
             match this with 
             | NoneRateMult -> None

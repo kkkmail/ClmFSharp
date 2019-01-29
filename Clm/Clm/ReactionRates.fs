@@ -73,10 +73,10 @@ module ReactionRates =
 
 
     let getRatesImpl<'R>
-        (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) 
+        (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
-        (r : 'R) = 
+        (r : 'R) =
 
         match d.TryGetValue r with 
         | true, rates -> rates
@@ -84,8 +84,8 @@ module ReactionRates =
 
 
     let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
-        (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) = 
-        match mo with 
+        (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) =
+        match mo with
         | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
         | None -> (None, None)
 
@@ -1458,9 +1458,9 @@ module ReactionRates =
             rateModels: list<ReactionRateModel>
         }
 
-        member p.tryFindSFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
-        member p.tryFindSWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
-        member p.tryFindSWasteRecyclingModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRecyclingRateModel m -> Some m | _ -> None)
+        member p.tryFindFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
+        member p.tryFindWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
+        member p.tryFindWasteRecyclingModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRecyclingRateModel m -> Some m | _ -> None)
         member p.tryFindSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | SynthesisRateModel m -> Some m | _ -> None)
         member p.tryFindDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | DestructionRateModel m -> Some m | _ -> None)
         member p.tryFindCatalyticSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateModel m -> Some m | _ -> None)
@@ -1482,12 +1482,13 @@ module ReactionRates =
 
         member p.allParams = p.allModels |> List.map (fun e -> { modelParam = e.model.inputParams; usage = e.usage }) |> List.sort
 
+
     type ReactionRateProvider (p: ReactionRateProviderParams) =
         let getRatesImpl (a : Reaction) =
             match a with 
-            | FoodCreation r -> getModelRates (p.tryFindSFoodCreationModel()) r
-            | WasteRemoval r -> getModelRates (p.tryFindSWasteRemovalModel()) r
-            | WasteRecycling r -> getModelRates (p.tryFindSWasteRecyclingModel()) r
+            | FoodCreation r -> getModelRates (p.tryFindFoodCreationModel()) r
+            | WasteRemoval r -> getModelRates (p.tryFindWasteRemovalModel()) r
+            | WasteRecycling r -> getModelRates (p.tryFindWasteRecyclingModel()) r
             | Synthesis r -> getModelRates (p.tryFindSynthesisModel()) r
             | Destruction r -> getModelRates (p.tryFindDestructionModel()) r
             | CatalyticSynthesis r -> getModelRates (p.tryFindCatalyticSynthesisModel()) r

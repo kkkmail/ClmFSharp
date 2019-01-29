@@ -97,6 +97,7 @@ module ClmModelData =
             let r = new Random()
             r.Next()
 
+
     type SubstInfo =
         {
             aminoAcids : list<AminoAcid>
@@ -174,3 +175,18 @@ module ClmModelData =
 
     //let getModelDataParamsCode (modelParams : ModelGenerationParams)
 
+
+/////////////////////////////////
+
+    type RateGeneratorInfo<'A, 'B> =
+        {
+            listA : list<'A>
+            listB : list<'B>
+            distr : Distribution
+            rateProvider : ReactionRateProvider
+        }
+
+
+    let generateReactions<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) =
+
+        0

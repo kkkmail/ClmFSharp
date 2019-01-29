@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="FSharpCodeExt.fs" />
+    <Compile Include="ReactionRatesExt.fs" />
     <Compile Include="ClmModelData.fs" />
     <Compile Include="ClmModel.fs" />
     <Compile Include="SettingGenExt.fs" />

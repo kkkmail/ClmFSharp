@@ -186,9 +186,15 @@ module ClmModelData =
             distr : Distribution
             rateProvider : ReactionRateProvider
             getReaction : 'A -> 'B -> Reaction
+            reactionName : ReactionName
         }
 
 
     let generateReactions<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) =
+        let successNumber (d : Distribution) =
+            let x = d.distributionParams.threshold
 
-        0
+            0
+        match i.rateProvider.getPrimaryDistribution i.reactionName with
+        | Some d -> failwith ""
+        | None -> []

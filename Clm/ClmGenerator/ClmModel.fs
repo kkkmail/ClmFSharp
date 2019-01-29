@@ -66,8 +66,8 @@ module ClmModel =
             |> List.concat
 
 
-        let getReactions n = 
-            match n with 
+        let getReactions n =
+            match n with
             | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
             | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
             | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat

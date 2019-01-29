@@ -1,6 +1,5 @@
 ﻿namespace Clm
 open System
-open ClmSys.GeneralData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
@@ -9,20 +8,20 @@ open ClmSys.GeneralData
 ///     3. Conditional rate distributions (RateDistribution).
 ///        They must produce values on (0, infinity) with mean of 1.
 ///        This distribution produces value near mean.
-module Distributions = 
+module Distributions =
 
-    type ReactionRate = 
+    type ReactionRate =
         | ReactionRate of double
 
 
-    type DistributionParams = 
+    type DistributionParams =
         {
             threshold : double option
             scale : double option
             shift : double option
         }
 
-        static member defaultValue = 
+        static member defaultValue =
             {
                 threshold = None
                 scale = None
@@ -32,33 +31,36 @@ module Distributions =
 
     /// First scale, then shift. This is more convenient here than the other way around.
     [<AbstractClass>]
-    type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) = 
+    type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) =
         let rnd = new Random(seed)
 
-        let isDefinedImpl() = 
+        let isDefinedImpl() =
             match p.threshold with
             | Some t -> if rnd.NextDouble() < t then true else false
             | None -> true
 
-        let nextDoubleImpl() = 
-            let v = 
+        let nextDoubleImpl() =
+            let v =
                 d(rnd) *
                 match p.scale with 
                 | Some s -> s
                 | None -> 1.0
 
-            v + 
-            match p.shift with 
+            v +
+            match p.shift with
             | Some s -> s
             | None -> 0.0
+
+        let noOfSuccessTriesImpl n =
+            
 
         member __.seedValue = seed
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
         member __.nextSeed() = rnd.Next()
 
-        member __.nextDoubleOpt() = 
-            match isDefinedImpl() with 
+        member __.nextDoubleOpt() =
+            match isDefinedImpl() with
             | true -> nextDoubleImpl() |> Some
             | false -> None
 
@@ -70,7 +72,7 @@ module Distributions =
 
 
     /// Generates only 0 for default parameters.
-    type DeltaDistribution (seed : int, p : DistributionParams) = 
+    type DeltaDistribution (seed : int, p : DistributionParams) =
         inherit DistributionBase (seed, p, fun _ -> 0.0)
 
         static member create seed threshold scale shift = DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )

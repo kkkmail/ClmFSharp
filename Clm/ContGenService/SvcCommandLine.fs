@@ -9,6 +9,7 @@ module SvcCommandLine =
         | [<Unique>] [<First>] [<AltCommandLine("-u")>] Uninstall
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
+        | [<Unique>] [<First>] [<AltCommandLine("-r")>] Run
 
     with
         interface IArgParserTemplate with
@@ -18,3 +19,4 @@ module SvcCommandLine =
                 | Uninstall -> "uninstall services."
                 | Start -> "start services."
                 | Stop -> "stop services."
+                | Run -> "run services from command line without installing."

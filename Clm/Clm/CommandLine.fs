@@ -5,8 +5,8 @@ module CommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type SolverRunnerArguments =
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>]  EndTime of float
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y0")>] TotalAmount of float
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>]  EndTime of decimal
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y0")>] TotalAmount of decimal
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>]  SaveModelSettings of bool

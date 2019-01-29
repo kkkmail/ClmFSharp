@@ -1,5 +1,6 @@
 ﻿namespace ContGenServiceInfo
 open System
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -40,7 +41,7 @@ module ServiceInfo =
     type ProgressUpdateInfo =
         {
             updatedProcessId : int
-            updateModelId : int64
+            updateModelId : ModelDataId
             progress : TaskProgress
         }
 
@@ -49,19 +50,19 @@ module ServiceInfo =
         {
             started : DateTime
             runningProcessId : int
-            runningModelId : int64
+            runningModelId : ModelDataId
             progress : TaskProgress
         }
 
 
     type ContGenRunnerState =
         {
-            generating : bool
+            //generating : bool
             runLimit : int
             maxQueueLength : int
             runningCount : int
             running : RunningProcessInfo[]
-            queue : int64[]
+            queue : ModelDataId[]
             workState : WorkState
         }
 

@@ -1,11 +1,13 @@
 ﻿namespace ContGenService
 
 open System
+open System.Threading
 open System.Configuration.Install
 open System.ServiceProcess
 open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
+open ContGenAdm.ContGenServiceResponse
 
 module ContGenServiceTasks =
 
@@ -92,11 +94,30 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
+    let runService () =
+        let logger e = printfn "Error: %A" e
+        startServiceRun logger
+        let service = (new ContGenResponseHandler()).contGenService
+
+        while true do
+            try
+                printfn "Getting state..."
+                let state = service.getState()
+                printfn "...state = %A\n\n" state
+                if state.queue.Length = 0 then service.startGenerate()
+            with
+                | e -> printfn "Exception: %A\n" e.Message
+
+            Thread.Sleep 30_000
+        0
+
+
     type ContGenServiceTask =
         | InstallServicesTask
         | UninstallServicesTask
         | StartServicesTask
         | StopServicesTask
+        | RunServicesTask
 
         member task.run() =
             match task with
@@ -107,6 +128,7 @@ module ContGenServiceTasks =
                 uninstallServices () |> ignore
             | StartServicesTask -> startServices ServiceTmeOut |> ignore
             | StopServicesTask -> stopServices ServiceTmeOut |> ignore
+            | RunServicesTask -> runService () |> ignore
 
         static member private tryCreateInstallServicesTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServicesTask |> Some | _ -> None)
@@ -120,11 +142,15 @@ module ContGenServiceTasks =
         static member private tryCreateStopServicesTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServicesTask |> Some | _ -> None)
 
+        static member private tryCreateRunServicesTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Run -> RunServicesTask |> Some | _ -> None)
+
         static member tryCreate (p : list<SvcArguments>) =
             [
                 ContGenServiceTask.tryCreateUninstallServicesTask
                 ContGenServiceTask.tryCreateInstallServicesTask
                 ContGenServiceTask.tryCreateStopServicesTask
                 ContGenServiceTask.tryCreateStartServicesTask
+                ContGenServiceTask.tryCreateRunServicesTask
             ]
             |> List.tryPick (fun e -> e p)

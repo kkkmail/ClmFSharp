@@ -1,5 +1,7 @@
 ﻿namespace ClmPlot
-open System.Data.SqlClient
+
+open ClmSys.Retry
+open ClmSys.ExitErrorCodes
 open Argu
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -9,6 +11,10 @@ open Analytics.Visualization
 
 
 module PlotTasks =
+
+    let logError e = printfn "Error: %A." e
+    let tryDbFun f = tryDbFun logError ClmConnectionString f
+
 
     [<CliPrefix(CliPrefix.Dash)>]
     type GeneratePlotArgs =
@@ -35,22 +41,26 @@ module PlotTasks =
     let generatePlot (p :list<GeneratePlotArgs>) =
         match p |> List.tryPick (fun e -> match e with | ResultDataId n -> (int64 n |> Some)) with
         | Some resultDataId ->
-            use conn = new SqlConnection(ClmConnectionString)
-            match tryLoadResultData conn resultDataId with
-            | Some r ->
-                printfn "Plotting."
-                let plotter = new Plotter(PlotDataInfo.defaultValue, r)
-                plotter.plotAminoAcids()
-                plotter.plotTotalSubst()
-                plotter.plotEnantiomericExcess()
-                printfn "Completed."
-                0
+            match tryDbFun (tryLoadResultData resultDataId) with
+            | Some ro ->
+                match ro with
+                | Some r ->
+                    printfn "Plotting."
+                    let plotter = new Plotter(PlotDataInfo.defaultValue, r)
+                    plotter.plotAminoAcids()
+                    plotter.plotTotalSubst()
+                    plotter.plotEnantiomericExcess()
+                    printfn "Completed."
+                    CompletedSuccessfully
+                | None ->
+                    printfn "Failed to load resultDataId: %A." resultDataId
+                    UnknownException
             | None ->
-                printfn "Failed to load resultDataId: %A." resultDataId
-                -1
+                printfn "Database error occurred."
+                DatabaseErrorOccurred
         | None -> 
             printfn "No result data id was specified."
-            -1
+            InvalidCommandLineArgs
 
 
     type ClmPlotTask =

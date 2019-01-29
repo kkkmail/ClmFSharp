@@ -4,6 +4,7 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
+open ClmSys.Retry
 open Clm.ModelInit
 open Clm.Model.ModelData
 open Clm.ModelParams
@@ -15,7 +16,6 @@ open Argu
 open Clm.Substances
 open DbData.Configuration
 open DbData.DatabaseTypes
-open System.Data.SqlClient
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
@@ -23,20 +23,21 @@ open System.Diagnostics
 
 module SolverRunnerTasks =
 
+    let logError e = printfn "Error: %A." e
+    let tryDbFun f = tryDbFun logError clmConnectionString f
+
+
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
-        async
-            {
-                return! doAsyncTask(fun () ->
-                    try
-                        printfn "Notifying of progress: %A." p
-                        r.progressNotifierService.updateProgress p
-                        printfn "...completed."
-                    with
-                        | e ->
-                            printfn "Exception occurred: %A, progress: %A." e.Message p
-                )
-            }
-        |> Async.Start
+        let notify() =
+            try
+                printfn "Notifying of progress: %A." p
+                r.progressNotifierService.updateProgress p
+                printfn "...completed."
+            with
+                | e ->
+                    printfn "Exception occurred: %A, progress: %A." e.Message p
+
+        notify |> toAsync |> Async.Start
 
 
     type RunProgress =
@@ -77,12 +78,11 @@ module SolverRunnerTasks =
 
                 let rs =
                     {
-                        modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                        modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
                         settings = settings
                     }
 
-                use conn = new SqlConnection(ClmConnectionString)
-                saveModelSettings conn rs
+                tryDbFun (saveModelSettings rs) |> ignore
             | _ -> ignore()
 
             printfn "Calling nSolve..."
@@ -91,18 +91,18 @@ module SolverRunnerTasks =
             let p =
                 {
                     modelDataId = modelDataId
-                    tEnd = tEnd
+                    tEnd = double tEnd
                     g = update
                     h = getInitValues
-                    y0 = y0
-                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                    y0 = double y0
+                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify (ModelDataId modelDataId) svc (Running r)) |> Some)
                 }
 
             let result = nSolve p
 
             // Notify of completion just in case.
             match n with
-            | Some svc -> notify modelDataId svc Completed
+            | Some svc -> notify (ModelDataId modelDataId) svc Completed
             | None -> ignore()
 
             printfn "Saving."
@@ -142,7 +142,7 @@ module SolverRunnerTasks =
             let r =
                 {
                     resultDataId = None
-                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
 
                     numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
                     maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
@@ -164,8 +164,7 @@ module SolverRunnerTasks =
                     t = result.t
                 }
 
-            use conn = new SqlConnection(ClmConnectionString)
-            saveResultData r conn |> ignore
+            tryDbFun (saveResultData r) |> ignore
 
             match results.TryGetResult PlotResults with
             | Some v when v = true ->

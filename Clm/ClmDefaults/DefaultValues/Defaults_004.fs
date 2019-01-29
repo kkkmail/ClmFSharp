@@ -5,7 +5,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_000 =
+module Defaults_004 =
+
+    let description = "Increased defaultCatDestrSimModel -> simThreshold to 0.5 in comparision to Defaults_001."
 
     let getDefaultRateModels (rnd : Random) numberOfAminoAcids =
         //===========================================================
@@ -25,7 +27,7 @@ module Defaults_000 =
         let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
         //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
         //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel rnd catDestrRndParams
-        let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.3, numberOfAminoAcids)
+        let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel rnd catDestrRndParams (Some 0.5, numberOfAminoAcids)
         //===========================================================
         //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (0.001, 0.0001)
         //let ligModel = ReactionRateProvider.defaultLigRndModel rnd (1.0, 0.1)
@@ -48,7 +50,7 @@ module Defaults_000 =
                 wasteRecyclingModel |> WasteRecyclingRateModel
 
                 synthModel |> SynthesisRateModel
-                catSynthModel |> CatalyticSynthesisRateModel
+                //catSynthModel |> CatalyticSynthesisRateModel
 
                 destrModel |> DestructionRateModel
                 catDestrModel |> CatalyticDestructionRateModel
@@ -56,7 +58,7 @@ module Defaults_000 =
                 ligModel |> LigationRateModel
                 //catLigModel |> CatalyticLigationRateModel
 
-                sedDirModel |> SedimentationDirectRateModel
+                //sedDirModel |> SedimentationDirectRateModel
                 //sedAllModel |> SedimentationAllRateModel
 
                 //racemModel |> RacemizationRateModel
@@ -81,21 +83,21 @@ module Defaults_000 =
                     //}
 
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 10.0m
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 5.0m
                         useAbundant = false
                         saveModelSettings = false
                     }
 
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 20.0m
                         useAbundant = false
                         saveModelSettings = false
@@ -103,5 +105,5 @@ module Defaults_000 =
                 ]
 
             getDefaultRateModels = getDefaultRateModels
-            description = None
+            description = Some description
         }

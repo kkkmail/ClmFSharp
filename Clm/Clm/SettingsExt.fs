@@ -22,6 +22,7 @@ module SettingsExt =
 
 
     let setDouble p n v = { Setting.defaultValue() with settingPath = addParent p n; settingFloat = v }
+    let setDecimal p n v = { Setting.defaultValue() with settingPath = addParent p n; settingMoney = v }
     let setInt p n v = { Setting.defaultValue() with settingPath = addParent p n; settingLong = int64 v }
     let setIntOpt p n vo = vo |> Option.bind (fun v -> setInt p n v |> Some)
     let setText p n v = { Setting.defaultValue() with settingPath = addParent p n; settingText = Some v }
@@ -42,6 +43,12 @@ module SettingsExt =
         addParent po n
         |> tryFindByName m
         |> Option.bind (fun v -> v.settingFloat |> Some)
+
+
+    let getDecimalOpt (m : SettingMap) po n =
+        addParent po n
+        |> tryFindByName m
+        |> Option.bind (fun v -> v.settingMoney |> Some)
 
 
     let getIntOpt (m : SettingMap) po n =
@@ -1119,8 +1126,8 @@ module SettingsExt =
         with
         static member getValues (m : SettingMap) po =
             let tryGet (m : SettingMap) qo = 
-                let t() = getDoubleOpt m qo tEndName
-                let y() = getDoubleOpt m qo y0Name
+                let t() = getDecimalOpt m qo tEndName
+                let y() = getDecimalOpt m qo y0Name
 
                 match t(), y() with
                 | Some t1, Some y1 ->
@@ -1143,8 +1150,8 @@ module SettingsExt =
         static member setValues (p : list<ModelCommandLineParam>) po s =
             let setValue (q : ModelCommandLineParam) qo s =
                 [
-                    setDouble qo tEndName q.tEnd
-                    setDouble qo y0Name q.y0
+                    setDecimal qo tEndName q.tEnd
+                    setDecimal qo y0Name q.y0
                     setBool qo useAbundantName q.useAbundant
                 ]
                 |> add s

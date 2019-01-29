@@ -2,10 +2,10 @@
 
 open System
 open FSharp.Collections
+open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
-open ClmSys.GeneralData
 open Clm.CommandLine
 open Argu
 
@@ -42,8 +42,8 @@ module ModelParams =
 
     type ResultData =
         {
-            resultDataId : int64 option
-            modelDataId : int64
+            resultDataId : ResultDataId option
+            modelDataId : ModelDataId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
 
@@ -85,8 +85,8 @@ module ModelParams =
 
     type ModelCommandLineParam =
         {
-            tEnd : double
-            y0 : double
+            tEnd : decimal
+            y0 : decimal
             useAbundant : bool
             saveModelSettings : bool
         }
@@ -140,21 +140,21 @@ module ModelParams =
 
     type ResultSettings =
         {
-            resultDataId : int64
+            resultDataId : ResultDataId
             settings : SettingMap
         }
 
 
     type ModelSettings =
         {
-            modelDataId : int64
+            modelDataId : ModelDataId
             settings : SettingMap
         }
 
 
     type ModelData =
         {
-            modelDataId : int64
+            modelDataId : ModelDataId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
@@ -162,3 +162,37 @@ module ModelParams =
             modelData : string
             defaultSetIndex : int
         }
+
+
+    type RunQueueInfo =
+        {
+            modelDataId : ModelDataId
+            y0 : decimal
+            tEnd : decimal
+            useAbundant : bool
+        }
+
+        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : ModelDataId) =
+            {
+                modelDataId = modelDataId
+                y0 = p.y0
+                tEnd = p.tEnd
+                useAbundant = p.useAbundant
+            }
+
+
+    type RunQueue =
+        {
+            runQueueId : RunQueueId
+            info : RunQueueInfo
+            statusId : int
+        }
+
+        member q.modelCommandLineParam =
+            {
+                tEnd = q.info.tEnd
+                y0 = q.info.y0
+                useAbundant = q.info.useAbundant
+                saveModelSettings = false
+            }
+

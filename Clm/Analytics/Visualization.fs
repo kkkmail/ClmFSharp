@@ -44,7 +44,7 @@ module Visualization =
 
             let fileName =
                 [
-                    r.modelDataId |> toModelName
+                    r.modelDataId.value |> toModelName
                     i.resultInfo.separator
                     (int r.y0).ToString().PadLeft(3, '0')
                     (int r.tEnd).ToString().PadLeft(5, '0')
@@ -68,7 +68,7 @@ module Visualization =
             [
                 //"Comleted at", sprintf "%A" (o.endTime)
                 //"run time", sprintf "%A" (o.endTime - o.startTime)
-                "model name", p.modelDataId |> toModelName
+                "model name", p.modelDataId.value |> toModelName
                 //"end time", sprintf "%A" o.endTime
                 "y0", sprintf "%A" p.y0
                 "number of amino acids", sprintf "%A" p.aminoAcids.Length

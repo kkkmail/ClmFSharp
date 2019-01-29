@@ -2,13 +2,13 @@
 
 open System
 open ClmSys.GeneralData
+open ClmSys.Retry
 open Clm.DataLocation
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.SettingsExt
 open Clm.Generator.SettingGenExt
-open System.Data.SqlClient
 open System.Text
 open Clm.Generator.ClmModel
 open AsyncRun
@@ -23,7 +23,7 @@ module Runner =
 
     type ModelRunnerParam =
         {
-            connectionString : string
+            connectionString : ConnectionString
             rootBuildFolder : string
             buildTarget : string
             exeName : string
@@ -31,7 +31,7 @@ module Runner =
 
         static member defaultValue =
             {
-                connectionString = ClmConnectionString
+                connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = @"SolverRunner.exe"
@@ -40,38 +40,35 @@ module Runner =
 
     type ModelRunner (p : ModelRunnerParam) =
         let rnd = new Random()
-        let getBuildDir modelId = p.rootBuildFolder + (toModelName modelId) + @"\"
-        let getExeName modelId = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
+        let getExeName (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
         let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
         let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
-
-        let getModelId () =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            getNewModelDataId conn
+        let logError e = printfn "Error: %A" e
+        let tryDbFun f = tryDbFun logError (p.connectionString) f
+        let getModelId () = tryDbFun getNewModelDataId
 
 
-        let loadParams seeder modelId =
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            let m = loadSettings conn
-
-            match ModelGenerationParams.tryGet m seeder [] with
-            | Some q ->
-                (
-                    { q with
-                        modelLocationData =
-                            { q.modelLocationData with
-                                modelName = ConsecutiveName modelId
-                                useDefaultModeData = true
-                            }
-                        seedValue = rnd.Next() |> Some
-                    },
-                    ModelCommandLineParam.getValues m []
-                )
-                |> Some
-            | None -> None
+        let loadParams seeder (ModelDataId modelId) =
+            match tryDbFun loadSettings with
+                | Some m ->
+                    match ModelGenerationParams.tryGet m seeder [] with
+                    | Some q ->
+                        (
+                            { q with
+                                modelLocationData =
+                                    { q.modelLocationData with
+                                        modelName = ConsecutiveName modelId
+                                        useDefaultModeData = true
+                                    }
+                                seedValue = rnd.Next() |> Some
+                            },
+                            ModelCommandLineParam.getValues m []
+                        )
+                        |> Some
+                    | None -> None
+                | None -> None
 
 
         let generateModel modelGenerationParams =
@@ -99,9 +96,7 @@ module Runner =
                     defaultSetIndex = pm.defaultSetIndex
                 }
 
-            use conn = new SqlConnection (p.connectionString)
-            openConnIfClosed conn
-            tryUpdateModelData conn m
+            tryDbFun (tryUpdateModelData m)
 
 
         let compileModel modelId =
@@ -134,39 +129,78 @@ module Runner =
             Target.runOrDefault "Default"
 
 
-        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) modelId =
-            let exeName = getExeName modelId
+        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
+            let exeName = getExeName (c.calledBackModelId)
             let commandLineParams = p.ToString()
             runProc c exeName commandLineParams None
 
 
+        let getQueueId (p : ModelCommandLineParam) modelId =
+            match tryDbFun (saveRunQueueEntry p modelId) with
+            | Some q -> q
+            | None -> RunQueueId -1L
+
+
         let generate() =
             try
-                let modelId = getModelId ()
-                let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
+                match getModelId () with
+                    | Some modelId ->
+                        let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
 
-                match loadParams getRandomSeeder modelId with
-                | Some (p, r) ->
-                    let code = generateModel p
-                    match saveModel code p modelId with
-                    | true ->
-                        compileModel modelId
-                        r |> List.mapi (fun i e -> { run = cmd i e |> runModel; modelId = modelId })
-                    | false ->
-                        printfn "Cannot save modelId: %A." modelId
+                        match loadParams getRandomSeeder modelId with
+                        | Some (p, r) ->
+                            let code = generateModel p
+                            match saveModel code p modelId with
+                            | Some true ->
+                                compileModel modelId
+                                r |> List.mapi (fun i e -> 
+                                                    {
+                                                        run = cmd i e |> runModel
+                                                        modelId = modelId
+                                                        runQueueId = getQueueId e modelId
+                                                    })
+                            | Some false ->
+                                logError (sprintf "Cannot save modelId: %A." modelId)
+                                []
+                            | None ->
+                                logError (sprintf "Exception occurred while saving modelId: %A." modelId)
+                                []
+                        | None ->
+                            logError (sprintf "Cannot load parameters for modelId: %A." modelId)
+                            []
+                    | None ->
+                        logError (sprintf "Cannot get modelId.")
                         []
-                | None ->
-                    printfn "Cannot load parameters for modelId: %A." modelId
-                    []
             with
                 | e ->
-                    printfn "Exception: %A" e
+                    logError (sprintf "Exception: %A" e)
                     []
+
+
+        let getQueue () =
+            match tryDbFun loadRunQueue with
+            | Some q -> q |> List.map (fun e ->
+                                        {
+                                            run = { e.modelCommandLineParam with saveModelSettings = true } |> runModel
+                                            modelId = e.info.modelDataId
+                                            runQueueId = e.runQueueId
+                                        })
+            | None -> []
+
+
+        let removeFromQueue runQueueId =
+            match tryDbFun (deleteRunQueueEntry runQueueId) with
+            | Some v -> ignore()
+            | None ->
+                logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
+                ignore()
 
 
         let createGeneratorImpl() =
             {
                 generate = generate
+                getQueue = getQueue
+                removeFromQueue = removeFromQueue
                 maxQueueLength = 4
             }
 
@@ -177,12 +211,13 @@ module Runner =
     let createRunner p =
         let r = ModelRunner p
         let a = r.createGenerator() |> AsyncRunner
+        a.startQueue()
         a
 
 
-    let saveDefaults conn (d, i) n m =
+    let saveDefaults connectionString (d, i) n m =
         let rnd = new Random()
-        truncateSettings conn
+        truncateSettings connectionString
         let p = AllParams.getDefaultValue rnd d n m i
 
         let settings =
@@ -190,4 +225,4 @@ module Runner =
             |> p.modelGenerationParams.setValue []
             |> ModelCommandLineParam.setValues p.modelCommandLineParams []
 
-        saveSettings conn settings
+        saveSettings settings connectionString

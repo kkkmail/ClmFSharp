@@ -82,13 +82,13 @@ module ClmModel =
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) si.chiralAminoAcids
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
-        let allReac = 
+        let allReac =
             ReactionName.all
             |> List.map (fun e -> getReactions e)
             |> List.concat
             |> List.distinct
 
-        let kW = 
+        let kW =
             SedimentationAllReaction |> SedimentationAll
             |> rateProvider.getRates
             |> fst

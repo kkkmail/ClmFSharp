@@ -105,6 +105,7 @@ module ClmModelData =
             synthCatalysts : list<SynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             ligCatalysts : list<LigCatalyst>
+            ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
             racemCatalysts : list<RacemizationCatalyst>
             allChains : list<list<ChiralAminoAcid>>
             allSubst : list<Substance>
@@ -115,6 +116,8 @@ module ClmModelData =
         static member create maxPeptideLength numberOfAminoAcids =
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
+            let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
+            let allLigChains = allChains |> List.filter(fun a -> a.Length < maxPeptideLength.length)
 
             let allSubst =
                     Substance.allSimple
@@ -127,11 +130,19 @@ module ClmModelData =
                 aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
                 chiralAminoAcids = chiralAminoAcids
                 peptides = peptides
-                synthCatalysts = peptides |> List.map (fun p -> SynthCatalyst p)
-                destrCatalysts = peptides |> List.map (fun p -> DestrCatalyst p)
-                ligCatalysts = peptides |> List.map (fun p -> LigCatalyst p)
-                racemCatalysts = peptides |> List.map (fun p -> RacemizationCatalyst p)
-                allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
+                synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
+                destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
+                ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
+
+                ligationPairs =
+                    List.allPairs allLigChains allLigChains
+                    |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
+                    |> List.map (fun (a, b) -> orderPairs (a, b))
+                    |> List.filter (fun (a, _) -> a.Head.isL)
+                    |> List.distinct
+
+                racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
+                allChains = allChains
                 allSubst = allSubst
                 allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
 

@@ -191,10 +191,11 @@ module ClmModelData =
 
 
     let generateReactions<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) =
-        let successNumber (d : Distribution) =
-            let x = d.distributionParams.threshold
+        let noOfTries = i.listA.Length * i.listB.Length
 
-            0
         match i.rateProvider.getPrimaryDistribution i.reactionName with
-        | Some d -> failwith ""
+        | Some d ->
+            //let sn = successNumber d noOfTries
+            //let idx = [ for i in 1..sn -> () ]
+            failwith ""
         | None -> []

@@ -10,6 +10,27 @@ open System
 ///        This distribution produces value near mean.
 module Distributions =
 
+
+    // https://en.wikipedia.org/wiki/Marsaglia_polar_method
+    let rec getS (r : unit -> double) =
+        let u = r() * 2.0 - 1.0
+        let v = r() * 2.0 - 1.0
+        let s = u * u + v * v
+
+        if s > 0.0 && s < 1.0 then (s, u)
+        else getS r
+
+
+    let getGausssian (r : unit -> double) mean stdDev =
+        let (s, u) = getS r
+        let mul = -2.0 * (log s) / s |> sqrt
+        mean + stdDev * u * mul
+
+
+    let mean n p = (double n) * p
+    let stdDev n p = (double n) * p * (1.0 - p) |> sqrt
+
+
     type ReactionRate =
         | ReactionRate of double
 
@@ -42,7 +63,7 @@ module Distributions =
         let nextDoubleImpl() =
             let v =
                 d(rnd) *
-                match p.scale with 
+                match p.scale with
                 | Some s -> s
                 | None -> 1.0
 
@@ -51,8 +72,14 @@ module Distributions =
             | Some s -> s
             | None -> 0.0
 
-        let noOfSuccessTriesImpl n =
-            0
+        let successNumberImpl noOfTries =
+            match p.threshold with
+            | Some p ->
+                let m = mean noOfTries p
+                let s = stdDev noOfTries p
+                let sn = getGausssian rnd.NextDouble m s
+                min (max 0 (int sn)) noOfTries
+            | None -> noOfTries
 
         member __.seedValue = seed
         member __.distributionParams = p
@@ -69,7 +96,7 @@ module Distributions =
         member distr.createScaled newScale creator = (distr.nextSeed(), { distr.distributionParams with scale = newScale }) |> creator
         member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
         member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
-
+        member __.successNumber noOfTries = successNumberImpl noOfTries
 
     /// Generates only 0 for default parameters.
     type DeltaDistribution (seed : int, p : DistributionParams) =
@@ -161,7 +188,7 @@ module Distributions =
         | Triangular of TriangularDistribution
         | SymmetricTriangular of SymmetricTriangularDistribution
 
-        member this.nextDouble = 
+        member this.nextDouble =
             match this with
             | Delta d -> d.nextDouble
             | BiDelta d -> d.nextDouble
@@ -169,7 +196,7 @@ module Distributions =
             | Triangular d -> d.nextDouble
             | SymmetricTriangular d -> d.nextDouble
 
-        member this.nextDoubleOpt = 
+        member this.nextDoubleOpt =
             match this with
             | Delta d -> d.nextDoubleOpt
             | BiDelta d -> d.nextDoubleOpt
@@ -185,7 +212,7 @@ module Distributions =
             | Triangular d -> d.isDefined
             | SymmetricTriangular d -> d.isDefined
 
-        member this.nextSeed() = 
+        member this.nextSeed() =
             match this with
             | Delta d -> d.nextSeed()
             | BiDelta d -> d.nextSeed()

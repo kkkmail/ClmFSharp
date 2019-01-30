@@ -437,11 +437,6 @@ module Distributions =
         static member createSymmetricTriangular (seeder : unit -> int) threshold rate =
             SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
 
-        member this.withoutThreshold =
-            match this with
-            | NoneRateMult -> NoneRateMult
-            | RateMultDistr r ->
-                r |> RateMultDistr
 
     [<Literal>]
     let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"

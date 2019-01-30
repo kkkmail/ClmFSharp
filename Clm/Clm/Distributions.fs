@@ -421,6 +421,11 @@ module Distributions =
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
 
+        member this.nextDouble() =
+            match this with 
+            | NoneRateMult -> None
+            | RateMultDistr d -> d.nextDouble() |> Some |> RateMultiplierDistribution.normalize
+
         member this.name =
             match this with
             | NoneRateMult -> NoneRateMultName

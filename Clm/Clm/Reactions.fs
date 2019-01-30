@@ -55,8 +55,8 @@ module Reactions =
 
         member r.enantiomer = { r with reaction = r.reaction.enantiomer }
 
-        static member tryCreate (g : ReactionRateProvider) i = 
-            match g.getRates i with 
+        static member tryCreate (g : ReactionRateProvider) t i = 
+            match g.getRates t i with 
             | Some f, Some b ->
                 {
                     reaction = i
@@ -96,7 +96,7 @@ module Reactions =
 
             i.info.getName n a
 
-        static member tryCreateReaction g i = 
+        static member tryCreateReaction g i =
             match ReversibleReaction.tryCreate g i with 
             | Some r -> Some [ r; r.enantiomer ]
             | None -> None

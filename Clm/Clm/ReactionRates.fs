@@ -134,7 +134,7 @@ module ReactionRates =
                 let (sf0, sb0) = i.getBaseRates i.reaction
                 let fEe = df.nextDouble()
 
-                let bEe = 
+                let bEe =
                     match i.eeParams.eeBackwardDistribution with 
                     | Some d -> d.nextDouble()
                     | None -> fEe
@@ -144,7 +144,7 @@ module ReactionRates =
                 let kb = k0 * (1.0 + bEe)
                 let kbe = k0 * (1.0 - bEe)
 
-                let (rf, rfe) = 
+                let (rf, rfe) =
                     match sf0 with
                     | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
                     | None -> (None, None)

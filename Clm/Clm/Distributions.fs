@@ -85,6 +85,7 @@ module Distributions =
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
         member __.nextSeed() = rnd.Next()
+        member __.next n = rnd.Next(n)
 
         member __.nextDoubleOpt() =
             match isDefinedImpl() with
@@ -97,6 +98,7 @@ module Distributions =
         member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
         member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
         member __.successNumber noOfTries = successNumberImpl noOfTries
+
 
     /// Generates only 0 for default parameters.
     type DeltaDistribution (seed : int, p : DistributionParams) =
@@ -268,6 +270,22 @@ module Distributions =
             | Triangular d -> d.seedValue
             | SymmetricTriangular d -> d.seedValue
 
+        member this.successNumber noOfTries =
+            match this with
+            | Delta d -> d.successNumber noOfTries
+            | BiDelta d -> d.successNumber noOfTries
+            | Uniform d -> d.successNumber noOfTries
+            | Triangular d -> d.successNumber noOfTries
+            | SymmetricTriangular d -> d.successNumber noOfTries
+
+        member this.next n =
+            match this with
+            | Delta d -> d.next n
+            | BiDelta d -> d.next n
+            | Uniform d -> d.next n
+            | Triangular d -> d.next n
+            | SymmetricTriangular d -> d.next n
+
         override this.Equals (o: obj) =
             match o with
             | :? Distribution as d -> this.distributionParams = d.distributionParams
@@ -292,10 +310,10 @@ module Distributions =
 
 
     /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
-    type EeDistribution = 
+    type EeDistribution =
         | EeDistribution of Distribution
 
-        member eed.nextDouble() = 
+        member eed.nextDouble() =
             let (EeDistribution d) = eed
             max (min (d.nextDouble()) 1.0) (-1.0)
 
@@ -303,10 +321,10 @@ module Distributions =
             match eed with
             | EeDistribution _ -> EeDistributionName
 
-        static member createSymmetricTriangular (seeder : unit -> int) = 
+        static member createSymmetricTriangular (seeder : unit -> int) =
             SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
 
-        static member createBiDelta scale (seeder : unit -> int) = 
+        static member createBiDelta scale (seeder : unit -> int) =
             BiDeltaDistribution(seeder(), { threshold = None; scale = scale; shift = None }) |> BiDelta |> EeDistribution
 
         static member private getMeanAndWidth mean =
@@ -356,13 +374,13 @@ module Distributions =
     let CenteredEeDistributionGetterName = "CenteredEeDistributionGetter"
 
 
-    type EeDistributionGetter = 
+    type EeDistributionGetter =
         | NoneEeGetter
         | DeltaEeDistributionGetter
         | CenteredEeDistributionGetter
 
-        member ee.getDistr = 
-            match ee with 
+        member ee.getDistr =
+            match ee with
             | NoneEeGetter -> (fun _ _ _ -> None)
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
@@ -387,7 +405,7 @@ module Distributions =
 
 
     /// Distribution of rate multipliers for catalytic reactions.
-    type RateMultiplierDistribution = 
+    type RateMultiplierDistribution =
         | NoneRateMult
         | RateMultDistr of Distribution
 
@@ -398,27 +416,32 @@ module Distributions =
             | NoneRateMult -> None
             | RateMultDistr d -> Some d
 
-        member this.nextDoubleOpt() = 
+        member this.nextDoubleOpt() =
             match this with 
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
 
         member this.name =
-            match this with 
+            match this with
             | NoneRateMult -> NoneRateMultName
             | RateMultDistr _ -> RateMultDistrName
 
         static member createNone = NoneRateMult
 
-        static member createDelta (seeder : unit -> int) threshold rate = 
+        static member createDelta (seeder : unit -> int) threshold rate =
             DeltaDistribution (seeder(), { threshold = threshold; scale = None; shift = Some rate }) |> Delta |> RateMultDistr
 
-        static member createTriangular (seeder : unit -> int) threshold rate = 
+        static member createTriangular (seeder : unit -> int) threshold rate =
             TriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = None }) |> Triangular |> RateMultDistr
 
-        static member createSymmetricTriangular (seeder : unit -> int) threshold rate = 
+        static member createSymmetricTriangular (seeder : unit -> int) threshold rate =
             SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
 
+        member this.withoutThreshold =
+            match this with
+            | NoneRateMult -> NoneRateMult
+            | RateMultDistr r ->
+                r |> RateMultDistr
 
     [<Literal>]
     let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"

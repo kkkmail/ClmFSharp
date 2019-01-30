@@ -181,8 +181,8 @@ module ClmModelData =
 
     type RateGeneratorInfo<'A, 'B> =
         {
-            listA : list<'A>
-            listB : list<'B>
+            a : array<'A>
+            b : array<'B>
             distr : Distribution
             rateProvider : ReactionRateProvider
             getReaction : 'A -> 'B -> Reaction
@@ -191,11 +191,11 @@ module ClmModelData =
 
 
     let generateReactions<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) =
-        let noOfTries = i.listA.Length * i.listB.Length
+        let noOfTries = i.a.Length * i.b.Length
 
         match i.rateProvider.getPrimaryDistribution i.reactionName with
         | Some d ->
-            //let sn = successNumber d noOfTries
-            //let idx = [ for i in 1..sn -> () ]
+            let sn = d.successNumber noOfTries
+            let idx = [ for _ in 1..sn -> (d.next i.a.Length, d.next i.b.Length) ]
             failwith ""
         | None -> []

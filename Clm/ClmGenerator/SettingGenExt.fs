@@ -7,7 +7,8 @@ open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams
-open ClmModel
+open Clm.Generator.ClmModelData
+open Clm.Generator.ClmModel
 
 
 module SettingGenExt =

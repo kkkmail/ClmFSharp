@@ -10,6 +10,7 @@ open DbData.DatabaseTypes
 open Clm.SettingsExt
 open Clm.Generator.SettingGenExt
 open System.Text
+open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open AsyncRun
 

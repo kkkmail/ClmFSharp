@@ -96,7 +96,7 @@ module Reactions =
 
             i.info.getName n a
 
-        static member tryCreateReaction g i =
-            match ReversibleReaction.tryCreate g i with 
+        static member tryCreateReaction g t i =
+            match ReversibleReaction.tryCreate g t i with
             | Some r -> Some [ r; r.enantiomer ]
             | None -> None

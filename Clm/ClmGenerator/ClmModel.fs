@@ -57,8 +57,8 @@ module ClmModel =
             | CatalyticRacemizationName -> catRacemPairs.Length
 
 
-        let createReactions c l = 
-            let create a = c a |> AnyReaction.tryCreateReaction rateProvider
+        let createReactions t c l = 
+            let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
 
             l
             |> List.map create
@@ -66,31 +66,31 @@ module ClmModel =
             |> List.concat
 
 
-        let getReactions n =
+        let getReactions t n =
             match n with
-            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
-            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
-            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
-            | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) si.chiralAminoAcids
-            | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) si.chiralAminoAcids
-            | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
-            | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
-            | LigationName -> createReactions (fun x -> LigationReaction x |> Ligation) ligationPairs
-            | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
-            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
+            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
+            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
+            | SynthesisName -> createReactions t (fun a -> SynthesisReaction a |> Synthesis) si.chiralAminoAcids
+            | DestructionName -> createReactions t (fun a -> DestructionReaction a |> Destruction) si.chiralAminoAcids
+            | CatalyticSynthesisName -> createReactions t (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
+            | CatalyticDestructionName -> createReactions t (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
+            | LigationName -> createReactions t (fun x -> LigationReaction x |> Ligation) ligationPairs
+            | CatalyticLigationName -> createReactions t (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
+            | SedimentationDirectName -> createReactions t (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
             | SedimentationAllName -> []
-            | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) si.chiralAminoAcids
-            | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
+            | RacemizationName -> createReactions t (fun a -> RacemizationReaction a |> Racemization) si.chiralAminoAcids
+            | CatalyticRacemizationName -> createReactions t (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
 
         let allReac =
             ReactionName.all
-            |> List.map (fun e -> getReactions e)
+            |> List.map (fun e -> getReactions RateGenerationType.BruteForce e)
             |> List.concat
             |> List.distinct
 
         let kW =
             SedimentationAllReaction |> SedimentationAll
-            |> rateProvider.getRates
+            |> rateProvider.getRates RateGenerationType.BruteForce
             |> fst
 
         let allRawReactionsData =

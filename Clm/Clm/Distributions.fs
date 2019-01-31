@@ -385,8 +385,8 @@ module Distributions =
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
 
-        member ee.name = 
-            match ee with 
+        member ee.name =
+            match ee with
             | NoneEeGetter -> "NoneEeGetter"
             | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
             | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"

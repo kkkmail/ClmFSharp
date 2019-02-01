@@ -208,7 +208,6 @@ module ReactionRates =
             eeParams : CatRatesEeParam
             rateDictionary : Dictionary<'RC, (ReactionRate option * ReactionRate option)>
             rateGenerationType : RateGenerationType
-
         }
 
         member i.toCatRatesInfo r c e =
@@ -523,6 +522,7 @@ module ReactionRates =
 
         member __.getRates t r = calculateSimRatesImpl t r
         member __.inputParams = p
+        member __.getAllRates() = getAllRatesImpl p.catSynthModel.rateDictionary
 
 
     type CatalyticSynthesisModel =
@@ -538,6 +538,11 @@ module ReactionRates =
             match model with
             | CatSynthRndModel m -> m.inputParams |> CatSynthRndParamWithModel
             | CatSynthSimModel m -> m.inputParams |> CatSynthSimParamWithModel
+
+        member model.getAllRates() =
+            match model with
+            | CatSynthRndModel m -> m.getAllRates()
+            | CatSynthSimModel m -> m.getAllRates()
 
         static member create p =
             match p with 
@@ -709,6 +714,7 @@ module ReactionRates =
 
         member __.getRates t r = calculateSimRatesImpl t r
         member __.inputParams = p
+        member __.getAllRates() = getAllRatesImpl p.catDestrModel.rateDictionary
 
 
     type CatalyticDestructionModel =
@@ -724,6 +730,11 @@ module ReactionRates =
             match model with
             | CatDestrRndModel m -> m.inputParams |> CatDestrRndParamWithModel
             | CatDestrSimModel m -> m.inputParams |> CatDestrSimParamWithModel
+
+        member model.getAllRates() =
+            match model with
+            | CatDestrRndModel m -> m.getAllRates()
+            | CatDestrSimModel m -> m.getAllRates()
 
         static member create p =
             match p with 
@@ -771,16 +782,23 @@ module ReactionRates =
 
     type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
         inherit RateModel<SedimentationDirectRandomParam, SedimentationDirectReaction>(p)
-        let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationDirectDistribution.nextDoubleOpt())
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+
+        let calculateRates t _ =
+            let k =
+                match t with
+                | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt()
+                | RandomChoice -> p.sedimentationDirectDistribution.nextDouble() |> Some
+            getForwardRates (p.forwardScale, k)
+
+        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates t) r
 
 
     type SedimentationDirectModel =
         | SedDirRndModel of SedimentationDirectRandomModel
 
-        member model.getRates r =
+        member model.getRates t r =
             match model with
-            | SedDirRndModel m -> m.getRates r
+            | SedDirRndModel m -> m.getRates t r
 
         member model.inputParams =
             match model with
@@ -1169,6 +1187,7 @@ module ReactionRates =
 
         member __.getRates t r = calculateSimRatesImpl t r
         member __.inputParams = p
+        member __.getAllRates() = getAllRatesImpl p.catRacemModel.rateDictionary
 
 
     type CatalyticRacemizationModel =
@@ -1184,6 +1203,11 @@ module ReactionRates =
             match model with
             | CatRacemRndModel m -> m.inputParams |> CatRacemRndParamWithModel
             | CatRacemSimModel m -> m.inputParams |> CatRacemSimParamWithModel
+
+        member model.getAllRates() =
+            match model with
+            | CatRacemRndModel m -> m.getAllRates()
+            | CatRacemSimModel m -> m.getAllRates()
 
         static member create p =
             match p with 
@@ -1543,7 +1567,7 @@ module ReactionRates =
             | CatalyticDestruction r -> p.tryFindCatalyticDestructionModel() |> bind (fun m -> m.getRates t r)
             | Ligation r -> p.tryFindLigationModel() |> bind (fun m -> m.getRates r)
             | CatalyticLigation r -> p.tryFindCatalyticLigationModel() |> bind (fun m -> m.getRates t r)
-            | SedimentationDirect r -> p.tryFindSedimentationDirectModel() |> bind (fun m -> m.getRates r)
+            | SedimentationDirect r -> p.tryFindSedimentationDirectModel() |> bind (fun m -> m.getRates t r)
             | SedimentationAll r -> p.tryFindSedimentationAllModel() |> bind (fun m -> m.getRates r)
             | Racemization r -> p.tryFindRacemizationModel() |> bind (fun m -> m.getRates r)
             | CatalyticRacemization r -> p.tryFindCatalyticRacemizationModel() |> bind (fun m -> m.getRates t r)

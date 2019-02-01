@@ -101,6 +101,8 @@ module ClmModelData =
 
     type SubstInfo =
         {
+            maxPeptideLength : MaxPeptideLength
+            numberOfAminoAcids : NumberOfAminoAcids
             aminoAcids : list<AminoAcid>
             chiralAminoAcids : list<ChiralAminoAcid>
             peptides : list<Peptide>
@@ -129,6 +131,8 @@ module ClmModelData =
                     (peptides |> List.map (fun p -> PeptideChain p))
 
             {
+                maxPeptideLength = maxPeptideLength
+                numberOfAminoAcids = numberOfAminoAcids
                 aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
                 chiralAminoAcids = chiralAminoAcids
                 peptides = peptides
@@ -173,6 +177,80 @@ module ClmModelData =
 
     let getAminoAcidsCode (modelParams : ModelGenerationParams) = "AminoAcid.getAminoAcids NumberOfAminoAcids." + modelParams.numberOfAminoAcids.ToString()
 
+
+    type BruteForceModelData =
+        {
+            substInfo : SubstInfo
+            allPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
+            ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
+            catSynthPairs : list<SynthesisReaction * SynthCatalyst>
+            catDestrPairs : list<DestructionReaction * DestrCatalyst>
+            catLigPairs : list<LigationReaction * LigCatalyst>
+            catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
+        }
+
+        member data.noOfRawReactions n =
+            match n with
+            | FoodCreationName -> 1
+            | WasteRemovalName -> 1
+            | WasteRecyclingName -> 1
+            | SynthesisName -> data.substInfo.chiralAminoAcids.Length
+            | DestructionName -> data.substInfo.chiralAminoAcids.Length
+            | CatalyticSynthesisName -> data.catSynthPairs.Length
+            | CatalyticDestructionName -> data.catDestrPairs.Length
+            | LigationName -> data.ligationPairs.Length
+            | CatalyticLigationName -> data.catLigPairs.Length
+            | SedimentationDirectName -> data.allPairs.Length
+            | SedimentationAllName -> data.substInfo.chiralAminoAcids.Length
+            | RacemizationName -> data.substInfo.chiralAminoAcids.Length
+            | CatalyticRacemizationName -> data.catRacemPairs.Length
+
+
+        member data.getReactions rateProvider n =
+            let t = RateGenerationType.BruteForce
+
+            let createReactions c l =
+                let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
+
+                l
+                |> List.map create
+                |> List.choose id
+                |> List.concat
+
+            match n with
+            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
+            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
+            | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) data.substInfo.chiralAminoAcids
+            | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
+            | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
+            | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
+            | LigationName -> createReactions (fun x -> LigationReaction x |> Ligation) data.ligationPairs
+            | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
+            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) data.allPairs
+            | SedimentationAllName -> []
+            | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
+            | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
+
+
+        static member create si =
+            let allPairs =
+                List.allPairs si.allChains si.allChains
+                |> List.map (fun (a, b) -> orderPairs (a, b))
+                |> List.filter (fun (a, _) -> a.Head.isL)
+                |> List.distinct
+
+            let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= si.maxPeptideLength.length)
+
+            {
+                substInfo = si
+                allPairs = allPairs
+                ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= si.maxPeptideLength.length)
+                catSynthPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) si.synthCatalysts
+                catDestrPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> DestructionReaction c)) si.destrCatalysts
+                catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) si.ligCatalysts
+                catRacemPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> RacemizationReaction c)) si.racemCatalysts
+            }
 
     //let getModelDataParamsCode (modelParams : ModelGenerationParams)
 

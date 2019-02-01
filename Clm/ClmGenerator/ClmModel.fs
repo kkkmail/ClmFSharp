@@ -27,60 +27,10 @@ module ClmModel =
         let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
         let allParamsCode = rateProvider.toParamFSharpCode
         let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
+        let bf = BruteForceModelData.create si
 
-        let allPairs =
-            List.allPairs si.allChains si.allChains
-            |> List.map (fun (a, b) -> orderPairs (a, b))
-            |> List.filter (fun (a, _) -> a.Head.isL)
-            |> List.distinct
-
-        let ligationPairs = allPairs |> List.filter (fun (a, b) -> a.Length + b.Length <= modelParams.maxPeptideLength.length)
-        let catSynthPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> SynthesisReaction c)) si.synthCatalysts
-        let catDestrPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> DestructionReaction c)) si.destrCatalysts
-        let catLigPairs = List.allPairs (ligationPairs |> List.map (fun c -> LigationReaction c)) si.ligCatalysts
-        let catRacemPairs = List.allPairs (si.chiralAminoAcids |> List.map (fun c -> RacemizationReaction c)) si.racemCatalysts
-
-        let noOfRawReactions n =
-            match n with 
-            | FoodCreationName -> 1
-            | WasteRemovalName -> 1
-            | WasteRecyclingName -> 1
-            | SynthesisName -> si.chiralAminoAcids.Length
-            | DestructionName -> si.chiralAminoAcids.Length
-            | CatalyticSynthesisName -> catSynthPairs.Length
-            | CatalyticDestructionName -> catDestrPairs.Length
-            | LigationName -> ligationPairs.Length
-            | CatalyticLigationName -> catLigPairs.Length
-            | SedimentationDirectName -> allPairs.Length
-            | SedimentationAllName -> si.chiralAminoAcids.Length
-            | RacemizationName -> si.chiralAminoAcids.Length
-            | CatalyticRacemizationName -> catRacemPairs.Length
-
-
-        let createReactions t c l = 
-            let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
-
-            l
-            |> List.map create
-            |> List.choose id
-            |> List.concat
-
-
-        let getReactions t n =
-            match n with
-            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
-            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
-            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
-            | SynthesisName -> createReactions t (fun a -> SynthesisReaction a |> Synthesis) si.chiralAminoAcids
-            | DestructionName -> createReactions t (fun a -> DestructionReaction a |> Destruction) si.chiralAminoAcids
-            | CatalyticSynthesisName -> createReactions t (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) catSynthPairs
-            | CatalyticDestructionName -> createReactions t (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) catDestrPairs
-            | LigationName -> createReactions t (fun x -> LigationReaction x |> Ligation) ligationPairs
-            | CatalyticLigationName -> createReactions t (fun x -> CatalyticLigationReaction x |> CatalyticLigation) catLigPairs
-            | SedimentationDirectName -> createReactions t (fun x -> SedimentationDirectReaction x |> SedimentationDirect) allPairs
-            | SedimentationAllName -> []
-            | RacemizationName -> createReactions t (fun a -> RacemizationReaction a |> Racemization) si.chiralAminoAcids
-            | CatalyticRacemizationName -> createReactions t (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) catRacemPairs
+        let noOfRawReactions n = bf.noOfRawReactions n
+        let getReactions _ n = bf.getReactions rateProvider n
 
         let allReac =
             ReactionName.all
@@ -111,7 +61,7 @@ module ClmModel =
             @
             (
                 // TODO kk:20181130 A little hack. Do it properly.
-                match kW with 
+                match kW with
                 | Some _ -> [ shift + "(" + ReactionName.SedimentationAllName.ToString() + ", " + (2 * modelParams.numberOfAminoAcids.length).ToString() + ")" ]
                 | None -> []
             )

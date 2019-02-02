@@ -55,9 +55,8 @@ module Reactions =
 
         member r.enantiomer = { r with reaction = r.reaction.enantiomer }
 
-        static member tryCreate (g : ReactionRateProvider) t i =
-            let r = g.getRates t i
-            match r.forwardRate, r.backwardRate with
+        static member tryCreateFromRateData i (rd : RateData) =
+            match rd.forwardRate, rd.backwardRate with
             | Some f, Some b ->
                 {
                     reaction = i
@@ -69,6 +68,9 @@ module Reactions =
             | Some f, None -> ForwardReaction.tryCreate (fun _ -> Some f) i
             | None, Some b -> BackwardReaction.tryCreate (fun _ -> Some b) i
             | None, None -> None
+
+        static member tryCreate (g : ReactionRateProvider) t i =
+            g.getRates t i |> ReversibleReaction.tryCreateFromRateData i
 
 
     and AnyReaction =
@@ -97,6 +99,11 @@ module Reactions =
 
             i.info.getName n a
 
+        static member tryCreateReactionFromRateData i (rd : RateData) =
+            match ReversibleReaction.tryCreateFromRateData i rd with
+            | Some r -> Some [ r; r.enantiomer ]
+            | None -> None
+
         static member tryCreateReaction g t i =
             match ReversibleReaction.tryCreate g t i with
             | Some r -> Some [ r; r.enantiomer ]
@@ -107,34 +114,29 @@ module Reactions =
         with
 
         member rm.getAllReactions() : list<AnyReaction> =
+            let hasData (rd : RateData) =
+                match rd.forwardRate, rd.backwardRate with
+                | None, None -> false
+                | _ -> true
+
+            let createReactions creator ar =
+                ar
+                |> List.filter (fun e -> hasData e.rateData)
+                |> List.map (fun e -> AnyReaction.tryCreateReactionFromRateData (e.reaction |> creator) e.rateData)
+                |> List.choose id
+                |> List.concat
+
             match rm with
-            | FoodCreationRateModel m ->
-                let x = m.getAllRates()
-
-                failwith ""
-
-            //| WasteRemovalRateModel m -> m.getAllRates() |> WasteRemovalRates
-            //| WasteRecyclingRateModel m -> m.getAllRates() |> WasteRecyclingRates
-            //| SynthesisRateModel m -> m.getAllRates() |> SynthesisRates
-            //| DestructionRateModel m -> m.getAllRates() |> DestructionRates
-            //| CatalyticSynthesisRateModel m -> m.getAllRates() |> CatalyticSynthesisRates
-            //| CatalyticDestructionRateModel m -> m.getAllRates() |> CatalyticDestructionRates
-            //| LigationRateModel m -> m.getAllRates() |> LigationRates
-            //| CatalyticLigationRateModel m -> m.getAllRates() |> CatalyticLigationRates
-            //| SedimentationDirectRateModel m -> m.getAllRates() |> SedimentationDirectRates
-            //| SedimentationAllRateModel m -> m.getAllRates() |> SedimentationAllRates
-            //| RacemizationRateModel m -> m.getAllRates() |> RacemizationRates
-            //| CatalyticRacemizationRateModel m -> m.getAllRates() |> CatalyticRacemizationRates
-
-            | WasteRemovalRateModel m -> failwith ""
-            | WasteRecyclingRateModel m -> failwith ""
-            | SynthesisRateModel m -> failwith ""
-            | DestructionRateModel m -> failwith ""
-            | CatalyticSynthesisRateModel m -> failwith ""
-            | CatalyticDestructionRateModel m -> failwith ""
-            | LigationRateModel m -> failwith ""
-            | CatalyticLigationRateModel m -> failwith ""
-            | SedimentationDirectRateModel m -> failwith ""
-            | SedimentationAllRateModel m -> failwith ""
-            | RacemizationRateModel m -> failwith ""
-            | CatalyticRacemizationRateModel m -> failwith ""
+            | FoodCreationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> FoodCreation))
+            | WasteRemovalRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> WasteRemoval))
+            | WasteRecyclingRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> WasteRecycling))
+            | SynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Synthesis))
+            | DestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Destruction))
+            | CatalyticSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticSynthesis))
+            | CatalyticDestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticDestruction))
+            | LigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Ligation))
+            | CatalyticLigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticLigation))
+            | SedimentationDirectRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationDirect))
+            | SedimentationAllRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationAll))
+            | RacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Racemization))
+            | CatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticRacemization))

@@ -768,7 +768,7 @@ module ReactionRates =
             | CatDestrRndModel m -> m.getRates t r
             | CatDestrSimModel m -> m.getRates t r
 
-        member model.inputParams = 
+        member model.inputParams =
             match model with
             | CatDestrRndModel m -> m.inputParams |> CatDestrRndParamWithModel
             | CatDestrSimModel m -> m.inputParams |> CatDestrSimParamWithModel

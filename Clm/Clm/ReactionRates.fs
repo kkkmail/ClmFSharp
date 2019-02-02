@@ -19,6 +19,14 @@ module ReactionRates =
         | RandomChoice
 
 
+    type RateGeneratorInfo<'A, 'B> =
+        {
+            a : array<'A>
+            b : array<'B>
+            reactionName : ReactionName
+        }
+
+
     type RelatedReactions<'R> =
         {
             primary : (ReactionRate option * ReactionRate option)

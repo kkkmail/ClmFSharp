@@ -1544,19 +1544,6 @@ module ReactionRates =
         member p.allParams = p.allModels |> List.map (fun e -> { modelParam = e.model.inputParams; usage = e.usage }) |> List.sort
 
 
-    //let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
-    //    (mo : 'M option) (r : 'R) : (ReactionRate option * ReactionRate option) =
-    //    match mo with
-    //    | Some m -> ((^M) : (member getRates : 'R -> (ReactionRate option * ReactionRate option)) (m, r))
-    //    | None -> (None, None)
-    //
-    //
-    //let inline getModelRates2<'M, 'R when 'M : (member getRates : RateGenerationType -> 'R -> (ReactionRate option * ReactionRate option))>
-    //    (mo : 'M option) (t : RateGenerationType) (r : 'R) : (ReactionRate option * ReactionRate option) =
-    //    match mo with
-    //    | Some m -> ((^M) : (member getRates : RateGenerationType -> 'R -> (ReactionRate option * ReactionRate option)) (m, t, r))
-    //    | None -> (None, None)
-
     let bind f xOpt =
         match xOpt with
         | Some x -> f x

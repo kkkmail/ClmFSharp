@@ -296,10 +296,12 @@ module ClmModelData =
 
     let generatePairs<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         let noOfTries = i.a.Length * i.b.Length
+        printfn "generatePairs.noOfTries = %A" noOfTries
 
         match rateProvider.getPrimaryDistribution i.reactionName with
         | Some d ->
             let sn = d.successNumber noOfTries
+            printfn "generatePairs.sn = %A" sn
             [ for _ in 1..sn -> (i.a.[d.next i.a.Length], i.b.[d.next i.b.Length]) ]
         | None -> []
 

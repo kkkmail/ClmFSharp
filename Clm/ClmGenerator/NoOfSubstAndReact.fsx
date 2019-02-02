@@ -39,7 +39,7 @@ open ClmDefaults.AllDefaults
 
 //open Clm.Generator.ClmModel
 //===========================================================
-let numberOfAminoAcids = NumberOfAminoAcids.SixAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 let reactionName = ReactionName.CatalyticDestructionName
 let seed = 1
@@ -109,7 +109,7 @@ let rndBF = new Random(seed)
 let rndRC = new Random(seed)
 
 let getRateProvider rnd =
-    (getDefaultValues 1 |> fst).getDefaultRateModels rnd numberOfAminoAcids 
+    (getDefaultValues 2 |> fst).getDefaultRateModels rnd numberOfAminoAcids 
     |> ReactionRateProvider
 
 let rateProviderBF = getRateProvider rndBF
@@ -126,6 +126,7 @@ printfn "bfr.Length = %A" bfr.Length
 printfn "RandomChoice"
 let rc = RateGenerationData.create RandomChoice rateProviderRC si
 let rcr = rc.getReactions rateProviderRC reactionName
+let x = rc
 printfn "rcr.Length = %A" rcr.Length
 #time
 

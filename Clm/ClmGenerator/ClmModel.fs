@@ -38,10 +38,7 @@ module ClmModel =
             |> List.concat
             |> List.distinct
 
-        let kW =
-            SedimentationAllReaction |> SedimentationAll
-            |> rateProvider.getRates RateGenerationType.BruteForce
-            |> fst
+        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates BruteForce).forwardRate
 
         let allRawReactionsData =
             ReactionName.all

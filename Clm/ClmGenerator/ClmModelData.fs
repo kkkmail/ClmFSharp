@@ -360,7 +360,11 @@ module ClmModelData =
         member data.getReactions rateProvider n =
             match data with
             | BruteForceModel m -> m.getReactions rateProvider n
-            | RandomChoiceModel m -> m.getReactions rateProvider n
+            | RandomChoiceModel m -> 
+                let x = m.getReactions rateProvider n
+                let y = rateProvider.getAllRates()
+
+                x
 
         static member create t rateProvider si =
             match t with

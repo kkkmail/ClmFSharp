@@ -4,7 +4,7 @@ open Clm.Distributions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 
-module Reactions = 
+module Reactions =
 
     type ForwardReaction =
         {
@@ -14,7 +14,7 @@ module Reactions =
 
         member reaction.enantiomer = { reaction with reaction = reaction.reaction.enantiomer }
 
-        static member tryCreate g i = 
+        static member tryCreate g i =
             match g i with 
             | Some f ->
                 {
@@ -55,8 +55,9 @@ module Reactions =
 
         member r.enantiomer = { r with reaction = r.reaction.enantiomer }
 
-        static member tryCreate (g : ReactionRateProvider) t i = 
-            match g.getRates t i with 
+        static member tryCreate (g : ReactionRateProvider) t i =
+            let r = g.getRates t i
+            match r.forwardRate, r.backwardRate with
             | Some f, Some b ->
                 {
                     reaction = i
@@ -81,13 +82,13 @@ module Reactions =
             | Backward r -> r.enantiomer |> Backward
             | Reversible r -> r.enantiomer |> Reversible
 
-        member this.name = 
+        member this.name =
             match this with
             | Forward r ->  r.reaction.name
             | Backward r -> r.reaction.name
             | Reversible r -> r.reaction.name
 
-        member this.fullName = 
+        member this.fullName =
             let a, i, n =
                 match this with
                 | Forward r -> " -> ", r.reaction, r.reaction.name.name
@@ -100,3 +101,40 @@ module Reactions =
             match ReversibleReaction.tryCreate g t i with
             | Some r -> Some [ r; r.enantiomer ]
             | None -> None
+
+
+    type ReactionRateModel
+        with
+
+        member rm.getAllReactions() : list<AnyReaction> =
+            match rm with
+            | FoodCreationRateModel m ->
+                let x = m.getAllRates()
+
+                failwith ""
+
+            //| WasteRemovalRateModel m -> m.getAllRates() |> WasteRemovalRates
+            //| WasteRecyclingRateModel m -> m.getAllRates() |> WasteRecyclingRates
+            //| SynthesisRateModel m -> m.getAllRates() |> SynthesisRates
+            //| DestructionRateModel m -> m.getAllRates() |> DestructionRates
+            //| CatalyticSynthesisRateModel m -> m.getAllRates() |> CatalyticSynthesisRates
+            //| CatalyticDestructionRateModel m -> m.getAllRates() |> CatalyticDestructionRates
+            //| LigationRateModel m -> m.getAllRates() |> LigationRates
+            //| CatalyticLigationRateModel m -> m.getAllRates() |> CatalyticLigationRates
+            //| SedimentationDirectRateModel m -> m.getAllRates() |> SedimentationDirectRates
+            //| SedimentationAllRateModel m -> m.getAllRates() |> SedimentationAllRates
+            //| RacemizationRateModel m -> m.getAllRates() |> RacemizationRates
+            //| CatalyticRacemizationRateModel m -> m.getAllRates() |> CatalyticRacemizationRates
+
+            | WasteRemovalRateModel m -> failwith ""
+            | WasteRecyclingRateModel m -> failwith ""
+            | SynthesisRateModel m -> failwith ""
+            | DestructionRateModel m -> failwith ""
+            | CatalyticSynthesisRateModel m -> failwith ""
+            | CatalyticDestructionRateModel m -> failwith ""
+            | LigationRateModel m -> failwith ""
+            | CatalyticLigationRateModel m -> failwith ""
+            | SedimentationDirectRateModel m -> failwith ""
+            | SedimentationAllRateModel m -> failwith ""
+            | RacemizationRateModel m -> failwith ""
+            | CatalyticRacemizationRateModel m -> failwith ""

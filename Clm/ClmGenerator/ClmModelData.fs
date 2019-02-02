@@ -366,6 +366,11 @@ module ClmModelData =
 
                 x
 
+        member data.getAllReactions() =
+            match data with
+            | BruteForceModel _ -> failwith ""
+            | RandomChoiceModel m -> failwith ""
+
         static member create t rateProvider si =
             match t with
             | BruteForce -> BruteForceModelData.create si |> BruteForceModel

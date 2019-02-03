@@ -39,10 +39,11 @@ open ClmDefaults.AllDefaults
 
 //open Clm.Generator.ClmModel
 //===========================================================
-let numberOfAminoAcids = NumberOfAminoAcids.FourAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.FiveAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 let reactionName = ReactionName.CatalyticDestructionName
-let seed = 1
+let seed = 5
+let defaultIdx = 2
 //===========================================================
 printfn "Starting..."
 
@@ -109,7 +110,7 @@ let rndBF = new Random(seed)
 let rndRC = new Random(seed)
 
 let getRateProvider rnd =
-    (getDefaultValues 2 |> fst).getDefaultRateModels rnd numberOfAminoAcids 
+    (getDefaultValues defaultIdx |> fst).getDefaultRateModels rnd numberOfAminoAcids 
     |> ReactionRateProvider
 
 let rateProviderBF = getRateProvider rndBF
@@ -120,14 +121,16 @@ printfn "BruteForce"
 let bf = RateGenerationData.create BruteForce rateProviderBF si
 let bfr = bf.getReactions rateProviderBF reactionName
 printfn "bfr.Length = %A" bfr.Length
+printfn "(bfr |> List.distinct).Length = %A" (bfr |> List.distinct).Length
+printfn "cntAll = %A, cntSuccess = %A" cntAll cntSuccess
 #time
 
 #time
 printfn "RandomChoice"
 let rc = RateGenerationData.create RandomChoice rateProviderRC si
 let rcr = rc.getReactions rateProviderRC reactionName
-let x = rc
 printfn "rcr.Length = %A" rcr.Length
+printfn "(rcr |> List.distinct).Length = %A" (rcr |> List.distinct).Length
 #time
 
 

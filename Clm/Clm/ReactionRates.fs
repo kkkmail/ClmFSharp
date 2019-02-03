@@ -153,6 +153,8 @@ module ReactionRates =
             rateGenerationType : RateGenerationType
         }
 
+    let mutable cntAll = 0
+    let mutable cntSuccess = 0
 
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
     /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
@@ -169,7 +171,14 @@ module ReactionRates =
         let rf, rb, rfe, rbe =
             let k =
                 match i.rateGenerationType with
-                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt()
+                | BruteForce ->
+                    cntAll <- cntAll + 1
+                    let v = i.eeParams.rateMultiplierDistr.nextDoubleOpt()
+                    match v with
+                    | Some x -> cntSuccess <- cntSuccess + 1
+                    | None -> ignore()
+
+                    v
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble()
 
             match k, i.eeParams.eeForwardDistribution with

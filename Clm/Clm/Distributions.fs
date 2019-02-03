@@ -27,10 +27,6 @@ module Distributions =
         mean + stdDev * u * mul
 
 
-    let mean n p = (double n) * p
-    let stdDev n p = (double n) * p * (1.0 - p) |> sqrt
-
-
     type ReactionRate =
         | ReactionRate of double
 
@@ -60,32 +56,39 @@ module Distributions =
             | Some t -> if rnd.NextDouble() < t then true else false
             | None -> true
 
-        let nextDoubleImpl() =
-            let v =
-                d(rnd) *
-                match p.scale with
-                | Some s -> s
-                | None -> 1.0
+        let scale x =
+            x *
+            match p.scale with
+            | Some s -> s
+            | None -> 1.0
 
-            v +
+        let shift x =
+            x +
             match p.shift with
             | Some s -> s
             | None -> 0.0
 
-        let successNumberImpl noOfTries =
-            match p.threshold with
-            | Some p ->
-                let m = mean noOfTries p
-                let s = stdDev noOfTries p
-                let sn = getGausssian rnd.NextDouble m s
-                min (max 0 (int sn)) noOfTries
-            | None -> noOfTries
+        let scaleShift x = x |> scale |> shift
+        let nextDoubleImpl() = d(rnd) |> scaleShift
+
+        abstract member meanBase : double
+        abstract member stdDevBase : double
 
         member __.seedValue = seed
         member __.distributionParams = p
         member __.nextDouble = nextDoubleImpl
         member __.nextSeed() = rnd.Next()
         member __.next n = rnd.Next(n)
+
+        member distr.mean =
+            let x = distr.meanBase |> scaleShift
+            printfn "mean = %A, p.scale = %A, p.shift = %A" x p.scale p.shift
+            x
+
+        member distr.stdDev =
+            let x = distr.stdDevBase |> scale
+            printfn "stdDev = %A, p.scale = %A, p.shift = %A" x p.scale p.shift
+            x
 
         member __.nextDoubleOpt() =
             match isDefinedImpl() with
@@ -97,7 +100,28 @@ module Distributions =
         member distr.createScaled newScale creator = (distr.nextSeed(), { distr.distributionParams with scale = newScale }) |> creator
         member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
         member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
-        member __.successNumber noOfTries = successNumberImpl noOfTries
+
+        member distr.successNumber noOfTries = //successNumberImpl noOfTries
+            match p.threshold with
+            | Some p0 ->
+                // !!! must adjust for 4x reduction due to grouping of (A + C, A + E(C), E(A) + E(C), E(A) + C)
+                let p = p0 / 4.0
+                //let mean = p
+                //let stdDev = p * (1.0 - p) |> sqrt
+                //let mean = 0.5
+                //let stdDev = 1.0 / 12.0 |> sqrt
+
+                let mean = 1.0
+                let stdDev = 0.0
+
+                let m = (mean * p) * (double noOfTries)
+                let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
+                //let m = mean * (double noOfTries)
+                //let s = stdDev * (double noOfTries) |> sqrt
+                let sn = getGausssian rnd.NextDouble m s
+                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
+                min (max 0 (int sn)) noOfTries
+            | None -> noOfTries
 
 
     /// Generates only 0 for default parameters.
@@ -108,6 +132,8 @@ module Distributions =
         member distr.scaled newScale = distr.createScaled newScale DeltaDistribution
         member distr.shifted newShift = distr.createShifted newShift DeltaDistribution
         member distr.thresholded newThreshold = distr.createThresholded newThreshold DeltaDistribution
+        override __.meanBase = 0.0
+        override __.stdDevBase = 0.0
 
 
     /// Generates only -1 and 1 with equal probability for default parameters.
@@ -118,6 +144,8 @@ module Distributions =
         member distr.scaled newScale = distr.createScaled newScale BiDeltaDistribution
         member distr.shifted newShift = distr.createShifted newShift BiDeltaDistribution
         member distr.thresholded newThreshold = distr.createThresholded newThreshold BiDeltaDistribution
+        override __.meanBase = 0.0
+        override __.stdDevBase = 1.0
 
 
     /// Generates values on (-1, 1) for default parameters.
@@ -130,6 +158,9 @@ module Distributions =
         member distr.scaled newScale = distr.createScaled newScale UniformDistribution
         member distr.shifted newShift = distr.createShifted newShift UniformDistribution
         member distr.thresholded newThreshold = distr.createThresholded newThreshold UniformDistribution
+        override __.meanBase = 0.0
+        override __.stdDevBase = 1.0 / 3.0 |> sqrt
+
 
 
     /// Generates values on (0, 3) with mean 1 for default parameters.
@@ -140,6 +171,9 @@ module Distributions =
         member distr.scaled newScale = distr.createScaled newScale TriangularDistribution
         member distr.shifted newShift = distr.createShifted newShift TriangularDistribution
         member distr.thresholded newThreshold = distr.createThresholded newThreshold TriangularDistribution
+        override __.meanBase = 1.0
+        override __.stdDevBase = 1.0 / 2.0 |> sqrt
+
 
 
     let toSymmetricTriangular d = 
@@ -155,6 +189,8 @@ module Distributions =
         member distr.scaled newScale = distr.createScaled newScale SymmetricTriangularDistribution
         member distr.shifted newShift = distr.createShifted newShift SymmetricTriangularDistribution
         member distr.thresholded newThreshold = distr.createThresholded newThreshold SymmetricTriangularDistribution
+        override __.meanBase = 0.0
+        override __.stdDevBase = 1.0 / 6.0 |> sqrt
 
 
     [<Literal>]
@@ -417,7 +453,7 @@ module Distributions =
             | RateMultDistr d -> Some d
 
         member this.nextDoubleOpt() =
-            match this with 
+            match this with
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
 

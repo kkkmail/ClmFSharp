@@ -116,15 +116,32 @@ module Reactions =
         member rm.getAllReactions() : list<AnyReaction> =
             let hasData (rd : RateData) =
                 match rd.forwardRate, rd.backwardRate with
-                | None, None -> false
-                | _ -> true
+                | None, None ->
+                    false
+                | _ ->
+                    true
 
             let createReactions creator ar =
-                ar
-                |> List.filter (fun e -> hasData e.rateData)
-                |> List.map (fun e -> AnyReaction.tryCreateReactionFromRateData (e.reaction |> creator) e.rateData)
-                |> List.choose id
-                |> List.concat
+                let x0 =
+                    ar
+
+                let x1 =
+                    x0
+                    |> List.filter (fun e -> hasData e.rateData)
+
+                let x2 = 
+                    x1
+                    |> List.map (fun e -> AnyReaction.tryCreateReactionFromRateData (e.reaction |> creator) e.rateData)
+
+                let x3 =
+                    x2
+                    |> List.choose id
+
+                let x4 =
+                    x3
+                    |> List.concat
+
+                x4
 
             match rm with
             | FoodCreationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> FoodCreation))

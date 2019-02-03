@@ -221,7 +221,7 @@ module ClmModelData =
         }
 
         member data.getReactions sdp rateProvider t n =
-            let x = AnyReaction.tryCreateReactionFromRateData
+            //let x = AnyReaction.tryCreateReactionFromRateData
 
             let createReactions c l =
                 let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
@@ -373,10 +373,10 @@ module ClmModelData =
 
                 b
 
-        member data.getAllReactions() =
-            match data with
-            | BruteForceModel _ -> failwith ""
-            | RandomChoiceModel m -> failwith ""
+        //member data.getAllReactions() =
+        //    match data with
+        //    | BruteForceModel _ -> failwith ""
+        //    | RandomChoiceModel m -> failwith ""
 
         static member create t rateProvider si =
             match t with

@@ -1,0 +1,174 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      5777,        166]
+NotebookOptionsPosition[      4608,        133]
+NotebookOutlinePosition[      4982,        149]
+CellTagsIndexPosition[      4939,        146]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"Variance", "[", 
+    RowBox[{"UniformDistribution", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], "]"}], "]"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Variance", "[", 
+    RowBox[{"UniformDistribution", "[", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "1"}], "}"}], "]"}], "]"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Print", "[", "\"\<TriangularDistribution\>\"", "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Mean", "[", 
+    RowBox[{"TriangularDistribution", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", "3"}], "}"}], ",", "0"}], "]"}], "]"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Variance", "[", 
+    RowBox[{"TriangularDistribution", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", "3"}], "}"}], ",", "0"}], "]"}], "]"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Print", "[", "\"\<TriangularDistribution\>\"", "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Mean", "[", 
+    RowBox[{"TriangularDistribution", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], "]"}], "]"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Variance", "[", 
+    RowBox[{"TriangularDistribution", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], "]"}], "]"}], 
+   "\[IndentingNewLine]"}]}]], "Input",
+ CellChangeTimes->{{3.758166885767125*^9, 3.7581669102227345`*^9}, {
+  3.7581669784851136`*^9, 3.7581669830399055`*^9}, {3.7581687290133076`*^9, 
+  3.758168793499728*^9}, {3.7581688552533627`*^9, 3.7581688631721883`*^9}, {
+  3.758168904707073*^9, 3.758168905252613*^9}, {3.758168936131497*^9, 
+  3.7581689436284523`*^9}, {3.7581701654699316`*^9, 
+  3.7581701693166513`*^9}},ExpressionUUID->"7bc5237c-f4b8-4f8c-b8f6-\
+c62825299e45"],
+
+Cell[BoxData[
+ FractionBox["1", "3"]], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.758170170423685*^9},ExpressionUUID->"28371def-eab4-4459-9e73-\
+849ca807852c"],
+
+Cell[BoxData[
+ FractionBox["1", "12"]], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.758170170427676*^9},ExpressionUUID->"96437737-4714-47d7-9887-\
+cbb69b92249f"],
+
+Cell[BoxData["\<\"TriangularDistribution\"\>"], "Print",
+ CellChangeTimes->{3.7581687976456428`*^9, 3.7581688640029683`*^9, 
+  3.758168945329939*^9, 
+  3.7581701704346666`*^9},ExpressionUUID->"5f8e1f0d-c495-48ce-b06a-\
+648d368c0918"],
+
+Cell[BoxData["1"], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.7581701704366508`*^9},ExpressionUUID->"117f00ae-08d5-4c3e-87b1-\
+0da91eaf7513"],
+
+Cell[BoxData[
+ FractionBox["1", "2"]], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.758170170439644*^9},ExpressionUUID->"6a6c7221-6e92-420e-a22f-\
+cb5e5cece9c6"],
+
+Cell[BoxData["\<\"TriangularDistribution\"\>"], "Print",
+ CellChangeTimes->{3.7581687976456428`*^9, 3.7581688640029683`*^9, 
+  3.758168945329939*^9, 
+  3.758170170442636*^9},ExpressionUUID->"139579d8-615d-42a5-b52c-\
+4d8504b36d59"],
+
+Cell[BoxData["0"], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.7581701704446297`*^9},ExpressionUUID->"05c2a88e-5b14-4d6e-82bd-\
+ddd96597766d"],
+
+Cell[BoxData[
+ FractionBox["1", "6"]], "Output",
+ CellChangeTimes->{
+  3.75816873074582*^9, {3.7581687631593266`*^9, 3.758168797652652*^9}, 
+   3.7581688639930286`*^9, 3.758168945319928*^9, 
+   3.7581701704476223`*^9},ExpressionUUID->"38914020-b0b4-4661-a344-\
+26b73da825d0"]
+}, Open  ]]
+},
+WindowSize->{923, 617},
+WindowMargins->{{275, Automatic}, {34, Automatic}},
+Magnification:>1.1 Inherited,
+FrontEndVersion->"11.1 for Microsoft Windows (64-bit) (March 13, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 1919, 50, 277, "Input", "ExpressionUUID" -> \
+"7bc5237c-f4b8-4f8c-b8f6-c62825299e45"],
+Cell[2502, 74, 273, 6, 51, "Output", "ExpressionUUID" -> \
+"28371def-eab4-4459-9e73-849ca807852c"],
+Cell[2778, 82, 274, 6, 51, "Output", "ExpressionUUID" -> \
+"96437737-4714-47d7-9887-cbb69b92249f"],
+Cell[3055, 90, 233, 4, 23, "Print", "ExpressionUUID" -> \
+"5f8e1f0d-c495-48ce-b06a-648d368c0918"],
+Cell[3291, 96, 255, 5, 34, "Output", "ExpressionUUID" -> \
+"117f00ae-08d5-4c3e-87b1-0da91eaf7513"],
+Cell[3549, 103, 273, 6, 51, "Output", "ExpressionUUID" -> \
+"6a6c7221-6e92-420e-a22f-cb5e5cece9c6"],
+Cell[3825, 111, 231, 4, 23, "Print", "ExpressionUUID" -> \
+"139579d8-615d-42a5-b52c-4d8504b36d59"],
+Cell[4059, 117, 255, 5, 34, "Output", "ExpressionUUID" -> \
+"05c2a88e-5b14-4d6e-82bd-ddd96597766d"],
+Cell[4317, 124, 275, 6, 84, "Output", "ExpressionUUID" -> \
+"38914020-b0b4-4661-a344-26b73da825d0"]
+}, Open  ]]
+}
+]
+*)
+

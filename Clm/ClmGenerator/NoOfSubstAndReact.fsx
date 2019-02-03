@@ -34,12 +34,13 @@ open Clm.Substances
 open Clm.ReactionRates
 open Clm.DataLocation
 open Clm.ReactionTypes
+open Clm.Reactions
 open Clm.Generator.ClmModelData
 open ClmDefaults.AllDefaults
 
 //open Clm.Generator.ClmModel
 //===========================================================
-let numberOfAminoAcids = NumberOfAminoAcids.FiveAminoAcids
+let numberOfAminoAcids = NumberOfAminoAcids.TwentyAminoAcids
 let maxPeptideLength = MaxPeptideLength.ThreeMax
 let reactionName = ReactionName.CatalyticDestructionName
 let seed = 5
@@ -113,26 +114,65 @@ let getRateProvider rnd =
     (getDefaultValues defaultIdx |> fst).getDefaultRateModels rnd numberOfAminoAcids 
     |> ReactionRateProvider
 
-let rateProviderBF = getRateProvider rndBF
+let normalizeReactions rr =
+    rr
+    |> List.distinct
+    |> List.map (fun e -> match e with | Reversible r -> Some r | _ -> None)
+    |> List.choose id
+    |> List.map (fun e ->
+                    match e.reaction with 
+                    | CatalyticDestruction r -> Some (r, { forwardRate = Some e.forwardRate; backwardRate = Some e.backwardRate })
+                    | _ -> None)
+    |> List.choose id
+    |> List.sortBy (fun (r, _) -> r)
+
+
+let verify (rcm : list<(CatalyticDestructionReaction * RateData)>) =
+    printfn "Verifying..."
+    let rm = rcm |> Map.ofList
+
+    let failed =
+        rcm
+        |> List.map (fun (r, d) ->
+                        match rm.TryFind r.enantiomer with
+                        | Some ed ->
+                            match d = ed with
+                            | false -> Some r
+                            | true -> None
+                        | None -> Some r)
+        |> List.choose id
+
+    printfn "failed.Length = %A" failed.Length
+//===========================================================
+//printfn "BruteForce"
+//let rateProviderBF = getRateProvider rndBF
+
+//#time
+//let bf = RateGenerationData.create BruteForce rateProviderBF si
+//let bfr = bf.getReactions rateProviderBF reactionName
+//#time
+
+//printfn "bfr.Length = %A" bfr.Length
+//printfn "(bfr |> List.distinct).Length = %A" (bfr |> List.distinct).Length
+
+//bfr
+//|> normalizeReactions
+//|> verify
+//===========================================================
+printfn "RandomChoice"
 let rateProviderRC = getRateProvider rndRC
 
 #time
-printfn "BruteForce"
-let bf = RateGenerationData.create BruteForce rateProviderBF si
-let bfr = bf.getReactions rateProviderBF reactionName
-printfn "bfr.Length = %A" bfr.Length
-printfn "(bfr |> List.distinct).Length = %A" (bfr |> List.distinct).Length
-printfn "cntAll = %A, cntSuccess = %A" cntAll cntSuccess
-#time
-
-#time
-printfn "RandomChoice"
 let rc = RateGenerationData.create RandomChoice rateProviderRC si
 let rcr = rc.getReactions rateProviderRC reactionName
-printfn "rcr.Length = %A" rcr.Length
-printfn "(rcr |> List.distinct).Length = %A" (rcr |> List.distinct).Length
 #time
 
+printfn "rcr.Length = %A" rcr.Length
+printfn "(rcr |> List.distinct).Length = %A" (rcr |> List.distinct).Length
 
+rcr
+|> normalizeReactions
+|> verify
+//===========================================================
 printfn "... completed."
 //===========================================================

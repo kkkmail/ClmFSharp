@@ -153,9 +153,6 @@ module ReactionRates =
             rateGenerationType : RateGenerationType
         }
 
-    let mutable cntAll = 0
-    let mutable cntSuccess = 0
-
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
     /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
     /// If sf and sb are forward and backward rates of not catalyzed reaction, then
@@ -171,14 +168,7 @@ module ReactionRates =
         let rf, rb, rfe, rbe =
             let k =
                 match i.rateGenerationType with
-                | BruteForce ->
-                    cntAll <- cntAll + 1
-                    let v = i.eeParams.rateMultiplierDistr.nextDoubleOpt()
-                    match v with
-                    | Some x -> cntSuccess <- cntSuccess + 1
-                    | None -> ignore()
-
-                    v
+                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt()
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble()
 
             match k, i.eeParams.eeForwardDistribution with
@@ -296,21 +286,11 @@ module ReactionRates =
                     }
                 | false -> CatRatesEeParam.defaultValue
 
-            //i.aminoAcids
-            //|> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined())
-            //|> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
-            //|> ignore
-            let x1 =
-                i.aminoAcids
-                |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined())
+            i.aminoAcids
+            |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined())
+            |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
+            |> ignore
 
-            let x2 =
-                x1
-                |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
-
-            x2 |> ignore
-
-        //(f, b)
         cr
 
 

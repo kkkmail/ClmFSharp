@@ -297,8 +297,9 @@ module ClmModelData =
 
 
     let generatePairs<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
-        let noOfTries = i.a.Length * i.b.Length
-        printfn "generatePairs.noOfTries = %A" noOfTries
+        // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
+        let noOfTries = i.a.Length * i.b.Length / 4
+        printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
         match rateProvider.getPrimaryDistribution i.reactionName with
         | Some d ->

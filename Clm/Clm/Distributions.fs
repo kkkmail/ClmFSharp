@@ -79,16 +79,8 @@ module Distributions =
         member __.nextDouble = nextDoubleImpl
         member __.nextSeed() = rnd.Next()
         member __.next n = rnd.Next(n)
-
-        member distr.mean =
-            let x = distr.meanBase |> scaleShift
-            printfn "mean = %A, p.scale = %A, p.shift = %A" x p.scale p.shift
-            x
-
-        member distr.stdDev =
-            let x = distr.stdDevBase |> scale
-            printfn "stdDev = %A, p.scale = %A, p.shift = %A" x p.scale p.shift
-            x
+        member distr.mean = distr.meanBase |> scaleShift
+        member distr.stdDev = distr.stdDevBase |> scale
 
         member __.nextDoubleOpt() =
             match isDefinedImpl() with
@@ -101,23 +93,15 @@ module Distributions =
         member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
         member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
 
-        member distr.successNumber noOfTries = //successNumberImpl noOfTries
+        member distr.successNumber noOfTries =
             match p.threshold with
-            | Some p0 ->
-                // !!! must adjust for 4x reduction due to grouping of (A + C, A + E(C), E(A) + E(C), E(A) + C)
-                let p = p0 / 4.0
-                //let mean = p
-                //let stdDev = p * (1.0 - p) |> sqrt
-                //let mean = 0.5
-                //let stdDev = 1.0 / 12.0 |> sqrt
-
+            | Some p ->
                 let mean = 1.0
                 let stdDev = 0.0
 
                 let m = (mean * p) * (double noOfTries)
                 let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
-                //let m = mean * (double noOfTries)
-                //let s = stdDev * (double noOfTries) |> sqrt
+
                 let sn = getGausssian rnd.NextDouble m s
                 printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
                 min (max 0 (int sn)) noOfTries
@@ -345,7 +329,7 @@ module Distributions =
     let EeDistributionName = "EeDistribution"
 
 
-    /// EE distributiolns. They are specially formatted distributions to return values only between (-1 and 1).
+    /// EE distributions. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution =
         | EeDistribution of Distribution
 

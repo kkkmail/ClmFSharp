@@ -1292,6 +1292,22 @@ module ReactionRates =
         | RacemizationRates of list<ReactionRateData<RacemizationReaction>>
         | CatalyticRacemizationRates of list<ReactionRateData<CatalyticRacemizationReaction>>
 
+        member ard.toReactionRates() =
+            match ard with
+            | FoodCreationRates r -> r |> List.map (fun e -> e.reaction |> FoodCreation, e.rateData)
+            | WasteRemovalRates r -> r |> List.map (fun e -> e.reaction |> WasteRemoval, e.rateData)
+            | WasteRecyclingRates r -> r |> List.map (fun e -> e.reaction |> WasteRecycling, e.rateData)
+            | SynthesisRates r -> r |> List.map (fun e -> e.reaction |> Synthesis, e.rateData)
+            | DestructionRates r -> r |> List.map (fun e -> e.reaction |> Destruction, e.rateData)
+            | CatalyticSynthesisRates r -> r |> List.map (fun e -> e.reaction |> CatalyticSynthesis, e.rateData)
+            | CatalyticDestructionRates r -> r |> List.map (fun e -> e.reaction |> CatalyticDestruction, e.rateData)
+            | LigationRates r -> r |> List.map (fun e -> e.reaction |> Ligation, e.rateData)
+            | CatalyticLigationRates r -> r |> List.map (fun e -> e.reaction |> CatalyticLigation, e.rateData)
+            | SedimentationDirectRates r -> r |> List.map (fun e -> e.reaction |> SedimentationDirect, e.rateData)
+            | SedimentationAllRates r -> r |> List.map (fun e -> e.reaction |> SedimentationAll, e.rateData)
+            | RacemizationRates r -> r |> List.map (fun e -> e.reaction |> Racemization, e.rateData)
+            | CatalyticRacemizationRates r -> r |> List.map (fun e -> e.reaction |> CatalyticRacemization, e.rateData)
+
 
     [<Literal>]
     let ReactionRateModelParamName = "ReactionRateModelParam"

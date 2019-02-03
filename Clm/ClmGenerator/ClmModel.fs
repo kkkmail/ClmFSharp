@@ -32,15 +32,15 @@ module ClmModel =
         let bf = RateGenerationData.create generationType rateProvider si
 
         let noOfRawReactions n = bf.noOfRawReactions n
-        let getReactions _ n = bf.getReactions rateProvider n
+        let getReactions n = bf.getReactions rateProvider n
 
         let allReac =
             ReactionName.all
-            |> List.map (fun e -> getReactions RateGenerationType.BruteForce e)
+            |> List.map (fun e -> getReactions e)
             |> List.concat
             |> List.distinct
 
-        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates BruteForce).forwardRate
+        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates generationType).forwardRate
 
         let allRawReactionsData =
             ReactionName.all
@@ -353,14 +353,14 @@ module ClmModel =
                         "        // printfn \"update::Completed.\"" + Nl
                         "        d" + Nl
                     ]
-                | UseFunctions -> 
-                    [ "        [|" ] 
+                | UseFunctions ->
+                    [ "        [|" ]
                     @
                     [ dArrayCode xName ]
                     @
                     [ "        |]" + Nl ]
 
-            let updateCode = 
+            let updateCode =
                 updateOuterCode
                 @
                 [ 
@@ -375,12 +375,12 @@ module ClmModel =
                 @
                 updateInnerCode
 
-            let paramCode = 
-                "    let seedValue = " + seedValue.ToString() + Nl + 
-                "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl + 
+            let paramCode =
+                "    let seedValue = " + seedValue.ToString() + Nl +
+                "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl +
                 "    let maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + Nl +
                 "    let numberOfSubstances = " + (si.allSubst.Length).ToString() + Nl +
-                generateSubst() + 
+                generateSubst() +
                 coeffSedAllCode
 
             [

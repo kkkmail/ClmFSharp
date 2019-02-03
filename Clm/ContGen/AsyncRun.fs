@@ -3,7 +3,7 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
-open Clm.ModelParams
+open ClmSys.ExitErrorCodes
 open ContGenServiceInfo.ServiceInfo
 open System.Threading
 
@@ -357,6 +357,7 @@ module AsyncRun =
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
+    /// We can't really fail here, especially it if runs under Windows service.
     let runProc (c : ProcessStartedCallBack) filename args startDir =
         let timer = Stopwatch.StartNew()
 
@@ -381,30 +382,48 @@ module AsyncRun =
         let started =
             try
                 p.Start()
-            with | ex ->
-                ex.Data.Add("filename", filename)
-                reraise()
+            with
+                | ex ->
+                    // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
+                    // Otherwise runningCount is not dereased.
+                    ex.Data.Add("filename", filename)
+                    //reraise()
+                    false
 
-        if not started then failwithf "Failed to start process %s" filename
-        else p.PriorityClass <- ProcessPriorityClass.BelowNormal
-        let processId = p.Id
+        if not started
+        then
+            printfn "Failed to start process %s" filename
 
-        printfn "Started %s with pid %i" p.ProcessName processId
-        c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId; startedRunQueueId = c.runQueueId }
+            {
+                exitCode = CannotFindSpecifiedFileException
+                exitedModelId = c.calledBackModelId
+                exitedRunQueueId = c.runQueueId
+                runTime = timer.ElapsedMilliseconds
+                outputs = []
+                errors = []
+                exitedProcessId = -1
+            }
+        else 
+            p.PriorityClass <- ProcessPriorityClass.BelowNormal
 
-        p.BeginOutputReadLine()
-        p.BeginErrorReadLine()
-        p.WaitForExit()
-        timer.Stop()
-        printfn "Finished %s after %A milliseconds" filename timer.ElapsedMilliseconds
-        let cleanOut l = l |> Seq.filter (fun o -> String.IsNullOrEmpty o |> not)
+            let processId = p.Id
 
-        {
-            exitCode = p.ExitCode
-            exitedModelId = c.calledBackModelId
-            exitedRunQueueId = c.runQueueId
-            runTime = timer.ElapsedMilliseconds
-            outputs = cleanOut outputs
-            errors = cleanOut errors
-            exitedProcessId = processId
-        }
+            printfn "Started %s with pid %i" p.ProcessName processId
+            c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId; startedRunQueueId = c.runQueueId }
+
+            p.BeginOutputReadLine()
+            p.BeginErrorReadLine()
+            p.WaitForExit()
+            timer.Stop()
+            printfn "Finished %s after %A milliseconds" filename timer.ElapsedMilliseconds
+            let cleanOut l = l |> Seq.filter (fun o -> String.IsNullOrEmpty o |> not)
+
+            {
+                exitCode = p.ExitCode
+                exitedModelId = c.calledBackModelId
+                exitedRunQueueId = c.runQueueId
+                runTime = timer.ElapsedMilliseconds
+                outputs = cleanOut outputs
+                errors = cleanOut errors
+                exitedProcessId = processId
+            }

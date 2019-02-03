@@ -13,3 +13,6 @@ module ExitErrorCodes =
 
     [<Literal>]
     let DatabaseErrorOccurred = -3
+
+    [<Literal>]
+    let CannotFindSpecifiedFileException = -4

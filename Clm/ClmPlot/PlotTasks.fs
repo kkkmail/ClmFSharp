@@ -1,5 +1,6 @@
 ﻿namespace ClmPlot
 
+open ClmSys.GeneralData
 open ClmSys.Retry
 open ClmSys.ExitErrorCodes
 open Argu
@@ -13,18 +14,18 @@ open Analytics.Visualization
 module PlotTasks =
 
     let logError e = printfn "Error: %A." e
-    let tryDbFun f = tryDbFun logError ClmConnectionString f
+    let tryDbFun f = tryDbFun logError clmConnectionString f
 
 
     [<CliPrefix(CliPrefix.Dash)>]
     type GeneratePlotArgs =
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] ResultDataId of int
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] ResultId of int
 
     with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | ResultDataId _ -> "resultDataId to use for plotting."
+                | ResultId _ -> "resultDataId to use for plotting."
 
     and
         [<CliPrefix(CliPrefix.None)>]
@@ -39,9 +40,9 @@ module PlotTasks =
 
 
     let generatePlot (p :list<GeneratePlotArgs>) =
-        match p |> List.tryPick (fun e -> match e with | ResultDataId n -> (int64 n |> Some)) with
+        match p |> List.tryPick (fun e -> match e with | ResultId n -> (int64 n |> Some)) with
         | Some resultDataId ->
-            match tryDbFun (tryLoadResultData resultDataId) with
+            match tryDbFun (tryLoadResultData (ResultDataId resultDataId)) with
             | Some ro ->
                 match ro with
                 | Some r ->

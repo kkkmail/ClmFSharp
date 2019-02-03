@@ -9,13 +9,13 @@ CREATE TABLE [dbo].[ResultData](
 	[maxEe] [float] NOT NULL,
 	[maxAverageEe] [float] NOT NULL,
 	[createdOn] [datetime] NOT NULL,
-	[aminoAcids] [varbinary](max) NOT NULL,
-	[allSubst] [varbinary](max) NOT NULL,
-	[allInd] [varbinary](max) NOT NULL,
-	[allRawReactions] [varbinary](max) NOT NULL,
-	[allReactions] [varbinary](max) NOT NULL,
-	[x] [varbinary](max) NOT NULL,
-	[t] [varbinary](max) NOT NULL,
+	[aminoAcids] [varbinary](max) NULL,
+	[allSubst] [varbinary](max) NULL,
+	[allInd] [varbinary](max) NULL,
+	[allRawReactions] [varbinary](max) NULL,
+	[allReactions] [varbinary](max) NULL,
+	[x] [varbinary](max) NULL,
+	[t] [varbinary](max) NULL,
  CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
 (
 	[resultDataId] ASC

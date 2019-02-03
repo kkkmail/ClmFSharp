@@ -5,7 +5,7 @@ CREATE TABLE [dbo].[ModelData](
 	[seedValue] [int] NULL,
 	[defaultSetIndex] [int] NOT NULL,
 	[fileStructureVersion] [nvarchar](50) NOT NULL,
-	[modelData] [varbinary](max) NOT NULL,
+	[modelData] [varbinary](max) NULL,
 	[createdOn] [datetime] NOT NULL,
  CONSTRAINT [PK_ModelData] PRIMARY KEY CLUSTERED 
 (

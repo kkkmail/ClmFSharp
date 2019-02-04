@@ -93,7 +93,10 @@ module Runner =
                     maxPeptideLength = pm.maxPeptideLength
                     seedValue = pm.seedValue
                     fileStructureVersion = pm.fileStructureVersionNumber
-                    modelData = sb.ToString()
+                    modelData =
+                        match pm.saveModelData with
+                        | true -> sb.ToString() |> Some
+                        | false -> None
                     defaultSetIndex = pm.defaultSetIndex
                 }
 

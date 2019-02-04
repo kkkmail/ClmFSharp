@@ -959,6 +959,9 @@ module SettingsExt =
     [<Literal>]
     let defaultSetIndexName = "defaultSetIndex"
 
+    [<Literal>]
+    let saveModelDataName = "saveModelData"
+
     type ModelInfo
         with
         static member tryGet (m : SettingMap) po =

@@ -546,7 +546,7 @@ module DatabaseTypes =
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
                     defaultSetIndex = -1,
-                    modelData = [||],
+                    modelData = None,
                     createdOn = DateTime.Now
                     )
 
@@ -569,7 +569,7 @@ module DatabaseTypes =
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
 
-        use cmd = new SqlCommandProvider<"
+        use cmdWithBinaryData = new SqlCommandProvider<"
             UPDATE dbo.ModelData
                 SET numberOfAminoAcids = @numberOfAminoAcids
                     ,maxPeptideLength = @maxPeptideLength
@@ -581,16 +581,40 @@ module DatabaseTypes =
             WHERE modelDataId = @modelDataId
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
+        //use cmdWithoutBinaryData = new SqlCommandProvider<"
+        //    UPDATE dbo.ModelData
+        //        SET numberOfAminoAcids = @numberOfAminoAcids
+        //            ,maxPeptideLength = @maxPeptideLength
+        //            ,seedValue = @seedValue
+        //            ,defaultSetIndex = @defaultSetIndex
+        //            ,fileStructureVersion = @fileStructureVersion
+        //            ,modelData = @modelData
+        //            ,createdOn = @createdOn
+        //    WHERE modelDataId = @modelDataId
+        //", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
         let recordsUpdated =
-            cmd.Execute(
-                numberOfAminoAcids = m.numberOfAminoAcids.length,
-                maxPeptideLength = m.maxPeptideLength.length,
-                seedValue = (match m.seedValue with | Some s -> s | None -> -1),
-                defaultSetIndex = m.defaultSetIndex,
-                fileStructureVersion = m.fileStructureVersion,
-                modelData = (m.modelData |> zip),
-                createdOn = DateTime.Now,
-                modelDataId = m.modelDataId.value)
+            match m.modelData with
+            | Some d ->
+                cmdWithBinaryData.Execute(
+                    numberOfAminoAcids = m.numberOfAminoAcids.length,
+                    maxPeptideLength = m.maxPeptideLength.length,
+                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                    defaultSetIndex = m.defaultSetIndex,
+                    fileStructureVersion = m.fileStructureVersion,
+                    modelData = (d |> zip),
+                    createdOn = DateTime.Now,
+                    modelDataId = m.modelDataId.value)
+            | None ->
+                cmdWithBinaryData.Execute(
+                    numberOfAminoAcids = m.numberOfAminoAcids.length,
+                    maxPeptideLength = m.maxPeptideLength.length,
+                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                    defaultSetIndex = m.defaultSetIndex,
+                    fileStructureVersion = m.fileStructureVersion,
+                    createdOn = DateTime.Now,
+                    modelData = null,
+                    modelDataId = m.modelDataId.value)
 
         if recordsUpdated = 1 then true else false
 

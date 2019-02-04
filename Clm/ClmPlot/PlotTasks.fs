@@ -46,13 +46,18 @@ module PlotTasks =
             | Some ro ->
                 match ro with
                 | Some r ->
-                    printfn "Plotting."
-                    let plotter = new Plotter(PlotDataInfo.defaultValue, r)
-                    plotter.plotAminoAcids()
-                    plotter.plotTotalSubst()
-                    plotter.plotEnantiomericExcess()
-                    printfn "Completed."
-                    CompletedSuccessfully
+                    match r.fullResultData with
+                    | Some d ->
+                        printfn "Plotting."
+                        let plotter = new Plotter(PlotDataInfo.defaultValue, d)
+                        plotter.plotAminoAcids true
+                        plotter.plotTotalSubst true
+                        plotter.plotEnantiomericExcess true
+                        printfn "Completed."
+                        CompletedSuccessfully
+                    | None ->
+                        printfn "Binary data is not available. Unable to plot."
+                        BinaryDataUnavailable
                 | None ->
                     printfn "Failed to load resultDataId: %A." resultDataId
                     UnknownException

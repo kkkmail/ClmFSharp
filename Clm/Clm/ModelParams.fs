@@ -197,7 +197,7 @@ module ModelParams =
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
             fileStructureVersion : string
-            modelData : string
+            modelData : string option
             defaultSetIndex : int
         }
 

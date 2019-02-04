@@ -55,6 +55,7 @@ module ClmModelData =
             modelLocationData : ModelLocationInputData
             updateAllModels : bool
             defaultSetIndex : int
+            saveModelData : bool
         }
 
 
@@ -68,7 +69,7 @@ module ClmModelData =
             let rates = d.getDefaultRateModels rnd numberOfAminoAcids
 
             {
-                modelGenerationParams = 
+                modelGenerationParams =
                     {
                         fileStructureVersionNumber = FileStructureVersionNumber
                         versionNumber = VersionNumber
@@ -80,7 +81,9 @@ module ClmModelData =
                         modelLocationData = ModelLocationInputData.defaultValue
                         updateAllModels = false
                         defaultSetIndex = i
+                        saveModelData = false
                     }
+
                 modelCommandLineParams = d.modelCommandLineParams
             }
 

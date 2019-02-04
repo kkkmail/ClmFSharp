@@ -19,3 +19,6 @@ module ExitErrorCodes =
 
     [<Literal>]
     let CannotFindSpecifiedFileException = -5
+
+    [<Literal>]
+    let BinaryDataUnavailable = -6

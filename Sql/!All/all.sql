@@ -8,7 +8,7 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 		[seedValue] [int] NULL,
 		[defaultSetIndex] [int] NOT NULL DEFAULT ((-1)),
 		[fileStructureVersion] [nvarchar](50) NOT NULL,
-		[modelData] [varbinary](max) NULL,
+		[modelData] [varbinary](max) NOT NULL,
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_ModelData] PRIMARY KEY CLUSTERED 
 	(

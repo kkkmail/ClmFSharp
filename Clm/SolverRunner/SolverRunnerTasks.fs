@@ -141,40 +141,59 @@ module SolverRunnerTasks =
 
             let r =
                 {
-                    resultDataId = None
-                    modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
+                    simpleData =
+                        {
+                            resultDataId = None
+                            modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
 
-                    numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
-                    maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
+                            numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
+                            maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
 
-                    y0 = decimal y0
-                    tEnd = decimal tEnd
-                    useAbundant = false // TODO kk:20190105 This should be propagated...
+                            y0 = decimal y0
+                            tEnd = decimal tEnd
+                            useAbundant = false // TODO kk:20190105 This should be propagated...
 
-                    maxEe = maxEe
-                    maxAverageEe = maxAverageEe
+                            maxEe = maxEe
+                            maxAverageEe = maxAverageEe
+                        }
 
-                    aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
-                    allSubst = modelDataParamsWithExtraData.allSubst
-                    allInd = modelDataParamsWithExtraData.allInd
-                    allRawReactions = modelDataParamsWithExtraData.allRawReactions
-                    allReactions = modelDataParamsWithExtraData.allReactions
+                    binaryData =
+                        {
+                            aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
+                            allSubst = modelDataParamsWithExtraData.allSubst
+                            allInd = modelDataParamsWithExtraData.allInd
+                            allRawReactions = modelDataParamsWithExtraData.allRawReactions
+                            allReactions = modelDataParamsWithExtraData.allReactions
 
-                    x = result.x
-                    t = result.t
+                            x = result.x
+                            t = result.t
+                        }
                 }
 
-            tryDbFun (saveResultData r) |> ignore
+            let saveResults =
+                match results.TryGetResult SaveResultData with
+                | Some v -> v
+                | None -> false // do not save binary data by default
+
+            (saveResultData ( match saveResults with | false -> r.resultDataWithoutBinary | true -> r.resultData))
+            |> tryDbFun
+            |> ignore
+
+            let plotAll show =
+                let plotter = new Plotter(PlotDataInfo.defaultValue, r)
+                plotter.plotAminoAcids show
+                plotter.plotTotalSubst show
+                plotter.plotEnantiomericExcess show
 
             match results.TryGetResult PlotResults with
             | Some v when v = true ->
                 printfn "Plotting."
-                let plotter = new Plotter(PlotDataInfo.defaultValue, r)
-                plotter.plotAminoAcids()
-                plotter.plotTotalSubst()
-                plotter.plotEnantiomericExcess()
+                plotAll true
                 printfn "Completed."
-            | _ -> ignore()
+            | _ ->
+                printfn "Generating charts..."
+                plotAll false
+                printfn "Completed."
 
             CompletedSuccessfully
         | _ ->

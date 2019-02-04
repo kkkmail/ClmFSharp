@@ -66,7 +66,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AllModels.fs" />
-    <Compile Include="ModelData.fs" />
+    <Compile Include="ModelDataStart.fs" />
+    <Compile Include="D000000_000009.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

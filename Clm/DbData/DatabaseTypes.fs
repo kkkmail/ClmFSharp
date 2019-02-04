@@ -333,28 +333,46 @@ module DatabaseTypes =
 
         static member tryCreate (r : ResultDataTableRow) =
             match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
-            | Some numberOfAminoAcids, Some maxPeptideLength -> 
+            | Some numberOfAminoAcids, Some maxPeptideLength ->
+                let a() = r.aminoAcids |> Option.bind (fun v -> v |> unZip |> JsonConvert.DeserializeObject<list<AminoAcid>> |> Some)
+                let b() = r.allSubst |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<Substance>> |> Some)
+                let c() = r.allInd |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<Substance * int>> |> Map.ofList |> Some)
+                let d() = r.allRawReactions |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
+                let e() = r.allReactions |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
+                let f() = r.x |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<double [,]> |> Some)
+                let g() = r.t |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<double []> |> Some)
+
                 {
-                    resultDataId = r.resultDataId |> ResultDataId |> Some
-                    modelDataId = r.modelDataId |> ModelDataId
-                    numberOfAminoAcids = numberOfAminoAcids
-                    maxPeptideLength = maxPeptideLength
+                    simpleData =
+                        {
+                            resultDataId = r.resultDataId |> ResultDataId |> Some
+                            modelDataId = r.modelDataId |> ModelDataId
+                            numberOfAminoAcids = numberOfAminoAcids
+                            maxPeptideLength = maxPeptideLength
 
-                    y0 = r.y0
-                    tEnd = r.tEnd
-                    useAbundant = r.useAbundant
+                            y0 = r.y0
+                            tEnd = r.tEnd
+                            useAbundant = r.useAbundant
 
-                    maxEe = r.maxEe
-                    maxAverageEe = r.maxAverageEe
+                            maxEe = r.maxEe
+                            maxAverageEe = r.maxAverageEe
+                        }
 
-                    aminoAcids = r.aminoAcids |> unZip |> JsonConvert.DeserializeObject<list<AminoAcid>>
-                    allSubst = r.allSubst |> unZip |> JsonConvert.DeserializeObject<list<Substance>>
-                    allInd = r.allInd |> unZip |> JsonConvert.DeserializeObject<list<Substance * int>> |> Map.ofList
-                    allRawReactions = r.allRawReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
-                    allReactions = r.allReactions |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>>
+                    binaryDataOpt =
+                        match a(), b(), c(), d(), e(), f(), g() with
+                        | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1 ->
+                            {
+                                aminoAcids = a1
+                                allSubst = b1
+                                allInd = c1
+                                allRawReactions = d1
+                                allReactions = e1
 
-                    x = r.x |> unZip |> JsonConvert.DeserializeObject<double [,]>
-                    t = r.t |> unZip |> JsonConvert.DeserializeObject<double []>
+                                x = f1
+                                t = g1
+                            }
+                            |> Some
+                        | _ -> None
                 }
                 |> Some
             | _ -> None
@@ -362,29 +380,29 @@ module DatabaseTypes =
         member r.addRow (t : ResultDataTable) =
             let newRow =
                 t.NewRow(
-                        numberOfAminoAcids = r.numberOfAminoAcids.length,
-                        maxPeptideLength = r.maxPeptideLength.length,
+                        numberOfAminoAcids = r.simpleData.numberOfAminoAcids.length,
+                        maxPeptideLength = r.simpleData.maxPeptideLength.length,
 
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant,
+                        y0 = r.simpleData.y0,
+                        tEnd = r.simpleData.tEnd,
+                        useAbundant = r.simpleData.useAbundant,
 
-                        maxEe = r.maxEe,
-                        maxAverageEe = r.maxAverageEe,
+                        maxEe = r.simpleData.maxEe,
+                        maxAverageEe = r.simpleData.maxAverageEe,
 
-                        aminoAcids = (r.aminoAcids |> JsonConvert.SerializeObject |> zip),
-                        allSubst = (r.allSubst |> JsonConvert.SerializeObject |> zip),
-                        allInd = (r.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip),
-                        allRawReactions = (r.allRawReactions |> JsonConvert.SerializeObject |> zip),
-                        allReactions = (r.allReactions |> JsonConvert.SerializeObject |> zip),
+                        aminoAcids = (r.binaryDataOpt |> Option.bind (fun v -> v.aminoAcids |> JsonConvert.SerializeObject |> zip |> Some)),
+                        allSubst = (r.binaryDataOpt |> Option.bind (fun v -> v.allSubst |> JsonConvert.SerializeObject |> zip |> Some)),
+                        allInd = (r.binaryDataOpt |> Option.bind (fun v -> v.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip |> Some)),
+                        allRawReactions = (r.binaryDataOpt |> Option.bind (fun v -> v.allRawReactions |> JsonConvert.SerializeObject |> zip |> Some)),
+                        allReactions = (r.binaryDataOpt |> Option.bind (fun v -> v.allReactions |> JsonConvert.SerializeObject |> zip |> Some)),
 
-                        x = (r.x |> JsonConvert.SerializeObject |> zip),
-                        t = (r.t |> JsonConvert.SerializeObject |> zip)
+                        x = (r.binaryDataOpt |> Option.bind (fun v -> v.x |> JsonConvert.SerializeObject |> zip |> Some)),
+                        t = (r.binaryDataOpt |> Option.bind (fun v -> v.t |> JsonConvert.SerializeObject |> zip |> Some))
                         )
 
-            newRow.modelDataId <- r.modelDataId.value
+            newRow.modelDataId <- r.simpleData.modelDataId.value
 
-            match r.resultDataId with
+            match r.simpleData.resultDataId with
             | Some v -> newRow.modelDataId <- v.value
             | None -> ignore()
 
@@ -528,7 +546,7 @@ module DatabaseTypes =
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
                     defaultSetIndex = -1,
-                    modelData = [||],
+                    modelData = None,
                     createdOn = DateTime.Now
                     )
 
@@ -551,7 +569,7 @@ module DatabaseTypes =
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
 
-        use cmd = new SqlCommandProvider<"
+        use cmdWithBinaryData = new SqlCommandProvider<"
             UPDATE dbo.ModelData
                 SET numberOfAminoAcids = @numberOfAminoAcids
                     ,maxPeptideLength = @maxPeptideLength
@@ -564,15 +582,27 @@ module DatabaseTypes =
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
         let recordsUpdated =
-            cmd.Execute(
-                numberOfAminoAcids = m.numberOfAminoAcids.length,
-                maxPeptideLength = m.maxPeptideLength.length,
-                seedValue = (match m.seedValue with | Some s -> s | None -> -1),
-                defaultSetIndex = m.defaultSetIndex,
-                fileStructureVersion = m.fileStructureVersion,
-                modelData = (m.modelData |> zip),
-                createdOn = DateTime.Now,
-                modelDataId = m.modelDataId.value)
+            match m.modelData with
+            | Some d ->
+                cmdWithBinaryData.Execute(
+                    numberOfAminoAcids = m.numberOfAminoAcids.length,
+                    maxPeptideLength = m.maxPeptideLength.length,
+                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                    defaultSetIndex = m.defaultSetIndex,
+                    fileStructureVersion = m.fileStructureVersion,
+                    modelData = (d |> zip),
+                    createdOn = DateTime.Now,
+                    modelDataId = m.modelDataId.value)
+            | None ->
+                cmdWithBinaryData.Execute(
+                    numberOfAminoAcids = m.numberOfAminoAcids.length,
+                    maxPeptideLength = m.maxPeptideLength.length,
+                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                    defaultSetIndex = m.defaultSetIndex,
+                    fileStructureVersion = m.fileStructureVersion,
+                    createdOn = DateTime.Now,
+                    modelData = null,
+                    modelDataId = m.modelDataId.value)
 
         if recordsUpdated = 1 then true else false
 
@@ -582,7 +612,7 @@ module DatabaseTypes =
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
 
-        use cmd = new SqlCommandProvider<"
+        use cmdWithBinary = new SqlCommandProvider<"
             INSERT INTO dbo.ResultData
                        (modelDataId
                        ,numberOfAminoAcids
@@ -620,25 +650,63 @@ module DatabaseTypes =
                        ,@t)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
+        use cmdWithoutBinary = new SqlCommandProvider<"
+            INSERT INTO dbo.ResultData
+                       (modelDataId
+                       ,numberOfAminoAcids
+                       ,maxPeptideLength
+                       ,y0
+                       ,tEnd
+                       ,useAbundant
+                       ,maxEe
+                       ,maxAverageEe
+                       ,createdOn)
+                 OUTPUT Inserted.resultDataId
+                 VALUES
+                       (@modelDataId
+                       ,@numberOfAminoAcids
+                       ,@maxPeptideLength
+                       ,@y0
+                       ,@tEnd
+                       ,@useAbundant
+                       ,@maxEe
+                       ,@maxAverageEe
+                       ,@createdOn)
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
         let resultDataId =
-            cmd.Execute(
-                        modelDataId = r.modelDataId.value
-                       ,numberOfAminoAcids = r.numberOfAminoAcids.length
-                       ,maxPeptideLength = r.maxPeptideLength.length
-                       ,y0 = r.y0
-                       ,tEnd = r.tEnd
-                       ,useAbundant = r.useAbundant
-                       ,maxEe = r.maxEe
-                       ,maxAverageEe = r.maxAverageEe
-                       ,createdOn = DateTime.Now
-                       ,aminoAcids = (r.aminoAcids |> JsonConvert.SerializeObject |> zip)
-                       ,allSubst =(r.allSubst |> JsonConvert.SerializeObject |> zip)
-                       ,allInd =(r.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip)
-                       ,allRawReactions =(r.allRawReactions |> JsonConvert.SerializeObject |> zip)
-                       ,allReactions =(r.allReactions |> JsonConvert.SerializeObject |> zip)
-                       ,x = (r.x |> JsonConvert.SerializeObject |> zip)
-                       ,t = (r.t |> JsonConvert.SerializeObject |> zip)
-                )
+            match r.binaryDataOpt with
+            | Some b ->
+                cmdWithBinary.Execute(
+                            modelDataId = r.simpleData.modelDataId.value
+                           ,numberOfAminoAcids = r.simpleData.numberOfAminoAcids.length
+                           ,maxPeptideLength = r.simpleData.maxPeptideLength.length
+                           ,y0 = r.simpleData.y0
+                           ,tEnd = r.simpleData.tEnd
+                           ,useAbundant = r.simpleData.useAbundant
+                           ,maxEe = r.simpleData.maxEe
+                           ,maxAverageEe = r.simpleData.maxAverageEe
+                           ,createdOn = DateTime.Now
+                           ,aminoAcids = (b.aminoAcids |> JsonConvert.SerializeObject |> zip)
+                           ,allSubst =(b.allSubst |> JsonConvert.SerializeObject |> zip)
+                           ,allInd =(b.allInd |> Map.toList |> JsonConvert.SerializeObject |> zip)
+                           ,allRawReactions =(b.allRawReactions |> JsonConvert.SerializeObject |> zip)
+                           ,allReactions =(b.allReactions |> JsonConvert.SerializeObject |> zip)
+                           ,x = (b.x |> JsonConvert.SerializeObject |> zip)
+                           ,t = (b.t |> JsonConvert.SerializeObject |> zip)
+                    )
+            | None ->
+                cmdWithoutBinary.Execute(
+                            modelDataId = r.simpleData.modelDataId.value
+                           ,numberOfAminoAcids = r.simpleData.numberOfAminoAcids.length
+                           ,maxPeptideLength = r.simpleData.maxPeptideLength.length
+                           ,y0 = r.simpleData.y0
+                           ,tEnd = r.simpleData.tEnd
+                           ,useAbundant = r.simpleData.useAbundant
+                           ,maxEe = r.simpleData.maxEe
+                           ,maxAverageEe = r.simpleData.maxAverageEe
+                           ,createdOn = DateTime.Now
+                    )
 
         resultDataId |> Seq.head |> ResultDataId
 

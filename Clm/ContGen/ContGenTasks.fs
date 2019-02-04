@@ -3,6 +3,7 @@
 open System.Data.SqlClient
 open System.Threading
 open Argu
+open ClmSys.ExitErrorCodes
 open Clm.Substances
 open ClmDefaults.DefaultValuesExt
 open ClmDefaults.AllDefaults
@@ -86,7 +87,7 @@ module ContGenTasks =
             let state = a.getState()
             printfn "a.getState() = %s" (state.ToString())
             if state.queue.Length = 0 then a.startGenerate()
-        0
+        CompletedSuccessfully
 
 
     let updateParameters (p :list<UpdateParametersArgs>) =
@@ -111,22 +112,23 @@ module ContGenTasks =
         | Some i, Some n, Some m ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
             saveDefaults clmConnectionString (AllDefaults.getDefaultValues i) n m |> ignore
-            0
+            CompletedSuccessfully
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
-            -1
+            InvalidCommandLineArgs
 
 
-    /// TODO kk:20190107 - Implement.
     let generateModel () =
-        printfn "generateModel is not implemented yet."
-        -1
+        printfn "Genetrating and compiling model..."
+        let g = createOneTimeGenerator ModelRunnerParam.defaultValue
+        g() |> ignore
+        CompletedSuccessfully
 
 
     /// TODO kk:20190107 - Implement.
     let runModel (p :list<RunModelArgs>) =
         printfn "runModel is not implemented yet."
-        -1
+        NotImplemented
 
 
     type ContGenTask =

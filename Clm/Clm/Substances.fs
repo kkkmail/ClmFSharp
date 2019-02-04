@@ -1,6 +1,6 @@
 ﻿namespace Clm
 
-module Substances = 
+module Substances =
 
     [<Literal>]
     let NumberOfAminoAcidsName = "NumberOfAminoAcids"
@@ -23,7 +23,24 @@ module Substances =
         | FifteenAminoAcids
         | SixteenAminoAcids
 
-        member this.length = 
+        | SeventeenAminoAcids
+        | EighteenAminoAcids
+        | NineteenAminoAcids
+        | TwentyAminoAcids
+        | TwentyOneAminoAcids
+        | TwentyTwoAminoAcids
+        | TwentyThreeAminoAcids
+        | TwentyFourAminoAcids
+        | TwentyFiveAminoAcids
+        | TwentySixAminoAcids
+        | TwentySevemnAminoAcids
+        | TwentyEightAminoAcids
+        | TwentyNineAminoAcids
+        | ThirtyAminoAcids
+        | ThirtyOneAminoAcids
+        | ThirtyTwoAminoAcids
+
+        member this.length =
             match this with
             | OneAminoAcid -> 1
             | TwoAminoAcids -> 2
@@ -41,6 +58,23 @@ module Substances =
             | FourteenAminoAcids -> 14
             | FifteenAminoAcids -> 15
             | SixteenAminoAcids -> 16
+
+            | SeventeenAminoAcids -> 17
+            | EighteenAminoAcids -> 18
+            | NineteenAminoAcids -> 19
+            | TwentyAminoAcids -> 20
+            | TwentyOneAminoAcids -> 21
+            | TwentyTwoAminoAcids -> 22
+            | TwentyThreeAminoAcids -> 23
+            | TwentyFourAminoAcids -> 24
+            | TwentyFiveAminoAcids -> 25
+            | TwentySixAminoAcids -> 26
+            | TwentySevemnAminoAcids -> 27
+            | TwentyEightAminoAcids -> 28
+            | TwentyNineAminoAcids -> 29
+            | ThirtyAminoAcids -> 30
+            | ThirtyOneAminoAcids -> 31
+            | ThirtyTwoAminoAcids -> 32
 
         static member all =
             [
@@ -60,23 +94,40 @@ module Substances =
                 FourteenAminoAcids
                 FifteenAminoAcids
                 SixteenAminoAcids
+
+                SeventeenAminoAcids
+                EighteenAminoAcids
+                NineteenAminoAcids
+                TwentyAminoAcids
+                TwentyOneAminoAcids
+                TwentyTwoAminoAcids
+                TwentyThreeAminoAcids
+                TwentyFourAminoAcids
+                TwentyFiveAminoAcids
+                TwentySixAminoAcids
+                TwentySevemnAminoAcids
+                TwentyEightAminoAcids
+                TwentyNineAminoAcids
+                ThirtyAminoAcids
+                ThirtyOneAminoAcids
+                ThirtyTwoAminoAcids
             ]
 
-        static member tryCreate n = 
+        static member tryCreate n =
             NumberOfAminoAcids.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
 
     [<Literal>]
     let MaxPeptideLengthName = "MaxPeptideLength"
 
-    type MaxPeptideLength = 
+    type MaxPeptideLength =
         | TwoMax
         | ThreeMax
         | FourMax
         | FiveMax
 
-        member this.length = 
-            match this with 
+        member this.length =
+            match this with
             | TwoMax -> 2
             | ThreeMax -> 3
             | FourMax -> 4
@@ -90,7 +141,7 @@ module Substances =
                 FiveMax
             ]
 
-        static member tryCreate n = 
+        static member tryCreate n =
             MaxPeptideLength.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
 
@@ -99,7 +150,7 @@ module Substances =
         | Food
         | Waste
 
-        static member all = 
+        static member all =
             [
                 Abundant
                 Food
@@ -108,8 +159,8 @@ module Substances =
 
         member __.length = 0
 
-        member this.name = 
-            match this with 
+        member this.name =
+            match this with
             | Abundant -> "X"
             | Food -> "Y"
             | Waste -> "Z"
@@ -118,7 +169,7 @@ module Substances =
         member this.enantiomer = this
 
 
-    type SumSubst = 
+    type SumSubst =
         | SumSubst
 
         member __.length = 0
@@ -126,7 +177,7 @@ module Substances =
         static member w = SumSubst
 
 
-    type AminoAcid = 
+    type AminoAcid =
         | A01
         | A02
         | A03
@@ -144,7 +195,24 @@ module Substances =
         | A15
         | A16
 
-        static member all = 
+        | A17
+        | A18
+        | A19
+        | A20
+        | A21
+        | A22
+        | A23
+        | A24
+        | A25
+        | A26
+        | A27
+        | A28
+        | A29
+        | A30
+        | A31
+        | A32
+
+        static member all =
             [
                 A01
                 A02
@@ -162,10 +230,27 @@ module Substances =
                 A14
                 A15
                 A16
+
+                A17
+                A18
+                A19
+                A20
+                A21
+                A22
+                A23
+                A24
+                A25
+                A26
+                A27
+                A28
+                A29
+                A30
+                A31
+                A32
             ]
 
-        member aminoAcid.name = 
-            match aminoAcid with 
+        member aminoAcid.name =
+            match aminoAcid with
             | A01 -> "A"
             | A02 -> "B"
             | A03 -> "C"
@@ -183,8 +268,25 @@ module Substances =
             | A15 -> "O"
             | A16 -> "P"
 
-        member aminoAcid.number = 
-            match aminoAcid with 
+            | A17 -> "A1"
+            | A18 -> "B1"
+            | A19 -> "C1"
+            | A20 -> "D1"
+            | A21 -> "E1"
+            | A22 -> "F1"
+            | A23 -> "G1"
+            | A24 -> "H1"
+            | A25 -> "I1"
+            | A26 -> "J1"
+            | A27 -> "K1"
+            | A28 -> "L1"
+            | A29 -> "M1"
+            | A30 -> "N1"
+            | A31 -> "O1"
+            | A32 -> "P1"
+
+        member aminoAcid.number =
+            match aminoAcid with
             | A01 -> 0
             | A02 -> 1
             | A03 -> 2
@@ -202,6 +304,23 @@ module Substances =
             | A15 -> 14
             | A16 -> 15
 
+            | A17 -> 17
+            | A18 -> 18
+            | A19 -> 19
+            | A20 -> 20
+            | A21 -> 21
+            | A22 -> 22
+            | A23 -> 23
+            | A24 -> 24
+            | A25 -> 25
+            | A26 -> 26
+            | A27 -> 27
+            | A28 -> 28
+            | A29 -> 29
+            | A30 -> 30
+            | A31 -> 31
+            | A32 -> 32
+
         static member toString (a : AminoAcid) = a.name
 
         static member toString (i : int) = 
@@ -216,7 +335,7 @@ module Substances =
             |> List.take n.length
 
 
-    type ChiralAminoAcid = 
+    type ChiralAminoAcid =
         | L of AminoAcid
         | R of AminoAcid
 
@@ -241,7 +360,7 @@ module Substances =
             (AminoAcid.getAminoAcids n |> List.map (fun a -> R a))
 
         member aminoAcid.name =
-            match aminoAcid with 
+            match aminoAcid with
             | L a -> a.name
             | R a -> a.name.ToLower()
 
@@ -250,8 +369,8 @@ module Substances =
             | L _ -> (1, 0)
             | R _ -> (0, 1)
 
-        member aminoAcid.createSameChirality a = 
-            match aminoAcid with 
+        member aminoAcid.createSameChirality a =
+            match aminoAcid with
             | L _ -> L a
             | R _ -> R a
 
@@ -265,11 +384,11 @@ module Substances =
 
         member peptide.atoms = peptide.length
 
-        member peptide.enantiomer = 
+        member peptide.enantiomer =
             let (Peptide p) = peptide
             p |> List.map (fun a -> a.enantiomer) |> Peptide
 
-        member peptide.aminoAcids = 
+        member peptide.aminoAcids =
             let (Peptide p) = peptide
             p
 
@@ -296,11 +415,11 @@ module Substances =
             let count a = p |> List.sumBy (fun b -> if a = b then 1 else 0)
             AminoAcid.all |> List.map (fun a -> L a |> count, R a |> count)
 
-        static member private create m n = 
-            let rec makePeptide acc l = 
+        static member private create m n =
+            let rec makePeptide acc l =
                 //printfn "makePeptide::l = %A" l
                 //printfn "makePeptide::acc = %A" acc
-                match l with 
+                match l with
                 | [] -> acc
                 | h :: t -> 
                     match acc with 
@@ -318,67 +437,67 @@ module Substances =
             |> List.map (fun e -> Peptide e)
 
         /// Peptides start from length 2.
-        static member getPeptides (m : MaxPeptideLength) n = 
+        static member getPeptides (m : MaxPeptideLength) n =
             [ for i in 2..m.length -> Peptide.create i n]
             |> List.concat
 
 
-    type Substance = 
+    type Substance =
         | Simple of AchiralSubst
         | Chiral of ChiralAminoAcid
         | PeptideChain of Peptide
         | Sum of SumSubst
 
-        member substance.enantiomer = 
+        member substance.enantiomer =
             match substance with 
             | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
             | Sum s -> s |> Sum
 
-        member substance.name = 
-            match substance with 
+        member substance.name =
+            match substance with
             | Simple f -> f.name
             | Chiral c -> c.name
             | PeptideChain p -> p.name
             | Sum s -> s.name
 
-        member substance.noOfAminoAcid a = 
-            match substance with 
+        member substance.noOfAminoAcid a =
+            match substance with
             | Simple _ -> None
             | Chiral c -> 
-                match c = a with 
+                match c = a with
                 | true -> Some 1
                 | false -> None
-            | PeptideChain (Peptide p) -> 
-                match (p |> List.sumBy (fun b -> if a = b then 1 else 0)) with 
+            | PeptideChain (Peptide p) ->
+                match (p |> List.sumBy (fun b -> if a = b then 1 else 0)) with
                 | 0 -> None
                 | n -> Some n
             | Sum _ -> None
 
-        member substance.isSimple = 
-            match substance with 
+        member substance.isSimple =
+            match substance with
             | Simple _ -> true
             | Chiral _ -> false
             | PeptideChain _ -> false
             | Sum _ -> false
 
-        member substance.atoms = 
-            match substance with 
+        member substance.atoms =
+            match substance with
             | Simple f -> f.atoms
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
             | Sum _ -> 0
 
-        member substance.length = 
-            match substance with 
+        member substance.length =
+            match substance with
             | Simple _ -> 0
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
             | Sum _ -> 0
 
-        member substance.aminoAcids = 
-            match substance with 
+        member substance.aminoAcids =
+            match substance with
             | Simple _ -> []
             | Chiral c -> [ c ]
             | PeptideChain p -> p.aminoAcids
@@ -388,13 +507,13 @@ module Substances =
         static member waste = AchiralSubst.Waste |> Simple
         static member abundant = AchiralSubst.Abundant |> Simple
 
-        static member allSimple = 
+        static member allSimple =
             AchiralSubst.all
             |> List.map (fun e -> e |> Simple)
 
         static member chiralL a = a |> L |> Chiral
 
-        static member fromList (a : list<ChiralAminoAcid>) = 
+        static member fromList (a : list<ChiralAminoAcid>) =
             match a.Length with 
             | 1 -> Chiral a.Head
             | _ -> Peptide a |> PeptideChain
@@ -429,5 +548,5 @@ module Substances =
         aminoAcids |> List.map (fun a -> L a |> g, R a |> g)
 
 
-    let getTotalSubstValue (allInd : Map<Substance, int>) (allSubst : list<Substance>)  (x : array<double>) = 
+    let getTotalSubstValue (allInd : Map<Substance, int>) (allSubst : list<Substance>)  (x : array<double>) =
         allSubst |> List.map (fun s -> x.[allInd.[s]] * (double s.atoms)) |> List.sum

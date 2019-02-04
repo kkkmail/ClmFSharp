@@ -10,6 +10,7 @@ open DbData.DatabaseTypes
 open Clm.SettingsExt
 open Clm.Generator.SettingGenExt
 open System.Text
+open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open AsyncRun
 
@@ -92,7 +93,10 @@ module Runner =
                     maxPeptideLength = pm.maxPeptideLength
                     seedValue = pm.seedValue
                     fileStructureVersion = pm.fileStructureVersionNumber
-                    modelData = sb.ToString()
+                    modelData =
+                        match pm.saveModelData with
+                        | true -> sb.ToString() |> Some
+                        | false -> None
                     defaultSetIndex = pm.defaultSetIndex
                 }
 
@@ -141,7 +145,7 @@ module Runner =
             | None -> RunQueueId -1L
 
 
-        let generate() =
+        let generateImpl() =
             try
                 match getModelId () with
                     | Some modelId ->
@@ -190,7 +194,7 @@ module Runner =
 
         let removeFromQueue runQueueId =
             match tryDbFun (deleteRunQueueEntry runQueueId) with
-            | Some v -> ignore()
+            | Some _ -> ignore()
             | None ->
                 logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
                 ignore()
@@ -198,7 +202,7 @@ module Runner =
 
         let createGeneratorImpl() =
             {
-                generate = generate
+                generate = generateImpl
                 getQueue = getQueue
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
@@ -206,6 +210,7 @@ module Runner =
 
 
         member __.createGenerator = createGeneratorImpl
+        member __.generate = generateImpl
 
 
     let createRunner p =
@@ -213,6 +218,11 @@ module Runner =
         let a = r.createGenerator() |> AsyncRunner
         a.startQueue()
         a
+
+
+    let createOneTimeGenerator p =
+        let r = ModelRunner p
+        r.generate
 
 
     let saveDefaults connectionString (d, i) n m =

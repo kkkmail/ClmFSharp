@@ -11,6 +11,8 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  PlotResults of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>]  SaveModelSettings of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>]  NotifyAddress of string
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>]  SaveResultData of bool
+
 
     with
         interface IArgParserTemplate with
@@ -22,3 +24,4 @@ module CommandLine =
                 | PlotResults _ -> "specify if output charts to web browser."
                 | SaveModelSettings _ -> "if true then saves model settings into the database."
                 | NotifyAddress _ -> "notify specified web address about progress."
+                | SaveResultData _ -> "if true then saves binary result data and if false then creates but does not open charts."

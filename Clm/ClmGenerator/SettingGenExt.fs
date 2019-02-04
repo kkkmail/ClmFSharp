@@ -7,7 +7,8 @@ open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams
-open ClmModel
+open Clm.Generator.ClmModelData
+open Clm.Generator.ClmModel
 
 
 module SettingGenExt =
@@ -73,6 +74,7 @@ module SettingGenExt =
                     modelLocationData = h1
                     updateAllModels = i1
                     defaultSetIndex = j1
+                    saveModelData = getBool m po saveModelDataName
                 }
                 |> Some
             | _ -> None
@@ -90,6 +92,7 @@ module SettingGenExt =
                 setIntOpt po seedValueName this.seedValue
                 setBool po updateAllModelsName this.updateAllModels |> Some
                 setInt po defaultSetIndexName this.defaultSetIndex |> Some
+                setBool po saveModelDataName this.saveModelData |> Some
             ]
             |> List.choose id
             |> add s

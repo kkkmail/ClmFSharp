@@ -40,7 +40,7 @@ module ModelParams =
         }
 
 
-    type ResultData =
+    type SimpleResultData =
         {
             resultDataId : ResultDataId option
             modelDataId : ModelDataId
@@ -53,7 +53,10 @@ module ModelParams =
 
             maxEe : double
             maxAverageEe : double
+        }
 
+    type BinaryResultData =
+        {
             aminoAcids : list<AminoAcid>
             allSubst : list<Substance>
             allInd : Map<Substance, int>
@@ -64,8 +67,43 @@ module ModelParams =
             t : double []
         }
 
-        member rd.getTotals x = getTotalsValue rd.allInd rd.allSubst rd.aminoAcids x
-        member rd.getTotalSubst x = getTotalSubstValue rd.allInd rd.allSubst x
+    type ResultData =
+        {
+            simpleData : SimpleResultData
+            binaryDataOpt : BinaryResultData option
+        }
+
+
+    type FullResultData =
+        {
+            simpleData : SimpleResultData
+            binaryData : BinaryResultData
+
+        }
+
+        member resultData.getTotals x = getTotalsValue resultData.binaryData.allInd resultData.binaryData.allSubst resultData.binaryData.aminoAcids x
+        member resultData.getTotalSubst x = getTotalSubstValue resultData.binaryData.allInd resultData.binaryData.allSubst x
+
+        member frd.resultData =
+            {
+                simpleData = frd.simpleData
+                binaryDataOpt = Some frd.binaryData
+            }
+
+        member frd.resultDataWithoutBinary = { frd.resultData with binaryDataOpt = None }
+
+
+    type ResultData
+        with
+        member rd.fullResultData =
+            match rd.binaryDataOpt with
+            | Some b ->
+                {
+                    simpleData = rd.simpleData
+                    binaryData = b
+                }
+                |> Some
+            | None -> None
 
 
     type ModelDataParamsWithExtraData =
@@ -159,7 +197,7 @@ module ModelParams =
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
             fileStructureVersion : string
-            modelData : string
+            modelData : string option
             defaultSetIndex : int
         }
 

@@ -66,12 +66,15 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="FSharpCodeExt.fs" />
+    <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ClmModelData.fs" />
     <Compile Include="ClmModel.fs" />
     <Compile Include="SettingGenExt.fs" />
     <Content Include="packages.config" />
     <None Include="References.fsx" />
     <None Include="ModelGenerator.fsx" />
     <None Include="FileSystemTests.fsx" />
+    <None Include="NoOfSubstAndReact.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

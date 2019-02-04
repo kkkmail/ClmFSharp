@@ -581,18 +581,6 @@ module DatabaseTypes =
             WHERE modelDataId = @modelDataId
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        //use cmdWithoutBinaryData = new SqlCommandProvider<"
-        //    UPDATE dbo.ModelData
-        //        SET numberOfAminoAcids = @numberOfAminoAcids
-        //            ,maxPeptideLength = @maxPeptideLength
-        //            ,seedValue = @seedValue
-        //            ,defaultSetIndex = @defaultSetIndex
-        //            ,fileStructureVersion = @fileStructureVersion
-        //            ,modelData = @modelData
-        //            ,createdOn = @createdOn
-        //    WHERE modelDataId = @modelDataId
-        //", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
         let recordsUpdated =
             match m.modelData with
             | Some d ->

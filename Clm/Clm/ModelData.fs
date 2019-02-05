@@ -3,8 +3,10 @@
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.Reactions
 open Clm.DataLocation
 open Clm.ModelParams
+open Clm.ReactionTypes
 
 module ModelData =
 
@@ -12,6 +14,20 @@ module ModelData =
     type LevelOne = array<double * int>
     type LevelTwo = array<double * int * int>
     type LevelThree = array<double * int * int * int>
+
+
+    type ModelIndexInfo =
+        | LevelZeroIndex of LevelZero
+        | LevelOneIndex of LevelOne
+        | LevelTwoIndex of LevelTwo
+        | LevelThreeIndex of LevelThree
+
+        //static member create (i : list<int>) v =
+        //    match i with
+        //    | [] -> [| v |] |> LevelZeroIndex
+        //    | h :: t ->
+        //        match t with
+        //        | [] -> 
 
 
     type ModelIndices =
@@ -49,7 +65,7 @@ module ModelData =
         sum
 
 
-    type ModelData =
+    type ModelCalculationData =
         {
             totalSubst : LevelOne
             totals : array<LevelOne * LevelOne>
@@ -78,4 +94,28 @@ module ModelData =
                 (calculateValue { ModelIndices.defaultValue with level1 = l } x),
                 (calculateValue { ModelIndices.defaultValue with level1 = r } x)
                 )
+
+        static member create (m : Map<Substance, int>) (allReac : list<AnyReaction>) =
+            let normalized = allReac |> List.map (fun e -> e.reaction.info.normalized(), e.forwardRate, e.backwardRate)
+
+            let getRates chooser =
+                normalized
+                |> List.map (fun (r, f, b) -> r, chooser (f, b))
+                |> List.choose (fun (e, r) -> r |> Option.bind (fun v -> Some (e, v)))
+
+            let fwd =
+                getRates fst
+                |> List.map (fun (r, v) -> r.inputNormalized, r.outputNormalized, v)
+
+            let bkw = getRates snd
+            0
+
+
+    type ModelData =
+        {
+            modelDataParams : ModelDataParams
+            calculationData : ModelCalculationData
+            allRawReactions : array<ReactionName * int>
+            allReactions : array<ReactionName * int>
+        }
 

@@ -93,9 +93,9 @@ module ClmModel =
         let x (s : Substance) = xName + ".[" + (si.allInd.[s]).ToString() + "]"
         let d (s : Substance) = dName + "" + (si.allInd.[s]).ToString()
 
-        let rate (l : list<Substance * int>) (ReactionRate r) = 
-            let toPown s n = 
-                match n with 
+        let rate (l : list<Substance * int>) (ReactionRate r) =
+            let toPown s n =
+                match n with
                 | 0 -> "1.0"
                 | 1 -> x s
                 | _ -> "(pown " + (x s) + " " + n.ToString() + ")"
@@ -103,14 +103,14 @@ module ClmModel =
             let a = l |> List.fold(fun acc (s, n) -> acc + (if acc <> "" then " * " else "") + (toPown s n)) ""
             (r.ToString() |> toFloat) + " * " + a + " // " + (lstToString l) // + Nl
 
-        let toMult i = 
-            match i with 
+        let toMult i =
+            match i with
             | 1 -> String.Empty
             | _ -> i.ToString() + ".0 * "
 
         let processReaction (r : AnyReaction) : list<Substance * string> =
             let update i o r f rc : list<Substance * string> = 
-                let catalysts = 
+                let catalysts =
                     (o |> List.map (fun (s, n) -> s, -n)) @ i
                     |> List.groupBy (fun (s, _) -> s)
                     |> List.map (fun (s, e) -> (s, e |> List.fold (fun acc (_, n) -> acc + n) 0))

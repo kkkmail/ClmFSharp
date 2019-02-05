@@ -79,14 +79,14 @@ module Reactions =
         | Reversible of ReversibleReaction
 
         member reaction.enantiomer =
-            match reaction with 
+            match reaction with
             | Forward r -> r.enantiomer |> Forward
             | Backward r -> r.enantiomer |> Backward
             | Reversible r -> r.enantiomer |> Reversible
 
         member this.name =
             match this with
-            | Forward r ->  r.reaction.name
+            | Forward r -> r.reaction.name
             | Backward r -> r.reaction.name
             | Reversible r -> r.reaction.name
 
@@ -98,6 +98,24 @@ module Reactions =
                 | Reversible r -> " <-> ", r.reaction, r.reaction.name.name
 
             i.info.getName n a
+
+        member this.reaction =
+            match this with
+            | Forward r -> r.reaction
+            | Backward r -> r.reaction
+            | Reversible r -> r.reaction
+
+        member this.forwardRate =
+            match this with
+            | Forward r -> Some r.forwardRate
+            | Backward r -> None
+            | Reversible r -> Some r.forwardRate
+
+        member this.backwardRate =
+            match this with
+            | Forward r -> None
+            | Backward r -> Some r.backwardRate
+            | Reversible r -> Some r.backwardRate
 
         static member tryCreateReactionFromRateData i (rd : RateData) =
             match ReversibleReaction.tryCreateFromRateData i rd with

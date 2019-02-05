@@ -13,6 +13,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
 open ClmSys.GeneralData
+open Clm.ModelData
 open Clm.Generator.FSharpCodeExt
 open ClmDefaults.DefaultValuesExt
 open Clm.Generator.ClmModelData
@@ -48,7 +49,7 @@ module ClmModel =
             |> List.map (fun (n, c) -> "                    " + "(" + n.ToString() + ", " + c.ToString() + ")")
             |> String.concat Nl
 
-        let allReactionsData = 
+        let allReactionsData =
             let shift = "                    "
 
             (

@@ -465,7 +465,7 @@ module Substances =
         member substance.noOfAminoAcid a =
             match substance with
             | Simple _ -> None
-            | Chiral c -> 
+            | Chiral c ->
                 match c = a with
                 | true -> Some 1
                 | false -> None

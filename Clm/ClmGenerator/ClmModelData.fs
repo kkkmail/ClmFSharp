@@ -11,6 +11,7 @@ open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
+open Clm.ModelData
 open Clm.DataLocation
 open ClmSys.GeneralData
 open Clm.Generator.FSharpCodeExt
@@ -100,99 +101,6 @@ module ClmModelData =
         | None -> 
             let r = new Random()
             r.Next()
-
-
-    type SubstInfo =
-        {
-            maxPeptideLength : MaxPeptideLength
-            numberOfAminoAcids : NumberOfAminoAcids
-            aminoAcids : list<AminoAcid>
-            chiralAminoAcids : list<ChiralAminoAcid>
-            peptides : list<Peptide>
-            synthCatalysts : list<SynthCatalyst>
-            destrCatalysts : list<DestrCatalyst>
-            ligCatalysts : list<LigCatalyst>
-            ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
-            racemCatalysts : list<RacemizationCatalyst>
-            allChains : list<list<ChiralAminoAcid>>
-            allSubst : list<Substance>
-            allInd : Map<Substance, int>
-            allNamesMap : Map<Substance, string>
-        }
-
-        static member create maxPeptideLength numberOfAminoAcids =
-            let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-            let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
-            let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
-            let allLigChains = allChains |> List.filter(fun a -> a.Length < maxPeptideLength.length)
-
-            let allSubst =
-                    Substance.allSimple
-                    @
-                    (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                    @
-                    (peptides |> List.map (fun p -> PeptideChain p))
-
-            {
-                maxPeptideLength = maxPeptideLength
-                numberOfAminoAcids = numberOfAminoAcids
-                aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
-                chiralAminoAcids = chiralAminoAcids
-                peptides = peptides
-                synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
-                destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
-                ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
-
-                ligationPairs =
-                    List.allPairs allLigChains allLigChains
-                    |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
-                    |> List.map (fun (a, b) -> orderPairs (a, b))
-                    |> List.filter (fun (a, _) -> a.Head.isL)
-                    |> List.distinct
-
-                racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
-                allChains = allChains
-                allSubst = allSubst
-                allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
-
-                allNamesMap =
-                    allSubst
-                    |> List.map (fun s -> s, s.name)
-                    |> Map.ofList
-            }
-
-        member si.synthesisReactions = si.chiralAminoAcids |> List.map SynthesisReaction
-        member si.destructionReactions = si.chiralAminoAcids |> List.map DestructionReaction
-        member si.ligationReactions = si.ligationPairs |> List.map LigationReaction
-        member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
-
-        member si.catSynthInfo =
-            {
-                a = si.synthesisReactions |> Array.ofList
-                b = si.synthCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticSynthesisName
-            }
-
-        member si.catDestrInfo =
-            {
-                a = si.destructionReactions |> Array.ofList
-                b = si.destrCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticDestructionName
-            }
-
-        member si.catLigInfo =
-            {
-                a = si.ligationReactions |> Array.ofList
-                b = si.ligCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticLigationName
-            }
-
-        member si.catRacemInfo =
-            {
-                a = si.racemizationReactions |> Array.ofList
-                b = si.racemCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticRacemizationName
-            }
 
 
     let generateSubst() =
@@ -296,8 +204,6 @@ module ClmModelData =
                     }
             }
 
-    //let getModelDataParamsCode (modelParams : ModelGenerationParams)
-
 
     let generatePairs<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
@@ -376,11 +282,6 @@ module ClmModelData =
                     | None -> []
 
                 b
-
-        //member data.getAllReactions() =
-        //    match data with
-        //    | BruteForceModel _ -> failwith ""
-        //    | RandomChoiceModel m -> failwith ""
 
         static member create t rateProvider si =
             match t with

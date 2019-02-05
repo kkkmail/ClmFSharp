@@ -231,33 +231,16 @@ module ModelData =
         static member createTotals (si : SubstInfo) : array<array<LevelOne> * array<LevelOne>> =
             let g a =
                 si.allSubst
-                |> List.map (fun s -> match s.noOfAminoAcid a with | Some i -> Some (s, i) | None -> None)
+                |> List.map (fun s -> match s.noOfAminoAcid a with | Some i -> Some (double i, si.allInd.[s]) | None -> None)
                 |> List.choose id
-                //|> List.map (fun (s, i) -> "                    " + (toMult i) + (x s) + " // " + (substToString s))
+                |> Array.ofList
 
             let y =
                 si.aminoAcids
-                |> List.map (fun a -> a, L a |> g, R a |> g)
-
-            let z = 0
-
-            //let gg (v : list<string>) = 
-            //    let a = v |> String.concat Nl
-            //    "                [|" + Nl + a + Nl + "                |]" + Nl + "                |> Array.sum" + Nl
-
-            //let gg1 ((a : AminoAcid), l, r) = 
-            //    "            // " + a.name + Nl + "            (" + Nl + (gg l) + "                ," + Nl + (gg r) + "            )" + Nl
-
-            //let y =
-            //    si.aminoAcids
-            //    |> List.map (fun a -> a, L a |> g, R a |> g)
-            //    |> List.map (fun (a, l, r) -> gg1 (a, l, r))
-
-            let x =
-                si.allSubst
-                |> List.map (fun s -> (double s.atoms, si.allInd.[s] ))
+                |> List.map (fun a -> L a |> g, R a |> g)
                 |> Array.ofList
-            failwith ""
+
+            y
 
         static member createDerivative (si : SubstInfo) (allReac : list<AnyReaction>) =
             let normalized = allReac |> List.map (fun e -> e.reaction.info.normalized(), e.forwardRate, e.backwardRate)
@@ -293,7 +276,7 @@ module ModelData =
         static member create (si : SubstInfo) (allReac : list<AnyReaction>) =
             {
                 totalSubst = ModelCalculationData.createTotalSubst si
-                totals = failwith ""
+                totals = ModelCalculationData.createTotals si
                 derivative = ModelCalculationData.createDerivative si allReac
 
                 xSumN = None

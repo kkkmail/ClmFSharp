@@ -109,7 +109,7 @@ module ClmModel =
             | _ -> i.ToString() + ".0 * "
 
         let processReaction (r : AnyReaction) : list<Substance * string> =
-            let update i o r f rc : list<Substance * string> = 
+            let update i o r f rc : list<Substance * string> =
                 let catalysts =
                     (o |> List.map (fun (s, n) -> s, -n)) @ i
                     |> List.groupBy (fun (s, _) -> s)
@@ -184,12 +184,12 @@ module ClmModel =
             Nl + "        |]" + Nl + "        |> Array.sum" + Nl
 
 
-        let generate () = 
+        let generate () =
             let t0 = DateTime.Now
             printfn "t0 = %A" t0
 
-            let r0 = 
-                allReac 
+            let r0 =
+                allReac
                 |> List.map (fun r -> processReaction r)
 
             printfn "r0.Length = %A" r0.Length
@@ -197,7 +197,7 @@ module ClmModel =
             printfn "t11 = %A" t11
             printfn "t11 - t0 = %A" (t11 - t0).TotalSeconds
 
-            let reactions = 
+            let reactions =
                 r0
                 |> List.concat
                 |> List.groupBy (fun (s, _) -> s)
@@ -207,15 +207,15 @@ module ClmModel =
             printfn "t1 = %A" t1
             printfn "t1 - t11 = %A" (t1 - t11).TotalSeconds
 
-            let getReaction s = 
+            let getReaction s =
                 match reactions.TryFind s with 
                 | Some r -> r |> List.rev |> List.map (fun (_, e) -> e) |> String.concat String.Empty
                 | None -> String.Empty
 
-            let getTotalSedReac (s : Substance) shift = 
+            let getTotalSedReac (s : Substance) shift =
                 match kW with
-                | Some (ReactionRate _) -> 
-                    match s with 
+                | Some (ReactionRate _) ->
+                    match s with
                     | Simple h ->
                         match h with 
                         | Abundant -> String.Empty
@@ -224,9 +224,9 @@ module ClmModel =
                     | _ -> Nl + shift + "            " + "-" + coeffSedAllName + " * (2.0 * " + xSumName + " - " + (x s) + ") * " + (x s)
                 | None -> String.Empty
 
-            let coeffSedAllCode = 
+            let coeffSedAllCode =
                 match kW with
-                | Some (ReactionRate k) -> 
+                | Some (ReactionRate k) ->
                     "    let " + coeffSedAllName + " = " + k.ToString() + " / " + (si.allSubst.Length - 1).ToString() + ".0" + Nl
                 | None -> String.Empty
 
@@ -234,10 +234,10 @@ module ClmModel =
                 si.allSubst
                 |> List.map (fun s -> Nl + "    " + (substComment s "    ") +  "            [|" + Nl + (getTotalSedReac s "    ") + Nl + (getReaction s) + "            |]" + Nl + "            |> Array.sum" + Nl)
 
-            let dInitCode xPar = 
-                let shift, g = 
-                    match xPar with 
-                    | "" -> "    ", d 
+            let dInitCode xPar =
+                let shift, g =
+                    match xPar with
+                    | "" -> "    ", d
                     | _ -> 
                         let d1 s = 
                             (d s) + " (" + xName + " : array<double>) " + xSumName + " " + xSumNameN + " " + xSumSquaredNameN
@@ -246,11 +246,11 @@ module ClmModel =
                 si.allSubst
                 |> List.map (fun s -> Nl + (substComment s shift) + shift + "    let " + (g s) + " = " + Nl + shift + "        [|" + (getTotalSedReac s shift) + Nl + (getReaction s) + shift + "        |]" + Nl + shift + "        |> Array.sum" + Nl)
 
-            let dArrayCode xPar = 
-                let shift, g = 
-                    match xPar with 
+            let dArrayCode xPar =
+                let shift, g =
+                    match xPar with
                     | "" -> "    ", d
-                    | _ -> 
+                    | _ ->
                         let d1 s = (d s) + " " + xPar + " " + xSumName + " " + xSumNameN + " " + xSumSquaredNameN
                         "", d1
 

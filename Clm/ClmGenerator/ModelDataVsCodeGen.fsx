@@ -1,10 +1,21 @@
-﻿#r @"..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll"
+﻿//--quiet
+printfn "0"
+//#r @"..\SolverRunner\bin\Debug\FSharp.Core.dll"
+open System
+
+#r @"..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll"
 #r @"..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll"
 #r @"..\packages\Argu.5.2.0\lib\net45\Argu.dll"
 
-#r @"..\DbData\bin\Debug\ClmSys.dll"
-#r @"..\DbData\bin\Debug\Clm.dll"
-#r @"..\DbData\bin\Debug\DbData.dll"
+//#r @"..\SolverRunner\bin\Debug\FSharp.Data.SqlClient.dll"
+//#r @"..\SolverRunner\bin\Debug\Newtonsoft.Json.dll"
+//#r @"..\SolverRunner\bin\Debug\Argu.dll"
+
+#r @"..\SolverRunner\bin\Debug\ClmSys.dll"
+#r @"..\SolverRunner\bin\Debug\Clm.dll"
+#r @"..\SolverRunner\bin\Debug\DbData.dll"
+printfn "0.1"
+#r @"..\SolverRunner\bin\Debug\Model.dll"
 
 printfn "1"
 
@@ -41,23 +52,25 @@ printfn "1"
 //#load "ClmModelData.fs"
 //#load "ClmModel.fs"
 
-open System
+
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open Clm.Substances
+open Clm.Distributions
 open Clm.ReactionRates
 open Clm.CalculationData
 open Clm.DataLocation
-open Clm.Distributions
 open Clm.ReactionTypes
 open Clm.Reactions
+open Clm.ModelParams
+
 //open Clm.Generator.ClmModelData
 //open ClmDefaults.AllDefaults
 open DbData.DatabaseTypes
 open DbData.Configuration
 printfn "2"
 
-#load @"..\Model\ModelData.fs"
+//#load @"..\Model\ModelData.fs"
 open Clm.Model.ModelData
 printfn "3"
 

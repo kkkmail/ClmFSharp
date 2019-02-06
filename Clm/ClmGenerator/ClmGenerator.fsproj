@@ -75,6 +75,7 @@
     <None Include="ModelGenerator.fsx" />
     <None Include="FileSystemTests.fsx" />
     <None Include="NoOfSubstAndReact.fsx" />
+    <None Include="ModelDataVsCodeGen.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

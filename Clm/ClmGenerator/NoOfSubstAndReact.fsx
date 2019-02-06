@@ -1,4 +1,4 @@
-﻿#r @"..\packages\FSharp.Data.SqlClient.2.0.1\lib\net40\FSharp.Data.SqlClient.dll"
+﻿#r @"..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll"
 #r @"..\packages\Argu.5.2.0\lib\net45\Argu.dll"
 #load @"..\ClmSys\VersionInfo.fs"
 #load @"..\ClmSys\GeneralData.fs"
@@ -10,6 +10,7 @@
 #load @"..\Clm\DataLocation.fs"
 #load @"..\Clm\CommandLine.fs"
 #load @"..\Clm\ModelParams.fs"
+#load @"..\Clm\CalculationData.fs"
 #load "FSharpCodeExt.fs"
 #load @"..\ClmDefaults\DefaultValuesExt.fs"
 #load @"..\ClmDefaults\DefaultValues\Defaults_000.fs"
@@ -32,6 +33,7 @@ open System
 open ClmSys.VersionInfo
 open Clm.Substances
 open Clm.ReactionRates
+open Clm.CalculationData
 open Clm.DataLocation
 open Clm.ReactionTypes
 open Clm.Reactions

@@ -89,7 +89,6 @@
     </Content>
     <Content Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="TestService.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">

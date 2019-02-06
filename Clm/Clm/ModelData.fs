@@ -198,10 +198,6 @@ module ModelData =
             totalSubst : array<LevelOne>
             totals : array<array<LevelOne> * array<LevelOne>>
             derivative : array<ModelIndices>
-
-            // Not supported yet
-            xSumN : LevelOne option
-            xSumSquaredN : LevelTwo option
         }
 
         static member defaultValue =
@@ -209,8 +205,6 @@ module ModelData =
                 totalSubst = [||]
                 totals = [||]
                 derivative = [||]
-                xSumN = None
-                xSumSquaredN = None
             }
 
         member md.getDerivative x = md.derivative |> Array.map (fun i -> calculateValue i x)
@@ -278,9 +272,6 @@ module ModelData =
                 totalSubst = ModelCalculationData.createTotalSubst si
                 totals = ModelCalculationData.createTotals si
                 derivative = ModelCalculationData.createDerivative si allReac
-
-                xSumN = None
-                xSumSquaredN = None
             }
 
 

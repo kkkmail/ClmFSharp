@@ -21,6 +21,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmSys", "ClmSys\ClmSys.fsp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{740464F5-6E8C-4038-AB98-51DFA5A09EC1}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmTests", "ClmTests\ClmTests.fsproj", "{7F97FE20-6E3C-4E48-B36F-74015830A9F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,14 @@ Global
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.ActiveCfg = Release|Any CPU
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.Build.0 = Release|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Debug|x64.Build.0 = Debug|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Release|x64.ActiveCfg = Release|Any CPU
+		{7F97FE20-6E3C-4E48-B36F-74015830A9F7}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

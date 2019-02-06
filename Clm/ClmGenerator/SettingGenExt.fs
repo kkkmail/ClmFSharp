@@ -74,7 +74,7 @@ module SettingGenExt =
                     modelLocationData = h1
                     updateAllModels = i1
                     defaultSetIndex = j1
-                    saveModelData = getBool m po saveModelDataName
+                    //saveModelData = getBool m po saveModelDataName
                 }
                 |> Some
             | _ -> None
@@ -92,7 +92,7 @@ module SettingGenExt =
                 setIntOpt po seedValueName this.seedValue
                 setBool po updateAllModelsName this.updateAllModels |> Some
                 setInt po defaultSetIndexName this.defaultSetIndex |> Some
-                setBool po saveModelDataName this.saveModelData |> Some
+                //setBool po saveModelDataName this.saveModelData |> Some
             ]
             |> List.choose id
             |> add s

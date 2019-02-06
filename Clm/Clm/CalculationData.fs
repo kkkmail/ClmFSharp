@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open ClmSys.GeneralData
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
@@ -8,7 +9,7 @@ open Clm.DataLocation
 open Clm.ModelParams
 open Clm.ReactionTypes
 
-module ModelData =
+module CalculationData =
 
     type SubstInfo =
         {
@@ -275,10 +276,22 @@ module ModelData =
             }
 
 
-    type ModelData =
+    type ModelAllData =
         {
             modelDataParams : ModelDataParams
             calculationData : ModelCalculationData
             allRawReactions : array<ReactionName * int>
             allReactions : array<ReactionName * int>
+        }
+
+
+    type ModelData =
+        {
+            modelDataId : ModelDataId
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+            seedValue : int option
+            fileStructureVersion : string
+            modelData : ModelAllData
+            defaultSetIndex : int
         }

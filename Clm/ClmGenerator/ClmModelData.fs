@@ -11,7 +11,7 @@ open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
-open Clm.ModelData
+open Clm.CalculationData
 open Clm.DataLocation
 open ClmSys.GeneralData
 open Clm.Generator.FSharpCodeExt
@@ -56,7 +56,7 @@ module ClmModelData =
             modelLocationData : ModelLocationInputData
             updateAllModels : bool
             defaultSetIndex : int
-            saveModelData : bool
+            //saveModelData : bool
         }
 
 
@@ -82,7 +82,7 @@ module ClmModelData =
                         modelLocationData = ModelLocationInputData.defaultValue
                         updateAllModels = false
                         defaultSetIndex = i
-                        saveModelData = false
+                        //saveModelData = false
                     }
 
                 modelCommandLineParams = d.modelCommandLineParams

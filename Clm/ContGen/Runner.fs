@@ -12,6 +12,7 @@ open Clm.Generator.SettingGenExt
 open System.Text
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
+open Clm.CalculationData
 open AsyncRun
 
 open Fake.DotNet
@@ -77,30 +78,13 @@ module Runner =
             printfn "Starting at: %A" DateTime.Now
 
             let model = ClmModel modelGenerationParams
-            let code = model.generateCode()
+            model.generateCode() |> ignore
             printfn "... completed."
-            code
+            model.getModelData
 
 
-        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelDataId =
-            let sb = new StringBuilder()
-            code |> List.map(fun s -> sb.Append (s + Nl)) |> ignore
-
-            let m =
-                {
-                    modelDataId = modelDataId
-                    numberOfAminoAcids = pm.numberOfAminoAcids
-                    maxPeptideLength = pm.maxPeptideLength
-                    seedValue = pm.seedValue
-                    fileStructureVersion = pm.fileStructureVersionNumber
-                    modelData =
-                        match pm.saveModelData with
-                        | true -> sb.ToString() |> Some
-                        | false -> None
-                    defaultSetIndex = pm.defaultSetIndex
-                }
-
-            tryDbFun (tryUpdateModelData m)
+        let saveModel modelDataId getModelData =
+            getModelData modelDataId |> tryUpdateModelData |> tryDbFun
 
 
         let compileModel modelId =
@@ -153,8 +137,8 @@ module Runner =
 
                         match loadParams getRandomSeeder modelId with
                         | Some (p, r) ->
-                            let code = generateModel p
-                            match saveModel code p modelId with
+                            
+                            match generateModel p |> saveModel modelId with
                             | Some true ->
                                 compileModel modelId
                                 r |> List.mapi (fun i e -> 

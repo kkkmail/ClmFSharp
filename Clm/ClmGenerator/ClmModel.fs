@@ -13,7 +13,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.DataLocation
 open ClmSys.GeneralData
-open Clm.ModelData
+open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
 open ClmDefaults.DefaultValuesExt
 open Clm.Generator.ClmModelData
@@ -29,8 +29,21 @@ module ClmModel =
         let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
         let allParamsCode = rateProvider.toParamFSharpCode
         let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
-        //let bf = BruteForceModelData.create si
         let bf = RateGenerationData.create generationType rateProvider si
+
+        let getModelInfo(ModelDataId modelDataId) =
+            {
+                fileStructureVersionNumber = modelParams.fileStructureVersionNumber
+                versionNumber = modelParams.versionNumber
+                modelDataId = modelDataId
+                numberOfSubstances = si.allSubst.Length
+                numberOfAminoAcids = modelParams.numberOfAminoAcids
+                maxPeptideLength = modelParams.maxPeptideLength
+                seedValue = seedValue
+                updateAllModels = modelParams.updateAllModels
+                allResultsFile = modelParams.modelLocationData.allResultsFile
+                defaultSetIndex = modelParams.defaultSetIndex
+            }
 
         let noOfRawReactions n = bf.noOfRawReactions n
         let getReactions n = bf.getReactions rateProvider n
@@ -67,12 +80,10 @@ module ClmModel =
             )
             |> String.concat Nl
 
-
         let allReacMap =
             allReac
             |> List.map (fun e -> e, e.fullName)
             |> Map.ofList
-
 
         let substToString s = si.allNamesMap.[s]
         let reactToString r = allReacMap.[r]
@@ -183,7 +194,6 @@ module ClmModel =
             "        [|" + Nl +
             x +
             Nl + "        |]" + Nl + "        |> Array.sum" + Nl
-
 
         let generate () =
             let t0 = DateTime.Now
@@ -302,11 +312,11 @@ module ClmModel =
                         }
 
                     allParams =
-                        [
+                        [|
 " 
                         + 
                         (allParamsCode { shift = "                "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
-                        ]
+                        |]
                 }
 
             getTotals = getTotals
@@ -327,7 +337,7 @@ module ClmModel =
 "
 
             let updateOuterCode =
-                match modelParams.updateFuncType with 
+                match modelParams.updateFuncType with
                 | UseArray -> []
                 | UseVariables -> []
                 | UseFunctions -> 
@@ -335,7 +345,7 @@ module ClmModel =
 
 
             let updateInnerCode = 
-                match modelParams.updateFuncType with 
+                match modelParams.updateFuncType with
                 | UseArray ->
                     [ "        [|" ] 
                     @ 
@@ -399,7 +409,6 @@ module ClmModel =
             @ updateCode
             @ [ modelDataParamsCode ]
 
-
         let allModelDataImpl = @"
         @
         [
@@ -418,15 +427,15 @@ module ClmModel =
                         defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                     }
 
-                allParams = 
-                    [
+                allParams =
+                    [|
 "
                                 + (allParamsCode { shift = "            "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
-                    ]
+                    |]
             }
         ]"
 
-        let generateAndSave() = 
+        let generateAndSave() =
             printfn "Generating..."
             let s = generate()
 
@@ -444,8 +453,42 @@ module ClmModel =
 
             s
 
+        let getModelDataImpl modelDataId =
+            {
+                modelDataId = modelDataId
+                numberOfAminoAcids = modelParams.numberOfAminoAcids
+                maxPeptideLength = modelParams.maxPeptideLength
+                seedValue = Some seedValue
+                fileStructureVersion = modelParams.fileStructureVersionNumber
+
+                modelData =
+                    {
+                        modelDataParams =
+                            {
+                                modelInfo = getModelInfo modelDataId
+                                allParams = rateProvider.providerParams.allParams |> Array.ofList
+                            }
+                        calculationData = ModelCalculationData.create si allReac
+
+                        allRawReactions =
+                            ReactionName.all
+                            |> List.map (fun n -> n, noOfRawReactions n)
+                            |> Array.ofList
+
+                        allReactions =
+                            allReac
+                            |> List.groupBy (fun r -> r.name)
+                            |> List.map (fun (n, l) -> (n, l.Length))
+                            |> Array.ofList
+                    }
+
+                defaultSetIndex = modelParams.defaultSetIndex
+            }
+
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
         member model.allModelData = allModelDataImpl
         member model.locationInfo = modelLocationInfo
         member model.generateCode() = generateAndSave()
+        member model.getModelData modelDataId = getModelDataImpl modelDataId
+

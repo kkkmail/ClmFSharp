@@ -1031,7 +1031,7 @@ module SettingsExt =
             | Some a ->
                 {
                     modelInfo = a
-                    allParams = ReactionRateModelParamWithUsage.getAll m seeder (addParent po allParamsName)
+                    allParams = ReactionRateModelParamWithUsage.getAll m seeder (addParent po allParamsName) |> Array.ofList
                 }
                 |> Some
             | None -> None
@@ -1039,7 +1039,7 @@ module SettingsExt =
         member this.setValue po s =
             s
             |> this.modelInfo.setValue (addParent po modelInfoName)
-            |> ReactionRateModelParamWithUsage.setAll this.allParams (addParent po allParamsName)
+            |> ReactionRateModelParamWithUsage.setAll (this.allParams |> List.ofArray) (addParent po allParamsName)
 
 
     type ModeName

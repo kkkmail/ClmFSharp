@@ -36,7 +36,7 @@ module ModelParams =
     type ModelDataParams =
         {
             modelInfo : ModelInfo
-            allParams : list<ReactionRateModelParamWithUsage>
+            allParams : array<ReactionRateModelParamWithUsage>
         }
 
 
@@ -187,18 +187,6 @@ module ModelParams =
         {
             modelDataId : ModelDataId
             settings : SettingMap
-        }
-
-
-    type ModelData =
-        {
-            modelDataId : ModelDataId
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
-            seedValue : int option
-            fileStructureVersion : string
-            modelData : string option
-            defaultSetIndex : int
         }
 
 

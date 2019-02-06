@@ -10,6 +10,7 @@ open ClmSys.VersionInfo
 open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams
+open Clm.CalculationData
 
 
 /// You must add reference to System.Configuration !
@@ -328,6 +329,25 @@ module DatabaseTypes =
             rs.settings |> Map.toList |> List.map (fun (_, s) -> addRow s) |> ignore
 
 
+    type ModelData
+        with
+
+        static member tryCreate (r : ModelDataTableRow) =
+            match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
+            | Some numberOfAminoAcids, Some maxPeptideLength ->
+                {
+                    modelDataId = r.modelDataId |> ModelDataId
+                    numberOfAminoAcids = numberOfAminoAcids
+                    maxPeptideLength = maxPeptideLength
+                    seedValue = r.seedValue
+                    fileStructureVersion = r.fileStructureVersion
+                    modelData = r.modelData |> unZip |> JsonConvert.DeserializeObject<ModelAllData>
+                    defaultSetIndex = r.defaultSetIndex
+                }
+                |> Some
+            | _ -> None
+
+
     type ResultData
         with
 
@@ -337,8 +357,8 @@ module DatabaseTypes =
                 let a() = r.aminoAcids |> Option.bind (fun v -> v |> unZip |> JsonConvert.DeserializeObject<list<AminoAcid>> |> Some)
                 let b() = r.allSubst |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<Substance>> |> Some)
                 let c() = r.allInd |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<Substance * int>> |> Map.ofList |> Some)
-                let d() = r.allRawReactions |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
-                let e() = r.allReactions |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
+                let d() = r.allRawReactions |> Option.bind (fun v -> v |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
+                let e() = r.allReactions |> Option.bind (fun v -> v |> unZip |> JsonConvert.DeserializeObject<list<ReactionName * int>> |> Some)
                 let f() = r.x |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<double [,]> |> Some)
                 let g() = r.t |> Option.bind (fun v -> v  |> unZip |> JsonConvert.DeserializeObject<double []> |> Some)
 
@@ -546,7 +566,7 @@ module DatabaseTypes =
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
                     defaultSetIndex = -1,
-                    modelData = None,
+                    modelData = [||],
                     createdOn = DateTime.Now
                     )
 
@@ -561,7 +581,7 @@ module DatabaseTypes =
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
         d.Execute(modelDataId = modelDataId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
+        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind ModelData.tryCreate
 
 
     let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
@@ -582,27 +602,15 @@ module DatabaseTypes =
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
         let recordsUpdated =
-            match m.modelData with
-            | Some d ->
-                cmdWithBinaryData.Execute(
-                    numberOfAminoAcids = m.numberOfAminoAcids.length,
-                    maxPeptideLength = m.maxPeptideLength.length,
-                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
-                    defaultSetIndex = m.defaultSetIndex,
-                    fileStructureVersion = m.fileStructureVersion,
-                    modelData = (d |> zip),
-                    createdOn = DateTime.Now,
-                    modelDataId = m.modelDataId.value)
-            | None ->
-                cmdWithBinaryData.Execute(
-                    numberOfAminoAcids = m.numberOfAminoAcids.length,
-                    maxPeptideLength = m.maxPeptideLength.length,
-                    seedValue = (match m.seedValue with | Some s -> s | None -> -1),
-                    defaultSetIndex = m.defaultSetIndex,
-                    fileStructureVersion = m.fileStructureVersion,
-                    createdOn = DateTime.Now,
-                    modelData = null,
-                    modelDataId = m.modelDataId.value)
+            cmdWithBinaryData.Execute(
+                numberOfAminoAcids = m.numberOfAminoAcids.length,
+                maxPeptideLength = m.maxPeptideLength.length,
+                seedValue = (match m.seedValue with | Some s -> s | None -> -1),
+                defaultSetIndex = m.defaultSetIndex,
+                fileStructureVersion = m.fileStructureVersion,
+                modelData = (m.modelData |> JsonConvert.SerializeObject |> zip),
+                createdOn = DateTime.Now,
+                modelDataId = m.modelDataId.value)
 
         if recordsUpdated = 1 then true else false
 
@@ -717,8 +725,7 @@ module DatabaseTypes =
         use d = new ResultDataTableData(conn)
         let t = new ResultDataTable()
         d.Execute(resultDataId = resultDataId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
-        |> Option.bind ResultData.tryCreate
+        t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId) |> Option.bind ResultData.tryCreate
 
 
     let loadRunQueue (ConnectionString connectionString) =

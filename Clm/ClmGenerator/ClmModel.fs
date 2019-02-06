@@ -463,11 +463,11 @@ module ClmModel =
 
                 modelData =
                     {
-                        modelDataParams =
-                            {
-                                modelInfo = getModelInfo modelDataId
-                                allParams = rateProvider.providerParams.allParams |> Array.ofList
-                            }
+                        //modelDataParams =
+                        //    {
+                        //        modelInfo = getModelInfo modelDataId
+                        //        allParams = rateProvider.providerParams.allParams |> Array.ofList
+                        //    }
                         calculationData = ModelCalculationData.create si allReac
 
                         allRawReactions =

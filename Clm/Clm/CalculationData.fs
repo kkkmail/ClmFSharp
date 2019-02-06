@@ -176,7 +176,21 @@ module CalculationData =
             }
 
 
-    let calculateValue (indicies : ModelIndices) (x: double[]) =
+    let calculateTotalSubst (totalSubst : array<LevelOne>) (x: double[]) =
+        let mutable sum = 0.0
+
+        for (coeff, j1) in totalSubst do
+            sum <- sum + coeff * x.[j1]
+
+        sum
+
+
+    let calculateTotals (totals : array<array<LevelOne> * array<LevelOne>>) (x: double[]) =
+        totals
+        |> Array.map (fun (l, r) -> calculateTotalSubst l x, calculateTotalSubst r x)
+
+
+    let calculateDerivativeValue (indicies : ModelIndices) (x: double[]) =
         let mutable sum = 0.0
 
         for coeff in indicies.level0 do
@@ -208,15 +222,9 @@ module CalculationData =
                 derivative = [||]
             }
 
-        member md.getDerivative x = md.derivative |> Array.map (fun i -> calculateValue i x)
-        member md.getTotalSubst x = calculateValue { ModelIndices.defaultValue with level1 = md.totalSubst } x
-
-        member md.getTotals x =
-            md.totals
-            |> Array.map (fun (l, r) ->
-                (calculateValue { ModelIndices.defaultValue with level1 = l } x),
-                (calculateValue { ModelIndices.defaultValue with level1 = r } x)
-                )
+        member md.getDerivative x = md.derivative |> Array.map (fun i -> calculateDerivativeValue i x)
+        member md.getTotalSubst x = calculateTotalSubst md.totalSubst x
+        member md.getTotals x = calculateTotals md.totals x
 
         static member createTotalSubst (si : SubstInfo) =
             si.allSubst
@@ -278,7 +286,7 @@ module CalculationData =
 
     type ModelAllData =
         {
-            modelDataParams : ModelDataParams
+            //modelDataParams : ModelDataParams
             calculationData : ModelCalculationData
             allRawReactions : array<ReactionName * int>
             allReactions : array<ReactionName * int>

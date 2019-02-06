@@ -90,8 +90,59 @@ let cgGetTotals = getTotals
 let cgUpdate = update
 //===========================================================
 printfn "Trying to load..."
-let x = tryLoadModelData (ModelDataId cgModelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId) clmConnectionString
-printfn "x = %A" x
+let modelDataId = ModelDataId cgModelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+let mdo = tryLoadModelData modelDataId clmConnectionString
+let modelSettings = loadModelSettings modelDataId clmConnectionString
+
+let rnd = new Random()
+let x = [| for _ in 1..cgModelDataParamsWithExtraData.allSubst.Length -> rnd.NextDouble() |]
+
+match mdo with
+| Some md ->
+    let mdGetTotalSubst = md.modelData.calculationData.getTotalSubst
+    let mdGetTotals = md.modelData.calculationData.getTotals
+    let mdUpdate = md.modelData.calculationData.getDerivative
+
+    let cgTotalSubst = cgGetTotalSubst x
+    let mdTotalSubst = mdGetTotalSubst x
+    printfn "cgTotalSubst = %A, mdTotalSubst = %A, diff = %A" cgTotalSubst mdTotalSubst (cgTotalSubst - mdTotalSubst)
+
+    let cgGetTotals = cgGetTotals x
+    let mdGetTotals = mdGetTotals x
+    let diffTotals = 
+        Array.zip cgGetTotals mdGetTotals
+        |> Array.map(fun ((a1, b1), (a2, b2)) -> (a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2))
+        |> Array.sum
+
+    printfn "diffTotals = %A" diffTotals
+
+    let cgUpdate = cgUpdate x
+    let mdUpdate = mdUpdate x
+    let diffUpdate = 
+        Array.zip cgUpdate mdUpdate
+        |> Array.map(fun (a, b) -> (a - b) * (a - b))
+        |> Array.sum
+
+    printfn "diffUpdate = %A" diffUpdate
+| None -> printfn "Failed to load model data."
+
+let mdUpdate = mdo.Value.modelData.calculationData.getDerivative
+
+let repetitions = [for i in 1..1_000 -> i ]
+
+printfn "\n\nCG"
+#time
+repetitions |> List.map (fun _ -> cgUpdate x |> ignore)
+#time
+printfn "CG completed\n\n"
+
+printfn "MD"
+#time
+repetitions |> List.map (fun _ -> mdUpdate x |> ignore)
+#time
+printfn "MD completed\n\n"
+
+//printfn "x = %A" x
 //===========================================================
 
 //let getInfo maxPeptideLength numberOfAminoAcids =

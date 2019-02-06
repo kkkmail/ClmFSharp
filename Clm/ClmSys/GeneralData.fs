@@ -53,7 +53,8 @@ module GeneralData =
         g.Close()
         i.Close()
         o.Close()
-        Encoding.UTF8.GetString(o.ToArray())
+        let s = Encoding.UTF8.GetString(o.ToArray())
+        s
 
 
     //let doAsyncTask (f : unit-> 'a) =

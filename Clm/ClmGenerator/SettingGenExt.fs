@@ -3,13 +3,10 @@
 open Clm.Substances
 open Clm.DataLocation
 open Clm.ReactionRates
-open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams
 open Clm.Generator.ClmModelData
-open Clm.Generator.ClmModel
-
 
 module SettingGenExt =
 
@@ -35,9 +32,11 @@ module SettingGenExt =
     [<Literal>]
     let modelLocationDataName = "modelLocationData"
 
+
     type ModelGenerationParams
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             let a() = getTextOpt m po fileStructureVersionNumberName
             let b() = getTextOpt m po versionNumberName
             let c() = getIntOpt m po seedValueName
@@ -50,7 +49,7 @@ module SettingGenExt =
 
             match a(), b(), d(), e(), g(), h(), i() with
             | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
-                let p = ReactionRateModelParamWithUsage.getAll m seeder po
+                let p = ReactionRateModelParamWithUsage.getAll m po
 
                 let models =
                     ReactionRateModel.createAll p d1

@@ -7,7 +7,6 @@ open FSharp.Data
 open Configuration
 open System
 open ClmSys.VersionInfo
-open ClmSys.IndeterministicData
 open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams
@@ -335,10 +334,9 @@ module DatabaseTypes =
         with
 
         static member tryCreate (r : ModelDataTableRow) (s : ModelSettings) =
-            let seeder = Seeder.create r.seedValue
             let n() = NumberOfAminoAcids.tryCreate r.numberOfAminoAcids
             let m() = MaxPeptideLength.tryCreate r.maxPeptideLength
-            let p() = ModelDataParams.tryCreate s seeder
+            let p() = ModelDataParams.tryCreate s
 
             match n(), m(), p() with
             | Some numberOfAminoAcids, Some maxPeptideLength, Some modelDataParams ->
@@ -625,6 +623,9 @@ module DatabaseTypes =
                 modelBinaryData = (m.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
                 createdOn = DateTime.Now,
                 modelDataId = m.modelDataId.value)
+
+        saveModelSettings m.modelData.modelDataParams.modelSettings (ConnectionString connectionString)
+        |> ignore
 
         if recordsUpdated = 1 then true else false
 

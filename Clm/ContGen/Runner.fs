@@ -44,18 +44,16 @@ module Runner =
         let rnd = new Random()
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
         let getExeName (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-        let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
-        let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelId () = tryDbFun getNewModelDataId
 
 
-        let loadParams seeder (ModelDataId modelId) =
+        let loadParams (ModelDataId modelId) =
             match tryDbFun loadSettings with
                 | Some m ->
-                    match ModelGenerationParams.tryGet m seeder [] with
+                    match ModelGenerationParams.tryGet m [] with
                     | Some q ->
                         (
                             { q with
@@ -142,7 +140,7 @@ module Runner =
                     | Some modelId ->
                         let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
 
-                        match loadParams getRandomSeeder modelId with
+                        match loadParams modelId with
                         | Some (p, r) ->
                             
                             match generateModel p |> saveModel modelId with

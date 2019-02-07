@@ -284,12 +284,18 @@ module CalculationData =
             }
 
 
-    type ModelAllData =
+    type ModelBinaryData =
         {
-            //modelDataParams : ModelDataParams
             calculationData : ModelCalculationData
             allRawReactions : array<ReactionName * int>
             allReactions : array<ReactionName * int>
+        }
+
+
+    type ModelAllData =
+        {
+            modelDataParams : ModelDataParams
+            modelBinaryData : ModelBinaryData
         }
 
 

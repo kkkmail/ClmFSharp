@@ -87,6 +87,13 @@ module Runner =
             getModelData modelDataId |> tryUpdateModelData |> tryDbFun
 
 
+        let saveModelSettings (modelDataParamsWithExtraData : ModelDataParamsWithExtraData) =
+                modelDataParamsWithExtraData.modelDataParams.modelSettings
+                |> saveModelSettings
+                |> tryDbFun
+                |> ignore
+
+
         let compileModel modelId =
             let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
             Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)

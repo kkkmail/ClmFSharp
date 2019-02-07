@@ -463,23 +463,27 @@ module ClmModel =
 
                 modelData =
                     {
-                        //modelDataParams =
-                        //    {
-                        //        modelInfo = getModelInfo modelDataId
-                        //        allParams = rateProvider.providerParams.allParams |> Array.ofList
-                        //    }
-                        calculationData = ModelCalculationData.create si allReac
+                        modelDataParams =
+                            {
+                                modelInfo = getModelInfo modelDataId
+                                allParams = rateProvider.providerParams.allParams |> Array.ofList
+                            }
 
-                        allRawReactions =
-                            ReactionName.all
-                            |> List.map (fun n -> n, noOfRawReactions n)
-                            |> Array.ofList
+                        modelBinaryData =
+                            {
+                                calculationData = ModelCalculationData.create si allReac
 
-                        allReactions =
-                            allReac
-                            |> List.groupBy (fun r -> r.name)
-                            |> List.map (fun (n, l) -> (n, l.Length))
-                            |> Array.ofList
+                                allRawReactions =
+                                    ReactionName.all
+                                    |> List.map (fun n -> n, noOfRawReactions n)
+                                    |> Array.ofList
+
+                                allReactions =
+                                    allReac
+                                    |> List.groupBy (fun r -> r.name)
+                                    |> List.map (fun (n, l) -> (n, l.Length))
+                                    |> Array.ofList
+                            }
                     }
 
                 defaultSetIndex = modelParams.defaultSetIndex

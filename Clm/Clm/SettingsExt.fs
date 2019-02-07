@@ -9,8 +9,6 @@ open Clm.ModelParams
 
 module SettingsExt =
 
-    type Seeder = int option -> int
-
     let tryFindByName (m : SettingMap) n = m.TryFind n
     let addParent p n = p @ [ (n, 0) ]
     let add a b = a @ b
@@ -133,7 +131,7 @@ module SettingsExt =
 
     type Distribution
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+        static member tryGet (m : SettingMap) (Seeder seeder) po =
             match getTextOpt m po DistributionName with
             | Some s ->
                 let v = getIntOpt m po seedValueName
@@ -1042,6 +1040,20 @@ module SettingsExt =
             |> this.modelInfo.setValue (addParent po modelInfoName)
             |> ReactionRateModelParamWithUsage.setAll (this.allParams |> List.ofArray) (addParent po allParamsName)
 
+        member this.modelSettings =
+            let settings =
+                this.setValue [] []
+                |> List.map (fun e -> e.settingPath, e)
+                |> Map.ofList
+
+            {
+                modelDataId = this.modelInfo.modelDataId |> ModelDataId
+                settings = settings
+            }
+
+        static member tryCreate (s : ModelSettings) (seeder : Seeder) : ModelDataParams option =
+            ModelDataParams.tryGet s.settings seeder []
+
 
     type ModeName
         with
@@ -1164,17 +1176,3 @@ module SettingsExt =
             |> List.mapi (fun i e -> (e, po @ [ (ModelCommandLineParam.variableName, i) ]))
             |> List.fold (fun acc (q, qo) -> setValue q qo acc) s
 
-
-    type ModelDataParamsWithExtraData
-        with
-
-        member mdp.modelSettings =
-            let settings =
-                mdp.modelDataParams.setValue [] []
-                |> List.map (fun e -> e.settingPath, e)
-                |> Map.ofList
-
-            {
-                modelDataId = mdp.modelDataParams.modelInfo.modelDataId |> ModelDataId
-                settings = settings
-            }

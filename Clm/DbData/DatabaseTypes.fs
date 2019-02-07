@@ -11,6 +11,7 @@ open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
+open Clm.SettingsExt
 
 
 /// You must add reference to System.Configuration !
@@ -332,16 +333,27 @@ module DatabaseTypes =
     type ModelData
         with
 
-        static member tryCreate (r : ModelDataTableRow) =
-            match NumberOfAminoAcids.tryCreate r.numberOfAminoAcids, MaxPeptideLength.tryCreate r.maxPeptideLength with
-            | Some numberOfAminoAcids, Some maxPeptideLength ->
+        static member tryCreate (r : ModelDataTableRow) (s : ModelSettings) =
+            let seeder = Seeder.create r.seedValue
+            let n() = NumberOfAminoAcids.tryCreate r.numberOfAminoAcids
+            let m() = MaxPeptideLength.tryCreate r.maxPeptideLength
+            let p() = ModelDataParams.tryCreate s seeder
+
+            match n(), m(), p() with
+            | Some numberOfAminoAcids, Some maxPeptideLength, Some modelDataParams ->
                 {
                     modelDataId = r.modelDataId |> ModelDataId
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
                     seedValue = r.seedValue
                     fileStructureVersion = r.fileStructureVersion
-                    modelData = r.modelData |> unZip |> JsonConvert.DeserializeObject<ModelAllData>
+
+                    modelData =
+                        {
+                            modelDataParams = modelDataParams
+                            modelBinaryData = r.modelBinaryData |> unZip |> JsonConvert.DeserializeObject<ModelBinaryData>
+                        }
+
                     defaultSetIndex = r.defaultSetIndex
                 }
                 |> Some
@@ -566,7 +578,7 @@ module DatabaseTypes =
                     seedValue = None,
                     fileStructureVersion = FileStructureVersionNumber,
                     defaultSetIndex = -1,
-                    modelData = [||],
+                    modelBinaryData = [||],
                     createdOn = DateTime.Now
                     )
 
@@ -581,7 +593,8 @@ module DatabaseTypes =
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
         d.Execute(modelDataId = modelDataId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind ModelData.tryCreate
+        let s = loadModelSettings (ModelDataId modelDataId) (ConnectionString connectionString)
+        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind (fun v -> ModelData.tryCreate v s)
 
 
     let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
@@ -596,7 +609,7 @@ module DatabaseTypes =
                     ,seedValue = @seedValue
                     ,defaultSetIndex = @defaultSetIndex
                     ,fileStructureVersion = @fileStructureVersion
-                    ,modelData = @modelData
+                    ,modelBinaryData = @modelBinaryData
                     ,createdOn = @createdOn
             WHERE modelDataId = @modelDataId
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
@@ -608,7 +621,7 @@ module DatabaseTypes =
                 seedValue = (match m.seedValue with | Some s -> s | None -> -1),
                 defaultSetIndex = m.defaultSetIndex,
                 fileStructureVersion = m.fileStructureVersion,
-                modelData = (m.modelData |> JsonConvert.SerializeObject |> zip),
+                modelBinaryData = (m.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
                 createdOn = DateTime.Now,
                 modelDataId = m.modelDataId.value)
 

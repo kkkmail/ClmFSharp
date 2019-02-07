@@ -24,13 +24,16 @@ module GeneralData =
         | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
 
 
-    let getRandomSeeder (rnd : Random) (seed : int option) = rnd.Next ()
+    type Seeder =
+        | Seeder of (unit -> int)
 
+        static member create (seed : int option) =
+            let rnd =
+                match seed with
+                | Some s -> new Random(s)
+                | None -> new Random()
 
-    let getDeterministicSeeder (rnd : Random) (seed : int option) =
-        match seed with
-        | Some s -> s
-        | None -> rnd.Next ()
+            (fun () -> rnd.Next()) |> Seeder
 
 
     let zip (s : string) =

@@ -72,7 +72,7 @@ module SolverRunnerTasks =
             match results.TryGetResult SaveModelSettings with
             | Some v when v ->
                 printfn "Saving model settings..."
-                let rs = modelDataParamsWithExtraData.modelSettings
+                let rs = modelDataParamsWithExtraData.modelDataParams.modelSettings
                 tryDbFun (saveModelSettings rs) |> ignore
             | _ -> ignore()
 

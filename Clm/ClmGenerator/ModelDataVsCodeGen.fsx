@@ -73,16 +73,20 @@ let cgGetTotals = getTotals
 let cgUpdate = update
 //===========================================================
 printfn "Trying to load..."
-let modelDataId = ModelDataId cgModelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+let modelDataId = ModelDataId cgModelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 let mdo = tryLoadModelData modelDataId clmConnectionString
 
 let rnd = new Random()
-let x = [| for _ in 1..cgModelDataParamsWithExtraData.allSubst.Length -> rnd.NextDouble() |]
+let x = [| for _ in 1..cgModelDataParamsWithExtraData.regularParams.allSubst.Length -> rnd.NextDouble() |]
 
 match mdo with
 | Some md ->
-    let paramEq = (md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams)
-    printfn "(md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams) = %A" paramEq
+    let paramEq = (md.modelData.modelDataParams = cgModelDataParamsWithExtraData.regularParams.modelDataParams)
+    printfn "(md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams) =\n    %A\n" paramEq
+
+    let mdAllParam = md.modelData.getModelDataParamsWithExtraData()
+    let allParamEq = (mdAllParam.regularParams = cgModelDataParamsWithExtraData.regularParams)
+    printfn "(mdAllParam.regularParams = cgModelDataParamsWithExtraData.regularParams) =\n    %A\n" allParamEq
 
     let mdGetTotalSubst = md.modelData.modelBinaryData.calculationData.getTotalSubst
     let mdGetTotals = md.modelData.modelBinaryData.calculationData.getTotals

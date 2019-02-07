@@ -106,15 +106,28 @@ module ModelParams =
             | None -> None
 
 
-    type ModelDataParamsWithExtraData =
+    type ModelDataRegularParams =
         {
             modelDataParams : ModelDataParams
-            getTotals : array<double> -> array<double * double>
-            getTotalSubst : array<double> -> double
             allSubst : list<Substance>
             allInd : Map<Substance, int>
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
+        }
+
+
+    type ModelDataFuncParams =
+        {
+            getTotals : array<double> -> array<double * double>
+            getTotalSubst : array<double> -> double
+            getDerivative : array<double> -> array<double>
+        }
+
+
+    type ModelDataParamsWithExtraData =
+        {
+            regularParams : ModelDataRegularParams
+            funcParams : ModelDataFuncParams
         }
 
 

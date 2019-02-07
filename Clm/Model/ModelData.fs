@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 820073791
+    let seedValue = 1475199102
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1715,128 +1715,136 @@ module ModelData =
 
     let modelDataParamsWithExtraData =
         {
-            modelDataParams =
+            regularParams =
                 {
-                    modelInfo =
+                    modelDataParams =
                         {
-                            fileStructureVersionNumber = "2.0.0.0"
-                            versionNumber = "2.0.0.0"
-                            seedValue = seedValue
-                            modelDataId = 2L
-                            numberOfSubstances = 87
-                            numberOfAminoAcids = TwoAminoAcids
-                            maxPeptideLength = ThreeMax
-                            updateAllModels = false
-                            allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
-                            defaultSetIndex = 1
+                            modelInfo =
+                                {
+                                    fileStructureVersionNumber = "2.0.0.0"
+                                    versionNumber = "2.0.0.0"
+                                    seedValue = seedValue
+                                    modelDataId = 6L
+                                    numberOfSubstances = 87
+                                    numberOfAminoAcids = TwoAminoAcids
+                                    maxPeptideLength = ThreeMax
+                                    updateAllModels = false
+                                    allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
+                                    defaultSetIndex = 1
+                                }
+
+                            allParams =
+                                [|
+                                    {
+                                        modelParam = 
+                                            {
+                                                wasteRecyclingRate = 0.1
+                                            }
+                                            |> WasteRecyclingRateParam
+                                        usage = PrimaryParam
+                                    }
+
+                                    {
+                                        modelParam = 
+                                            {
+                                                synthesisDistribution = DeltaDistribution(647006456, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                forwardScale = Some 0.001
+                                                backwardScale = Some 0.001
+                                            }
+                                            |> SynthRndParam
+                                            |> SynthesisRateParam
+                                        usage = PrimaryParam
+                                    }
+
+                                    {
+                                        modelParam = 
+                                            {
+                                                destructionDistribution = DeltaDistribution(1746506869, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                forwardScale = Some 0.001
+                                                backwardScale = Some 0.001
+                                            }
+                                            |> DestrRndParam
+                                            |> DestructionRateParam
+                                        usage = PrimaryParam
+                                    }
+
+                                    {
+                                        modelParam = 
+                                            {
+                                                catDestrRndEeParams = 
+                                                {
+                                                    rateMultiplierDistr = TriangularDistribution(1769254895, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                                    eeForwardDistribution = BiDeltaDistribution(478467569, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                                    eeBackwardDistribution = BiDeltaDistribution(631895758, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                                }
+                                            }
+                                            |> CatDestrRndParam
+                                            |> CatalyticDestructionRateParam
+                                        usage = DependsOnParam
+                                    }
+
+                                    {
+                                        modelParam = 
+                                            {
+                                                simBaseDistribution = UniformDistribution(1643987845, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                                getRateMultiplierDistr = DeltaRateMultDistrGetter
+                                                getForwardEeDistr = DeltaEeDistributionGetter
+                                                getBackwardEeDistr = DeltaEeDistributionGetter
+                                            }
+                                            |> CatDestrSimParam
+                                            |> CatalyticDestructionRateParam
+                                        usage = PrimaryParam
+                                    }
+
+                                    {
+                                        modelParam = 
+                                            {
+                                                ligationDistribution = DeltaDistribution(929181295, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                forwardScale = Some 1.0
+                                                backwardScale = Some 1.0
+                                            }
+                                            |> LigRndParam
+                                            |> LigationRateParam
+                                        usage = PrimaryParam
+                                    }
+
+                                |]
                         }
 
-                    allParams =
-                        [|
-                            {
-                                modelParam = 
-                                    {
-                                        wasteRecyclingRate = 0.1
-                                    }
-                                    |> WasteRecyclingRateParam
-                                usage = PrimaryParam
-                            }
+                    allSubst = allSubst
+                    allInd = allInd
 
-                            {
-                                modelParam = 
-                                    {
-                                        synthesisDistribution = DeltaDistribution(1076765666, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                        forwardScale = Some 0.001
-                                        backwardScale = Some 0.001
-                                    }
-                                    |> SynthRndParam
-                                    |> SynthesisRateParam
-                                usage = PrimaryParam
-                            }
+                    allRawReactions =
+                        [
+                            (FoodCreationName, 1)
+                            (WasteRemovalName, 1)
+                            (WasteRecyclingName, 1)
+                            (SynthesisName, 4)
+                            (DestructionName, 4)
+                            (CatalyticSynthesisName, 256)
+                            (CatalyticDestructionName, 256)
+                            (LigationName, 39)
+                            (CatalyticLigationName, 2496)
+                            (SedimentationDirectName, 7056)
+                            (SedimentationAllName, 4)
+                            (RacemizationName, 4)
+                            (CatalyticRacemizationName, 256)
+                        ]
 
-                            {
-                                modelParam = 
-                                    {
-                                        destructionDistribution = DeltaDistribution(1353817879, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                        forwardScale = Some 0.001
-                                        backwardScale = Some 0.001
-                                    }
-                                    |> DestrRndParam
-                                    |> DestructionRateParam
-                                usage = PrimaryParam
-                            }
-
-                            {
-                                modelParam = 
-                                    {
-                                        catDestrRndEeParams = 
-                                        {
-                                            rateMultiplierDistr = TriangularDistribution(1458847633, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                            eeForwardDistribution = BiDeltaDistribution(1557264603, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                            eeBackwardDistribution = BiDeltaDistribution(1312469853, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                        }
-                                    }
-                                    |> CatDestrRndParam
-                                    |> CatalyticDestructionRateParam
-                                usage = DependsOnParam
-                            }
-
-                            {
-                                modelParam = 
-                                    {
-                                        simBaseDistribution = UniformDistribution(1285248407, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
-                                        getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                        getForwardEeDistr = DeltaEeDistributionGetter
-                                        getBackwardEeDistr = DeltaEeDistributionGetter
-                                    }
-                                    |> CatDestrSimParam
-                                    |> CatalyticDestructionRateParam
-                                usage = PrimaryParam
-                            }
-
-                            {
-                                modelParam = 
-                                    {
-                                        ligationDistribution = DeltaDistribution(1713698204, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
-                                        forwardScale = Some 1.0
-                                        backwardScale = Some 1.0
-                                    }
-                                    |> LigRndParam
-                                    |> LigationRateParam
-                                usage = PrimaryParam
-                            }
-
-                        |]
+                    allReactions =
+                        [
+                            (WasteRecyclingName, 1)
+                            (SynthesisName, 4)
+                            (DestructionName, 4)
+                            (LigationName, 78)
+                        ]
                 }
 
-            getTotals = getTotals
-            getTotalSubst = getTotalSubst
-            allSubst = allSubst
-            allInd = allInd
-
-            allRawReactions =
-                [
-                    (FoodCreationName, 1)
-                    (WasteRemovalName, 1)
-                    (WasteRecyclingName, 1)
-                    (SynthesisName, 4)
-                    (DestructionName, 4)
-                    (CatalyticSynthesisName, 256)
-                    (CatalyticDestructionName, 256)
-                    (LigationName, 39)
-                    (CatalyticLigationName, 2496)
-                    (SedimentationDirectName, 7056)
-                    (SedimentationAllName, 4)
-                    (RacemizationName, 4)
-                    (CatalyticRacemizationName, 256)
-                ]
-
-            allReactions = 
-                [
-                    (WasteRecyclingName, 1)
-                    (SynthesisName, 4)
-                    (DestructionName, 4)
-                    (LigationName, 78)
-                ]
+            funcParams =
+                {
+                    getTotals = getTotals
+                    getTotalSubst = getTotalSubst
+                    getDerivative = update
+                }
         }
 

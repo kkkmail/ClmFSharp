@@ -59,11 +59,11 @@ module ClmModel =
         let allRawReactionsData =
             ReactionName.all
             |> List.map (fun n -> n, noOfRawReactions n)
-            |> List.map (fun (n, c) -> "                    " + "(" + n.ToString() + ", " + c.ToString() + ")")
+            |> List.map (fun (n, c) -> "                            " + "(" + n.ToString() + ", " + c.ToString() + ")")
             |> String.concat Nl
 
         let allReactionsData =
-            let shift = "                    "
+            let shift = "                            "
 
             (
                 allReac
@@ -295,44 +295,52 @@ module ClmModel =
                 @"
     let modelDataParamsWithExtraData =
         {
-            modelDataParams =
+            regularParams =
                 {
-                    modelInfo =
+                    modelDataParams =
                         {
-                            fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
-                            versionNumber = """ + modelParams.versionNumber + @"""
-                            seedValue = seedValue
-                            modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"L
-                            numberOfSubstances = " + si.allSubst.Length.ToString() + @"
-                            numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
-                            maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
-                            updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
-                            allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
-                            defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
+                            modelInfo =
+                                {
+                                    fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
+                                    versionNumber = """ + modelParams.versionNumber + @"""
+                                    seedValue = seedValue
+                                    modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"L
+                                    numberOfSubstances = " + si.allSubst.Length.ToString() + @"
+                                    numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
+                                    maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
+                                    updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
+                                    allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
+                                    defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
+                                }
+
+                            allParams =
+                                [|
+"
+                                +
+                                (allParamsCode { shift = "                        "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
+                                |]
                         }
 
-                    allParams =
-                        [|
-" 
-                        + 
-                        (allParamsCode { shift = "                "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
-                        |]
+                    allSubst = allSubst
+                    allInd = allInd
+
+                    allRawReactions =
+                        [" +
+                            Nl + allRawReactionsData + @"
+                        ]
+
+                    allReactions =
+                        [" +
+                            Nl + allReactionsData + @"
+                        ]
                 }
 
-            getTotals = getTotals
-            getTotalSubst = getTotalSubst
-            allSubst = allSubst
-            allInd = allInd
-
-            allRawReactions =
-                [" + 
-                Nl + allRawReactionsData + @"
-                ]
-
-            allReactions = 
-                [" + 
-                Nl + allReactionsData + @"
-                ]
+            funcParams =
+                {
+                    getTotals = getTotals
+                    getTotalSubst = getTotalSubst
+                    getDerivative = update
+                }
         }
 "
 
@@ -348,9 +356,9 @@ module ClmModel =
                 match modelParams.updateFuncType with
                 | UseArray ->
                     [ "        [|" ] 
-                    @ 
-                    a 
-                    @ 
+                    @
+                    a
+                    @
                     [ "        |]" + Nl ]
                 | UseVariables ->
                     dInitCode String.Empty
@@ -358,7 +366,7 @@ module ClmModel =
                     [
                         "        // printfn \"update::Assembling d...\"" + Nl
                         "        let d = "
-                        "            [|" 
+                        "            [|"
                         dArrayCode String.Empty
                         "            |]" + Nl
                         "        // printfn \"update::Completed.\"" + Nl
@@ -476,13 +484,11 @@ module ClmModel =
                                 allRawReactions =
                                     ReactionName.all
                                     |> List.map (fun n -> n, noOfRawReactions n)
-                                    |> Array.ofList
 
                                 allReactions =
                                     allReac
                                     |> List.groupBy (fun r -> r.name)
                                     |> List.map (fun (n, l) -> (n, l.Length))
-                                    |> Array.ofList
                             }
                     }
 

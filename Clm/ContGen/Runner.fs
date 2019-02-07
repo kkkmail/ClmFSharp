@@ -86,7 +86,7 @@ module Runner =
 
 
         let saveModelSettings (modelDataParamsWithExtraData : ModelDataParamsWithExtraData) =
-                modelDataParamsWithExtraData.modelDataParams.modelSettings
+                modelDataParamsWithExtraData.regularParams.modelDataParams.modelSettings
                 |> saveModelSettings
                 |> tryDbFun
                 |> ignore

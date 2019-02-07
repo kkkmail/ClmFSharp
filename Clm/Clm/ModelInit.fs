@@ -47,7 +47,7 @@ module ModelInit =
             | None -> ModelInitValuesParams.defaultMult
 
         let allIndRev =
-            p.modelDataParams.allInd
+            p.modelDataParams.regularParams.allInd
             |> Map.toList
             |> List.map (fun (s, i) -> (i, s))
             |> Map.ofList
@@ -57,8 +57,8 @@ module ModelInit =
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMultEe
 
-        let allSubst = p.modelDataParams.allSubst
-        let nextValue (s : Substance) = y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1))
+        let allSubst = p.modelDataParams.regularParams.allSubst
+        let nextValue (s : Substance) = y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))
         let nextEe() = multEe * (p.eeDistr.nextDouble())
 
         let initVals =
@@ -89,4 +89,4 @@ module ModelInit =
                 | None, Some (v, e) -> v * (1.0 - e)
                 | None, None -> 0.0
 
-        [| for i in 0..(p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1) -> getValue i |]
+        [| for i in 0..(p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1) -> getValue i |]

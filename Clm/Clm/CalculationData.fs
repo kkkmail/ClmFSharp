@@ -287,8 +287,8 @@ module CalculationData =
     type ModelBinaryData =
         {
             calculationData : ModelCalculationData
-            allRawReactions : array<ReactionName * int>
-            allReactions : array<ReactionName * int>
+            allRawReactions : list<ReactionName * int>
+            allReactions : list<ReactionName * int>
         }
 
 
@@ -297,6 +297,39 @@ module CalculationData =
             modelDataParams : ModelDataParams
             modelBinaryData : ModelBinaryData
         }
+
+        member this.getModelDataParamsWithExtraData() : ModelDataParamsWithExtraData =
+            let numberOfAminoAcids = this.modelDataParams.modelInfo.numberOfAminoAcids
+            let maxPeptideLength = this.modelDataParams.modelInfo.maxPeptideLength
+            let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
+            let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
+
+            let allSubst =
+                Substance.allSimple
+                @
+                (chiralAminoAcids |> List.map (fun a -> Chiral a))
+                @
+                (peptides |> List.map (fun p -> PeptideChain p))
+
+            let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+
+            {
+                regularParams =
+                    {
+                        modelDataParams = this.modelDataParams
+                        allSubst = allSubst
+                        allInd = allInd
+                        allRawReactions = this.modelBinaryData.allRawReactions
+                        allReactions = this.modelBinaryData.allReactions
+                    }
+
+                funcParams =
+                    {
+                        getTotals = this.modelBinaryData.calculationData.getTotals
+                        getTotalSubst = this.modelBinaryData.calculationData.getTotalSubst
+                        getDerivative = this.modelBinaryData.calculationData.getDerivative
+                    }
+            }
 
 
     type ModelData =

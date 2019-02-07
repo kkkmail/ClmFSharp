@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open ClmSys.GeneralData
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
@@ -1162,3 +1163,18 @@ module SettingsExt =
             p
             |> List.mapi (fun i e -> (e, po @ [ (ModelCommandLineParam.variableName, i) ]))
             |> List.fold (fun acc (q, qo) -> setValue q qo acc) s
+
+
+    type ModelDataParamsWithExtraData
+        with
+
+        member mdp.modelSettings =
+            let settings =
+                mdp.modelDataParams.setValue [] []
+                |> List.map (fun e -> e.settingPath, e)
+                |> Map.ofList
+
+            {
+                modelDataId = mdp.modelDataParams.modelInfo.modelDataId |> ModelDataId
+                settings = settings
+            }

@@ -5,6 +5,7 @@ open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
 open ClmSys.Retry
+open Clm.SettingsExt
 open Clm.ModelInit
 open Clm.Model.ModelData
 open Clm.ModelParams
@@ -71,17 +72,7 @@ module SolverRunnerTasks =
             match results.TryGetResult SaveModelSettings with
             | Some v when v ->
                 printfn "Saving model settings..."
-                let settings =
-                    modelDataParamsWithExtraData.modelDataParams.setValue [] []
-                    |> List.map (fun e -> e.settingPath, e)
-                    |> Map.ofList
-
-                let rs =
-                    {
-                        modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
-                        settings = settings
-                    }
-
+                let rs = modelDataParamsWithExtraData.modelSettings
                 tryDbFun (saveModelSettings rs) |> ignore
             | _ -> ignore()
 

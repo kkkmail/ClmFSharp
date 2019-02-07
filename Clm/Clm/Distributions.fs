@@ -10,7 +10,6 @@ open System
 ///        This distribution produces value near mean.
 module Distributions =
 
-
     // https://en.wikipedia.org/wiki/Marsaglia_polar_method
     let rec getS (r : unit -> double) =
         let u = r() * 2.0 - 1.0

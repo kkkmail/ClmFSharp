@@ -7,6 +7,7 @@ open FSharp.Data
 open Configuration
 open System
 open ClmSys.VersionInfo
+open ClmSys.IndeterministicData
 open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams

@@ -3,7 +3,6 @@ open System
 open System.IO
 open System.IO.Compression
 open System.Text
-open System.Threading.Tasks
 
 module GeneralData =
 
@@ -22,18 +21,6 @@ module GeneralData =
         | 0 -> s
         | 1 -> s.ToLower()
         | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
-
-
-    type Seeder =
-        | Seeder of (unit -> int)
-
-        static member create (seed : int option) =
-            let rnd =
-                match seed with
-                | Some s -> new Random(s)
-                | None -> new Random()
-
-            (fun () -> rnd.Next()) |> Seeder
 
 
     let zip (s : string) =

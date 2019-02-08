@@ -131,11 +131,6 @@
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Model\Model.fsproj">
-      <Name>Model</Name>
-      <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
       <Name>OdeSolver</Name>
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>

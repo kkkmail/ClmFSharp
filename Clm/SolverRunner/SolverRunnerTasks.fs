@@ -7,7 +7,6 @@ open ClmSys.ExitErrorCodes
 open ClmSys.Retry
 open Clm.SettingsExt
 open Clm.ModelInit
-open Clm.Model.ModelData
 open Clm.ModelParams
 open Clm.CommandLine
 open Clm.SettingsExt
@@ -61,132 +60,132 @@ module SolverRunnerTasks =
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount with
-        | Some tEnd, Some y0 ->
-            let n = ResponseHandler.tryCreate()
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId with
+        | Some tEnd, Some y0, Some modelDataId ->
+            let mdoo = tryDbFun (tryLoadModelData (ModelDataId modelDataId))
 
-            let a = results.GetResult (UseAbundant, defaultValue = false)
-            printfn "Starting at: %A" DateTime.Now
-            let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
+            match mdoo with
+            | Some (Some md) ->
+                // TODO kk:20190208 - This must be split into several functions.
+                let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
+                let n = ResponseHandler.tryCreate()
 
-            match results.TryGetResult SaveModelSettings with
-            | Some v when v ->
-                printfn "Saving model settings..."
-                let rs = modelDataParamsWithExtraData.modelDataParams.modelSettings
-                tryDbFun (saveModelSettings rs) |> ignore
-            | _ -> ignore()
+                let a = results.GetResult (UseAbundant, defaultValue = false)
+                printfn "Starting at: %A" DateTime.Now
+                let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
 
-            printfn "Calling nSolve..."
-            let modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId
+                printfn "Calling nSolve..."
+                let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 
-            let p =
-                {
-                    modelDataId = modelDataId
-                    tEnd = double tEnd
-                    g = update
-                    h = getInitValues
-                    y0 = double y0
-                    progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify (ModelDataId modelDataId) svc (Running r)) |> Some)
-                }
+                let p =
+                    {
+                        modelDataId = modelDataId
+                        tEnd = double tEnd
+                        g = md.modelData.modelBinaryData.calculationData.getDerivative
+                        h = getInitValues
+                        y0 = double y0
+                        progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify (ModelDataId modelDataId) svc (Running r)) |> Some)
+                    }
 
-            let result = nSolve p
-
-            // Notify of completion just in case.
-            match n with
-            | Some svc -> notify (ModelDataId modelDataId) svc Completed
-            | None -> ignore()
-
-            printfn "Saving."
-
-            /// Amino acids are in the list and time-depended values are in the array.
-            /// TODO kk:20190105 - There is some duplicate code here and in plotEnantiomericExcessImpl. Consolidate.
-            let maxEe, maxAverageEe =
-                let aa = [ for i in 0..(modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
-
-                let noOfOutputPoints = result.t.Length - 1
-                let tIdx = [| for i in 0..noOfOutputPoints -> i |]
-                let a = tIdx |> Array.map (fun t -> modelDataParamsWithExtraData.getTotals result.x.[t,*])
-
-                let d t i =
-                    let (l, d) = a.[t].[i]
-                    if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
-
-                let getFuncData i = tIdx |> Array.map (fun t -> d t i)
-
-                let maxEe =
-                    aa
-                    |> List.map (fun i -> getFuncData i |> List.ofArray)
-                    |> List.concat
-                    |> List.map (fun e -> abs e)
-                    |> List.max
-
-                let maxAverageEe =
-                    aa
-                    |> List.map (fun i -> getFuncData i)
-                    |> List.map (fun e -> e |> Array.average)
-                    |> List.map (fun e -> abs e)
-                    |> List.max
-
-                maxEe, maxAverageEe
+                let result = nSolve p
 
 
-            let r =
-                {
-                    simpleData =
-                        {
-                            resultDataId = None
-                            modelDataId = modelDataParamsWithExtraData.modelDataParams.modelInfo.modelDataId |> ModelDataId
+                // Notify of completion just in case.
+                match n with
+                | Some svc -> notify (ModelDataId modelDataId) svc Completed
+                | None -> ignore()
 
-                            numberOfAminoAcids = modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
-                            maxPeptideLength = modelDataParamsWithExtraData.modelDataParams.modelInfo.maxPeptideLength
+                printfn "Saving."
 
-                            y0 = decimal y0
-                            tEnd = decimal tEnd
-                            useAbundant = false // TODO kk:20190105 This should be propagated...
+                /// Amino acids are in the list and time-depended values are in the array.
+                /// TODO kk:20190105 - There is some duplicate code here and in plotEnantiomericExcessImpl. Consolidate.
+                let maxEe, maxAverageEe =
+                    let aa = [ for i in 0..(modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
 
-                            maxEe = maxEe
-                            maxAverageEe = maxAverageEe
-                        }
+                    let noOfOutputPoints = result.t.Length - 1
+                    let tIdx = [| for i in 0..noOfOutputPoints -> i |]
+                    let a = tIdx |> Array.map (fun t -> md.modelData.modelBinaryData.calculationData.getTotals result.x.[t,*])
 
-                    binaryData =
-                        {
-                            aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.modelDataParams.modelInfo.numberOfAminoAcids
-                            allSubst = modelDataParamsWithExtraData.allSubst
-                            allInd = modelDataParamsWithExtraData.allInd
-                            allRawReactions = modelDataParamsWithExtraData.allRawReactions
-                            allReactions = modelDataParamsWithExtraData.allReactions
+                    let d t i =
+                        let (l, d) = a.[t].[i]
+                        if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
 
-                            x = result.x
-                            t = result.t
-                        }
-                }
+                    let getFuncData i = tIdx |> Array.map (fun t -> d t i)
 
-            let saveResults =
-                match results.TryGetResult SaveResultData with
-                | Some v -> v
-                | None -> false // do not save binary data by default
+                    let maxEe =
+                        aa
+                        |> List.map (fun i -> getFuncData i |> List.ofArray)
+                        |> List.concat
+                        |> List.map (fun e -> abs e)
+                        |> List.max
 
-            (saveResultData ( match saveResults with | false -> r.resultDataWithoutBinary | true -> r.resultData))
-            |> tryDbFun
-            |> ignore
+                    let maxAverageEe =
+                        aa
+                        |> List.map (fun i -> getFuncData i)
+                        |> List.map (fun e -> e |> Array.average)
+                        |> List.map (fun e -> abs e)
+                        |> List.max
 
-            let plotAll show =
-                let plotter = new Plotter(PlotDataInfo.defaultValue, r)
-                plotter.plotAminoAcids show
-                plotter.plotTotalSubst show
-                plotter.plotEnantiomericExcess show
+                    maxEe, maxAverageEe
 
-            match results.TryGetResult PlotResults with
-            | Some v when v = true ->
-                printfn "Plotting."
-                plotAll true
-                printfn "Completed."
-            | _ ->
-                printfn "Generating charts..."
-                plotAll false
-                printfn "Completed."
+                let r =
+                    {
+                        simpleData =
+                            {
+                                resultDataId = None
+                                modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId |> ModelDataId
 
-            CompletedSuccessfully
+                                numberOfAminoAcids = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
+                                maxPeptideLength = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.maxPeptideLength
+
+                                y0 = decimal y0
+                                tEnd = decimal tEnd
+                                useAbundant = false // TODO kk:20190105 This should be propagated...
+
+                                maxEe = maxEe
+                                maxAverageEe = maxAverageEe
+                            }
+
+                        binaryData =
+                            {
+                                aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
+                                allSubst = modelDataParamsWithExtraData.regularParams.allSubst
+                                allInd = modelDataParamsWithExtraData.regularParams.allInd
+                                allRawReactions = modelDataParamsWithExtraData.regularParams.allRawReactions
+                                allReactions = modelDataParamsWithExtraData.regularParams.allReactions
+
+                                x = result.x
+                                t = result.t
+                            }
+                    }
+
+                let saveResults =
+                    match results.TryGetResult SaveResultData with
+                    | Some v -> v
+                    | None -> false // do not save binary data by default
+
+                (saveResultData ( match saveResults with | false -> r.resultDataWithoutBinary | true -> r.resultData))
+                |> tryDbFun
+                |> ignore
+
+                let plotAll show =
+                    let plotter = new Plotter(PlotDataInfo.defaultValue, r)
+                    plotter.plotAminoAcids show
+                    plotter.plotTotalSubst show
+                    plotter.plotEnantiomericExcess show
+
+                match results.TryGetResult PlotResults with
+                | Some v when v = true ->
+                    printfn "Plotting."
+                    plotAll true
+                    printfn "Completed."
+                | _ ->
+                    printfn "Generating charts..."
+                    plotAll false
+                    printfn "Completed."
+
+                CompletedSuccessfully
+            | _ -> UnknownException // TODO kk:20190208 - return different error codes if there is a command line error or DB error.
         | _ ->
             printfn "%s" usage
             InvalidCommandLineArgs

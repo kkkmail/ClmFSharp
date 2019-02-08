@@ -85,7 +85,7 @@ match mdo with
     printfn "(md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams) =\n    %A\n" paramEq
 
     let mdModelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
-    let allParamEq = (modelDataParamsWithExtraData.regularParams = cgModelDataParamsWithExtraData.regularParams)
+    let allParamEq = (mdModelDataParamsWithExtraData.regularParams = cgModelDataParamsWithExtraData.regularParams)
     printfn "(mdAllParam.regularParams = cgModelDataParamsWithExtraData.regularParams) =\n    %A\n" allParamEq
 
     let mdGetTotalSubst = md.modelData.modelBinaryData.calculationData.getTotalSubst

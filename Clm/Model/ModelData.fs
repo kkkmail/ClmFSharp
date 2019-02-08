@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 1475199102
+    let seedValue = 2067123077
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1724,11 +1724,10 @@ module ModelData =
                                     fileStructureVersionNumber = "2.0.0.0"
                                     versionNumber = "2.0.0.0"
                                     seedValue = seedValue
-                                    modelDataId = 6L
+                                    modelDataId = 1L
                                     numberOfSubstances = 87
                                     numberOfAminoAcids = TwoAminoAcids
                                     maxPeptideLength = ThreeMax
-                                    updateAllModels = false
                                     allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
                                     defaultSetIndex = 1
                                 }
@@ -1747,7 +1746,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                synthesisDistribution = DeltaDistribution(647006456, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                synthesisDistribution = DeltaDistribution(1645563883, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                                 forwardScale = Some 0.001
                                                 backwardScale = Some 0.001
                                             }
@@ -1759,7 +1758,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                destructionDistribution = DeltaDistribution(1746506869, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                destructionDistribution = DeltaDistribution(1325965818, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                                 forwardScale = Some 0.001
                                                 backwardScale = Some 0.001
                                             }
@@ -1773,9 +1772,9 @@ module ModelData =
                                             {
                                                 catDestrRndEeParams = 
                                                 {
-                                                    rateMultiplierDistr = TriangularDistribution(1769254895, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                                    eeForwardDistribution = BiDeltaDistribution(478467569, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                                    eeBackwardDistribution = BiDeltaDistribution(631895758, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                                    rateMultiplierDistr = TriangularDistribution(1309846970, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
+                                                    eeForwardDistribution = BiDeltaDistribution(961135591, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                                    eeBackwardDistribution = BiDeltaDistribution(282028966, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
                                                 }
                                             }
                                             |> CatDestrRndParam
@@ -1786,7 +1785,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                simBaseDistribution = UniformDistribution(1643987845, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
+                                                simBaseDistribution = UniformDistribution(1232001938, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
                                                 getRateMultiplierDistr = DeltaRateMultDistrGetter
                                                 getForwardEeDistr = DeltaEeDistributionGetter
                                                 getBackwardEeDistr = DeltaEeDistributionGetter
@@ -1799,7 +1798,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                ligationDistribution = DeltaDistribution(929181295, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                ligationDistribution = DeltaDistribution(2007551242, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
                                                 forwardScale = Some 1.0
                                                 backwardScale = Some 1.0
                                             }

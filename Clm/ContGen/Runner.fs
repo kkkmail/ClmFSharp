@@ -46,7 +46,11 @@ module Runner =
     type ModelRunner (p : ModelRunnerParam) =
         let rnd = new Random()
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
-        let getExeName (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+
+        let getExeName (ModelDataId modelId) =
+            let x = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)
+            //p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+            x + @"\" + p.exeName
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
@@ -94,34 +98,35 @@ module Runner =
             getModelData() |> tryUpdateModelData |> tryDbFun
 
 
-        let compileModel modelId =
-            let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
-            Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
-
-            // Properties
-            let buildDir = getBuildDir modelId
-
-            // Targets
-            Target.create "Clean" (fun _ ->
-              Shell.cleanDir buildDir
-            )
-
-            Target.create "BuildApp" (fun _ ->
-              [ p.buildTarget ]
-                |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
-                |> Trace.logItems "AppBuild-Output: "
-            )
-
-            Target.create "Default" (fun _ ->
-              Trace.trace "Built completed."
-            )
-
-            "Clean"
-              ==> "BuildApp"
-              ==> "Default"
-              |> ignore
-
-            Target.runOrDefault "Default"
+        // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
+        //let compileModel modelId =
+        //    let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
+        //    Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
+        //
+        //    // Properties
+        //    let buildDir = getBuildDir modelId
+        //
+        //    // Targets
+        //    Target.create "Clean" (fun _ ->
+        //      Shell.cleanDir buildDir
+        //    )
+        //
+        //    Target.create "BuildApp" (fun _ ->
+        //      [ p.buildTarget ]
+        //        |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
+        //        |> Trace.logItems "AppBuild-Output: "
+        //    )
+        //
+        //    Target.create "Default" (fun _ ->
+        //      Trace.trace "Built completed."
+        //    )
+        //
+        //    "Clean"
+        //      ==> "BuildApp"
+        //      ==> "Default"
+        //      |> ignore
+        //
+        //    Target.runOrDefault "Default"
 
 
         let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
@@ -142,11 +147,10 @@ module Runner =
                     | Some modelId ->
                         match loadParams modelId with
                         | Some (p, r) ->
-                            
                             match generateModel p |> saveModel with
                             | Some true ->
-                                compileModel modelId
-                                r |> List.map (fun e -> 
+                                //compileModel modelId
+                                r |> List.map (fun e ->
                                                     {
                                                         run = runModel e
                                                         modelId = modelId

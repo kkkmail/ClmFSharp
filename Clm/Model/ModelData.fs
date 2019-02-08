@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 2067123077
+    let seedValue = 869358387
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1724,7 +1724,7 @@ module ModelData =
                                     fileStructureVersionNumber = "2.0.0.0"
                                     versionNumber = "2.0.0.0"
                                     seedValue = seedValue
-                                    modelDataId = 1L
+                                    modelDataId = 4L
                                     numberOfSubstances = 87
                                     numberOfAminoAcids = TwoAminoAcids
                                     maxPeptideLength = ThreeMax

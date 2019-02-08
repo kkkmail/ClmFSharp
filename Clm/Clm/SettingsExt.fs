@@ -987,9 +987,6 @@ module SettingsExt =
     let maxPeptideLengthName = "maxPeptideLength"
 
     [<Literal>]
-    let updateAllModelsName = "updateAllModels"
-
-    [<Literal>]
     let allResultsFileName = "allResultsFile"
 
     [<Literal>]
@@ -1010,12 +1007,11 @@ module SettingsExt =
             let e() = getIntOpt m po numberOfSubstancesName
             let f() = getIntOpt m po numberOfAminoAcidsName
             let g() = getIntOpt m po maxPeptideLengthName
-            let h() = getBoolOpt m po updateAllModelsName
             let i() = getTextOpt m po allResultsFileName
             let j() = getIntOpt m po defaultSetIndexName
 
-            match a(), b(), c(), d(), e(), f(), g(), h(), i() with
-            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some h1, Some i1 ->
+            match a(), b(), c(), d(), e(), f(), g(), i() with
+            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some i1 ->
                 match NumberOfAminoAcids.tryCreate f1, MaxPeptideLength.tryCreate g1 with
                 | Some f2, Some g2 ->
                     let j1 =
@@ -1032,7 +1028,6 @@ module SettingsExt =
                         numberOfSubstances = e1
                         numberOfAminoAcids = f2
                         maxPeptideLength = g2
-                        updateAllModels = h1
                         allResultsFile = i1
                         defaultSetIndex = j1
                     }
@@ -1049,7 +1044,6 @@ module SettingsExt =
                 setInt po numberOfSubstancesName this.numberOfSubstances
                 setInt po numberOfAminoAcidsName this.numberOfAminoAcids.length
                 setInt po maxPeptideLengthName this.maxPeptideLength.length
-                setBool po updateAllModelsName this.updateAllModels
                 setText po allResultsFileName this.allResultsFile
                 setInt po defaultSetIndexName this.defaultSetIndex
             ]
@@ -1192,16 +1186,17 @@ module SettingsExt =
 
                 match t(), y() with
                 | Some t1, Some y1 ->
-                    {
-                        tEnd = t1
-                        y0 = y1
-                        useAbundant =
-                            match getBoolOpt m qo useAbundantName with
-                            | Some v -> v
-                            | None -> false
-                        saveModelSettings = false // This field is not serialized / deserialized.
-                    }
-                    |> Some
+                    let (x : ModelCommandLineParam) =
+                        {
+                            tEnd = t1
+                            y0 = y1
+                            useAbundant =
+                                match getBoolOpt m qo useAbundantName with
+                                | Some v -> v
+                                | None -> false
+                            modelDataId = -1L // This field is not serialized / deserialized.
+                        }
+                    Some x
                 | _ -> None
 
             [ for i in 0..100 -> i ]

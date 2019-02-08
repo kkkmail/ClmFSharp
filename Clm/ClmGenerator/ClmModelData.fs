@@ -54,9 +54,7 @@ module ClmModelData =
             reactionRateModels : List<ReactionRateModel>
             updateFuncType : UpdateFuncType
             modelLocationData : ModelLocationInputData
-            updateAllModels : bool
             defaultSetIndex : int
-            //saveModelData : bool
         }
 
 
@@ -80,9 +78,7 @@ module ClmModelData =
                         reactionRateModels = rates.rateModels
                         updateFuncType = UseFunctions
                         modelLocationData = ModelLocationInputData.defaultValue
-                        updateAllModels = false
                         defaultSetIndex = i
-                        //saveModelData = false
                     }
 
                 modelCommandLineParams = d.modelCommandLineParams

@@ -29,6 +29,7 @@ module Runner =
             rootBuildFolder : string
             buildTarget : string
             exeName : string
+            saveModelCode : bool
         }
 
         static member defaultValue =
@@ -37,6 +38,7 @@ module Runner =
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = @"SolverRunner.exe"
+                saveModelCode = false
             }
 
 
@@ -71,25 +73,24 @@ module Runner =
                 | None -> None
 
 
-        let generateModel modelGenerationParams =
+        let generateModel (modelGenerationParams : ModelGenerationParams) =
             printfn "Creating model..."
             printfn "Starting at: %A" DateTime.Now
 
             let model = ClmModel modelGenerationParams
-            model.generateCode() |> ignore
-            printfn "... completed."
+
+            match p.saveModelCode with
+            | true ->
+                printfn "Saving model code..."
+                model.generateCode() |> ignore
+                printfn "... completed."
+            | false -> printfn "NOT saving model code."
+
             model.getModelData
 
 
-        let saveModel modelDataId getModelData =
-            getModelData modelDataId |> tryUpdateModelData |> tryDbFun
-
-
-        let saveModelSettings (modelDataParamsWithExtraData : ModelDataParamsWithExtraData) =
-                modelDataParamsWithExtraData.regularParams.modelDataParams.modelSettings
-                |> saveModelSettings
-                |> tryDbFun
-                |> ignore
+        let saveModel getModelData =
+            getModelData() |> tryUpdateModelData |> tryDbFun
 
 
         let compileModel modelId =
@@ -138,17 +139,15 @@ module Runner =
             try
                 match getModelId () with
                     | Some modelId ->
-                        let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
-
                         match loadParams modelId with
                         | Some (p, r) ->
                             
-                            match generateModel p |> saveModel modelId with
+                            match generateModel p |> saveModel with
                             | Some true ->
                                 compileModel modelId
-                                r |> List.mapi (fun i e -> 
+                                r |> List.map (fun e -> 
                                                     {
-                                                        run = cmd i e |> runModel
+                                                        run = runModel e
                                                         modelId = modelId
                                                         runQueueId = getQueueId e modelId
                                                     })
@@ -174,7 +173,7 @@ module Runner =
             match tryDbFun loadRunQueue with
             | Some q -> q |> List.map (fun e ->
                                         {
-                                            run = { e.modelCommandLineParam with saveModelSettings = true } |> runModel
+                                            run = e.modelCommandLineParam |> runModel
                                             modelId = e.info.modelDataId
                                             runQueueId = e.runQueueId
                                         })

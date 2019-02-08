@@ -44,11 +44,10 @@ module SettingGenExt =
             let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
             let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
             let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
-            let i() = getBoolOpt m po updateAllModelsName
             let j() = getIntOpt m po defaultSetIndexName
 
-            match a(), b(), d(), e(), g(), h(), i() with
-            | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
+            match a(), b(), d(), e(), g(), h() with
+            | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1 ->
                 let p = ReactionRateModelParamWithUsage.getAll m po
 
                 let models =
@@ -71,9 +70,7 @@ module SettingGenExt =
                     reactionRateModels = models
                     updateFuncType = g1
                     modelLocationData = h1
-                    updateAllModels = i1
                     defaultSetIndex = j1
-                    //saveModelData = getBool m po saveModelDataName
                 }
                 |> Some
             | _ -> None
@@ -89,9 +86,7 @@ module SettingGenExt =
                 setText po fileStructureVersionNumberName this.fileStructureVersionNumber |> Some
                 setText po versionNumberName this.versionNumber |> Some
                 setIntOpt po seedValueName this.seedValue
-                setBool po updateAllModelsName this.updateAllModels |> Some
                 setInt po defaultSetIndexName this.defaultSetIndex |> Some
-                //setBool po saveModelDataName this.saveModelData |> Some
             ]
             |> List.choose id
             |> add s

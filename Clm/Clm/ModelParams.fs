@@ -20,7 +20,6 @@ module ModelParams =
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int
-            updateAllModels : bool // true if updating AllModels.fs file was done. This is needed to update / do not update all results.
             allResultsFile : string
             defaultSetIndex : int
         }
@@ -136,20 +135,21 @@ module ModelParams =
 
     type ModelCommandLineParam =
         {
+            modelDataId : ModelDataId
             tEnd : decimal
             y0 : decimal
             useAbundant : bool
-            saveModelSettings : bool
         }
 
         override this.ToString() =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = "SolverRunner.exe")
+            let (ModelDataId modelDataId) = this.modelDataId
             [
                 EndTime this.tEnd
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 PlotResults false
-                SaveModelSettings this.saveModelSettings
+                ModelId modelDataId
             ]
             |> parser.PrintCommandLineArgumentsFlat
 
@@ -203,21 +203,7 @@ module ModelParams =
         }
 
 
-    type RunQueueInfo =
-        {
-            modelDataId : ModelDataId
-            y0 : decimal
-            tEnd : decimal
-            useAbundant : bool
-        }
-
-        static member fromModelCommandLineParam (p : ModelCommandLineParam) (modelDataId : ModelDataId) =
-            {
-                modelDataId = modelDataId
-                y0 = p.y0
-                tEnd = p.tEnd
-                useAbundant = p.useAbundant
-            }
+    type RunQueueInfo = ModelCommandLineParam
 
 
     type RunQueue =
@@ -227,10 +213,4 @@ module ModelParams =
             statusId : int
         }
 
-        member q.modelCommandLineParam =
-            {
-                tEnd = q.info.tEnd
-                y0 = q.info.y0
-                useAbundant = q.info.useAbundant
-                saveModelSettings = false
-            }
+        member q.modelCommandLineParam = q.info

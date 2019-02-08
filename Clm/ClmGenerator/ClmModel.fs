@@ -40,7 +40,6 @@ module ClmModel =
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
-                updateAllModels = modelParams.updateAllModels
                 allResultsFile = modelParams.modelLocationData.allResultsFile
                 defaultSetIndex = modelParams.defaultSetIndex
             }
@@ -308,7 +307,6 @@ module ClmModel =
                                     numberOfSubstances = " + si.allSubst.Length.ToString() + @"
                                     numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                                     maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
-                                    updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                                     allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                                     defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                                 }
@@ -430,7 +428,6 @@ module ClmModel =
                         numberOfSubstances = " + (si.allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
-                        updateAllModels = " + (modelParams.updateAllModels.ToString().ToLower()) + @"
                         allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                         defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                     }
@@ -451,19 +448,11 @@ module ClmModel =
             File.WriteAllLines(modelLocationInfo.outputFile, s)
             printfn "Done."
 
-            match modelParams.updateAllModels with
-            | true -> 
-                printfn "Updating %A..." modelParams.modelLocationData.allModelsFile
-                File.AppendAllLines(modelParams.modelLocationData.allModelsFile, [ allModelDataImpl ])
-            | false -> printfn "NOT updating %A." modelParams.modelLocationData.allModelsFile
-
-            printfn "Done."
-
             s
 
-        let getModelDataImpl modelDataId =
+        let getModelDataImpl () =
             {
-                modelDataId = modelDataId
+                modelDataId = modelLocationInfo.modelDataId |> ModelDataId
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = Some seedValue
@@ -473,7 +462,7 @@ module ClmModel =
                     {
                         modelDataParams =
                             {
-                                modelInfo = getModelInfo modelDataId
+                                modelInfo = modelLocationInfo.modelDataId |> ModelDataId |> getModelInfo
                                 allParams = rateProvider.providerParams.allParams |> Array.ofList
                             }
 
@@ -500,5 +489,5 @@ module ClmModel =
         member model.allModelData = allModelDataImpl
         member model.locationInfo = modelLocationInfo
         member model.generateCode() = generateAndSave()
-        member model.getModelData modelDataId = getModelDataImpl modelDataId
+        member model.getModelData() = getModelDataImpl()
 

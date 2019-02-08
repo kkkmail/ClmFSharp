@@ -120,7 +120,7 @@ module ContGenTasks =
 
     let generateModel () =
         printfn "Genetrating and compiling model..."
-        let g = createOneTimeGenerator ModelRunnerParam.defaultValue
+        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
         g() |> ignore
         CompletedSuccessfully
 

@@ -91,6 +91,11 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj">
+      <Name>SolverRunner</Name>
+      <Project>{f0d4b13d-57ab-4ebf-ae90-4f758cf5741b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="Argu">
       <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
     </Reference>

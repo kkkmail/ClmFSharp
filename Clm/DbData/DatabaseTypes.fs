@@ -450,9 +450,13 @@ module DatabaseTypes =
                 info =
                     {
                         modelDataId = ModelDataId r.modelDataId
-                        y0 = r.y0
-                        tEnd = r.tEnd
-                        useAbundant = r.useAbundant
+
+                        modelCommandLineParam =
+                            {
+                                y0 = r.y0
+                                tEnd = r.tEnd
+                                useAbundant = r.useAbundant
+                            }
                     }
                 statusId = r.statusId
             }
@@ -465,9 +469,9 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         modelDataId = r.modelDataId.value,
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant
+                        y0 = r.modelCommandLineParam.y0,
+                        tEnd = r.modelCommandLineParam.tEnd,
+                        useAbundant = r.modelCommandLineParam.useAbundant
                         )
 
             newRow.statusId <- 0
@@ -754,11 +758,11 @@ module DatabaseTypes =
         |> List.map (fun e -> RunQueue.create e)
 
 
-    let saveRunQueueEntry (p : ModelCommandLineParam) (ModelDataId modelId) (ConnectionString connectionString) =
+    let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new RunQueueTable()
-        let r = RunQueueInfo.fromModelCommandLineParam p (ModelDataId modelId)
+        let r = RunQueueInfo.fromModelCommandLineParam modelDataId p
         let row = r.addRow t
         t.Update conn |> ignore
         row.runQueueId |> RunQueueId

@@ -13,6 +13,7 @@ open System.Text
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open Clm.CalculationData
+open Clm.CommandLine
 open AsyncRun
 
 open Fake.DotNet
@@ -37,7 +38,7 @@ module Runner =
                 connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
-                exeName = @"SolverRunner.exe"
+                exeName = SolverRunnerName
                 saveModelCode = false
             }
 
@@ -125,12 +126,12 @@ module Runner =
 
         let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
             let exeName = getExeName (c.calledBackModelId)
-            let commandLineParams = p.ToString()
+            let commandLineParams = p.toCommandLine c.calledBackModelId
             runProc c exeName commandLineParams None
 
 
         let getQueueId (p : ModelCommandLineParam) modelId =
-            match tryDbFun (saveRunQueueEntry p modelId) with
+            match tryDbFun (saveRunQueueEntry modelId p) with
             | Some q -> q
             | None -> RunQueueId -1L
 

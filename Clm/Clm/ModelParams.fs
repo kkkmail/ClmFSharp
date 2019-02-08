@@ -135,15 +135,14 @@ module ModelParams =
 
     type ModelCommandLineParam =
         {
-            modelDataId : ModelDataId
             tEnd : decimal
             y0 : decimal
             useAbundant : bool
         }
 
-        override this.ToString() =
-            let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = "SolverRunner.exe")
-            let (ModelDataId modelDataId) = this.modelDataId
+        member this.toCommandLine (ModelDataId modelDataId) =
+            let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
+
             [
                 EndTime this.tEnd
                 TotalAmount this.y0
@@ -203,7 +202,17 @@ module ModelParams =
         }
 
 
-    type RunQueueInfo = ModelCommandLineParam
+    type RunQueueInfo =
+        {
+            modelDataId : ModelDataId
+            modelCommandLineParam : ModelCommandLineParam
+        }
+
+        static member fromModelCommandLineParam modelDataId p =
+            {
+                modelDataId = modelDataId
+                modelCommandLineParam = p
+            }
 
 
     type RunQueue =
@@ -213,4 +222,4 @@ module ModelParams =
             statusId : int
         }
 
-        member q.modelCommandLineParam = q.info
+        member q.modelCommandLineParam = q.info.modelCommandLineParam

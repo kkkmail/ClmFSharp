@@ -1180,7 +1180,7 @@ module SettingsExt =
         with
 
         static member getValues (m : SettingMap) po =
-            let tryGet (m : SettingMap) qo = 
+            let tryGet (m : SettingMap) qo =
                 let t() = getDecimalOpt m qo tEndName
                 let y() = getDecimalOpt m qo y0Name
 
@@ -1194,7 +1194,6 @@ module SettingsExt =
                                 match getBoolOpt m qo useAbundantName with
                                 | Some v -> v
                                 | None -> false
-                            modelDataId = -1L // This field is not serialized / deserialized.
                         }
                     Some x
                 | _ -> None

@@ -3,6 +3,10 @@ open Argu
 
 module CommandLine =
 
+    [<Literal>]
+
+    let SolverRunnerName = "SolverRunner.exe"
+
     [<CliPrefix(CliPrefix.Dash)>]
     type SolverRunnerArguments =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>]  EndTime of decimal

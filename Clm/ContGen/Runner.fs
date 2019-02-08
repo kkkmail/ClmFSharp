@@ -48,7 +48,11 @@ module Runner =
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
         let getExeName (ModelDataId modelId) =
-            let x = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)
+            // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
+            // See:
+            //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
+            //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
+            let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
             //p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
             x + @"\" + p.exeName
 

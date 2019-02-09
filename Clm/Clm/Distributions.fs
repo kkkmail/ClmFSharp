@@ -57,18 +57,14 @@ module Distributions =
     [<Literal>]
     let DeltaName = "Delta"
 
-
     [<Literal>]
     let BiDeltaName = "BiDelta"
-
 
     [<Literal>]
     let UniformName = "Uniform"
 
-
     [<Literal>]
     let TriangularName = "Triangular"
-
 
     [<Literal>]
     let SymmetricTriangularName = "SymmetricTriangular"

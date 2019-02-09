@@ -100,6 +100,28 @@ module SettingsExt =
             add s [ setInt po MaxPeptideLengthName this.length]
 
 
+    type DistributionType
+        with
+
+        static member tryGet (m : SettingMap) po =
+            match getTextOpt m po DistributionTypeName with
+            | Some s ->
+                match s with
+                | DeltaName -> Delta |> Some
+                | BiDeltaName -> BiDelta |> Some
+                | UniformName -> Uniform |> Some
+                | TriangularName -> Triangular |> Some
+                | SymmetricTriangularName -> SymmetricTriangular |> Some
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            match this with
+            | NoneRateMult -> s
+            | RateMultDistr d -> d.setValue (addParent po this.name) s
+            |> add [ setText po RateMultiplierDistributionName this.name ]
+
+
     [<Literal>]
     let thresholdName = "threshold"
 
@@ -128,6 +150,14 @@ module SettingsExt =
             |> List.choose id
             |> add s
 
+
+
+
+
+
+
+
+    /////////////////
 
     [<Literal>]
     let seedValueName = "seedValue"

@@ -75,7 +75,6 @@
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
     <Compile Include="RateModelsExt.fs" />
-    <Compile Include="SettingsExt.fs" />
     <Compile Include="CalculationData.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

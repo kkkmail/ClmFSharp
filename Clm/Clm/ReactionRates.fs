@@ -94,23 +94,24 @@ module ReactionRates =
     let updateRelatedReactions<'R>
         (d : Dictionary<'R, RateData>)
         (getEnantiomer : 'R -> 'R)
-        (x : RelatedReactions<'R>)
-        (r : 'R) =
+        (r : 'R)
+        (x : RelatedReactions<'R>) =
 
         updatePrimaryReactions d getEnantiomer x.primary r
         updateSimilarReactions d getEnantiomer x.similar
         x.primary
 
 
-    let getRatesImpl<'R>
-        (d : Dictionary<'R, RateData>)
+    let getRatesImpl<'R> 
+        (rateDictionary : Dictionary<'R, RateData>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
-        (r : 'R) =
-
-        match d.TryGetValue r with
+        (reaction : 'R)  =
+        match rateDictionary.TryGetValue reaction with
         | true, rates -> rates
-        | false, _ -> updateRelatedReactions d getEnantiomer (calculateRates r) r
+        | false, _ ->
+            calculateRates reaction
+            |> updateRelatedReactions rateDictionary getEnantiomer reaction
 
 
     //let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -151,6 +152,7 @@ module ReactionRates =
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
             eeParams : CatRatesEeParam
             rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
         }
 
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
@@ -168,17 +170,17 @@ module ReactionRates =
         let rf, rb, rfe, rbe =
             let k =
                 match i.rateGenerationType with
-                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt()
-                | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble()
+                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt i.rnd
+                | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
 
             match k, i.eeParams.eeForwardDistribution with
             | Some k0, Some df ->
                 let s0 = i.getBaseRates i.reaction
-                let fEe = df.nextDouble()
+                let fEe = df.nextDouble i.rnd
 
                 let bEe =
                     match i.eeParams.eeBackwardDistribution with 
-                    | Some d -> d.nextDouble()
+                    | Some d -> d.nextDouble i.rnd
                     | None -> fEe
 
                 let kf = k0 * (1.0 + fEe)
@@ -229,6 +231,7 @@ module ReactionRates =
             eeParams : CatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
             rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
         }
 
         member i.toCatRatesInfo r c e =
@@ -240,6 +243,7 @@ module ReactionRates =
                 getBaseRates = i.getBaseRates
                 eeParams = e
                 rateGenerationType = i.rateGenerationType
+                rnd = i.rnd
             }
 
 
@@ -252,17 +256,16 @@ module ReactionRates =
         let calculateCatRates s c e =
             let reaction = (s, c) |> i.catReactionCreator
             let related = i.toCatRatesInfo s c e |> calculateCatRates
-            updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer related reaction
+            updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
 
         match (cr.forwardRate, cr.backwardRate) with
-        | None, None -> 
+        | None, None ->
             i.aminoAcids
             |> List.map (fun a -> i.simReactionCreator a)
             |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
         | _ ->
-            let nextSeed = i.simParams.simBaseDistribution.nextSeed
-            let cre = re |> i.getBaseCatRates // (fe, be)
+            let cre = re |> i.getBaseCatRates
 
             let rateMult =
                 match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
@@ -280,14 +283,14 @@ module ReactionRates =
                 match d with
                 | true ->
                     {
-                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr nextSeed None rateMult
-                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr nextSeed cr.forwardRate cre.forwardRate
-                        eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr nextSeed cr.backwardRate cre.backwardRate
+                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
+                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                        eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
                     }
                 | false -> CatRatesEeParam.defaultValue
 
             i.aminoAcids
-            |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined())
+            |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined i.rnd)
             |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
             |> ignore
 
@@ -418,19 +421,19 @@ module ReactionRates =
     type SynthesisRandomModel (p : SynthesisRandomParam) =
         inherit RateModel<SynthesisRandomParam, SynthesisReaction>(p)
 
-        let calculateRates _ =
+        let calculateRates rnd _ =
             let d = p.synthesisDistribution
-            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+            getRates (p.forwardScale, d.nextDouble rnd |> Some) (p.backwardScale, d.nextDouble rnd |> Some)
 
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+        member model.getRates rnd r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
 
 
     type SynthesisModel =
         | SynthRndModel of SynthesisRandomModel
 
-        member model.getRates r =
+        member model.getRates rnd r =
             match model with
-            | SynthRndModel m -> m.getRates r
+            | SynthRndModel m -> m.getRates rnd r
 
         member model.inputParams =
             match model with
@@ -499,19 +502,20 @@ module ReactionRates =
     type CatalyticSynthesisRandomModel (p : CatalyticSynthesisRandomParamWithModel) =
         inherit RateModel<CatalyticSynthesisRandomParamWithModel, CatalyticSynthesisReaction>(p)
 
-        let calculateCatSynthRates t (CatalyticSynthesisReaction (s, c)) = 
+        let calculateCatSynthRates rnd t (CatalyticSynthesisReaction (s, c)) =
             {
                 reaction = s
                 catalyst = c
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticSynthesisReaction
-                getBaseRates = p.synthesisModel.getRates
+                getBaseRates = p.synthesisModel.getRates rnd
                 eeParams = p.catSynthRndParam.catSynthRndEeParams
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateCatRates
 
-        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates t) r
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r
 
 
     type CatalyticSynthesisSimilarParamWithModel =
@@ -528,7 +532,7 @@ module ReactionRates =
 
 
     type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) =
-        let calculateSimRatesImpl t (CatalyticSynthesisReaction (s, c)) =
+        let calculateSimRatesImpl rnd t (CatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
             {
                 reaction = s
@@ -538,16 +542,17 @@ module ReactionRates =
                 catReactionCreator = CatalyticSynthesisReaction
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> a.createSameChirality e |> SynthesisReaction)
-                getBaseRates = p.catSynthModel.inputParams.synthesisModel.getRates
-                getBaseCatRates = p.catSynthModel.getRates t
+                getBaseRates = p.catSynthModel.inputParams.synthesisModel.getRates rnd
+                getBaseCatRates = p.catSynthModel.getRates rnd t
                 simParams = p.catSynthSimParam
                 eeParams = p.catSynthModel.inputParams.catSynthRndParam.catSynthRndEeParams
                 rateDictionary = p.catSynthModel.rateDictionary
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateSimRates
 
-        member __.getRates t r = calculateSimRatesImpl t r
+        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
         member __.inputParams = p
         member __.getAllRates() = getAllRatesImpl p.catSynthModel.rateDictionary
 
@@ -556,10 +561,10 @@ module ReactionRates =
         | CatSynthRndModel of CatalyticSynthesisRandomModel
         | CatSynthSimModel of CatalyticSynthesisSimilarModel
 
-        member model.getRates t r =
+        member model.getRates rnd t r =
             match model with
-            | CatSynthRndModel m -> m.getRates t r
-            | CatSynthSimModel m -> m.getRates t r
+            | CatSynthRndModel m -> m.getRates rnd t r
+            | CatSynthSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
@@ -619,19 +624,19 @@ module ReactionRates =
     type DestructionRandomModel (p : DestructionRandomParam) =
         inherit RateModel<DestructionRandomParam, DestructionReaction>(p)
 
-        let calculateRates _ =
+        let calculateRates rnd _ =
             let d = p.destructionDistribution
-            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+            getRates (p.forwardScale, d.nextDouble rnd |> Some) (p.backwardScale, d.nextDouble rnd |> Some)
 
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+        member model.getRates rnd r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
 
 
     type DestructionModel =
         | DestrRndModel of DestructionRandomModel
 
-        member model.getRates r =
+        member model.getRates rnd r =
             match model with
-            | DestrRndModel m -> m.getRates r
+            | DestrRndModel m -> m.getRates rnd r
 
         member model.inputParams =
             match model with
@@ -695,19 +700,20 @@ module ReactionRates =
     type CatalyticDestructionRandomModel (p : CatalyticDestructionRandomParamWithModel) =
         inherit RateModel<CatalyticDestructionRandomParamWithModel, CatalyticDestructionReaction>(p)
 
-        let calculateCatSynthRates t (CatalyticDestructionReaction (s, c)) =
+        let calculateCatSynthRates rnd t (CatalyticDestructionReaction (s, c)) =
             {
                 reaction = s
                 catalyst = c
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticDestructionReaction
-                getBaseRates = p.destructionModel.getRates
+                getBaseRates = p.destructionModel.getRates rnd
                 eeParams = p.catDestrRndParam.catDestrRndEeParams
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateCatRates
 
-        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates t) r
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r
 
 
     type CatalyticDestructionSimilarParamWithModel =
@@ -724,7 +730,7 @@ module ReactionRates =
 
 
     type CatalyticDestructionSimilarModel (p : CatalyticDestructionSimilarParamWithModel) =
-        let calculateSimRatesImpl t (CatalyticDestructionReaction (s, c)) = 
+        let calculateSimRatesImpl rnd t (CatalyticDestructionReaction (s, c)) = 
             let (DestructionReaction a) = s
             {
                 reaction = s
@@ -734,16 +740,17 @@ module ReactionRates =
                 catReactionCreator = CatalyticDestructionReaction
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> a.createSameChirality e |> DestructionReaction)
-                getBaseRates = p.catDestrModel.inputParams.destructionModel.getRates
-                getBaseCatRates = p.catDestrModel.getRates t
+                getBaseRates = p.catDestrModel.inputParams.destructionModel.getRates rnd
+                getBaseCatRates = p.catDestrModel.getRates rnd t
                 simParams = p.catDestrSimParam
                 eeParams = p.catDestrModel.inputParams.catDestrRndParam.catDestrRndEeParams
                 rateDictionary = p.catDestrModel.rateDictionary
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateSimRates
 
-        member __.getRates t r = calculateSimRatesImpl t r
+        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
         member __.inputParams = p
         member __.getAllRates() = getAllRatesImpl p.catDestrModel.rateDictionary
 
@@ -752,10 +759,10 @@ module ReactionRates =
         | CatDestrRndModel of CatalyticDestructionRandomModel
         | CatDestrSimModel of CatalyticDestructionSimilarModel
 
-        member model.getRates t r =
+        member model.getRates rnd t r =
             match model with
-            | CatDestrRndModel m -> m.getRates t r
-            | CatDestrSimModel m -> m.getRates t r
+            | CatDestrRndModel m -> m.getRates rnd t r
+            | CatDestrSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
@@ -814,22 +821,22 @@ module ReactionRates =
     type SedimentationDirectRandomModel (p : SedimentationDirectRandomParam) =
         inherit RateModel<SedimentationDirectRandomParam, SedimentationDirectReaction>(p)
 
-        let calculateRates t _ =
+        let calculateRates rnd t _ =
             let k =
                 match t with
-                | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt()
-                | RandomChoice -> p.sedimentationDirectDistribution.nextDouble() |> Some
+                | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt rnd
+                | RandomChoice -> p.sedimentationDirectDistribution.nextDouble rnd |> Some
             getForwardRates (p.forwardScale, k)
 
-        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates t) r
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
 
 
     type SedimentationDirectModel =
         | SedDirRndModel of SedimentationDirectRandomModel
 
-        member model.getRates t r =
+        member model.getRates rnd t r =
             match model with
-            | SedDirRndModel m -> m.getRates t r
+            | SedDirRndModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
@@ -884,16 +891,16 @@ module ReactionRates =
 
     type SedimentationAllRandomModel (p : SedimentationAllRandomParam) =
         inherit RateModel<SedimentationAllRandomParam, SedimentationAllReaction>(p)
-        let calculateRates _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble() |> Some)
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+        let calculateRates rnd _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble rnd |> Some)
+        member model.getRates rnd r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
 
 
     type SedimentationAllModel =
         | SedAllRndModel of SedimentationAllRandomModel
 
-        member model.getRates r =
+        member model.getRates rnd r =
             match model with
-            | SedAllRndModel m -> m.getRates r
+            | SedAllRndModel m -> m.getRates rnd r
 
         member model.inputParams =
             match model with
@@ -950,19 +957,19 @@ module ReactionRates =
     type LigationRandomModel (p : LigationRandomParam) =
         inherit RateModel<LigationRandomParam, LigationReaction>(p)
 
-        let calculateRates _ =
+        let calculateRates rnd _ =
             let d = p.ligationDistribution
-            getRates (p.forwardScale, d.nextDouble() |> Some) (p.backwardScale, d.nextDouble() |> Some)
+            getRates (p.forwardScale, d.nextDouble rnd |> Some) (p.backwardScale, d.nextDouble rnd |> Some)
 
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+        member model.getRates rnd r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
 
 
     type LigationModel =
         | LigRndModel of LigationRandomModel
 
-        member model.getRates r =
+        member model.getRates rnd r =
             match model with
-            | LigRndModel m -> m.getRates r
+            | LigRndModel m -> m.getRates rnd r
 
         member model.inputParams =
             match model with
@@ -1032,27 +1039,28 @@ module ReactionRates =
     type CatalyticLigationRandomModel (p : CatalyticLigationRandomParamWithModel) =
         inherit RateModel<CatalyticLigationRandomParamWithModel, CatalyticLigationReaction>(p)
 
-        let calculateCatSynthRates t (CatalyticLigationReaction (s, c)) =
+        let calculateCatSynthRates rnd t (CatalyticLigationReaction (s, c)) =
             {
                 reaction = s
                 catalyst = c
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
-                getBaseRates = p.ligationModel.getRates
+                getBaseRates = p.ligationModel.getRates rnd
                 eeParams = p.catLigationParam.catLigRndEeParams
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateCatRates
 
-        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates t) r
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r
 
 
     type CatalyticLigationModel =
         | CatLigRndModel of CatalyticLigationRandomModel
 
-        member model.getRates t r =
+        member model.getRates rnd t r =
             match model with
-            | CatLigRndModel m -> m.getRates t r
+            | CatLigRndModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
@@ -1108,19 +1116,19 @@ module ReactionRates =
     type RacemizationRandomModel (p : RacemizationRandomParam) =
         inherit RateModel<RacemizationRandomParam, RacemizationReaction>(p)
 
-        let calculateRates _ =
+        let calculateRates rnd _ =
             let d = p.racemizationDistribution
-            getRates (p.forwardScale, d.nextDouble() |> Some) (None, None)
+            getRates (p.forwardScale, d.nextDouble rnd |> Some) (None, None)
 
-        member model.getRates r = getRatesImpl model.rateDictionary getEnantiomer calculateRates r
+        member model.getRates rnd r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
 
 
     type RacemizationModel =
         | RacemRndModel of RacemizationRandomModel
 
-        member model.getRates r =
+        member model.getRates rnd r =
             match model with
-            | RacemRndModel m -> m.getRates r
+            | RacemRndModel m -> m.getRates rnd r
 
         member model.inputParams =
             match model with
@@ -1188,19 +1196,20 @@ module ReactionRates =
     type CatalyticRacemizationRandomModel (p : CatalyticRacemizationRandomParamWithModel) =
         inherit RateModel<CatalyticRacemizationRandomParamWithModel, CatalyticRacemizationReaction>(p)
 
-        let calculateCatSynthRates t (CatalyticRacemizationReaction (s, c)) =
+        let calculateCatSynthRates rnd t (CatalyticRacemizationReaction (s, c)) =
             {
                 reaction = s
                 catalyst = c
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticRacemizationReaction
-                getBaseRates = p.racemizationModel.getRates
+                getBaseRates = p.racemizationModel.getRates rnd
                 eeParams = p.catRacemRndParam.catRacemRndEeParams
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateCatRates
 
-        member model.getRates t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates t) r
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r
 
 
     type CatalyticRacemizationSimilarParamWithModel =
@@ -1217,7 +1226,7 @@ module ReactionRates =
 
 
     type CatalyticRacemizationSimilarModel (p : CatalyticRacemizationSimilarParamWithModel) =
-        let calculateSimRatesImpl t (CatalyticRacemizationReaction (s, c)) =
+        let calculateSimRatesImpl rnd t (CatalyticRacemizationReaction (s, c)) =
             let (RacemizationReaction a) = s
             {
                 reaction = s
@@ -1227,16 +1236,17 @@ module ReactionRates =
                 catReactionCreator = CatalyticRacemizationReaction
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> a.createSameChirality e |> RacemizationReaction)
-                getBaseRates = p.catRacemModel.inputParams.racemizationModel.getRates
-                getBaseCatRates = p.catRacemModel.getRates t
+                getBaseRates = p.catRacemModel.inputParams.racemizationModel.getRates rnd
+                getBaseCatRates = p.catRacemModel.getRates rnd t
                 simParams = p.catRacemSimParam
                 eeParams = p.catRacemModel.inputParams.catRacemRndParam.catRacemRndEeParams
                 rateDictionary = p.catRacemModel.rateDictionary
                 rateGenerationType = t
+                rnd = rnd
             }
             |> calculateSimRates
 
-        member __.getRates t r = calculateSimRatesImpl t r
+        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
         member __.inputParams = p
         member __.getAllRates() = getAllRatesImpl p.catRacemModel.rateDictionary
 
@@ -1245,10 +1255,10 @@ module ReactionRates =
         | CatRacemRndModel of CatalyticRacemizationRandomModel
         | CatRacemSimModel of CatalyticRacemizationSimilarModel
 
-        member model.getRates t r =
+        member model.getRates rnd t r =
             match model with
-            | CatRacemRndModel m -> m.getRates t r
-            | CatRacemSimModel m -> m.getRates t r
+            | CatRacemRndModel m -> m.getRates rnd t r
+            | CatRacemSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
@@ -1642,21 +1652,21 @@ module ReactionRates =
 
 
     type ReactionRateProvider (p: ReactionRateProviderParams) =
-        let getRatesImpl t a =
+        let getRatesImpl rnd t a =
             match a with
             | FoodCreation r -> p.tryFindFoodCreationModel() |> bind (fun m -> m.getRates r)
             | WasteRemoval r -> p.tryFindWasteRemovalModel() |> bind (fun m -> m.getRates r)
             | WasteRecycling r -> p.tryFindWasteRecyclingModel() |> bind (fun m -> m.getRates r)
-            | Synthesis r -> p.tryFindSynthesisModel() |> bind (fun m -> m.getRates r)
-            | Destruction r -> p.tryFindDestructionModel() |> bind (fun m -> m.getRates r)
-            | CatalyticSynthesis r -> p.tryFindCatalyticSynthesisModel() |> bind (fun m -> m.getRates t r)
-            | CatalyticDestruction r -> p.tryFindCatalyticDestructionModel() |> bind (fun m -> m.getRates t r)
-            | Ligation r -> p.tryFindLigationModel() |> bind (fun m -> m.getRates r)
-            | CatalyticLigation r -> p.tryFindCatalyticLigationModel() |> bind (fun m -> m.getRates t r)
-            | SedimentationDirect r -> p.tryFindSedimentationDirectModel() |> bind (fun m -> m.getRates t r)
-            | SedimentationAll r -> p.tryFindSedimentationAllModel() |> bind (fun m -> m.getRates r)
-            | Racemization r -> p.tryFindRacemizationModel() |> bind (fun m -> m.getRates r)
-            | CatalyticRacemization r -> p.tryFindCatalyticRacemizationModel() |> bind (fun m -> m.getRates t r)
+            | Synthesis r -> p.tryFindSynthesisModel() |> bind (fun m -> m.getRates rnd r)
+            | Destruction r -> p.tryFindDestructionModel() |> bind (fun m -> m.getRates rnd r)
+            | CatalyticSynthesis r -> p.tryFindCatalyticSynthesisModel() |> bind (fun m -> m.getRates rnd t r)
+            | CatalyticDestruction r -> p.tryFindCatalyticDestructionModel() |> bind (fun m -> m.getRates rnd t r)
+            | Ligation r -> p.tryFindLigationModel() |> bind (fun m -> m.getRates rnd r)
+            | CatalyticLigation r -> p.tryFindCatalyticLigationModel() |> bind (fun m -> m.getRates rnd t r)
+            | SedimentationDirect r -> p.tryFindSedimentationDirectModel() |> bind (fun m -> m.getRates rnd t r)
+            | SedimentationAll r -> p.tryFindSedimentationAllModel() |> bind (fun m -> m.getRates rnd r)
+            | Racemization r -> p.tryFindRacemizationModel() |> bind (fun m -> m.getRates rnd r)
+            | CatalyticRacemization r -> p.tryFindCatalyticRacemizationModel() |> bind (fun m -> m.getRates rnd t r)
 
         let getModelImpl n =
             match n with
@@ -1675,6 +1685,6 @@ module ReactionRates =
             | CatalyticRacemizationName -> p.tryFindCatalyticRacemizationModel() |> Option.bind(fun e -> CatalyticRacemizationRateModel e |> Some)
 
         member __.providerParams = p
-        member __.getRates a = getRatesImpl a
+        member __.getRates rnd a = getRatesImpl rnd a
         member __.getModel n = getModelImpl n
         member __.getAllRates() = p.rateModels |> List.map (fun m -> m.getAllRates())

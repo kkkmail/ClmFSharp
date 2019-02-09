@@ -22,18 +22,11 @@ module ModelInit =
         static member defaultMult = 0.001
         static member defaultMultEe = 0.001
 
-        static member getDefaultValue p so a =
-            let distr =
-                let seed =
-                    match so with
-                    | Some s -> s
-                    | None -> 0
-                UniformDistribution seed |> Uniform
-
+        static member getDefaultValue p a =
             {
                 modelDataParams = p
-                distr = distr
-                eeDistr = EeDistribution.createSymmetricTriangular distr.nextSeed
+                distr = Distribution.createUniform DistributionParams.defaultValue
+                eeDistr = EeDistribution.createSymmetricTriangular()
                 multiplier = None
                 multEe = None
                 useAbundant = a
@@ -58,18 +51,20 @@ module ModelInit =
             | None -> ModelInitValuesParams.defaultMultEe
 
         let allSubst = p.modelDataParams.regularParams.allSubst
-        let nextValue (s : Substance) = y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))
-        let nextEe() = multEe * (p.eeDistr.nextDouble())
+        let nextValue rnd (s : Substance) = 
+            y0 * mult * (p.distr.nextDouble rnd) / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))
 
-        let initVals =
+        let nextEe rnd = multEe * (p.eeDistr.nextDouble rnd)
+
+        let initVals rnd =
             allSubst
             |> List.filter (fun s -> not s.isSimple)
             |> List.map (fun s -> orderPairs (s.aminoAcids, s.enantiomer.aminoAcids) |> fst |> Substance.fromList)
             |> List.distinct
-            |> List.map (fun s -> (s, (nextValue s, nextEe())))
+            |> List.map (fun s -> (s, (nextValue rnd s, nextEe rnd)))
 
-        let initValsMap = initVals |> Map.ofList
-        let total = initVals |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
+        let initValsMap rnd = initVals rnd |> Map.ofList
+        let total rnd = initVals rnd |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
 
         let getValue i =
             let s = allIndRev.[i]

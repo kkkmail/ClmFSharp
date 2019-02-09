@@ -137,10 +137,28 @@ module Distributions =
 
     type RandomValueGetter =
         {
+            seed : int
             next : unit -> int
             nextUpToN : int -> int
             nextDouble : unit -> double
         }
+
+        static member create so =
+            let seed =
+                match so with
+                | Some s -> s
+                | None -> Random().Next()
+
+            let rnd = new Random(seed)
+
+            {
+                seed = seed
+                next = rnd.Next
+                nextUpToN = (fun n -> rnd.Next(n))
+                nextDouble = rnd.NextDouble
+            }
+
+        static member create() = RandomValueGetter.create None
 
 
     [<Literal>]

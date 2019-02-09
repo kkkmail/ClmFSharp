@@ -33,7 +33,7 @@ module ModelInit =
             }
 
 
-    let defaultInit (p : ModelInitValuesParams) y0 =
+    let defaultInit rnd (p : ModelInitValuesParams) y0 =
         let mult =
             match p.multiplier with
             | Some m -> m
@@ -51,20 +51,21 @@ module ModelInit =
             | None -> ModelInitValuesParams.defaultMultEe
 
         let allSubst = p.modelDataParams.regularParams.allSubst
-        let nextValue rnd (s : Substance) = 
+
+        let nextValue _ =
             y0 * mult * (p.distr.nextDouble rnd) / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))
 
-        let nextEe rnd = multEe * (p.eeDistr.nextDouble rnd)
+        let nextEe = multEe * (p.eeDistr.nextDouble rnd)
 
-        let initVals rnd =
+        let initVals =
             allSubst
             |> List.filter (fun s -> not s.isSimple)
             |> List.map (fun s -> orderPairs (s.aminoAcids, s.enantiomer.aminoAcids) |> fst |> Substance.fromList)
             |> List.distinct
-            |> List.map (fun s -> (s, (nextValue rnd s, nextEe rnd)))
+            |> List.map (fun s -> (s, (nextValue s, nextEe)))
 
-        let initValsMap rnd = initVals rnd |> Map.ofList
-        let total rnd = initVals rnd |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
+        let initValsMap = initVals |> Map.ofList
+        let total = initVals |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
 
         let getValue i =
             let s = allIndRev.[i]

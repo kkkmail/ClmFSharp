@@ -15,7 +15,7 @@ module Reactions =
         member reaction.enantiomer = { reaction with reaction = reaction.reaction.enantiomer }
 
         static member tryCreate g i =
-            match g i with 
+            match g i with
             | Some f ->
                 {
                     reaction = i
@@ -69,8 +69,8 @@ module Reactions =
             | None, Some b -> BackwardReaction.tryCreate (fun _ -> Some b) i
             | None, None -> None
 
-        static member tryCreate (g : ReactionRateProvider) t i =
-            g.getRates t i |> ReversibleReaction.tryCreateFromRateData i
+        static member tryCreate rnd (g : ReactionRateProvider) t i =
+            g.getRates rnd t i |> ReversibleReaction.tryCreateFromRateData i
 
 
     and AnyReaction =
@@ -122,8 +122,8 @@ module Reactions =
             | Some r -> Some [ r; r.enantiomer ]
             | None -> None
 
-        static member tryCreateReaction g t i =
-            match ReversibleReaction.tryCreate g t i with
+        static member tryCreateReaction rnd g t i =
+            match ReversibleReaction.tryCreate rnd g t i with
             | Some r -> Some [ r; r.enantiomer ]
             | None -> None
 

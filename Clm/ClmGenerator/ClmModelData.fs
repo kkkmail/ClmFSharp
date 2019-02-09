@@ -64,15 +64,15 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
-            let rates = d.getDefaultRateModels rnd numberOfAminoAcids
+        static member getDefaultValue (rnd : RandomValueGetter) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
+            let rates = d.getDefaultRateModels numberOfAminoAcids
 
             {
                 modelGenerationParams =
                     {
                         fileStructureVersionNumber = FileStructureVersionNumber
                         versionNumber = VersionNumber
-                        seedValue = rnd.Next() |> Some
+                        seedValue = rnd.next() |> Some
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
                         reactionRateModels = rates.rateModels
@@ -127,11 +127,9 @@ module ClmModelData =
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
         }
 
-        member data.getReactions sdp rateProvider t n =
-            //let x = AnyReaction.tryCreateReactionFromRateData
-
+        member data.getReactions rnd sdp rateProvider t n =
             let createReactions c l =
-                let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
+                let create a = c a |> AnyReaction.tryCreateReaction rnd rateProvider t
 
                 l
                 |> List.map create
@@ -139,9 +137,9 @@ module ClmModelData =
                 |> List.concat
 
             match n with
-            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
-            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
-            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
+            | FoodCreationName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
+            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
             | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) data.substInfo.chiralAminoAcids
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
@@ -177,8 +175,8 @@ module ClmModelData =
             | CatalyticRacemizationName -> data.commonData.catRacemPairs.Length
 
 
-        member data.getReactions rateProvider n =
-            data.commonData.getReactions data.allPairs rateProvider BruteForce n
+        member data.getReactions rnd rateProvider n =
+            data.commonData.getReactions rnd data.allPairs rateProvider BruteForce n
 
 
         static member create si =
@@ -201,16 +199,16 @@ module ClmModelData =
             }
 
 
-    let generatePairs<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
+    let generatePairs<'A, 'B> rnd (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
         let noOfTries = i.a.Length * i.b.Length / 4
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
         match rateProvider.getPrimaryDistribution i.reactionName with
         | Some d ->
-            let sn = d.successNumber noOfTries
+            let sn = d.successNumber rnd noOfTries
             printfn "generatePairs.sn = %A" sn
-            [ for _ in 1..sn -> (i.a.[d.next i.a.Length], i.b.[d.next i.b.Length]) ]
+            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
         | None -> []
 
 
@@ -238,20 +236,20 @@ module ClmModelData =
             | RacemizationName -> si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> si.racemizationReactions.Length * si.racemCatalysts.Length
 
-        member data.getReactions rateProvider n =
-            data.commonData.getReactions data.sedDirPairs rateProvider RandomChoice n
+        member data.getReactions rnd rateProvider n =
+            data.commonData.getReactions rnd data.sedDirPairs rateProvider RandomChoice n
 
-        static member create rateProvider si =
+        static member create rnd rateProvider si =
             {
                 sedDirPairs = []
 
                 commonData =
                     {
                         substInfo = si
-                        catSynthPairs = generatePairs si.catSynthInfo rateProvider
-                        catDestrPairs = generatePairs si.catDestrInfo rateProvider
-                        catLigPairs = generatePairs si.catLigInfo rateProvider
-                        catRacemPairs = generatePairs si.catRacemInfo rateProvider
+                        catSynthPairs = generatePairs rnd si.catSynthInfo rateProvider
+                        catDestrPairs = generatePairs rnd si.catDestrInfo rateProvider
+                        catLigPairs = generatePairs rnd si.catLigInfo rateProvider
+                        catRacemPairs = generatePairs rnd si.catRacemInfo rateProvider
                     }
             }
 
@@ -265,12 +263,12 @@ module ClmModelData =
             | BruteForceModel m -> m.noOfRawReactions n
             | RandomChoiceModel m -> m.noOfRawReactions n
 
-        member data.getReactions rateProvider n =
+        member data.getReactions rnd rateProvider n =
             match data with
-            | BruteForceModel m -> m.getReactions rateProvider n
+            | BruteForceModel m -> m.getReactions rnd rateProvider n
             | RandomChoiceModel m ->
                 let x = 
-                    m.getReactions rateProvider n
+                    m.getReactions rnd rateProvider n
 
                 let b =
                     match rateProvider.getModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
@@ -279,7 +277,7 @@ module ClmModelData =
 
                 b
 
-        static member create t rateProvider si =
+        static member create rnd t rateProvider si =
             match t with
             | BruteForce -> BruteForceModelData.create si |> BruteForceModel
-            | RandomChoice -> RandomChoiceModelData.create rateProvider si |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rateProvider rnd si |> RandomChoiceModel

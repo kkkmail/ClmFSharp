@@ -69,7 +69,6 @@
     <Compile Include="ReactionRatesExt.fs" />
     <Compile Include="ClmModelData.fs" />
     <Compile Include="ClmModel.fs" />
-    <Compile Include="SettingGenExt.fs" />
     <Content Include="packages.config" />
     <None Include="References.fsx" />
     <None Include="ModelGenerator.fsx" />

@@ -135,7 +135,7 @@ module Distributions =
         {
             seed : int
             next : unit -> int
-            nextUpToN : int -> int
+            nextN : int -> int
             nextDouble : unit -> double
         }
 
@@ -150,7 +150,7 @@ module Distributions =
             {
                 seed = seed
                 next = rnd.Next
-                nextUpToN = (fun n -> rnd.Next(n))
+                nextN = (fun n -> rnd.Next(n))
                 nextDouble = rnd.NextDouble
             }
 
@@ -202,6 +202,8 @@ module Distributions =
         member d.createScaled newScale = { d.value with distributionParams = { d.value.distributionParams with scale = newScale } } |> Distribution
         member d.createShifted newShift = { d.value with distributionParams = { d.distributionParams with shift = newShift } } |> Distribution
         member d.createThresholded newThreshold = { d.value with distributionParams = { d.distributionParams with threshold = newThreshold } } |> Distribution
+        member __.next (rnd : RandomValueGetter) = rnd.next()
+        member __.nextN (rnd : RandomValueGetter) n = rnd.nextN n
 
         member d.successNumber (rnd : RandomValueGetter) noOfTries =
             match d.value.distributionParams.threshold with

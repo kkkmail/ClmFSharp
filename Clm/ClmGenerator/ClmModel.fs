@@ -21,15 +21,15 @@ open Clm.Generator.ClmModelData
 module ClmModel =
 
     type ClmModel (modelParams : ModelGenerationParams) =
+        let rnd = RandomValueGetter.create()
         let generationType = RandomChoice
-
         let reactionShift = reactionShift modelParams.updateFuncType
-        let seedValue = getSeedValue modelParams.seedValue
+        let seedValue = rnd.seed
         let modelLocationInfo = createModelLocationInfo modelParams.modelLocationData
         let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
         let allParamsCode = rateProvider.toParamFSharpCode
         let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
-        let bf = RateGenerationData.create generationType rateProvider si
+        let bf = RateGenerationData.create rnd generationType rateProvider si
 
         let getModelInfo(ModelDataId modelDataId) =
             {
@@ -45,7 +45,7 @@ module ClmModel =
             }
 
         let noOfRawReactions n = bf.noOfRawReactions n
-        let getReactions n = bf.getReactions rateProvider n
+        let getReactions n = bf.getReactions rnd rateProvider n
 
         let allReac =
             ReactionName.all
@@ -53,7 +53,7 @@ module ClmModel =
             |> List.concat
             |> List.distinct
 
-        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates generationType).forwardRate
+        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates rnd generationType).forwardRate
 
         let allRawReactionsData =
             ReactionName.all

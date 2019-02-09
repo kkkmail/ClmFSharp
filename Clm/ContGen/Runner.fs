@@ -7,8 +7,6 @@ open Clm.DataLocation
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open Clm.SettingsExt
-open Clm.Generator.SettingGenExt
 open System.Text
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
@@ -16,6 +14,7 @@ open Clm.CalculationData
 open Clm.CommandLine
 open AsyncRun
 
+// ! Do not delete !
 open Fake.DotNet
 open Fake.Core
 open Fake.IO
@@ -61,25 +60,25 @@ module Runner =
         let getModelId () = tryDbFun getNewModelDataId
 
 
-        let loadParams (ModelDataId modelId) =
-            match tryDbFun loadSettings with
-                | Some m ->
-                    match ModelGenerationParams.tryGet m [] with
-                    | Some q ->
-                        (
-                            { q with
-                                modelLocationData =
-                                    { q.modelLocationData with
-                                        modelName = ConsecutiveName modelId
-                                        useDefaultModeData = true
-                                    }
-                                seedValue = rnd.Next() |> Some
-                            },
-                            ModelCommandLineParam.getValues m []
-                        )
-                        |> Some
-                    | None -> None
-                | None -> None
+        //let loadParams (ModelDataId modelId) =
+        //    match tryDbFun loadSettings with
+        //        | Some m ->
+        //            match ModelGenerationParams.tryGet m [] with
+        //            | Some q ->
+        //                (
+        //                    { q with
+        //                        modelLocationData =
+        //                            { q.modelLocationData with
+        //                                modelName = ConsecutiveName modelId
+        //                                useDefaultModeData = true
+        //                            }
+        //                        seedValue = rnd.Next() |> Some
+        //                    },
+        //                    ModelCommandLineParam.getValues m []
+        //                )
+        //                |> Some
+        //            | None -> None
+        //        | None -> None
 
 
         let generateModel (modelGenerationParams : ModelGenerationParams) =

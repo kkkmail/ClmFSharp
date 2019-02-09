@@ -48,7 +48,7 @@ module ClmModelData =
         {
             fileStructureVersionNumber : string
             versionNumber : string
-            seedValue : int option
+            seedValue : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             reactionRateModels : List<ReactionRateModel>
@@ -64,7 +64,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue (rnd : RandomValueGetter) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
+        static member getDefaultValue seedValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
             let rates = d.getDefaultRateModels numberOfAminoAcids
 
             {
@@ -72,7 +72,7 @@ module ClmModelData =
                     {
                         fileStructureVersionNumber = FileStructureVersionNumber
                         versionNumber = VersionNumber
-                        seedValue = rnd.next() |> Some
+                        seedValue = seedValue
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
                         reactionRateModels = rates.rateModels
@@ -89,14 +89,6 @@ module ClmModelData =
         | UseArray -> "    "
         | UseVariables -> "    "
         | UseFunctions -> ""
-
-
-    let getSeedValue sv =
-        match sv with
-        | Some s -> s
-        | None -> 
-            let r = new Random()
-            r.Next()
 
 
     let generateSubst() =
@@ -280,4 +272,4 @@ module ClmModelData =
         static member create rnd t rateProvider si =
             match t with
             | BruteForce -> BruteForceModelData.create si |> BruteForceModel
-            | RandomChoice -> RandomChoiceModelData.create rateProvider rnd si |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si |> RandomChoiceModel

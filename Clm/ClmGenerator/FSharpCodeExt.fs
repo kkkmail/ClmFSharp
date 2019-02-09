@@ -64,47 +64,29 @@ module FSharpCodeExt =
     type DistributionParams
 
         with
-        member this.toFSharpCode = 
-            "{ " + 
+
+        member this.toFSharpCode =
+            "{ " +
             "threshold = " + (doubleOptFSharpString this.threshold) + "; " +
             "scale = " + (doubleOptFSharpString this.scale) + "; " +
             "shift = " + (doubleOptFSharpString this.shift) + 
             " }"
 
 
-    type DeltaDistribution
+    type DistributionParamsWithType
         with
-        member distr.toFSharpCode = "DeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
 
-    type BiDeltaDistribution
-        with
-        member distr.toFSharpCode = "BiDeltaDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
-
-    type UniformDistribution
-        with
-        member distr.toFSharpCode = "UniformDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
-
-
-    type TriangularDistribution
-        with
-        member distr.toFSharpCode = "TriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
-
-
-    type SymmetricTriangularDistribution
-        with
-        member distr.toFSharpCode = "SymmetricTriangularDistribution(" + distr.seedValue.ToString() + ", " + distr.distributionParams.toFSharpCode + ")"
+        member this.toFSharpCode =
+            "{ " +
+            "distributionType = " + this.distributionType.ToString() + "; " +
+            "distributionParams = " + this.distributionParams.toFSharpCode +
+            " }"
 
 
     type Distribution
         with
 
-        member this.toFSharpCode =
-            match this with
-            | Delta d -> d.toFSharpCode + " |> Delta"
-            | BiDelta d -> d.toFSharpCode + " |> BiDelta"
-            | Uniform d -> d.toFSharpCode + " |> Uniform"
-            | Triangular d -> d.toFSharpCode + " |> Triangular"
-            | SymmetricTriangular d -> d.toFSharpCode + " |> SymmetricTriangular"
+        member this.toFSharpCode = this.value.toFSharpCode + " |> " + "Distribution"
 
 
     type EeDistribution

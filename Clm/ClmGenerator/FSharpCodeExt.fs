@@ -208,6 +208,11 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
+    type CatalyticSynthesisSimilarParam
+        with
+        member p.toFSharpCode (shift : string) = failwith "CatalyticSynthesisSimilarParam.toFSharpCode - is not implemented."
+
+
     type CatalyticSynthesisParam
         with 
 
@@ -243,6 +248,11 @@ module FSharpCodeExt =
             shift + "            {" + Nl +
             shift + "                catDestrRndEeParams = " + Nl + (p.catDestrRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
+
+
+    type CatalyticDestructionSimilarParam
+        with
+        member p.toFSharpCode (shift : string) = failwith "CatalyticDestructionSimilarParam.toFSharpCode - is not implemented."
 
 
     type CatalyticDestructionParam
@@ -353,6 +363,11 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
+    type CatalyticRacemizationSimilarParam
+        with
+        member p.toFSharpCode (shift : string) = failwith "CatalyticRacemizationSimilarParam.toFSharpCode - is not implemented."
+
+
     type CatalyticRacemizationParam
         with 
 
@@ -362,7 +377,7 @@ module FSharpCodeExt =
             | CatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatRacemSimParam" + Nl)
 
 
-    type FSharpCodeParams = 
+    type FSharpCodeParams =
         {
             shift : string
             aminoAcidsCode : string
@@ -399,9 +414,9 @@ module FSharpCodeExt =
             p.shift + "            }" + Nl
 
 
-    type ReactionRateProvider
+    type ReactionRateProviderParams
         with
 
         member rrp.toParamFSharpCode (p : FSharpCodeParams) =
-            rrp.providerParams.allParams
+            rrp.allParams
             |> List.map (fun e -> e.toFSharpCode p) |> String.concat Nl

@@ -94,6 +94,11 @@
       <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ClmImpure\ClmImpure.fsproj">
+      <Name>ClmImpure</Name>
+      <Project>{c516437d-00b2-4d8f-8b5f-ec867cc8d277}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>

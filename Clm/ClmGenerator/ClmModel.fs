@@ -409,7 +409,8 @@ module ClmModel =
                 "open Clm.Distributions"
                 "open Clm.ModelParams"
                 "open Clm.ReactionTypes"
-                "open Clm.ReactionRates" + Nl
+                "open Clm.ReactionRates"
+                "open ClmSys.GeneralData" + Nl
                 "module ModelData = "
                 paramCode + Nl
                 totalSubstCode + Nl

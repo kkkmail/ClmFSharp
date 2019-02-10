@@ -199,7 +199,8 @@ module FSharpCodeExt =
     type CatRatesSimilarityParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
+            Nl +
             shift + "            {" + Nl +
             shift + "                simBaseDistribution = " + p.simBaseDistribution.toFSharpCode + Nl +
             shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
@@ -210,13 +211,18 @@ module FSharpCodeExt =
 
     type CatalyticSynthesisSimilarParam
         with
-        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticSynthesisSimilarParam.toFSharpCode - is not implemented."""
+        member p.toFSharpCode (shift : string) =
+            Nl +
+            shift + "            {" + Nl +
+            shift + "                catSynthParam = " + (p.catSynthParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catSynthSimParam = " + (p.catSynthSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "            }" + Nl
 
 
     type CatalyticSynthesisParam
         with 
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             match p with 
             | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthRndParam" + Nl)
             | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatSynthSimParam" + Nl)
@@ -241,18 +247,26 @@ module FSharpCodeExt =
             | DestrRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "DestrRndParam" + Nl)
 
 
+
     type CatalyticDestructionRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
+            Nl +
             shift + "            {" + Nl +
+            shift + "                destructionParam = " + Nl + (p.destructionParam.toFSharpCode (increaseShift shift)) +
             shift + "                catDestrRndEeParams = " + Nl + (p.catDestrRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
 
 
     type CatalyticDestructionSimilarParam
         with
-        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticDestructionSimilarParam.toFSharpCode - is not implemented."""
+        member p.toFSharpCode (shift : string) =
+            Nl +
+            shift + "            {" + Nl +
+            shift + "                catDestrParam = " + (p.catDestrParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catDestrSimParam = " + (p.catDestrSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "            }" + Nl
 
 
     type CatalyticDestructionParam
@@ -357,7 +371,8 @@ module FSharpCodeExt =
     type CatalyticRacemizationRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
+            Nl +
             shift + "            {" + Nl +
             shift + "                catRacemRndEeParams = " + Nl + (p.catRacemRndEeParams.toFSharpCode (increaseShift shift)) +
             shift + "            }" + Nl
@@ -365,7 +380,12 @@ module FSharpCodeExt =
 
     type CatalyticRacemizationSimilarParam
         with
-        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticRacemizationSimilarParam.toFSharpCode - is not implemented."""
+        member p.toFSharpCode (shift : string) =
+            Nl +
+            shift + "            {" + Nl +
+            shift + "                catRacemParam = " + (p.catRacemParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catRacemSimParam = " + (p.catRacemSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "            }" + Nl
 
 
     type CatalyticRacemizationParam

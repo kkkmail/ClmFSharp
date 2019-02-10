@@ -1,8 +1,10 @@
 ﻿namespace ClmImpure
 
 open Clm.Reactions
+open Clm.ReactionTypes
 open Clm.ReactionRates
 open ReactionRateModels
+open RateProvider
 
 module ReactionsExt =
 

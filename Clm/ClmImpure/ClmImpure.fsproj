@@ -66,6 +66,7 @@
     <Compile Include="ReactionRateFunctions.fs" />
     <Compile Include="ReactionRateModels.fs" />
     <Compile Include="ReactionRateModelsExt.fs" />
+    <Compile Include="RateProvider.fs" />
     <Compile Include="ReactionsExt.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

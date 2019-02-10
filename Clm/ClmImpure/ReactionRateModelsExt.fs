@@ -104,6 +104,12 @@ module ReactionRateModelsExt =
 
     type SedimentationDirectModel
         with
+
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SedimentationDirectRateModel d -> Some d
+            | _ -> None
+
         static member tryCreate (p, m) = (p, m) |> SedimentationDirectRandomModel.tryCreate
 
 
@@ -122,6 +128,12 @@ module ReactionRateModelsExt =
 
     type SedimentationAllModel
         with
+
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SedimentationAllRateModel d -> Some d
+            | _ -> None
+
         static member tryCreate (p, m) = (p, m) |> SedimentationAllRandomModel.tryCreate
 
 
@@ -185,6 +197,11 @@ module ReactionRateModelsExt =
     type CatalyticSynthesisModel
         with
 
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | CatalyticSynthesisRateModel d -> Some d
+            | _ -> None
+
         static member tryCreate a (p, m) =
             (p, m)
             |> CatalyticSynthesisRandomModel.tryCreate
@@ -241,6 +258,11 @@ module ReactionRateModelsExt =
     type CatalyticDestructionModel
         with
 
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | CatalyticDestructionRateModel d -> Some d
+            | _ -> None
+
         static member tryCreate a (p, m) =
             (p, m)
             |> CatalyticDestructionRandomModel.tryCreate
@@ -289,6 +311,11 @@ module ReactionRateModelsExt =
 
     type CatalyticLigationModel
         with
+
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | CatalyticLigationRateModel d -> Some d
+            | _ -> None
 
         static member tryCreate (p, m) =
             (p, m)
@@ -345,6 +372,11 @@ module ReactionRateModelsExt =
     type CatalyticRacemizationModel
         with
 
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | CatalyticRacemizationRateModel d -> Some d
+            | _ -> None
+
         static member tryCreate a (p, m) =
             (p, m)
             |> CatalyticRacemizationRandomModel.tryCreate a
@@ -355,12 +387,8 @@ module ReactionRateModelsExt =
         with
 
         static member createAll (p : list<ReactionRateModelParamWithUsage>) (n : NumberOfAminoAcids) =
-            let mp =
-                {
-                    models = []
-                    modelParams = p
-                    aminoAcids= AminoAcid.getAminoAcids n
-                }
+            let a = AminoAcid.getAminoAcids n
+
             (
                 [
                     FoodCreationModel.tryCreate
@@ -368,14 +396,15 @@ module ReactionRateModelsExt =
                     WasteRecyclingModel.tryCreate
                     SynthesisModel.tryCreate
                     DestructionModel.tryCreate
-                    CatalyticSynthesisModel.tryCreate
-                    CatalyticDestructionModel.tryCreate
+                    CatalyticSynthesisModel.tryCreate a
+                    CatalyticDestructionModel.tryCreate a
                     LigationModel.tryCreate
                     CatalyticLigationModel.tryCreate
                     SedimentationDirectModel.tryCreate
                     SedimentationAllModel.tryCreate
                     RacemizationModel.tryCreate
-                    CatalyticRacemizationModel.tryCreate
+                    CatalyticRacemizationModel.tryCreate a
                 ]
-                |> List.fold (fun acc r -> r acc) mp
-            ).models
+                |> List.fold (fun acc r -> r acc) (p, [])
+            )
+            |> snd

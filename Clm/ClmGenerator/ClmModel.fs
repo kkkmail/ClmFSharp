@@ -16,6 +16,11 @@ open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
 open ClmDefaults.DefaultValuesExt
 open Clm.Generator.ClmModelData
+open ClmImpure.RateProvider
+open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateFunctions
+open ClmImpure.ReactionRateModelsExt
+open ClmImpure.ReactionsExt
 
 module ClmModel =
 
@@ -24,8 +29,10 @@ module ClmModel =
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
-        let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
-        let allParamsCode = rateProvider.toParamFSharpCode
+        //let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
+        let rrp = { rateParams = modelParams.reactionRateModelParams }
+        let rateProvider = ReactionRateProvider ( rrp, modelParams.numberOfAminoAcids)
+        let allParamsCode = rrp.toParamFSharpCode
         let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
         let bf = RateGenerationData.create rnd generationType rateProvider si
 

@@ -12,23 +12,28 @@ open Clm.ModelParams
 open Clm.CalculationData
 open Clm.Generator.ReactionRatesExt
 open ClmDefaults.DefaultValuesExt
+open ClmImpure.RateProvider
+open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateFunctions
+open ClmImpure.ReactionRateModelsExt
+open ClmImpure.ReactionsExt
 
 module ClmModelData =
+    open Clm.Distributions
 
     let newSeed() = (new Random()).Next()
 
+    //[<Literal>]
+    //let UpdateFuncTypeName = "UpdateFuncType"
 
-    [<Literal>]
-    let UpdateFuncTypeName = "UpdateFuncType"
+    //[<Literal>]
+    //let UseArrayName = "UseArray"
 
-    [<Literal>]
-    let UseArrayName = "UseArray"
+    //[<Literal>]
+    //let UseVariablesName = "UseVariables"
 
-    [<Literal>]
-    let UseVariablesName = "UseVariables"
-
-    [<Literal>]
-    let UseFunctionsName = "UseFunctions"
+    //[<Literal>]
+    //let UseFunctionsName = "UseFunctions"
 
     type UpdateFuncType = 
         | UseArray
@@ -36,8 +41,8 @@ module ClmModelData =
         | UseFunctions
 
 
-    [<Literal>]
-    let ModelGenerationParamsName = "ModelGenerationParams"
+    //[<Literal>]
+    //let ModelGenerationParamsName = "ModelGenerationParams"
 
     type ModelGenerationParams =
         {
@@ -60,7 +65,7 @@ module ClmModelData =
         }
 
         static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
-            let rates = d.getDefaultRateModels numberOfAminoAcids
+            let rates = d.defaultRateParams
 
             {
                 modelGenerationParams =
@@ -69,10 +74,8 @@ module ClmModelData =
                         versionNumber = VersionNumber
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
-                        //reactionRateModels = rates.rateModels
-                        reactionRateModelParams = rates.rateModels |> List.map (fun m -> m.inputParams)
+                        reactionRateModelParams = rates.rateParams
                         updateFuncType = UseFunctions
-                        //modelLocationData = ModelLocationInputData.defaultValue
                         defaultSetIndex = i
                     }
 
@@ -191,12 +194,17 @@ module ClmModelData =
         let noOfTries = i.a.Length * i.b.Length / 4
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
-        match rateProvider.getPrimaryDistribution i.reactionName with
-        | Some d ->
-            let sn = d.successNumber rnd noOfTries
-            printfn "generatePairs.sn = %A" sn
-            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
-        | None -> []
+        //match rateProvider.getPrimaryDistribution i.reactionName with
+        //| Some d ->
+        //    let sn = d.successNumber rnd noOfTries
+        //    printfn "generatePairs.sn = %A" sn
+        //    [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
+        //| None -> []
+
+        let d = Distribution.createUniform DistributionParams.defaultValue
+        let sn = d.successNumber rnd noOfTries
+        printfn "generatePairs.sn = %A" sn
+        [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
 
 
     type RandomChoiceModelData =
@@ -258,7 +266,7 @@ module ClmModelData =
                     m.getReactions rnd rateProvider n
 
                 let b =
-                    match rateProvider.getModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
+                    match rateProvider.tryGetModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
                     | Some v -> v
                     | None -> []
 

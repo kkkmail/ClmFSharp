@@ -73,8 +73,24 @@ module RateProvider =
         //    | RacemizationName -> p.tryFindRacemizationModel() |> Option.bind(fun e -> RacemizationRateModel e |> Some)
         //    | CatalyticRacemizationName -> p.tryFindCatalyticRacemizationModel() |> Option.bind(fun e -> CatalyticRacemizationRateModel e |> Some)
 
+        let tryGetModelImpl n =
+            match n with
+            | FoodCreationName -> tryPick FoodCreationModel.modelGetter |> Option.bind(fun e -> FoodCreationRateModel e |> Some)
+            | WasteRemovalName -> tryPick WasteRemovalModel.modelGetter |> Option.bind(fun e -> WasteRemovalRateModel e |> Some)
+            | WasteRecyclingName -> tryPick WasteRecyclingModel.modelGetter |> Option.bind(fun e -> WasteRecyclingRateModel e |> Some)
+            | SynthesisName -> tryPick SynthesisModel.modelGetter |> Option.bind(fun e -> SynthesisRateModel e |> Some)
+            | DestructionName -> tryPick DestructionModel.modelGetter |> Option.bind(fun e -> DestructionRateModel e |> Some)
+            | CatalyticSynthesisName -> tryPick CatalyticSynthesisModel.modelGetter |> Option.bind(fun e -> CatalyticSynthesisRateModel e |> Some)
+            | CatalyticDestructionName -> tryPick CatalyticDestructionModel.modelGetter |> Option.bind(fun e -> CatalyticDestructionRateModel e |> Some)
+            | LigationName -> tryPick LigationModel.modelGetter |> Option.bind(fun e -> LigationRateModel e |> Some)
+            | CatalyticLigationName -> tryPick CatalyticLigationModel.modelGetter |> Option.bind(fun e -> CatalyticLigationRateModel e |> Some)
+            | SedimentationDirectName -> tryPick SedimentationDirectModel.modelGetter |> Option.bind(fun e -> SedimentationDirectRateModel e |> Some)
+            | SedimentationAllName -> tryPick SedimentationAllModel.modelGetter |> Option.bind(fun e -> SedimentationAllRateModel e |> Some)
+            | RacemizationName -> tryPick RacemizationModel.modelGetter |> Option.bind(fun e -> RacemizationRateModel e |> Some)
+            | CatalyticRacemizationName ->tryPick CatalyticRacemizationModel.modelGetter |> Option.bind(fun e -> CatalyticRacemizationRateModel e |> Some)
+
         member __.providerParams = p
         member __.getRates rnd a = getRatesImpl rnd a
-        //member __.getModel n = getModelImpl n
+        member __.tryGetModel n = tryGetModelImpl n
         //member __.getAllRates() = p.rateModels |> List.map (fun m -> m.getAllRates())
         member __.getAllRates() = allModels |> List.map (fun m -> m.model.getAllRates())

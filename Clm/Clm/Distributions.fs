@@ -157,8 +157,8 @@ module Distributions =
         static member create() = RandomValueGetter.create None
 
 
-    [<Literal>]
-    let DistributionName = "Distribution"
+    //[<Literal>]
+    //let DistributionName = "Distribution"
 
 
     /// First scale, then shift. This is more convenient here than the other way around.

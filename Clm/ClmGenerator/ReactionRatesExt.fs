@@ -6,6 +6,8 @@ open Clm.Reactions
 open Clm.ReactionRates
 open Clm.Distributions
 open ClmSys.GeneralData
+open ClmImpure.ReactionRateModels
+open ClmImpure.RateProvider
 
 
 module ReactionRatesExt =
@@ -124,7 +126,7 @@ module ReactionRatesExt =
             | CatalyticRacemizationRateModel m -> m.primaryDistribution
 
 
-    type ReactionRateProvider
-        with
-        member this.getPrimaryDistribution a = this.getModel a |> Option.bind (fun m -> m.primaryDistribution)
+    //type ReactionRateProvider
+    //    with
+    //    member this.getPrimaryDistribution a = this.getModel a |> Option.bind (fun m -> m.primaryDistribution)
 

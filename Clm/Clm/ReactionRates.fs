@@ -577,8 +577,8 @@ module ReactionRates =
 
     type CatalyticRacemizationRandomParam =
         {
-            catRacemRndEeParams : CatRatesEeParam
             racemizationParam : RacemizationParam
+            catRacemRndEeParams : CatRatesEeParam
         }
 
         //member this.name = CatalyticRacemizationRandomParamName
@@ -601,9 +601,8 @@ module ReactionRates =
 
     type CatalyticRacemizationSimilarParam =
         {
-            catRacemSimParam : CatRatesSimilarityParam
-            aminoAcids : list<AminoAcid>
             catRacemParam : CatalyticRacemizationRandomParam
+            catRacemSimParam : CatRatesSimilarityParam
         }
 
 

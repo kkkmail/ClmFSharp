@@ -6,65 +6,58 @@ open ClmDefaults.DefaultValuesExt
 
 module Defaults_000 =
 
-    let getDefaultRateModels numberOfAminoAcids =
+    let defaultRateParams =
         //===========================================================
-        let foodModel = ReactionRateProvider.defaultFoodCreationModel 0.01
-        let wasteModel = ReactionRateProvider.defaultWasteRemovalModel 10.0
-        let wasteRecyclingModel = ReactionRateProvider.defaultWasteRecyclingModel 0.1
+        let foodParam = ReactionRateProviderParams.defaultFoodCreationParam 0.01
+        let wasteParam = ReactionRateProviderParams.defaultWasteRemovalParam 10.0
+        let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
         //===========================================================
-        let synthModel = ReactionRateProvider.defaultSynthRndModel (0.001, 0.001)
-        //let catSynthRndParams = (synthModel, (Some 0.02), 1000.0)
-        let catSynthRndParams = (synthModel, (Some 0.002), 10000.0)
-        //let catSynthRndParams = (synthModel, (Some 0.0005), 1000.0)
-        //let catSynthModel = ReactionRateProvider.defaultCatSynthRndModel catSynthRndParams
-        let catSynthModel = ReactionRateProvider.defaultCatSynthSimModel catSynthRndParams (Some 0.3, numberOfAminoAcids)
+        let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (0.001, 0.001)
+        let catSynthRndParam = (synthParam, (Some 0.002), 10000.0)
+        //let catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParam catSynthRndParam
+        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.3)
         //===========================================================
-        let destrModel = ReactionRateProvider.defaultDestrRndModel (0.001, 0.001)
-        //let catDestrRndParams = (destrModel, (Some 0.02), 1000.0)
-        let catDestrRndParams = (destrModel, (Some 0.002), 10000.0)
-        //let catDestrRndParams = (destrModel, (Some 0.0005), 1000.0)
-        //let catDestrModel = ReactionRateProvider.defaultCatDestrRndModel catDestrRndParams
-        let catDestrModel = ReactionRateProvider.defaultCatDestrSimModel catDestrRndParams (Some 0.3, numberOfAminoAcids)
+        let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
+        let catDestrRndParam = (destrParam, (Some 0.002), 10000.0)
+        //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam
+        let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.3)
         //===========================================================
-        //let ligModel = ReactionRateProvider.defaultLigRndModel (0.001, 0.0001)
-        //let ligModel = ReactionRateProvider.defaultLigRndModel (1.0, 0.1)
-        let ligModel = ReactionRateProvider.defaultLigRndModel (1.0, 1.0)
-        let catLigModel = ReactionRateProvider.defaultCatLigRndModel (ligModel, (Some 0.00005), 2000.0)
+        let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
+        let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.00005), 2000.0)
         //===========================================================
-        let sedDirModel = ReactionRateProvider.defaultSedDirRndModel (0.00001, 10000.0)
-        let sedAllModel = ReactionRateProvider.defaultSedAllRndModel 0.1
+        let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam (0.00001, 10000.0)
+        let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================
-        let racemModel = ReactionRateProvider.defaultRacemRndModel 0.001
-        //let catRacemRndParams = (racemModel, (Some 0.02), 1000.0)
-        let catRacemRndParams = (racemModel, (Some 0.0005), 1000.0)
-        //let catRacemModel = ReactionRateProvider.defaultCatRacemRndModel catRacemRndParams
-        let catRacemModel = ReactionRateProvider.defaultCatRacemSimModel catRacemRndParams (Some 0.2, numberOfAminoAcids)
+        let racemParam = ReactionRateProviderParams.defaultRacemRndParamImpl 0.001
+        let catRacemRndParam = (racemParam, (Some 0.0005), 1000.0)
+        //let catRacemParam = ReactionRateProviderParams.defaultCatRacemRndParam catRacemRndParam
+        let catRacemParam = ReactionRateProviderParams.defaultCatRacemSimParam catRacemRndParam (Some 0.2)
         //===========================================================
         let rates =
             [
-                //foodModel |> FoodCreationRateModel
-                //wasteModel |> WasteRemovalRateModel
-                wasteRecyclingModel |> WasteRecyclingRateModel
+                //foodParam
+                //wasteParam
+                wasteRecyclingParam
 
-                synthModel |> SynthesisRateModel
-                catSynthModel |> CatalyticSynthesisRateModel
+                synthParam |> SynthesisRateParam
+                //catSynthParam
 
-                destrModel |> DestructionRateModel
-                catDestrModel |> CatalyticDestructionRateModel
+                destrParam |> DestructionRateParam
+                catDestrParam
 
-                ligModel |> LigationRateModel
-                //catLigModel |> CatalyticLigationRateModel
+                ligParam |> LigationRateParam
+                //catLigParam
 
-                sedDirModel |> SedimentationDirectRateModel
-                //sedAllModel |> SedimentationAllRateModel
+                //sedDirParam
+                //sedAllParam
 
-                //racemModel |> RacemizationRateModel
-                //catRacemModel |> CatalyticRacemizationRateModel
+                //racemParam |> RacemizationRateParam
+                //catRacemParam
             ]
         //===========================================================
 
         {
-            rateModels = rates
+            rateParams = rates
         }
 
 
@@ -73,24 +66,24 @@ module Defaults_000 =
             modelCommandLineParams =
                 [
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 10.0m
                         useAbundant = false
                     }
 
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 5.0m
                         useAbundant = false
                     }
 
                     {
-                        tEnd = 50_000.0m
+                        tEnd = 250_000.0m
                         y0 = 20.0m
                         useAbundant = false
                     }
                 ]
 
-            getDefaultRateModels = getDefaultRateModels
+            defaultRateParams = defaultRateParams
             description = None
         }

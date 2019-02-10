@@ -1,6 +1,5 @@
 ﻿namespace ClmDefaults
 
-open System
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
@@ -12,7 +11,7 @@ module DefaultValuesExt =
     type ClmDefaultValue =
         {
             modelCommandLineParams : list<ModelCommandLineParam>
-            getDefaultRateModels : NumberOfAminoAcids -> ReactionRateProviderParams
+            defaultRateParams : ReactionRateProviderParams
             description : string option
         }
 
@@ -35,101 +34,107 @@ module DefaultValuesExt =
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
 
 
-    type ReactionRateProvider
+    type ReactionRateProviderParams
         with
 
-        static member defaultFoodCreationModel forward =
+        static member defaultFoodCreationParam forward =
             {
                 foodCreationRate = forward
             }
-            |> FoodCreationModel
+            |> FoodCreationRateParam
 
-        static member defaultWasteRemovalModel forward =
+        static member defaultWasteRemovalParam forward =
             {
                 wasteRemovalRate = forward
             }
-            |> WasteRemovalModel
+            |> WasteRemovalRateParam
 
-        static member defaultWasteRecyclingModel forward =
+        static member defaultWasteRecyclingParam forward =
             {
                 wasteRecyclingRate = forward
             }
-            |> WasteRecyclingModel
+            |> WasteRecyclingRateParam
 
-        static member defaultSynthRndModel (forward, backward) =
+        static member defaultSynthRndParamImpl (forward, backward) =
             {
                 synthesisDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
             |> SynthRndParam
-            |> SynthesisModel.create
 
-        static member defaultDestrRndModel (forward, backward) =
+        static member defaultSynthRndParam (forward, backward) =
+            ReactionRateProviderParams.defaultSynthRndParamImpl (forward, backward)
+            |> SynthesisRateParam
+
+        static member defaultDestrRndParamImpl (forward, backward) =
             {
                 destructionDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
             |> DestrRndParam
-            |> DestructionModel.create
 
-        static member defaultCatSynthRndParams (m, threshold, mult) =
+        static member defaultDestrRndParam (forward, backward) =
+            ReactionRateProviderParams.defaultDestrRndParamImpl (forward, backward)
+            |> DestructionRateParam
+
+        static member defaultCatSynthRndParamImpl (m, threshold, mult) =
             {
-                catSynthRndParam = 
+                synthesisParam = m
+
+                catSynthRndEeParams =
                     {
-                        catSynthRndEeParams =
-                            {
-                                rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                                eeForwardDistribution = defaultEeDistribution |> Some
-                                eeBackwardDistribution = defaultEeDistribution |> Some
-                            }
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeDistribution |> Some
                     }
-                synthesisModel = m
             }
 
-        static member defaultCatSynthRndModel (m, threshold, mult) = 
-            ReactionRateProvider.defaultCatSynthRndParams (m, threshold, mult)
-            |> CatSynthRndParamWithModel
-            |> CatalyticSynthesisModel.create
+        static member defaultCatSynthRndParam (m, threshold, mult) = 
+            ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult)
+            |> CatSynthRndParam
+            |> CatalyticSynthesisRateParam
 
-        static member defaultCatSynthSimModel (m, threshold, mult) (simThreshold, n) =
+        static member defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold =
             {
-                catSynthSimParam = 
+                catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult)
+
+                catSynthSimParam =
                     {
                         simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
-                catSynthModel = ReactionRateProvider.defaultCatSynthRndParams (m, threshold, mult) |> CatalyticSynthesisRandomModel
-                aminoAcids = AminoAcid.getAminoAcids n
             }
-            |> CatSynthSimParamWithModel
-            |> CatalyticSynthesisModel.create
 
-        static member defaultCatDestrRndParams (m, threshold, mult) =
+        static member defaultCatSynthSimParam (m, threshold, mult) simThreshold =
+            ReactionRateProviderParams.defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold
+            |> CatSynthSimParam
+            |> CatalyticSynthesisRateParam
+
+        static member defaultCatDestrRndParamImpl (m, threshold, mult) =
             {
-                catDestrRndParam = 
+                destructionParam = m
+
+                catDestrRndEeParams =
                     {
-                        catDestrRndEeParams =
-                            {
-                                rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                                eeForwardDistribution = defaultEeDistribution |> Some
-                                eeBackwardDistribution = defaultEeDistribution |> Some
-                            }
-
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeDistribution |> Some
                     }
-                destructionModel = m
             }
 
-        static member defaultCatDestrRndModel (m, threshold, mult) =
-            ReactionRateProvider.defaultCatDestrRndParams (m, threshold, mult)
-            |> CatDestrRndParamWithModel
-            |> CatalyticDestructionModel.create
+        static member defaultCatDestrRndParam (m, threshold, mult) =
+            ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult)
+            |> CatDestrRndParam
+            |> CatalyticDestructionRateParam
 
-        static member defaultCatDestrSimModel (m, threshold, mult) (simThreshold, n) =
+        static member defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold =
             {
+                catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult)
+
                 catDestrSimParam =
                     {
                         simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
@@ -137,84 +142,95 @@ module DefaultValuesExt =
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
-                catDestrModel = ReactionRateProvider.defaultCatDestrRndParams (m, threshold, mult) |> CatalyticDestructionRandomModel
-                aminoAcids = AminoAcid.getAminoAcids n
             }
-            |> CatDestrSimParamWithModel
-            |> CatalyticDestructionModel.create
 
-        static member defaultLigRndModel (forward, backward) =
+        static member defaultCatDestrSimParam (m, threshold, mult) simThreshold =
+            ReactionRateProviderParams.defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold
+            |> CatDestrSimParam
+            |> CatalyticDestructionRateParam
+
+        static member defaultLigRndParamImpl (forward, backward) =
             {
                 ligationDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
                 forwardScale = Some forward
                 backwardScale = Some backward
             }
             |> LigRndParam
-            |> LigationModel.create
 
-        static member defaultCatLigRndModel (m, threshold, mult) =
+        static member defaultLigRndParam (forward, backward) =
+            ReactionRateProviderParams.defaultLigRndParamImpl (forward, backward)
+            |> LigationRateParam
+
+        static member defaultCatLigRndParamImpl (m, threshold, mult) =
             {
-                catLigationParam =
-                    {
-                        catLigRndEeParams =
-                            {
-                                rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                                eeForwardDistribution = defaultEeDistribution |> Some
-                                eeBackwardDistribution = defaultEeDistribution |> Some
-                            }
-                    }
-                ligationModel = m
-            }
-            |> CatLigRndParamWithModel
-            |> CatalyticLigationModel.create
+                ligationParam = m
 
-        static member defaultSedDirRndModel (threshold, mult) =
+                catLigRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultCatLigRndParam (m, threshold, mult) =
+            ReactionRateProviderParams.defaultCatLigRndParamImpl (m, threshold, mult)
+            |> CatLigRndParam
+            |> CatalyticLigationRateParam
+
+        static member defaultSedDirRndParamImpl (threshold, mult) =
             {
                 sedimentationDirectDistribution = Distribution.createTriangular { threshold = Some threshold; scale = None; shift = None }
                 forwardScale = Some mult
             }
-            |> SedDirRndParam
-            |> SedimentationDirectModel.create
 
-        static member defaultSedAllRndModel mult =
+        static member defaultSedDirRndParam (threshold, mult) =
+            ReactionRateProviderParams.defaultSedDirRndParamImpl (threshold, mult)
+            |> SedDirRndParam
+            |> SedimentationDirectRateParam
+
+        static member defaultSedAllRndParamImpl mult =
             {
                 sedimentationAllDistribution = Distribution.createTriangular { threshold = None; scale = None; shift = None }
                 forwardScale = Some mult
             }
-            |> SedAllRndParam
-            |> SedimentationAllModel.create
 
-        static member defaultRacemRndModel forward =
+        static member defaultSedAllRndParam mult =
+            ReactionRateProviderParams.defaultSedAllRndParamImpl mult
+            |> SedAllRndParam
+            |> SedimentationAllRateParam
+
+        static member defaultRacemRndParamImpl forward =
             {
                 racemizationDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
                 forwardScale = Some forward
             }
             |> RacemRndParam
-            |> RacemizationModel.create
 
-        static member defaultCatRacemRndParams (m, threshold, mult) n =
+        static member defaultRacemRndParam forward =
+            ReactionRateProviderParams.defaultRacemRndParamImpl forward
+            |> RacemizationRateParam
+
+        static member defaultCatRacemRndParamImpl (m, threshold, mult) =
             {
-                catRacemRndParam =
+                racemizationParam = m
+                catRacemRndEeParams =
                     {
-                        catRacemRndEeParams =
-                            {
-                                rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                                eeForwardDistribution = defaultEeDistribution |> Some
-                                eeBackwardDistribution = defaultEeDistribution |> Some
-                            }
-
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeDistribution |> Some
                     }
-                racemizationModel = m
-                aminoAcids = AminoAcid.getAminoAcids n
             }
 
-        static member defaultCatRacemRndModel (m, threshold, mult) n =
-            ReactionRateProvider.defaultCatRacemRndParams (m, threshold, mult) n
-            |> CatRacemRndParamWithModel
-            |> CatalyticRacemizationModel.create
+        static member defaultCatRacemRndParam (m, threshold, mult) =
+            ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult)
+            |> CatRacemRndParam
+            |> CatalyticRacemizationRateParam
 
-        static member defaultCatRacemSimModel (m, threshold, mult) (simThreshold, n) =
+        static member defaultCatRacemSimParam (m, threshold, mult) simThreshold =
             {
+                catRacemParam = ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult)
+
                 catRacemSimParam =
                     {
                         simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
@@ -222,8 +238,6 @@ module DefaultValuesExt =
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
-                catRacemModel = ReactionRateProvider.defaultCatRacemRndParams (m, threshold, mult) n |> CatalyticRacemizationRandomModel
-                aminoAcids = AminoAcid.getAminoAcids n
             }
-            |> CatRacemSimParamWithModel
-            |> CatalyticRacemizationModel.create
+            |> CatRacemSimParam
+            |> CatalyticRacemizationRateParam

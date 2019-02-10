@@ -1,49 +1,30 @@
-﻿namespace Clm
+﻿namespace ClmImpure
 
 open Clm.Substances
 open Clm.ReactionRates
 
-module RateModelsExt =
+open ClmImpure.ReactionRateFunctions
+open ClmImpure.ReactionRateModels
+
+module ReactionRateModelsExt =
 
     type ModelsAndParams =
         {
             models : list<ReactionRateModelWithUsage>
-            modelParams : list<ReactionRateModelParamWithUsage>
-            aminoAcids : list<AminoAcid>
+            reactionRateParams : ReactionRateParams
         }
-
-
-    let tryPickParam picker (mp : ModelsAndParams) =
-        let rec inner a b =
-            match a with
-            | [] -> None, b |> List.rev
-            | h :: t ->
-                match picker h with
-                | Some x -> Some x, (b |> List.rev) @ t
-                | None -> inner t (h :: b)
-
-        let (x, y) = inner mp.modelParams []
-        (x, { mp with modelParams = y })
 
 
     let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter
 
 
-    type FoodCreationParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | FoodCreationRateParam d -> Some (p.usage, d)
-            | _ -> None
-
-
     type FoodCreationModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | FoodCreationRateModel d -> Some d
             | _ -> None
-
 
         static member tryCreate (mp : ModelsAndParams) =
             match tryPickParam FoodCreationParam.paramGetter mp with
@@ -63,16 +44,9 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    type WasteRemovalParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | WasteRemovalRateParam d -> Some (p.usage, d)
-            | _ -> None
-
-
     type WasteRemovalModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | WasteRemovalRateModel d -> Some d
@@ -97,16 +71,9 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    type WasteRecyclingParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | WasteRecyclingRateParam d -> Some (p.usage, d)
-            | _ -> None
-
-
     type WasteRecyclingModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | WasteRecyclingRateModel d -> Some d
@@ -131,16 +98,9 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    type SedimentationDirectRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | SedimentationDirectRateParam (SedDirRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type SedimentationDirectRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | SedimentationDirectRateModel d -> Some d
@@ -168,21 +128,15 @@ module RateModelsExt =
 
     type SedimentationDirectModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> SedimentationDirectRandomModel.tryCreate
 
 
-    type SedimentationAllRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | SedimentationAllRateParam (SedAllRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type SedimentationAllRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | SedimentationAllRateModel d -> Some d
@@ -210,21 +164,15 @@ module RateModelsExt =
 
     type SedimentationAllModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> SedimentationAllRandomModel.tryCreate
 
 
-    type SynthesisRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | SynthesisRateParam (SynthRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type SynthesisRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | SynthesisRateModel (SynthRndModel d) -> Some d
@@ -252,6 +200,7 @@ module RateModelsExt =
 
     type SynthesisModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | SynthesisRateModel d -> Some d
@@ -263,16 +212,9 @@ module RateModelsExt =
             |> SynthesisRandomModel.tryCreate
 
 
-    type CatalyticSynthesisRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | CatalyticSynthesisRateParam (CatSynthRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type CatalyticSynthesisRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | CatalyticSynthesisRateModel (CatSynthRndModel d) -> Some d
@@ -312,6 +254,7 @@ module RateModelsExt =
 
     type CatalyticSynthesisSimilarModel
         with
+
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
             | CatalyticSynthesisRateParam (CatSynthSimParam d) -> Some (p.usage, d)
@@ -358,22 +301,16 @@ module RateModelsExt =
 
     type CatalyticSynthesisModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> CatalyticSynthesisRandomModel.tryCreate
             |> CatalyticSynthesisSimilarModel.tryCreate
 
 
-    type DestructionRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | DestructionRateParam (DestrRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type DestructionModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | DestructionRateModel d -> Some d
@@ -399,16 +336,9 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    type CatalyticDestructionRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | CatalyticDestructionRateParam (CatDestrRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type CatalyticDestructionRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | CatalyticDestructionRateModel (CatDestrRndModel d) -> Some d
@@ -448,6 +378,7 @@ module RateModelsExt =
 
     type CatalyticDestructionSimilarModel
         with
+
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
             | CatalyticDestructionRateParam (CatDestrSimParam d) -> Some (p.usage, d)
@@ -494,22 +425,16 @@ module RateModelsExt =
 
     type CatalyticDestructionModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> CatalyticDestructionRandomModel.tryCreate
             |> CatalyticDestructionSimilarModel.tryCreate
 
 
-    type LigationRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | LigationRateParam (LigRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type LigationRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | LigationRateModel (LigRndModel d) -> Some d
@@ -537,6 +462,7 @@ module RateModelsExt =
 
     type LigationModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | LigationRateModel d -> Some d
@@ -548,16 +474,9 @@ module RateModelsExt =
             |> LigationRandomModel.tryCreate
 
 
-    type CatalyticLigationRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | CatalyticLigationRateParam (CatLigRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type CatalyticLigationRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | CatalyticLigationRateModel (CatLigRndModel d) -> Some d
@@ -597,21 +516,15 @@ module RateModelsExt =
 
     type CatalyticLigationModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> CatalyticLigationRandomModel.tryCreate
 
 
-    type RacemizationRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | RacemizationRateParam (RacemRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type RacemizationModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | RacemizationRateModel d -> Some d
@@ -637,16 +550,9 @@ module RateModelsExt =
             | None, _ -> mp
 
 
-    type CatalyticRacemizationRandomParam
-        with
-        static member paramGetter (p : ReactionRateModelParamWithUsage) =
-            match p.modelParam with
-            | CatalyticRacemizationRateParam (CatRacemRndParam d) -> Some (p.usage, d)
-            | _ -> None
-
-
     type CatalyticRacemizationRandomModel
         with
+
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
             | CatalyticRacemizationRateModel (CatRacemRndModel d) -> Some d
@@ -687,6 +593,7 @@ module RateModelsExt =
 
     type CatalyticRacemizationSimilarModel
         with
+
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
             | CatalyticRacemizationRateParam (CatRacemSimParam d) -> Some (p.usage, d)
@@ -733,6 +640,7 @@ module RateModelsExt =
 
     type CatalyticRacemizationModel
         with
+
         static member tryCreate (mp : ModelsAndParams) =
             mp
             |> CatalyticRacemizationRandomModel.tryCreate
@@ -741,6 +649,7 @@ module RateModelsExt =
 
     type ReactionRateModel
         with
+
         static member createAll (p : list<ReactionRateModelParamWithUsage>) (n : NumberOfAminoAcids) =
             let mp =
                 {

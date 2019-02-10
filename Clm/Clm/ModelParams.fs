@@ -37,11 +37,11 @@ module ModelParams =
         }
 
 
-    type ModelInfoWithModels =
-        {
-            modelInfo : ModelInfo
-            allModels : list<ReactionRateModel>
-        }
+    //type ModelInfoWithModels =
+    //    {
+    //        modelInfo : ModelInfo
+    //        allModels : list<ReactionRateModel>
+    //    }
 
 
     type ModelDataParams =

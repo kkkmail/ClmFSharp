@@ -45,7 +45,8 @@ module ClmModelData =
             versionNumber : string
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
-            reactionRateModels : List<ReactionRateModel>
+            //reactionRateModels : List<ReactionRateModel>
+            reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
             //modelLocationData : ModelLocationInputData
             defaultSetIndex : int
@@ -68,7 +69,8 @@ module ClmModelData =
                         versionNumber = VersionNumber
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
-                        reactionRateModels = rates.rateModels
+                        //reactionRateModels = rates.rateModels
+                        reactionRateModelParams = rates.rateModels |> List.map (fun m -> m.inputParams)
                         updateFuncType = UseFunctions
                         //modelLocationData = ModelLocationInputData.defaultValue
                         defaultSetIndex = i

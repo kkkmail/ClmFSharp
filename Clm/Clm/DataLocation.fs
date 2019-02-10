@@ -76,21 +76,6 @@ module DataLocation =
     //        else Path.Combine(location.modelFolder, ModelLocationInfo.modelDataName) + ".fs"
 
 
-    //type ResultInfo =
-    //    {
-    //        resultLocation : string
-    //        allResultsFile : string
-    //        separator : string
-    //    }
-
-    //    static member defautlValue = 
-    //        {
-    //            resultLocation = DefaultResultLocationFolder
-    //            allResultsFile = DefaultAllResultsFile
-    //            separator = "_"
-    //        }
-
-
     //let createModelLocationInfo (i : ModelLocationInputData) =
     //    match i.modelName with
     //    | ConsecutiveName n -> 

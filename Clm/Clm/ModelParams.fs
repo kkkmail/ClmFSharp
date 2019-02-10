@@ -71,6 +71,33 @@ module ModelParams =
         }
 
 
+    type BinaryResultData =
+        {
+            aminoAcids : list<AminoAcid>
+            allSubst : list<Substance>
+            allInd : Map<Substance, int>
+            allRawReactions : list<ReactionName * int>
+            allReactions : list<ReactionName * int>
+
+            x : double [,]
+            t : double []
+        }
+
+
+    type FullResultData =
+        {
+            resultData : ResultData
+            binaryResultData : BinaryResultData
+            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
+        }
+
+        member resultData.getTotals x =
+            getTotalsValue resultData.binaryResultData.allInd resultData.binaryResultData.allSubst resultData.binaryResultData.aminoAcids x
+
+        member resultData.getTotalSubst x =
+            getTotalSubstValue resultData.binaryResultData.allInd resultData.binaryResultData.allSubst x
+
+
     type ModelDataRegularParams =
         {
             modelDataParams : ModelDataParams
@@ -113,7 +140,6 @@ module ModelParams =
                 EndTime this.tEnd
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
-                PlotResults false
                 ModelId modelDataId
             ]
             |> parser.PrintCommandLineArgumentsFlat
@@ -143,3 +169,17 @@ module ModelParams =
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
+
+
+    type ResultInfo =
+        {
+            resultLocation : string
+            separator : string
+        }
+
+        static member defautlValue =
+            {
+                resultLocation = DefaultResultLocationFolder
+                separator = "_"
+            }
+

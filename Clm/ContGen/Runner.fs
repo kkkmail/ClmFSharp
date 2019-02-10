@@ -3,7 +3,6 @@
 open System
 open ClmSys.GeneralData
 open ClmSys.Retry
-open Clm.DataLocation
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -63,11 +62,11 @@ module Runner =
         let tryLoadParams () = tryDbFun tryloadAllParams |> Option.bind id
 
 
-        let generateModel (modelGenerationParams : ModelGenerationParams) =
+        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId =
             printfn "Creating model..."
             printfn "Starting at: %A" DateTime.Now
 
-            let model = ClmModel modelGenerationParams
+            let model = ClmModel (modelGenerationParams, modelDataId)
 
             match p.saveModelCode with
             | true ->
@@ -132,7 +131,7 @@ module Runner =
                     | Some modelId ->
                         match tryLoadParams() with
                         | Some a ->
-                            match generateModel a.modelGenerationParams |> saveModel with
+                            match generateModel a.modelGenerationParams modelId |> saveModel with
                             | Some true ->
                                 //compileModel modelId
                                 a.modelCommandLineParams |> List.map (fun e ->

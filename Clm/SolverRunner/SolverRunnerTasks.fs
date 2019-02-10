@@ -5,11 +5,9 @@ open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
 open ClmSys.Retry
-open Clm.SettingsExt
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
-open Clm.SettingsExt
 open OdeSolver.Solver
 open Analytics.Visualization
 open Argu
@@ -22,6 +20,7 @@ open System.Diagnostics
 
 
 module SolverRunnerTasks =
+    open Clm.Distributions
 
     let logError e = printfn "Error: %A." e
     let tryDbFun f = tryDbFun logError clmConnectionString f
@@ -62,9 +61,7 @@ module SolverRunnerTasks =
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId with
         | Some tEnd, Some y0, Some modelDataId ->
-            let mdoo = tryDbFun (tryLoadModelData (ModelDataId modelDataId))
-
-            match mdoo with
+            match tryDbFun (tryLoadModelData (ModelDataId modelDataId)) with
             | Some (Some md) ->
                 // TODO kk:20190208 - This must be split into several functions.
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
@@ -72,19 +69,21 @@ module SolverRunnerTasks =
 
                 let a = results.GetResult (UseAbundant, defaultValue = false)
                 printfn "Starting at: %A" DateTime.Now
-                let getInitValues = defaultInit (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData None a)
+                let seed = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.seedValue
+                let rnd = RandomValueGetter.create (Some seed)
+                let getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData a)
 
                 printfn "Calling nSolve..."
                 let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 
                 let p =
                     {
-                        modelDataId = modelDataId
+                        modelDataId = modelDataId.value
                         tEnd = double tEnd
                         g = md.modelData.modelBinaryData.calculationData.getDerivative
                         h = getInitValues
                         y0 = double y0
-                        progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify (ModelDataId modelDataId) svc (Running r)) |> Some)
+                        progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
                     }
 
                 let result = nSolve p
@@ -92,7 +91,7 @@ module SolverRunnerTasks =
 
                 // Notify of completion just in case.
                 match n with
-                | Some svc -> notify (ModelDataId modelDataId) svc Completed
+                | Some svc -> notify modelDataId svc Completed
                 | None -> ignore()
 
                 printfn "Saving."
@@ -130,23 +129,23 @@ module SolverRunnerTasks =
 
                 let r =
                     {
-                        simpleData =
-                            {
-                                resultDataId = None
-                                modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId |> ModelDataId
+                        modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 
-                                numberOfAminoAcids = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
-                                maxPeptideLength = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.maxPeptideLength
+                        y0 = decimal y0
+                        tEnd = decimal tEnd
+                        useAbundant = false // TODO kk:20190105 This should be propagated...
 
-                                y0 = decimal y0
-                                tEnd = decimal tEnd
-                                useAbundant = false // TODO kk:20190105 This should be propagated...
+                        maxEe = maxEe
+                        maxAverageEe = maxAverageEe
+                    }
 
-                                maxEe = maxEe
-                                maxAverageEe = maxAverageEe
-                            }
+                r |> saveResultData |> tryDbFun |> ignore
 
-                        binaryData =
+                let f =
+                    {
+                        resultData = r
+
+                        binaryResultData =
                             {
                                 aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
                                 allSubst = modelDataParamsWithExtraData.regularParams.allSubst
@@ -157,32 +156,18 @@ module SolverRunnerTasks =
                                 x = result.x
                                 t = result.t
                             }
+
+                        maxPeptideLength = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.maxPeptideLength
                     }
 
-                let saveResults =
-                    match results.TryGetResult SaveResultData with
-                    | Some v -> v
-                    | None -> false // do not save binary data by default
-
-                (saveResultData ( match saveResults with | false -> r.resultDataWithoutBinary | true -> r.resultData))
-                |> tryDbFun
-                |> ignore
-
                 let plotAll show =
-                    let plotter = new Plotter(PlotDataInfo.defaultValue, r)
+                    let plotter = new Plotter(PlotDataInfo.defaultValue, f)
                     plotter.plotAminoAcids show
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show
 
-                match results.TryGetResult PlotResults with
-                | Some v when v = true ->
-                    printfn "Plotting."
-                    plotAll true
-                    printfn "Completed."
-                | _ ->
-                    printfn "Generating charts..."
-                    plotAll false
-                    printfn "Completed."
+                plotAll false
+                printfn "Completed."
 
                 CompletedSuccessfully
             | _ -> UnknownException // TODO kk:20190208 - return different error codes if there is a command line error or DB error.

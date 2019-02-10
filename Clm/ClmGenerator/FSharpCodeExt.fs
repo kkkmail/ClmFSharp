@@ -210,7 +210,7 @@ module FSharpCodeExt =
 
     type CatalyticSynthesisSimilarParam
         with
-        member p.toFSharpCode (shift : string) = failwith "CatalyticSynthesisSimilarParam.toFSharpCode - is not implemented."
+        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticSynthesisSimilarParam.toFSharpCode - is not implemented."""
 
 
     type CatalyticSynthesisParam
@@ -252,7 +252,7 @@ module FSharpCodeExt =
 
     type CatalyticDestructionSimilarParam
         with
-        member p.toFSharpCode (shift : string) = failwith "CatalyticDestructionSimilarParam.toFSharpCode - is not implemented."
+        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticDestructionSimilarParam.toFSharpCode - is not implemented."""
 
 
     type CatalyticDestructionParam
@@ -365,7 +365,7 @@ module FSharpCodeExt =
 
     type CatalyticRacemizationSimilarParam
         with
-        member p.toFSharpCode (shift : string) = failwith "CatalyticRacemizationSimilarParam.toFSharpCode - is not implemented."
+        member p.toFSharpCode (shift : string) = @"failwith ""CatalyticRacemizationSimilarParam.toFSharpCode - is not implemented."""
 
 
     type CatalyticRacemizationParam

@@ -7,7 +7,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 
 module ModelData = 
-    let seedValue = 869358387
+    let seedValue = 454484514
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -351,6 +351,350 @@ module ModelData =
     // 2 - Z
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -0.0206373733040761 * x.[2] * x.[25] // Z + AAa | catalytic destruction: b + AAa <-> Z + AAa
+            0.804857558858966 * x.[6] * x.[25] // b + AAa | catalytic destruction: b + AAa <-> Z + AAa
+            -0.0206373733040761 * x.[2] * x.[63] // Z + aaA | catalytic destruction: B + aaA <-> Z + aaA
+            0.804857558858966 * x.[4] * x.[63] // B + aaA | catalytic destruction: B + aaA <-> Z + aaA
+            -0.804857558858966 * x.[2] * x.[63] // Z + aaA | catalytic destruction: b + aaA <-> Z + aaA
+            0.0206373733040761 * x.[6] * x.[63] // b + aaA | catalytic destruction: b + aaA <-> Z + aaA
+            -0.804857558858966 * x.[2] * x.[25] // Z + AAa | catalytic destruction: B + AAa <-> Z + AAa
+            0.0206373733040761 * x.[4] * x.[25] // B + AAa | catalytic destruction: B + AAa <-> Z + AAa
+            -0.829676072011572 * x.[2] * x.[86] // Z + bbb | catalytic destruction: b + bbb <-> Z + bbb
+            32.3573668084514 * x.[6] * x.[86] // b + bbb | catalytic destruction: b + bbb <-> Z + bbb
+            -0.829676072011572 * x.[2] * x.[44] // Z + BBB | catalytic destruction: B + BBB <-> Z + BBB
+            32.3573668084514 * x.[4] * x.[44] // B + BBB | catalytic destruction: B + BBB <-> Z + BBB
+            -32.3573668084514 * x.[2] * x.[44] // Z + BBB | catalytic destruction: b + BBB <-> Z + BBB
+            0.829676072011572 * x.[6] * x.[44] // b + BBB | catalytic destruction: b + BBB <-> Z + BBB
+            -32.3573668084514 * x.[2] * x.[86] // Z + bbb | catalytic destruction: B + bbb <-> Z + bbb
+            0.829676072011572 * x.[4] * x.[86] // B + bbb | catalytic destruction: B + bbb <-> Z + bbb
+            -0.829676072011574 * x.[2] * x.[86] // Z + bbb | catalytic destruction: a + bbb <-> Z + bbb
+            32.3573668084514 * x.[5] * x.[86] // a + bbb | catalytic destruction: a + bbb <-> Z + bbb
+            -0.829676072011574 * x.[2] * x.[44] // Z + BBB | catalytic destruction: A + BBB <-> Z + BBB
+            32.3573668084514 * x.[3] * x.[44] // A + BBB | catalytic destruction: A + BBB <-> Z + BBB
+            -32.3573668084514 * x.[2] * x.[44] // Z + BBB | catalytic destruction: a + BBB <-> Z + BBB
+            0.829676072011574 * x.[5] * x.[44] // a + BBB | catalytic destruction: a + BBB <-> Z + BBB
+            -32.3573668084514 * x.[2] * x.[86] // Z + bbb | catalytic destruction: A + bbb <-> Z + bbb
+            0.829676072011574 * x.[3] * x.[86] // A + bbb | catalytic destruction: A + bbb <-> Z + bbb
+            -0.329607300234096 * x.[2] * x.[49] // Z + Baa | catalytic destruction: a + Baa <-> Z + Baa
+            0.329607300234096 * x.[5] * x.[49] // a + Baa | catalytic destruction: a + Baa <-> Z + Baa
+            -0.329607300234096 * x.[2] * x.[71] // Z + bAA | catalytic destruction: A + bAA <-> Z + bAA
+            0.329607300234096 * x.[3] * x.[71] // A + bAA | catalytic destruction: A + bAA <-> Z + bAA
+            -12.8546847091297 * x.[2] * x.[71] // Z + bAA | catalytic destruction: a + bAA <-> Z + bAA
+            12.8546847091297 * x.[5] * x.[71] // a + bAA | catalytic destruction: a + bAA <-> Z + bAA
+            -12.8546847091297 * x.[2] * x.[49] // Z + Baa | catalytic destruction: A + Baa <-> Z + Baa
+            12.8546847091297 * x.[3] * x.[49] // A + Baa | catalytic destruction: A + Baa <-> Z + Baa
+            -0.636037961000686 * x.[2] * x.[34] // Z + Aab | catalytic destruction: a + Aab <-> Z + Aab
+            24.8054804790267 * x.[5] * x.[34] // a + Aab | catalytic destruction: a + Aab <-> Z + Aab
+            -0.636037961000686 * x.[2] * x.[56] // Z + aAB | catalytic destruction: A + aAB <-> Z + aAB
+            24.8054804790267 * x.[3] * x.[56] // A + aAB | catalytic destruction: A + aAB <-> Z + aAB
+            -24.8054804790267 * x.[2] * x.[56] // Z + aAB | catalytic destruction: a + aAB <-> Z + aAB
+            0.636037961000686 * x.[5] * x.[56] // a + aAB | catalytic destruction: a + aAB <-> Z + aAB
+            -24.8054804790267 * x.[2] * x.[34] // Z + Aab | catalytic destruction: A + Aab <-> Z + Aab
+            0.636037961000686 * x.[3] * x.[34] // A + Aab | catalytic destruction: A + Aab <-> Z + Aab
+            -0.636037961000684 * x.[2] * x.[34] // Z + Aab | catalytic destruction: b + Aab <-> Z + Aab
+            24.8054804790267 * x.[6] * x.[34] // b + Aab | catalytic destruction: b + Aab <-> Z + Aab
+            -0.636037961000684 * x.[2] * x.[56] // Z + aAB | catalytic destruction: B + aAB <-> Z + aAB
+            24.8054804790267 * x.[4] * x.[56] // B + aAB | catalytic destruction: B + aAB <-> Z + aAB
+            -24.8054804790267 * x.[2] * x.[56] // Z + aAB | catalytic destruction: b + aAB <-> Z + aAB
+            0.636037961000684 * x.[6] * x.[56] // b + aAB | catalytic destruction: b + aAB <-> Z + aAB
+            -24.8054804790267 * x.[2] * x.[34] // Z + Aab | catalytic destruction: B + Aab <-> Z + Aab
+            0.636037961000684 * x.[4] * x.[34] // B + Aab | catalytic destruction: B + Aab <-> Z + Aab
+            -0.00780462082091921 * x.[2] * x.[31] // Z + AaA | catalytic destruction: A + AaA <-> Z + AaA
+            0.00780462082091921 * x.[3] * x.[31] // A + AaA | catalytic destruction: A + AaA <-> Z + AaA
+            -0.00780462082091921 * x.[2] * x.[57] // Z + aAa | catalytic destruction: a + aAa <-> Z + aAa
+            0.00780462082091921 * x.[5] * x.[57] // a + aAa | catalytic destruction: a + aAa <-> Z + aAa
+            -0.304380212015849 * x.[2] * x.[57] // Z + aAa | catalytic destruction: A + aAa <-> Z + aAa
+            0.304380212015849 * x.[3] * x.[57] // A + aAa | catalytic destruction: A + aAa <-> Z + aAa
+            -0.304380212015849 * x.[2] * x.[31] // Z + AaA | catalytic destruction: a + AaA <-> Z + AaA
+            0.304380212015849 * x.[5] * x.[31] // a + AaA | catalytic destruction: a + AaA <-> Z + AaA
+            -0.00780462082091921 * x.[2] * x.[31] // Z + AaA | catalytic destruction: B + AaA <-> Z + AaA
+            0.00780462082091921 * x.[4] * x.[31] // B + AaA | catalytic destruction: B + AaA <-> Z + AaA
+            -0.00780462082091921 * x.[2] * x.[57] // Z + aAa | catalytic destruction: b + aAa <-> Z + aAa
+            0.00780462082091921 * x.[6] * x.[57] // b + aAa | catalytic destruction: b + aAa <-> Z + aAa
+            -0.304380212015849 * x.[2] * x.[57] // Z + aAa | catalytic destruction: B + aAa <-> Z + aAa
+            0.304380212015849 * x.[4] * x.[57] // B + aAa | catalytic destruction: B + aAa <-> Z + aAa
+            -0.304380212015849 * x.[2] * x.[31] // Z + AaA | catalytic destruction: b + AaA <-> Z + AaA
+            0.304380212015849 * x.[6] * x.[31] // b + AaA | catalytic destruction: b + AaA <-> Z + AaA
+            -40.0431212672108 * x.[2] * x.[32] // Z + AaB | catalytic destruction: B + AaB <-> Z + AaB
+            40.0431212672108 * x.[4] * x.[32] // B + AaB | catalytic destruction: B + AaB <-> Z + AaB
+            -40.0431212672108 * x.[2] * x.[58] // Z + aAb | catalytic destruction: b + aAb <-> Z + aAb
+            40.0431212672108 * x.[6] * x.[58] // b + aAb | catalytic destruction: b + aAb <-> Z + aAb
+            -1.02674669915925 * x.[2] * x.[58] // Z + aAb | catalytic destruction: B + aAb <-> Z + aAb
+            1.02674669915925 * x.[4] * x.[58] // B + aAb | catalytic destruction: B + aAb <-> Z + aAb
+            -1.02674669915925 * x.[2] * x.[32] // Z + AaB | catalytic destruction: b + AaB <-> Z + AaB
+            1.02674669915925 * x.[6] * x.[32] // b + AaB | catalytic destruction: b + AaB <-> Z + AaB
+            -0.579849306714727 * x.[2] * x.[45] // Z + BBa | catalytic destruction: a + BBa <-> Z + BBa
+            0.579849306714727 * x.[5] * x.[45] // a + BBa | catalytic destruction: a + BBa <-> Z + BBa
+            -0.579849306714727 * x.[2] * x.[83] // Z + bbA | catalytic destruction: A + bbA <-> Z + bbA
+            0.579849306714727 * x.[3] * x.[83] // A + bbA | catalytic destruction: A + bbA <-> Z + bbA
+            -22.6141229618743 * x.[2] * x.[83] // Z + bbA | catalytic destruction: a + bbA <-> Z + bbA
+            22.6141229618743 * x.[5] * x.[83] // a + bbA | catalytic destruction: a + bbA <-> Z + bbA
+            -22.6141229618743 * x.[2] * x.[45] // Z + BBa | catalytic destruction: A + BBa <-> Z + BBa
+            22.6141229618743 * x.[3] * x.[45] // A + BBa | catalytic destruction: A + BBa <-> Z + BBa
+            -0.579849306714727 * x.[2] * x.[45] // Z + BBa | catalytic destruction: b + BBa <-> Z + BBa
+            0.579849306714727 * x.[6] * x.[45] // b + BBa | catalytic destruction: b + BBa <-> Z + BBa
+            -0.579849306714727 * x.[2] * x.[83] // Z + bbA | catalytic destruction: B + bbA <-> Z + bbA
+            0.579849306714727 * x.[4] * x.[83] // B + bbA | catalytic destruction: B + bbA <-> Z + bbA
+            -22.6141229618743 * x.[2] * x.[83] // Z + bbA | catalytic destruction: b + bbA <-> Z + bbA
+            22.6141229618743 * x.[6] * x.[83] // b + bbA | catalytic destruction: b + bbA <-> Z + bbA
+            -22.6141229618743 * x.[2] * x.[45] // Z + BBa | catalytic destruction: B + BBa <-> Z + BBa
+            22.6141229618743 * x.[4] * x.[45] // B + BBa | catalytic destruction: B + BBa <-> Z + BBa
+            -0.58059267993617 * x.[2] * x.[50] // Z + Bab | catalytic destruction: a + Bab <-> Z + Bab
+            0.58059267993617 * x.[5] * x.[50] // a + Bab | catalytic destruction: a + Bab <-> Z + Bab
+            -0.58059267993617 * x.[2] * x.[72] // Z + bAB | catalytic destruction: A + bAB <-> Z + bAB
+            0.58059267993617 * x.[3] * x.[72] // A + bAB | catalytic destruction: A + bAB <-> Z + bAB
+            -22.6431145175106 * x.[2] * x.[72] // Z + bAB | catalytic destruction: a + bAB <-> Z + bAB
+            22.6431145175106 * x.[5] * x.[72] // a + bAB | catalytic destruction: a + bAB <-> Z + bAB
+            -22.6431145175106 * x.[2] * x.[50] // Z + Bab | catalytic destruction: A + Bab <-> Z + Bab
+            22.6431145175106 * x.[3] * x.[50] // A + Bab | catalytic destruction: A + Bab <-> Z + Bab
+            -0.580592679936169 * x.[2] * x.[50] // Z + Bab | catalytic destruction: b + Bab <-> Z + Bab
+            0.580592679936169 * x.[6] * x.[50] // b + Bab | catalytic destruction: b + Bab <-> Z + Bab
+            -0.580592679936169 * x.[2] * x.[72] // Z + bAB | catalytic destruction: B + bAB <-> Z + bAB
+            0.580592679936169 * x.[4] * x.[72] // B + bAB | catalytic destruction: B + bAB <-> Z + bAB
+            -22.6431145175106 * x.[2] * x.[72] // Z + bAB | catalytic destruction: b + bAB <-> Z + bAB
+            22.6431145175106 * x.[6] * x.[72] // b + bAB | catalytic destruction: b + bAB <-> Z + bAB
+            -22.6431145175106 * x.[2] * x.[50] // Z + Bab | catalytic destruction: B + Bab <-> Z + Bab
+            22.6431145175106 * x.[4] * x.[50] // B + Bab | catalytic destruction: B + Bab <-> Z + Bab
+            -18.8116085304914 * x.[2] * x.[82] // Z + bab | catalytic destruction: A + bab <-> Z + bab
+            0.482348936679266 * x.[3] * x.[82] // A + bab | catalytic destruction: A + bab <-> Z + bab
+            -18.8116085304914 * x.[2] * x.[40] // Z + BAB | catalytic destruction: a + BAB <-> Z + BAB
+            0.482348936679266 * x.[5] * x.[40] // a + BAB | catalytic destruction: a + BAB <-> Z + BAB
+            -0.482348936679266 * x.[2] * x.[40] // Z + BAB | catalytic destruction: A + BAB <-> Z + BAB
+            18.8116085304914 * x.[3] * x.[40] // A + BAB | catalytic destruction: A + BAB <-> Z + BAB
+            -0.482348936679266 * x.[2] * x.[82] // Z + bab | catalytic destruction: a + bab <-> Z + bab
+            18.8116085304914 * x.[5] * x.[82] // a + bab | catalytic destruction: a + bab <-> Z + bab
+            -18.8116085304914 * x.[2] * x.[82] // Z + bab | catalytic destruction: B + bab <-> Z + bab
+            0.482348936679267 * x.[4] * x.[82] // B + bab | catalytic destruction: B + bab <-> Z + bab
+            -18.8116085304914 * x.[2] * x.[40] // Z + BAB | catalytic destruction: b + BAB <-> Z + BAB
+            0.482348936679267 * x.[6] * x.[40] // b + BAB | catalytic destruction: b + BAB <-> Z + BAB
+            -0.482348936679267 * x.[2] * x.[40] // Z + BAB | catalytic destruction: B + BAB <-> Z + BAB
+            18.8116085304914 * x.[4] * x.[40] // B + BAB | catalytic destruction: B + BAB <-> Z + BAB
+            -0.482348936679267 * x.[2] * x.[82] // Z + bab | catalytic destruction: b + bab <-> Z + bab
+            18.8116085304914 * x.[6] * x.[82] // b + bab | catalytic destruction: b + bab <-> Z + bab
+            -0.553574169450754 * x.[2] * x.[29] // Z + ABa | catalytic destruction: B + ABa <-> Z + ABa
+            21.5893926085794 * x.[4] * x.[29] // B + ABa | catalytic destruction: B + ABa <-> Z + ABa
+            -0.553574169450754 * x.[2] * x.[67] // Z + abA | catalytic destruction: b + abA <-> Z + abA
+            21.5893926085794 * x.[6] * x.[67] // b + abA | catalytic destruction: b + abA <-> Z + abA
+            -21.5893926085794 * x.[2] * x.[67] // Z + abA | catalytic destruction: B + abA <-> Z + abA
+            0.553574169450754 * x.[4] * x.[67] // B + abA | catalytic destruction: B + abA <-> Z + abA
+            -21.5893926085794 * x.[2] * x.[29] // Z + ABa | catalytic destruction: b + ABa <-> Z + ABa
+            0.553574169450754 * x.[6] * x.[29] // b + ABa | catalytic destruction: b + ABa <-> Z + ABa
+            -0.787371729352065 * x.[2] * x.[55] // Z + aAA | catalytic destruction: B + aAA <-> Z + aAA
+            30.7074974447305 * x.[4] * x.[55] // B + aAA | catalytic destruction: B + aAA <-> Z + aAA
+            -0.787371729352065 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
+            30.7074974447305 * x.[6] * x.[33] // b + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
+            -30.7074974447305 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            0.787371729352065 * x.[4] * x.[33] // B + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            -30.7074974447305 * x.[2] * x.[55] // Z + aAA | catalytic destruction: b + aAA <-> Z + aAA
+            0.787371729352065 * x.[6] * x.[55] // b + aAA | catalytic destruction: b + aAA <-> Z + aAA
+            -0.934967684839948 * x.[2] * x.[74] // Z + bAb | catalytic destruction: b + bAb <-> Z + bAb
+            36.4637397087579 * x.[6] * x.[74] // b + bAb | catalytic destruction: b + bAb <-> Z + bAb
+            -0.934967684839948 * x.[2] * x.[48] // Z + BaB | catalytic destruction: B + BaB <-> Z + BaB
+            36.4637397087579 * x.[4] * x.[48] // B + BaB | catalytic destruction: B + BaB <-> Z + BaB
+            -36.4637397087579 * x.[2] * x.[48] // Z + BaB | catalytic destruction: b + BaB <-> Z + BaB
+            0.934967684839948 * x.[6] * x.[48] // b + BaB | catalytic destruction: b + BaB <-> Z + BaB
+            -36.4637397087579 * x.[2] * x.[74] // Z + bAb | catalytic destruction: B + bAb <-> Z + bAb
+            0.934967684839948 * x.[4] * x.[74] // B + bAb | catalytic destruction: B + bAb <-> Z + bAb
+            -16.5579261048292 * x.[2] * x.[69] // Z + aba | catalytic destruction: A + aba <-> Z + aba
+            0.424562207816134 * x.[3] * x.[69] // A + aba | catalytic destruction: A + aba <-> Z + aba
+            -16.5579261048292 * x.[2] * x.[27] // Z + ABA | catalytic destruction: a + ABA <-> Z + ABA
+            0.424562207816134 * x.[5] * x.[27] // a + ABA | catalytic destruction: a + ABA <-> Z + ABA
+            -0.424562207816134 * x.[2] * x.[27] // Z + ABA | catalytic destruction: A + ABA <-> Z + ABA
+            16.5579261048292 * x.[3] * x.[27] // A + ABA | catalytic destruction: A + ABA <-> Z + ABA
+            -0.424562207816134 * x.[2] * x.[69] // Z + aba | catalytic destruction: a + aba <-> Z + aba
+            16.5579261048292 * x.[5] * x.[69] // a + aba | catalytic destruction: a + aba <-> Z + aba
+            -16.5579261048292 * x.[2] * x.[69] // Z + aba | catalytic destruction: B + aba <-> Z + aba
+            0.424562207816134 * x.[4] * x.[69] // B + aba | catalytic destruction: B + aba <-> Z + aba
+            -16.5579261048292 * x.[2] * x.[27] // Z + ABA | catalytic destruction: b + ABA <-> Z + ABA
+            0.424562207816134 * x.[6] * x.[27] // b + ABA | catalytic destruction: b + ABA <-> Z + ABA
+            -0.424562207816134 * x.[2] * x.[27] // Z + ABA | catalytic destruction: B + ABA <-> Z + ABA
+            16.5579261048292 * x.[4] * x.[27] // B + ABA | catalytic destruction: B + ABA <-> Z + ABA
+            -0.424562207816134 * x.[2] * x.[69] // Z + aba | catalytic destruction: b + aba <-> Z + aba
+            16.5579261048292 * x.[6] * x.[69] // b + aba | catalytic destruction: b + aba <-> Z + aba
+            -1.02941350483782 * x.[2] * x.[36] // Z + AbB | catalytic destruction: B + AbB <-> Z + AbB
+            40.1471266886751 * x.[4] * x.[36] // B + AbB | catalytic destruction: B + AbB <-> Z + AbB
+            -1.02941350483782 * x.[2] * x.[62] // Z + aBb | catalytic destruction: b + aBb <-> Z + aBb
+            40.1471266886751 * x.[6] * x.[62] // b + aBb | catalytic destruction: b + aBb <-> Z + aBb
+            -40.1471266886751 * x.[2] * x.[62] // Z + aBb | catalytic destruction: B + aBb <-> Z + aBb
+            1.02941350483782 * x.[4] * x.[62] // B + aBb | catalytic destruction: B + aBb <-> Z + aBb
+            -40.1471266886751 * x.[2] * x.[36] // Z + AbB | catalytic destruction: b + AbB <-> Z + AbB
+            1.02941350483782 * x.[6] * x.[36] // b + AbB | catalytic destruction: b + AbB <-> Z + AbB
+            -13.4130885442401 * x.[2] * x.[73] // Z + bAa | catalytic destruction: B + bAa <-> Z + bAa
+            0.343925347288207 * x.[4] * x.[73] // B + bAa | catalytic destruction: B + bAa <-> Z + bAa
+            -13.4130885442401 * x.[2] * x.[47] // Z + BaA | catalytic destruction: b + BaA <-> Z + BaA
+            0.343925347288207 * x.[6] * x.[47] // b + BaA | catalytic destruction: b + BaA <-> Z + BaA
+            -0.343925347288207 * x.[2] * x.[47] // Z + BaA | catalytic destruction: B + BaA <-> Z + BaA
+            13.4130885442401 * x.[4] * x.[47] // B + BaA | catalytic destruction: B + BaA <-> Z + BaA
+            -0.343925347288207 * x.[2] * x.[73] // Z + bAa | catalytic destruction: b + bAa <-> Z + bAa
+            13.4130885442401 * x.[6] * x.[73] // b + bAa | catalytic destruction: b + bAa <-> Z + bAa
+            -13.4130885442401 * x.[2] * x.[73] // Z + bAa | catalytic destruction: A + bAa <-> Z + bAa
+            0.343925347288208 * x.[3] * x.[73] // A + bAa | catalytic destruction: A + bAa <-> Z + bAa
+            -13.4130885442401 * x.[2] * x.[47] // Z + BaA | catalytic destruction: a + BaA <-> Z + BaA
+            0.343925347288208 * x.[5] * x.[47] // a + BaA | catalytic destruction: a + BaA <-> Z + BaA
+            -0.343925347288208 * x.[2] * x.[47] // Z + BaA | catalytic destruction: A + BaA <-> Z + BaA
+            13.4130885442401 * x.[3] * x.[47] // A + BaA | catalytic destruction: A + BaA <-> Z + BaA
+            -0.343925347288208 * x.[2] * x.[73] // Z + bAa | catalytic destruction: a + bAa <-> Z + bAa
+            13.4130885442401 * x.[5] * x.[73] // a + bAa | catalytic destruction: a + bAa <-> Z + bAa
+            -29.6199200207784 * x.[2] * x.[78] // Z + bBb | catalytic destruction: a + bBb <-> Z + bBb
+            0.759485128737907 * x.[5] * x.[78] // a + bBb | catalytic destruction: a + bBb <-> Z + bBb
+            -29.6199200207784 * x.[2] * x.[52] // Z + BbB | catalytic destruction: A + BbB <-> Z + BbB
+            0.759485128737907 * x.[3] * x.[52] // A + BbB | catalytic destruction: A + BbB <-> Z + BbB
+            -0.759485128737907 * x.[2] * x.[52] // Z + BbB | catalytic destruction: a + BbB <-> Z + BbB
+            29.6199200207784 * x.[5] * x.[52] // a + BbB | catalytic destruction: a + BbB <-> Z + BbB
+            -0.759485128737907 * x.[2] * x.[78] // Z + bBb | catalytic destruction: A + bBb <-> Z + bBb
+            29.6199200207784 * x.[3] * x.[78] // A + bBb | catalytic destruction: A + bBb <-> Z + bBb
+            -11.5872650134546 * x.[2] * x.[43] // Z + BBA | catalytic destruction: a + BBA <-> Z + BBA
+            11.5872650134546 * x.[5] * x.[43] // a + BBA | catalytic destruction: a + BBA <-> Z + BBA
+            -11.5872650134546 * x.[2] * x.[85] // Z + bba | catalytic destruction: A + bba <-> Z + bba
+            11.5872650134546 * x.[3] * x.[85] // A + bba | catalytic destruction: A + bba <-> Z + bba
+            -0.297109359319348 * x.[2] * x.[85] // Z + bba | catalytic destruction: a + bba <-> Z + bba
+            0.297109359319348 * x.[5] * x.[85] // a + bba | catalytic destruction: a + bba <-> Z + bba
+            -0.297109359319348 * x.[2] * x.[43] // Z + BBA | catalytic destruction: A + BBA <-> Z + BBA
+            0.297109359319348 * x.[3] * x.[43] // A + BBA | catalytic destruction: A + BBA <-> Z + BBA
+            -11.5872650134546 * x.[2] * x.[43] // Z + BBA | catalytic destruction: b + BBA <-> Z + BBA
+            11.5872650134546 * x.[6] * x.[43] // b + BBA | catalytic destruction: b + BBA <-> Z + BBA
+            -11.5872650134546 * x.[2] * x.[85] // Z + bba | catalytic destruction: B + bba <-> Z + bba
+            11.5872650134546 * x.[4] * x.[85] // B + bba | catalytic destruction: B + bba <-> Z + bba
+            -0.297109359319348 * x.[2] * x.[85] // Z + bba | catalytic destruction: b + bba <-> Z + bba
+            0.297109359319348 * x.[6] * x.[85] // b + bba | catalytic destruction: b + bba <-> Z + bba
+            -0.297109359319348 * x.[2] * x.[43] // Z + BBA | catalytic destruction: B + BBA <-> Z + BBA
+            0.297109359319348 * x.[4] * x.[43] // B + BBA | catalytic destruction: B + BBA <-> Z + BBA
+            -0.418765921028381 * x.[2] * x.[46] // Z + BBb | catalytic destruction: B + BBb <-> Z + BBb
+            0.418765921028381 * x.[4] * x.[46] // B + BBb | catalytic destruction: B + BBb <-> Z + BBb
+            -0.418765921028381 * x.[2] * x.[84] // Z + bbB | catalytic destruction: b + bbB <-> Z + bbB
+            0.418765921028381 * x.[6] * x.[84] // b + bbB | catalytic destruction: b + bbB <-> Z + bbB
+            -16.3318709201068 * x.[2] * x.[84] // Z + bbB | catalytic destruction: B + bbB <-> Z + bbB
+            16.3318709201068 * x.[4] * x.[84] // B + bbB | catalytic destruction: B + bbB <-> Z + bbB
+            -16.3318709201068 * x.[2] * x.[46] // Z + BBb | catalytic destruction: b + BBb <-> Z + BBb
+            16.3318709201068 * x.[6] * x.[46] // b + BBb | catalytic destruction: b + BBb <-> Z + BBb
+            -0.41876592102838 * x.[2] * x.[46] // Z + BBb | catalytic destruction: A + BBb <-> Z + BBb
+            0.41876592102838 * x.[3] * x.[46] // A + BBb | catalytic destruction: A + BBb <-> Z + BBb
+            -0.41876592102838 * x.[2] * x.[84] // Z + bbB | catalytic destruction: a + bbB <-> Z + bbB
+            0.41876592102838 * x.[5] * x.[84] // a + bbB | catalytic destruction: a + bbB <-> Z + bbB
+            -16.3318709201068 * x.[2] * x.[84] // Z + bbB | catalytic destruction: A + bbB <-> Z + bbB
+            16.3318709201068 * x.[3] * x.[84] // A + bbB | catalytic destruction: A + bbB <-> Z + bbB
+            -16.3318709201068 * x.[2] * x.[46] // Z + BBb | catalytic destruction: a + BBb <-> Z + BBb
+            16.3318709201068 * x.[5] * x.[46] // a + BBb | catalytic destruction: a + BBb <-> Z + BBb
+            -7.87150777920584 * x.[2] * x.[61] // Z + aBa | catalytic destruction: a + aBa <-> Z + aBa
+            7.87150777920584 * x.[5] * x.[61] // a + aBa | catalytic destruction: a + aBa <-> Z + aBa
+            -7.87150777920584 * x.[2] * x.[35] // Z + AbA | catalytic destruction: A + AbA <-> Z + AbA
+            7.87150777920584 * x.[3] * x.[35] // A + AbA | catalytic destruction: A + AbA <-> Z + AbA
+            -0.20183353280015 * x.[2] * x.[35] // Z + AbA | catalytic destruction: a + AbA <-> Z + AbA
+            0.20183353280015 * x.[5] * x.[35] // a + AbA | catalytic destruction: a + AbA <-> Z + AbA
+            -0.20183353280015 * x.[2] * x.[61] // Z + aBa | catalytic destruction: A + aBa <-> Z + aBa
+            0.20183353280015 * x.[3] * x.[61] // A + aBa | catalytic destruction: A + aBa <-> Z + aBa
+            -0.0619403252379447 * x.[2] * x.[38] // Z + Abb | catalytic destruction: B + Abb <-> Z + Abb
+            2.41567268427984 * x.[4] * x.[38] // B + Abb | catalytic destruction: B + Abb <-> Z + Abb
+            -0.0619403252379447 * x.[2] * x.[60] // Z + aBB | catalytic destruction: b + aBB <-> Z + aBB
+            2.41567268427984 * x.[6] * x.[60] // b + aBB | catalytic destruction: b + aBB <-> Z + aBB
+            -2.41567268427984 * x.[2] * x.[60] // Z + aBB | catalytic destruction: B + aBB <-> Z + aBB
+            0.0619403252379447 * x.[4] * x.[60] // B + aBB | catalytic destruction: B + aBB <-> Z + aBB
+            -2.41567268427984 * x.[2] * x.[38] // Z + Abb | catalytic destruction: b + Abb <-> Z + Abb
+            0.0619403252379447 * x.[6] * x.[38] // b + Abb | catalytic destruction: b + Abb <-> Z + Abb
+            -30.2082285614917 * x.[2] * x.[51] // Z + BbA | catalytic destruction: B + BbA <-> Z + BbA
+            30.2082285614917 * x.[4] * x.[51] // B + BbA | catalytic destruction: B + BbA <-> Z + BbA
+            -30.2082285614917 * x.[2] * x.[77] // Z + bBa | catalytic destruction: b + bBa <-> Z + bBa
+            30.2082285614917 * x.[6] * x.[77] // b + bBa | catalytic destruction: b + bBa <-> Z + bBa
+            -0.774569963115172 * x.[2] * x.[77] // Z + bBa | catalytic destruction: B + bBa <-> Z + bBa
+            0.774569963115172 * x.[4] * x.[77] // B + bBa | catalytic destruction: B + bBa <-> Z + bBa
+            -0.774569963115172 * x.[2] * x.[51] // Z + BbA | catalytic destruction: b + BbA <-> Z + BbA
+            0.774569963115172 * x.[6] * x.[51] // b + BbA | catalytic destruction: b + BbA <-> Z + BbA
+            -20.3086292957294 * x.[2] * x.[26] // Z + AAb | catalytic destruction: B + AAb <-> Z + AAb
+            20.3086292957294 * x.[4] * x.[26] // B + AAb | catalytic destruction: B + AAb <-> Z + AAb
+            -20.3086292957294 * x.[2] * x.[64] // Z + aaB | catalytic destruction: b + aaB <-> Z + aaB
+            20.3086292957294 * x.[6] * x.[64] // b + aaB | catalytic destruction: b + aaB <-> Z + aaB
+            -0.520734084505883 * x.[2] * x.[64] // Z + aaB | catalytic destruction: B + aaB <-> Z + aaB
+            0.520734084505883 * x.[4] * x.[64] // B + aaB | catalytic destruction: B + aaB <-> Z + aaB
+            -0.520734084505883 * x.[2] * x.[26] // Z + AAb | catalytic destruction: b + AAb <-> Z + AAb
+            0.520734084505883 * x.[6] * x.[26] // b + AAb | catalytic destruction: b + AAb <-> Z + AAb
+            -20.3086292957294 * x.[2] * x.[26] // Z + AAb | catalytic destruction: A + AAb <-> Z + AAb
+            20.3086292957294 * x.[3] * x.[26] // A + AAb | catalytic destruction: A + AAb <-> Z + AAb
+            -20.3086292957294 * x.[2] * x.[64] // Z + aaB | catalytic destruction: a + aaB <-> Z + aaB
+            20.3086292957294 * x.[5] * x.[64] // a + aaB | catalytic destruction: a + aaB <-> Z + aaB
+            -0.520734084505883 * x.[2] * x.[64] // Z + aaB | catalytic destruction: A + aaB <-> Z + aaB
+            0.520734084505883 * x.[3] * x.[64] // A + aaB | catalytic destruction: A + aaB <-> Z + aaB
+            -0.520734084505883 * x.[2] * x.[26] // Z + AAb | catalytic destruction: a + AAb <-> Z + AAb
+            0.520734084505883 * x.[5] * x.[26] // a + AAb | catalytic destruction: a + AAb <-> Z + AAb
+            -1.10104000895467 * x.[2] * x.[70] // Z + abb | catalytic destruction: A + abb <-> Z + abb
+            1.10104000895467 * x.[3] * x.[70] // A + abb | catalytic destruction: A + abb <-> Z + abb
+            -1.10104000895467 * x.[2] * x.[28] // Z + ABB | catalytic destruction: a + ABB <-> Z + ABB
+            1.10104000895467 * x.[5] * x.[28] // a + ABB | catalytic destruction: a + ABB <-> Z + ABB
+            -42.9405603492322 * x.[2] * x.[28] // Z + ABB | catalytic destruction: A + ABB <-> Z + ABB
+            42.9405603492322 * x.[3] * x.[28] // A + ABB | catalytic destruction: A + ABB <-> Z + ABB
+            -42.9405603492322 * x.[2] * x.[70] // Z + abb | catalytic destruction: a + abb <-> Z + abb
+            42.9405603492322 * x.[5] * x.[70] // a + abb | catalytic destruction: a + abb <-> Z + abb
+            -15.506194826985 * x.[2] * x.[76] // Z + bBB | catalytic destruction: b + bBB <-> Z + bBB
+            0.397594739153462 * x.[6] * x.[76] // b + bBB | catalytic destruction: b + bBB <-> Z + bBB
+            -15.506194826985 * x.[2] * x.[54] // Z + Bbb | catalytic destruction: B + Bbb <-> Z + Bbb
+            0.397594739153462 * x.[4] * x.[54] // B + Bbb | catalytic destruction: B + Bbb <-> Z + Bbb
+            -0.397594739153462 * x.[2] * x.[54] // Z + Bbb | catalytic destruction: b + Bbb <-> Z + Bbb
+            15.506194826985 * x.[6] * x.[54] // b + Bbb | catalytic destruction: b + Bbb <-> Z + Bbb
+            -0.397594739153462 * x.[2] * x.[76] // Z + bBB | catalytic destruction: B + bBB <-> Z + bBB
+            15.506194826985 * x.[4] * x.[76] // B + bBB | catalytic destruction: B + bBB <-> Z + bBB
+            -37.2049873963596 * x.[2] * x.[39] // Z + BAA | catalytic destruction: b + BAA <-> Z + BAA
+            37.2049873963596 * x.[6] * x.[39] // b + BAA | catalytic destruction: b + BAA <-> Z + BAA
+            -37.2049873963596 * x.[2] * x.[81] // Z + baa | catalytic destruction: B + baa <-> Z + baa
+            37.2049873963596 * x.[4] * x.[81] // B + baa | catalytic destruction: B + baa <-> Z + baa
+            -0.953974035804092 * x.[2] * x.[81] // Z + baa | catalytic destruction: b + baa <-> Z + baa
+            0.953974035804092 * x.[6] * x.[81] // b + baa | catalytic destruction: b + baa <-> Z + baa
+            -0.953974035804092 * x.[2] * x.[39] // Z + BAA | catalytic destruction: B + BAA <-> Z + BAA
+            0.953974035804092 * x.[4] * x.[39] // B + BAA | catalytic destruction: B + BAA <-> Z + BAA
+            -0.362048061033626 * x.[2] * x.[80] // Z + baB | catalytic destruction: B + baB <-> Z + baB
+            0.362048061033626 * x.[4] * x.[80] // B + baB | catalytic destruction: B + baB <-> Z + baB
+            -0.362048061033626 * x.[2] * x.[42] // Z + BAb | catalytic destruction: b + BAb <-> Z + BAb
+            0.362048061033626 * x.[6] * x.[42] // b + BAb | catalytic destruction: b + BAb <-> Z + BAb
+            -14.1198743803114 * x.[2] * x.[42] // Z + BAb | catalytic destruction: B + BAb <-> Z + BAb
+            14.1198743803114 * x.[4] * x.[42] // B + BAb | catalytic destruction: B + BAb <-> Z + BAb
+            -14.1198743803114 * x.[2] * x.[80] // Z + baB | catalytic destruction: b + baB <-> Z + baB
+            14.1198743803114 * x.[6] * x.[80] // b + baB | catalytic destruction: b + baB <-> Z + baB
+            -0.362048061033626 * x.[2] * x.[80] // Z + baB | catalytic destruction: A + baB <-> Z + baB
+            0.362048061033626 * x.[3] * x.[80] // A + baB | catalytic destruction: A + baB <-> Z + baB
+            -0.362048061033626 * x.[2] * x.[42] // Z + BAb | catalytic destruction: a + BAb <-> Z + BAb
+            0.362048061033626 * x.[5] * x.[42] // a + BAb | catalytic destruction: a + BAb <-> Z + BAb
+            -14.1198743803114 * x.[2] * x.[42] // Z + BAb | catalytic destruction: A + BAb <-> Z + BAb
+            14.1198743803114 * x.[3] * x.[42] // A + BAb | catalytic destruction: A + BAb <-> Z + BAb
+            -14.1198743803114 * x.[2] * x.[80] // Z + baB | catalytic destruction: a + baB <-> Z + baB
+            14.1198743803114 * x.[5] * x.[80] // a + baB | catalytic destruction: a + baB <-> Z + baB
+            -0.346825219261112 * x.[2] * x.[24] // Z + AAB | catalytic destruction: a + AAB <-> Z + AAB
+            13.5261835511834 * x.[5] * x.[24] // a + AAB | catalytic destruction: a + AAB <-> Z + AAB
+            -0.346825219261112 * x.[2] * x.[66] // Z + aab | catalytic destruction: A + aab <-> Z + aab
+            13.5261835511834 * x.[3] * x.[66] // A + aab | catalytic destruction: A + aab <-> Z + aab
+            -13.5261835511834 * x.[2] * x.[66] // Z + aab | catalytic destruction: a + aab <-> Z + aab
+            0.346825219261112 * x.[5] * x.[66] // a + aab | catalytic destruction: a + aab <-> Z + aab
+            -13.5261835511834 * x.[2] * x.[24] // Z + AAB | catalytic destruction: A + AAB <-> Z + AAB
+            0.346825219261112 * x.[3] * x.[24] // A + AAB | catalytic destruction: A + AAB <-> Z + AAB
+            -15.2401885890934 * x.[2] * x.[59] // Z + aBA | catalytic destruction: A + aBA <-> Z + aBA
+            15.2401885890934 * x.[3] * x.[59] // A + aBA | catalytic destruction: A + aBA <-> Z + aBA
+            -15.2401885890934 * x.[2] * x.[37] // Z + Aba | catalytic destruction: a + Aba <-> Z + Aba
+            15.2401885890934 * x.[5] * x.[37] // a + Aba | catalytic destruction: a + Aba <-> Z + Aba
+            -0.390774066387012 * x.[2] * x.[37] // Z + Aba | catalytic destruction: A + Aba <-> Z + Aba
+            0.390774066387012 * x.[3] * x.[37] // A + Aba | catalytic destruction: A + Aba <-> Z + Aba
+            -0.390774066387012 * x.[2] * x.[59] // Z + aBA | catalytic destruction: a + aBA <-> Z + aBA
+            0.390774066387012 * x.[5] * x.[59] // a + aBA | catalytic destruction: a + aBA <-> Z + aBA
+            -17.677791447835 * x.[2] * x.[23] // Z + AAA | catalytic destruction: a + AAA <-> Z + AAA
+            17.677791447835 * x.[5] * x.[23] // a + AAA | catalytic destruction: a + AAA <-> Z + AAA
+            -17.677791447835 * x.[2] * x.[65] // Z + aaa | catalytic destruction: A + aaa <-> Z + aaa
+            17.677791447835 * x.[3] * x.[65] // A + aaa | catalytic destruction: A + aaa <-> Z + aaa
+            -0.453276703790642 * x.[2] * x.[65] // Z + aaa | catalytic destruction: a + aaa <-> Z + aaa
+            0.453276703790642 * x.[5] * x.[65] // a + aaa | catalytic destruction: a + aaa <-> Z + aaa
+            -0.453276703790642 * x.[2] * x.[23] // Z + AAA | catalytic destruction: A + AAA <-> Z + AAA
+            0.453276703790642 * x.[3] * x.[23] // A + AAA | catalytic destruction: A + AAA <-> Z + AAA
+            -17.677791447835 * x.[2] * x.[23] // Z + AAA | catalytic destruction: b + AAA <-> Z + AAA
+            17.677791447835 * x.[6] * x.[23] // b + AAA | catalytic destruction: b + AAA <-> Z + AAA
+            -17.677791447835 * x.[2] * x.[65] // Z + aaa | catalytic destruction: B + aaa <-> Z + aaa
+            17.677791447835 * x.[4] * x.[65] // B + aaa | catalytic destruction: B + aaa <-> Z + aaa
+            -0.453276703790641 * x.[2] * x.[65] // Z + aaa | catalytic destruction: b + aaa <-> Z + aaa
+            0.453276703790641 * x.[6] * x.[65] // b + aaa | catalytic destruction: b + aaa <-> Z + aaa
+            -0.453276703790641 * x.[2] * x.[23] // Z + AAA | catalytic destruction: B + AAA <-> Z + AAA
+            0.453276703790641 * x.[4] * x.[23] // B + AAA | catalytic destruction: B + AAA <-> Z + AAA
+            -0.274049702078943 * x.[2] * x.[79] // Z + baA | catalytic destruction: A + baA <-> Z + baA
+            10.6879383810788 * x.[3] * x.[79] // A + baA | catalytic destruction: A + baA <-> Z + baA
+            -0.274049702078943 * x.[2] * x.[41] // Z + BAa | catalytic destruction: a + BAa <-> Z + BAa
+            10.6879383810788 * x.[5] * x.[41] // a + BAa | catalytic destruction: a + BAa <-> Z + BAa
+            -10.6879383810788 * x.[2] * x.[41] // Z + BAa | catalytic destruction: A + BAa <-> Z + BAa
+            0.274049702078943 * x.[3] * x.[41] // A + BAa | catalytic destruction: A + BAa <-> Z + BAa
+            -10.6879383810788 * x.[2] * x.[79] // Z + baA | catalytic destruction: a + baA <-> Z + baA
+            0.274049702078943 * x.[5] * x.[79] // a + baA | catalytic destruction: a + baA <-> Z + baA
             -0.001 * x.[2] // Z | destruction: b <-> Z
             0.001 * x.[6] // b | destruction: b <-> Z
             -0.001 * x.[2] // Z | destruction: B <-> Z
@@ -413,6 +757,86 @@ module ModelData =
             1.0 * x.[7] // AA | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
             -1.0 * x.[3] * x.[3] // A + A | ligation: A + A <-> AA
+            0.829676072011574 * x.[2] * x.[44] // Z + BBB | catalytic destruction: A + BBB <-> Z + BBB
+            -32.3573668084514 * x.[3] * x.[44] // A + BBB | catalytic destruction: A + BBB <-> Z + BBB
+            32.3573668084514 * x.[2] * x.[86] // Z + bbb | catalytic destruction: A + bbb <-> Z + bbb
+            -0.829676072011574 * x.[3] * x.[86] // A + bbb | catalytic destruction: A + bbb <-> Z + bbb
+            0.329607300234096 * x.[2] * x.[71] // Z + bAA | catalytic destruction: A + bAA <-> Z + bAA
+            -0.329607300234096 * x.[3] * x.[71] // A + bAA | catalytic destruction: A + bAA <-> Z + bAA
+            12.8546847091297 * x.[2] * x.[49] // Z + Baa | catalytic destruction: A + Baa <-> Z + Baa
+            -12.8546847091297 * x.[3] * x.[49] // A + Baa | catalytic destruction: A + Baa <-> Z + Baa
+            0.636037961000686 * x.[2] * x.[56] // Z + aAB | catalytic destruction: A + aAB <-> Z + aAB
+            -24.8054804790267 * x.[3] * x.[56] // A + aAB | catalytic destruction: A + aAB <-> Z + aAB
+            24.8054804790267 * x.[2] * x.[34] // Z + Aab | catalytic destruction: A + Aab <-> Z + Aab
+            -0.636037961000686 * x.[3] * x.[34] // A + Aab | catalytic destruction: A + Aab <-> Z + Aab
+            0.00780462082091921 * x.[2] * x.[31] // Z + AaA | catalytic destruction: A + AaA <-> Z + AaA
+            -0.00780462082091921 * x.[3] * x.[31] // A + AaA | catalytic destruction: A + AaA <-> Z + AaA
+            0.304380212015849 * x.[2] * x.[57] // Z + aAa | catalytic destruction: A + aAa <-> Z + aAa
+            -0.304380212015849 * x.[3] * x.[57] // A + aAa | catalytic destruction: A + aAa <-> Z + aAa
+            0.579849306714727 * x.[2] * x.[83] // Z + bbA | catalytic destruction: A + bbA <-> Z + bbA
+            -0.579849306714727 * x.[3] * x.[83] // A + bbA | catalytic destruction: A + bbA <-> Z + bbA
+            22.6141229618743 * x.[2] * x.[45] // Z + BBa | catalytic destruction: A + BBa <-> Z + BBa
+            -22.6141229618743 * x.[3] * x.[45] // A + BBa | catalytic destruction: A + BBa <-> Z + BBa
+            0.58059267993617 * x.[2] * x.[72] // Z + bAB | catalytic destruction: A + bAB <-> Z + bAB
+            -0.58059267993617 * x.[3] * x.[72] // A + bAB | catalytic destruction: A + bAB <-> Z + bAB
+            22.6431145175106 * x.[2] * x.[50] // Z + Bab | catalytic destruction: A + Bab <-> Z + Bab
+            -22.6431145175106 * x.[3] * x.[50] // A + Bab | catalytic destruction: A + Bab <-> Z + Bab
+            18.8116085304914 * x.[2] * x.[82] // Z + bab | catalytic destruction: A + bab <-> Z + bab
+            -0.482348936679266 * x.[3] * x.[82] // A + bab | catalytic destruction: A + bab <-> Z + bab
+            0.482348936679266 * x.[2] * x.[40] // Z + BAB | catalytic destruction: A + BAB <-> Z + BAB
+            -18.8116085304914 * x.[3] * x.[40] // A + BAB | catalytic destruction: A + BAB <-> Z + BAB
+            16.5579261048292 * x.[2] * x.[69] // Z + aba | catalytic destruction: A + aba <-> Z + aba
+            -0.424562207816134 * x.[3] * x.[69] // A + aba | catalytic destruction: A + aba <-> Z + aba
+            0.424562207816134 * x.[2] * x.[27] // Z + ABA | catalytic destruction: A + ABA <-> Z + ABA
+            -16.5579261048292 * x.[3] * x.[27] // A + ABA | catalytic destruction: A + ABA <-> Z + ABA
+            13.4130885442401 * x.[2] * x.[73] // Z + bAa | catalytic destruction: A + bAa <-> Z + bAa
+            -0.343925347288208 * x.[3] * x.[73] // A + bAa | catalytic destruction: A + bAa <-> Z + bAa
+            0.343925347288208 * x.[2] * x.[47] // Z + BaA | catalytic destruction: A + BaA <-> Z + BaA
+            -13.4130885442401 * x.[3] * x.[47] // A + BaA | catalytic destruction: A + BaA <-> Z + BaA
+            29.6199200207784 * x.[2] * x.[52] // Z + BbB | catalytic destruction: A + BbB <-> Z + BbB
+            -0.759485128737907 * x.[3] * x.[52] // A + BbB | catalytic destruction: A + BbB <-> Z + BbB
+            0.759485128737907 * x.[2] * x.[78] // Z + bBb | catalytic destruction: A + bBb <-> Z + bBb
+            -29.6199200207784 * x.[3] * x.[78] // A + bBb | catalytic destruction: A + bBb <-> Z + bBb
+            11.5872650134546 * x.[2] * x.[85] // Z + bba | catalytic destruction: A + bba <-> Z + bba
+            -11.5872650134546 * x.[3] * x.[85] // A + bba | catalytic destruction: A + bba <-> Z + bba
+            0.297109359319348 * x.[2] * x.[43] // Z + BBA | catalytic destruction: A + BBA <-> Z + BBA
+            -0.297109359319348 * x.[3] * x.[43] // A + BBA | catalytic destruction: A + BBA <-> Z + BBA
+            0.41876592102838 * x.[2] * x.[46] // Z + BBb | catalytic destruction: A + BBb <-> Z + BBb
+            -0.41876592102838 * x.[3] * x.[46] // A + BBb | catalytic destruction: A + BBb <-> Z + BBb
+            16.3318709201068 * x.[2] * x.[84] // Z + bbB | catalytic destruction: A + bbB <-> Z + bbB
+            -16.3318709201068 * x.[3] * x.[84] // A + bbB | catalytic destruction: A + bbB <-> Z + bbB
+            7.87150777920584 * x.[2] * x.[35] // Z + AbA | catalytic destruction: A + AbA <-> Z + AbA
+            -7.87150777920584 * x.[3] * x.[35] // A + AbA | catalytic destruction: A + AbA <-> Z + AbA
+            0.20183353280015 * x.[2] * x.[61] // Z + aBa | catalytic destruction: A + aBa <-> Z + aBa
+            -0.20183353280015 * x.[3] * x.[61] // A + aBa | catalytic destruction: A + aBa <-> Z + aBa
+            20.3086292957294 * x.[2] * x.[26] // Z + AAb | catalytic destruction: A + AAb <-> Z + AAb
+            -20.3086292957294 * x.[3] * x.[26] // A + AAb | catalytic destruction: A + AAb <-> Z + AAb
+            0.520734084505883 * x.[2] * x.[64] // Z + aaB | catalytic destruction: A + aaB <-> Z + aaB
+            -0.520734084505883 * x.[3] * x.[64] // A + aaB | catalytic destruction: A + aaB <-> Z + aaB
+            1.10104000895467 * x.[2] * x.[70] // Z + abb | catalytic destruction: A + abb <-> Z + abb
+            -1.10104000895467 * x.[3] * x.[70] // A + abb | catalytic destruction: A + abb <-> Z + abb
+            42.9405603492322 * x.[2] * x.[28] // Z + ABB | catalytic destruction: A + ABB <-> Z + ABB
+            -42.9405603492322 * x.[3] * x.[28] // A + ABB | catalytic destruction: A + ABB <-> Z + ABB
+            0.362048061033626 * x.[2] * x.[80] // Z + baB | catalytic destruction: A + baB <-> Z + baB
+            -0.362048061033626 * x.[3] * x.[80] // A + baB | catalytic destruction: A + baB <-> Z + baB
+            14.1198743803114 * x.[2] * x.[42] // Z + BAb | catalytic destruction: A + BAb <-> Z + BAb
+            -14.1198743803114 * x.[3] * x.[42] // A + BAb | catalytic destruction: A + BAb <-> Z + BAb
+            0.346825219261112 * x.[2] * x.[66] // Z + aab | catalytic destruction: A + aab <-> Z + aab
+            -13.5261835511834 * x.[3] * x.[66] // A + aab | catalytic destruction: A + aab <-> Z + aab
+            13.5261835511834 * x.[2] * x.[24] // Z + AAB | catalytic destruction: A + AAB <-> Z + AAB
+            -0.346825219261112 * x.[3] * x.[24] // A + AAB | catalytic destruction: A + AAB <-> Z + AAB
+            15.2401885890934 * x.[2] * x.[59] // Z + aBA | catalytic destruction: A + aBA <-> Z + aBA
+            -15.2401885890934 * x.[3] * x.[59] // A + aBA | catalytic destruction: A + aBA <-> Z + aBA
+            0.390774066387012 * x.[2] * x.[37] // Z + Aba | catalytic destruction: A + Aba <-> Z + Aba
+            -0.390774066387012 * x.[3] * x.[37] // A + Aba | catalytic destruction: A + Aba <-> Z + Aba
+            17.677791447835 * x.[2] * x.[65] // Z + aaa | catalytic destruction: A + aaa <-> Z + aaa
+            -17.677791447835 * x.[3] * x.[65] // A + aaa | catalytic destruction: A + aaa <-> Z + aaa
+            0.453276703790642 * x.[2] * x.[23] // Z + AAA | catalytic destruction: A + AAA <-> Z + AAA
+            -0.453276703790642 * x.[3] * x.[23] // A + AAA | catalytic destruction: A + AAA <-> Z + AAA
+            0.274049702078943 * x.[2] * x.[79] // Z + baA | catalytic destruction: A + baA <-> Z + baA
+            -10.6879383810788 * x.[3] * x.[79] // A + baA | catalytic destruction: A + baA <-> Z + baA
+            10.6879383810788 * x.[2] * x.[41] // Z + BAa | catalytic destruction: A + BAa <-> Z + BAa
+            -0.274049702078943 * x.[3] * x.[41] // A + BAa | catalytic destruction: A + BAa <-> Z + BAa
             0.001 * x.[2] // Z | destruction: A <-> Z
             -0.001 * x.[3] // A | destruction: A <-> Z
             -0.001 * x.[3] // A | synthesis: Y <-> A
@@ -470,6 +894,98 @@ module ModelData =
             -1.0 * x.[5] * x.[4] // a + B | ligation: a + B <-> aB
             1.0 * x.[8] // AB | ligation: A + B <-> AB
             -1.0 * x.[3] * x.[4] // A + B | ligation: A + B <-> AB
+            0.0206373733040761 * x.[2] * x.[63] // Z + aaA | catalytic destruction: B + aaA <-> Z + aaA
+            -0.804857558858966 * x.[4] * x.[63] // B + aaA | catalytic destruction: B + aaA <-> Z + aaA
+            0.804857558858966 * x.[2] * x.[25] // Z + AAa | catalytic destruction: B + AAa <-> Z + AAa
+            -0.0206373733040761 * x.[4] * x.[25] // B + AAa | catalytic destruction: B + AAa <-> Z + AAa
+            0.829676072011572 * x.[2] * x.[44] // Z + BBB | catalytic destruction: B + BBB <-> Z + BBB
+            -32.3573668084514 * x.[4] * x.[44] // B + BBB | catalytic destruction: B + BBB <-> Z + BBB
+            32.3573668084514 * x.[2] * x.[86] // Z + bbb | catalytic destruction: B + bbb <-> Z + bbb
+            -0.829676072011572 * x.[4] * x.[86] // B + bbb | catalytic destruction: B + bbb <-> Z + bbb
+            0.636037961000684 * x.[2] * x.[56] // Z + aAB | catalytic destruction: B + aAB <-> Z + aAB
+            -24.8054804790267 * x.[4] * x.[56] // B + aAB | catalytic destruction: B + aAB <-> Z + aAB
+            24.8054804790267 * x.[2] * x.[34] // Z + Aab | catalytic destruction: B + Aab <-> Z + Aab
+            -0.636037961000684 * x.[4] * x.[34] // B + Aab | catalytic destruction: B + Aab <-> Z + Aab
+            0.00780462082091921 * x.[2] * x.[31] // Z + AaA | catalytic destruction: B + AaA <-> Z + AaA
+            -0.00780462082091921 * x.[4] * x.[31] // B + AaA | catalytic destruction: B + AaA <-> Z + AaA
+            0.304380212015849 * x.[2] * x.[57] // Z + aAa | catalytic destruction: B + aAa <-> Z + aAa
+            -0.304380212015849 * x.[4] * x.[57] // B + aAa | catalytic destruction: B + aAa <-> Z + aAa
+            40.0431212672108 * x.[2] * x.[32] // Z + AaB | catalytic destruction: B + AaB <-> Z + AaB
+            -40.0431212672108 * x.[4] * x.[32] // B + AaB | catalytic destruction: B + AaB <-> Z + AaB
+            1.02674669915925 * x.[2] * x.[58] // Z + aAb | catalytic destruction: B + aAb <-> Z + aAb
+            -1.02674669915925 * x.[4] * x.[58] // B + aAb | catalytic destruction: B + aAb <-> Z + aAb
+            0.579849306714727 * x.[2] * x.[83] // Z + bbA | catalytic destruction: B + bbA <-> Z + bbA
+            -0.579849306714727 * x.[4] * x.[83] // B + bbA | catalytic destruction: B + bbA <-> Z + bbA
+            22.6141229618743 * x.[2] * x.[45] // Z + BBa | catalytic destruction: B + BBa <-> Z + BBa
+            -22.6141229618743 * x.[4] * x.[45] // B + BBa | catalytic destruction: B + BBa <-> Z + BBa
+            0.580592679936169 * x.[2] * x.[72] // Z + bAB | catalytic destruction: B + bAB <-> Z + bAB
+            -0.580592679936169 * x.[4] * x.[72] // B + bAB | catalytic destruction: B + bAB <-> Z + bAB
+            22.6431145175106 * x.[2] * x.[50] // Z + Bab | catalytic destruction: B + Bab <-> Z + Bab
+            -22.6431145175106 * x.[4] * x.[50] // B + Bab | catalytic destruction: B + Bab <-> Z + Bab
+            18.8116085304914 * x.[2] * x.[82] // Z + bab | catalytic destruction: B + bab <-> Z + bab
+            -0.482348936679267 * x.[4] * x.[82] // B + bab | catalytic destruction: B + bab <-> Z + bab
+            0.482348936679267 * x.[2] * x.[40] // Z + BAB | catalytic destruction: B + BAB <-> Z + BAB
+            -18.8116085304914 * x.[4] * x.[40] // B + BAB | catalytic destruction: B + BAB <-> Z + BAB
+            0.553574169450754 * x.[2] * x.[29] // Z + ABa | catalytic destruction: B + ABa <-> Z + ABa
+            -21.5893926085794 * x.[4] * x.[29] // B + ABa | catalytic destruction: B + ABa <-> Z + ABa
+            21.5893926085794 * x.[2] * x.[67] // Z + abA | catalytic destruction: B + abA <-> Z + abA
+            -0.553574169450754 * x.[4] * x.[67] // B + abA | catalytic destruction: B + abA <-> Z + abA
+            0.787371729352065 * x.[2] * x.[55] // Z + aAA | catalytic destruction: B + aAA <-> Z + aAA
+            -30.7074974447305 * x.[4] * x.[55] // B + aAA | catalytic destruction: B + aAA <-> Z + aAA
+            30.7074974447305 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            -0.787371729352065 * x.[4] * x.[33] // B + Aaa | catalytic destruction: B + Aaa <-> Z + Aaa
+            0.934967684839948 * x.[2] * x.[48] // Z + BaB | catalytic destruction: B + BaB <-> Z + BaB
+            -36.4637397087579 * x.[4] * x.[48] // B + BaB | catalytic destruction: B + BaB <-> Z + BaB
+            36.4637397087579 * x.[2] * x.[74] // Z + bAb | catalytic destruction: B + bAb <-> Z + bAb
+            -0.934967684839948 * x.[4] * x.[74] // B + bAb | catalytic destruction: B + bAb <-> Z + bAb
+            16.5579261048292 * x.[2] * x.[69] // Z + aba | catalytic destruction: B + aba <-> Z + aba
+            -0.424562207816134 * x.[4] * x.[69] // B + aba | catalytic destruction: B + aba <-> Z + aba
+            0.424562207816134 * x.[2] * x.[27] // Z + ABA | catalytic destruction: B + ABA <-> Z + ABA
+            -16.5579261048292 * x.[4] * x.[27] // B + ABA | catalytic destruction: B + ABA <-> Z + ABA
+            1.02941350483782 * x.[2] * x.[36] // Z + AbB | catalytic destruction: B + AbB <-> Z + AbB
+            -40.1471266886751 * x.[4] * x.[36] // B + AbB | catalytic destruction: B + AbB <-> Z + AbB
+            40.1471266886751 * x.[2] * x.[62] // Z + aBb | catalytic destruction: B + aBb <-> Z + aBb
+            -1.02941350483782 * x.[4] * x.[62] // B + aBb | catalytic destruction: B + aBb <-> Z + aBb
+            13.4130885442401 * x.[2] * x.[73] // Z + bAa | catalytic destruction: B + bAa <-> Z + bAa
+            -0.343925347288207 * x.[4] * x.[73] // B + bAa | catalytic destruction: B + bAa <-> Z + bAa
+            0.343925347288207 * x.[2] * x.[47] // Z + BaA | catalytic destruction: B + BaA <-> Z + BaA
+            -13.4130885442401 * x.[4] * x.[47] // B + BaA | catalytic destruction: B + BaA <-> Z + BaA
+            11.5872650134546 * x.[2] * x.[85] // Z + bba | catalytic destruction: B + bba <-> Z + bba
+            -11.5872650134546 * x.[4] * x.[85] // B + bba | catalytic destruction: B + bba <-> Z + bba
+            0.297109359319348 * x.[2] * x.[43] // Z + BBA | catalytic destruction: B + BBA <-> Z + BBA
+            -0.297109359319348 * x.[4] * x.[43] // B + BBA | catalytic destruction: B + BBA <-> Z + BBA
+            0.418765921028381 * x.[2] * x.[46] // Z + BBb | catalytic destruction: B + BBb <-> Z + BBb
+            -0.418765921028381 * x.[4] * x.[46] // B + BBb | catalytic destruction: B + BBb <-> Z + BBb
+            16.3318709201068 * x.[2] * x.[84] // Z + bbB | catalytic destruction: B + bbB <-> Z + bbB
+            -16.3318709201068 * x.[4] * x.[84] // B + bbB | catalytic destruction: B + bbB <-> Z + bbB
+            0.0619403252379447 * x.[2] * x.[38] // Z + Abb | catalytic destruction: B + Abb <-> Z + Abb
+            -2.41567268427984 * x.[4] * x.[38] // B + Abb | catalytic destruction: B + Abb <-> Z + Abb
+            2.41567268427984 * x.[2] * x.[60] // Z + aBB | catalytic destruction: B + aBB <-> Z + aBB
+            -0.0619403252379447 * x.[4] * x.[60] // B + aBB | catalytic destruction: B + aBB <-> Z + aBB
+            30.2082285614917 * x.[2] * x.[51] // Z + BbA | catalytic destruction: B + BbA <-> Z + BbA
+            -30.2082285614917 * x.[4] * x.[51] // B + BbA | catalytic destruction: B + BbA <-> Z + BbA
+            0.774569963115172 * x.[2] * x.[77] // Z + bBa | catalytic destruction: B + bBa <-> Z + bBa
+            -0.774569963115172 * x.[4] * x.[77] // B + bBa | catalytic destruction: B + bBa <-> Z + bBa
+            20.3086292957294 * x.[2] * x.[26] // Z + AAb | catalytic destruction: B + AAb <-> Z + AAb
+            -20.3086292957294 * x.[4] * x.[26] // B + AAb | catalytic destruction: B + AAb <-> Z + AAb
+            0.520734084505883 * x.[2] * x.[64] // Z + aaB | catalytic destruction: B + aaB <-> Z + aaB
+            -0.520734084505883 * x.[4] * x.[64] // B + aaB | catalytic destruction: B + aaB <-> Z + aaB
+            15.506194826985 * x.[2] * x.[54] // Z + Bbb | catalytic destruction: B + Bbb <-> Z + Bbb
+            -0.397594739153462 * x.[4] * x.[54] // B + Bbb | catalytic destruction: B + Bbb <-> Z + Bbb
+            0.397594739153462 * x.[2] * x.[76] // Z + bBB | catalytic destruction: B + bBB <-> Z + bBB
+            -15.506194826985 * x.[4] * x.[76] // B + bBB | catalytic destruction: B + bBB <-> Z + bBB
+            37.2049873963596 * x.[2] * x.[81] // Z + baa | catalytic destruction: B + baa <-> Z + baa
+            -37.2049873963596 * x.[4] * x.[81] // B + baa | catalytic destruction: B + baa <-> Z + baa
+            0.953974035804092 * x.[2] * x.[39] // Z + BAA | catalytic destruction: B + BAA <-> Z + BAA
+            -0.953974035804092 * x.[4] * x.[39] // B + BAA | catalytic destruction: B + BAA <-> Z + BAA
+            0.362048061033626 * x.[2] * x.[80] // Z + baB | catalytic destruction: B + baB <-> Z + baB
+            -0.362048061033626 * x.[4] * x.[80] // B + baB | catalytic destruction: B + baB <-> Z + baB
+            14.1198743803114 * x.[2] * x.[42] // Z + BAb | catalytic destruction: B + BAb <-> Z + BAb
+            -14.1198743803114 * x.[4] * x.[42] // B + BAb | catalytic destruction: B + BAb <-> Z + BAb
+            17.677791447835 * x.[2] * x.[65] // Z + aaa | catalytic destruction: B + aaa <-> Z + aaa
+            -17.677791447835 * x.[4] * x.[65] // B + aaa | catalytic destruction: B + aaa <-> Z + aaa
+            0.453276703790641 * x.[2] * x.[23] // Z + AAA | catalytic destruction: B + AAA <-> Z + AAA
+            -0.453276703790641 * x.[4] * x.[23] // B + AAA | catalytic destruction: B + AAA <-> Z + AAA
             0.001 * x.[2] // Z | destruction: B <-> Z
             -0.001 * x.[4] // B | destruction: B <-> Z
             -0.001 * x.[4] // B | synthesis: Y <-> B
@@ -527,6 +1043,86 @@ module ModelData =
             1.0 * x.[17] // aa | ligation: a + a <-> aa
             -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
             -1.0 * x.[5] * x.[5] // a + a | ligation: a + a <-> aa
+            0.829676072011574 * x.[2] * x.[86] // Z + bbb | catalytic destruction: a + bbb <-> Z + bbb
+            -32.3573668084514 * x.[5] * x.[86] // a + bbb | catalytic destruction: a + bbb <-> Z + bbb
+            32.3573668084514 * x.[2] * x.[44] // Z + BBB | catalytic destruction: a + BBB <-> Z + BBB
+            -0.829676072011574 * x.[5] * x.[44] // a + BBB | catalytic destruction: a + BBB <-> Z + BBB
+            0.329607300234096 * x.[2] * x.[49] // Z + Baa | catalytic destruction: a + Baa <-> Z + Baa
+            -0.329607300234096 * x.[5] * x.[49] // a + Baa | catalytic destruction: a + Baa <-> Z + Baa
+            12.8546847091297 * x.[2] * x.[71] // Z + bAA | catalytic destruction: a + bAA <-> Z + bAA
+            -12.8546847091297 * x.[5] * x.[71] // a + bAA | catalytic destruction: a + bAA <-> Z + bAA
+            0.636037961000686 * x.[2] * x.[34] // Z + Aab | catalytic destruction: a + Aab <-> Z + Aab
+            -24.8054804790267 * x.[5] * x.[34] // a + Aab | catalytic destruction: a + Aab <-> Z + Aab
+            24.8054804790267 * x.[2] * x.[56] // Z + aAB | catalytic destruction: a + aAB <-> Z + aAB
+            -0.636037961000686 * x.[5] * x.[56] // a + aAB | catalytic destruction: a + aAB <-> Z + aAB
+            0.00780462082091921 * x.[2] * x.[57] // Z + aAa | catalytic destruction: a + aAa <-> Z + aAa
+            -0.00780462082091921 * x.[5] * x.[57] // a + aAa | catalytic destruction: a + aAa <-> Z + aAa
+            0.304380212015849 * x.[2] * x.[31] // Z + AaA | catalytic destruction: a + AaA <-> Z + AaA
+            -0.304380212015849 * x.[5] * x.[31] // a + AaA | catalytic destruction: a + AaA <-> Z + AaA
+            0.579849306714727 * x.[2] * x.[45] // Z + BBa | catalytic destruction: a + BBa <-> Z + BBa
+            -0.579849306714727 * x.[5] * x.[45] // a + BBa | catalytic destruction: a + BBa <-> Z + BBa
+            22.6141229618743 * x.[2] * x.[83] // Z + bbA | catalytic destruction: a + bbA <-> Z + bbA
+            -22.6141229618743 * x.[5] * x.[83] // a + bbA | catalytic destruction: a + bbA <-> Z + bbA
+            0.58059267993617 * x.[2] * x.[50] // Z + Bab | catalytic destruction: a + Bab <-> Z + Bab
+            -0.58059267993617 * x.[5] * x.[50] // a + Bab | catalytic destruction: a + Bab <-> Z + Bab
+            22.6431145175106 * x.[2] * x.[72] // Z + bAB | catalytic destruction: a + bAB <-> Z + bAB
+            -22.6431145175106 * x.[5] * x.[72] // a + bAB | catalytic destruction: a + bAB <-> Z + bAB
+            18.8116085304914 * x.[2] * x.[40] // Z + BAB | catalytic destruction: a + BAB <-> Z + BAB
+            -0.482348936679266 * x.[5] * x.[40] // a + BAB | catalytic destruction: a + BAB <-> Z + BAB
+            0.482348936679266 * x.[2] * x.[82] // Z + bab | catalytic destruction: a + bab <-> Z + bab
+            -18.8116085304914 * x.[5] * x.[82] // a + bab | catalytic destruction: a + bab <-> Z + bab
+            16.5579261048292 * x.[2] * x.[27] // Z + ABA | catalytic destruction: a + ABA <-> Z + ABA
+            -0.424562207816134 * x.[5] * x.[27] // a + ABA | catalytic destruction: a + ABA <-> Z + ABA
+            0.424562207816134 * x.[2] * x.[69] // Z + aba | catalytic destruction: a + aba <-> Z + aba
+            -16.5579261048292 * x.[5] * x.[69] // a + aba | catalytic destruction: a + aba <-> Z + aba
+            13.4130885442401 * x.[2] * x.[47] // Z + BaA | catalytic destruction: a + BaA <-> Z + BaA
+            -0.343925347288208 * x.[5] * x.[47] // a + BaA | catalytic destruction: a + BaA <-> Z + BaA
+            0.343925347288208 * x.[2] * x.[73] // Z + bAa | catalytic destruction: a + bAa <-> Z + bAa
+            -13.4130885442401 * x.[5] * x.[73] // a + bAa | catalytic destruction: a + bAa <-> Z + bAa
+            29.6199200207784 * x.[2] * x.[78] // Z + bBb | catalytic destruction: a + bBb <-> Z + bBb
+            -0.759485128737907 * x.[5] * x.[78] // a + bBb | catalytic destruction: a + bBb <-> Z + bBb
+            0.759485128737907 * x.[2] * x.[52] // Z + BbB | catalytic destruction: a + BbB <-> Z + BbB
+            -29.6199200207784 * x.[5] * x.[52] // a + BbB | catalytic destruction: a + BbB <-> Z + BbB
+            11.5872650134546 * x.[2] * x.[43] // Z + BBA | catalytic destruction: a + BBA <-> Z + BBA
+            -11.5872650134546 * x.[5] * x.[43] // a + BBA | catalytic destruction: a + BBA <-> Z + BBA
+            0.297109359319348 * x.[2] * x.[85] // Z + bba | catalytic destruction: a + bba <-> Z + bba
+            -0.297109359319348 * x.[5] * x.[85] // a + bba | catalytic destruction: a + bba <-> Z + bba
+            0.41876592102838 * x.[2] * x.[84] // Z + bbB | catalytic destruction: a + bbB <-> Z + bbB
+            -0.41876592102838 * x.[5] * x.[84] // a + bbB | catalytic destruction: a + bbB <-> Z + bbB
+            16.3318709201068 * x.[2] * x.[46] // Z + BBb | catalytic destruction: a + BBb <-> Z + BBb
+            -16.3318709201068 * x.[5] * x.[46] // a + BBb | catalytic destruction: a + BBb <-> Z + BBb
+            7.87150777920584 * x.[2] * x.[61] // Z + aBa | catalytic destruction: a + aBa <-> Z + aBa
+            -7.87150777920584 * x.[5] * x.[61] // a + aBa | catalytic destruction: a + aBa <-> Z + aBa
+            0.20183353280015 * x.[2] * x.[35] // Z + AbA | catalytic destruction: a + AbA <-> Z + AbA
+            -0.20183353280015 * x.[5] * x.[35] // a + AbA | catalytic destruction: a + AbA <-> Z + AbA
+            20.3086292957294 * x.[2] * x.[64] // Z + aaB | catalytic destruction: a + aaB <-> Z + aaB
+            -20.3086292957294 * x.[5] * x.[64] // a + aaB | catalytic destruction: a + aaB <-> Z + aaB
+            0.520734084505883 * x.[2] * x.[26] // Z + AAb | catalytic destruction: a + AAb <-> Z + AAb
+            -0.520734084505883 * x.[5] * x.[26] // a + AAb | catalytic destruction: a + AAb <-> Z + AAb
+            1.10104000895467 * x.[2] * x.[28] // Z + ABB | catalytic destruction: a + ABB <-> Z + ABB
+            -1.10104000895467 * x.[5] * x.[28] // a + ABB | catalytic destruction: a + ABB <-> Z + ABB
+            42.9405603492322 * x.[2] * x.[70] // Z + abb | catalytic destruction: a + abb <-> Z + abb
+            -42.9405603492322 * x.[5] * x.[70] // a + abb | catalytic destruction: a + abb <-> Z + abb
+            0.362048061033626 * x.[2] * x.[42] // Z + BAb | catalytic destruction: a + BAb <-> Z + BAb
+            -0.362048061033626 * x.[5] * x.[42] // a + BAb | catalytic destruction: a + BAb <-> Z + BAb
+            14.1198743803114 * x.[2] * x.[80] // Z + baB | catalytic destruction: a + baB <-> Z + baB
+            -14.1198743803114 * x.[5] * x.[80] // a + baB | catalytic destruction: a + baB <-> Z + baB
+            0.346825219261112 * x.[2] * x.[24] // Z + AAB | catalytic destruction: a + AAB <-> Z + AAB
+            -13.5261835511834 * x.[5] * x.[24] // a + AAB | catalytic destruction: a + AAB <-> Z + AAB
+            13.5261835511834 * x.[2] * x.[66] // Z + aab | catalytic destruction: a + aab <-> Z + aab
+            -0.346825219261112 * x.[5] * x.[66] // a + aab | catalytic destruction: a + aab <-> Z + aab
+            15.2401885890934 * x.[2] * x.[37] // Z + Aba | catalytic destruction: a + Aba <-> Z + Aba
+            -15.2401885890934 * x.[5] * x.[37] // a + Aba | catalytic destruction: a + Aba <-> Z + Aba
+            0.390774066387012 * x.[2] * x.[59] // Z + aBA | catalytic destruction: a + aBA <-> Z + aBA
+            -0.390774066387012 * x.[5] * x.[59] // a + aBA | catalytic destruction: a + aBA <-> Z + aBA
+            17.677791447835 * x.[2] * x.[23] // Z + AAA | catalytic destruction: a + AAA <-> Z + AAA
+            -17.677791447835 * x.[5] * x.[23] // a + AAA | catalytic destruction: a + AAA <-> Z + AAA
+            0.453276703790642 * x.[2] * x.[65] // Z + aaa | catalytic destruction: a + aaa <-> Z + aaa
+            -0.453276703790642 * x.[5] * x.[65] // a + aaa | catalytic destruction: a + aaa <-> Z + aaa
+            0.274049702078943 * x.[2] * x.[41] // Z + BAa | catalytic destruction: a + BAa <-> Z + BAa
+            -10.6879383810788 * x.[5] * x.[41] // a + BAa | catalytic destruction: a + BAa <-> Z + BAa
+            10.6879383810788 * x.[2] * x.[79] // Z + baA | catalytic destruction: a + baA <-> Z + baA
+            -0.274049702078943 * x.[5] * x.[79] // a + baA | catalytic destruction: a + baA <-> Z + baA
             0.001 * x.[2] // Z | destruction: a <-> Z
             -0.001 * x.[5] // a | destruction: a <-> Z
             -0.001 * x.[5] // a | synthesis: Y <-> a
@@ -584,6 +1180,98 @@ module ModelData =
             -1.0 * x.[3] * x.[6] // A + b | ligation: A + b <-> Ab
             1.0 * x.[18] // ab | ligation: a + b <-> ab
             -1.0 * x.[5] * x.[6] // a + b | ligation: a + b <-> ab
+            0.0206373733040761 * x.[2] * x.[25] // Z + AAa | catalytic destruction: b + AAa <-> Z + AAa
+            -0.804857558858966 * x.[6] * x.[25] // b + AAa | catalytic destruction: b + AAa <-> Z + AAa
+            0.804857558858966 * x.[2] * x.[63] // Z + aaA | catalytic destruction: b + aaA <-> Z + aaA
+            -0.0206373733040761 * x.[6] * x.[63] // b + aaA | catalytic destruction: b + aaA <-> Z + aaA
+            0.829676072011572 * x.[2] * x.[86] // Z + bbb | catalytic destruction: b + bbb <-> Z + bbb
+            -32.3573668084514 * x.[6] * x.[86] // b + bbb | catalytic destruction: b + bbb <-> Z + bbb
+            32.3573668084514 * x.[2] * x.[44] // Z + BBB | catalytic destruction: b + BBB <-> Z + BBB
+            -0.829676072011572 * x.[6] * x.[44] // b + BBB | catalytic destruction: b + BBB <-> Z + BBB
+            0.636037961000684 * x.[2] * x.[34] // Z + Aab | catalytic destruction: b + Aab <-> Z + Aab
+            -24.8054804790267 * x.[6] * x.[34] // b + Aab | catalytic destruction: b + Aab <-> Z + Aab
+            24.8054804790267 * x.[2] * x.[56] // Z + aAB | catalytic destruction: b + aAB <-> Z + aAB
+            -0.636037961000684 * x.[6] * x.[56] // b + aAB | catalytic destruction: b + aAB <-> Z + aAB
+            0.00780462082091921 * x.[2] * x.[57] // Z + aAa | catalytic destruction: b + aAa <-> Z + aAa
+            -0.00780462082091921 * x.[6] * x.[57] // b + aAa | catalytic destruction: b + aAa <-> Z + aAa
+            0.304380212015849 * x.[2] * x.[31] // Z + AaA | catalytic destruction: b + AaA <-> Z + AaA
+            -0.304380212015849 * x.[6] * x.[31] // b + AaA | catalytic destruction: b + AaA <-> Z + AaA
+            40.0431212672108 * x.[2] * x.[58] // Z + aAb | catalytic destruction: b + aAb <-> Z + aAb
+            -40.0431212672108 * x.[6] * x.[58] // b + aAb | catalytic destruction: b + aAb <-> Z + aAb
+            1.02674669915925 * x.[2] * x.[32] // Z + AaB | catalytic destruction: b + AaB <-> Z + AaB
+            -1.02674669915925 * x.[6] * x.[32] // b + AaB | catalytic destruction: b + AaB <-> Z + AaB
+            0.579849306714727 * x.[2] * x.[45] // Z + BBa | catalytic destruction: b + BBa <-> Z + BBa
+            -0.579849306714727 * x.[6] * x.[45] // b + BBa | catalytic destruction: b + BBa <-> Z + BBa
+            22.6141229618743 * x.[2] * x.[83] // Z + bbA | catalytic destruction: b + bbA <-> Z + bbA
+            -22.6141229618743 * x.[6] * x.[83] // b + bbA | catalytic destruction: b + bbA <-> Z + bbA
+            0.580592679936169 * x.[2] * x.[50] // Z + Bab | catalytic destruction: b + Bab <-> Z + Bab
+            -0.580592679936169 * x.[6] * x.[50] // b + Bab | catalytic destruction: b + Bab <-> Z + Bab
+            22.6431145175106 * x.[2] * x.[72] // Z + bAB | catalytic destruction: b + bAB <-> Z + bAB
+            -22.6431145175106 * x.[6] * x.[72] // b + bAB | catalytic destruction: b + bAB <-> Z + bAB
+            18.8116085304914 * x.[2] * x.[40] // Z + BAB | catalytic destruction: b + BAB <-> Z + BAB
+            -0.482348936679267 * x.[6] * x.[40] // b + BAB | catalytic destruction: b + BAB <-> Z + BAB
+            0.482348936679267 * x.[2] * x.[82] // Z + bab | catalytic destruction: b + bab <-> Z + bab
+            -18.8116085304914 * x.[6] * x.[82] // b + bab | catalytic destruction: b + bab <-> Z + bab
+            0.553574169450754 * x.[2] * x.[67] // Z + abA | catalytic destruction: b + abA <-> Z + abA
+            -21.5893926085794 * x.[6] * x.[67] // b + abA | catalytic destruction: b + abA <-> Z + abA
+            21.5893926085794 * x.[2] * x.[29] // Z + ABa | catalytic destruction: b + ABa <-> Z + ABa
+            -0.553574169450754 * x.[6] * x.[29] // b + ABa | catalytic destruction: b + ABa <-> Z + ABa
+            0.787371729352065 * x.[2] * x.[33] // Z + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
+            -30.7074974447305 * x.[6] * x.[33] // b + Aaa | catalytic destruction: b + Aaa <-> Z + Aaa
+            30.7074974447305 * x.[2] * x.[55] // Z + aAA | catalytic destruction: b + aAA <-> Z + aAA
+            -0.787371729352065 * x.[6] * x.[55] // b + aAA | catalytic destruction: b + aAA <-> Z + aAA
+            0.934967684839948 * x.[2] * x.[74] // Z + bAb | catalytic destruction: b + bAb <-> Z + bAb
+            -36.4637397087579 * x.[6] * x.[74] // b + bAb | catalytic destruction: b + bAb <-> Z + bAb
+            36.4637397087579 * x.[2] * x.[48] // Z + BaB | catalytic destruction: b + BaB <-> Z + BaB
+            -0.934967684839948 * x.[6] * x.[48] // b + BaB | catalytic destruction: b + BaB <-> Z + BaB
+            16.5579261048292 * x.[2] * x.[27] // Z + ABA | catalytic destruction: b + ABA <-> Z + ABA
+            -0.424562207816134 * x.[6] * x.[27] // b + ABA | catalytic destruction: b + ABA <-> Z + ABA
+            0.424562207816134 * x.[2] * x.[69] // Z + aba | catalytic destruction: b + aba <-> Z + aba
+            -16.5579261048292 * x.[6] * x.[69] // b + aba | catalytic destruction: b + aba <-> Z + aba
+            1.02941350483782 * x.[2] * x.[62] // Z + aBb | catalytic destruction: b + aBb <-> Z + aBb
+            -40.1471266886751 * x.[6] * x.[62] // b + aBb | catalytic destruction: b + aBb <-> Z + aBb
+            40.1471266886751 * x.[2] * x.[36] // Z + AbB | catalytic destruction: b + AbB <-> Z + AbB
+            -1.02941350483782 * x.[6] * x.[36] // b + AbB | catalytic destruction: b + AbB <-> Z + AbB
+            13.4130885442401 * x.[2] * x.[47] // Z + BaA | catalytic destruction: b + BaA <-> Z + BaA
+            -0.343925347288207 * x.[6] * x.[47] // b + BaA | catalytic destruction: b + BaA <-> Z + BaA
+            0.343925347288207 * x.[2] * x.[73] // Z + bAa | catalytic destruction: b + bAa <-> Z + bAa
+            -13.4130885442401 * x.[6] * x.[73] // b + bAa | catalytic destruction: b + bAa <-> Z + bAa
+            11.5872650134546 * x.[2] * x.[43] // Z + BBA | catalytic destruction: b + BBA <-> Z + BBA
+            -11.5872650134546 * x.[6] * x.[43] // b + BBA | catalytic destruction: b + BBA <-> Z + BBA
+            0.297109359319348 * x.[2] * x.[85] // Z + bba | catalytic destruction: b + bba <-> Z + bba
+            -0.297109359319348 * x.[6] * x.[85] // b + bba | catalytic destruction: b + bba <-> Z + bba
+            0.418765921028381 * x.[2] * x.[84] // Z + bbB | catalytic destruction: b + bbB <-> Z + bbB
+            -0.418765921028381 * x.[6] * x.[84] // b + bbB | catalytic destruction: b + bbB <-> Z + bbB
+            16.3318709201068 * x.[2] * x.[46] // Z + BBb | catalytic destruction: b + BBb <-> Z + BBb
+            -16.3318709201068 * x.[6] * x.[46] // b + BBb | catalytic destruction: b + BBb <-> Z + BBb
+            0.0619403252379447 * x.[2] * x.[60] // Z + aBB | catalytic destruction: b + aBB <-> Z + aBB
+            -2.41567268427984 * x.[6] * x.[60] // b + aBB | catalytic destruction: b + aBB <-> Z + aBB
+            2.41567268427984 * x.[2] * x.[38] // Z + Abb | catalytic destruction: b + Abb <-> Z + Abb
+            -0.0619403252379447 * x.[6] * x.[38] // b + Abb | catalytic destruction: b + Abb <-> Z + Abb
+            30.2082285614917 * x.[2] * x.[77] // Z + bBa | catalytic destruction: b + bBa <-> Z + bBa
+            -30.2082285614917 * x.[6] * x.[77] // b + bBa | catalytic destruction: b + bBa <-> Z + bBa
+            0.774569963115172 * x.[2] * x.[51] // Z + BbA | catalytic destruction: b + BbA <-> Z + BbA
+            -0.774569963115172 * x.[6] * x.[51] // b + BbA | catalytic destruction: b + BbA <-> Z + BbA
+            20.3086292957294 * x.[2] * x.[64] // Z + aaB | catalytic destruction: b + aaB <-> Z + aaB
+            -20.3086292957294 * x.[6] * x.[64] // b + aaB | catalytic destruction: b + aaB <-> Z + aaB
+            0.520734084505883 * x.[2] * x.[26] // Z + AAb | catalytic destruction: b + AAb <-> Z + AAb
+            -0.520734084505883 * x.[6] * x.[26] // b + AAb | catalytic destruction: b + AAb <-> Z + AAb
+            15.506194826985 * x.[2] * x.[76] // Z + bBB | catalytic destruction: b + bBB <-> Z + bBB
+            -0.397594739153462 * x.[6] * x.[76] // b + bBB | catalytic destruction: b + bBB <-> Z + bBB
+            0.397594739153462 * x.[2] * x.[54] // Z + Bbb | catalytic destruction: b + Bbb <-> Z + Bbb
+            -15.506194826985 * x.[6] * x.[54] // b + Bbb | catalytic destruction: b + Bbb <-> Z + Bbb
+            37.2049873963596 * x.[2] * x.[39] // Z + BAA | catalytic destruction: b + BAA <-> Z + BAA
+            -37.2049873963596 * x.[6] * x.[39] // b + BAA | catalytic destruction: b + BAA <-> Z + BAA
+            0.953974035804092 * x.[2] * x.[81] // Z + baa | catalytic destruction: b + baa <-> Z + baa
+            -0.953974035804092 * x.[6] * x.[81] // b + baa | catalytic destruction: b + baa <-> Z + baa
+            0.362048061033626 * x.[2] * x.[42] // Z + BAb | catalytic destruction: b + BAb <-> Z + BAb
+            -0.362048061033626 * x.[6] * x.[42] // b + BAb | catalytic destruction: b + BAb <-> Z + BAb
+            14.1198743803114 * x.[2] * x.[80] // Z + baB | catalytic destruction: b + baB <-> Z + baB
+            -14.1198743803114 * x.[6] * x.[80] // b + baB | catalytic destruction: b + baB <-> Z + baB
+            17.677791447835 * x.[2] * x.[23] // Z + AAA | catalytic destruction: b + AAA <-> Z + AAA
+            -17.677791447835 * x.[6] * x.[23] // b + AAA | catalytic destruction: b + AAA <-> Z + AAA
+            0.453276703790641 * x.[2] * x.[65] // Z + aaa | catalytic destruction: b + aaa <-> Z + aaa
+            -0.453276703790641 * x.[6] * x.[65] // b + aaa | catalytic destruction: b + aaa <-> Z + aaa
             0.001 * x.[2] // Z | destruction: b <-> Z
             -0.001 * x.[6] // b | destruction: b <-> Z
             -0.001 * x.[6] // b | synthesis: Y <-> b
@@ -1724,12 +2412,11 @@ module ModelData =
                                     fileStructureVersionNumber = "2.0.0.0"
                                     versionNumber = "2.0.0.0"
                                     seedValue = seedValue
-                                    modelDataId = 4L
+                                    modelDataId = ModelDataId 2L
                                     numberOfSubstances = 87
                                     numberOfAminoAcids = TwoAminoAcids
                                     maxPeptideLength = ThreeMax
-                                    allResultsFile = @"C:\GitHub\ClmFSharp\Clm\Clm\..\Results\AllResults.fs"
-                                    defaultSetIndex = 1
+                                    defaultSetIndex = 0
                                 }
 
                             allParams =
@@ -1746,7 +2433,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                synthesisDistribution = DeltaDistribution(1645563883, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                synthesisDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                 forwardScale = Some 0.001
                                                 backwardScale = Some 0.001
                                             }
@@ -1758,7 +2445,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                destructionDistribution = DeltaDistribution(1325965818, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                destructionDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                 forwardScale = Some 0.001
                                                 backwardScale = Some 0.001
                                             }
@@ -1772,9 +2459,9 @@ module ModelData =
                                             {
                                                 catDestrRndEeParams = 
                                                 {
-                                                    rateMultiplierDistr = TriangularDistribution(1309846970, { threshold = Some 0.002; scale = Some 10000.0; shift = None }) |> Triangular |> RateMultDistr
-                                                    eeForwardDistribution = BiDeltaDistribution(961135591, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
-                                                    eeBackwardDistribution = BiDeltaDistribution(282028966, { threshold = None; scale = Some 0.95; shift = None }) |> BiDelta |> EeDistribution |> Some
+                                                    rateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.002; scale = Some 10000.0; shift = None } } |> Distribution |> RateMultDistr
+                                                    eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
+                                                    eeBackwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
                                                 }
                                             }
                                             |> CatDestrRndParam
@@ -1784,13 +2471,7 @@ module ModelData =
 
                                     {
                                         modelParam = 
-                                            {
-                                                simBaseDistribution = UniformDistribution(1232001938, { threshold = Some 0.3; scale = None; shift = Some 1.0 }) |> Uniform
-                                                getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                                getForwardEeDistr = DeltaEeDistributionGetter
-                                                getBackwardEeDistr = DeltaEeDistributionGetter
-                                            }
-                                            |> CatDestrSimParam
+failwith "CatalyticDestructionSimilarParam.toFSharpCode - is not implemented."                                            |> CatDestrSimParam
                                             |> CatalyticDestructionRateParam
                                         usage = PrimaryParam
                                     }
@@ -1798,7 +2479,7 @@ module ModelData =
                                     {
                                         modelParam = 
                                             {
-                                                ligationDistribution = DeltaDistribution(2007551242, { threshold = None; scale = None; shift = Some 1.0 }) |> Delta
+                                                ligationDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                 forwardScale = Some 1.0
                                                 backwardScale = Some 1.0
                                             }
@@ -1835,6 +2516,7 @@ module ModelData =
                             (WasteRecyclingName, 1)
                             (SynthesisName, 4)
                             (DestructionName, 4)
+                            (CatalyticDestructionName, 172)
                             (LigationName, 78)
                         ]
                 }

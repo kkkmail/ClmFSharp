@@ -1,3 +1,21 @@
+IF OBJECT_ID('[dbo].[AllParams]') IS NULL begin
+	print 'Creating table [dbo].[AllParams] ...'
+
+	CREATE TABLE [dbo].[AllParams](
+		[allParamsId] [int] NOT NULL DEFAULT (0),
+		[allParams] [nvarchar](max) NOT NULL,
+	 CONSTRAINT [PK_AllParam] PRIMARY KEY CLUSTERED 
+	(
+		[allParamsId] ASC
+	),
+	constraint CK_AllParam CHECK ([allParamsId] = 0)
+	)
+end else begin
+	print 'Table [dbo].[AllParams] already exists ...'
+end
+go
+
+
 IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	print 'Creating table [dbo].[ModelData] ...'
 
@@ -22,24 +40,6 @@ end
 go
 
 
-
-
-IF OBJECT_ID('[dbo].[ModelGenerationParam]') IS NULL begin
-	print 'Creating table [dbo].[ModelGenerationParam] ...'
-
-	CREATE TABLE [dbo].[ModelGenerationParam](
-		[modelGenerationParamId] [int] NOT NULL DEFAULT (0),
-		[modelGenerationParam] [nvarchar](max) NOT NULL,
-	 CONSTRAINT [PK_ModelGenerationParam] PRIMARY KEY CLUSTERED 
-	(
-		[modelGenerationParamId] ASC
-	),
-	constraint CK_ModelGenerationParam CHECK ([modelGenerationParamId] = 0)
-	)
-end else begin
-	print 'Table [dbo].[ModelGenerationParam] already exists ...'
-end
-go
 
 
 IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin

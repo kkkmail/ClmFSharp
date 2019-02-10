@@ -850,17 +850,16 @@ module ReactionRates =
     //    }
 
 
-    //let tryPickParam picker (mp : ReactionRateParams) =
-    //    let rec inner a b =
-    //        match a with
-    //        | [] -> None, b |> List.rev
-    //        | h :: t ->
-    //            match picker h with
-    //            | Some x -> Some x, (b |> List.rev) @ t
-    //            | None -> inner t (h :: b)
+    let tryPickParam picker (mp : list<ReactionRateModelParamWithUsage>) =
+        let rec inner a b =
+            match a with
+            | [] -> None, b |> List.rev
+            | h :: t ->
+                match picker h with
+                | Some x -> Some x, (b |> List.rev) @ t
+                | None -> inner t (h :: b)
 
-    //    let (x, y) = inner mp.modelParams []
-    //    (x, { mp with modelParams = y })
+        inner mp []
 
 
     let rec allDep (rm : ReactionRateModelParam) (acc : list<ReactionRateModelParam>) =

@@ -2,20 +2,53 @@
 
 open Clm.Substances
 open Clm.ReactionRates
+open Clm.ReactionRatesExt
 
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels
 
 module ReactionRateModelsExt =
 
-    type ModelsAndParams =
-        {
-            models : list<ReactionRateModelWithUsage>
-            reactionRateParams : ReactionRateParams
-        }
+    //type ModelsAndParams =
+    //    {
+    //        models : list<ReactionRateModelWithUsage>
+    //        reactionRateParams : ReactionRateParams
+    //    }
 
 
     let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter
+
+
+    let tryCreateModel picker creator (p, m) =
+        match tryPickParam picker p with
+        | Some (u, d), q ->
+            let models =
+                {
+                    model = creator d
+                    usage = u
+                } :: m
+            (q, models)
+        | None, _ -> (p, m)
+
+
+    let tryCreateModelWithBase picker creator baseGetter baseCreator (p, m) =
+        let create b d u =
+            {
+                model = creator b d
+                usage = u
+            }
+
+        match tryPickParam picker p with
+        | Some (u, d), q ->
+            match tryGetModel baseGetter m with
+            | Some b -> q, (create b d u) :: m
+            | None ->
+                let (q1, m1) = baseCreator (q, m)
+
+                match tryGetModel baseGetter m1 with
+                | Some b -> q1, (create b d u) :: m1
+                | None -> (q1, m1)
+        | None, _ -> (p, m)
 
 
     type FoodCreationModel
@@ -26,22 +59,8 @@ module ReactionRateModelsExt =
             | FoodCreationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam FoodCreationParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> FoodCreationModel
-                                |> FoodCreationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel FoodCreationParam.paramGetter (fun d -> d |> FoodCreationModel |> FoodCreationRateModel) (p, m)
 
 
     type WasteRemovalModel
@@ -53,22 +72,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam WasteRemovalParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> WasteRemovalModel
-                                |> WasteRemovalRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel WasteRemovalParam.paramGetter (fun d -> d |> WasteRemovalModel |> WasteRemovalRateModel) (p, m)
 
 
     type WasteRecyclingModel
@@ -80,22 +85,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam WasteRecyclingParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> WasteRecyclingModel
-                                |> WasteRecyclingRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel WasteRecyclingParam.paramGetter (fun d -> d |> WasteRecyclingModel |> WasteRecyclingRateModel) (p, m)
 
 
     type SedimentationDirectRandomModel
@@ -107,31 +98,13 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam SedimentationDirectRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> SedimentationDirectRandomModel
-                                |> SedDirRndModel
-                                |> SedimentationDirectRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel SedimentationDirectRandomParam.paramGetter (fun d -> d |> SedimentationDirectRandomModel |> SedDirRndModel |> SedimentationDirectRateModel) (p, m)
 
 
     type SedimentationDirectModel
         with
-
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
-            |> SedimentationDirectRandomModel.tryCreate
+        static member tryCreate (p, m) = (p, m) |> SedimentationDirectRandomModel.tryCreate
 
 
     type SedimentationAllRandomModel
@@ -143,31 +116,13 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam SedimentationAllRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> SedimentationAllRandomModel
-                                |> SedAllRndModel
-                                |> SedimentationAllRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel SedimentationAllRandomParam.paramGetter (fun d -> d |> SedimentationAllRandomModel |> SedAllRndModel |> SedimentationAllRateModel) (p, m)
 
 
     type SedimentationAllModel
         with
-
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
-            |> SedimentationAllRandomModel.tryCreate
+        static member tryCreate (p, m) = (p, m) |> SedimentationAllRandomModel.tryCreate
 
 
     type SynthesisRandomModel
@@ -179,23 +134,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam SynthesisRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> SynthesisRandomModel
-                                |> SynthRndModel
-                                |> SynthesisRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel SynthesisRandomParam.paramGetter (fun d -> d |> SynthesisRandomModel |> SynthRndModel |> SynthesisRateModel) (p, m)
 
 
     type SynthesisModel
@@ -207,9 +147,7 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
-            |> SynthesisRandomModel.tryCreate
+        static member tryCreate (p, m) = (p, m) |> SynthesisRandomModel.tryCreate
 
 
     type CatalyticSynthesisRandomModel
@@ -220,36 +158,9 @@ module ReactionRateModelsExt =
             | CatalyticSynthesisRateModel (CatSynthRndModel d) -> Some d
             | _ -> None
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u q =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catSynthRndParam = d
-                                    synthesisModel = m
-                                }
-                                |> CatalyticSynthesisRandomModel
-                                |> CatSynthRndModel
-                                |> CatalyticSynthesisRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-
-            match tryPickParam CatalyticSynthesisRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel SynthesisModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = SynthesisModel.tryCreate mp
-
-                    match tryGetModel SynthesisModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            let creator b d = { synthesisModel = b; catSynthRndParam = d } |> CatalyticSynthesisRandomModel |> CatSynthRndModel |> CatalyticSynthesisRateModel
+            tryCreateModelWithBase CatalyticSynthesisRandomParam.paramGetter creator SynthesisModel.modelGetter SynthesisModel.tryCreate (p, m)
 
 
     type CatalyticSynthesisSimilarModel
@@ -266,46 +177,18 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u (q : ModelsAndParams) =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catSynthModel = m
-                                    aminoAcids = q.aminoAcids
-                                    catSynthSimParam = d
-                                }
-                                |> CatalyticSynthesisSimilarModel
-                                |> CatSynthSimModel
-                                |> CatalyticSynthesisRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-
-            match tryPickParam CatalyticSynthesisSimilarModel.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel CatalyticSynthesisRandomModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = CatalyticSynthesisRandomModel.tryCreate mp
-
-                    match tryGetModel CatalyticSynthesisRandomModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+        static member tryCreate a (p, m) =
+            let creator b (d : CatalyticSynthesisSimilarParam) = { catSynthModel = b; aminoAcids = a; catSynthSimParam = d.catSynthSimParam } |> CatalyticSynthesisSimilarModel |> CatSynthSimModel |> CatalyticSynthesisRateModel
+            tryCreateModelWithBase CatalyticSynthesisSimilarModel.paramGetter creator CatalyticSynthesisRandomModel.modelGetter CatalyticSynthesisRandomModel.tryCreate (p, m)
 
 
     type CatalyticSynthesisModel
         with
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
+        static member tryCreate a (p, m) =
+            (p, m)
             |> CatalyticSynthesisRandomModel.tryCreate
-            |> CatalyticSynthesisSimilarModel.tryCreate
+            |> CatalyticSynthesisSimilarModel.tryCreate a
 
 
     type DestructionModel
@@ -317,23 +200,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam DestructionRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> DestructionRandomModel
-                                |> DestrRndModel
-                                |> DestructionRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel DestructionRandomParam.paramGetter (fun d -> d |> DestructionRandomModel |> DestrRndModel |> DestructionRateModel) (p, m)
 
 
     type CatalyticDestructionRandomModel
@@ -344,36 +212,9 @@ module ReactionRateModelsExt =
             | CatalyticDestructionRateModel (CatDestrRndModel d) -> Some d
             | _ -> None
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u q =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catDestrRndParam = d
-                                    destructionModel = m
-                                }
-                                |> CatalyticDestructionRandomModel
-                                |> CatDestrRndModel
-                                |> CatalyticDestructionRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-
-            match tryPickParam CatalyticDestructionRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel DestructionModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = DestructionModel.tryCreate mp
-
-                    match tryGetModel DestructionModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            let creator b d = { destructionModel = b; catDestrRndParam = d } |> CatalyticDestructionRandomModel |> CatDestrRndModel |> CatalyticDestructionRateModel
+            tryCreateModelWithBase CatalyticDestructionRandomParam.paramGetter creator DestructionModel.modelGetter DestructionModel.tryCreate (p, m)
 
 
     type CatalyticDestructionSimilarModel
@@ -390,46 +231,20 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u (q : ModelsAndParams) =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catDestrModel = m
-                                    aminoAcids = q.aminoAcids
-                                    catDestrSimParam = d
-                                }
-                                |> CatalyticDestructionSimilarModel
-                                |> CatDestrSimModel
-                                |> CatalyticDestructionRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
+        static member tryCreate a (p, m) =
+            let creator b (d : CatalyticDestructionSimilarParam) = 
+                { catDestrModel = b; aminoAcids = a; catDestrSimParam = d.catDestrSimParam } |> CatalyticDestructionSimilarModel |> CatDestrSimModel |> CatalyticDestructionRateModel
 
-            match tryPickParam CatalyticDestructionSimilarModel.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel CatalyticDestructionRandomModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = CatalyticDestructionRandomModel.tryCreate mp
-
-                    match tryGetModel CatalyticDestructionRandomModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+            tryCreateModelWithBase CatalyticDestructionSimilarModel.paramGetter creator CatalyticDestructionRandomModel.modelGetter CatalyticDestructionRandomModel.tryCreate (p, m)
 
 
     type CatalyticDestructionModel
         with
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
+        static member tryCreate a (p, m) =
+            (p, m)
             |> CatalyticDestructionRandomModel.tryCreate
-            |> CatalyticDestructionSimilarModel.tryCreate
+            |> CatalyticDestructionSimilarModel.tryCreate a
 
 
     type LigationRandomModel
@@ -441,23 +256,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam LigationRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> LigationRandomModel
-                                |> LigRndModel
-                                |> LigationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel LigationRandomParam.paramGetter (fun d -> d |> LigationRandomModel |> LigRndModel |> LigationRateModel) (p, m)
 
 
     type LigationModel
@@ -469,8 +269,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
+        static member tryCreate (p, m) =
+            (p, m)
             |> LigationRandomModel.tryCreate
 
 
@@ -482,43 +282,16 @@ module ReactionRateModelsExt =
             | CatalyticLigationRateModel (CatLigRndModel d) -> Some d
             | _ -> None
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u q =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catLigationParam = d
-                                    ligationModel = m
-                                }
-                                |> CatalyticLigationRandomModel
-                                |> CatLigRndModel
-                                |> CatalyticLigationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-
-            match tryPickParam CatalyticLigationRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel LigationModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = LigationModel.tryCreate mp
-
-                    match tryGetModel LigationModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            let creator b d = { ligationModel = b; catLigationParam = d } |> CatalyticLigationRandomModel |> CatLigRndModel |> CatalyticLigationRateModel
+            tryCreateModelWithBase CatalyticLigationRandomParam.paramGetter creator LigationModel.modelGetter LigationModel.tryCreate (p, m)
 
 
     type CatalyticLigationModel
         with
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
+        static member tryCreate (p, m) =
+            (p, m)
             |> CatalyticLigationRandomModel.tryCreate
 
 
@@ -531,23 +304,8 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            match tryPickParam RacemizationRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                {
-                    models =
-                        {
-                            model =
-                                d
-                                |> RacemizationRandomModel
-                                |> RacemRndModel
-                                |> RacemizationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-            | None, _ -> mp
+        static member tryCreate (p, m) =
+            tryCreateModel RacemizationRandomParam.paramGetter (fun d -> d |> RacemizationRandomModel |> RacemRndModel |> RacemizationRateModel) (p, m)
 
 
     type CatalyticRacemizationRandomModel
@@ -558,37 +316,9 @@ module ReactionRateModelsExt =
             | CatalyticRacemizationRateModel (CatRacemRndModel d) -> Some d
             | _ -> None
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u q =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catRacemRndParam = d
-                                    racemizationModel = m
-                                    aminoAcids = q.aminoAcids
-                                }
-                                |> CatalyticRacemizationRandomModel
-                                |> CatRacemRndModel
-                                |> CatalyticRacemizationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
-
-            match tryPickParam CatalyticRacemizationRandomParam.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel RacemizationModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = RacemizationModel.tryCreate mp
-
-                    match tryGetModel RacemizationModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+        static member tryCreate a (p, m) =
+            let creator b d = { racemizationModel = b; aminoAcids = a; catRacemRndParam = d } |> CatalyticRacemizationRandomModel |> CatRacemRndModel |> CatalyticRacemizationRateModel
+            tryCreateModelWithBase CatalyticRacemizationRandomParam.paramGetter creator RacemizationModel.modelGetter RacemizationModel.tryCreate (p, m)
 
 
     type CatalyticRacemizationSimilarModel
@@ -605,46 +335,20 @@ module ReactionRateModelsExt =
             | _ -> None
 
 
-        static member tryCreate (mp : ModelsAndParams) =
-            let create d m u (q : ModelsAndParams) =
-                {
-                    models =
-                        {
-                            model =
-                                {
-                                    catRacemModel = m
-                                    aminoAcids = q.aminoAcids
-                                    catRacemSimParam = d
-                                }
-                                |> CatalyticRacemizationSimilarModel
-                                |> CatRacemSimModel
-                                |> CatalyticRacemizationRateModel
-                            usage = u
-                        } :: q.models
-                    modelParams = q.modelParams
-                    aminoAcids = q.aminoAcids
-                }
+        static member tryCreate a (p, m) =
+            let creator b (d : CatalyticRacemizationSimilarParam) =
+                { catRacemModel = b; aminoAcids = a; catRacemSimParam = d.catRacemSimParam } |> CatalyticRacemizationSimilarModel |> CatRacemSimModel |> CatalyticRacemizationRateModel
 
-            match tryPickParam CatalyticRacemizationSimilarModel.paramGetter mp with
-            | Some (u, d), q ->
-                match tryGetModel CatalyticRacemizationRandomModel.modelGetter mp.models with
-                | Some m -> create d m u q
-                | None ->
-                    let x = CatalyticRacemizationRandomModel.tryCreate mp
-
-                    match tryGetModel CatalyticRacemizationRandomModel.modelGetter x.models with
-                    | Some m -> create d m u x
-                    | None -> x
-            | None, _ -> mp
+            tryCreateModelWithBase CatalyticRacemizationSimilarModel.paramGetter creator CatalyticRacemizationRandomModel.modelGetter (CatalyticRacemizationRandomModel.tryCreate a) (p, m)
 
 
     type CatalyticRacemizationModel
         with
 
-        static member tryCreate (mp : ModelsAndParams) =
-            mp
-            |> CatalyticRacemizationRandomModel.tryCreate
-            |> CatalyticRacemizationSimilarModel.tryCreate
+        static member tryCreate a (p, m) =
+            (p, m)
+            |> CatalyticRacemizationRandomModel.tryCreate a
+            |> CatalyticRacemizationSimilarModel.tryCreate a
 
 
     type ReactionRateModel

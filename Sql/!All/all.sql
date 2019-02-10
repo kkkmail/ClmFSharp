@@ -24,6 +24,24 @@ go
 
 
 
+IF OBJECT_ID('[dbo].[ModelGenerationParam]') IS NULL begin
+	print 'Creating table [dbo].[ModelGenerationParam] ...'
+
+	CREATE TABLE [dbo].[ModelGenerationParam](
+		[modelGenerationParamId] [int] NOT NULL DEFAULT (0),
+		[modelGenerationParam] [nvarchar](max) NOT NULL,
+	 CONSTRAINT [PK_ModelGenerationParam] PRIMARY KEY CLUSTERED 
+	(
+		[modelGenerationParamId] ASC
+	),
+	constraint CK_ModelGenerationParam CHECK ([modelGenerationParamId] = 0)
+	)
+end else begin
+	print 'Table [dbo].[ModelGenerationParam] already exists ...'
+end
+go
+
+
 IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 	print 'Creating table [dbo].[ResultData] ...'
 
@@ -74,23 +92,5 @@ end else begin
 end
 go
 
-
-
-IF OBJECT_ID('[dbo].[Setting]') IS NULL begin
-	print 'Creating table [dbo].[Setting] ...'
-
-	CREATE TABLE [dbo].[Setting](
-		[settingId] [int] NOT NULL DEFAULT (0),
-		[settings] [nvarchar](max) NOT NULL,
-	 CONSTRAINT [PK_Setting] PRIMARY KEY CLUSTERED 
-	(
-		[settingId] ASC
-	),
-	constraint CK_Setting CHECK ([settingId] = 0)
-	)
-end else begin
-	print 'Table [dbo].[Setting] already exists ...'
-end
-go
 
 

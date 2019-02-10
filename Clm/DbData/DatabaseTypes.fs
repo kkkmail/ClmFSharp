@@ -11,6 +11,7 @@ open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
+open Clm.Generator.ClmModelData
 
 
 /// You must add reference to System.Configuration !
@@ -34,14 +35,23 @@ module DatabaseTypes =
     type ResultDataTableRow = ResultDataTable.Row
     type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
 
-    type SettingTable = ClmDB.dbo.Tables.Setting
-    type SettingTableRow = SettingTable.Row
-    type SettingTableAllData = SqlCommandProvider<"select * from dbo.Setting", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateSettingTbl = SqlCommandProvider<"truncate table dbo.Setting", ClmSqlProviderName, ConfigFile = AppConfigFile>
+    [<Literal>]
+    let AllParamsId = 0
+
+    type AllParamsTable = ClmDB.dbo.Tables.AllParams
+    type AllParamsTableRow = AllParamsTable.Row
+    type AllParamsData = SqlCommandProvider<"select * from dbo.AllParams", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateAllParamsTbl = SqlCommandProvider<"truncate table dbo.AllParams", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
     type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    type AllParams
+        with
+        static member create (r : AllParamsTableRow) =
+            r.allParams |> JsonConvert.DeserializeObject<AllParams>
 
 
     type ModelData
@@ -153,34 +163,40 @@ module DatabaseTypes =
             newRow
 
 
-    //let loadSettings (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    let settingTable = new SettingTable()
-    //    (new SettingTableAllData(conn)).Execute() |> settingTable.Load
-
-    //    settingTable.Rows
-    //    |> List.ofSeq
-    //    |> List.map (fun e -> Setting.create e)
-    //    |> List.map (fun e -> e.settingPath, e)
-    //    |> Map.ofList
-
-
-    let truncateSettings (ConnectionString connectionString) =
+    let tryloadAllParams (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
-        use truncateSettingTbl = new TruncateSettingTbl(conn)
-        truncateSettingTbl.Execute() |> ignore
+        use d = new AllParamsData(conn)
+        let t = new AllParamsTable()
+        d.Execute() |> t.Load
+
+        t.Rows
+        |> Seq.tryFind (fun e -> e.allParamsId = AllParamsId)
+        |> Option.bind (fun v -> AllParams.create v |> Some)
 
 
-    //let saveSettings (settings : list<Setting>) (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    let settingTable = new SettingTable()
-    //    settings |> List.map (fun s -> s.addRow(settingTable)) |> ignore
-    //    let inserted = settingTable.Update(conn)
-    //    printfn "inserted = %A" inserted
+    let truncateAllParams (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new TruncateAllParamsTbl(conn)
+        t.Execute() |> ignore
 
+
+    let saveAllParams (p : AllParams) (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        let connectionString = conn.ConnectionString
+
+        use cmd = new SqlCommandProvider<"
+            INSERT INTO dbo.AllParams
+                       (AllParamsId
+                       ,AllParams)
+                 VALUES
+                       (@AllParamsId
+                       ,@AllParams)
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        cmd.Execute(AllParamsId = AllParamsId, AllParams = (p |> JsonConvert.SerializeObject))
 
 
     let getNewModelDataId (ConnectionString connectionString) =

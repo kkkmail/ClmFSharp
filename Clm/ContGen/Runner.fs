@@ -60,25 +60,7 @@ module Runner =
         let getModelId () = tryDbFun getNewModelDataId
 
 
-        //let loadParams (ModelDataId modelId) =
-        //    match tryDbFun loadSettings with
-        //        | Some m ->
-        //            match ModelGenerationParams.tryGet m [] with
-        //            | Some q ->
-        //                (
-        //                    { q with
-        //                        modelLocationData =
-        //                            { q.modelLocationData with
-        //                                modelName = ConsecutiveName modelId
-        //                                useDefaultModeData = true
-        //                            }
-        //                        seedValue = rnd.Next() |> Some
-        //                    },
-        //                    ModelCommandLineParam.getValues m []
-        //                )
-        //                |> Some
-        //            | None -> None
-        //        | None -> None
+        let tryLoadParams () = tryDbFun tryloadAllParams |> Option.bind id
 
 
         let generateModel (modelGenerationParams : ModelGenerationParams) =
@@ -148,17 +130,17 @@ module Runner =
             try
                 match getModelId () with
                     | Some modelId ->
-                        match loadParams modelId with
-                        | Some (p, r) ->
-                            match generateModel p |> saveModel with
+                        match tryLoadParams() with
+                        | Some a ->
+                            match generateModel a.modelGenerationParams |> saveModel with
                             | Some true ->
                                 //compileModel modelId
-                                r |> List.map (fun e ->
-                                                    {
-                                                        run = runModel e
-                                                        modelId = modelId
-                                                        runQueueId = getQueueId e modelId
-                                                    })
+                                a.modelCommandLineParams |> List.map (fun e ->
+                                                            {
+                                                                run = runModel e
+                                                                modelId = modelId
+                                                                runQueueId = getQueueId e modelId
+                                                            })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)
                                 []
@@ -222,13 +204,6 @@ module Runner =
 
 
     let saveDefaults connectionString (d, i) n m =
-        let rnd = new Random()
-        truncateSettings connectionString
-        let p = AllParams.getDefaultValue rnd d n m i
-
-        let settings =
-            []
-            |> p.modelGenerationParams.setValue []
-            |> ModelCommandLineParam.setValues p.modelCommandLineParams []
-
-        saveSettings settings connectionString
+        truncateAllParams connectionString
+        let p = AllParams.getDefaultValue d n m i
+        saveAllParams p connectionString

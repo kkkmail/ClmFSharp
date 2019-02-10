@@ -5,7 +5,6 @@ open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.Reactions
-open Clm.DataLocation
 open Clm.ModelParams
 open Clm.ReactionTypes
 

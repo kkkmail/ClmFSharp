@@ -1,20 +1,15 @@
 ﻿namespace Clm.Generator
 
 open System
-open System.IO
 open FSharp.Collections
 
 open ClmSys.VersionInfo
-open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.CalculationData
-open Clm.DataLocation
-open ClmSys.GeneralData
-open Clm.Generator.FSharpCodeExt
 open Clm.Generator.ReactionRatesExt
 open ClmDefaults.DefaultValuesExt
 
@@ -48,12 +43,11 @@ module ClmModelData =
         {
             fileStructureVersionNumber : string
             versionNumber : string
-            seedValue : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             reactionRateModels : List<ReactionRateModel>
             updateFuncType : UpdateFuncType
-            modelLocationData : ModelLocationInputData
+            //modelLocationData : ModelLocationInputData
             defaultSetIndex : int
         }
 
@@ -64,7 +58,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue seedValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
+        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
             let rates = d.getDefaultRateModels numberOfAminoAcids
 
             {
@@ -72,12 +66,11 @@ module ClmModelData =
                     {
                         fileStructureVersionNumber = FileStructureVersionNumber
                         versionNumber = VersionNumber
-                        seedValue = seedValue
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
                         reactionRateModels = rates.rateModels
                         updateFuncType = UseFunctions
-                        modelLocationData = ModelLocationInputData.defaultValue
+                        //modelLocationData = ModelLocationInputData.defaultValue
                         defaultSetIndex = i
                     }
 

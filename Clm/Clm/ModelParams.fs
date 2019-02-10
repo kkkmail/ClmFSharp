@@ -11,16 +11,28 @@ open Argu
 
 module ModelParams =
 
+    let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
+
+    /// TODO kk:20190107 - This should be exposed as a command line parameter.
+    [<Literal>]
+    let DefaultRootFolder = @"C:\Clm\"
+
+    [<Literal>]
+    let DefaultResultLocationFolder = DefaultRootFolder + @"Results\Data"
+
+    [<Literal>]
+    let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
+
+
     type ModelInfo =
         {
             fileStructureVersionNumber : string
             versionNumber : string
-            modelDataId : int64
+            modelDataId : ModelDataId
             numberOfSubstances : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int
-            allResultsFile : string
             defaultSetIndex : int
         }
 

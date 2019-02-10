@@ -11,7 +11,6 @@ open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
-open Clm.DataLocation
 open ClmSys.GeneralData
 open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
@@ -20,18 +19,17 @@ open Clm.Generator.ClmModelData
 
 module ClmModel =
 
-    type ClmModel (modelParams : ModelGenerationParams) =
+    type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId) =
         let rnd = RandomValueGetter.create()
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
-        let modelLocationInfo = createModelLocationInfo modelParams.modelLocationData
         let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
         let allParamsCode = rateProvider.toParamFSharpCode
         let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
         let bf = RateGenerationData.create rnd generationType rateProvider si
 
-        let getModelInfo(ModelDataId modelDataId) =
+        let modelInfo =
             {
                 fileStructureVersionNumber = modelParams.fileStructureVersionNumber
                 versionNumber = modelParams.versionNumber
@@ -40,7 +38,6 @@ module ClmModel =
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
-                allResultsFile = modelParams.modelLocationData.allResultsFile
                 defaultSetIndex = modelParams.defaultSetIndex
             }
 
@@ -303,11 +300,10 @@ module ClmModel =
                                     fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                                     versionNumber = """ + modelParams.versionNumber + @"""
                                     seedValue = seedValue
-                                    modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"L
+                                    modelDataId = " + modelDataId.ToString() + @"
                                     numberOfSubstances = " + si.allSubst.Length.ToString() + @"
                                     numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
                                     maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
-                                    allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                                     defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                                 }
 
@@ -424,11 +420,10 @@ module ClmModel =
                         fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
                         versionNumber = """ + modelParams.versionNumber + @"""
                         seedValue = " + seedValue.ToString() + @"
-                        modelDataId = " + modelLocationInfo.modelDataId.ToString() + @"
+                        modelDataId = " + modelDataId.ToString() + @"
                         numberOfSubstances = " + (si.allSubst.Length).ToString() + @"
                         numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
                         maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
-                        allResultsFile = @""" + (modelParams.modelLocationData.allResultsFile.ToString()) + @"""
                         defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
                     }
 
@@ -445,14 +440,14 @@ module ClmModel =
             let s = generate()
 
             printfn "Writing..."
-            File.WriteAllLines(modelLocationInfo.outputFile, s)
+            File.WriteAllLines(DefaultModelDataFile, s)
             printfn "Done."
 
             s
 
         let getModelDataImpl () =
             {
-                modelDataId = modelLocationInfo.modelDataId |> ModelDataId
+                modelDataId = modelDataId
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = Some seedValue
@@ -462,7 +457,7 @@ module ClmModel =
                     {
                         modelDataParams =
                             {
-                                modelInfo = modelLocationInfo.modelDataId |> ModelDataId |> getModelInfo
+                                modelInfo = modelInfo
                                 allParams = rateProvider.providerParams.allParams |> Array.ofList
                             }
 
@@ -487,7 +482,6 @@ module ClmModel =
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
         member model.allModelData = allModelDataImpl
-        member model.locationInfo = modelLocationInfo
         member model.generateCode() = generateAndSave()
         member model.getModelData() = getModelDataImpl()
 

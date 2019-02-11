@@ -2,8 +2,8 @@
 
 module Substances =
 
-    [<Literal>]
-    let NumberOfAminoAcidsName = "NumberOfAminoAcids"
+    //[<Literal>]
+    //let NumberOfAminoAcidsName = "NumberOfAminoAcids"
 
     type NumberOfAminoAcids =
         | OneAminoAcid
@@ -117,8 +117,8 @@ module Substances =
             NumberOfAminoAcids.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
 
-    [<Literal>]
-    let MaxPeptideLengthName = "MaxPeptideLength"
+    //[<Literal>]
+    //let MaxPeptideLengthName = "MaxPeptideLength"
 
     type MaxPeptideLength =
         | TwoMax
@@ -330,7 +330,7 @@ module Substances =
 
         static member names = AminoAcid.all |> List.map (fun e -> e, e.name) |> Map.ofList
 
-        static member getAminoAcids (n :NumberOfAminoAcids) = 
+        static member getAminoAcids (n :NumberOfAminoAcids) =
             AminoAcid.all
             |> List.take n.length
 
@@ -342,15 +342,15 @@ module Substances =
         member __.length = 1
         member __.atoms = 1
 
-        member aminoAcid.isL = 
-            match aminoAcid with 
+        member aminoAcid.isL =
+            match aminoAcid with
             | L _ -> true
             | R _ -> false
 
         member aminoAcid.isR = aminoAcid.isL |> not
 
-        member aminoAcid.enantiomer = 
-            match aminoAcid with 
+        member aminoAcid.enantiomer =
+            match aminoAcid with
             | L a -> R a
             | R a -> L a
 
@@ -364,8 +364,8 @@ module Substances =
             | L a -> a.name
             | R a -> a.name.ToLower()
 
-        member aminoAcid.noOfLR = 
-            match aminoAcid with 
+        member aminoAcid.noOfLR =
+            match aminoAcid with
             | L _ -> (1, 0)
             | R _ -> (0, 1)
 
@@ -375,10 +375,10 @@ module Substances =
             | R _ -> R a
 
 
-    type Peptide = 
+    type Peptide =
         | Peptide of list<ChiralAminoAcid>
 
-        member peptide.length = 
+        member peptide.length =
             let (Peptide p) = peptide
             p.Length
 
@@ -392,18 +392,18 @@ module Substances =
             let (Peptide p) = peptide
             p
 
-        member peptide.name = 
+        member peptide.name =
             peptide.aminoAcids
             |> List.map (fun a -> a.name)
             |> String.concat ""
 
-        member peptide.noOfLR = 
-            let counts = 
+        member peptide.noOfLR =
+            let counts =
                 peptide.aminoAcids
                 |> List.countBy (fun a -> a.isL)
                 |> Map.ofList
 
-            let count v = 
+            let count v =
                 match counts.TryFind v with 
                 | Some c -> c
                 | None -> 0

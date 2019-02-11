@@ -1,14 +1,6 @@
 ﻿namespace Clm.Generator
 
-open Clm.Substances
-open Clm.ReactionTypes
-open Clm.Reactions
-open Clm.ReactionRates
-open Clm.Distributions
-open ClmSys.GeneralData
 open ClmImpure.ReactionRateModels
-open ClmImpure.RateProvider
-
 
 module ReactionRatesExt =
 
@@ -124,9 +116,3 @@ module ReactionRatesExt =
             | SedimentationAllRateModel m -> m.primaryDistribution
             | RacemizationRateModel m -> m.primaryDistribution
             | CatalyticRacemizationRateModel m -> m.primaryDistribution
-
-
-    //type ReactionRateProvider
-    //    with
-    //    member this.getPrimaryDistribution a = this.getModel a |> Option.bind (fun m -> m.primaryDistribution)
-

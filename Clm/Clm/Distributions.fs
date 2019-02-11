@@ -157,10 +157,6 @@ module Distributions =
         static member create() = RandomValueGetter.create None
 
 
-    //[<Literal>]
-    //let DistributionName = "Distribution"
-
-
     /// First scale, then shift. This is more convenient here than the other way around.
     type Distribution =
         | Distribution of DistributionParamsWithType
@@ -226,10 +222,6 @@ module Distributions =
         static member createSymmetricTriangular p = { distributionType = SymmetricTriangular; distributionParams = p } |> Distribution
 
 
-    [<Literal>]
-    let EeDistributionName = "EeDistribution"
-
-
     /// EE distributions. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution =
         | EeDistribution of Distribution
@@ -237,10 +229,6 @@ module Distributions =
         member eed.nextDouble rnd =
             let (EeDistribution d) = eed
             max (min (d.nextDouble rnd) 1.0) (-1.0)
-
-        member eed.name =
-            match eed with
-            | EeDistribution _ -> EeDistributionName
 
         static member createSymmetricTriangular() =
             Distribution.createSymmetricTriangular { threshold = None; scale = None; shift = None } |> EeDistribution
@@ -279,22 +267,6 @@ module Distributions =
         static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
 
 
-    [<Literal>]
-    let EeDistributionGetterName = "EeDistributionGetter"
-
-
-    [<Literal>]
-    let NoneEeGetterName = "NoneEeGetter"
-
-
-    [<Literal>]
-    let DeltaEeDistributionGetterName = "DeltaEeDistributionGetter"
-
-
-    [<Literal>]
-    let CenteredEeDistributionGetterName = "CenteredEeDistributionGetter"
-
-
     type EeDistributionGetter =
         | NoneEeGetter
         | DeltaEeDistributionGetter
@@ -305,24 +277,6 @@ module Distributions =
             | NoneEeGetter -> (fun _ _ -> None)
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
-
-        member ee.name =
-            match ee with
-            | NoneEeGetter -> "NoneEeGetter"
-            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
-            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
-
-
-    [<Literal>]
-    let RateMultiplierDistributionName = "RateMultiplierDistribution"
-
-
-    [<Literal>]
-    let NoneRateMultName = "NoneRateMult"
-
-
-    [<Literal>]
-    let RateMultDistrName = "RateMultDistr"
 
 
     /// Distribution of rate multipliers for catalytic reactions.
@@ -347,11 +301,6 @@ module Distributions =
             | NoneRateMult -> None
             | RateMultDistr d -> d.nextDouble rnd |> Some |> RateMultiplierDistribution.normalize
 
-        member this.name =
-            match this with
-            | NoneRateMult -> NoneRateMultName
-            | RateMultDistr _ -> RateMultDistrName
-
         static member createNone = NoneRateMult
 
         static member createDelta threshold rate =
@@ -362,26 +311,6 @@ module Distributions =
 
         static member createSymmetricTriangular threshold rate =
             Distribution.createSymmetricTriangular { threshold = threshold; scale = Some rate; shift = Some rate } |> RateMultDistr
-
-
-    [<Literal>]
-    let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"
-
-
-    [<Literal>]
-    let NoneRateMultDistrGetterName = "NoneRateMultDistrGetter"
-
-
-    [<Literal>]
-    let DeltaRateMultDistrGetterName = "DeltaRateMultDistrGetter"
-
-
-    [<Literal>]
-    let TriangularRateMultDistrGetterName = "TriangularRateMultDistrGetter"
-
-
-    [<Literal>]
-    let SymmetricTriangularRateMultDistrGetterName = "SymmetricTriangularRateMultDistrGetter"
 
 
     type RateMultiplierDistributionGetter =
@@ -396,10 +325,3 @@ module Distributions =
             | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta threshold rate
             | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular threshold rate
             | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular threshold rate
-
-        member this.name =
-            match this with
-            | NoneRateMultDistrGetter -> NoneRateMultDistrGetterName
-            | DeltaRateMultDistrGetter -> DeltaRateMultDistrGetterName
-            | TriangularRateMultDistrGetter -> TriangularRateMultDistrGetterName
-            | SymmetricTriangularRateMultDistrGetter -> SymmetricTriangularRateMultDistrGetterName

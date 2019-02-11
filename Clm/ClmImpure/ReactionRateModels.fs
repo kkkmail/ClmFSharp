@@ -1,11 +1,9 @@
 ﻿namespace ClmImpure
 
-open System
 open System.Collections.Generic
 open FSharp.Collections
 
 open Clm.Substances
-open Clm.Distributions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 
@@ -544,8 +542,6 @@ module ReactionRateModels =
             | CatRacemSimParamWithModel q -> CatalyticRacemizationSimilarModel q |> CatRacemSimModel
 
 
-    //[<CustomEquality>]
-    //[<CustomComparison>]
     type ReactionRateModel =
         | FoodCreationRateModel of FoodCreationModel
         | WasteRemovalRateModel of WasteRemovalModel
@@ -561,86 +557,6 @@ module ReactionRateModels =
         | RacemizationRateModel of RacemizationModel
         | CatalyticRacemizationRateModel of CatalyticRacemizationModel
 
-        //member rm.name =
-        //    match rm with
-        //    | FoodCreationRateModel _ -> "FoodCreationRateModel"
-        //    | WasteRemovalRateModel _ -> "WasteRemovalRateModel"
-        //    | WasteRecyclingRateModel _ -> "WasteRecyclingRateModel"
-        //    | SynthesisRateModel _ -> "SynthesisRateModel"
-        //    | DestructionRateModel _ -> "DestructionRateModel"
-        //    | CatalyticSynthesisRateModel v ->
-        //        match v with
-        //        | CatSynthRndModel _ -> "CatSynthRndModel"
-        //        | CatSynthSimModel _ -> "CatSynthSimModel"
-        //    | CatalyticDestructionRateModel v ->
-        //        match v with
-        //        | CatDestrRndModel _ -> "CatDestrRndModel"
-        //        | CatDestrSimModel _ -> "CatDestrSimModel"
-        //    | LigationRateModel _ -> "LigationRateModel"
-        //    | CatalyticLigationRateModel v ->
-        //        match v with
-        //        | CatLigRndModel _ -> "CatLigRndModel"
-        //    | SedimentationDirectRateModel _ -> "SedimentationDirectRateModel"
-        //    | SedimentationAllRateModel _ -> "SedimentationAllRateModel"
-        //    | RacemizationRateModel _ -> "RacemizationRateModel"
-        //    | CatalyticRacemizationRateModel v ->
-        //        match v with
-        //        | CatRacemRndModel _ -> "CatRacemRndModel"
-        //        | CatRacemSimModel _ -> "CatRacemSimModel"
-
-        //member rm.inputParams =
-        //    match rm with
-        //    | FoodCreationRateModel m -> m.inputParams |> FoodCreationRateParam
-        //    | WasteRemovalRateModel m -> m.inputParams |> WasteRemovalRateParam
-        //    | WasteRecyclingRateModel m -> m.inputParams |> WasteRecyclingRateParam
-        //    | SynthesisRateModel m -> m.inputParams |> SynthesisRateParam
-        //    | DestructionRateModel m -> m.inputParams |> DestructionRateParam
-        //    | CatalyticSynthesisRateModel v ->
-        //        match v with 
-        //        | CatSynthRndModel m -> m.inputParams.catSynthRndParam |> CatSynthRndParam |> CatalyticSynthesisRateParam
-        //        | CatSynthSimModel m -> m.inputParams.catSynthSimParam |> CatSynthSimParam |> CatalyticSynthesisRateParam
-        //    | CatalyticDestructionRateModel v ->
-        //        match v with 
-        //        | CatDestrRndModel m -> m.inputParams.catDestrRndParam |> CatDestrRndParam |> CatalyticDestructionRateParam
-        //        | CatDestrSimModel m -> m.inputParams.catDestrSimParam |> CatDestrSimParam |> CatalyticDestructionRateParam
-        //    | LigationRateModel m -> m.inputParams |> LigationRateParam
-        //    | CatalyticLigationRateModel v ->
-        //        match v with 
-        //        | CatLigRndModel m -> m.inputParams.catLigationParam |> CatLigRndParam |> CatalyticLigationRateParam
-        //    | SedimentationDirectRateModel m -> m.inputParams |> SedimentationDirectRateParam
-        //    | SedimentationAllRateModel m -> m.inputParams |> SedimentationAllRateParam
-        //    | RacemizationRateModel m -> m.inputParams |> RacemizationRateParam
-        //    | CatalyticRacemizationRateModel v ->
-        //        match v with 
-        //        | CatRacemRndModel m -> m.inputParams.catRacemRndParam |> CatRacemRndParam |> CatalyticRacemizationRateParam
-        //        | CatRacemSimModel m -> m.inputParams.catRacemSimParam |> CatRacemSimParam |> CatalyticRacemizationRateParam
-
-        //member rm.dependsOn =
-        //    match rm with
-        //    | FoodCreationRateModel _ -> []
-        //    | WasteRemovalRateModel _ -> []
-        //    | WasteRecyclingRateModel _ -> []
-        //    | SynthesisRateModel _ -> []
-        //    | DestructionRateModel _ -> []
-        //    | CatalyticSynthesisRateModel v ->
-        //        match v with
-        //        | CatSynthRndModel m -> [ m.inputParams.synthesisModel |> SynthesisRateModel ]
-        //        | CatSynthSimModel m -> [ m.inputParams.catSynthModel |> CatSynthRndModel |> CatalyticSynthesisRateModel ]
-        //    | CatalyticDestructionRateModel v ->
-        //        match v with
-        //        | CatDestrRndModel m -> [ m.inputParams.destructionModel |> DestructionRateModel ]
-        //        | CatDestrSimModel m -> [ m.inputParams.catDestrModel |> CatDestrRndModel |> CatalyticDestructionRateModel ]
-        //    | LigationRateModel _ -> []
-        //    | CatalyticLigationRateModel v -> 
-        //        match v with
-        //        | CatLigRndModel m -> [ m.inputParams.ligationModel |> LigationRateModel ]
-        //    | SedimentationDirectRateModel _ -> []
-        //    | SedimentationAllRateModel _ -> []
-        //    | RacemizationRateModel _ -> []
-        //    | CatalyticRacemizationRateModel v ->
-        //        match v with
-        //        | CatRacemRndModel m -> [ m.inputParams.racemizationModel |> RacemizationRateModel ]
-        //        | CatRacemSimModel m -> [ m.inputParams.catRacemModel |> CatRacemRndModel |> CatalyticRacemizationRateModel ]
 
         member rm.getAllRates() =
             match rm with
@@ -658,64 +574,9 @@ module ReactionRateModels =
             | RacemizationRateModel m -> m.getAllRates() |> RacemizationRates
             | CatalyticRacemizationRateModel m -> m.getAllRates() |> CatalyticRacemizationRates
 
-        //override this.Equals (o: obj) =
-        //    match o with
-        //    | :? ReactionRateModel as rm -> this.inputParams = rm.inputParams
-        //    | _ -> false
-
-        //override this.GetHashCode() = hash (this.name, this.inputParams)
-
-        //interface IEquatable<ReactionRateModel> with
-        //    member this.Equals(that : ReactionRateModel) = this.Equals(that)
-
-        //interface IComparable with
-        //    member this.CompareTo(thatObj) =
-        //        match thatObj with
-        //        | :? ReactionRateModel as that ->
-        //            compare (this.name, this.inputParams) (that.name, that.inputParams)
-        //        | _ ->
-        //            raise <| ArgumentException("Can't compare instances of different types.")
-
-
-    //let rec allDep (rm : ReactionRateModel) (acc : list<ReactionRateModel>) =
-    //    match rm.dependsOn with 
-    //    | [] -> acc
-    //    | l -> l |> List.fold (fun a r -> allDep r (r :: a)) acc
-
 
     type ReactionRateModelWithUsage =
         {
             model : ReactionRateModel
             usage : ReactionRateModelParamUsage
         }
-
-
-    //type ReactionRateProviderParams =
-    //    {
-    //        rateModels: list<ReactionRateModel>
-    //    }
-
-    //    member p.tryFindFoodCreationModel() = p.rateModels |> List.tryPick (fun e -> match e with | FoodCreationRateModel m -> Some m | _ -> None)
-    //    member p.tryFindWasteRemovalModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRemovalRateModel m -> Some m | _ -> None)
-    //    member p.tryFindWasteRecyclingModel() = p.rateModels |> List.tryPick (fun e -> match e with | WasteRecyclingRateModel m -> Some m | _ -> None)
-    //    member p.tryFindSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | SynthesisRateModel m -> Some m | _ -> None)
-    //    member p.tryFindDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | DestructionRateModel m -> Some m | _ -> None)
-    //    member p.tryFindCatalyticSynthesisModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateModel m -> Some m | _ -> None)
-    //    member p.tryFindCatalyticDestructionModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticDestructionRateModel m -> Some m | _ -> None)
-    //    member p.tryFindLigationModel() = p.rateModels |> List.tryPick (fun e -> match e with | LigationRateModel m -> Some m | _ -> None)
-    //    member p.tryFindCatalyticLigationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticLigationRateModel m -> Some m | _ -> None)
-    //    member p.tryFindSedimentationDirectModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationDirectRateModel m -> Some m | _ -> None)
-    //    member p.tryFindSedimentationAllModel() = p.rateModels |> List.tryPick (fun e -> match e with | SedimentationAllRateModel m -> Some m | _ -> None)
-    //    member p.tryFindRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | RacemizationRateModel m -> Some m | _ -> None)
-    //    member p.tryFindCatalyticRacemizationModel() = p.rateModels |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateModel m -> Some m | _ -> None)
-
-    //    member p.allModels =
-    //        let prim = p.rateModels |> Set.ofList
-    //        let dep = Set.difference (p.rateModels |> List.map (fun e -> allDep e []) |> List.concat |> Set.ofList) prim
-
-    //        (prim |> Set.map (fun e -> { model = e; usage = PrimaryParam }))
-    //        |> Set.union (dep |> Set.map (fun e -> { model = e; usage = DependsOnParam }))
-    //        |> Set.toList
-
-    //    member p.allParams = p.allModels |> List.map (fun e -> { modelParam = e.model.inputParams; usage = e.usage }) |> List.sort
-

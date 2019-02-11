@@ -5,61 +5,11 @@ open System
 #r @"..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll"
 #r @"..\packages\Argu.5.2.0\lib\net45\Argu.dll"
 
-//#r @"..\SolverRunner\bin\Debug\FSharp.Data.SqlClient.dll"
-//#r @"..\SolverRunner\bin\Debug\Newtonsoft.Json.dll"
-//#r @"..\SolverRunner\bin\Debug\Argu.dll"
-
 #r @"..\Model\bin\Debug\ClmSys.dll"
 #r @"..\Model\bin\Debug\Clm.dll"
 #r @"..\Model\bin\Debug\DbData.dll"
 #r @"..\Model\bin\Debug\Model.dll"
 
-//#load @"..\ClmSys\VersionInfo.fs"
-//#load @"..\ClmSys\GeneralData.fs"
-//#load @"..\Clm\Substances.fs"
-//#load @"..\Clm\ReactionTypes.fs"
-//#load @"..\Clm\Distributions.fs"
-//#load @"..\Clm\ReactionRates.fs"
-//#load @"..\Clm\Reactions.fs"
-//#load @"..\Clm\DataLocation.fs"
-//#load @"..\Clm\CommandLine.fs"
-//#load @"..\Clm\ModelParams.fs"
-//#load @"..\Clm\CalculationData.fs"
-
-//#load @"..\DbData\Configuration.fs"
-//#load @"..\DbData\DatabaseTypes.fs"
-
-//#load "FSharpCodeExt.fs"
-//#load @"..\ClmDefaults\DefaultValuesExt.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_000.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_001.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_002.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_003.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_004.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_005.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_006.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_007.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_008.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_009.fs"
-//#load @"..\ClmDefaults\DefaultValues\Defaults_010.fs"
-//#load @"..\ClmDefaults\AllDefaults.fs"
-//#load "ReactionRatesExt.fs"
-//#load "ClmModelData.fs"
-//#load "ClmModel.fs"
-
-
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
-open Clm.Substances
-open Clm.Distributions
-open Clm.ReactionRates
-open Clm.CalculationData
-open Clm.ReactionTypes
-open Clm.Reactions
-open Clm.ModelParams
-
-//open Clm.Generator.ClmModelData
-//open ClmDefaults.AllDefaults
 open DbData.DatabaseTypes
 open DbData.Configuration
 open Clm.Model.ModelData

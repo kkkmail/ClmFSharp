@@ -4,7 +4,6 @@ open System
 open System.IO
 open FSharp.Collections
 
-open ClmSys.VersionInfo
 open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions
@@ -14,13 +13,8 @@ open Clm.ModelParams
 open ClmSys.GeneralData
 open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
-open ClmDefaults.DefaultValuesExt
 open Clm.Generator.ClmModelData
 open ClmImpure.RateProvider
-open ClmImpure.ReactionRateModels
-open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModelsExt
-open ClmImpure.ReactionsExt
 
 module ClmModel =
 

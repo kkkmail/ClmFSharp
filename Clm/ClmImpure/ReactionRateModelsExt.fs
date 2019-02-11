@@ -4,17 +4,9 @@ open Clm.Substances
 open Clm.ReactionRates
 open Clm.ReactionRatesExt
 
-open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels
 
 module ReactionRateModelsExt =
-
-    //type ModelsAndParams =
-    //    {
-    //        models : list<ReactionRateModelWithUsage>
-    //        reactionRateParams : ReactionRateParams
-    //    }
-
 
     let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter
 

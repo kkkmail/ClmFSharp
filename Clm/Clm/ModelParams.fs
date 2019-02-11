@@ -18,7 +18,7 @@ module ModelParams =
     let DefaultRootFolder = @"C:\Clm\"
 
     [<Literal>]
-    let DefaultResultLocationFolder = DefaultRootFolder + @"Results\Data"
+    let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
@@ -35,13 +35,6 @@ module ModelParams =
             seedValue : int
             defaultSetIndex : int
         }
-
-
-    //type ModelInfoWithModels =
-    //    {
-    //        modelInfo : ModelInfo
-    //        allModels : list<ReactionRateModel>
-    //    }
 
 
     type ModelDataParams =
@@ -123,9 +116,6 @@ module ModelParams =
         }
 
 
-    [<Literal>]
-    let ModelCommandLineParamName = "ModelCommandLineParam"
-
     type ModelCommandLineParam =
         {
             tEnd : decimal
@@ -143,9 +133,6 @@ module ModelParams =
                 ModelId modelDataId
             ]
             |> parser.PrintCommandLineArgumentsFlat
-
-        static member name = ModelCommandLineParamName
-        static member variableName = ModelCommandLineParam.name |> toVariableName
 
 
     type RunQueueInfo =
@@ -182,4 +169,3 @@ module ModelParams =
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
-

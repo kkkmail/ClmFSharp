@@ -6,10 +6,8 @@ open ClmSys.Retry
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open System.Text
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
-open Clm.CalculationData
 open Clm.CommandLine
 open AsyncRun
 
@@ -42,7 +40,6 @@ module Runner =
 
 
     type ModelRunner (p : ModelRunnerParam) =
-        let rnd = new Random()
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
         let getExeName (ModelDataId modelId) =

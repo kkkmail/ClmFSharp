@@ -118,4 +118,3 @@ module ReactionRatesExt =
             match p.modelParam with
             | CatalyticRacemizationRateParam (CatRacemRndParam d) -> Some (p.usage, d)
             | _ -> None
-

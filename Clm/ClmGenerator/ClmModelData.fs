@@ -10,12 +10,8 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.CalculationData
-open Clm.Generator.ReactionRatesExt
 open ClmDefaults.DefaultValuesExt
 open ClmImpure.RateProvider
-open ClmImpure.ReactionRateModels
-open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModelsExt
 open ClmImpure.ReactionsExt
 
 module ClmModelData =
@@ -23,17 +19,6 @@ module ClmModelData =
 
     let newSeed() = (new Random()).Next()
 
-    //[<Literal>]
-    //let UpdateFuncTypeName = "UpdateFuncType"
-
-    //[<Literal>]
-    //let UseArrayName = "UseArray"
-
-    //[<Literal>]
-    //let UseVariablesName = "UseVariables"
-
-    //[<Literal>]
-    //let UseFunctionsName = "UseFunctions"
 
     type UpdateFuncType = 
         | UseArray
@@ -41,19 +26,14 @@ module ClmModelData =
         | UseFunctions
 
 
-    //[<Literal>]
-    //let ModelGenerationParamsName = "ModelGenerationParams"
-
     type ModelGenerationParams =
         {
             fileStructureVersionNumber : string
             versionNumber : string
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
-            //reactionRateModels : List<ReactionRateModel>
             reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
-            //modelLocationData : ModelLocationInputData
             defaultSetIndex : int
         }
 
@@ -193,13 +173,6 @@ module ClmModelData =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
         let noOfTries = i.a.Length * i.b.Length / 4
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
-
-        //match rateProvider.getPrimaryDistribution i.reactionName with
-        //| Some d ->
-        //    let sn = d.successNumber rnd noOfTries
-        //    printfn "generatePairs.sn = %A" sn
-        //    [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
-        //| None -> []
 
         let d = Distribution.createUniform DistributionParams.defaultValue
         let sn = d.successNumber rnd noOfTries

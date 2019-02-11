@@ -54,7 +54,6 @@ open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.CalculationData
-open Clm.DataLocation
 open Clm.ReactionTypes
 open Clm.Reactions
 open Clm.ModelParams
@@ -73,7 +72,7 @@ let cgGetTotals = getTotals
 let cgUpdate = update
 //===========================================================
 printfn "Trying to load..."
-let modelDataId = ModelDataId cgModelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
+let modelDataId = cgModelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 let mdo = tryLoadModelData modelDataId clmConnectionString
 
 let rnd = new Random()

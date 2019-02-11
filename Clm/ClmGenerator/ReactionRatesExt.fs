@@ -1,12 +1,7 @@
 ﻿namespace Clm.Generator
 
-open Clm.Substances
-open Clm.ReactionTypes
-open Clm.Reactions
-open Clm.ReactionRates
-open Clm.Distributions
-open ClmSys.GeneralData
-
+open ClmImpure.ReactionRateModels
+open ClmImpure.RateProvider
 
 module ReactionRatesExt =
 
@@ -126,5 +121,4 @@ module ReactionRatesExt =
 
     type ReactionRateProvider
         with
-        member this.getPrimaryDistribution a = this.getModel a |> Option.bind (fun m -> m.primaryDistribution)
-
+        member this.tryGetPrimaryDistribution a = this.tryGetModel a |> Option.bind (fun m -> m.primaryDistribution)

@@ -53,6 +53,13 @@ module ReactionTypes =
             ]
 
 
+    type ReactionNormalizedInfo =
+        {
+            inputNormalized : list<Substance>
+            outputNormalized : list<Substance>
+        }
+
+
     type ReactionInfo =
         {
             input : list<Substance * int>
@@ -60,12 +67,24 @@ module ReactionTypes =
         }
 
         member this.getName n a =
-            let g (l : list<Substance * int>) = 
+            let g (l : list<Substance * int>) =
                 l
                 |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
                 |> String.concat " + "
 
             n + ": " + (g this.input) + a + (g this.output)
+
+        member this.normalized() =
+            let normalize d =
+                d 
+                |> List.map (fun (s, i) -> [ for _ in 0..(i-1) -> s ])
+                |> List.concat
+                |> List.sort
+
+            {
+                inputNormalized = this.input |> normalize
+                outputNormalized = this.output |> normalize
+            }
 
 
     type FoodCreationReaction =

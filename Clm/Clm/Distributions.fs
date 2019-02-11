@@ -10,7 +10,6 @@ open System
 ///        This distribution produces value near mean.
 module Distributions =
 
-
     // https://en.wikipedia.org/wiki/Marsaglia_polar_method
     let rec getS (r : unit -> double) =
         let u = r() * 2.0 - 1.0
@@ -27,8 +26,80 @@ module Distributions =
         mean + stdDev * u * mul
 
 
+    let toSymmetricTriangular v =
+        if v < 0.5 then -1.0 + sqrt(2.0 * v)
+        else 1.0 - sqrt(2.0 * (1.0 - v))
+
+
+    /// Generates only 0.
+    let delta _ = 0.0
+
+    /// Generates only -1 and 1 with equal probability.
+    let biDelta v = if v < 0.5 then -1.0 else 1.0
+
+    /// Generates values on (-1, 1).
+    let uniform v = 2.0 * (v - 1.0)
+
+    /// Generates values on (0, 3) with mean 1.
+    let triangular v = 3.0 * (1.0 - sqrt(1.0 - v))
+
+     /// Generates values on (-1, 1) with max / mean at 0.
+    let symmetricTriangular v = v |> toSymmetricTriangular
+
+
     type ReactionRate =
         | ReactionRate of double
+
+
+    [<Literal>]
+    let DistributionTypeName = "DistributionType"
+
+    [<Literal>]
+    let DeltaName = "Delta"
+
+    [<Literal>]
+    let BiDeltaName = "BiDelta"
+
+    [<Literal>]
+    let UniformName = "Uniform"
+
+    [<Literal>]
+    let TriangularName = "Triangular"
+
+    [<Literal>]
+    let SymmetricTriangularName = "SymmetricTriangular"
+
+
+    type DistributionType =
+        | Delta
+        | BiDelta
+        | Uniform
+        | Triangular
+        | SymmetricTriangular
+
+        member d.transform =
+            match d with
+            | Delta -> delta
+            | BiDelta -> biDelta
+            | Uniform -> uniform
+            | Triangular -> triangular
+            | SymmetricTriangular -> symmetricTriangular
+
+        member d.mean =
+            match d with
+            | Delta -> 0.0
+            | BiDelta -> 0.0
+            | Uniform -> 0.0
+            | Triangular -> 1.0
+            | SymmetricTriangular -> 0.0
+
+        member d.stdDev =
+            match d with
+            | Delta -> 0.0
+            | BiDelta -> 1.0 / 2.0 |> sqrt
+            | Uniform -> 1.0 / 3.0 |> sqrt
+            | Triangular -> 1.0 / 2.0 |> sqrt
+            | SymmetricTriangular -> 1.0 / 6.0 |> sqrt
 
 
     type DistributionParams =
@@ -45,56 +116,93 @@ module Distributions =
                 shift = None
             }
 
+        static member create threshold scale shift = 
+            {
+                threshold = threshold
+                scale = scale
+                shift = shift
+            }
+
+
+    type DistributionParamsWithType =
+        {
+            distributionType : DistributionType
+            distributionParams : DistributionParams
+        }
+
+
+    type RandomValueGetter =
+        {
+            seed : int
+            next : unit -> int
+            nextN : int -> int
+            nextDouble : unit -> double
+        }
+
+        static member create so =
+            let seed =
+                match so with
+                | Some s -> s
+                | None -> Random().Next()
+
+            let rnd = new Random(seed)
+
+            {
+                seed = seed
+                next = rnd.Next
+                nextN = (fun n -> rnd.Next(n))
+                nextDouble = rnd.NextDouble
+            }
+
+        static member create() = RandomValueGetter.create None
+
 
     /// First scale, then shift. This is more convenient here than the other way around.
-    [<AbstractClass>]
-    type DistributionBase(seed : int, p : DistributionParams, d : Random -> double) =
-        let rnd = new Random(seed)
+    type Distribution =
+        | Distribution of DistributionParamsWithType
 
-        let isDefinedImpl() =
-            match p.threshold with
-            | Some t -> if rnd.NextDouble() < t then true else false
+        member d.value =
+            let (Distribution v) = d
+            v
+
+        member d.isDefined (rnd : RandomValueGetter) =
+            match d.value.distributionParams.threshold with
+            | Some t -> if rnd.nextDouble() < t then true else false
             | None -> true
 
-        let scale x =
+        member private d.scale x =
             x *
-            match p.scale with
+            match d.value.distributionParams.scale with
             | Some s -> s
             | None -> 1.0
 
-        let shift x =
+        member private d.shift x =
             x +
-            match p.shift with
+            match d.value.distributionParams.shift with
             | Some s -> s
             | None -> 0.0
 
-        let scaleShift x = x |> scale |> shift
-        let nextDoubleImpl() = d(rnd) |> scaleShift
+        member private d.scaleShift x = x |> d.scale |> d.shift
 
-        abstract member meanBase : double
-        abstract member stdDevBase : double
+        member d.distributionParams = d.value.distributionParams
+        member d.nextDouble (rnd : RandomValueGetter) = rnd.nextDouble() |> d.value.distributionType.transform |> d.scaleShift
 
-        member __.seedValue = seed
-        member __.distributionParams = p
-        member __.nextDouble = nextDoubleImpl
-        member __.nextSeed() = rnd.Next()
-        member __.next n = rnd.Next(n)
-        member distr.mean = distr.meanBase |> scaleShift
-        member distr.stdDev = distr.stdDevBase |> scale
+        member d.mean = d.value.distributionType.mean |> d.scaleShift
+        member d.stdDev = d.value.distributionType.stdDev |> d.scale
 
-        member __.nextDoubleOpt() =
-            match isDefinedImpl() with
-            | true -> nextDoubleImpl() |> Some
+        member d.nextDoubleOpt rnd =
+            match d.isDefined rnd with
+            | true -> d.nextDouble rnd |> Some
             | false -> None
 
-        member __.isDefined = isDefinedImpl
+        member d.createScaled newScale = { d.value with distributionParams = { d.value.distributionParams with scale = newScale } } |> Distribution
+        member d.createShifted newShift = { d.value with distributionParams = { d.distributionParams with shift = newShift } } |> Distribution
+        member d.createThresholded newThreshold = { d.value with distributionParams = { d.distributionParams with threshold = newThreshold } } |> Distribution
+        member __.next (rnd : RandomValueGetter) = rnd.next()
+        member __.nextN (rnd : RandomValueGetter) n = rnd.nextN n
 
-        member distr.createScaled newScale creator = (distr.nextSeed(), { distr.distributionParams with scale = newScale }) |> creator
-        member distr.createShifted newShift creator = (distr.nextSeed(), { distr.distributionParams with shift = newShift }) |> creator
-        member distr.createThresholded newThreshold creator = (distr.nextSeed(), { distr.distributionParams with threshold = newThreshold }) |> creator
-
-        member distr.successNumber noOfTries =
-            match p.threshold with
+        member d.successNumber (rnd : RandomValueGetter) noOfTries =
+            match d.value.distributionParams.threshold with
             | Some p ->
                 let mean = 1.0
                 let stdDev = 0.0
@@ -102,250 +210,31 @@ module Distributions =
                 let m = (mean * p) * (double noOfTries)
                 let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
 
-                let sn = getGausssian rnd.NextDouble m s
+                let sn = getGausssian rnd.nextDouble m s
                 printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
                 min (max 0 (int sn)) noOfTries
             | None -> noOfTries
 
-
-    /// Generates only 0 for default parameters.
-    type DeltaDistribution (seed : int, p : DistributionParams) =
-        inherit DistributionBase (seed, p, fun _ -> 0.0)
-
-        static member create seed threshold scale shift = DeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
-        member distr.scaled newScale = distr.createScaled newScale DeltaDistribution
-        member distr.shifted newShift = distr.createShifted newShift DeltaDistribution
-        member distr.thresholded newThreshold = distr.createThresholded newThreshold DeltaDistribution
-        override __.meanBase = 0.0
-        override __.stdDevBase = 0.0
-
-
-    /// Generates only -1 and 1 with equal probability for default parameters.
-    type BiDeltaDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun r -> if r.NextDouble() < 0.5 then -1.0 else 1.0)
-
-        static member create seed threshold scale shift = BiDeltaDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
-        member distr.scaled newScale = distr.createScaled newScale BiDeltaDistribution
-        member distr.shifted newShift = distr.createShifted newShift BiDeltaDistribution
-        member distr.thresholded newThreshold = distr.createThresholded newThreshold BiDeltaDistribution
-        override __.meanBase = 0.0
-        override __.stdDevBase = 1.0
-
-
-    /// Generates values on (-1, 1) for default parameters.
-    type UniformDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase (seed, p, fun r -> 2.0 * (r.NextDouble() - 1.0))
-
-        new (seed : int) = UniformDistribution(seed, DistributionParams.defaultValue)
-
-        static member create seed threshold scale shift = new UniformDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
-        member distr.scaled newScale = distr.createScaled newScale UniformDistribution
-        member distr.shifted newShift = distr.createShifted newShift UniformDistribution
-        member distr.thresholded newThreshold = distr.createThresholded newThreshold UniformDistribution
-        override __.meanBase = 0.0
-        override __.stdDevBase = 1.0 / 3.0 |> sqrt
-
-
-
-    /// Generates values on (0, 3) with mean 1 for default parameters.
-    type TriangularDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase(seed, p, fun r -> 3.0 * (1.0 - sqrt(1.0 - r.NextDouble())))
-
-        static member create seed threshold scale shift = new TriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
-        member distr.scaled newScale = distr.createScaled newScale TriangularDistribution
-        member distr.shifted newShift = distr.createShifted newShift TriangularDistribution
-        member distr.thresholded newThreshold = distr.createThresholded newThreshold TriangularDistribution
-        override __.meanBase = 1.0
-        override __.stdDevBase = 1.0 / 2.0 |> sqrt
-
-
-
-    let toSymmetricTriangular d = 
-        if d < 0.5 then -1.0 + sqrt(2.0 * d)
-        else 1.0 - sqrt(2.0 * (1.0 - d))
-
-
-    /// Generates values on (-1, 1) with max / mean at 0 for default parameters.
-    type SymmetricTriangularDistribution (seed : int, p : DistributionParams) = 
-        inherit DistributionBase(seed, p, fun r -> r.NextDouble() |> toSymmetricTriangular)
-
-        static member create seed threshold scale shift = new SymmetricTriangularDistribution (seed, { threshold = threshold; scale = scale; shift = shift } )
-        member distr.scaled newScale = distr.createScaled newScale SymmetricTriangularDistribution
-        member distr.shifted newShift = distr.createShifted newShift SymmetricTriangularDistribution
-        member distr.thresholded newThreshold = distr.createThresholded newThreshold SymmetricTriangularDistribution
-        override __.meanBase = 0.0
-        override __.stdDevBase = 1.0 / 6.0 |> sqrt
-
-
-    [<Literal>]
-    let DistributionName = "Distribution"
-
-
-    [<Literal>]
-    let DeltaName = "Delta"
-
-
-    [<Literal>]
-    let BiDeltaName = "BiDelta"
-
-
-    [<Literal>]
-    let UniformName = "Uniform"
-
-
-    [<Literal>]
-    let TriangularName = "Triangular"
-
-
-    [<Literal>]
-    let SymmetricTriangularName = "SymmetricTriangular"
-
-
-    [<CustomEquality>]
-    [<CustomComparison>]
-    type Distribution =
-        | Delta of DeltaDistribution
-        | BiDelta of BiDeltaDistribution
-        | Uniform of UniformDistribution
-        | Triangular of TriangularDistribution
-        | SymmetricTriangular of SymmetricTriangularDistribution
-
-        member this.nextDouble =
-            match this with
-            | Delta d -> d.nextDouble
-            | BiDelta d -> d.nextDouble
-            | Uniform d -> d.nextDouble
-            | Triangular d -> d.nextDouble
-            | SymmetricTriangular d -> d.nextDouble
-
-        member this.nextDoubleOpt =
-            match this with
-            | Delta d -> d.nextDoubleOpt
-            | BiDelta d -> d.nextDoubleOpt
-            | Uniform d -> d.nextDoubleOpt
-            | Triangular d -> d.nextDoubleOpt
-            | SymmetricTriangular d -> d.nextDoubleOpt
-
-        member this.isDefined =
-            match this with
-            | Delta d -> d.isDefined
-            | BiDelta d -> d.isDefined
-            | Uniform d -> d.isDefined
-            | Triangular d -> d.isDefined
-            | SymmetricTriangular d -> d.isDefined
-
-        member this.nextSeed() =
-            match this with
-            | Delta d -> d.nextSeed()
-            | BiDelta d -> d.nextSeed()
-            | Uniform d -> d.nextSeed()
-            | Triangular d -> d.nextSeed()
-            | SymmetricTriangular d -> d.nextSeed()
-
-        member this.scaled newScale =
-            match this with
-            | Delta d -> d.scaled newScale |> Delta
-            | BiDelta d -> d.scaled newScale |> BiDelta
-            | Uniform d -> d.scaled newScale |> Uniform
-            | Triangular d -> d.scaled newScale |> Triangular
-            | SymmetricTriangular d ->  d.scaled newScale |> SymmetricTriangular
-
-        member this.shifted newShift =
-            match this with
-            | Delta d -> d.shifted newShift |> Delta
-            | BiDelta d -> d.shifted newShift |> BiDelta
-            | Uniform d -> d.shifted newShift |> Uniform
-            | Triangular d -> d.shifted newShift |> Triangular
-            | SymmetricTriangular d -> d.shifted newShift |> SymmetricTriangular
-
-        member this.thresholded newThreshold =
-            match this with
-            | Delta d -> d.thresholded newThreshold |> Delta
-            | BiDelta d -> d.thresholded newThreshold |> BiDelta
-            | Uniform d -> d.thresholded newThreshold |> Uniform
-            | Triangular d -> d.thresholded newThreshold |> Triangular
-            | SymmetricTriangular d -> d.thresholded newThreshold |> SymmetricTriangular
-
-        member this.name =
-            match this with
-            | Delta _ -> DeltaName
-            | BiDelta _ -> BiDeltaName
-            | Uniform _ -> UniformName
-            | Triangular _ -> TriangularName
-            | SymmetricTriangular _ -> SymmetricTriangularName
-
-        member this.distributionParams =
-            match this with
-            | Delta d -> d.distributionParams
-            | BiDelta d -> d.distributionParams
-            | Uniform d -> d.distributionParams
-            | Triangular d -> d.distributionParams
-            | SymmetricTriangular d -> d.distributionParams
-
-        member this.seedValue =
-            match this with
-            | Delta d -> d.seedValue
-            | BiDelta d -> d.seedValue
-            | Uniform d -> d.seedValue
-            | Triangular d -> d.seedValue
-            | SymmetricTriangular d -> d.seedValue
-
-        member this.successNumber noOfTries =
-            match this with
-            | Delta d -> d.successNumber noOfTries
-            | BiDelta d -> d.successNumber noOfTries
-            | Uniform d -> d.successNumber noOfTries
-            | Triangular d -> d.successNumber noOfTries
-            | SymmetricTriangular d -> d.successNumber noOfTries
-
-        member this.next n =
-            match this with
-            | Delta d -> d.next n
-            | BiDelta d -> d.next n
-            | Uniform d -> d.next n
-            | Triangular d -> d.next n
-            | SymmetricTriangular d -> d.next n
-
-        override this.Equals (o: obj) =
-            match o with
-            | :? Distribution as d -> this.distributionParams = d.distributionParams
-            | _ -> false
-
-        override this.GetHashCode() = hash (this.name, this.distributionParams)
-
-        interface IEquatable<Distribution> with
-            member this.Equals(that : Distribution) = this.Equals(that)
-
-        interface IComparable with
-            member this.CompareTo(thatObj) =
-                match thatObj with
-                | :? Distribution as that ->
-                    compare (this.name, this.distributionParams) (that.name, that.distributionParams)
-                | _ ->
-                    raise <| ArgumentException("Can't compare instances of different types.")
-
-
-    [<Literal>]
-    let EeDistributionName = "EeDistribution"
+        static member createDelta p = { distributionType = Delta; distributionParams = p } |> Distribution
+        static member createBiDelta p = { distributionType = BiDelta; distributionParams = p } |> Distribution
+        static member createUniform p = { distributionType = Uniform; distributionParams = p } |> Distribution
+        static member createTriangular p = { distributionType = Triangular; distributionParams = p } |> Distribution
+        static member createSymmetricTriangular p = { distributionType = SymmetricTriangular; distributionParams = p } |> Distribution
 
 
     /// EE distributions. They are specially formatted distributions to return values only between (-1 and 1).
     type EeDistribution =
         | EeDistribution of Distribution
 
-        member eed.nextDouble() =
+        member eed.nextDouble rnd =
             let (EeDistribution d) = eed
-            max (min (d.nextDouble()) 1.0) (-1.0)
+            max (min (d.nextDouble rnd) 1.0) (-1.0)
 
-        member eed.name =
-            match eed with
-            | EeDistribution _ -> EeDistributionName
+        static member createSymmetricTriangular() =
+            Distribution.createSymmetricTriangular { threshold = None; scale = None; shift = None } |> EeDistribution
 
-        static member createSymmetricTriangular (seeder : unit -> int) =
-            SymmetricTriangularDistribution(seeder(), { threshold = None; scale = None; shift = None }) |> SymmetricTriangular |> EeDistribution
-
-        static member createBiDelta scale (seeder : unit -> int) =
-            BiDeltaDistribution(seeder(), { threshold = None; scale = scale; shift = None }) |> BiDelta |> EeDistribution
+        static member createBiDelta scale =
+            Distribution.createBiDelta { threshold = None; scale = scale; shift = None } |> EeDistribution
 
         static member private getMeanAndWidth mean =
             match mean with
@@ -354,44 +243,28 @@ module Distributions =
             | x when x >= 1.0 -> 1.0, None
             | _ -> 0.0, Some 1.0
 
-        static member private createCenteredDelta (seeder : unit -> int) mean = 
+        static member private createCenteredDelta mean =
             let m, _ = EeDistribution.getMeanAndWidth mean
-            DeltaDistribution (seeder(), { threshold = None; scale = None; shift = Some m }) |> Delta |> EeDistribution
+            Distribution.createDelta { threshold = None; scale = None; shift = Some m } |> EeDistribution
 
-        static member private createCentered (seeder : unit -> int) mean = 
+        static member private createCentered mean =
             let m, w = EeDistribution.getMeanAndWidth mean
 
             match w with
-            | Some s -> SymmetricTriangularDistribution(seeder(), { threshold = None; scale = Some s; shift = Some m }) |> SymmetricTriangular |> EeDistribution
-            | None -> EeDistribution.createCenteredDelta seeder mean
+            | Some s -> Distribution.createSymmetricTriangular { threshold = None; scale = Some s; shift = Some m } |> EeDistribution
+            | None -> EeDistribution.createCenteredDelta mean
 
-        static member getDeltaEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+        static member getDeltaEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
             match rate, rateEnant with 
-            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta seeder |> Some
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta |> Some
             | _ -> None
 
-        static member getCenteredEeDistrOpt (seeder : unit -> int) (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
+        static member getCenteredEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
             match rate, rateEnant with 
-            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered seeder |> Some
+            | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered |> Some
             | _ -> None
 
         static member getDefaultEeDistrOpt = EeDistribution.getCenteredEeDistrOpt
-
-
-    [<Literal>]
-    let EeDistributionGetterName = "EeDistributionGetter"
-
-
-    [<Literal>]
-    let NoneEeGetterName = "NoneEeGetter"
-
-
-    [<Literal>]
-    let DeltaEeDistributionGetterName = "DeltaEeDistributionGetter"
-
-
-    [<Literal>]
-    let CenteredEeDistributionGetterName = "CenteredEeDistributionGetter"
 
 
     type EeDistributionGetter =
@@ -401,27 +274,9 @@ module Distributions =
 
         member ee.getDistr =
             match ee with
-            | NoneEeGetter -> (fun _ _ _ -> None)
+            | NoneEeGetter -> (fun _ _ -> None)
             | DeltaEeDistributionGetter -> EeDistribution.getDeltaEeDistrOpt
             | CenteredEeDistributionGetter -> EeDistribution.getCenteredEeDistrOpt
-
-        member ee.name =
-            match ee with
-            | NoneEeGetter -> "NoneEeGetter"
-            | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
-            | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
-
-
-    [<Literal>]
-    let RateMultiplierDistributionName = "RateMultiplierDistribution"
-
-
-    [<Literal>]
-    let NoneRateMultName = "NoneRateMult"
-
-
-    [<Literal>]
-    let RateMultDistrName = "RateMultDistr"
 
 
     /// Distribution of rate multipliers for catalytic reactions.
@@ -436,51 +291,26 @@ module Distributions =
             | NoneRateMult -> None
             | RateMultDistr d -> Some d
 
-        member this.nextDoubleOpt() =
+        member this.nextDoubleOpt rnd =
             match this with
             | NoneRateMult -> None
-            | RateMultDistr d -> d.nextDoubleOpt() |> RateMultiplierDistribution.normalize
+            | RateMultDistr d -> d.nextDoubleOpt rnd |> RateMultiplierDistribution.normalize
 
-        member this.nextDouble() =
+        member this.nextDouble rnd =
             match this with
             | NoneRateMult -> None
-            | RateMultDistr d -> d.nextDouble() |> Some |> RateMultiplierDistribution.normalize
-
-        member this.name =
-            match this with
-            | NoneRateMult -> NoneRateMultName
-            | RateMultDistr _ -> RateMultDistrName
+            | RateMultDistr d -> d.nextDouble rnd |> Some |> RateMultiplierDistribution.normalize
 
         static member createNone = NoneRateMult
 
-        static member createDelta (seeder : unit -> int) threshold rate =
-            DeltaDistribution (seeder(), { threshold = threshold; scale = None; shift = Some rate }) |> Delta |> RateMultDistr
+        static member createDelta threshold rate =
+            Distribution.createDelta { threshold = threshold; scale = None; shift = Some rate } |> RateMultDistr
 
-        static member createTriangular (seeder : unit -> int) threshold rate =
-            TriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = None }) |> Triangular |> RateMultDistr
+        static member createTriangular threshold rate =
+            Distribution.createTriangular { threshold = threshold; scale = Some rate; shift = None } |> RateMultDistr
 
-        static member createSymmetricTriangular (seeder : unit -> int) threshold rate =
-            SymmetricTriangularDistribution(seeder(), { threshold = threshold; scale = Some rate; shift = Some rate }) |> SymmetricTriangular |> RateMultDistr
-
-
-    [<Literal>]
-    let RateMultiplierDistributionGetterName = "RateMultiplierDistributionGetter"
-
-
-    [<Literal>]
-    let NoneRateMultDistrGetterName = "NoneRateMultDistrGetter"
-
-
-    [<Literal>]
-    let DeltaRateMultDistrGetterName = "DeltaRateMultDistrGetter"
-
-
-    [<Literal>]
-    let TriangularRateMultDistrGetterName = "TriangularRateMultDistrGetter"
-
-
-    [<Literal>]
-    let SymmetricTriangularRateMultDistrGetterName = "SymmetricTriangularRateMultDistrGetter"
+        static member createSymmetricTriangular threshold rate =
+            Distribution.createSymmetricTriangular { threshold = threshold; scale = Some rate; shift = Some rate } |> RateMultDistr
 
 
     type RateMultiplierDistributionGetter =
@@ -489,16 +319,9 @@ module Distributions =
         | TriangularRateMultDistrGetter
         | SymmetricTriangularRateMultDistrGetter
 
-        member this.getDistr seeder threshold rate =
+        member this.getDistr threshold rate =
             match this with
             | NoneRateMultDistrGetter -> RateMultiplierDistribution.createNone
-            | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta seeder threshold rate
-            | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular seeder threshold rate
-            | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular seeder threshold rate
-
-        member this.name =
-            match this with
-            | NoneRateMultDistrGetter -> NoneRateMultDistrGetterName
-            | DeltaRateMultDistrGetter -> DeltaRateMultDistrGetterName
-            | TriangularRateMultDistrGetter -> TriangularRateMultDistrGetterName
-            | SymmetricTriangularRateMultDistrGetter -> SymmetricTriangularRateMultDistrGetterName
+            | DeltaRateMultDistrGetter -> RateMultiplierDistribution.createDelta threshold rate
+            | TriangularRateMultDistrGetter -> RateMultiplierDistribution.createTriangular threshold rate
+            | SymmetricTriangularRateMultDistrGetter -> RateMultiplierDistribution.createSymmetricTriangular threshold rate

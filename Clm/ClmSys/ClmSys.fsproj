@@ -65,6 +65,7 @@
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="GeneralData.fs" />
+    <Compile Include="IndeterministicData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="Retry.fs" />
     <Content Include="packages.config" />

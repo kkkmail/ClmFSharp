@@ -1,38 +1,24 @@
 ﻿namespace Clm.Generator
 
 open System
-open System.IO
 open FSharp.Collections
 
 open ClmSys.VersionInfo
-open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
-open Clm.DataLocation
-open ClmSys.GeneralData
-open Clm.Generator.FSharpCodeExt
-open Clm.Generator.ReactionRatesExt
+open Clm.CalculationData
 open ClmDefaults.DefaultValuesExt
+open ClmImpure.RateProvider
+open ClmImpure.ReactionsExt
+open Clm.Generator.ReactionRatesExt
 
 module ClmModelData =
 
     let newSeed() = (new Random()).Next()
 
-
-    [<Literal>]
-    let UpdateFuncTypeName = "UpdateFuncType"
-
-    [<Literal>]
-    let UseArrayName = "UseArray"
-
-    [<Literal>]
-    let UseVariablesName = "UseVariables"
-
-    [<Literal>]
-    let UseFunctionsName = "UseFunctions"
 
     type UpdateFuncType = 
         | UseArray
@@ -40,22 +26,15 @@ module ClmModelData =
         | UseFunctions
 
 
-    [<Literal>]
-    let ModelGenerationParamsName = "ModelGenerationParams"
-
     type ModelGenerationParams =
         {
             fileStructureVersionNumber : string
             versionNumber : string
-            seedValue : int option
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
-            reactionRateModels : List<ReactionRateModel>
+            reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
-            modelLocationData : ModelLocationInputData
-            updateAllModels : bool
             defaultSetIndex : int
-            saveModelData : bool
         }
 
 
@@ -65,23 +44,19 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue rnd (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
-            let rates = d.getDefaultRateModels rnd numberOfAminoAcids
+        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
+            let rates = d.defaultRateParams
 
             {
                 modelGenerationParams =
                     {
                         fileStructureVersionNumber = FileStructureVersionNumber
                         versionNumber = VersionNumber
-                        seedValue = rnd.Next() |> Some
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
-                        reactionRateModels = rates.rateModels
+                        reactionRateModelParams = rates.rateParams
                         updateFuncType = UseFunctions
-                        modelLocationData = ModelLocationInputData.defaultValue
-                        updateAllModels = false
                         defaultSetIndex = i
-                        saveModelData = false
                     }
 
                 modelCommandLineParams = d.modelCommandLineParams
@@ -92,107 +67,6 @@ module ClmModelData =
         | UseArray -> "    "
         | UseVariables -> "    "
         | UseFunctions -> ""
-
-
-    let getSeedValue sv =
-        match sv with
-        | Some s -> s
-        | None -> 
-            let r = new Random()
-            r.Next()
-
-
-    type SubstInfo =
-        {
-            maxPeptideLength : MaxPeptideLength
-            numberOfAminoAcids : NumberOfAminoAcids
-            aminoAcids : list<AminoAcid>
-            chiralAminoAcids : list<ChiralAminoAcid>
-            peptides : list<Peptide>
-            synthCatalysts : list<SynthCatalyst>
-            destrCatalysts : list<DestrCatalyst>
-            ligCatalysts : list<LigCatalyst>
-            ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
-            racemCatalysts : list<RacemizationCatalyst>
-            allChains : list<list<ChiralAminoAcid>>
-            allSubst : list<Substance>
-            allInd : Map<Substance, int>
-            allNamesMap : Map<Substance, string>
-        }
-
-        static member create maxPeptideLength numberOfAminoAcids =
-            let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-            let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
-            let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
-            let allLigChains = allChains |> List.filter(fun a -> a.Length < maxPeptideLength.length)
-
-            let allSubst =
-                    Substance.allSimple
-                    @
-                    (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                    @
-                    (peptides |> List.map (fun p -> PeptideChain p))
-
-            {
-                maxPeptideLength = maxPeptideLength
-                numberOfAminoAcids = numberOfAminoAcids
-                aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
-                chiralAminoAcids = chiralAminoAcids
-                peptides = peptides
-                synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
-                destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
-                ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
-
-                ligationPairs =
-                    List.allPairs allLigChains allLigChains
-                    |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
-                    |> List.map (fun (a, b) -> orderPairs (a, b))
-                    |> List.filter (fun (a, _) -> a.Head.isL)
-                    |> List.distinct
-
-                racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
-                allChains = allChains
-                allSubst = allSubst
-                allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
-
-                allNamesMap =
-                    allSubst
-                    |> List.map (fun s -> s, s.name)
-                    |> Map.ofList
-            }
-
-        member si.synthesisReactions = si.chiralAminoAcids |> List.map SynthesisReaction
-        member si.destructionReactions = si.chiralAminoAcids |> List.map DestructionReaction
-        member si.ligationReactions = si.ligationPairs |> List.map LigationReaction
-        member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
-
-        member si.catSynthInfo =
-            {
-                a = si.synthesisReactions |> Array.ofList
-                b = si.synthCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticSynthesisName
-            }
-
-        member si.catDestrInfo =
-            {
-                a = si.destructionReactions |> Array.ofList
-                b = si.destrCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticDestructionName
-            }
-
-        member si.catLigInfo =
-            {
-                a = si.ligationReactions |> Array.ofList
-                b = si.ligCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticLigationName
-            }
-
-        member si.catRacemInfo =
-            {
-                a = si.racemizationReactions |> Array.ofList
-                b = si.racemCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticRacemizationName
-            }
 
 
     let generateSubst() =
@@ -223,11 +97,9 @@ module ClmModelData =
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
         }
 
-        member data.getReactions sdp rateProvider t n =
-            //let x = AnyReaction.tryCreateReactionFromRateData
-
+        member data.getReactions rnd sdp rateProvider t n =
             let createReactions c l =
-                let create a = c a |> AnyReaction.tryCreateReaction rateProvider t
+                let create a = c a |> AnyReaction.tryCreateReaction rnd rateProvider t
 
                 l
                 |> List.map create
@@ -235,9 +107,9 @@ module ClmModelData =
                 |> List.concat
 
             match n with
-            | FoodCreationName -> [ AnyReaction.tryCreateReaction rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
-            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
-            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
+            | FoodCreationName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
+            | WasteRemovalName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
+            | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
             | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) data.substInfo.chiralAminoAcids
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
@@ -273,8 +145,8 @@ module ClmModelData =
             | CatalyticRacemizationName -> data.commonData.catRacemPairs.Length
 
 
-        member data.getReactions rateProvider n =
-            data.commonData.getReactions data.allPairs rateProvider BruteForce n
+        member data.getReactions rnd rateProvider n =
+            data.commonData.getReactions rnd data.allPairs rateProvider BruteForce n
 
 
         static member create si =
@@ -296,19 +168,17 @@ module ClmModelData =
                     }
             }
 
-    //let getModelDataParamsCode (modelParams : ModelGenerationParams)
 
-
-    let generatePairs<'A, 'B> (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
+    let generatePairs<'A, 'B> rnd (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
         let noOfTries = i.a.Length * i.b.Length / 4
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
-        match rateProvider.getPrimaryDistribution i.reactionName with
+        match rateProvider.tryGetPrimaryDistribution i.reactionName with
         | Some d ->
-            let sn = d.successNumber noOfTries
+            let sn = d.successNumber rnd noOfTries
             printfn "generatePairs.sn = %A" sn
-            [ for _ in 1..sn -> (i.a.[d.next i.a.Length], i.b.[d.next i.b.Length]) ]
+            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
         | None -> []
 
 
@@ -336,20 +206,20 @@ module ClmModelData =
             | RacemizationName -> si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> si.racemizationReactions.Length * si.racemCatalysts.Length
 
-        member data.getReactions rateProvider n =
-            data.commonData.getReactions data.sedDirPairs rateProvider RandomChoice n
+        member data.getReactions rnd rateProvider n =
+            data.commonData.getReactions rnd data.sedDirPairs rateProvider RandomChoice n
 
-        static member create rateProvider si =
+        static member create rnd rateProvider si =
             {
                 sedDirPairs = []
 
                 commonData =
                     {
                         substInfo = si
-                        catSynthPairs = generatePairs si.catSynthInfo rateProvider
-                        catDestrPairs = generatePairs si.catDestrInfo rateProvider
-                        catLigPairs = generatePairs si.catLigInfo rateProvider
-                        catRacemPairs = generatePairs si.catRacemInfo rateProvider
+                        catSynthPairs = generatePairs rnd si.catSynthInfo rateProvider
+                        catDestrPairs = generatePairs rnd si.catDestrInfo rateProvider
+                        catLigPairs = generatePairs rnd si.catLigInfo rateProvider
+                        catRacemPairs = generatePairs rnd si.catRacemInfo rateProvider
                     }
             }
 
@@ -363,26 +233,21 @@ module ClmModelData =
             | BruteForceModel m -> m.noOfRawReactions n
             | RandomChoiceModel m -> m.noOfRawReactions n
 
-        member data.getReactions rateProvider n =
+        member data.getReactions rnd rateProvider n =
             match data with
-            | BruteForceModel m -> m.getReactions rateProvider n
+            | BruteForceModel m -> m.getReactions rnd rateProvider n
             | RandomChoiceModel m ->
                 let x = 
-                    m.getReactions rateProvider n
+                    m.getReactions rnd rateProvider n
 
                 let b =
-                    match rateProvider.getModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
+                    match rateProvider.tryGetModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
                     | Some v -> v
                     | None -> []
 
                 b
 
-        //member data.getAllReactions() =
-        //    match data with
-        //    | BruteForceModel _ -> failwith ""
-        //    | RandomChoiceModel m -> failwith ""
-
-        static member create t rateProvider si =
+        static member create rnd t rateProvider si =
             match t with
             | BruteForce -> BruteForceModelData.create si |> BruteForceModel
-            | RandomChoice -> RandomChoiceModelData.create rateProvider si |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si |> RandomChoiceModel

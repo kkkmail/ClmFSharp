@@ -5,7 +5,6 @@ open System.IO
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ModelParams
-open Clm.DataLocation
 open Microsoft.FSharp.Core
 open FSharp.Plotly
 
@@ -44,10 +43,10 @@ module Visualization =
 
             let fileName =
                 [
-                    r.simpleData.modelDataId.value |> toModelName
+                    r.resultData.modelDataId.value |> toModelName
                     i.resultInfo.separator
-                    (int r.simpleData.y0).ToString().PadLeft(3, '0')
-                    (int r.simpleData.tEnd).ToString().PadLeft(5, '0')
+                    (int r.resultData.y0).ToString().PadLeft(3, '0')
+                    (int r.resultData.tEnd).ToString().PadLeft(5, '0')
                     suff
                 ]
                 |> String.concat i.resultInfo.separator
@@ -57,28 +56,28 @@ module Visualization =
 
 
     type Plotter(i : PlotDataInfo, p : FullResultData) =
-        let foodIdx = p.binaryData.allInd.TryFind (AchiralSubst.Food |> Simple)
-        let wasteIdx = p.binaryData.allInd.TryFind (AchiralSubst.Waste |> Simple)
+        let foodIdx = p.binaryResultData.allInd.TryFind (AchiralSubst.Food |> Simple)
+        let wasteIdx = p.binaryResultData.allInd.TryFind (AchiralSubst.Waste |> Simple)
         let getFileName (ct : ChartType) = ct.getFileName i p
-        let noOfOutputPoints = p.binaryData.t.Length - 1
-        let minMax = (0.0, float p.simpleData.tEnd)
+        let noOfOutputPoints = p.binaryResultData.t.Length - 1
+        let minMax = (0.0, float p.resultData.tEnd)
 
 
         let description =
             [
                 //"Comleted at", sprintf "%A" (o.endTime)
                 //"run time", sprintf "%A" (o.endTime - o.startTime)
-                "model name", p.simpleData.modelDataId.value |> toModelName
+                "model name", p.resultData.modelDataId.value |> toModelName
                 //"end time", sprintf "%A" o.endTime
-                "y0", sprintf "%A" p.simpleData.y0
-                "number of amino acids", sprintf "%A" p.binaryData.aminoAcids.Length
-                "max peptide length", sprintf "%A" p.simpleData.maxPeptideLength.length
-                "number of substances", sprintf "%A" p.binaryData.allSubst.Length
+                "y0", sprintf "%A" p.resultData.y0
+                "number of amino acids", sprintf "%A" p.binaryResultData.aminoAcids.Length
+                "max peptide length", sprintf "%A" p.maxPeptideLength.length
+                "number of substances", sprintf "%A" p.binaryResultData.allSubst.Length
             ]
             @
-            (p.binaryData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
+            (p.binaryResultData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
             @
-            (p.binaryData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
+            (p.binaryResultData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
 
@@ -90,12 +89,12 @@ module Visualization =
 
 
         let plotAllImpl show =
-            let fn = [ for i in 0..p.binaryData.allSubst.Length - 1 -> i ]
+            let fn = [ for i in 0..p.binaryResultData.allSubst.Length - 1 -> i ]
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
 
             let getFuncData i = 
                 tIdx
-                |> List.map (fun t -> p.binaryData.t.[t], p.binaryData.x.[t,i])
+                |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i])
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = i.ToString())))
             |> Chart.withX_AxisStyle("t", MinMax = minMax)
@@ -103,20 +102,20 @@ module Visualization =
 
 
         let plotChiralAminoAcidsImpl show =
-            let fn = [ for i in 0..(p.binaryData.aminoAcids.Length * 2 - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length * 2 - 1) -> i ]
 
             let name i = 
                 let idx = i / 2
                 if idx * 2 = i then AminoAcid.toString idx else (AminoAcid.toString idx).ToLower()
 
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryData.x.[t,*])
+            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
 
             let d t i = 
                 let idx = i / 2
                 if idx * 2 = i then a.[t].[idx] |> fst else a.[t].[idx] |> snd
 
-            let getFuncData i = tIdx |> List.map (fun t -> p.binaryData.t.[t], d t i)
+            let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle("t", MinMax = minMax)
@@ -124,12 +123,12 @@ module Visualization =
 
 
         let plotAminoAcidsImpl show =
-            let fn = [ for i in 0..(p.binaryData.aminoAcids.Length - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length - 1) -> i ]
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryData.x.[t,*])
+            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
             let d t i = (a.[t].[i] |> fst) + (a.[t].[i] |> snd)
-            let getFuncData i = tIdx |> List.map (fun t -> p.binaryData.t.[t], d t i)
+            let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle("t", MinMax = minMax)
@@ -137,7 +136,7 @@ module Visualization =
 
 
         let plotEnantiomericExcessImpl show =
-            let fn = [ for i in 0..(p.binaryData.aminoAcids.Length - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length - 1) -> i ]
 
             let name (i : int) = 
                 let l = AminoAcid.toString i
@@ -145,13 +144,13 @@ module Visualization =
                 "(" + l + " - " + d + ") / (" + l + " + " + d + ")"
 
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryData.x.[t,*])
+            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
 
             let d t i =
                 let (l, d) = a.[t].[i]
                 if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
 
-            let getFuncData i = tIdx |> List.map (fun t -> p.binaryData.t.[t], d t i)
+            let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle("t", MinMax = minMax)
@@ -160,29 +159,29 @@ module Visualization =
 
         let plotTotalSubstImpl show =
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-            let totalData = tIdx |> List.map (fun t -> p.binaryData.t.[t], p.getTotalSubst p.binaryData.x.[t,*])
-            let minData = tIdx |> List.map (fun t -> p.binaryData.t.[t], p.binaryData.x.[t,*] |> Array.min)
+            let totalData = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.getTotalSubst p.binaryResultData.x.[t,*])
+            let minData = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,*] |> Array.min)
 
-            let foodData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryData.t.[t], p.binaryData.x.[t,i]) |> Some) foodIdx
-            let wasteData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryData.t.[t], p.binaryData.x.[t,i]) |> Some) wasteIdx
+            let foodData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i]) |> Some) foodIdx
+            let wasteData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i]) |> Some) wasteIdx
 
             let levelData level =
                 let levelSubst =
-                    p.binaryData.allSubst
+                    p.binaryResultData.allSubst
                     |> List.filter (fun s -> s.length = level)
-                    |> List.map (fun s -> p.binaryData.allInd.[s])
+                    |> List.map (fun s -> p.binaryResultData.allInd.[s])
 
                 let xData t =
-                    let d = p.binaryData.x.[t,*]
+                    let d = p.binaryResultData.x.[t,*]
                     levelSubst |> List.sumBy (fun i -> (double level) * d.[i])
 
-                tIdx |> List.map (fun t -> p.binaryData.t.[t], xData t)
+                tIdx |> List.map (fun t -> p.binaryResultData.t.[t], xData t)
 
             let charts =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ for level in 1..p.simpleData.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                @ [ for level in 1..p.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
                 |> List.choose id
 
 

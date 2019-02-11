@@ -1,16 +1,12 @@
 ﻿namespace ContGen
 
-open System.Data.SqlClient
 open System.Threading
 open Argu
 open ClmSys.ExitErrorCodes
 open Clm.Substances
 open ClmDefaults.DefaultValuesExt
-open ClmDefaults.AllDefaults
 open DbData.Configuration
-open DbData.DatabaseTypes
 open ContGen
-open AsyncRun
 open Runner
 
 module ContGenTasks =
@@ -120,7 +116,7 @@ module ContGenTasks =
 
     let generateModel () =
         printfn "Genetrating and compiling model..."
-        let g = createOneTimeGenerator ModelRunnerParam.defaultValue
+        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
         g() |> ignore
         CompletedSuccessfully
 

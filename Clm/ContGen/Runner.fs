@@ -3,17 +3,15 @@
 open System
 open ClmSys.GeneralData
 open ClmSys.Retry
-open Clm.DataLocation
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open Clm.SettingsExt
-open Clm.Generator.SettingGenExt
-open System.Text
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
+open Clm.CommandLine
 open AsyncRun
 
+// ! Do not delete !
 open Fake.DotNet
 open Fake.Core
 open Fake.IO
@@ -28,6 +26,7 @@ module Runner =
             rootBuildFolder : string
             buildTarget : string
             exeName : string
+            saveModelCode : bool
         }
 
         static member defaultValue =
@@ -35,112 +34,90 @@ module Runner =
                 connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
-                exeName = @"SolverRunner.exe"
+                exeName = SolverRunnerName
+                saveModelCode = false
             }
 
 
     type ModelRunner (p : ModelRunnerParam) =
-        let rnd = new Random()
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
-        let getExeName (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-        let getRandomSeeder (seed : int option) = getRandomSeeder rnd seed
-        let getDeterministicSeeder (seed : int option) = getDeterministicSeeder rnd seed
+
+        let getExeName (ModelDataId modelId) =
+            // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
+            // See:
+            //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
+            //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
+            let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
+            //p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
+            x + @"\" + p.exeName
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelId () = tryDbFun getNewModelDataId
 
 
-        let loadParams seeder (ModelDataId modelId) =
-            match tryDbFun loadSettings with
-                | Some m ->
-                    match ModelGenerationParams.tryGet m seeder [] with
-                    | Some q ->
-                        (
-                            { q with
-                                modelLocationData =
-                                    { q.modelLocationData with
-                                        modelName = ConsecutiveName modelId
-                                        useDefaultModeData = true
-                                    }
-                                seedValue = rnd.Next() |> Some
-                            },
-                            ModelCommandLineParam.getValues m []
-                        )
-                        |> Some
-                    | None -> None
-                | None -> None
+        let tryLoadParams () = tryDbFun tryloadAllParams |> Option.bind id
 
 
-        let generateModel modelGenerationParams =
+        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId =
             printfn "Creating model..."
             printfn "Starting at: %A" DateTime.Now
 
-            let model = ClmModel modelGenerationParams
-            let code = model.generateCode()
-            printfn "... completed."
-            code
+            let model = ClmModel (modelGenerationParams, modelDataId)
+
+            match p.saveModelCode with
+            | true ->
+                printfn "Saving model code..."
+                model.generateCode() |> ignore
+                printfn "... completed."
+            | false -> printfn "NOT saving model code."
+
+            model.getModelData
 
 
-        let saveModel (code : list<string>) (pm : ModelGenerationParams) modelDataId =
-            let sb = new StringBuilder()
-            code |> List.map(fun s -> sb.Append (s + Nl)) |> ignore
-
-            let m =
-                {
-                    modelDataId = modelDataId
-                    numberOfAminoAcids = pm.numberOfAminoAcids
-                    maxPeptideLength = pm.maxPeptideLength
-                    seedValue = pm.seedValue
-                    fileStructureVersion = pm.fileStructureVersionNumber
-                    modelData =
-                        match pm.saveModelData with
-                        | true -> sb.ToString() |> Some
-                        | false -> None
-                    defaultSetIndex = pm.defaultSetIndex
-                }
-
-            tryDbFun (tryUpdateModelData m)
+        let saveModel getModelData =
+            getModelData() |> tryUpdateModelData |> tryDbFun
 
 
-        let compileModel modelId =
-            let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
-            Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
-
-            // Properties
-            let buildDir = getBuildDir modelId
-
-            // Targets
-            Target.create "Clean" (fun _ ->
-              Shell.cleanDir buildDir
-            )
-
-            Target.create "BuildApp" (fun _ ->
-              [ p.buildTarget ]
-                |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
-                |> Trace.logItems "AppBuild-Output: "
-            )
-
-            Target.create "Default" (fun _ ->
-              Trace.trace "Built completed."
-            )
-
-            "Clean"
-              ==> "BuildApp"
-              ==> "Default"
-              |> ignore
-
-            Target.runOrDefault "Default"
+        // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
+        //let compileModel modelId =
+        //    let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
+        //    Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
+        //
+        //    // Properties
+        //    let buildDir = getBuildDir modelId
+        //
+        //    // Targets
+        //    Target.create "Clean" (fun _ ->
+        //      Shell.cleanDir buildDir
+        //    )
+        //
+        //    Target.create "BuildApp" (fun _ ->
+        //      [ p.buildTarget ]
+        //        |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
+        //        |> Trace.logItems "AppBuild-Output: "
+        //    )
+        //
+        //    Target.create "Default" (fun _ ->
+        //      Trace.trace "Built completed."
+        //    )
+        //
+        //    "Clean"
+        //      ==> "BuildApp"
+        //      ==> "Default"
+        //      |> ignore
+        //
+        //    Target.runOrDefault "Default"
 
 
         let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
             let exeName = getExeName (c.calledBackModelId)
-            let commandLineParams = p.ToString()
+            let commandLineParams = p.toCommandLine c.calledBackModelId
             runProc c exeName commandLineParams None
 
 
         let getQueueId (p : ModelCommandLineParam) modelId =
-            match tryDbFun (saveRunQueueEntry p modelId) with
+            match tryDbFun (saveRunQueueEntry modelId p) with
             | Some q -> q
             | None -> RunQueueId -1L
 
@@ -149,20 +126,17 @@ module Runner =
             try
                 match getModelId () with
                     | Some modelId ->
-                        let cmd i e = { e with saveModelSettings = (i = 0) } // Save model settings on the first run.
-
-                        match loadParams getRandomSeeder modelId with
-                        | Some (p, r) ->
-                            let code = generateModel p
-                            match saveModel code p modelId with
+                        match tryLoadParams() with
+                        | Some a ->
+                            match generateModel a.modelGenerationParams modelId |> saveModel with
                             | Some true ->
-                                compileModel modelId
-                                r |> List.mapi (fun i e -> 
-                                                    {
-                                                        run = cmd i e |> runModel
-                                                        modelId = modelId
-                                                        runQueueId = getQueueId e modelId
-                                                    })
+                                //compileModel modelId
+                                a.modelCommandLineParams |> List.map (fun e ->
+                                                            {
+                                                                run = runModel e
+                                                                modelId = modelId
+                                                                runQueueId = getQueueId e modelId
+                                                            })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)
                                 []
@@ -185,7 +159,7 @@ module Runner =
             match tryDbFun loadRunQueue with
             | Some q -> q |> List.map (fun e ->
                                         {
-                                            run = { e.modelCommandLineParam with saveModelSettings = true } |> runModel
+                                            run = e.modelCommandLineParam |> runModel
                                             modelId = e.info.modelDataId
                                             runQueueId = e.runQueueId
                                         })
@@ -226,13 +200,6 @@ module Runner =
 
 
     let saveDefaults connectionString (d, i) n m =
-        let rnd = new Random()
-        truncateSettings connectionString
-        let p = AllParams.getDefaultValue rnd d n m i
-
-        let settings =
-            []
-            |> p.modelGenerationParams.setValue []
-            |> ModelCommandLineParam.setValues p.modelCommandLineParams []
-
-        saveSettings settings connectionString
+        truncateAllParams connectionString
+        let p = AllParams.getDefaultValue d n m i
+        saveAllParams p connectionString

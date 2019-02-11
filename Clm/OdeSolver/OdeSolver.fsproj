@@ -106,11 +106,6 @@
       <Project>{c609d8ec-f1ea-4917-a43c-12efb173b8f3}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Model\Model.fsproj">
-      <Name>Model</Name>
-      <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -22,32 +22,25 @@ module ModelInit =
         static member defaultMult = 0.001
         static member defaultMultEe = 0.001
 
-        static member getDefaultValue p so a =
-            let distr =
-                let seed =
-                    match so with
-                    | Some s -> s
-                    | None -> 0
-                UniformDistribution seed |> Uniform
-
+        static member getDefaultValue p a =
             {
                 modelDataParams = p
-                distr = distr
-                eeDistr = EeDistribution.createSymmetricTriangular distr.nextSeed
+                distr = Distribution.createUniform DistributionParams.defaultValue
+                eeDistr = EeDistribution.createSymmetricTriangular()
                 multiplier = None
                 multEe = None
                 useAbundant = a
             }
 
 
-    let defaultInit (p : ModelInitValuesParams) y0 =
+    let defaultInit rnd (p : ModelInitValuesParams) y0 =
         let mult =
             match p.multiplier with
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMult
 
         let allIndRev =
-            p.modelDataParams.allInd
+            p.modelDataParams.regularParams.allInd
             |> Map.toList
             |> List.map (fun (s, i) -> (i, s))
             |> Map.ofList
@@ -57,16 +50,19 @@ module ModelInit =
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMultEe
 
-        let allSubst = p.modelDataParams.allSubst
-        let nextValue (s : Substance) = y0 * mult * p.distr.nextDouble() / (double (p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1))
-        let nextEe() = multEe * (p.eeDistr.nextDouble())
+        let allSubst = p.modelDataParams.regularParams.allSubst
+
+        let nextValue _ =
+            y0 * mult * (p.distr.nextDouble rnd) / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))
+
+        let nextEe = multEe * (p.eeDistr.nextDouble rnd)
 
         let initVals =
             allSubst
             |> List.filter (fun s -> not s.isSimple)
             |> List.map (fun s -> orderPairs (s.aminoAcids, s.enantiomer.aminoAcids) |> fst |> Substance.fromList)
             |> List.distinct
-            |> List.map (fun s -> (s, (nextValue s, nextEe())))
+            |> List.map (fun s -> (s, (nextValue s, nextEe)))
 
         let initValsMap = initVals |> Map.ofList
         let total = initVals |> List.map (fun (s, (v, _)) -> v * (double s.atoms)) |> List.sum
@@ -89,4 +85,4 @@ module ModelInit =
                 | None, Some (v, e) -> v * (1.0 - e)
                 | None, None -> 0.0
 
-        [| for i in 0..(p.modelDataParams.modelDataParams.modelInfo.numberOfSubstances - 1) -> getValue i |]
+        [| for i in 0..(p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1) -> getValue i |]

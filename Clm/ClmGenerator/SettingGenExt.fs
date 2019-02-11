@@ -3,13 +3,10 @@
 open Clm.Substances
 open Clm.DataLocation
 open Clm.ReactionRates
-open ClmSys.GeneralData
 open Clm.RateModelsExt
 open Clm.SettingsExt
 open Clm.ModelParams
 open Clm.Generator.ClmModelData
-open Clm.Generator.ClmModel
-
 
 module SettingGenExt =
 
@@ -35,9 +32,11 @@ module SettingGenExt =
     [<Literal>]
     let modelLocationDataName = "modelLocationData"
 
+
     type ModelGenerationParams
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             let a() = getTextOpt m po fileStructureVersionNumberName
             let b() = getTextOpt m po versionNumberName
             let c() = getIntOpt m po seedValueName
@@ -45,12 +44,11 @@ module SettingGenExt =
             let e() = addParent po maxPeptideLengthName |> MaxPeptideLength.tryGet m
             let g() = addParent po updateFuncTypeName |> UpdateFuncType.tryGet m
             let h() = addParent po modelLocationDataName |> ModelLocationInputData.tryGet m
-            let i() = getBoolOpt m po updateAllModelsName
             let j() = getIntOpt m po defaultSetIndexName
 
-            match a(), b(), d(), e(), g(), h(), i() with
-            | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1, Some i1 ->
-                let p = ReactionRateModelParamWithUsage.getAll m seeder po
+            match a(), b(), d(), e(), g(), h() with
+            | Some a1, Some b1, Some d1, Some e1, Some g1, Some h1 ->
+                let p = ReactionRateModelParamWithUsage.getAll m po
 
                 let models =
                     ReactionRateModel.createAll p d1
@@ -72,9 +70,7 @@ module SettingGenExt =
                     reactionRateModels = models
                     updateFuncType = g1
                     modelLocationData = h1
-                    updateAllModels = i1
                     defaultSetIndex = j1
-                    saveModelData = getBool m po saveModelDataName
                 }
                 |> Some
             | _ -> None
@@ -90,9 +86,7 @@ module SettingGenExt =
                 setText po fileStructureVersionNumberName this.fileStructureVersionNumber |> Some
                 setText po versionNumberName this.versionNumber |> Some
                 setIntOpt po seedValueName this.seedValue
-                setBool po updateAllModelsName this.updateAllModels |> Some
                 setInt po defaultSetIndexName this.defaultSetIndex |> Some
-                setBool po saveModelDataName this.saveModelData |> Some
             ]
             |> List.choose id
             |> add s

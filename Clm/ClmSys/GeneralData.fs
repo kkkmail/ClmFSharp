@@ -3,7 +3,6 @@ open System
 open System.IO
 open System.IO.Compression
 open System.Text
-open System.Threading.Tasks
 
 module GeneralData =
 
@@ -22,15 +21,6 @@ module GeneralData =
         | 0 -> s
         | 1 -> s.ToLower()
         | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
-
-
-    let getRandomSeeder (rnd : Random) (seed : int option) = rnd.Next ()
-
-
-    let getDeterministicSeeder (rnd : Random) (seed : int option) =
-        match seed with
-        | Some s -> s
-        | None -> rnd.Next ()
 
 
     let zip (s : string) =
@@ -53,7 +43,8 @@ module GeneralData =
         g.Close()
         i.Close()
         o.Close()
-        Encoding.UTF8.GetString(o.ToArray())
+        let s = Encoding.UTF8.GetString(o.ToArray())
+        s
 
 
     //let doAsyncTask (f : unit-> 'a) =

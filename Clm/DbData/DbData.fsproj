@@ -79,7 +79,7 @@
       <HintPath>..\packages\FSharp.Data.3.0.0\lib\net45\FSharp.Data.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
-      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.1\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.Types">
       <HintPath>..\packages\Microsoft.SqlServer.Types.14.0.1016.290\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
@@ -101,6 +101,16 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
+      <Name>ClmDefaults</Name>
+      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
+      <Name>ClmGenerator</Name>
+      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>

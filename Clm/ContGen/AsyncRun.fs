@@ -415,7 +415,7 @@ module AsyncRun =
             p.BeginErrorReadLine()
             p.WaitForExit()
             timer.Stop()
-            printfn "Finished %s after %A milliseconds" filename timer.ElapsedMilliseconds
+            printfn "Finished %s after %A." filename (timer.ElapsedMilliseconds |> double |> TimeSpan.FromMilliseconds)
             let cleanOut l = l |> Seq.filter (fun o -> String.IsNullOrEmpty o |> not)
 
             {

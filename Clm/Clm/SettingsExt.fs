@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open ClmSys.GeneralData
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
@@ -7,8 +8,6 @@ open Clm.DataLocation
 open Clm.ModelParams
 
 module SettingsExt =
-
-    type Seeder = int option -> int
 
     let tryFindByName (m : SettingMap) n = m.TryFind n
     let addParent p n = p @ [ (n, 0) ]
@@ -83,6 +82,7 @@ module SettingsExt =
 
     type NumberOfAminoAcids
         with
+
         static member tryGet (m : SettingMap) po =
             getIntOpt m po NumberOfAminoAcidsName |> Option.bind (fun i -> NumberOfAminoAcids.tryCreate i)
 
@@ -92,11 +92,34 @@ module SettingsExt =
 
     type MaxPeptideLength
         with
+
         static member tryGet (m : SettingMap) po =
             getIntOpt m po MaxPeptideLengthName |> Option.bind (fun i -> MaxPeptideLength.tryCreate i)
 
         member this.setValue po s =
             add s [ setInt po MaxPeptideLengthName this.length]
+
+
+    type DistributionType
+        with
+
+        static member tryGet (m : SettingMap) po =
+            match getTextOpt m po DistributionTypeName with
+            | Some s ->
+                match s with
+                | DeltaName -> Delta |> Some
+                | BiDeltaName -> BiDelta |> Some
+                | UniformName -> Uniform |> Some
+                | TriangularName -> Triangular |> Some
+                | SymmetricTriangularName -> SymmetricTriangular |> Some
+                | _ -> None
+            | None -> None
+
+        member this.setValue po s =
+            match this with
+            | NoneRateMult -> s
+            | RateMultDistr d -> d.setValue (addParent po this.name) s
+            |> add [ setText po RateMultiplierDistributionName this.name ]
 
 
     [<Literal>]
@@ -110,6 +133,7 @@ module SettingsExt =
 
     type DistributionParams
         with
+
         static member getValue (m : SettingMap) po =
             {
                 threshold = getDoubleOpt m po thresholdName
@@ -127,34 +151,42 @@ module SettingsExt =
             |> add s
 
 
+
+
+
+
+
+
+    /////////////////
+
     [<Literal>]
     let seedValueName = "seedValue"
 
+
     type Distribution
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
-            match getTextOpt m po DistributionName with
-            | Some s ->
-                let v = getIntOpt m po seedValueName
 
+        static member tryGet (m : SettingMap) po =
+            match getTextOpt m po DistributionName, getIntOpt m po seedValueName with
+            | Some s, Some v ->
                 match s with
                 | DeltaName ->
                     let p = DistributionParams.getValue m (addParent po DeltaName)
-                    DeltaDistribution (seeder v, p) |> Delta |> Some
+                    DeltaDistribution (v, p) |> Delta |> Some
                 | BiDeltaName ->
                     let p = DistributionParams.getValue m (addParent po BiDeltaName)
-                    BiDeltaDistribution (seeder v, p) |> BiDelta |> Some
+                    BiDeltaDistribution (v, p) |> BiDelta |> Some
                 | UniformName ->
                     let p = DistributionParams.getValue m (addParent po UniformName)
-                    UniformDistribution (seeder v, p) |> Uniform |> Some
+                    UniformDistribution (v, p) |> Uniform |> Some
                 | TriangularName ->
                     let p = DistributionParams.getValue m (addParent po TriangularName)
-                    TriangularDistribution (seeder v, p) |> Triangular |> Some
+                    TriangularDistribution (v, p) |> Triangular |> Some
                 | SymmetricTriangularName ->
                     let p = DistributionParams.getValue m (addParent po SymmetricTriangularName)
-                    SymmetricTriangularDistribution (seeder v, p) |> SymmetricTriangular |> Some
+                    SymmetricTriangularDistribution (v, p) |> SymmetricTriangular |> Some
                 | _ -> None
-            | None -> None
+            | _ -> None
 
         member this.setValue po s =
             s
@@ -165,14 +197,15 @@ module SettingsExt =
 
     type RateMultiplierDistribution
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po RateMultiplierDistributionName with
             | Some s ->
                 match s with
                 | NoneRateMultName -> NoneRateMult |> Some
-                | RateMultDistrName -> 
+                | RateMultDistrName ->
                     addParent po RateMultDistrName
-                    |> Distribution.tryGet m seeder
+                    |> Distribution.tryGet m
                     |> Option.bind (fun d -> RateMultDistr d |> Some)
                 | _ -> None
             | None -> None
@@ -186,13 +219,14 @@ module SettingsExt =
 
     type EeDistribution
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po EeDistributionName with
             | Some s ->
                 match s with
                 | EeDistributionName ->
                     addParent po EeDistributionName
-                    |> Distribution.tryGet m seeder
+                    |> Distribution.tryGet m
                     |> Option.bind (fun d -> EeDistribution d |> Some)
                 | _ -> None
             | None -> None
@@ -217,13 +251,14 @@ module SettingsExt =
 
     type CatRatesEeParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
-            match addParent po rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po rateMultiplierDistrName |> RateMultiplierDistribution.tryGet m with
             | Some r ->
                 {
                     rateMultiplierDistr = r
-                    eeForwardDistribution = addParent po eeForwardDistributionName |> EeDistribution.tryGet m seeder
-                    eeBackwardDistribution= addParent po eeBackwardDistributionName |> EeDistribution.tryGet m seeder
+                    eeForwardDistribution = addParent po eeForwardDistributionName |> EeDistribution.tryGet m
+                    eeBackwardDistribution= addParent po eeBackwardDistributionName |> EeDistribution.tryGet m
                 }
                 |> Some
             | None -> None
@@ -242,6 +277,7 @@ module SettingsExt =
 
     type RateMultiplierDistributionGetter
         with
+
         static member tryGet (m : SettingMap) po =
             match getTextOpt m po RateMultiplierDistributionGetterName with
             | Some s -> 
@@ -260,6 +296,7 @@ module SettingsExt =
 
     type EeDistributionGetter
         with
+
         static member tryGet (m : SettingMap) po =
             match getTextOpt m po EeDistributionGetterName with
             | Some s -> 
@@ -287,10 +324,12 @@ module SettingsExt =
     [<Literal>]
     let getBackwardEeDistrName = "getBackwardEeDistr"
 
+
     type CatRatesSimilarityParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            let d() = addParent po simBaseDistributionName |> Distribution.tryGet m seeder
+
+        static member tryGet (m : SettingMap) po = 
+            let d() = addParent po simBaseDistributionName |> Distribution.tryGet m
             let r() = addParent po getRateMultiplierDistrName |> RateMultiplierDistributionGetter.tryGet m
             let f() = addParent po getForwardEeDistrName |> EeDistributionGetter.tryGet m
             let b() = addParent po getBackwardEeDistrName |> EeDistributionGetter.tryGet m
@@ -320,7 +359,8 @@ module SettingsExt =
 
     type FoodCreationParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
+
+        static member tryGet (m : SettingMap) po =
             match getDoubleOpt m po foodCreationRateName with
             | Some v ->
                 {
@@ -340,7 +380,8 @@ module SettingsExt =
 
     type WasteRemovalParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
+
+        static member tryGet (m : SettingMap) po =
             match getDoubleOpt m po wasteRemovalRateName with
             | Some v -> 
                 {
@@ -357,9 +398,11 @@ module SettingsExt =
     [<Literal>]
     let wasteRecyclingRateName = "wasteRecyclingRate"
 
+
     type WasteRecyclingParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getDoubleOpt m po wasteRecyclingRateName with
             | Some v -> 
                 {
@@ -385,8 +428,9 @@ module SettingsExt =
 
     type SynthesisRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po synthesisDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po = 
+            match addParent po synthesisDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     synthesisDistribution = d
@@ -405,13 +449,14 @@ module SettingsExt =
 
     type SynthesisParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po SynthesisParamName with
             | Some s -> 
                 match s with
                 | SynthRndParamName -> 
                     addParent po SynthRndParamName
-                    |> SynthesisRandomParam.tryGet m seeder
+                    |> SynthesisRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> SynthRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -428,8 +473,9 @@ module SettingsExt =
 
     type CatalyticSynthesisRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po catSynthRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po = 
+            match addParent po catSynthRndEeParamsName |> CatRatesEeParam.tryGet m with
             | Some d ->
                 {
                     catSynthRndEeParams = d
@@ -444,17 +490,18 @@ module SettingsExt =
 
     type CatalyticSynthesisParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po CatalyticSynthesisParamName with
             | Some s -> 
                 match s with
                 | CatSynthRndParamName ->
                     addParent po CatSynthRndParamName
-                    |> CatalyticSynthesisRandomParam.tryGet m seeder 
+                    |> CatalyticSynthesisRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> CatSynthRndParam |> Some)
                 | CatSynthSimParamName -> 
                     addParent po CatSynthSimParamName
-                    |> CatRatesSimilarityParam.tryGet m seeder 
+                    |> CatRatesSimilarityParam.tryGet m
                     |> Option.bind (fun e -> e |> CatSynthSimParam |> Some)
                 | _ -> None
             | None -> None
@@ -472,8 +519,9 @@ module SettingsExt =
 
     type DestructionRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po destructionDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po destructionDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     destructionDistribution = d
@@ -492,13 +540,14 @@ module SettingsExt =
 
     type DestructionParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po DestructionParamName with
             | Some s -> 
                 match s with
                 | DestrRndParamName -> 
                     addParent po DestrRndParamName
-                    |> DestructionRandomParam.tryGet m seeder
+                    |> DestructionRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> DestrRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -515,8 +564,9 @@ module SettingsExt =
 
     type CatalyticDestructionRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po catDestrRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po catDestrRndEeParamsName |> CatRatesEeParam.tryGet m with
             | Some d ->
                 {
                     catDestrRndEeParams = d
@@ -531,17 +581,18 @@ module SettingsExt =
 
     type CatalyticDestructionParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po CatalyticDestructionParamName with
             | Some s -> 
                 match s with
                 | CatDestrRndParamName -> 
                     addParent po CatDestrRndParamName 
-                    |> CatalyticDestructionRandomParam.tryGet m seeder 
+                    |> CatalyticDestructionRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> CatDestrRndParam |> Some)
                 | CatDestrSimParamName -> 
                     addParent po CatDestrSimParamName 
-                    |> CatRatesSimilarityParam.tryGet m seeder 
+                    |> CatRatesSimilarityParam.tryGet m
                     |> Option.bind (fun e -> e |> CatDestrSimParam |> Some)
                 | _ -> None
             | None -> None
@@ -559,8 +610,9 @@ module SettingsExt =
 
     type SedimentationDirectRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po sedimentationDirectDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po sedimentationDirectDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     sedimentationDirectDistribution = d
@@ -577,13 +629,14 @@ module SettingsExt =
 
     type SedimentationDirectParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po SedimentationDirectParamName with
             | Some s -> 
                 match s with
                 | SedDirRndParamName -> 
                     addParent po SedDirRndParamName
-                    |> SedimentationDirectRandomParam.tryGet m seeder
+                    |> SedimentationDirectRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> SedDirRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -600,8 +653,9 @@ module SettingsExt =
 
     type SedimentationAllRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po sedimentationAllDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po sedimentationAllDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     sedimentationAllDistribution = d
@@ -618,13 +672,14 @@ module SettingsExt =
 
     type SedimentationAllParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po SedimentationAllParamName with
             | Some s -> 
                 match s with
                 | SedAllRndParamName -> 
                     addParent po SedAllRndParamName
-                    |> SedimentationAllRandomParam.tryGet m seeder
+                    |> SedimentationAllRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> SedAllRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -641,8 +696,9 @@ module SettingsExt =
 
     type LigationRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po ligationDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po ligationDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     ligationDistribution = d
@@ -661,13 +717,14 @@ module SettingsExt =
 
     type LigationParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po LigationParamName with
             | Some s -> 
                 match s with
                 | LigRndParamName ->
                     addParent po LigRndParamName
-                    |> LigationRandomParam.tryGet m seeder
+                    |> LigationRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> LigRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -683,8 +740,9 @@ module SettingsExt =
 
     type CatalyticLigationRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po catLigRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po = 
+            match addParent po catLigRndEeParamsName |> CatRatesEeParam.tryGet m with
             | Some d ->
                 {
                     catLigRndEeParams = d
@@ -699,13 +757,14 @@ module SettingsExt =
 
     type CatalyticLigationParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po CatalyticLigationParamName with
             | Some s -> 
                 match s with
                 | CatLigRndParamName -> 
                     addParent po CatLigRndParamName
-                    |> CatalyticLigationRandomParam.tryGet m seeder
+                    |> CatalyticLigationRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> CatLigRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -722,8 +781,9 @@ module SettingsExt =
 
     type RacemizationRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po racemizationDistributionName |> Distribution.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po = 
+            match addParent po racemizationDistributionName |> Distribution.tryGet m with
             | Some d ->
                 {
                     racemizationDistribution = d
@@ -740,13 +800,14 @@ module SettingsExt =
 
     type RacemizationParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po RacemizationParamName with
             | Some s -> 
                 match s with
                 | RacemRndParamName -> 
                     addParent po RacemRndParamName
-                    |> RacemizationRandomParam.tryGet m seeder
+                    |> RacemizationRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> RacemRndParam |> Some)
                 | _ -> None
             | None -> None
@@ -763,8 +824,9 @@ module SettingsExt =
 
     type CatalyticRacemizationRandomParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po = 
-            match addParent po catRacemRndEeParamsName |> CatRatesEeParam.tryGet m seeder with
+
+        static member tryGet (m : SettingMap) po =
+            match addParent po catRacemRndEeParamsName |> CatRatesEeParam.tryGet m with
             | Some d ->
                 {
                     catRacemRndEeParams = d
@@ -779,17 +841,18 @@ module SettingsExt =
 
     type CatalyticRacemizationParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po CatalyticRacemizationParamName with
             | Some s -> 
                 match s with
                 | CatRacemRndParamName ->
-                    addParent po CatRacemRndParamName 
-                    |> CatalyticRacemizationRandomParam.tryGet m seeder 
+                    addParent po CatRacemRndParamName
+                    |> CatalyticRacemizationRandomParam.tryGet m
                     |> Option.bind (fun e -> e |> CatRacemRndParam |> Some)
                 | CatRacemSimParamName ->
                     addParent po CatRacemSimParamName
-                    |> CatRatesSimilarityParam.tryGet m seeder
+                    |> CatRatesSimilarityParam.tryGet m
                     |> Option.bind (fun e -> e |> CatRacemSimParam |> Some)
                 | _ -> None
             | None -> None
@@ -804,61 +867,62 @@ module SettingsExt =
     // Generated. See ReactonRateModelParamGenerator.xlsx
     type ReactionRateModelParam
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po ReactionRateModelParamName with
             | Some s -> 
                 match s with
                 | FoodCreationRateParamName ->
                     addParent po FoodCreationRateParamName
-                    |> FoodCreationParam.tryGet m seeder
+                    |> FoodCreationParam.tryGet m
                     |> Option.bind (fun e -> e |> FoodCreationRateParam |> Some)
                 | WasteRemovalRateParamName ->
                     addParent po WasteRemovalRateParamName
-                    |> WasteRemovalParam.tryGet m seeder
+                    |> WasteRemovalParam.tryGet m
                     |> Option.bind (fun e -> e |> WasteRemovalRateParam |> Some)
                 | WasteRecyclingRateParamName ->
                     addParent po WasteRecyclingRateParamName
-                    |> WasteRecyclingParam.tryGet m seeder
+                    |> WasteRecyclingParam.tryGet m
                     |> Option.bind (fun e -> e |> WasteRecyclingRateParam |> Some)
                 | SynthesisRateParamName ->
-                    addParent po SynthesisRateParamName 
-                    |> SynthesisParam.tryGet m seeder 
+                    addParent po SynthesisRateParamName
+                    |> SynthesisParam.tryGet m
                     |> Option.bind (fun e -> e |> SynthesisRateParam |> Some)
                 | DestructionRateParamName ->
-                    addParent po DestructionRateParamName 
-                    |> DestructionParam.tryGet m seeder 
+                    addParent po DestructionRateParamName
+                    |> DestructionParam.tryGet m
                     |> Option.bind (fun e -> e |> DestructionRateParam |> Some)
                 | CatalyticSynthesisRateParamName ->
-                    addParent po CatalyticSynthesisRateParamName 
-                    |> CatalyticSynthesisParam.tryGet m seeder 
+                    addParent po CatalyticSynthesisRateParamName
+                    |> CatalyticSynthesisParam.tryGet m
                     |> Option.bind (fun e -> e |> CatalyticSynthesisRateParam |> Some)
                 | CatalyticDestructionRateParamName ->
-                    addParent po CatalyticDestructionRateParamName 
-                    |> CatalyticDestructionParam.tryGet m seeder 
+                    addParent po CatalyticDestructionRateParamName
+                    |> CatalyticDestructionParam.tryGet m
                     |> Option.bind (fun e -> e |> CatalyticDestructionRateParam |> Some)
                 | LigationRateParamName ->
-                    addParent po LigationRateParamName 
-                    |> LigationParam.tryGet m seeder 
+                    addParent po LigationRateParamName
+                    |> LigationParam.tryGet m
                     |> Option.bind (fun e -> e |> LigationRateParam |> Some)
                 | CatalyticLigationRateParamName ->
-                    addParent po CatalyticLigationRateParamName 
-                    |> CatalyticLigationParam.tryGet m seeder 
+                    addParent po CatalyticLigationRateParamName
+                    |> CatalyticLigationParam.tryGet m
                     |> Option.bind (fun e -> e |> CatalyticLigationRateParam |> Some)
                 | SedimentationDirectRateParamName ->
-                    addParent po SedimentationDirectRateParamName 
-                    |> SedimentationDirectParam.tryGet m seeder 
+                    addParent po SedimentationDirectRateParamName
+                    |> SedimentationDirectParam.tryGet m
                     |> Option.bind (fun e -> e |> SedimentationDirectRateParam |> Some)
                 | SedimentationAllRateParamName ->
-                    addParent po SedimentationAllRateParamName 
-                    |> SedimentationAllParam.tryGet m seeder 
+                    addParent po SedimentationAllRateParamName
+                    |> SedimentationAllParam.tryGet m
                     |> Option.bind (fun e -> e |> SedimentationAllRateParam |> Some)
                 | RacemizationRateParamName ->
-                    addParent po RacemizationRateParamName 
-                    |> RacemizationParam.tryGet m seeder 
+                    addParent po RacemizationRateParamName
+                    |> RacemizationParam.tryGet m
                     |> Option.bind (fun e -> e |> RacemizationRateParam |> Some)
                 | CatalyticRacemizationRateParamName ->
-                    addParent po CatalyticRacemizationRateParamName 
-                    |> CatalyticRacemizationParam.tryGet m seeder 
+                    addParent po CatalyticRacemizationRateParamName
+                    |> CatalyticRacemizationParam.tryGet m
                     |> Option.bind (fun e -> e |> CatalyticRacemizationRateParam |> Some)
                 | _ -> None
             | None -> None
@@ -883,7 +947,8 @@ module SettingsExt =
 
     type ReactionRateModelParamUsage
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match getTextOpt m po ReactionRateModelParamUsageName with
             | Some s ->
                 match s with
@@ -904,9 +969,10 @@ module SettingsExt =
 
     type ReactionRateModelParamWithUsage
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
-            let p() = addParent po modelParamName |> ReactionRateModelParam.tryGet m seeder
-            let u() = addParent po usageParamName |> ReactionRateModelParamUsage.tryGet m seeder
+
+        static member tryGet (m : SettingMap) po =
+            let p() = addParent po modelParamName |> ReactionRateModelParam.tryGet m
+            let u() = addParent po usageParamName |> ReactionRateModelParamUsage.tryGet m
 
             match p(), u() with
             | Some a, Some b ->
@@ -917,9 +983,9 @@ module SettingsExt =
                 |> Some
             | _ -> None
 
-        static member getAll (m : SettingMap) (seeder : Seeder) po =
+        static member getAll (m : SettingMap) po =
             ReactionRateModelParam.allVariableParamNames
-            |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m seeder (addParent po e) )
+            |> List.map (fun e -> ReactionRateModelParamWithUsage.tryGet m (addParent po e))
             |> List.choose id
             |> List.sort
 
@@ -951,9 +1017,6 @@ module SettingsExt =
     let maxPeptideLengthName = "maxPeptideLength"
 
     [<Literal>]
-    let updateAllModelsName = "updateAllModels"
-
-    [<Literal>]
     let allResultsFileName = "allResultsFile"
 
     [<Literal>]
@@ -962,8 +1025,10 @@ module SettingsExt =
     [<Literal>]
     let saveModelDataName = "saveModelData"
 
+
     type ModelInfo
         with
+
         static member tryGet (m : SettingMap) po =
             let a() = getTextOpt m po fileStructureVersionNumberName
             let b() = getTextOpt m po versionNumberName
@@ -972,12 +1037,11 @@ module SettingsExt =
             let e() = getIntOpt m po numberOfSubstancesName
             let f() = getIntOpt m po numberOfAminoAcidsName
             let g() = getIntOpt m po maxPeptideLengthName
-            let h() = getBoolOpt m po updateAllModelsName
             let i() = getTextOpt m po allResultsFileName
             let j() = getIntOpt m po defaultSetIndexName
 
-            match a(), b(), c(), d(), e(), f(), g(), h(), i() with
-            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some h1, Some i1 ->
+            match a(), b(), c(), d(), e(), f(), g(), i() with
+            | Some a1, Some b1, Some c1, Some d1, Some e1, Some f1, Some g1, Some i1 ->
                 match NumberOfAminoAcids.tryCreate f1, MaxPeptideLength.tryCreate g1 with
                 | Some f2, Some g2 ->
                     let j1 =
@@ -994,7 +1058,6 @@ module SettingsExt =
                         numberOfSubstances = e1
                         numberOfAminoAcids = f2
                         maxPeptideLength = g2
-                        updateAllModels = h1
                         allResultsFile = i1
                         defaultSetIndex = j1
                     }
@@ -1011,7 +1074,6 @@ module SettingsExt =
                 setInt po numberOfSubstancesName this.numberOfSubstances
                 setInt po numberOfAminoAcidsName this.numberOfAminoAcids.length
                 setInt po maxPeptideLengthName this.maxPeptideLength.length
-                setBool po updateAllModelsName this.updateAllModels
                 setText po allResultsFileName this.allResultsFile
                 setInt po defaultSetIndexName this.defaultSetIndex
             ]
@@ -1026,12 +1088,13 @@ module SettingsExt =
 
     type ModelDataParams
         with
-        static member tryGet (m : SettingMap) (seeder : Seeder) po =
+
+        static member tryGet (m : SettingMap) po =
             match ModelInfo.tryGet m (addParent po modelInfoName) with
             | Some a ->
                 {
                     modelInfo = a
-                    allParams = ReactionRateModelParamWithUsage.getAll m seeder (addParent po allParamsName)
+                    allParams = ReactionRateModelParamWithUsage.getAll m (addParent po allParamsName) |> Array.ofList
                 }
                 |> Some
             | None -> None
@@ -1039,14 +1102,29 @@ module SettingsExt =
         member this.setValue po s =
             s
             |> this.modelInfo.setValue (addParent po modelInfoName)
-            |> ReactionRateModelParamWithUsage.setAll this.allParams (addParent po allParamsName)
+            |> ReactionRateModelParamWithUsage.setAll (this.allParams |> List.ofArray) (addParent po allParamsName)
+
+        member this.modelSettings =
+            let settings =
+                this.setValue [] []
+                |> List.map (fun e -> e.settingPath, e)
+                |> Map.ofList
+
+            {
+                modelDataId = this.modelInfo.modelDataId |> ModelDataId
+                settings = settings
+            }
+
+        static member tryCreate (s : ModelSettings) : ModelDataParams option =
+            ModelDataParams.tryGet s.settings []
 
 
     type ModeName
         with
+
         static member tryGet (m : SettingMap) po =
             match getTextOpt m po ModeNameName with
-            | Some s -> 
+            | Some s ->
                 match s with
                 | GenerateNameName -> Some GenerateName
                 | ConsecutiveNameName ->
@@ -1078,8 +1156,10 @@ module SettingsExt =
     [<Literal>]
     let useDefaultModeDataName = "useDefaultModeData"
 
+
     type ModelLocationInputData
         with
+
         static member tryGet (m : SettingMap) po =
             let a() = getTextOpt m po startingFolderName
             let b() = getTextOpt m po separatorName
@@ -1125,25 +1205,27 @@ module SettingsExt =
     [<Literal>]
     let useAbundantName = "useAbundant"
 
+
     type ModelCommandLineParam
         with
+
         static member getValues (m : SettingMap) po =
-            let tryGet (m : SettingMap) qo = 
+            let tryGet (m : SettingMap) qo =
                 let t() = getDecimalOpt m qo tEndName
                 let y() = getDecimalOpt m qo y0Name
 
                 match t(), y() with
                 | Some t1, Some y1 ->
-                    {
-                        tEnd = t1
-                        y0 = y1
-                        useAbundant =
-                            match getBoolOpt m qo useAbundantName with
-                            | Some v -> v
-                            | None -> false
-                        saveModelSettings = false // This field is not serialized / deserialized.
-                    }
-                    |> Some
+                    let (x : ModelCommandLineParam) =
+                        {
+                            tEnd = t1
+                            y0 = y1
+                            useAbundant =
+                                match getBoolOpt m qo useAbundantName with
+                                | Some v -> v
+                                | None -> false
+                        }
+                    Some x
                 | _ -> None
 
             [ for i in 0..100 -> i ]

@@ -5,10 +5,11 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 		[modelDataId] [bigint] IDENTITY(1,1) NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
-		[seedValue] [int] NULL,
 		[defaultSetIndex] [int] NOT NULL DEFAULT ((-1)),
 		[fileStructureVersion] [nvarchar](50) NOT NULL,
-		[modelData] [varbinary](max) NULL,
+		[seedValue] [int] NULL,
+		[modelDataParams] [nvarchar](max) NOT NULL,
+		[modelBinaryData] [varbinary](max) NOT NULL,
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_ModelData] PRIMARY KEY CLUSTERED 
 	(

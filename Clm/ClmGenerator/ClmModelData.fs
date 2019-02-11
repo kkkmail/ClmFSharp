@@ -13,9 +13,9 @@ open Clm.CalculationData
 open ClmDefaults.DefaultValuesExt
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
+open Clm.Generator.ReactionRatesExt
 
 module ClmModelData =
-    open Clm.Distributions
 
     let newSeed() = (new Random()).Next()
 
@@ -174,10 +174,12 @@ module ClmModelData =
         let noOfTries = i.a.Length * i.b.Length / 4
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
-        let d = Distribution.createUniform DistributionParams.defaultValue
-        let sn = d.successNumber rnd noOfTries
-        printfn "generatePairs.sn = %A" sn
-        [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
+        match rateProvider.tryGetPrimaryDistribution i.reactionName with
+        | Some d ->
+            let sn = d.successNumber rnd noOfTries
+            printfn "generatePairs.sn = %A" sn
+            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
+        | None -> []
 
 
     type RandomChoiceModelData =

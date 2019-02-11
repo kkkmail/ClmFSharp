@@ -1,6 +1,7 @@
 ﻿namespace Clm.Generator
 
 open ClmImpure.ReactionRateModels
+open ClmImpure.RateProvider
 
 module ReactionRatesExt =
 
@@ -116,3 +117,8 @@ module ReactionRatesExt =
             | SedimentationAllRateModel m -> m.primaryDistribution
             | RacemizationRateModel m -> m.primaryDistribution
             | CatalyticRacemizationRateModel m -> m.primaryDistribution
+
+
+    type ReactionRateProvider
+        with
+        member this.tryGetPrimaryDistribution a = this.tryGetModel a |> Option.bind (fun m -> m.primaryDistribution)

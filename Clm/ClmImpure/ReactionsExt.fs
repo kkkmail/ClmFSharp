@@ -71,5 +71,3 @@ module ReactionsExt =
             | SedimentationAllRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationAll))
             | RacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Racemization))
             | CatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticRacemization))
-
-

@@ -249,8 +249,8 @@ module ReactionRates =
 
     type CatalyticSynthesisRandomParam =
         {
-            catSynthRndEeParams : CatRatesEeParam
             synthesisParam : SynthesisParam
+            catSynthRndEeParams : CatRatesEeParam
         }
 
         //member this.name = CatalyticSynthesisRandomParamName
@@ -501,8 +501,8 @@ module ReactionRates =
 
     type CatalyticLigationRandomParam =
         {
-            catLigRndEeParams : CatRatesEeParam
             ligationParam : LigationParam
+            catLigRndEeParams : CatRatesEeParam
         }
 
         //member this.name = CatalyticLigationRandomParamName

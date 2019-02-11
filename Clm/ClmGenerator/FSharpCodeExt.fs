@@ -8,6 +8,7 @@ open ClmSys.GeneralData
 module FSharpCodeExt = 
 
     let increaseShift shift = shift + "    "
+    let increaseShiftTwice shift = shift |> increaseShift |> increaseShift
     let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
 
 
@@ -192,7 +193,8 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catSynthRndEeParams = " + Nl + (p.catSynthRndEeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                synthesisParam = " + Nl + (p.synthesisParam.toFSharpCode (increaseShiftTwice shift)) +
+            shift + "                catSynthRndEeParams = " + Nl + (p.catSynthRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
             shift + "            }" + Nl
 
 
@@ -200,7 +202,6 @@ module FSharpCodeExt =
         with
 
         member p.toFSharpCode (shift : string) =
-            Nl +
             shift + "            {" + Nl +
             shift + "                simBaseDistribution = " + p.simBaseDistribution.toFSharpCode + Nl +
             shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
@@ -214,8 +215,8 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) =
             Nl +
             shift + "            {" + Nl +
-            shift + "                catSynthParam = " + (p.catSynthParam.toFSharpCode (increaseShift shift)) + Nl +
-            shift + "                catSynthSimParam = " + (p.catSynthSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catSynthParam = " + Nl + (p.catSynthParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catSynthSimParam = " + (p.catSynthSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
             shift + "            }" + Nl
 
 
@@ -252,20 +253,18 @@ module FSharpCodeExt =
         with
 
         member p.toFSharpCode (shift : string) =
-            Nl +
             shift + "            {" + Nl +
-            shift + "                destructionParam = " + Nl + (p.destructionParam.toFSharpCode (increaseShift shift)) +
-            shift + "                catDestrRndEeParams = " + Nl + (p.catDestrRndEeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                destructionParam = " + Nl + (p.destructionParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catDestrRndEeParams = " + Nl + (p.catDestrRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
             shift + "            }" + Nl
 
 
     type CatalyticDestructionSimilarParam
         with
         member p.toFSharpCode (shift : string) =
-            Nl +
             shift + "            {" + Nl +
-            shift + "                catDestrParam = " + (p.catDestrParam.toFSharpCode (increaseShift shift)) + Nl +
-            shift + "                catDestrSimParam = " + (p.catDestrSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catDestrParam = " + Nl + (p.catDestrParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catDestrSimParam = " + Nl + (p.catDestrSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
             shift + "            }" + Nl
 
 
@@ -338,7 +337,8 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                catLigRndEeParams = " + Nl + (p.catLigRndEeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                ligationParam = " + Nl + (p.ligationParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catLigRndEeParams = " + Nl + (p.catLigRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
             shift + "            }" + Nl
 
 
@@ -372,19 +372,18 @@ module FSharpCodeExt =
         with
 
         member p.toFSharpCode (shift : string) =
-            Nl +
             shift + "            {" + Nl +
-            shift + "                catRacemRndEeParams = " + Nl + (p.catRacemRndEeParams.toFSharpCode (increaseShift shift)) +
+            shift + "                racemizationParam = " + Nl + (p.racemizationParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catRacemRndEeParams = " + Nl + (p.catRacemRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
             shift + "            }" + Nl
 
 
     type CatalyticRacemizationSimilarParam
         with
         member p.toFSharpCode (shift : string) =
-            Nl +
             shift + "            {" + Nl +
-            shift + "                catRacemParam = " + (p.catRacemParam.toFSharpCode (increaseShift shift)) + Nl +
-            shift + "                catRacemSimParam = " + (p.catRacemSimParam.toFSharpCode (increaseShift shift)) + Nl +
+            shift + "                catRacemParam = " + Nl + (p.catRacemParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                catRacemSimParam = " + Nl + (p.catRacemSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
             shift + "            }" + Nl
 
 

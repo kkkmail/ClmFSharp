@@ -18,9 +18,9 @@ module Defaults_000 =
         let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.3)
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
-        let catDestrRndParam = (destrParam, (Some 0.002), 10000.0)
+        let catDestrRndParam = (destrParam, (Some 0.0001), 100_000.0)
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam
-        let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.3)
+        let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.2)
         //===========================================================
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.00005), 2000.0)

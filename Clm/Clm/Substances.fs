@@ -2,9 +2,6 @@
 
 module Substances =
 
-    //[<Literal>]
-    //let NumberOfAminoAcidsName = "NumberOfAminoAcids"
-
     type NumberOfAminoAcids =
         | OneAminoAcid
         | TwoAminoAcids
@@ -116,9 +113,6 @@ module Substances =
         static member tryCreate n =
             NumberOfAminoAcids.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
-
-    //[<Literal>]
-    //let MaxPeptideLengthName = "MaxPeptideLength"
 
     type MaxPeptideLength =
         | TwoMax
@@ -304,22 +298,22 @@ module Substances =
             | A15 -> 14
             | A16 -> 15
 
-            | A17 -> 17
-            | A18 -> 18
-            | A19 -> 19
-            | A20 -> 20
-            | A21 -> 21
-            | A22 -> 22
-            | A23 -> 23
-            | A24 -> 24
-            | A25 -> 25
-            | A26 -> 26
-            | A27 -> 27
-            | A28 -> 28
-            | A29 -> 29
-            | A30 -> 30
-            | A31 -> 31
-            | A32 -> 32
+            | A17 -> 16
+            | A18 -> 17
+            | A19 -> 18
+            | A20 -> 19
+            | A21 -> 20
+            | A22 -> 21
+            | A23 -> 22
+            | A24 -> 23
+            | A25 -> 24
+            | A26 -> 25
+            | A27 -> 26
+            | A28 -> 27
+            | A29 -> 28
+            | A30 -> 29
+            | A31 -> 30
+            | A32 -> 31
 
         static member toString (a : AminoAcid) = a.name
 

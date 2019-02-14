@@ -54,17 +54,29 @@ module ServiceInfo =
             progress : TaskProgress
         }
 
+        override r.ToString() =
+            let (ModelDataId modelDataId) = r.runningModelId
+            let s = formatTimeSpan (DateTime.Now - r.started) 3
+            sprintf "{ running = %s, modelDataId = %A, processId = %A, progress = %A }" s modelDataId r.runningProcessId r.progress
+
 
     type ContGenRunnerState =
         {
-            //generating : bool
             runLimit : int
             maxQueueLength : int
-            runningCount : int
             running : RunningProcessInfo[]
             queue : ModelDataId[]
+            runningCount : int
             workState : WorkState
         }
+
+        override s.ToString() =
+            let q0 = s.queue |> Array.map (fun e -> e.value.ToString()) |> String.concat "; "
+            let q = if q0 = EmptyString then "[]" else "[ " + q0 + " ]"
+
+            let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl
+            let r = if r0 = EmptyString then "[]" else Nl + "        [" + Nl + r0 + Nl + "        ]"
+            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; workState = %A\n}" r q s.runLimit s.runningCount s.workState
 
 
     type ContGenConfigParam =

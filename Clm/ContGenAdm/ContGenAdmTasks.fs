@@ -63,8 +63,8 @@ module ContGenAdmTasks =
     let monitor (service : IContGenService) (p :list<MonitorArgs>) =
         let i =
             match p |> List.tryPick (fun e -> match e with | RefreshInterval i -> Some i) with
-            | Some i -> i
-            | None -> 5_000
+            | Some i -> i * 1_000
+            | None -> 30_000
 
         while true do
             try
@@ -75,7 +75,6 @@ module ContGenAdmTasks =
                 | e -> printfn "Exception: %A\n" e.Message
 
             Thread.Sleep(i)
-
         0
 
 

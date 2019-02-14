@@ -96,23 +96,21 @@ module AsyncRun =
 
     type AsyncRunnerState =
         {
-            //generating : bool
-            runLimit : int
-            maxQueueLength : int
-            runningCount : int
             running : Map<int, RunningProcessInfo>
             queue : list<RunInfo>
+            runLimit : int
+            maxQueueLength : int
             workState : WorkState
         }
 
+        member state.runningCount = state.running.Count
+
         static member defaultValue =
             {
-                //generating = false
-                runLimit = Environment.ProcessorCount
-                maxQueueLength = 4
-                runningCount = 0
                 running = Map.empty
                 queue = []
+                runLimit = Environment.ProcessorCount
+                maxQueueLength = 4
                 workState = CanGenerate
             }
 
@@ -122,7 +120,7 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A)" e.runningModelId e.runningProcessId e.started) |> String.concat ", "
-            sprintf "{ queue: %A, [%s], runningCount: %A, running: [%s], workState: %A }" s.queue.Length q s.runningCount r s.workState
+            sprintf "{ running: [%s], queue: [%s], runLimit = %A, runningCount: %A, workState: %A }" r q s.runLimit s.runningCount s.workState
 
         member s.startGenerate h =
             match s.workState with
@@ -141,7 +139,7 @@ module AsyncRun =
                 | NotStarted | InProgress _ ->
                     { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
                 | Completed ->
-                    { s with running = s.running.Remove p.updatedProcessId; runningCount = s.runningCount - 1 }
+                    { s with running = s.running.Remove p.updatedProcessId }
             | None ->
                 match p.progress with
                 | NotStarted | InProgress _ ->
@@ -152,7 +150,7 @@ module AsyncRun =
                             runningModelId = p.updateModelId
                             progress = p.progress
                         }
-                    { s with running = s.running.Add(p.updatedProcessId, e); runningCount = s.runningCount + 1 }
+                    { s with running = s.running.Add(p.updatedProcessId, e) }
                 | Completed -> s
 
         member s.completeGenerate h r =
@@ -186,24 +184,24 @@ module AsyncRun =
                 | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
                     h.startModels p |> Async.Start
-                    { s with runningCount = s.runningCount + p.Length - 1; queue = q; running = s.running.Remove x.exitedProcessId }
+                    { s with queue = q; running = s.running.Remove x.exitedProcessId }
                 | None ->
                     let p, q = partition s.runLimit s.queue s.runningCount
                     h.startModels p |> Async.Start
-                    { s with runningCount = s.runningCount + p.Length; queue = q }
+                    { s with queue = q }
 
             match s.workState with
             | Idle -> w()
             | CanGenerate ->
                 h.startGenerate() |> Async.Start
                 w()
-            | ShuttingDown -> { s with runningCount = s.runningCount - 1; running = s.running.tryRemove x.exitedProcessId }
+            | ShuttingDown -> { s with running = s.running.tryRemove x.exitedProcessId }
 
         member s.startRun h r =
             let w() =
                 let p, q = partition s.runLimit (s.queue @ r) s.runningCount
                 h.startModels p |> Async.Start
-                { s with runningCount = s.runningCount + p.Length; queue = q }
+                { s with queue = q }
 
             match s.workState with
             | Idle -> w()
@@ -243,7 +241,7 @@ module AsyncRun =
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
             | CancelTask i ->
                 match h.cancelProcess i with
-                | true -> { s with runningCount = max (s.runningCount - 1) 0; running = s.running.tryRemove i}
+                | true -> { s with running = s.running.tryRemove i}
                 | false -> s
 
         member s.isShuttingDown =

@@ -103,7 +103,7 @@ module ContGenServiceTasks =
             try
                 printfn "Getting state..."
                 let state = service.getState()
-                printfn "...state = %A\n\n" state
+                printfn "...state =\n%s\n\n" (state.ToString())
                 if state.queue.Length = 0 then service.startGenerate()
             with
                 | e -> printfn "Exception: %A\n" e.Message

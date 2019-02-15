@@ -1,18 +1,18 @@
 -- Calculates how often the symmetry is broken for all processed default sets.
 declare @maxEeThreshold float, @numberOfAminoAcids int
-set @numberOfAminoAcids = 11
-set @maxEeThreshold = 0.0001
+set @numberOfAminoAcids = 20
+set @maxEeThreshold = 0.00001
 
 
 ; with
 w as
 	(
 	select 
-		modelDataId, 
+		r.modelDataId, 
 		(select top 1 defaultSetIndex from ModelData where modelDataId = r.modelDataId) as defaultSetIndex,
 		case when r.maxEe > @maxEeThreshold then 1 else 0 end as isSymmetryBroken
-	from ResultData r
-	where r.numberOfAminoAcids = @numberOfAminoAcids
+	from ResultData r inner join ModelData m on r.modelDataId = m.modelDataId
+	where m.numberOfAminoAcids = @numberOfAminoAcids
 ),
 u as
 (

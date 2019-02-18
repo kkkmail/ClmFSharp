@@ -17,10 +17,10 @@ open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
+open Clm.Distributions
 
 
 module SolverRunnerTasks =
-    open Clm.Distributions
 
     let logError e = printfn "Error: %A." e
     let tryDbFun f = tryDbFun logError clmConnectionString f
@@ -65,6 +65,7 @@ module SolverRunnerTasks =
             | Some (Some md) ->
                 // TODO kk:20190208 - This must be split into several functions.
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
+                let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
                 let n = ResponseHandler.tryCreate()
 
                 let a = results.GetResult (UseAbundant, defaultValue = false)
@@ -87,7 +88,6 @@ module SolverRunnerTasks =
                     }
 
                 let result = nSolve p
-
 
                 // Notify of completion just in case.
                 match n with
@@ -166,7 +166,9 @@ module SolverRunnerTasks =
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show
 
-                plotAll false
+                if maxEe >= minUsefulEe
+                then plotAll false
+                else printfn "Value of maxEe = %A is too small. Not creating plots." maxEe
                 printfn "Completed."
 
                 CompletedSuccessfully

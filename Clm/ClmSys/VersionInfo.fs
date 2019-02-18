@@ -2,10 +2,12 @@
 
 module VersionInfo =
 
-    /// !!! Changing FileStructureVersionNumber is expected to make ALL previously generated code unusable !!!
-    /// It must then be either manually updated OR just set aside and used with the relevant code, which matches its FileStructureVersionNumber.
+    /// TODO kk:20190218 - FSV Version 2.0.0.0 switched from code generation to indexes of sparce matrics AND to JSON for all parameters. Guidelines below might be obsolete.
     ///
-    /// Update build number, e.g. "1.0.0.*", when the changes are cosmetic, like changing namespace(s) / open declarations 
+    /// !!! Changing FileStructureVersionNumber is expected to make ALL previously generated models unusable !!!
+    /// Each model then must be either manually updated OR just set aside and used with the relevant code, which matches its FileStructureVersionNumber.
+    ///
+    /// Update build number, e.g. "1.0.0.*", when the changes are cosmetic, like changing namespace(s) / open declarations
     ///     OR if changes will be automatically picked up by compiler type inference.
     ///
     /// Update revision number, e.g. "1.0.*.0", when the changes are small and the affected files can be easily updated by hands.
@@ -23,8 +25,8 @@ module VersionInfo =
     /// This is a version of Code Generator / Runner / Plotter.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "2.0.0.0"
+    let VersionNumber = "2.0.0.2"
 
 
     [<Literal>]
-    let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov © 2015 - 2019."
+    let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2019."

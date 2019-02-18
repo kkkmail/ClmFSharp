@@ -110,7 +110,7 @@ module GeneralData =
         | _                          -> ""
 
 
-    let formatTimeSpan (ts:TimeSpan) maxParts =
+    let formatTimeSpanDetailed maxParts (ts:TimeSpan) =
         let makePart (p, v) = (p v, v)
         let bigParts =
             [
@@ -130,3 +130,11 @@ module GeneralData =
         |> Seq.filter (not << String.IsNullOrEmpty)
         |> Seq.truncate maxParts
         |> fun parts -> String.Join(", ", parts)
+
+
+    let formatTimeSpan (t : TimeSpan) =
+        let x = sprintf "%i:%02i:%02i" t.Hours t.Minutes t.Seconds
+
+        if t.Days = 0
+        then x
+        else sprintf "%i day(s), %s" t.Days x

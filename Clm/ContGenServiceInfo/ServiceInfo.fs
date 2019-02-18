@@ -56,7 +56,7 @@ module ServiceInfo =
 
         override r.ToString() =
             let (ModelDataId modelDataId) = r.runningModelId
-            let s = formatTimeSpan (DateTime.Now - r.started) 3
+            let s = formatTimeSpan (DateTime.Now - r.started)
             sprintf "{ running = %s, modelDataId = %A, processId = %A, progress = %A }" s modelDataId r.runningProcessId r.progress
 
 

@@ -167,8 +167,11 @@ module SolverRunnerTasks =
                     plotter.plotEnantiomericExcess show
 
                 if maxEe >= minUsefulEe
-                then plotAll false
+                then
+                    printfn "Generating plots..."
+                    plotAll false
                 else printfn "Value of maxEe = %A is too small. Not creating plots." maxEe
+
                 printfn "Completed."
 
                 CompletedSuccessfully

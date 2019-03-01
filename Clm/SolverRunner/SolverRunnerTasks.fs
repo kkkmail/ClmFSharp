@@ -147,11 +147,11 @@ module SolverRunnerTasks =
 
                         binaryResultData =
                             {
-                                aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
-                                allSubst = modelDataParamsWithExtraData.regularParams.allSubst
-                                allInd = modelDataParamsWithExtraData.regularParams.allInd
-                                allRawReactions = modelDataParamsWithExtraData.regularParams.allRawReactions
-                                allReactions = modelDataParamsWithExtraData.regularParams.allReactions
+                                binaryInfo =
+                                    {
+                                        aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
+                                        allSubstData = modelDataParamsWithExtraData.regularParams.allSubstData
+                                    }
 
                                 x = result.x
                                 t = result.t

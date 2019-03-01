@@ -64,13 +64,32 @@ module ModelParams =
         }
 
 
-    type BinaryResultData =
+    type AllSubstData =
         {
-            aminoAcids : list<AminoAcid>
             allSubst : list<Substance>
             allInd : Map<Substance, int>
             allRawReactions : list<ReactionName * int>
             allReactions : list<ReactionName * int>
+        }
+
+
+    type BinaryInfo =
+        {
+            aminoAcids : list<AminoAcid>
+            allSubstData : AllSubstData
+        }
+
+        member info.getTotals x =
+            getTotalsValue info.allSubstData.allInd info.allSubstData.allSubst info.aminoAcids x
+
+        member info.getTotalSubst x =
+            getTotalSubstValue info.allSubstData.allInd info.allSubstData.allSubst x
+
+
+
+    type BinaryResultData =
+        {
+            binaryInfo : BinaryInfo
 
             x : double [,]
             t : double []
@@ -84,20 +103,14 @@ module ModelParams =
             maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
         }
 
-        member resultData.getTotals x =
-            getTotalsValue resultData.binaryResultData.allInd resultData.binaryResultData.allSubst resultData.binaryResultData.aminoAcids x
-
-        member resultData.getTotalSubst x =
-            getTotalSubstValue resultData.binaryResultData.allInd resultData.binaryResultData.allSubst x
+        member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
+        member resultData.getTotalSubst x = resultData.binaryResultData.binaryInfo.getTotalSubst x
 
 
     type ModelDataRegularParams =
         {
             modelDataParams : ModelDataParams
-            allSubst : list<Substance>
-            allInd : Map<Substance, int>
-            allRawReactions : list<ReactionName * int>
-            allReactions : list<ReactionName * int>
+            allSubstData : AllSubstData
         }
 
 

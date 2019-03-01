@@ -1,11 +1,11 @@
 ﻿namespace Analytics
 
-open System
 open System.IO
-open Clm.Substances
-open Clm.ReactionTypes
-open Clm.ModelParams
 open Microsoft.FSharp.Core
+
+open Clm.Substances
+open Clm.ModelParams
+open Clm.ChartData
 open FSharp.Plotly
 
 module Visualization =
@@ -23,16 +23,12 @@ module Visualization =
             }
 
 
-    type ChartType =
-        | PlotAllSubst
-        | PlotChiralAminoAcids
-        | PlotAminoAcids
-        | PlotEnantiomericExcess
-        | PlotTotalSubst
+    type ChartType
+        with
 
         member ct.fileSuffix =
             match ct with 
-            | PlotAllSubst -> "as"
+            //| PlotAllSubst -> "as"
             | PlotChiralAminoAcids -> "ca"
             | PlotAminoAcids -> "aa"
             | PlotEnantiomericExcess -> "ee"
@@ -56,8 +52,8 @@ module Visualization =
 
 
     type Plotter(i : PlotDataInfo, p : FullResultData) =
-        let foodIdx = p.binaryResultData.allInd.TryFind (AchiralSubst.Food |> Simple)
-        let wasteIdx = p.binaryResultData.allInd.TryFind (AchiralSubst.Waste |> Simple)
+        let foodIdx = p.binaryResultData.binaryInfo.allSubstData.allInd.TryFind (AchiralSubst.Food |> Simple)
+        let wasteIdx = p.binaryResultData.binaryInfo.allSubstData.allInd.TryFind (AchiralSubst.Waste |> Simple)
         let getFileName (ct : ChartType) = ct.getFileName i p
         let noOfOutputPoints = p.binaryResultData.t.Length - 1
         let minMax = (0.0, float p.resultData.tEnd)
@@ -70,14 +66,14 @@ module Visualization =
                 "model name", p.resultData.modelDataId.value |> toModelName
                 //"end time", sprintf "%A" o.endTime
                 "y0", sprintf "%A" p.resultData.y0
-                "number of amino acids", sprintf "%A" p.binaryResultData.aminoAcids.Length
+                "number of amino acids", sprintf "%A" p.binaryResultData.binaryInfo.aminoAcids.Length
                 "max peptide length", sprintf "%A" p.maxPeptideLength.length
-                "number of substances", sprintf "%A" p.binaryResultData.allSubst.Length
+                "number of substances", sprintf "%A" p.binaryResultData.binaryInfo.allSubstData.allSubst.Length
             ]
             @
-            (p.binaryResultData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
+            (p.binaryResultData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
             @
-            (p.binaryResultData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
+            (p.binaryResultData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
 
@@ -88,21 +84,21 @@ module Visualization =
             | false -> Chart.ShowFileWithDescription show fileName
 
 
-        let plotAllImpl show =
-            let fn = [ for i in 0..p.binaryResultData.allSubst.Length - 1 -> i ]
-            let tIdx = [ for i in 0..noOfOutputPoints -> i ]
+        //let plotAllImpl show =
+        //    let fn = [ for i in 0..p.binaryResultData.allSubst.Length - 1 -> i ]
+        //    let tIdx = [ for i in 0..noOfOutputPoints -> i ]
 
-            let getFuncData i = 
-                tIdx
-                |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i])
+        //    let getFuncData i = 
+        //        tIdx
+        //        |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i])
 
-            Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = i.ToString())))
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
-            |> showChart show (getFileName PlotAllSubst) description
+        //    Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = i.ToString())))
+        //    |> Chart.withX_AxisStyle("t", MinMax = minMax)
+        //    |> showChart show (getFileName PlotAllSubst) description
 
 
         let plotChiralAminoAcidsImpl show =
-            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length * 2 - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.binaryInfo.aminoAcids.Length * 2 - 1) -> i ]
 
             let name i = 
                 let idx = i / 2
@@ -123,7 +119,7 @@ module Visualization =
 
 
         let plotAminoAcidsImpl show =
-            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.binaryInfo.aminoAcids.Length - 1) -> i ]
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let tIdx = [ for i in 0..noOfOutputPoints -> i ]
             let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
@@ -136,7 +132,7 @@ module Visualization =
 
 
         let plotEnantiomericExcessImpl show =
-            let fn = [ for i in 0..(p.binaryResultData.aminoAcids.Length - 1) -> i ]
+            let fn = [ for i in 0..(p.binaryResultData.binaryInfo.aminoAcids.Length - 1) -> i ]
 
             let name (i : int) = 
                 let l = AminoAcid.toString i
@@ -167,9 +163,9 @@ module Visualization =
 
             let levelData level =
                 let levelSubst =
-                    p.binaryResultData.allSubst
+                    p.binaryResultData.binaryInfo.allSubstData.allSubst
                     |> List.filter (fun s -> s.length = level)
-                    |> List.map (fun s -> p.binaryResultData.allInd.[s])
+                    |> List.map (fun s -> p.binaryResultData.binaryInfo.allSubstData.allInd.[s])
 
                 let xData t =
                     let d = p.binaryResultData.x.[t,*]
@@ -190,7 +186,7 @@ module Visualization =
             |> showChart show (getFileName PlotTotalSubst) description
 
 
-        member __.plotAll (show : bool) = plotAllImpl show
+        //member __.plotAll (show : bool) = plotAllImpl show
         member __.plotChiralAminoAcids (show : bool) = plotChiralAminoAcidsImpl show
         member __.plotAminoAcids (show : bool) = plotAminoAcidsImpl show
         member __.plotTotalSubst (show : bool) = plotTotalSubstImpl show

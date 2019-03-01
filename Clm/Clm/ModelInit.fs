@@ -40,7 +40,7 @@ module ModelInit =
             | None -> ModelInitValuesParams.defaultMult
 
         let allIndRev =
-            p.modelDataParams.regularParams.allInd
+            p.modelDataParams.regularParams.allSubstData.allInd
             |> Map.toList
             |> List.map (fun (s, i) -> (i, s))
             |> Map.ofList
@@ -50,7 +50,7 @@ module ModelInit =
             | Some m -> m
             | None -> ModelInitValuesParams.defaultMultEe
 
-        let allSubst = p.modelDataParams.regularParams.allSubst
+        let allSubst = p.modelDataParams.regularParams.allSubstData.allSubst
 
         let nextValue _ =
             y0 * mult * (p.distr.nextDouble rnd) / (double (p.modelDataParams.regularParams.modelDataParams.modelInfo.numberOfSubstances - 1))

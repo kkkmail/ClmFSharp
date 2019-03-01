@@ -3,7 +3,7 @@
 open Microsoft.FSharp.Core
 open System
 
-module Solver = 
+module Solver =
 
     type OdeParams =
         {
@@ -40,7 +40,7 @@ module Solver =
         }
 
 
-    type NSolveParam = 
+    type NSolveParam =
         {
             modelDataId : int64
             tEnd : double
@@ -52,7 +52,7 @@ module Solver =
 
 
     /// F# wrapper around Alglib ODE solver.
-    let nSolve (n : NSolveParam) : OdeResult = 
+    let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
         let i = n.h n.y0
 

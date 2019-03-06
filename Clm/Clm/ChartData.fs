@@ -8,26 +8,35 @@ module ChartData =
 
     type TotalSubstData =
         {
+            totalData : double
             minData : double
             foodData : double option
             wasteData : double option
-            levelData : list<double>
+            levelData : array<double>
         }
 
 
     type ChartType =
-        //| PlotAllSubst
-        | PlotChiralAminoAcids
+        //| PlotChiralAminoAcids
         | PlotAminoAcids
         | PlotEnantiomericExcess
         | PlotTotalSubst
 
 
+    type ChartInitData =
+        {
+            modelDataId : ModelDataId
+            binaryInfo : BinaryInfo
+            y0 : double
+            tEnd : double
+        }
+
+
     type ChartSliceData =
         {
             t : double
-            aminoAcidsData : list<double>
-            enantiomericExcess : list<double>
+            aminoAcidsData : array<double>
+            enantiomericExcess : array<double>
             totalSubst : TotalSubstData
         }
 
@@ -36,8 +45,8 @@ module ChartData =
 
             {
                 t = t
-                aminoAcidsData = totals |> List.map (fun (l, d) -> l + d)
-                enantiomericExcess = totals |> List.map (fun (l, d) -> if (l + d) > 0.0 then (l - d) / (l + d) else 0.0)
+                aminoAcidsData = totals |> List.map (fun (l, d) -> l + d) |> Array.ofList
+                enantiomericExcess = totals |> List.map (fun (l, d) -> if (l + d) > 0.0 then (l - d) / (l + d) else 0.0) |> Array.ofList
 
                 totalSubst =
                     let foodIdx = i.allSubstData.allInd.TryFind (AchiralSubst.Food |> Simple)
@@ -52,28 +61,47 @@ module ChartData =
                         levelSubst |> List.sumBy (fun i -> (double level) * x.[i])
 
                     {
+                        totalData = i.getTotalSubst x
                         minData = x |> Array.min
                         foodData = Option.bind (fun i -> x.[i] |> Some) foodIdx
                         wasteData = Option.bind (fun i -> x.[i] |> Some) wasteIdx
-                        levelData = [ for level in 1..i.maxPeptideLength.length -> levelData level ]
+                        levelData = [| for level in 1..i.maxPeptideLength.length -> levelData level |]
                     }
             }
 
 
     type ChartData =
         {
-            todoSomeGeneralChartInfo : string
+            initData : ChartInitData
             allChartData : list<ChartSliceData>
         }
 
-        static member defaultValue =
+        static member create i =
             {
-                todoSomeGeneralChartInfo = EmptyString
+                initData = i
                 allChartData = []
             }
 
+        member cd.maxEe =
+            cd.allChartData
+            |> List.map (fun e -> e.enantiomericExcess |> List.ofArray)
+            |> List.concat
+            |> List.map (fun e -> abs e)
+            |> List.max
+
+        member cd.maxAverageEe =
+            match cd.allChartData with
+            | [] -> 0.0
+            | h :: _ ->
+                let getData i = cd.allChartData |> List.map (fun e -> e.enantiomericExcess.[i])
+
+                h.enantiomericExcess
+                |> Array.mapi (fun i _ -> getData i)
+                |> Array.map (fun e -> List.average e |> abs)
+                |> Array.max
+
 
     type ChartDataUpdater () =
-        interface IUpdater<ChartSliceData, ChartData> with
-            member __.init () = ChartData.defaultValue
+        interface IUpdater<ChartInitData, ChartSliceData, ChartData> with
+            member __.init i = ChartData.create i
             member __.add a m = { m with allChartData = a :: m.allChartData }

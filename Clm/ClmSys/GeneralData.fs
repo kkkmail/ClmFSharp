@@ -140,8 +140,8 @@ module GeneralData =
         else sprintf "%i day(s), %s" t.Days x
 
 
-    type IUpdater<'A, 'S> = 
-        abstract member init : unit -> 'S
+    type IUpdater<'I, 'A, 'S> = 
+        abstract member init : 'I -> 'S
         abstract member add : 'A -> 'S -> 'S
 
 
@@ -149,22 +149,22 @@ module GeneralData =
 
 
     type UpdatatableStorage<'A, 'S> = 
-      | AddContent of 'A
-      | GetContent of AsyncReplyChannel<'S>
+        | AddContent of 'A
+        | GetContent of AsyncReplyChannel<'S>
 
 
-    type AsyncUpdater<'A, 'S> (updater : IUpdater<'A, 'S>) =
+    type AsyncUpdater<'I, 'A, 'S> (updater : IUpdater<'I, 'A, 'S>, i : 'I) =
         let chat = Updater.Start(fun u -> 
           let rec loop s = async {
             let! m = u.Receive()
 
-            match m with 
+            match m with
             | AddContent a -> return! loop (updater.add a s)
             | GetContent r ->
                 r.Reply s
                 return! loop s }
 
-          updater.init () |> loop)
+          updater.init i |> loop)
 
         member this.addContent p = AddContent p |> chat.Post
         member this.getContent () = chat.PostAndReply GetContent

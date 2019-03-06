@@ -92,10 +92,12 @@ module Solver =
 
             n.g x
 
-        let nt =
-            match p.noOfOutputPoints with
-            | Some p when p >= 2 -> p
-            | _ -> 2
+        //let nt =
+        //    match p.noOfOutputPoints with
+        //    | Some p when p >= 2 -> p
+        //    | _ -> 2
+
+        let nt = 2
 
         let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
 

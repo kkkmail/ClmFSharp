@@ -48,6 +48,7 @@ module Solver =
             h : double -> double[]
             y0 : double
             progressCallBack : (decimal -> unit) option
+            chartCallBack : (double -> double[] -> unit) option
         }
 
 
@@ -57,6 +58,7 @@ module Solver =
         let i = n.h n.y0
 
         let mutable progressCount = 0
+        let mutable outputCount = 0
 
         let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; endTime = n.tEnd }
 
@@ -65,8 +67,13 @@ module Solver =
             | Some c -> (decimal r) / (decimal m) |> c
             | None -> printfn "Step: %A, time: %A, t = %A of %A." r (DateTime.Now) t n.tEnd
 
+        let notifyChart t x =
+            match n.chartCallBack with
+            | Some c -> c t x
+            | None -> ignore()
+
         let f (x : double[]) (t : double) : double[] =
-            match p.noOfProgressPoints with 
+            match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
@@ -75,10 +82,18 @@ module Solver =
                     notify t progressCount k
             | _ -> ignore()
 
+            match p.noOfOutputPoints with
+            | Some k when k > 0 ->
+                if t > (double outputCount) * (n.tEnd / (double k))
+                then
+                    outputCount <- ((double k) * (t / n.tEnd) |> int) + 1
+                    notifyChart t x
+            | _ -> ignore()
+
             n.g x
 
-        let nt = 
-            match p.noOfOutputPoints with 
+        let nt =
+            match p.noOfOutputPoints with
             | Some p when p >= 2 -> p
             | _ -> 2
 

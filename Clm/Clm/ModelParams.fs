@@ -76,6 +76,7 @@ module ModelParams =
     type BinaryInfo =
         {
             aminoAcids : list<AminoAcid>
+            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
             allSubstData : AllSubstData
         }
 
@@ -84,7 +85,6 @@ module ModelParams =
 
         member info.getTotalSubst x =
             getTotalSubstValue info.allSubstData.allInd info.allSubstData.allSubst x
-
 
 
     type BinaryResultData =
@@ -100,7 +100,6 @@ module ModelParams =
         {
             resultData : ResultData
             binaryResultData : BinaryResultData
-            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
         }
 
         member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
@@ -127,6 +126,13 @@ module ModelParams =
             regularParams : ModelDataRegularParams
             funcParams : ModelDataFuncParams
         }
+
+        member info.binaryInfo =
+            {
+                aminoAcids = AminoAcid.getAminoAcids info.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
+                maxPeptideLength = info.regularParams.modelDataParams.modelInfo.maxPeptideLength
+                allSubstData = info.regularParams.allSubstData
+            }
 
 
     type ModelCommandLineParam =

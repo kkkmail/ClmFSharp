@@ -67,7 +67,7 @@ module Visualization =
                 //"end time", sprintf "%A" o.endTime
                 "y0", sprintf "%A" p.resultData.y0
                 "number of amino acids", sprintf "%A" p.binaryResultData.binaryInfo.aminoAcids.Length
-                "max peptide length", sprintf "%A" p.maxPeptideLength.length
+                "max peptide length", sprintf "%A" p.binaryResultData.binaryInfo.maxPeptideLength.length
                 "number of substances", sprintf "%A" p.binaryResultData.binaryInfo.allSubstData.allSubst.Length
             ]
             @
@@ -177,7 +177,7 @@ module Visualization =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ for level in 1..p.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                @ [ for level in 1..p.binaryResultData.binaryInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
                 |> List.choose id
 
 

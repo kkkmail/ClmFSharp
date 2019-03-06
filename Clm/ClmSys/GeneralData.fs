@@ -138,3 +138,33 @@ module GeneralData =
         if t.Days = 0
         then x
         else sprintf "%i day(s), %s" t.Days x
+
+
+    type IUpdater<'A, 'S> = 
+        abstract member init : unit -> 'S
+        abstract member add : 'A -> 'S -> 'S
+
+
+    type Updater<'T> = MailboxProcessor<'T>
+
+
+    type UpdatatableStorage<'A, 'S> = 
+      | AddContent of 'A
+      | GetContent of AsyncReplyChannel<'S>
+
+
+    type AsyncUpdater<'A, 'S> (updater : IUpdater<'A, 'S>) =
+        let chat = Updater.Start(fun u -> 
+          let rec loop s = async {
+            let! m = u.Receive()
+
+            match m with 
+            | AddContent a -> return! loop (updater.add a s)
+            | GetContent r ->
+                r.Reply s
+                return! loop s }
+
+          updater.init () |> loop)
+
+        member this.addContent p = AddContent p |> chat.Post
+        member this.getContent () = chat.PostAndReply GetContent

@@ -8,6 +8,7 @@ open ClmSys.Retry
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
+open Clm.ChartData
 open OdeSolver.Solver
 open Analytics.Visualization
 open Argu
@@ -76,6 +77,12 @@ module SolverRunnerTasks =
 
                 printfn "Calling nSolve..."
                 let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
+                let chartDataUpdater = new AsyncUpdater<ChartSliceData, ChartData>(ChartDataUpdater())
+                let binaryInfo = modelDataParamsWithExtraData.binaryInfo
+
+                let updateChart (t : double) (x : double[]) =
+                    ChartSliceData.create binaryInfo t x
+                    |> chartDataUpdater.addContent
 
                 let p =
                     {
@@ -85,6 +92,7 @@ module SolverRunnerTasks =
                         h = getInitValues
                         y0 = double y0
                         progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                        chartCallBack = Some updateChart
                     }
 
                 let result = nSolve p
@@ -147,17 +155,10 @@ module SolverRunnerTasks =
 
                         binaryResultData =
                             {
-                                binaryInfo =
-                                    {
-                                        aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
-                                        allSubstData = modelDataParamsWithExtraData.regularParams.allSubstData
-                                    }
-
+                                binaryInfo = binaryInfo
                                 x = result.x
                                 t = result.t
                             }
-
-                        maxPeptideLength = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.maxPeptideLength
                     }
 
                 let plotAll show =

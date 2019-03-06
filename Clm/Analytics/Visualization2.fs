@@ -13,7 +13,7 @@ module Visualization2 =
     type Plotter2(i : PlotDataInfo, p : ChartData) =
         let getFileName (ct : ChartType) = ct.getFileName (i, p)
         let noOfOutputPoints = p.allChartData.Length - 1
-        let allChartData = p.allChartData |> Array.ofList
+        let allChartData = p.allChartData |> List.rev |> Array.ofList
         let minMax = (0.0, float p.initData.tEnd)
         let fn = [ for i in 0..(p.initData.binaryInfo.aminoAcids.Length - 1) -> i ]
         let tIdx = [ for i in 0..noOfOutputPoints -> i ]
@@ -78,9 +78,8 @@ module Visualization2 =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ for level in 1..p.initData.binaryInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Line(levelData level, Name = (level + 1).ToString()) |> Some ]
                 |> List.choose id
-
 
             Chart.Combine(charts)
             |> Chart.withX_AxisStyle("t", MinMax = minMax)

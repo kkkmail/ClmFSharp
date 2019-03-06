@@ -82,9 +82,10 @@ module SolverRunnerTasks =
                     {
                         modelDataId = modelDataId
                         binaryInfo = binaryInfo
-                        y0 = double y0
-                        tEnd = double tEnd
+                        y0 = y0
+                        tEnd = tEnd
                     }
+
                 let chartDataUpdater = new AsyncUpdater<ChartInitData, ChartSliceData, ChartData>(ChartDataUpdater(), chartInitData)
 
                 let updateChart (t : double) (x : double[]) =

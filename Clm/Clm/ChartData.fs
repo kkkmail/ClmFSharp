@@ -27,8 +27,8 @@ module ChartData =
         {
             modelDataId : ModelDataId
             binaryInfo : BinaryInfo
-            y0 : double
-            tEnd : double
+            y0 : decimal
+            tEnd : decimal
         }
 
 

@@ -2,7 +2,7 @@
 open System.IO
 open Microsoft.FSharp.Core
 
-open Clm.Substances
+open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.ChartData
 open FSharp.Plotly
@@ -31,15 +31,15 @@ module ChartExt =
             | PlotEnantiomericExcess -> "ee"
             | PlotTotalSubst -> "ts"
 
-        member ct.getFileName (i : PlotDataInfo, r : FullResultData) =
+        member private ct.getFileNameImpl (i : PlotDataInfo) (modelDataId : ModelDataId) (y0 : decimal) (tEnd : decimal) =
             let suff = ct.fileSuffix
 
             let fileName =
                 [
-                    r.resultData.modelDataId.value |> toModelName
+                    modelDataId.value |> toModelName
                     i.resultInfo.separator
-                    (int r.resultData.y0).ToString().PadLeft(3, '0')
-                    (int r.resultData.tEnd).ToString().PadLeft(5, '0')
+                    (int y0).ToString().PadLeft(3, '0')
+                    (int tEnd).ToString().PadLeft(5, '0')
                     suff
                 ]
                 |> String.concat i.resultInfo.separator
@@ -47,8 +47,8 @@ module ChartExt =
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
-        member ct.getFileName (i : PlotDataInfo, d : ChartData) =
-            failwith ""
+        member ct.getFileName (i : PlotDataInfo, r : FullResultData) = ct.getFileNameImpl i r.resultData.modelDataId r.resultData.y0 r.resultData.tEnd
+        member ct.getFileName (i : PlotDataInfo, d : ChartData) = ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
 
 
     let showChart (i : PlotDataInfo) show fileName =

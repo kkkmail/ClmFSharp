@@ -8,19 +8,19 @@ open ClmSys.Retry
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
+open Clm.ChartData
 open OdeSolver.Solver
-open Analytics.Visualization
+open Analytics.ChartExt
+open Analytics.Visualization2
 open Argu
-open Clm.Substances
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
-
+open Clm.Distributions
 
 module SolverRunnerTasks =
-    open Clm.Distributions
 
     let logError e = printfn "Error: %A." e
     let tryDbFun f = tryDbFun logError clmConnectionString f
@@ -65,6 +65,7 @@ module SolverRunnerTasks =
             | Some (Some md) ->
                 // TODO kk:20190208 - This must be split into several functions.
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
+                let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
                 let n = ResponseHandler.tryCreate()
 
                 let a = results.GetResult (UseAbundant, defaultValue = false)
@@ -75,6 +76,21 @@ module SolverRunnerTasks =
 
                 printfn "Calling nSolve..."
                 let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
+                let binaryInfo = modelDataParamsWithExtraData.binaryInfo
+
+                let chartInitData =
+                    {
+                        modelDataId = modelDataId
+                        binaryInfo = binaryInfo
+                        y0 = y0
+                        tEnd = tEnd
+                    }
+
+                let chartDataUpdater = new AsyncUpdater<ChartInitData, ChartSliceData, ChartData>(ChartDataUpdater(), chartInitData)
+
+                let updateChart (t : double) (x : double[]) =
+                    ChartSliceData.create binaryInfo t x
+                    |> chartDataUpdater.addContent
 
                 let p =
                     {
@@ -84,10 +100,10 @@ module SolverRunnerTasks =
                         h = getInitValues
                         y0 = double y0
                         progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                        chartCallBack = Some updateChart
                     }
 
-                let result = nSolve p
-
+                nSolve p |> ignore
 
                 // Notify of completion just in case.
                 match n with
@@ -96,36 +112,9 @@ module SolverRunnerTasks =
 
                 printfn "Saving."
 
-                /// Amino acids are in the list and time-depended values are in the array.
-                /// TODO kk:20190105 - There is some duplicate code here and in plotEnantiomericExcessImpl. Consolidate.
-                let maxEe, maxAverageEe =
-                    let aa = [ for i in 0..(modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids.length - 1)-> i ]
-
-                    let noOfOutputPoints = result.t.Length - 1
-                    let tIdx = [| for i in 0..noOfOutputPoints -> i |]
-                    let a = tIdx |> Array.map (fun t -> md.modelData.modelBinaryData.calculationData.getTotals result.x.[t,*])
-
-                    let d t i =
-                        let (l, d) = a.[t].[i]
-                        if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
-
-                    let getFuncData i = tIdx |> Array.map (fun t -> d t i)
-
-                    let maxEe =
-                        aa
-                        |> List.map (fun i -> getFuncData i |> List.ofArray)
-                        |> List.concat
-                        |> List.map (fun e -> abs e)
-                        |> List.max
-
-                    let maxAverageEe =
-                        aa
-                        |> List.map (fun i -> getFuncData i)
-                        |> List.map (fun e -> e |> Array.average)
-                        |> List.map (fun e -> abs e)
-                        |> List.max
-
-                    maxEe, maxAverageEe
+                let chartData = chartDataUpdater.getContent()
+                let maxEe = chartData.maxEe
+                let maxAverageEe = chartData.maxAverageEe
 
                 let r =
                     {
@@ -141,36 +130,22 @@ module SolverRunnerTasks =
 
                 r |> saveResultData |> tryDbFun |> ignore
 
-                let f =
-                    {
-                        resultData = r
-
-                        binaryResultData =
-                            {
-                                aminoAcids = AminoAcid.getAminoAcids modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.numberOfAminoAcids
-                                allSubst = modelDataParamsWithExtraData.regularParams.allSubst
-                                allInd = modelDataParamsWithExtraData.regularParams.allInd
-                                allRawReactions = modelDataParamsWithExtraData.regularParams.allRawReactions
-                                allReactions = modelDataParamsWithExtraData.regularParams.allReactions
-
-                                x = result.x
-                                t = result.t
-                            }
-
-                        maxPeptideLength = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.maxPeptideLength
-                    }
-
                 let plotAll show =
-                    let plotter = new Plotter(PlotDataInfo.defaultValue, f)
+                    let plotter = new Plotter2(PlotDataInfo.defaultValue, chartData)
                     plotter.plotAminoAcids show
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show
 
-                plotAll false
+                if maxEe >= minUsefulEe
+                then
+                    printfn "Generating plots..."
+                    plotAll false
+                else printfn "Value of maxEe = %A is too small. Not creating plots." maxEe
+
                 printfn "Completed."
 
                 CompletedSuccessfully
-            | _ -> UnknownException // TODO kk:20190208 - return different error codes if there is a command line error or DB error.
+            | _ -> UnknownException
         | _ ->
             printfn "%s" usage
             InvalidCommandLineArgs

@@ -155,9 +155,9 @@ module Substances =
 
         member this.name =
             match this with
-            | Abundant -> "X"
-            | Food -> "Y"
-            | Waste -> "Z"
+            | Abundant -> "abundant"
+            | Food -> "food"
+            | Waste -> "waste"
 
         member __.atoms = 1
         member this.enantiomer = this
@@ -167,7 +167,7 @@ module Substances =
         | SumSubst
 
         member __.length = 0
-        member __.name = "W"
+        member __.name = "sum"
         static member w = SumSubst
 
 
@@ -266,18 +266,18 @@ module Substances =
             | A18 -> "R"
             | A19 -> "S"
             | A20 -> "T"
-            | A21 -> "A1"
-            | A22 -> "B1"
-            | A23 -> "C1"
-            | A24 -> "D1"
-            | A25 -> "E1"
-            | A26 -> "F1"
-            | A27 -> "G1"
-            | A28 -> "H1"
-            | A29 -> "I1"
-            | A30 -> "J1"
-            | A31 -> "K1"
-            | A32 -> "L1"
+            | A21 -> "U"
+            | A22 -> "V"
+            | A23 -> "W"
+            | A24 -> "X"
+            | A25 -> "Y"
+            | A26 -> "Z"
+            | A27 -> "A1"
+            | A28 -> "B1"
+            | A29 -> "C1"
+            | A30 -> "D1"
+            | A31 -> "E1"
+            | A32 -> "F1"
 
         member aminoAcid.number =
             match aminoAcid with

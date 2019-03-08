@@ -355,7 +355,7 @@ module AsyncRun =
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
-    /// We can't really fail here, especially it if runs under Windows service.
+    /// We can't really fail here, especially if it runs under Windows service.
     let runProc (c : ProcessStartedCallBack) filename args startDir =
         let timer = Stopwatch.StartNew()
 

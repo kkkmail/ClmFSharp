@@ -316,10 +316,13 @@ module CalculationData =
                 regularParams =
                     {
                         modelDataParams = this.modelDataParams
-                        allSubst = allSubst
-                        allInd = allInd
-                        allRawReactions = this.modelBinaryData.allRawReactions
-                        allReactions = this.modelBinaryData.allReactions
+                        allSubstData =
+                            {
+                                allSubst = allSubst
+                                allInd = allInd
+                                allRawReactions = this.modelBinaryData.allRawReactions
+                                allReactions = this.modelBinaryData.allReactions
+                            }
                     }
 
                 funcParams =

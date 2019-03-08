@@ -75,6 +75,7 @@
     <Compile Include="ModelInit.fs" />
     <Compile Include="CalculationData.fs" />
     <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ChartData.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

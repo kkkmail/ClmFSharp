@@ -273,7 +273,7 @@ module ReactionRateModels =
             | CatDestrSimModel m -> m.getAllRates()
 
         static member create p =
-            match p with 
+            match p with
             | CatDestrRndParamWithModel q -> CatalyticDestructionRandomModel q |> CatDestrRndModel
             | CatDestrSimParamWithModel q -> CatalyticDestructionSimilarModel q |> CatDestrSimModel
 
@@ -291,24 +291,55 @@ module ReactionRateModels =
         member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
 
 
+    type SedimentationDirectSimilarParamWithModel =
+        {
+            sedDirSimParam : SedimentationDirectSimilarParam
+            aminoAcids : list<AminoAcid>
+        }
+
+
+    type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =
+        inherit RateModel<SedimentationDirectSimilarParamWithModel, SedimentationDirectReaction>(p)
+
+        //let calculateRates rnd t _ =
+        //    let k =
+        //        match t with
+        //        | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt rnd
+        //        | RandomChoice -> p.sedimentationDirectDistribution.nextDouble rnd |> Some
+        //    getForwardRates (p.forwardScale, k)
+
+        //member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
+        member model.getRates rnd t r = failwith ""
+
+
+    type SedimentationDirectParamWithModel =
+        | SedDirRndParamWithModel of SedimentationDirectRandomParam
+        | SedDiSimParamWithModel of SedimentationDirectSimilarParamWithModel
+
+
     type SedimentationDirectModel =
         | SedDirRndModel of SedimentationDirectRandomModel
+        | SedDirSimModel of SedimentationDirectSimilarModel
 
         member model.getRates rnd t r =
             match model with
             | SedDirRndModel m -> m.getRates rnd t r
+            | SedDirSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
-            | SedDirRndModel m -> m.inputParams |> SedDirRndParam
+            | SedDirRndModel m -> m.inputParams |> SedDirRndParamWithModel
+            | SedDirSimModel m -> m.inputParams |> SedDiSimParamWithModel
 
         member model.getAllRates() =
             match model with
             | SedDirRndModel m -> m.getAllRates()
+            | SedDirSimModel m -> m.getAllRates()
 
         static member create p =
             match p with 
-            | SedDirRndParam q -> SedimentationDirectRandomModel q |> SedDirRndModel
+            | SedDirRndParamWithModel q -> SedimentationDirectRandomModel q |> SedDirRndModel
+            | SedDiSimParamWithModel q -> SedimentationDirectSimilarModel q |> SedDirSimModel
 
 
     type SedimentationAllRandomModel (p : SedimentationAllRandomParam) =

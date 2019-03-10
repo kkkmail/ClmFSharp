@@ -287,12 +287,24 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
+    type SedimentationDirectSimilarParam
+        with
+
+        member p.toFSharpCode (shift : string) = 
+            shift + "            {" + Nl +
+            shift + "                sedDirSimBaseDistribution = " + p.sedDirSimBaseDistribution.toFSharpCode + Nl +
+            shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
+            shift + "                getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
+            shift + "            }" + Nl
+
+
     type SedimentationDirectParam
         with 
 
         member p.toFSharpCode (shift : string) = 
             match p with 
             | SedDirRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedDirRndParam" + Nl)
+            | SedDirSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedDirSimParam" + Nl)
 
 
     type SedimentationAllRandomParam

@@ -96,7 +96,7 @@ module ReactionRates =
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
     /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
     /// If sf and sb are forward and backward rates of not catalyzed reaction, then
-    /// total forward and backward multiplers due to racemic mixture of catalysts must be the equal:
+    /// total forward and backward multiplers due to racemic mixture of catalysts must be equal:
     /// kf + kfe = kb + kbe, where
     ///     kf -  is forward  multipler for a catalyst C
     ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
@@ -241,8 +241,17 @@ module ReactionRates =
         }
 
 
+    type SedimentationDirectSimilarParam =
+        {
+            sedDirSimBaseDistribution : Distribution
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
+            getForwardEeDistr : EeDistributionGetter
+        }
+
+
     type SedimentationDirectParam =
         | SedDirRndParam of SedimentationDirectRandomParam
+        | SedDirSimParam of SedimentationDirectSimilarParam
 
 
     type SedimentationAllRandomParam =
@@ -373,7 +382,7 @@ module ReactionRates =
                 | CatDestrRndParam m -> [ m.destructionParam |> DestructionRateParam ]
                 | CatDestrSimParam m -> [ m.catDestrParam |> CatDestrRndParam |> CatalyticDestructionRateParam ]
             | LigationRateParam _ -> []
-            | CatalyticLigationRateParam v -> 
+            | CatalyticLigationRateParam v ->
                 match v with
                 | CatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
             | SedimentationDirectRateParam _ -> []

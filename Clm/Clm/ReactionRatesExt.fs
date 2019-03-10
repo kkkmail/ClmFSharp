@@ -40,6 +40,15 @@ module ReactionRatesExt =
             | _ -> None
 
 
+    type SedimentationDirectSimilarParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | SedimentationDirectRateParam (SedDirSimParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
     type SedimentationAllRandomParam
         with
 

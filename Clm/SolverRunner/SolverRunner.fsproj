@@ -111,6 +111,16 @@
       <Project>{5ce359db-d713-46be-84df-f9732de85e26}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
+      <Name>ClmDefaults</Name>
+      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
+      <Name>ClmGenerator</Name>
+      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>

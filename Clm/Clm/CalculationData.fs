@@ -10,10 +10,37 @@ open Clm.ReactionTypes
 
 module CalculationData =
 
-    type SubstInfo =
+    type SedDirInfo =
+        {
+            minSedDirChainLength : MaxPeptideLength
+            maxSedDirChainLength : MaxPeptideLength
+
+            minSedDirAgentLength : MaxPeptideLength
+            maxSedDirAgentLength : MaxPeptideLength
+        }
+
+        /// Default is that we want resolving agents of length 3 only and have them affect only amino acids directly but not the chains starting from that amino acid.
+        static member defaultValue =
+            {
+                minSedDirChainLength = OneMax
+                maxSedDirChainLength = OneMax
+
+                minSedDirAgentLength = ThreeMax
+                maxSedDirAgentLength = ThreeMax
+            }
+
+
+    type SubstInfoParam =
         {
             maxPeptideLength : MaxPeptideLength
             numberOfAminoAcids : NumberOfAminoAcids
+            sedDirInfo : SedDirInfo
+        }
+
+
+    type SubstInfo =
+        {
+            infoParam : SubstInfoParam
             aminoAcids : list<AminoAcid>
             chiralAminoAcids : list<ChiralAminoAcid>
             peptides : list<Peptide>
@@ -22,17 +49,21 @@ module CalculationData =
             ligCatalysts : list<LigCatalyst>
             ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
             racemCatalysts : list<RacemizationCatalyst>
+
+            sedDirReagents : list<list<ChiralAminoAcid>>
+            sedDirAgents : list<SedDirAgent>
+
             allChains : list<list<ChiralAminoAcid>>
             allSubst : list<Substance>
             allInd : Map<Substance, int>
             allNamesMap : Map<Substance, string>
         }
 
-        static member create maxPeptideLength numberOfAminoAcids =
-            let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-            let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
+        static member create (p : SubstInfoParam) =
+            let peptides = Peptide.getPeptides p.maxPeptideLength p.numberOfAminoAcids
+            let chiralAminoAcids = ChiralAminoAcid.getAminoAcids p.numberOfAminoAcids
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
-            let allLigChains = allChains |> List.filter(fun a -> a.Length < maxPeptideLength.length)
+            let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
 
             let allSubst =
                     Substance.allSimple
@@ -42,9 +73,8 @@ module CalculationData =
                     (peptides |> List.map (fun p -> PeptideChain p))
 
             {
-                maxPeptideLength = maxPeptideLength
-                numberOfAminoAcids = numberOfAminoAcids
-                aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
+                infoParam = p
+                aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
                 chiralAminoAcids = chiralAminoAcids
                 peptides = peptides
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
@@ -53,12 +83,16 @@ module CalculationData =
 
                 ligationPairs =
                     List.allPairs allLigChains allLigChains
-                    |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
+                    |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
                     |> List.map (fun (a, b) -> orderPairs (a, b))
                     |> List.filter (fun (a, _) -> a.Head.isL)
                     |> List.distinct
 
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
+
+                sedDirReagents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.maxSedDirChainLength.length)
+                sedDirAgents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.maxSedDirAgentLength.length) |> List.map (fun e -> SedDirAgent e)
+
                 allChains = allChains
                 allSubst = allSubst
                 allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
@@ -100,6 +134,13 @@ module CalculationData =
                 a = si.racemizationReactions |> Array.ofList
                 b = si.racemCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticRacemizationName
+            }
+
+        member si.sedDirInfo =
+            {
+                a = si.sedDirReagents |> Array.ofList
+                b = si.sedDirAgents |> Array.ofList
+                reactionName = ReactionName.SedimentationDirectName
             }
 
 
@@ -286,8 +327,8 @@ module CalculationData =
     type ModelBinaryData =
         {
             calculationData : ModelCalculationData
-            allRawReactions : list<ReactionName * int>
-            allReactions : list<ReactionName * int>
+            allRawReactions : list<ReactionName * int64>
+            allReactions : list<ReactionName * int64>
         }
 
 

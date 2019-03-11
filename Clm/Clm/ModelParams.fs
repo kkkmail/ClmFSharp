@@ -68,8 +68,8 @@ module ModelParams =
         {
             allSubst : list<Substance>
             allInd : Map<Substance, int>
-            allRawReactions : list<ReactionName * int>
-            allReactions : list<ReactionName * int>
+            allRawReactions : list<ReactionName * int64>
+            allReactions : list<ReactionName * int64>
         }
 
 

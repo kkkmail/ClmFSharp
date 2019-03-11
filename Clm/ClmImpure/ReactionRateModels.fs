@@ -284,7 +284,6 @@ module ReactionRateModels =
         let calculateRates rnd t _ =
             let k =
                 match t with
-                | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt rnd
                 | RandomChoice -> p.sedimentationDirectDistribution.nextDouble rnd |> Some
             getForwardRates (p.forwardScale, k)
 
@@ -296,6 +295,106 @@ module ReactionRateModels =
             sedDirSimParam : SedimentationDirectSimilarParam
             aminoAcids : list<AminoAcid>
         }
+
+
+
+
+    //type SedimentationDirectSimilarParamWithModel =
+    //    {
+    //        sedDirSimParam : SedimentationDirectSimilarParam
+    //        aminoAcids : list<AminoAcid>
+    //    }
+
+    //type SedimentationDirectSimilarParam =
+    //    {
+    //        sedDirSimBaseDistribution : Distribution
+    //        getRateMultiplierDistr : RateMultiplierDistributionGetter
+    //        getForwardEeDistr : EeDistributionGetter
+    //        minSedDirPepdideLength : MaxPeptideLength
+    //        maxSedDirPepdideLength : MaxPeptideLength
+    //    }
+
+
+    //type SedDirRatesSimInfo<'A, 'R, 'C, 'RC> =
+    //    {
+    //        //reaction : 'R
+    //        //catalyst : 'C
+    //        aminoAcids : list<'A>
+    //        getCatEnantiomer : 'C -> 'C
+    //        catReactionCreator : ('R * 'C) -> 'RC
+    //        simReactionCreator : 'A -> 'R
+    //        getCatReactEnantiomer : 'RC -> 'RC
+    //        getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
+    //        //getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
+    //        simParams : CatRatesSimilarityParam
+    //        eeParams : CatRatesEeParam
+    //        rateDictionary : Dictionary<'RC, RateData>
+    //        rateGenerationType : RateGenerationType
+    //        rnd : RandomValueGetter
+    //    }
+
+        //member i.toCatRatesInfo r c e =
+        //    {
+        //        reaction = r
+        //        catalyst = c
+        //        getCatEnantiomer = i.getCatEnantiomer
+        //        catReactionCreator = i.catReactionCreator
+        //        getBaseRates = i.getBaseRates
+        //        eeParams = e
+        //        rateGenerationType = i.rateGenerationType
+        //        rnd = i.rnd
+        //    }
+
+    //let calculateSedDirRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) =
+    //    let r = (i.reaction, i.catalyst) |> i.catReactionCreator
+    //    let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
+    //    let br = i.getBaseRates i.reaction // (bf, bb)
+    //    let cr = r |> i.getBaseCatRates // (f, b)
+
+    //    let calculateCatRates s c e =
+    //        let reaction = (s, c) |> i.catReactionCreator
+    //        let related = i.toCatRatesInfo s c e |> calculateCatRates
+    //        updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+
+    //    match (cr.forwardRate, cr.backwardRate) with
+    //    | None, None ->
+    //        i.aminoAcids
+    //        |> List.map (fun a -> i.simReactionCreator a)
+    //        |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
+    //        |> ignore
+    //    | _ ->
+    //        let cre = re |> i.getBaseCatRates
+
+    //        let rateMult =
+    //            match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
+    //            | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
+    //                match br.forwardRate with
+    //                | Some (ReactionRate c) -> (a + b) / 2.0 / c
+    //                | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
+    //            | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
+    //                match br.backwardRate with
+    //                | Some (ReactionRate c) -> (a + b) / 2.0 / c
+    //                | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
+    //            | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
+
+    //        let getEeParams d =
+    //            match d with
+    //            | true ->
+    //                {
+    //                    rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
+    //                    eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+    //                    eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+    //                }
+    //            | false -> CatRatesEeParam.defaultValue
+
+    //        i.aminoAcids
+    //        |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined i.rnd)
+    //        |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
+    //        |> ignore
+
+    //    cr
+
+
 
 
     type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =

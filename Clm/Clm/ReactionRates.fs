@@ -6,12 +6,11 @@ open Clm.Distributions
 open Clm.ReactionTypes
 
 module ReactionRates =
+    open Substances
 
     /// Specifies how to generate rates.
-    /// BruteForce checks each reaction and use threshold to determine if the rates should be assigned.
     /// RandomChoice first randomly determine the reactions with non-zero rates and then gets these rates (without using threshold).
     type RateGenerationType =
-        | BruteForce
         | RandomChoice
 
 
@@ -108,7 +107,6 @@ module ReactionRates =
         let rf, rb, rfe, rbe =
             let k =
                 match i.rateGenerationType with
-                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt i.rnd
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
 
             match k, i.eeParams.eeForwardDistribution with
@@ -246,6 +244,8 @@ module ReactionRates =
             sedDirSimBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getForwardEeDistr : EeDistributionGetter
+            minSedDirPepdideLength : MaxPeptideLength
+            maxSedDirPepdideLength : MaxPeptideLength
         }
 
 

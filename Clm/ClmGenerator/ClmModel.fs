@@ -23,11 +23,18 @@ module ClmModel =
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
-        //let rateProvider = ReactionRateProvider { rateModels = modelParams.reactionRateModels }
         let rrp = { rateParams = modelParams.reactionRateModelParams }
         let rateProvider = ReactionRateProvider ( rrp, modelParams.numberOfAminoAcids)
         let allParamsCode = rrp.toParamFSharpCode
-        let si = SubstInfo.create modelParams.maxPeptideLength modelParams.numberOfAminoAcids
+
+        let si =
+            {
+                maxPeptideLength = modelParams.maxPeptideLength
+                numberOfAminoAcids = modelParams.numberOfAminoAcids
+                sedDirInfo = SedDirInfo.defaultValue
+            }
+            |> SubstInfo.create
+
         let bf = RateGenerationData.create rnd generationType rateProvider si
 
         let modelInfo =
@@ -474,7 +481,7 @@ module ClmModel =
                                 allReactions =
                                     allReac
                                     |> List.groupBy (fun r -> r.name)
-                                    |> List.map (fun (n, l) -> (n, l.Length))
+                                    |> List.map (fun (n, l) -> (n, int64 l.Length))
                             }
                     }
 

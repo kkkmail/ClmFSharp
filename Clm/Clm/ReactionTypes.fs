@@ -256,20 +256,31 @@ module ReactionTypes =
             (a, c.enantiomer) |> CatalyticLigationReaction
 
 
+    /// A resolving agent, which forms insoluble diasteriomeric salt with one of the enantiomer of some amino acid (or, in general, peptide as well).
+    type SedDirAgent =
+        | SedDirAgent of list<ChiralAminoAcid>
+
+        member c.enantiomer =
+            let (SedDirAgent a) = c
+            a |> List.map (fun e -> e.enantiomer) |> SedDirAgent
+
+        member this.value = let (SedDirAgent v) = this in v
+
+
     type SedimentationDirectReaction =
-        | SedimentationDirectReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
+        | SedimentationDirectReaction of (list<ChiralAminoAcid> * SedDirAgent)
 
         member r.info =
             let (SedimentationDirectReaction (a, b)) = r
 
             {
-                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1) ]
-                output = [ (AchiralSubst.Waste |> Simple, a.Length + b.Length) ]
+                input = [ (Substance.fromList a, 1); (Substance.fromList b.value, 1) ]
+                output = [ (AchiralSubst.Waste |> Simple, a.Length + b.value.Length) ]
             }
 
         member r.enantiomer =
             let (SedimentationDirectReaction (a, b)) = r
-            (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> SedimentationDirectReaction
+            (a |> List.map (fun e -> e.enantiomer), b.enantiomer) |> SedimentationDirectReaction
 
 
     type SedimentationAllReaction =

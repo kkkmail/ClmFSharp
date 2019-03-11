@@ -115,6 +115,7 @@ module Substances =
 
 
     type MaxPeptideLength =
+        | OneMax // Not used as peptide length but is needed in some places.
         | TwoMax
         | ThreeMax
         | FourMax
@@ -122,11 +123,13 @@ module Substances =
 
         member this.length =
             match this with
+            | OneMax -> 1
             | TwoMax -> 2
             | ThreeMax -> 3
             | FourMax -> 4
             | FiveMax -> 5
 
+        // Don't have OneMax here because we don't create peptides of length 1. If you need OneMax, then you must explicitly use it.
         static member all =
             [
                 TwoMax

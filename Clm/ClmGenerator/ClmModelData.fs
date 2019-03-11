@@ -95,9 +95,10 @@ module ClmModelData =
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
+            sedDirPairs : list<list<ChiralAminoAcid> * SedDirAgent>
         }
 
-        member data.getReactions rnd sdp rateProvider t n =
+        member data.getReactions rnd rateProvider t n =
             let createReactions c l =
                 let create a = c a |> AnyReaction.tryCreateReaction rnd rateProvider t
 
@@ -116,62 +117,15 @@ module ClmModelData =
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | LigationName -> createReactions (fun x -> LigationReaction x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
-            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) sdp
+            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
 
 
-    type BruteForceModelData =
-        {
-            commonData : RateGenerationCommonData
-            allPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
-        }
-
-        member data.noOfRawReactions n =
-            match n with
-            | FoodCreationName -> 1
-            | WasteRemovalName -> 1
-            | WasteRecyclingName -> 1
-            | SynthesisName -> data.commonData.substInfo.chiralAminoAcids.Length
-            | DestructionName -> data.commonData.substInfo.chiralAminoAcids.Length
-            | CatalyticSynthesisName -> data.commonData.catSynthPairs.Length
-            | CatalyticDestructionName -> data.commonData.catDestrPairs.Length
-            | LigationName -> data.commonData.substInfo.ligationPairs.Length
-            | CatalyticLigationName -> data.commonData.catLigPairs.Length
-            | SedimentationDirectName -> data.allPairs.Length
-            | SedimentationAllName -> data.commonData.substInfo.chiralAminoAcids.Length
-            | RacemizationName -> data.commonData.substInfo.chiralAminoAcids.Length
-            | CatalyticRacemizationName -> data.commonData.catRacemPairs.Length
-
-
-        member data.getReactions rnd rateProvider n =
-            data.commonData.getReactions rnd data.allPairs rateProvider BruteForce n
-
-
-        static member create si =
-            let allPairs =
-                List.allPairs si.allChains si.allChains
-                |> List.map (fun (a, b) -> orderPairs (a, b))
-                |> List.filter (fun (a, _) -> a.Head.isL)
-                |> List.distinct
-
-            {
-                allPairs = allPairs
-                commonData =
-                    {
-                        substInfo = si
-                        catSynthPairs = List.allPairs si.synthesisReactions si.synthCatalysts
-                        catDestrPairs = List.allPairs si.destructionReactions si.destrCatalysts
-                        catLigPairs = List.allPairs si.ligationReactions si.ligCatalysts
-                        catRacemPairs = List.allPairs si.racemizationReactions si.racemCatalysts
-                    }
-            }
-
-
     let generatePairs<'A, 'B> rnd (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
-        let noOfTries = i.a.Length * i.b.Length / 4
+        let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
         match rateProvider.tryGetPrimaryDistribution i.reactionName with
@@ -185,34 +139,30 @@ module ClmModelData =
     type RandomChoiceModelData =
         {
             commonData : RateGenerationCommonData
-            sedDirPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
         }
 
         member data.noOfRawReactions n =
             let si = data.commonData.substInfo
 
             match n with
-            | FoodCreationName -> 1
-            | WasteRemovalName -> 1
-            | WasteRecyclingName -> 1
-            | SynthesisName -> si.chiralAminoAcids.Length
-            | DestructionName -> si.chiralAminoAcids.Length
-            | CatalyticSynthesisName -> si.synthesisReactions.Length * si.synthCatalysts.Length
-            | CatalyticDestructionName -> si.destructionReactions.Length * si.destrCatalysts.Length
-            | LigationName -> si.ligationPairs.Length
-            | CatalyticLigationName -> si.ligationReactions.Length * si.ligCatalysts.Length
-            | SedimentationDirectName -> si.allChains.Length * si.allChains.Length
-            | SedimentationAllName -> si.chiralAminoAcids.Length
-            | RacemizationName -> si.chiralAminoAcids.Length
-            | CatalyticRacemizationName -> si.racemizationReactions.Length * si.racemCatalysts.Length
+            | FoodCreationName -> 1L
+            | WasteRemovalName -> 1L
+            | WasteRecyclingName -> 1L
+            | SynthesisName -> int64 si.chiralAminoAcids.Length
+            | DestructionName -> int64 si.chiralAminoAcids.Length
+            | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
+            | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
+            | LigationName -> int64 si.ligationPairs.Length
+            | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
+            | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
+            | SedimentationAllName -> int64 si.chiralAminoAcids.Length
+            | RacemizationName -> int64 si.chiralAminoAcids.Length
+            | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
 
-        member data.getReactions rnd rateProvider n =
-            data.commonData.getReactions rnd data.sedDirPairs rateProvider RandomChoice n
+        member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
         static member create rnd rateProvider si =
             {
-                sedDirPairs = []
-
                 commonData =
                     {
                         substInfo = si
@@ -220,22 +170,20 @@ module ClmModelData =
                         catDestrPairs = generatePairs rnd si.catDestrInfo rateProvider
                         catLigPairs = generatePairs rnd si.catLigInfo rateProvider
                         catRacemPairs = generatePairs rnd si.catRacemInfo rateProvider
+                        sedDirPairs = generatePairs rnd si.sedDirInfo rateProvider
                     }
             }
 
 
     type RateGenerationData =
-        | BruteForceModel of BruteForceModelData
         | RandomChoiceModel of RandomChoiceModelData
 
         member data.noOfRawReactions n =
             match data with
-            | BruteForceModel m -> m.noOfRawReactions n
             | RandomChoiceModel m -> m.noOfRawReactions n
 
         member data.getReactions rnd rateProvider n =
             match data with
-            | BruteForceModel m -> m.getReactions rnd rateProvider n
             | RandomChoiceModel m ->
                 let x = 
                     m.getReactions rnd rateProvider n
@@ -249,5 +197,4 @@ module ClmModelData =
 
         static member create rnd t rateProvider si =
             match t with
-            | BruteForce -> BruteForceModelData.create si |> BruteForceModel
             | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si |> RandomChoiceModel

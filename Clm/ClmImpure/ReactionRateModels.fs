@@ -3,6 +3,7 @@
 open System.Collections.Generic
 open FSharp.Collections
 
+open Clm.Distributions
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
@@ -318,7 +319,7 @@ module ReactionRateModels =
     //type SedDirRatesSimInfo<'A, 'R, 'C, 'RC> =
     //    {
     //        //reaction : 'R
-    //        //catalyst : 'C
+    //        sedDirAgent : SedDirAgent
     //        aminoAcids : list<'A>
     //        getCatEnantiomer : 'C -> 'C
     //        catReactionCreator : ('R * 'C) -> 'RC
@@ -345,7 +346,7 @@ module ReactionRateModels =
         //        rnd = i.rnd
         //    }
 
-    //let calculateSedDirRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) =
+    //let calculateSedDirRates (i : SedimentationDirectSimilarParamWithModel) =
     //    let r = (i.reaction, i.catalyst) |> i.catReactionCreator
     //    let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
     //    let br = i.getBaseRates i.reaction // (bf, bb)
@@ -400,15 +401,18 @@ module ReactionRateModels =
     type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =
         inherit RateModel<SedimentationDirectSimilarParamWithModel, SedimentationDirectReaction>(p)
 
-        //let calculateRates rnd t _ =
-        //    let k =
-        //        match t with
-        //        | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt rnd
-        //        | RandomChoice -> p.sedimentationDirectDistribution.nextDouble rnd |> Some
-        //    getForwardRates (p.forwardScale, k)
+        let calculateRates rnd t _ =
+            //let k =
+            //    match t with
+            //    | RandomChoice -> p. .sedimentationDirectDistribution.nextDouble rnd |> Some
+            //getForwardRates (p.forwardScale, k)
+            let x =
+                p.aminoAcids
+                |> List.map(fun a -> a)
 
-        //member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
-        member model.getRates rnd t r = failwith ""
+            failwith ""
+
+        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
 
 
     type SedimentationDirectParamWithModel =

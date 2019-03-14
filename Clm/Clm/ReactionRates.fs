@@ -4,9 +4,10 @@ open FSharp.Collections
 
 open Clm.Distributions
 open Clm.ReactionTypes
+open Clm.Substances
 
 module ReactionRates =
-    open Substances
+    open System.Collections.Generic
 
     /// Specifies how to generate rates.
     /// RandomChoice first randomly determine the reactions with non-zero rates and then gets these rates (without using threshold).
@@ -115,7 +116,7 @@ module ReactionRates =
                 let fEe = df.nextDouble i.rnd
 
                 let bEe =
-                    match i.eeParams.eeBackwardDistribution with 
+                    match i.eeParams.eeBackwardDistribution with
                     | Some d -> d.nextDouble i.rnd
                     | None -> fEe
 
@@ -232,10 +233,67 @@ module ReactionRates =
         | CatDestrSimParam of CatalyticDestructionSimilarParam
 
 
+    type SedDirRatesEeParam =
+        {
+            sedDirRateMultiplierDistr : RateMultiplierDistribution
+            eeForwardDistribution : EeDistribution option
+        }
+
+        static member defaultValue =
+            {
+                sedDirRateMultiplierDistr = NoneRateMult
+                eeForwardDistribution = None
+            }
+
+
     type SedimentationDirectRandomParam =
         {
-            sedimentationDirectDistribution : Distribution
+            sedDirRatesEeParam : SedDirRatesEeParam
+            sedDirDistribution : Distribution
             forwardScale : double option
+        }
+
+
+    type SedDirRatesInfo =
+        {
+            sedFormingSubst : list<ChiralAminoAcid>
+            sedDirAgent : SedDirAgent
+            getBaseRates : SedimentationDirectReaction -> RateData
+            eeParams : SedDirRatesEeParam
+            rateGenerationType : RateGenerationType
+            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
+            rnd : RandomValueGetter
+        }
+
+
+    let calculateSedDirRates (i : SedDirRatesInfo) =
+        let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
+        let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
+
+        let rf, rfe =
+            let k =
+                match i.rateGenerationType with
+                | RandomChoice -> i.eeParams.sedDirRateMultiplierDistr.nextDouble i.rnd
+
+            match k, i.eeParams.eeForwardDistribution with
+            | Some k0, Some df ->
+                let s0 = i.getBaseRates reaction
+                let fEe = df.nextDouble i.rnd
+
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+
+                let (rf, rfe) =
+                    match s0.forwardRate with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rfe)
+            | _ -> (None, None)
+
+        {
+            primary = { forwardRate = rf; backwardRate = None }
+            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = None } } ]
         }
 
 
@@ -244,8 +302,6 @@ module ReactionRates =
             sedDirSimBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getForwardEeDistr : EeDistributionGetter
-            minSedDirPepdideLength : MaxPeptideLength
-            maxSedDirPepdideLength : MaxPeptideLength
         }
 
 

@@ -282,7 +282,7 @@ module FSharpCodeExt =
 
         member p.toFSharpCode (shift : string) = 
             shift + "            {" + Nl +
-            shift + "                sedimentationDirectDistribution = " + p.sedimentationDirectDistribution.toFSharpCode + Nl +
+            shift + "                sedDirDistribution = " + p.sedDirDistribution.toFSharpCode + Nl +
             shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
             shift + "            }" + Nl
 

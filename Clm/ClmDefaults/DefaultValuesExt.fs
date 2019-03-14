@@ -179,7 +179,12 @@ module DefaultValuesExt =
 
         static member defaultSedDirRndParamImpl (threshold, mult) =
             {
-                sedimentationDirectDistribution = Distribution.createTriangular { threshold = Some threshold; scale = None; shift = None }
+                sedDirRatesEeParam = 
+                    {
+                        sedDirRateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                    }
+                sedDirDistribution = Distribution.createTriangular { threshold = threshold; scale = None; shift = None }
                 forwardScale = Some mult
             }
 

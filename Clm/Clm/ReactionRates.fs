@@ -266,6 +266,37 @@ module ReactionRates =
         }
 
 
+    type SedDirRatesSimInfo<'A> =
+        {
+            sedFormingSubst : list<ChiralAminoAcid>
+            sedDirAgent : SedDirAgent
+            aminoAcids : list<'A>
+            getCatEnantiomer : 'C -> 'C
+            catReactionCreator : ('R * 'C) -> 'RC
+            simReactionCreator : 'A -> 'R
+            getCatReactEnantiomer : 'RC -> 'RC
+            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
+            getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
+            simParams : CatRatesSimilarityParam
+            eeParams : SedDirRatesEeParam
+            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
+            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
+
+        member i.toCatRatesInfo r c e =
+            {
+                reaction = r
+                catalyst = c
+                getCatEnantiomer = i.getCatEnantiomer
+                catReactionCreator = i.catReactionCreator
+                getBaseRates = i.getBaseRates
+                eeParams = e
+                rateGenerationType = i.rateGenerationType
+                rnd = i.rnd
+            }
+
+
     let calculateSedDirRates (i : SedDirRatesInfo) =
         let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
         let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction

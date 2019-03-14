@@ -361,22 +361,23 @@ module ReactionRateModels =
     //    }
 
 
-    let calculateSedDirSimRates (i : SedDirRatesInfo) =
-        let r = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
-        let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
+    let calculateSedDirSimRates (i : SedDirRatesSimInfo) =
+        let r = (i.sedDirRatesInfo.sedFormingSubst, i.sedDirRatesInfo.sedDirAgent) |> SedimentationDirectReaction
+        let re = (i.sedDirRatesInfo.sedFormingSubst, i.sedDirRatesInfo.sedDirAgent.enantiomer) |> SedimentationDirectReaction
 
-        let cr = i.getBaseRates r
+        let cr = i.sedDirRatesInfo.getBaseRates r
 
-        let calculateCatRates s c e =
+        let calculateSedDirRates s c =
             let reaction = (s, c) |> SedimentationDirectReaction
-            let related = calculateSedDirRates i //i.toCatRatesInfo s c e |> 
+            let related = calculateSedDirRates i.sedDirRatesInfo
             updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None ->
             i.aminoAcids
             |> List.map (fun a -> i.simReactionCreator a)
-            |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
+            |> List.concat
+            |> List.map (fun e -> calculateSedDirRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
         | _ ->
             let cre = re |> i.getBaseCatRates

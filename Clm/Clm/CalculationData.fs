@@ -10,23 +10,44 @@ open Clm.ReactionTypes
 
 module CalculationData =
 
-    type SedDirInfo =
+    type SedDirReagentInfo =
         {
             minSedDirChainLength : MaxPeptideLength
             maxSedDirChainLength : MaxPeptideLength
+        }
 
+        /// Default is that we want resolving agents affect all chains starting from some amino acid.
+        static member defaultValue =
+            {
+                minSedDirChainLength = OneMax
+                maxSedDirChainLength = ThreeMax
+            }
+
+
+    type SedDirAgentInfo =
+        {
             minSedDirAgentLength : MaxPeptideLength
             maxSedDirAgentLength : MaxPeptideLength
         }
 
-        /// Default is that we want resolving agents of length 3 only and have them affect only amino acids directly but not the chains starting from that amino acid.
+        /// Default is that we want resolving agents of length 3 only.
         static member defaultValue =
             {
-                minSedDirChainLength = OneMax
-                maxSedDirChainLength = OneMax
-
                 minSedDirAgentLength = ThreeMax
                 maxSedDirAgentLength = ThreeMax
+            }
+
+
+    type SedDirInfo =
+        {
+            sedDirReagentInfo : SedDirReagentInfo
+            sedDirAgentInfo : SedDirAgentInfo
+        }
+
+        static member defaultValue =
+            {
+                sedDirReagentInfo = SedDirReagentInfo.defaultValue
+                sedDirAgentInfo = SedDirAgentInfo.defaultValue
             }
 
 
@@ -90,8 +111,8 @@ module CalculationData =
 
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 
-                sedDirReagents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.maxSedDirChainLength.length)
-                sedDirAgents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.maxSedDirAgentLength.length) |> List.map (fun e -> SedDirAgent e)
+                sedDirReagents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
+                sedDirAgents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirAgentInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.sedDirAgentInfo.maxSedDirAgentLength.length) |> List.map (fun e -> SedDirAgent e)
 
                 allChains = allChains
                 allSubst = allSubst

@@ -261,40 +261,27 @@ module ReactionRates =
             getBaseRates : SedimentationDirectReaction -> RateData
             eeParams : SedDirRatesEeParam
             rateGenerationType : RateGenerationType
-            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
             rnd : RandomValueGetter
         }
 
 
-    type SedDirRatesSimInfo<'A> =
+    type SedDirSimilarityParam =
         {
-            sedFormingSubst : list<ChiralAminoAcid>
-            sedDirAgent : SedDirAgent
-            aminoAcids : list<'A>
-            getCatEnantiomer : 'C -> 'C
-            catReactionCreator : ('R * 'C) -> 'RC
-            simReactionCreator : 'A -> 'R
-            getCatReactEnantiomer : 'RC -> 'RC
-            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
-            simParams : CatRatesSimilarityParam
-            eeParams : SedDirRatesEeParam
-            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
-            rateGenerationType : RateGenerationType
-            rnd : RandomValueGetter
+            sedDirSimBaseDistribution : Distribution
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
+            getForwardEeDistr : EeDistributionGetter
         }
 
-        member i.toCatRatesInfo r c e =
-            {
-                reaction = r
-                catalyst = c
-                getCatEnantiomer = i.getCatEnantiomer
-                catReactionCreator = i.catReactionCreator
-                getBaseRates = i.getBaseRates
-                eeParams = e
-                rateGenerationType = i.rateGenerationType
-                rnd = i.rnd
-            }
+
+    type SedDirRatesSimInfo =
+        {
+            sedDirRatesInfo : SedDirRatesInfo
+
+            aminoAcids : list<AminoAcid>
+            simReactionCreator : AminoAcid -> list<SedimentationDirectReaction>
+            simParams : SedDirSimilarityParam
+            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
+        }
 
 
     let calculateSedDirRates (i : SedDirRatesInfo) =
@@ -328,17 +315,9 @@ module ReactionRates =
         }
 
 
-    type SedimentationDirectSimilarParam =
-        {
-            sedDirSimBaseDistribution : Distribution
-            getRateMultiplierDistr : RateMultiplierDistributionGetter
-            getForwardEeDistr : EeDistributionGetter
-        }
-
-
     type SedimentationDirectParam =
         | SedDirRndParam of SedimentationDirectRandomParam
-        | SedDirSimParam of SedimentationDirectSimilarParam
+        | SedDirSimParam of SedDirSimilarityParam
 
 
     type SedimentationAllRandomParam =

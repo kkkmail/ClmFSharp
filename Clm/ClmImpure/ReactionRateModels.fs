@@ -293,7 +293,7 @@ module ReactionRateModels =
 
     type SedimentationDirectSimilarParamWithModel =
         {
-            sedDirSimParam : SedimentationDirectSimilarParam
+            sedDirSimParam : SedDirSimilarityParam
             aminoAcids : list<AminoAcid>
             sedDirModel : SedimentationDirectRandomModel
         }

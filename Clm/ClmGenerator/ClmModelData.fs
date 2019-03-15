@@ -95,7 +95,7 @@ module ClmModelData =
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
-            sedDirPairs : list<list<ChiralAminoAcid> * SedDirAgent>
+            sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
         }
 
         member data.getReactions rnd rateProvider t n =
@@ -107,6 +107,9 @@ module ClmModelData =
                 |> List.choose id
                 |> List.concat
 
+            let createSedDirReactions c l =
+                failwith "RateGenerationCommonData.createSedDirReactions is not implemented yet!"
+
             match n with
             | FoodCreationName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (FoodCreationReaction |> FoodCreation) ] |> List.choose id |> List.concat
             | WasteRemovalName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
@@ -117,7 +120,7 @@ module ClmModelData =
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | LigationName -> createReactions (fun x -> LigationReaction x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
-            | SedimentationDirectName -> createReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) data.sedDirPairs
+            | SedimentationDirectName -> createSedDirReactions (fun x -> SedimentationDirectReaction x |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs

@@ -267,20 +267,36 @@ module ReactionTypes =
         member this.value = let (SedDirAgent v) = this in v
 
 
+    /// A peptide chain, which attaches to the resolving reagent by one of its ends (list head).
+    type SedDirReagent =
+        | SedDirReagent of list<ChiralAminoAcid>
+
+        member c.enantiomer =
+            let (SedDirReagent a) = c
+            a |> List.map (fun e -> e.enantiomer) |> SedDirReagent
+
+        member c.value = let (SedDirReagent v) = c in v
+
+        member c.startsWith a =
+            match c.value with
+            | h :: _ -> h = a
+            | [] -> false
+
+
     type SedimentationDirectReaction =
-        | SedimentationDirectReaction of (list<ChiralAminoAcid> * SedDirAgent)
+        | SedimentationDirectReaction of (SedDirReagent * SedDirAgent)
 
         member r.info =
             let (SedimentationDirectReaction (a, b)) = r
 
             {
-                input = [ (Substance.fromList a, 1); (Substance.fromList b.value, 1) ]
-                output = [ (AchiralSubst.Waste |> Simple, a.Length + b.value.Length) ]
+                input = [ (Substance.fromList a.value, 1); (Substance.fromList b.value, 1) ]
+                output = [ (AchiralSubst.Waste |> Simple, a.value.Length + b.value.Length) ]
             }
 
         member r.enantiomer =
             let (SedimentationDirectReaction (a, b)) = r
-            (a |> List.map (fun e -> e.enantiomer), b.enantiomer) |> SedimentationDirectReaction
+            (a.enantiomer, b.enantiomer) |> SedimentationDirectReaction
 
 
     type SedimentationAllReaction =

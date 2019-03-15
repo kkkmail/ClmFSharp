@@ -256,7 +256,7 @@ module ReactionRates =
 
     type SedDirRatesInfo =
         {
-            sedFormingSubst : list<ChiralAminoAcid>
+            sedFormingSubst : SedDirReagent
             sedDirAgent : SedDirAgent
             getBaseRates : SedimentationDirectReaction -> RateData
             eeParams : SedDirRatesEeParam
@@ -278,6 +278,7 @@ module ReactionRates =
             sedDirRatesInfo : SedDirRatesInfo
 
             aminoAcids : list<AminoAcid>
+            reagents : list<SedDirReagent>
             simReactionCreator : AminoAcid -> list<SedimentationDirectReaction>
             simParams : SedDirSimilarityParam
             rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
@@ -285,6 +286,8 @@ module ReactionRates =
 
 
     let calculateSedDirRates (i : SedDirRatesInfo) =
+        let x = 0
+
         let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
         let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
 

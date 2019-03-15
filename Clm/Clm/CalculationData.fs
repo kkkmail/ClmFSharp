@@ -17,6 +17,7 @@ module CalculationData =
         }
 
         /// Default is that we want resolving agents affect all chains starting from some amino acid.
+        /// That models the situation that the chain "binds" to the resolving agent ony by one of its ends.
         static member defaultValue =
             {
                 minSedDirChainLength = OneMax
@@ -71,7 +72,7 @@ module CalculationData =
             ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
             racemCatalysts : list<RacemizationCatalyst>
 
-            sedDirReagents : list<list<ChiralAminoAcid>>
+            sedDirReagents : list<SedDirReagent>
             sedDirAgents : list<SedDirAgent>
 
             allChains : list<list<ChiralAminoAcid>>
@@ -111,8 +112,15 @@ module CalculationData =
 
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 
-                sedDirReagents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
-                sedDirAgents = allChains |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirAgentInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.sedDirAgentInfo.maxSedDirAgentLength.length) |> List.map (fun e -> SedDirAgent e)
+                sedDirReagents =
+                    allChains
+                    |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
+                    |> List.map (fun e -> SedDirReagent e)
+
+                sedDirAgents =
+                    allChains
+                    |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirAgentInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.sedDirAgentInfo.maxSedDirAgentLength.length) 
+                    |> List.map (fun e -> SedDirAgent e)
 
                 allChains = allChains
                 allSubst = allSubst
@@ -159,7 +167,7 @@ module CalculationData =
 
         member si.sedDirInfo =
             {
-                a = si.sedDirReagents |> Array.ofList
+                a = si.chiralAminoAcids |> Array.ofList
                 b = si.sedDirAgents |> Array.ofList
                 reactionName = ReactionName.SedimentationDirectName
             }

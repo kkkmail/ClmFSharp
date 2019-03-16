@@ -9,7 +9,7 @@ module DefaultValuesExt =
 
     type ClmDefaultValue =
         {
-            defaultId : int
+            defaultSetIndex : int
             modelCommandLineParams : list<ModelCommandLineParam>
             defaultRateParams : ReactionRateProviderParams
             description : string option

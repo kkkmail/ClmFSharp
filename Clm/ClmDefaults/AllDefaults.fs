@@ -11,8 +11,8 @@ module AllDefaults =
             Defaults_000_004.defaultValue
             Defaults_000_005.defaultValue
         ]
-        |> List.map (fun e -> e.defaultId, e)
+        |> List.map (fun e -> e.defaultSetIndex, e)
         |> Map.ofList
 
 
-    let getDefaultValues i = defaultValues.[i], i
+    let tryGetDefaultValues i = defaultValues.TryFind i

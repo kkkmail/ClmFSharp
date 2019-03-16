@@ -44,7 +44,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength i =
+        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
             let rates = d.defaultRateParams
 
             {
@@ -56,7 +56,7 @@ module ClmModelData =
                         maxPeptideLength = maxPeptideLength
                         reactionRateModelParams = rates.rateParams
                         updateFuncType = UseFunctions
-                        defaultSetIndex = i
+                        defaultSetIndex = d.defaultSetIndex
                     }
 
                 modelCommandLineParams = d.modelCommandLineParams

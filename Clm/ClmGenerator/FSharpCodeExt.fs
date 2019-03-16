@@ -287,7 +287,7 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
-    type SedimentationDirectSimilarParam
+    type SedDirSimilarityParam
         with
 
         member p.toFSharpCode (shift : string) = 

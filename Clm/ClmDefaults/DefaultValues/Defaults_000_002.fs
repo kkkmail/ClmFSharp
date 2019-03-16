@@ -4,7 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_002 =
+module Defaults_000_002 =
+
+    let defaultId = 000_002
 
     let defaultRateParams =
         //===========================================================
@@ -63,6 +65,8 @@ module Defaults_002 =
 
     let defaultValue =
         {
+            defaultId = defaultId
+
             modelCommandLineParams =
                 [
                     {

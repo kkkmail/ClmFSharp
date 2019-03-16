@@ -4,7 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_004 =
+module Defaults_000_003 =
+
+    let defaultId = 000_003
 
     let defaultRateParams =
         //===========================================================
@@ -20,7 +22,7 @@ module Defaults_004 =
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
         let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam
-        let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.30)
+        let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.15)
         //===========================================================
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
@@ -63,6 +65,8 @@ module Defaults_004 =
 
     let defaultValue =
         {
+            defaultId = defaultId
+
             modelCommandLineParams =
                 [
                     {

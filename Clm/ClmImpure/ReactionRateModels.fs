@@ -374,10 +374,10 @@ module ReactionRateModels =
 
         let cr = i.sedDirRatesInfo.getBaseRates r
 
-        //let calculateSedDirRates s c =
-        //    let reaction = (s, c) |> SedimentationDirectReaction
-        //    let related = calculateSedDirRates i.sedDirRatesInfo
-        //    updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
+        let calculateSedDirRates s c ee =
+            let reaction = (s, c) |> SedimentationDirectReaction
+            let related = calculateSedDirRates { i.sedDirRatesInfo with sedFormingSubst = s; sedDirAgent = c; eeParams = ee }
+            updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
     //type SedDirRatesInfo =
     //    {
@@ -389,15 +389,19 @@ module ReactionRateModels =
     //        rnd : RandomValueGetter
     //    }
 
+        let simReagents a =
+            i.reagents
+            |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
 
-        let calculateSedDirRates reaction (ee : SedDirRatesEeParam) =
-            let related = calculateSedDirRates { i.sedDirRatesInfo with eeParams = ee }
-            updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
+
+        //let calculateSedDirRates reaction (ee : SedDirRatesEeParam) =
+        //    let related = calculateSedDirRates { i.sedDirRatesInfo with eeParams = ee }
+        //    updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
         match cr.forwardRate with
         | None ->
             i.aminoAcids
-            |> List.map (fun a -> i.simReactionCreator a)
+            |> List.map (fun a -> simReagents a)
             |> List.concat
             |> List.map (fun e -> failwith "") //calculateSedDirRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
@@ -423,10 +427,10 @@ module ReactionRateModels =
 
             let x =
                 i.aminoAcids
-                |> List.map (fun a -> i.simReactionCreator a, i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
+                |> List.map (fun a -> simReagents a, i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
                 |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
                 |> List.concat
-                |> List.map (fun (e, b) -> calculateSedDirRates e (getEeParams b))
+                |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))
 
             //|> ignore
             failwith ""

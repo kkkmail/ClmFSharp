@@ -108,7 +108,7 @@ module ReactionRateModelsExt =
 
 
         static member tryCreate (a, r) (p, m) =
-            let creator b (d : SedDirSimilarityParam) = { sedDirModel = b; aminoAcids = a; sedDirSimParam = d; reagents = r } |> SedimentationDirectSimilarModel |> SedDirSimModel |> SedimentationDirectRateModel
+            let creator b (d : SedimentationDirectSimilarParam) = { sedDirModel = b; aminoAcids = a; sedDirSimParam = d.sedDirSimParam; reagents = r } |> SedimentationDirectSimilarModel |> SedDirSimModel |> SedimentationDirectRateModel
             tryCreateModelWithBase SedimentationDirectSimilarModel.paramGetter creator SedimentationDirectRandomModel.modelGetter SedimentationDirectRandomModel.tryCreate (p, m)
 
 

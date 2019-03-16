@@ -284,6 +284,13 @@ module ReactionRates =
         }
 
 
+    type SedimentationDirectSimilarParam =
+        {
+            sedDirParam : SedimentationDirectRandomParam
+            sedDirSimParam : SedDirSimilarityParam
+        }
+
+
     let calculateSedDirRates (i : SedDirRatesInfo) =
         let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
         let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
@@ -317,7 +324,7 @@ module ReactionRates =
 
     type SedimentationDirectParam =
         | SedDirRndParam of SedimentationDirectRandomParam
-        | SedDirSimParam of SedDirSimilarityParam
+        | SedDirSimParam of SedimentationDirectSimilarParam
 
 
     type SedimentationAllRandomParam =

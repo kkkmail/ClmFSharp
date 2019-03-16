@@ -194,21 +194,21 @@ module DefaultValuesExt =
             |> SedDirRndParam
             |> SedimentationDirectRateParam
 
-        static member defaultSedDirSimParamImpl (threshold, mult) =
+        static member defaultSedDirSimParamImpl (threshold, mult) simThreshold =
             {
-                sedDirRatesEeParam =
+                sedDirParam = ReactionRateProviderParams.defaultSedDirRndParamImpl (threshold, mult)
+                sedDirSimParam =
                     {
-                        sedDirRateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        sedDirSimBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
                     }
-                sedDirDistribution = Distribution.createTriangular { threshold = threshold; scale = None; shift = None }
-                forwardScale = Some mult
             }
 
-        //static member defaultSedDirSimParam (threshold, mult) =
-        //    ReactionRateProviderParams.defaultSedDirRndParamImpl (threshold, mult)
-        //    |> SedDirRndParam
-        //    |> SedimentationDirectRateParam
+        static member defaultSedDirSimParam (threshold, mult) simThreshold =
+            ReactionRateProviderParams.defaultSedDirSimParamImpl (threshold, mult) simThreshold
+            |> SedDirSimParam
+            |> SedimentationDirectRateParam
 
         static member defaultSedAllRndParamImpl mult =
             {

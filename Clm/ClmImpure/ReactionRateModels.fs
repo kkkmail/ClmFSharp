@@ -295,77 +295,9 @@ module ReactionRateModels =
         {
             sedDirSimParam : SedDirSimilarityParam
             aminoAcids : list<AminoAcid>
+            reagents : list<SedDirReagent>
             sedDirModel : SedimentationDirectRandomModel
         }
-
-
-
-
-    //type SedimentationDirectSimilarParamWithModel =
-    //    {
-    //        sedDirSimParam : SedimentationDirectSimilarParam
-    //        aminoAcids : list<AminoAcid>
-    //    }
-
-    //type SedimentationDirectSimilarParam =
-    //    {
-    //        sedDirSimBaseDistribution : Distribution
-    //        getRateMultiplierDistr : RateMultiplierDistributionGetter
-    //        getForwardEeDistr : EeDistributionGetter
-    //        minSedDirPepdideLength : MaxPeptideLength
-    //        maxSedDirPepdideLength : MaxPeptideLength
-    //    }
-
-
-    //type SedDirRatesSimInfo<'A, 'R, 'C, 'RC> =
-    //    {
-    //        //reaction : 'R
-    //        sedDirAgent : SedDirAgent
-    //        aminoAcids : list<'A>
-    //        getCatEnantiomer : 'C -> 'C
-    //        catReactionCreator : ('R * 'C) -> 'RC
-    //        simReactionCreator : 'A -> 'R
-    //        getCatReactEnantiomer : 'RC -> 'RC
-    //        getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-    //        //getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
-    //        simParams : CatRatesSimilarityParam
-    //        eeParams : CatRatesEeParam
-    //        rateDictionary : Dictionary<'RC, RateData>
-    //        rateGenerationType : RateGenerationType
-    //        rnd : RandomValueGetter
-    //    }
-
-        //member i.toCatRatesInfo r c e =
-        //    {
-        //        reaction = r
-        //        catalyst = c
-        //        getCatEnantiomer = i.getCatEnantiomer
-        //        catReactionCreator = i.catReactionCreator
-        //        getBaseRates = i.getBaseRates
-        //        eeParams = e
-        //        rateGenerationType = i.rateGenerationType
-        //        rnd = i.rnd
-        //    }
-
-
-
-    //type SedDirRatesInfo =
-    //    {
-    //        sedFormingSubst : list<ChiralAminoAcid>
-    //        sedDirAgent : SedDirAgent
-    //        getBaseRates : SedimentationDirectReaction -> RateData
-    //        eeParams : SedDirRatesEeParam
-    //        rateGenerationType : RateGenerationType
-    //        rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
-    //        rnd : RandomValueGetter
-    //    }
-
-    //type SedDirRatesEeParam =
-    //    {
-    //        sedDirRateMultiplierDistr : RateMultiplierDistribution
-    //        eeForwardDistribution : EeDistribution option
-    //    }
-
 
 
     let calculateSedDirSimRates (i : SedDirRatesSimInfo) =
@@ -379,24 +311,9 @@ module ReactionRateModels =
             let related = calculateSedDirRates { i.sedDirRatesInfo with sedFormingSubst = s; sedDirAgent = c; eeParams = ee }
             updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
-    //type SedDirRatesInfo =
-    //    {
-    //        sedFormingSubst : SedDirReagent
-    //        sedDirAgent : SedDirAgent
-    //        getBaseRates : SedimentationDirectReaction -> RateData
-    //        eeParams : SedDirRatesEeParam
-    //        rateGenerationType : RateGenerationType
-    //        rnd : RandomValueGetter
-    //    }
-
         let simReagents a =
             i.reagents
             |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
-
-
-        //let calculateSedDirRates reaction (ee : SedDirRatesEeParam) =
-        //    let related = calculateSedDirRates { i.sedDirRatesInfo with eeParams = ee }
-        //    updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
         match cr.forwardRate with
         | None ->
@@ -410,11 +327,8 @@ module ReactionRateModels =
 
             let rateMult =
                 match cr.forwardRate, cre.forwardRate with
-                | Some (ReactionRate a), Some (ReactionRate b) ->
-                    match br.forwardRate with
-                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
-                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
-                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
+                | Some (ReactionRate a), Some (ReactionRate b) ->(a + b) / 2.0
+                | _ -> failwith "calculateSedDirSimRates::calculateCatRates::FUBAR #3..."
 
             let getEeParams d =
                 match d with
@@ -425,69 +339,37 @@ module ReactionRateModels =
                     }
                 | false -> SedDirRatesEeParam.defaultValue
 
-            let x =
-                i.aminoAcids
-                |> List.map (fun a -> simReagents a, i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
-                |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
-                |> List.concat
-                |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))
-
-            //|> ignore
-            failwith ""
+            i.aminoAcids
+            |> List.map (fun a -> simReagents a, i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
+            |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
+            |> List.concat
+            |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))
+            |> ignore
 
         cr
-
-
 
 
     type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =
         inherit RateModel<SedimentationDirectSimilarParamWithModel, SedimentationDirectReaction>(p)
 
-        //let i = p.sedDirSimParam
-        //let a = p.sedDirSimParam
-
-        //let calculateSedDirRates s c e =
-        //    let reaction = (s, c) |> SedimentationDirectReaction
-        //    let related = i.toCatRatesInfo s c e |> calculateCatRates
-        //    updateRelatedReactions p.sedDirModel.rateDictionary i.getCatReactEnantiomer reaction related
-
-        ////let getEeParams d =
-        ////    match d with
-        ////    | true ->
-        ////        {
-        ////            rateMultiplierDistr = i.getRateMultiplierDistr.getDistr None rateMult
-        ////            eeForwardDistribution = i.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-        ////            eeBackwardDistribution = i.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-        ////        }
-        ////    | false -> CatRatesEeParam.defaultValue
-
-
-        //let calculateRates rnd t _ =
-        //    //let k =
-        //    //    match t with
-        //    //    | RandomChoice -> p. .sedimentationDirectDistribution.nextDouble rnd |> Some
-        //    //getForwardRates (p.forwardScale, k)
-        //    let x =
-        //        p.aminoAcids
-        //        |> List.map(fun a -> a, i.sedDirSimBaseDistribution.isDefined rnd)
-
-        //    failwith ""
-
-        //member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
-
-        let calculateSimRatesImpl rnd t (SedimentationDirectReaction (s, c)) = 
-            //let (DestructionReaction a) = s
-
+        let calculateSimRatesImpl rnd t (SedimentationDirectReaction (s, c)) =
             {
-                sedFormingSubst = s
-                sedDirAgent = c
-                getBaseRates = p.sedDirModel.getRates rnd t
-                eeParams = p.sedDirModel.inputParams.sedDirRatesEeParam
+                sedDirRatesInfo =
+                    {
+                        sedFormingSubst = s
+                        sedDirAgent = c
+                        getBaseRates = p.sedDirModel.getRates rnd t
+                        eeParams = p.sedDirModel.inputParams.sedDirRatesEeParam
+                        rateGenerationType = t
+                        rnd = rnd
+                    }
+
+                aminoAcids = p.aminoAcids
+                reagents = failwith ""
+                simParams = p.sedDirSimParam
                 rateDictionary = p.sedDirModel.rateDictionary
-                rateGenerationType = t
-                rnd = rnd
             }
-            |> calculateSedDirRates
+            |> calculateSedDirSimRates
 
         member __.getRates rnd t r = calculateSimRatesImpl rnd t r
         member __.inputParams = p

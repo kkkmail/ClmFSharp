@@ -279,7 +279,6 @@ module ReactionRates =
 
             aminoAcids : list<AminoAcid>
             reagents : list<SedDirReagent>
-            //simReactionCreator : AminoAcid -> list<SedDirReagent>
             simParams : SedDirSimilarityParam
             rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
         }

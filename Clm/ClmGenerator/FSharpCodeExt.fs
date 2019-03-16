@@ -280,17 +280,16 @@ module FSharpCodeExt =
     type SedimentationDirectRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "            {" + Nl +
             shift + "                sedDirDistribution = " + p.sedDirDistribution.toFSharpCode + Nl +
             shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
             shift + "            }" + Nl
 
-
     type SedDirSimilarityParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "            {" + Nl +
             shift + "                sedDirSimBaseDistribution = " + p.sedDirSimBaseDistribution.toFSharpCode + Nl +
             shift + "                getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
@@ -298,10 +297,20 @@ module FSharpCodeExt =
             shift + "            }" + Nl
 
 
+    type SedimentationDirectSimilarParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                sedDirParam = " + Nl + (p.sedDirParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                sedDirSimParam = " + Nl + (p.sedDirSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "            }" + Nl
+
+
     type SedimentationDirectParam
         with 
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             match p with 
             | SedDirRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedDirRndParam" + Nl)
             | SedDirSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "SedDirSimParam" + Nl)
@@ -310,7 +319,7 @@ module FSharpCodeExt =
     type SedimentationAllRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "            {" + Nl +
             shift + "                sedimentationAllDistribution = " + p.sedimentationAllDistribution.toFSharpCode + Nl +
             shift + "                forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +

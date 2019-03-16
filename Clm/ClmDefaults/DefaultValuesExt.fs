@@ -29,6 +29,7 @@ module DefaultValuesExt =
     let defaultRateMultiplierDistr threshold mult =
         Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None } |> RateMultDistr
 
+
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter

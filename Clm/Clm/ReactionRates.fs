@@ -279,15 +279,13 @@ module ReactionRates =
 
             aminoAcids : list<AminoAcid>
             reagents : list<SedDirReagent>
-            simReactionCreator : AminoAcid -> list<SedimentationDirectReaction>
+            //simReactionCreator : AminoAcid -> list<SedDirReagent>
             simParams : SedDirSimilarityParam
             rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
         }
 
 
     let calculateSedDirRates (i : SedDirRatesInfo) =
-        let x = 0
-
         let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
         let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
 

@@ -28,9 +28,10 @@ module Defaults_001_000 =
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
         //===========================================================
         //let sedDirRndParam = (Some 0.00001, 10_000.0)
-        let sedDirRndParam = (Some 0.1, 10_000.0)
+        let sedDirRndParam = (Some 0.00001, 10_000.0)
+        //let sedDirRndParam = (Some 0.1, 10_000.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
-        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
+        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.10)
         //===========================================================
         let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================

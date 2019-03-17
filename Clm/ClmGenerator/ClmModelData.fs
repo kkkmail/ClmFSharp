@@ -85,8 +85,6 @@ module ClmModelData =
     let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
 "
 
-    let getAminoAcidsCode (modelParams : ModelGenerationParams) = "AminoAcid.getAminoAcids NumberOfAminoAcids." + modelParams.numberOfAminoAcids.ToString()
-
 
     type RateGenerationCommonData =
         {

@@ -25,7 +25,7 @@ module ClmModel =
         let seedValue = rnd.seed
         let rrp = { rateParams = modelParams.reactionRateModelParams }
         let rateProvider = ReactionRateProvider ( rrp, modelParams.numberOfAminoAcids)
-        let allParamsCode = rrp.toParamFSharpCode
+        //let allParamsCode = rrp.toParamFSharpCode
 
         let si =
             {
@@ -60,29 +60,23 @@ module ClmModel =
 
         let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates rnd generationType).forwardRate
 
-        let allRawReactionsData =
-            ReactionName.all
-            |> List.map (fun n -> n, noOfRawReactions n)
-            |> List.map (fun (n, c) -> "                            " + "(" + n.ToString() + ", " + c.ToString() + ")")
-            |> String.concat Nl
+        //let allReactionsData =
+        //    let shift = "                            "
 
-        let allReactionsData =
-            let shift = "                            "
-
-            (
-                allReac
-                |> List.groupBy (fun r -> r.name)
-                |> List.map (fun (n, l) -> (n, l.Length))
-                |> List.map (fun (n, c) -> shift + "(" + n.ToString() + ", " + c.ToString() + ")")
-            )
-            @
-            (
-                // TODO kk:20181130 A little hack. Do it properly.
-                match kW with
-                | Some _ -> [ shift + "(" + ReactionName.SedimentationAllName.ToString() + ", " + (2 * modelParams.numberOfAminoAcids.length).ToString() + ")" ]
-                | None -> []
-            )
-            |> String.concat Nl
+        //    (
+        //        allReac
+        //        |> List.groupBy (fun r -> r.name)
+        //        |> List.map (fun (n, l) -> (n, l.Length))
+        //        |> List.map (fun (n, c) -> shift + "(" + n.ToString() + ", " + c.ToString() + ")")
+        //    )
+        //    @
+        //    (
+        //        // TODO kk:20181130 A little hack. Do it properly.
+        //        match kW with
+        //        | Some _ -> [ shift + "(" + ReactionName.SedimentationAllName.ToString() + ", " + (2 * modelParams.numberOfAminoAcids.length).ToString() + ")" ]
+        //        | None -> []
+        //    )
+        //    |> String.concat Nl
 
         let allReacMap =
             allReac
@@ -198,6 +192,32 @@ module ClmModel =
             "        [|" + Nl +
             x +
             Nl + "        |]" + Nl + "        |> Array.sum" + Nl
+
+        let modelDataParamsWithExtraData : ModelDataParamsWithExtraData =
+            {
+                regularParams =
+                    {
+                        modelDataParams =
+                            {
+                                modelInfo = modelInfo
+                                allParams = rrp.allParams |> Array.ofList
+                            }
+                        allSubstData =
+                            {
+                                allSubst = failwith "" // : list<Substance>
+                                allInd = failwith "" // : Map<Substance, int>
+                                allRawReactions = ReactionName.all |> List.map (fun n -> n, noOfRawReactions n)
+                                allReactions = allReac |> List.groupBy (fun r -> r.name) |> List.map (fun (n, l) -> (n, int64 l.Length))
+                            }
+                    }
+
+                funcParams =
+                    {
+                        getTotals = failwith ""
+                        getTotalSubst = failwith ""
+                        getDerivative = failwith ""
+                    }
+            }
 
         let generate () =
             let t0 = DateTime.Now

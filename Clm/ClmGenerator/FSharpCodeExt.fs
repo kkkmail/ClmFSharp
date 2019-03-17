@@ -3,6 +3,8 @@
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.ModelParams
+open Clm.ReactionTypes
 open ClmSys.GeneralData
 
 module FSharpCodeExt = 
@@ -10,6 +12,15 @@ module FSharpCodeExt =
     let increaseShift shift = shift + "    "
     let increaseShiftTwice shift = shift |> increaseShift |> increaseShift
     let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+
+    type System.Int32
+        with
+        member this.toFSharpCode = this.ToString()
+
+
+    type System.Int64
+        with
+        member this.toFSharpCode = this.ToString() + "L"
 
 
     let fold f state (arr: 'a [,]) =
@@ -52,7 +63,7 @@ module FSharpCodeExt =
             |> Array.map (fun e -> arrayToFSharpString e arrayShift)
             |> String.concat Nl
 
-        shift + "[| " + Nl + 
+        shift + "[| " + Nl +
         s + Nl + 
         shift + "|]" + Nl
 
@@ -248,7 +259,6 @@ module FSharpCodeExt =
             | DestrRndParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "DestrRndParam" + Nl)
 
 
-
     type CatalyticDestructionRandomParam
         with
 
@@ -417,46 +427,133 @@ module FSharpCodeExt =
             | CatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "            |> " + "CatRacemSimParam" + Nl)
 
 
-    type FSharpCodeParams =
-        {
-            shift : string
-            aminoAcidsCode : string
-        }
+    //type FSharpCodeParams =
+    //    {
+    //        shift : string
+    //        aminoAcidsCode : string
+    //    }
 
 
     type ReactionRateModelParam
         with
 
-        member rm.toFSharpCode (p : FSharpCodeParams) = 
+        member rm.toFSharpCode (shift : string) =
             match rm with 
-            | FoodCreationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> FoodCreationRateParam" + Nl
-            | WasteRemovalRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRemovalRateParam" + Nl
-            | WasteRecyclingRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> WasteRecyclingRateParam" + Nl
-            | SynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SynthesisRateParam" + Nl
-            | DestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> DestructionRateParam" + Nl
-            | CatalyticSynthesisRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticSynthesisRateParam" + Nl
-            | CatalyticDestructionRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticDestructionRateParam" + Nl
-            | LigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> LigationRateParam" + Nl
-            | CatalyticLigationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticLigationRateParam" + Nl
-            | SedimentationDirectRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationDirectRateParam" + Nl
-            | SedimentationAllRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> SedimentationAllRateParam" + Nl
-            | RacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> RacemizationRateParam" + Nl
-            | CatalyticRacemizationRateParam m -> (m.toFSharpCode p.shift) + p.shift + "            |> CatalyticRacemizationRateParam" + Nl
+            | FoodCreationRateParam m -> (m.toFSharpCode shift) + shift + "            |> FoodCreationRateParam" + Nl
+            | WasteRemovalRateParam m -> (m.toFSharpCode shift) + shift + "            |> WasteRemovalRateParam" + Nl
+            | WasteRecyclingRateParam m -> (m.toFSharpCode shift) + shift + "            |> WasteRecyclingRateParam" + Nl
+            | SynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> SynthesisRateParam" + Nl
+            | DestructionRateParam m -> (m.toFSharpCode shift) + shift + "            |> DestructionRateParam" + Nl
+            | CatalyticSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticSynthesisRateParam" + Nl
+            | CatalyticDestructionRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticDestructionRateParam" + Nl
+            | LigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> LigationRateParam" + Nl
+            | CatalyticLigationRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticLigationRateParam" + Nl
+            | SedimentationDirectRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationDirectRateParam" + Nl
+            | SedimentationAllRateParam m -> (m.toFSharpCode shift) + shift + "            |> SedimentationAllRateParam" + Nl
+            | RacemizationRateParam m -> (m.toFSharpCode shift) + shift + "            |> RacemizationRateParam" + Nl
+            | CatalyticRacemizationRateParam m -> (m.toFSharpCode shift) + shift + "            |> CatalyticRacemizationRateParam" + Nl
 
 
     type ReactionRateModelParamWithUsage
         with
 
-        member rrmp.toFSharpCode (p : FSharpCodeParams) =
-            p.shift + "            {" + Nl +
-            p.shift + "                modelParam = " + Nl + (rrmp.modelParam.toFSharpCode { p with shift = p.shift |> increaseShift |> increaseShift } ) +
-            p.shift + "                usage = " + rrmp.usage.ToString() + Nl +
-            p.shift + "            }" + Nl
+        member rrmp.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                modelParam = " + Nl + (rrmp.modelParam.toFSharpCode (increaseShiftTwice shift) ) +
+            shift + "                usage = " + rrmp.usage.ToString() + Nl +
+            shift + "            }" + Nl
+
+
+    let toParamFSharpCode (allParams : array<ReactionRateModelParamWithUsage>) (shift : string) =
+        allParams |> Array.map (fun e -> e.toFSharpCode shift) |> String.concat Nl
 
 
     type ReactionRateProviderParams
         with
+        member rrp.toParamFSharpCode (shift : string) = toParamFSharpCode (rrp.allParams |> Array.ofList) shift
 
-        member rrp.toParamFSharpCode (p : FSharpCodeParams) =
-            rrp.allParams
-            |> List.map (fun e -> e.toFSharpCode p) |> String.concat Nl
+
+    type ModelDataId
+        with
+        member p.toFSharpCode = "(" + "ModelDataId" + p.value.toFSharpCode + ")"
+
+
+    type NumberOfAminoAcids
+        with
+        member p.toFSharpCode = "NumberOfAminoAcids" + "." + p.ToString()
+
+
+    let getAminoAcidsCode (n : NumberOfAminoAcids) = "AminoAcid.getAminoAcids " + n.toFSharpCode
+
+
+    type MaxPeptideLength
+        with
+        member p.toFSharpCode = "MaxPeptideLength" + "." + p.ToString()
+
+
+    type ModelInfo
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                fileStructureVersionNumber = " + "\"" + p.fileStructureVersionNumber + "\"" + Nl +
+            shift + "                versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
+            shift + "                modelDataId = " + p.modelDataId.toFSharpCode + Nl +
+            shift + "                numberOfSubstances = " + p.numberOfSubstances.toFSharpCode + Nl +
+            shift + "                numberOfAminoAcids = " + p.numberOfAminoAcids.toFSharpCode + Nl +
+            shift + "                maxPeptideLength = " + p.maxPeptideLength.toFSharpCode + Nl +
+            shift + "                seedValue = " + p.seedValue.toFSharpCode + Nl +
+            shift + "                defaultSetIndex = " + p.defaultSetIndex.toFSharpCode + Nl +
+            shift + "            }" + Nl
+
+
+    type ModelDataParams
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                modelInfo = " + Nl + (p.modelInfo.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                allParams = " + Nl + (toParamFSharpCode p.allParams (increaseShiftTwice shift)) + Nl +
+            shift + "            }" + Nl
+
+
+    let toReactionsCode (a : list<ReactionName * int64>) (shift : string) =
+        a
+        |> List.map (fun (n, c) -> shift + "(" + n.ToString() + ", " + c.ToString() + ")")
+        |> String.concat Nl
+
+
+    type AllSubstData
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                allSubst = " + "allSubst" + Nl +
+            shift + "                allInd = " + "allInd" + Nl +
+            shift + "                allRawReactions = " + "[" + Nl + (toReactionsCode p.allRawReactions (increaseShiftTwice shift)) + Nl + "]" + Nl +
+            shift + "                allReactions = " + "[" + Nl + (toReactionsCode p.allReactions (increaseShiftTwice shift)) + Nl + "]" + Nl +
+            shift + "            }" + Nl
+
+
+    type ModelDataRegularParams
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                modelDataParams = " + Nl + (p.modelDataParams.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                allSubstData = " + Nl + (p.allSubstData.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "            }" + Nl
+
+
+    type ModelDataFuncParams
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                getTotals = " + "getTotals" + Nl +
+            shift + "                getTotalSubst = " + "getTotalSubst" + Nl +
+            shift + "                getDerivative = " + "update" + Nl +
+            shift + "            }" + Nl
+
+    type ModelDataParamsWithExtraData
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "            {" + Nl +
+            shift + "                regularParams = " + Nl + (p.regularParams.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "                funcParams = " + Nl + (p.funcParams.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "            }" + Nl

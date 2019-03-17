@@ -38,24 +38,24 @@ module Defaults_001_000 =
         //===========================================================
         let rates =
             [
-                //foodParam
-                //wasteParam
-                wasteRecyclingParam
+                ////foodParam
+                ////wasteParam
+                //wasteRecyclingParam
 
-                synthParam |> SynthesisRateParam
-                //catSynthParam
+                //synthParam |> SynthesisRateParam
+                ////catSynthParam
 
-                destrParam |> DestructionRateParam
-                catDestrParam
+                //destrParam |> DestructionRateParam
+                //catDestrParam
 
-                ligParam |> LigationRateParam
-                //catLigParam
+                //ligParam |> LigationRateParam
+                ////catLigParam
 
                 sedDirParam
-                //sedAllParam
+                ////sedAllParam
 
-                //racemParam |> RacemizationRateParam
-                //catRacemParam
+                ////racemParam |> RacemizationRateParam
+                ////catRacemParam
             ]
         //===========================================================
 

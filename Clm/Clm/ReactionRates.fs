@@ -439,6 +439,9 @@ module ReactionRates =
         | CatalyticRacemizationRateParam of CatalyticRacemizationParam
 
 
+        /// TODO kk:20190317 - The dependencies MUST be incorporated at lower level so that to make it compiler's job to check them.
+        /// Otherwise, if dependency is forgotten, it becomes hard to trace that bug.
+        /// Essentially it must be IMPOSSIBLE to write a code with the dependency and don't "declare" it upfront. Currently it is possible.
         member rm.dependsOn =
             match rm with
             | FoodCreationRateParam _ -> []
@@ -458,7 +461,10 @@ module ReactionRates =
             | CatalyticLigationRateParam v ->
                 match v with
                 | CatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
-            | SedimentationDirectRateParam _ -> []
+            | SedimentationDirectRateParam v ->
+                match v with
+                | SedDirRndParam _ -> []
+                | SedDirSimParam m -> [ m.sedDirParam |> SedDirRndParam |> SedimentationDirectRateParam ]
             | SedimentationAllRateParam _ -> []
             | RacemizationRateParam _ -> []
             | CatalyticRacemizationRateParam v ->
@@ -516,7 +522,7 @@ module ReactionRates =
         member p.tryFindRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | RacemizationRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateParam m -> Some m | _ -> None)
 
-        member p.allParams =
+        member p.allParams() =
             let prim = p.rateParams |> Set.ofList
             let dep = Set.difference (p.rateParams |> List.map (fun e -> allDep e []) |> List.concat |> Set.ofList) prim
 

@@ -320,15 +320,15 @@ module ReactionRateModels =
             i.aminoAcids
             |> List.map (fun a -> simReagents a)
             |> List.concat
-            |> List.map (fun e -> failwith "") //calculateSedDirRates e i.catalyst CatRatesEeParam.defaultValue)
+            |> List.map (fun e -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent SedDirRatesEeParam.defaultValue)
             |> ignore
-        | _ ->
+        | Some (ReactionRate a) ->
             let cre = re |> i.sedDirRatesInfo.getBaseRates
 
             let rateMult =
-                match cr.forwardRate, cre.forwardRate with
-                | Some (ReactionRate a), Some (ReactionRate b) ->(a + b) / 2.0
-                | _ -> failwith "calculateSedDirSimRates::calculateCatRates::FUBAR #3..."
+                match cre.forwardRate with
+                | Some (ReactionRate b) ->(a + b) / 2.0
+                | _ -> failwith "calculateSedDirSimRates::calculateCatRates::FUBAR #1..."
 
             let getEeParams d =
                 match d with
@@ -365,7 +365,7 @@ module ReactionRateModels =
                     }
 
                 aminoAcids = p.aminoAcids
-                reagents = failwith ""
+                reagents = p.reagents
                 simParams = p.sedDirSimParam
                 rateDictionary = p.sedDirModel.rateDictionary
             }

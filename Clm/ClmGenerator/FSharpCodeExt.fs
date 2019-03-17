@@ -476,7 +476,7 @@ module FSharpCodeExt =
 
     type ReactionRateProviderParams
         with
-        member rrp.toParamFSharpCode (shift : string) = toParamFSharpCode (rrp.allParams |> Array.ofList) shift
+        member rrp.toParamFSharpCode (shift : string) = toParamFSharpCode (rrp.allParams() |> Array.ofList) shift
 
 
     type ModelDataId

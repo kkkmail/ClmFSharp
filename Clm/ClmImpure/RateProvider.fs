@@ -13,7 +13,10 @@ open ClmImpure.ReactionRateModelsExt
 module RateProvider =
 
     type ReactionRateProvider (p: ReactionRateProviderParams, si : SubstInfo) =
-        let allModels = ReactionRateModel.createAll p.allParams si
+        let allModels = 
+            let x = ReactionRateModel.createAll (p.allParams()) si
+            x
+
         let tryPick getter = allModels |> List.tryPick getter
 
         let getRatesImpl rnd t a =

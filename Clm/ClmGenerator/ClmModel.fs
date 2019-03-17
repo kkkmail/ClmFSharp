@@ -204,8 +204,8 @@ module ClmModel =
                             }
                         allSubstData =
                             {
-                                allSubst = failwith "" // : list<Substance>
-                                allInd = failwith "" // : Map<Substance, int>
+                                allSubst = si.allSubst
+                                allInd = si.allInd
                                 allRawReactions = ReactionName.all |> List.map (fun n -> n, noOfRawReactions n)
                                 allReactions = allReac |> List.groupBy (fun r -> r.name) |> List.map (fun (n, l) -> (n, int64 l.Length))
                             }
@@ -213,9 +213,9 @@ module ClmModel =
 
                 funcParams =
                     {
-                        getTotals = failwith ""
-                        getTotalSubst = failwith ""
-                        getDerivative = failwith ""
+                        getTotals = fun _ -> [||]
+                        getTotalSubst = fun _ -> 0.0
+                        getDerivative = fun _ -> [||]
                     }
             }
 
@@ -315,56 +315,8 @@ module ClmModel =
             let sumCodeN = "        let " + xSumNameN + " = " + Nl + "            [|" + Nl + sc + Nl + "            |]" + Nl + "            |> Array.sum" + Nl + Nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + Nl + "            [|" + Nl + sc2 + Nl + "            |]" + Nl + "            |> Array.sum" + Nl
 
-            let modelDataParamsCode =
-                @"
-    let modelDataParamsWithExtraData =
-        {
-            regularParams =
-                {
-                    modelDataParams =
-                        {
-                            modelInfo =
-                                {
-                                    fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
-                                    versionNumber = """ + modelParams.versionNumber + @"""
-                                    seedValue = seedValue
-                                    modelDataId = " + modelDataId.ToString() + @"
-                                    numberOfSubstances = " + si.allSubst.Length.ToString() + @"
-                                    numberOfAminoAcids = " + modelParams.numberOfAminoAcids.ToString() + @"
-                                    maxPeptideLength = " + modelParams.maxPeptideLength.ToString() + @"
-                                    defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
-                                }
-
-                            allParams =
-                                [|
-"
-                                +
-                                (allParamsCode { shift = "                        "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
-                                |]
-                        }
-
-                    allSubst = allSubst
-                    allInd = allInd
-
-                    allRawReactions =
-                        [" +
-                            Nl + allRawReactionsData + @"
-                        ]
-
-                    allReactions =
-                        [" +
-                            Nl + allReactionsData + @"
-                        ]
-                }
-
-            funcParams =
-                {
-                    getTotals = getTotals
-                    getTotalSubst = getTotalSubst
-                    getDerivative = update
-                }
-        }
-"
+            let shift = "                    "
+            let modelDataParamsCode = "    let modelDataParamsWithExtraData =" + Nl + (modelDataParamsWithExtraData.toFSharpCode shift) + Nl
 
             let updateOuterCode =
                 match modelParams.updateFuncType with
@@ -440,30 +392,6 @@ module ClmModel =
             @ updateCode
             @ [ modelDataParamsCode ]
 
-        let allModelDataImpl = @"
-        @
-        [
-            {
-                modelInfo =
-                    {
-                        fileStructureVersionNumber = """ + modelParams.fileStructureVersionNumber + @"""
-                        versionNumber = """ + modelParams.versionNumber + @"""
-                        seedValue = " + seedValue.ToString() + @"
-                        modelDataId = " + modelDataId.ToString() + @"
-                        numberOfSubstances = " + (si.allSubst.Length).ToString() + @"
-                        numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + @"
-                        maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + @"
-                        defaultSetIndex = " + modelParams.defaultSetIndex.ToString() + @"
-                    }
-
-                allParams =
-                    [|
-"
-                                + (allParamsCode { shift = "            "; aminoAcidsCode = (getAminoAcidsCode modelParams) }) + @"
-                    |]
-            }
-        ]"
-
         let generateAndSave() =
             printfn "Generating..."
             let s = generate()
@@ -510,7 +438,5 @@ module ClmModel =
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
-        member model.allModelData = allModelDataImpl
         member model.generateCode() = generateAndSave()
         member model.getModelData() = getModelDataImpl()
-

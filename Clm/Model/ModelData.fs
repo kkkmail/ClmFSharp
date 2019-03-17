@@ -8,7 +8,7 @@ open Clm.ReactionRates
 open ClmSys.GeneralData
 
 module ModelData = 
-    let seedValue = 1423284681
+    let seedValue = 604128557
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -1211,83 +1211,92 @@ module ModelData =
             d86 x xSum xSumN xSumSquaredN
         |]
 
-
     let modelDataParamsWithExtraData =
-        {
-            regularParams =
-                {
-                    modelDataParams =
-                        {
-                            modelInfo =
-                                {
-                                    fileStructureVersionNumber = "2.1.0.0"
-                                    versionNumber = "2.1.0.0"
-                                    seedValue = seedValue
-                                    modelDataId = ModelDataId 10020L
-                                    numberOfSubstances = 87
-                                    numberOfAminoAcids = TwoAminoAcids
-                                    maxPeptideLength = ThreeMax
-                                    defaultSetIndex = 1000
-                                }
-
-                            allParams =
-                                [|
+                    {
+                        regularParams = 
+                            {
+                                modelDataParams = 
                                     {
-                                        modelParam = 
+                                        modelInfo =
                                             {
-                                                sedDirParam = 
-                                                    {
-                                                        sedDirDistribution = { distributionType = Triangular; distributionParams = { threshold = Some 0.001; scale = None; shift = None } } |> Distribution
-                                                        forwardScale = Some 10000.0
-                                                    }
-
-                                                sedDirSimParam = 
-                                                    {
-                                                        sedDirSimBaseDistribution = { distributionType = Uniform; distributionParams = { threshold = Some 0.2; scale = None; shift = Some 1.0 } } |> Distribution
-                                                        getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                                        getForwardEeDistr = DeltaEeDistributionGetter
-                                                    }
-
+                                                fileStructureVersionNumber = "2.1.0.0"
+                                                versionNumber = "2.1.0.0"
+                                                modelDataId = (ModelDataId 10028L)
+                                                numberOfSubstances = 87
+                                                numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
+                                                maxPeptideLength = MaxPeptideLength.ThreeMax
+                                                seedValue = 604128557
+                                                defaultSetIndex = 1000
                                             }
-                                            |> SedDirSimParam
-                                            |> SedimentationDirectRateParam
-                                        usage = PrimaryParam
+
+                                        allParams =
+                                            [|
+                                                {
+                                                    modelParam = 
+                                                        {
+                                                            sedDirParam =
+                                                                {
+                                                                    sedDirDistribution = { distributionType = Triangular; distributionParams = { threshold = Some 0.001; scale = None; shift = None } } |> Distribution
+                                                                    forwardScale = Some 10000.0
+                                                                    sedDirRatesEeParam =
+                                                                        {
+                                                                            sedDirRateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.001; scale = Some 10000.0; shift = None } } |> Distribution |> RateMultDistr
+                                                                            eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
+                                                                        }
+
+                                                                }
+
+                                                            sedDirSimParam =
+                                                                {
+                                                                    sedDirSimBaseDistribution = { distributionType = Uniform; distributionParams = { threshold = Some 0.2; scale = None; shift = Some 1.0 } } |> Distribution
+                                                                    getRateMultiplierDistr = DeltaRateMultDistrGetter
+                                                                    getForwardEeDistr = DeltaEeDistributionGetter
+                                                                }
+
+                                                        }
+                                                        |> SedDirSimParam
+                                                        |> SedimentationDirectRateParam
+                                                    usage = PrimaryParam
+                                                }
+
+                                            |]
                                     }
 
-                                |]
-                        }
+                                allSubstData = 
+                                    {
+                                        allSubst = allSubst
+                                        allInd = allInd
+                                        allRawReactions =
+                                            [
+                                                (FoodCreationName, 1L)
+                                                (WasteRemovalName, 1L)
+                                                (WasteRecyclingName, 1L)
+                                                (SynthesisName, 4L)
+                                                (DestructionName, 4L)
+                                                (CatalyticSynthesisName, 256L)
+                                                (CatalyticDestructionName, 256L)
+                                                (LigationName, 39L)
+                                                (CatalyticLigationName, 2496L)
+                                                (SedimentationDirectName, 7056L)
+                                                (SedimentationAllName, 4L)
+                                                (RacemizationName, 4L)
+                                                (CatalyticRacemizationName, 256L)
+                                            ]
+                                        allReactions =
+                                            [
 
-                    allSubst = allSubst
-                    allInd = allInd
+                                            ]
+                                    }
 
-                    allRawReactions =
-                        [
-                            (FoodCreationName, 1)
-                            (WasteRemovalName, 1)
-                            (WasteRecyclingName, 1)
-                            (SynthesisName, 4)
-                            (DestructionName, 4)
-                            (CatalyticSynthesisName, 256)
-                            (CatalyticDestructionName, 256)
-                            (LigationName, 39)
-                            (CatalyticLigationName, 2496)
-                            (SedimentationDirectName, 7056)
-                            (SedimentationAllName, 4)
-                            (RacemizationName, 4)
-                            (CatalyticRacemizationName, 256)
-                        ]
+                            }
 
-                    allReactions =
-                        [
+                        funcParams = 
+                            {
+                                getTotals = getTotals
+                                getTotalSubst = getTotalSubst
+                                getDerivative = update
+                            }
 
-                        ]
-                }
+                    }
 
-            funcParams =
-                {
-                    getTotals = getTotals
-                    getTotalSubst = getTotalSubst
-                    getDerivative = update
-                }
-        }
 

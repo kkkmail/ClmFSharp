@@ -24,8 +24,6 @@ module ClmModel =
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
         let rrp = { rateParams = modelParams.reactionRateModelParams }
-        let rateProvider = ReactionRateProvider ( rrp, modelParams.numberOfAminoAcids)
-        //let allParamsCode = rrp.toParamFSharpCode
 
         let si =
             {
@@ -34,6 +32,9 @@ module ClmModel =
                 sedDirInfo = SedDirInfo.defaultValue
             }
             |> SubstInfo.create
+
+        let rateProvider = ReactionRateProvider (rrp, si)
+
 
         let bf = RateGenerationData.create rnd generationType rateProvider si
 

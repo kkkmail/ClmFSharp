@@ -72,7 +72,7 @@ module CalculationData =
             ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
             racemCatalysts : list<RacemizationCatalyst>
 
-            sedDirReagents : list<SedDirReagent>
+            sedDirReagents : Map<AminoAcid, list<SedDirReagent>>
             sedDirAgents : list<SedDirAgent>
 
             allChains : list<list<ChiralAminoAcid>>
@@ -86,6 +86,7 @@ module CalculationData =
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids p.numberOfAminoAcids
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
             let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
+            let aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
 
             let allSubst =
                     Substance.allSimple
@@ -94,9 +95,18 @@ module CalculationData =
                     @
                     (peptides |> List.map (fun p -> PeptideChain p))
 
+            let reagents =
+                allChains
+                |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
+                |> List.map (fun e -> SedDirReagent e)
+
+            let simReagents a =
+                reagents
+                |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
+
             {
                 infoParam = p
-                aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
+                aminoAcids = aminoAcids
                 chiralAminoAcids = chiralAminoAcids
                 peptides = peptides
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
@@ -113,9 +123,9 @@ module CalculationData =
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 
                 sedDirReagents =
-                    allChains
-                    |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
-                    |> List.map (fun e -> SedDirReagent e)
+                    aminoAcids
+                    |> List.map (fun a -> (a, simReagents a))
+                    |> Map.ofList
 
                 sedDirAgents =
                     allChains

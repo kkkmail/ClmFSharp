@@ -31,7 +31,7 @@ module Defaults_001_000 =
         let sedDirRndParam = (Some 0.0000000001, 10_000.0)
         //let sedDirRndParam = (Some 0.1, 10_000.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
-        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.0010)
+        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.10)
         //===========================================================
         let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================

@@ -295,7 +295,7 @@ module ReactionRateModels =
         {
             sedDirSimParam : SedDirSimilarityParam
             aminoAcids : list<AminoAcid>
-            reagents : list<SedDirReagent>
+            reagents : Map<AminoAcid, list<SedDirReagent>>
             sedDirModel : SedimentationDirectRandomModel
         }
 
@@ -311,14 +311,11 @@ module ReactionRateModels =
             let related = calculateSedDirRates { i.sedDirRatesInfo with sedFormingSubst = s; sedDirAgent = c; eeParams = ee }
             updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
 
-        let simReagents a =
-            i.reagents
-            |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
-
         match cr.forwardRate with
         | None ->
             i.aminoAcids
-            |> List.map (fun a -> simReagents a)
+            |> List.map (fun a -> i.reagents.[a])
+            //|> List.choose id
             |> List.concat
             |> List.map (fun e -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent SedDirRatesEeParam.defaultValue)
             |> ignore
@@ -340,7 +337,9 @@ module ReactionRateModels =
                 | false -> SedDirRatesEeParam.defaultValue
 
             i.aminoAcids
-            |> List.map (fun a -> simReagents a, i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
+            |> List.map (fun a -> i.reagents.[a], i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
+            //|> List.map (fun (e, b) -> e |> Option.bind (fun x -> Some (x, b)))
+            //|> List.choose id
             |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
             |> List.concat
             |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))

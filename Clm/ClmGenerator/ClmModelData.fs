@@ -160,17 +160,17 @@ module ClmModelData =
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
         static member create rnd rateProvider (si : SubstInfo) =
-            let sedDirPairs = generatePairs rnd si.sedDirInfo rateProvider
+            let generatePairs x = generatePairs rnd x rateProvider
 
             {
                 commonData =
                     {
                         substInfo = si
-                        catSynthPairs = generatePairs rnd si.catSynthInfo rateProvider
-                        catDestrPairs = generatePairs rnd si.catDestrInfo rateProvider
-                        catLigPairs = generatePairs rnd si.catLigInfo rateProvider
-                        catRacemPairs = generatePairs rnd si.catRacemInfo rateProvider
-                        sedDirPairs = sedDirPairs
+                        catSynthPairs = generatePairs si.catSynthInfo
+                        catDestrPairs = generatePairs si.catDestrInfo
+                        catLigPairs = generatePairs si.catLigInfo
+                        catRacemPairs = generatePairs si.catRacemInfo
+                        sedDirPairs = generatePairs si.sedDirInfo
                     }
             }
 

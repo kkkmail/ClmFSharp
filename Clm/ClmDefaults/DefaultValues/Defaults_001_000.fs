@@ -27,11 +27,13 @@ module Defaults_001_000 =
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
         //===========================================================
-        //let sedDirRndParam = (Some 0.00001, 10_000.0)
-        let sedDirRndParam = (Some 0.0000000001, 10_000.0)
-        //let sedDirRndParam = (Some 0.1, 10_000.0)
+        // For n = 10
+        //let sedDirRndParam = (Some 0.0001, 10_000.0)
+
+        // For n = 20
+        let sedDirRndParam = (Some 0.00001, 10_000.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
-        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.10)
+        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
         //===========================================================
         let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================
@@ -42,25 +44,25 @@ module Defaults_001_000 =
         //===========================================================
         let rates =
             [
-                ////foodParam
-                ////wasteParam
-                //wasteRecyclingParam
+                //foodParam
+                //wasteParam
+                wasteRecyclingParam
 
-                //synthParam |> SynthesisRateParam
-                ////catSynthParam
+                synthParam |> SynthesisRateParam
+                //catSynthParam
 
-                //destrParam |> DestructionRateParam
-                //catDestrParam
+                destrParam |> DestructionRateParam
+                catDestrParam
 
-                //ligParam |> LigationRateParam
-                ////catLigParam
+                ligParam |> LigationRateParam
+                //catLigParam
 
                 sedDirParam
 
-                ////sedAllParam
+                //sedAllParam
 
-                ////racemParam |> RacemizationRateParam
-                ////catRacemParam
+                //racemParam |> RacemizationRateParam
+                //catRacemParam
             ]
         //===========================================================
 

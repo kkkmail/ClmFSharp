@@ -322,9 +322,14 @@ module ReactionRateModels =
         | Some (ReactionRate a) ->
             let cre = re |> i.sedDirRatesInfo.getBaseRates
 
+            let m =
+                match i.sedDirRatesInfo.eeParams.sedDirRateMultiplierDistr.value with
+                | Some v -> v.mean
+                | None -> 1.0
+
             let rateMult =
                 match cre.forwardRate with
-                | Some (ReactionRate b) ->(a + b) / 2.0
+                | Some (ReactionRate b) ->(a + b) / 2.0 / m
                 | _ -> failwith "calculateSedDirSimRates::calculateCatRates::FUBAR #1..."
 
             let getEeParams d =

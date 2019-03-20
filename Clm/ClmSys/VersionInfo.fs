@@ -19,13 +19,13 @@ module VersionInfo =
     /// Update major version, e.g. "*.0.0.0", when the changes are completely incompatible with previous version.
     ///     Subsequently, it is not possible to update affected files at all (due to lack of information) and / or without extreme efforts.
     [<Literal>]
-    let FileStructureVersionNumber = "2.0.1.0"
+    let FileStructureVersionNumber = "2.1.0.0"
 
 
     /// This is a version of Code Generator / Runner / Plotter.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "2.0.1.0"
+    let VersionNumber = "2.1.0.0"
 
 
     [<Literal>]

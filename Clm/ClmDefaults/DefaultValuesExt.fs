@@ -9,6 +9,7 @@ module DefaultValuesExt =
 
     type ClmDefaultValue =
         {
+            defaultSetIndex : int
             modelCommandLineParams : list<ModelCommandLineParam>
             defaultRateParams : ReactionRateProviderParams
             description : string option
@@ -27,6 +28,7 @@ module DefaultValuesExt =
 
     let defaultRateMultiplierDistr threshold mult =
         Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None } |> RateMultDistr
+
 
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
@@ -179,13 +181,34 @@ module DefaultValuesExt =
 
         static member defaultSedDirRndParamImpl (threshold, mult) =
             {
-                sedimentationDirectDistribution = Distribution.createTriangular { threshold = Some threshold; scale = None; shift = None }
+                sedDirRatesEeParam =
+                    {
+                        sedDirRateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        eeForwardDistribution = defaultEeDistribution |> Some
+                    }
+                sedDirDistribution = Distribution.createTriangular { threshold = threshold; scale = None; shift = None }
                 forwardScale = Some mult
             }
 
         static member defaultSedDirRndParam (threshold, mult) =
             ReactionRateProviderParams.defaultSedDirRndParamImpl (threshold, mult)
             |> SedDirRndParam
+            |> SedimentationDirectRateParam
+
+        static member defaultSedDirSimParamImpl (threshold, mult) simThreshold =
+            {
+                sedDirParam = ReactionRateProviderParams.defaultSedDirRndParamImpl (threshold, mult)
+                sedDirSimParam =
+                    {
+                        sedDirSimBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultSedDirSimParam (threshold, mult) simThreshold =
+            ReactionRateProviderParams.defaultSedDirSimParamImpl (threshold, mult) simThreshold
+            |> SedDirSimParam
             |> SedimentationDirectRateParam
 
         static member defaultSedAllRndParamImpl mult =

@@ -6,6 +6,8 @@ open FSharp.Collections
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.ReactionTypes
+
 
 module ReactionRateFunctions =
 
@@ -21,6 +23,9 @@ module ReactionRateFunctions =
         (getEnantiomer : 'R -> 'R)
         (primary : RateData)
         (r : 'R) =
+
+        if d.Count > 0 && (d.Count % 1_000_000) = 0
+        then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.Count (typedefof<'R>)
 
         let enantiomer = getEnantiomer r
         if d.ContainsKey r |> not then d.Add(r, primary)
@@ -104,7 +109,6 @@ module ReactionRateFunctions =
             }
 
 
-
     let calculateSimRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
@@ -150,6 +154,59 @@ module ReactionRateFunctions =
             i.aminoAcids
             |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined i.rnd)
             |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
+            |> ignore
+
+        cr
+
+
+    let calculateSedDirSimRates (i : SedDirRatesSimInfo) =
+        let r = (i.sedDirRatesInfo.sedFormingSubst, i.sedDirRatesInfo.sedDirAgent) |> SedimentationDirectReaction
+        let re = (i.sedDirRatesInfo.sedFormingSubst, i.sedDirRatesInfo.sedDirAgent.enantiomer) |> SedimentationDirectReaction
+
+        let cr = i.sedDirRatesInfo.getBaseRates r
+
+        let calculateSedDirRates s c ee =
+            let reaction = (s, c) |> SedimentationDirectReaction
+            let related = calculateSedDirRates { i.sedDirRatesInfo with sedFormingSubst = s; sedDirAgent = c; eeParams = ee }
+            updateRelatedReactions i.rateDictionary (fun e -> e.enantiomer) reaction related
+
+        match cr.forwardRate with
+        | None ->
+            i.aminoAcids
+            |> List.map (fun a -> i.reagents.[a])
+            //|> List.choose id
+            |> List.concat
+            |> List.map (fun e -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent SedDirRatesEeParam.defaultValue)
+            |> ignore
+        | Some (ReactionRate a) ->
+            let cre = re |> i.sedDirRatesInfo.getBaseRates
+
+            let m =
+                match i.sedDirRatesInfo.eeParams.sedDirRateMultiplierDistr.value with
+                | Some v -> v.mean
+                | None -> 1.0
+
+            let rateMult =
+                match cre.forwardRate with
+                | Some (ReactionRate b) ->(a + b) / 2.0 / m
+                | _ -> failwith "calculateSedDirSimRates::calculateCatRates::FUBAR #1..."
+
+            let getEeParams d =
+                match d with
+                | true ->
+                    {
+                        sedDirRateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
+                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                    }
+                | false -> SedDirRatesEeParam.defaultValue
+
+            i.aminoAcids
+            |> List.map (fun a -> i.reagents.[a], i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
+            //|> List.map (fun (e, b) -> e |> Option.bind (fun x -> Some (x, b)))
+            //|> List.choose id
+            |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
+            |> List.concat
+            |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))
             |> ignore
 
         cr

@@ -24,9 +24,10 @@ let cgUpdate = update
 printfn "Trying to load..."
 let modelDataId = cgModelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 let mdo = tryLoadModelData modelDataId clmConnectionString
+printfn ".. loaded."
 
 let rnd = new Random()
-let x = [| for _ in 1..cgModelDataParamsWithExtraData.regularParams.allSubst.Length -> rnd.NextDouble() |]
+let x = [| for _ in 1..cgModelDataParamsWithExtraData.regularParams.allSubstData.allSubst.Length -> rnd.NextDouble() |]
 
 match mdo with
 | Some md ->
@@ -47,7 +48,7 @@ match mdo with
 
     let cgGetTotals = cgGetTotals x
     let mdGetTotals = mdGetTotals x
-    let diffTotals = 
+    let diffTotals =
         Array.zip cgGetTotals mdGetTotals
         |> Array.map(fun ((a1, b1), (a2, b2)) -> (a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2))
         |> Array.sum

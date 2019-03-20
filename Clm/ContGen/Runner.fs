@@ -199,7 +199,7 @@ module Runner =
         r.generate
 
 
-    let saveDefaults connectionString (d, i) n m =
+    let saveDefaults connectionString d n m =
         truncateAllParams connectionString
-        let p = AllParams.getDefaultValue d n m i
+        let p = AllParams.getDefaultValue d n m
         saveAllParams p connectionString

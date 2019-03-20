@@ -3,6 +3,7 @@
 open System.Collections.Generic
 open FSharp.Collections
 
+open Clm.Distributions
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
@@ -273,7 +274,7 @@ module ReactionRateModels =
             | CatDestrSimModel m -> m.getAllRates()
 
         static member create p =
-            match p with 
+            match p with
             | CatDestrRndParamWithModel q -> CatalyticDestructionRandomModel q |> CatDestrRndModel
             | CatDestrSimParamWithModel q -> CatalyticDestructionSimilarModel q |> CatDestrSimModel
 
@@ -284,31 +285,76 @@ module ReactionRateModels =
         let calculateRates rnd t _ =
             let k =
                 match t with
-                | BruteForce -> p.sedimentationDirectDistribution.nextDoubleOpt rnd
-                | RandomChoice -> p.sedimentationDirectDistribution.nextDouble rnd |> Some
+                | RandomChoice -> p.sedDirDistribution.nextDouble rnd |> Some
             getForwardRates (p.forwardScale, k)
 
         member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
 
 
+    type SedimentationDirectSimilarParamWithModel =
+        {
+            sedDirSimParam : SedDirSimilarityParam
+            aminoAcids : list<AminoAcid>
+            reagents : Map<AminoAcid, list<SedDirReagent>>
+            sedDirModel : SedimentationDirectRandomModel
+        }
+
+
+    type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =
+        inherit RateModel<SedimentationDirectSimilarParamWithModel, SedimentationDirectReaction>(p)
+
+        let calculateSimRatesImpl rnd t (SedimentationDirectReaction (s, c)) =
+            {
+                sedDirRatesInfo =
+                    {
+                        sedFormingSubst = s
+                        sedDirAgent = c
+                        getBaseRates = p.sedDirModel.getRates rnd t
+                        eeParams = p.sedDirModel.inputParams.sedDirRatesEeParam
+                        rateGenerationType = t
+                        rnd = rnd
+                    }
+
+                aminoAcids = p.aminoAcids
+                reagents = p.reagents
+                simParams = p.sedDirSimParam
+                rateDictionary = p.sedDirModel.rateDictionary
+            }
+            |> calculateSedDirSimRates
+
+        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member __.inputParams = p
+        member __.getAllRates() = getAllRatesImpl p.sedDirModel.rateDictionary
+
+
+    type SedimentationDirectParamWithModel =
+        | SedDirRndParamWithModel of SedimentationDirectRandomParam
+        | SedDiSimParamWithModel of SedimentationDirectSimilarParamWithModel
+
+
     type SedimentationDirectModel =
         | SedDirRndModel of SedimentationDirectRandomModel
+        | SedDirSimModel of SedimentationDirectSimilarModel
 
         member model.getRates rnd t r =
             match model with
             | SedDirRndModel m -> m.getRates rnd t r
+            | SedDirSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
-            | SedDirRndModel m -> m.inputParams |> SedDirRndParam
+            | SedDirRndModel m -> m.inputParams |> SedDirRndParamWithModel
+            | SedDirSimModel m -> m.inputParams |> SedDiSimParamWithModel
 
         member model.getAllRates() =
             match model with
             | SedDirRndModel m -> m.getAllRates()
+            | SedDirSimModel m -> m.getAllRates()
 
         static member create p =
             match p with 
-            | SedDirRndParam q -> SedimentationDirectRandomModel q |> SedDirRndModel
+            | SedDirRndParamWithModel q -> SedimentationDirectRandomModel q |> SedDirRndModel
+            | SedDiSimParamWithModel q -> SedimentationDirectSimilarModel q |> SedDirSimModel
 
 
     type SedimentationAllRandomModel (p : SedimentationAllRandomParam) =

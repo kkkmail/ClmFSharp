@@ -4,14 +4,14 @@ open FSharp.Collections
 
 open Clm.Distributions
 open Clm.ReactionTypes
+open Clm.Substances
 
 module ReactionRates =
+    open System.Collections.Generic
 
     /// Specifies how to generate rates.
-    /// BruteForce checks each reaction and use threshold to determine if the rates should be assigned.
     /// RandomChoice first randomly determine the reactions with non-zero rates and then gets these rates (without using threshold).
     type RateGenerationType =
-        | BruteForce
         | RandomChoice
 
 
@@ -96,7 +96,7 @@ module ReactionRates =
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
     /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
     /// If sf and sb are forward and backward rates of not catalyzed reaction, then
-    /// total forward and backward multiplers due to racemic mixture of catalysts must be the equal:
+    /// total forward and backward multiplers due to racemic mixture of catalysts must be equal:
     /// kf + kfe = kb + kbe, where
     ///     kf -  is forward  multipler for a catalyst C
     ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
@@ -108,7 +108,6 @@ module ReactionRates =
         let rf, rb, rfe, rbe =
             let k =
                 match i.rateGenerationType with
-                | BruteForce -> i.eeParams.rateMultiplierDistr.nextDoubleOpt i.rnd
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
 
             match k, i.eeParams.eeForwardDistribution with
@@ -117,7 +116,7 @@ module ReactionRates =
                 let fEe = df.nextDouble i.rnd
 
                 let bEe =
-                    match i.eeParams.eeBackwardDistribution with 
+                    match i.eeParams.eeBackwardDistribution with
                     | Some d -> d.nextDouble i.rnd
                     | None -> fEe
 
@@ -234,15 +233,98 @@ module ReactionRates =
         | CatDestrSimParam of CatalyticDestructionSimilarParam
 
 
+    type SedDirRatesEeParam =
+        {
+            sedDirRateMultiplierDistr : RateMultiplierDistribution
+            eeForwardDistribution : EeDistribution option
+        }
+
+        static member defaultValue =
+            {
+                sedDirRateMultiplierDistr = NoneRateMult
+                eeForwardDistribution = None
+            }
+
+
     type SedimentationDirectRandomParam =
         {
-            sedimentationDirectDistribution : Distribution
+            sedDirRatesEeParam : SedDirRatesEeParam
+            sedDirDistribution : Distribution
             forwardScale : double option
+        }
+
+
+    type SedDirRatesInfo =
+        {
+            sedFormingSubst : SedDirReagent
+            sedDirAgent : SedDirAgent
+            getBaseRates : SedimentationDirectReaction -> RateData
+            eeParams : SedDirRatesEeParam
+            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
+
+
+    type SedDirSimilarityParam =
+        {
+            sedDirSimBaseDistribution : Distribution
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
+            getForwardEeDistr : EeDistributionGetter
+        }
+
+
+    type SedDirRatesSimInfo =
+        {
+            sedDirRatesInfo : SedDirRatesInfo
+
+            aminoAcids : list<AminoAcid>
+            reagents : Map<AminoAcid, list<SedDirReagent>>
+            simParams : SedDirSimilarityParam
+            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
+        }
+
+
+    type SedimentationDirectSimilarParam =
+        {
+            sedDirParam : SedimentationDirectRandomParam
+            sedDirSimParam : SedDirSimilarityParam
+        }
+
+
+    let calculateSedDirRates (i : SedDirRatesInfo) =
+        let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
+        let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
+
+        let rf, rfe =
+            let k =
+                match i.rateGenerationType with
+                | RandomChoice -> i.eeParams.sedDirRateMultiplierDistr.nextDouble i.rnd
+
+            match k, i.eeParams.eeForwardDistribution with
+            | Some k0, Some df ->
+                let s0 = i.getBaseRates reaction
+                let fEe = df.nextDouble i.rnd
+
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+
+                let (rf, rfe) =
+                    match s0.forwardRate with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rfe)
+            | _ -> (None, None)
+
+        {
+            primary = { forwardRate = rf; backwardRate = None }
+            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = None } } ]
         }
 
 
     type SedimentationDirectParam =
         | SedDirRndParam of SedimentationDirectRandomParam
+        | SedDirSimParam of SedimentationDirectSimilarParam
 
 
     type SedimentationAllRandomParam =
@@ -357,6 +439,9 @@ module ReactionRates =
         | CatalyticRacemizationRateParam of CatalyticRacemizationParam
 
 
+        /// TODO kk:20190317 - The dependencies MUST be incorporated at lower level so that to make it compiler's job to check them.
+        /// Otherwise, if dependency is forgotten, it becomes hard to trace that bug.
+        /// Essentially it must be IMPOSSIBLE to write a code with the dependency and don't "declare" it upfront. Currently it is possible.
         member rm.dependsOn =
             match rm with
             | FoodCreationRateParam _ -> []
@@ -373,10 +458,13 @@ module ReactionRates =
                 | CatDestrRndParam m -> [ m.destructionParam |> DestructionRateParam ]
                 | CatDestrSimParam m -> [ m.catDestrParam |> CatDestrRndParam |> CatalyticDestructionRateParam ]
             | LigationRateParam _ -> []
-            | CatalyticLigationRateParam v -> 
+            | CatalyticLigationRateParam v ->
                 match v with
                 | CatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
-            | SedimentationDirectRateParam _ -> []
+            | SedimentationDirectRateParam v ->
+                match v with
+                | SedDirRndParam _ -> []
+                | SedDirSimParam m -> [ m.sedDirParam |> SedDirRndParam |> SedimentationDirectRateParam ]
             | SedimentationAllRateParam _ -> []
             | RacemizationRateParam _ -> []
             | CatalyticRacemizationRateParam v ->
@@ -434,7 +522,7 @@ module ReactionRates =
         member p.tryFindRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | RacemizationRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateParam m -> Some m | _ -> None)
 
-        member p.allParams =
+        member p.allParams() =
             let prim = p.rateParams |> Set.ofList
             let dep = Set.difference (p.rateParams |> List.map (fun e -> allDep e []) |> List.concat |> Set.ofList) prim
 

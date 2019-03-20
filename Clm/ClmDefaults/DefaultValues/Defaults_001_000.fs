@@ -4,7 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_002 =
+module Defaults_001_000 =
+
+    let defaultSetIndex = 001_000
 
     let defaultRateParams =
         //===========================================================
@@ -18,14 +20,21 @@ module Defaults_002 =
         let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.3)
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
-        let catDestrRndParam = (destrParam, (Some 0.000_015), 100_000.0)
+        let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam
         let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.20)
         //===========================================================
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
         //===========================================================
-        let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam (0.00001, 10_000.0)
+        // For n = 10
+        //let sedDirRndParam = (Some 0.0001, 10_000.0)
+
+        // For n = 20
+        let sedDirRndParam = (Some 0.00001, 10_000.0)
+        //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
+        let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
+        //===========================================================
         let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================
         let racemParam = ReactionRateProviderParams.defaultRacemRndParamImpl 0.001
@@ -48,7 +57,8 @@ module Defaults_002 =
                 ligParam |> LigationRateParam
                 //catLigParam
 
-                //sedDirParam
+                sedDirParam
+
                 //sedAllParam
 
                 //racemParam |> RacemizationRateParam
@@ -63,6 +73,8 @@ module Defaults_002 =
 
     let defaultValue =
         {
+            defaultSetIndex = defaultSetIndex
+
             modelCommandLineParams =
                 [
                     {

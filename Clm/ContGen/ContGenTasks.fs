@@ -97,18 +97,23 @@ module ContGenTasks =
             | Some n -> MaxPeptideLength.tryCreate n
             | None -> MaxPeptideLength.defaultValue |> Some
 
-        let i =
-            match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
-            | Some i ->
-                if i >= 0 && i < AllDefaults.defaultValues.Length then Some i
-                else None
-            | None -> Some 0
+        let i = p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None)
+            //match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
+            //| Some i ->
+            //    if i >= 0 && i < AllDefaults.defaultValues.Length then Some i
+            //    else None
+            //| None -> Some 0
 
         match i, n, m with
         | Some i, Some n, Some m ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
-            saveDefaults clmConnectionString (AllDefaults.getDefaultValues i) n m |> ignore
-            CompletedSuccessfully
+            match AllDefaults.tryGetDefaultValues i with
+            | Some d ->
+                saveDefaults clmConnectionString d n m |> ignore
+                CompletedSuccessfully
+            | None ->
+                printfn "updateParameters: Cannot find data for default set index %A." i
+                InvalidCommandLineArgs
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
             InvalidCommandLineArgs

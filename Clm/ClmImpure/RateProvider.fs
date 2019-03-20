@@ -5,14 +5,18 @@ open FSharp.Collections
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
+open Clm.CalculationData
 
 open ClmImpure.ReactionRateModels
 open ClmImpure.ReactionRateModelsExt
 
 module RateProvider =
 
-    type ReactionRateProvider (p: ReactionRateProviderParams, n : NumberOfAminoAcids) =
-        let allModels = ReactionRateModel.createAll p.allParams n
+    type ReactionRateProvider (p: ReactionRateProviderParams, si : SubstInfo) =
+        let allModels = 
+            let x = ReactionRateModel.createAll (p.allParams()) si
+            x
+
         let tryPick getter = allModels |> List.tryPick getter
 
         let getRatesImpl rnd t a =

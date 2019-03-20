@@ -201,7 +201,7 @@ module Distributions =
         member __.next (rnd : RandomValueGetter) = rnd.next()
         member __.nextN (rnd : RandomValueGetter) n = rnd.nextN n
 
-        member d.successNumber (rnd : RandomValueGetter) noOfTries =
+        member d.successNumber (rnd : RandomValueGetter) (noOfTries : int64) =
             match d.value.distributionParams.threshold with
             | Some p ->
                 let mean = 1.0
@@ -212,8 +212,8 @@ module Distributions =
 
                 let sn = getGausssian rnd.nextDouble m s
                 printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
-                min (max 0 (int sn)) noOfTries
-            | None -> noOfTries
+                min (max 0L (int64 sn)) noOfTries |> int
+            | None -> noOfTries |> int
 
         static member createDelta p = { distributionType = Delta; distributionParams = p } |> Distribution
         static member createBiDelta p = { distributionType = BiDelta; distributionParams = p } |> Distribution

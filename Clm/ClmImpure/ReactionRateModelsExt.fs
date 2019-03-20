@@ -3,6 +3,7 @@
 open Clm.Substances
 open Clm.ReactionRates
 open Clm.ReactionRatesExt
+open Clm.CalculationData
 
 open ClmImpure.ReactionRateModels
 
@@ -86,12 +87,30 @@ module ReactionRateModelsExt =
 
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
-            | SedimentationDirectRateModel d -> Some d
+            | SedimentationDirectRateModel (SedDirRndModel d) -> Some d
             | _ -> None
-
 
         static member tryCreate (p, m) =
             tryCreateModel SedimentationDirectRandomParam.paramGetter (fun d -> d |> SedimentationDirectRandomModel |> SedDirRndModel |> SedimentationDirectRateModel) (p, m)
+
+
+    type SedimentationDirectSimilarModel
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | SedimentationDirectRateParam (SedDirSimParam d) -> Some (p.usage, d)
+            | _ -> None
+
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | SedimentationDirectRateModel (SedDirSimModel d) -> Some d
+            | _ -> None
+
+
+        static member tryCreate (a, r) (p, m) =
+            let creator b (d : SedimentationDirectSimilarParam) = { sedDirModel = b; aminoAcids = a; sedDirSimParam = d.sedDirSimParam; reagents = r } |> SedimentationDirectSimilarModel |> SedDirSimModel |> SedimentationDirectRateModel
+            tryCreateModelWithBase SedimentationDirectSimilarModel.paramGetter creator SedimentationDirectRandomModel.modelGetter SedimentationDirectRandomModel.tryCreate (p, m)
 
 
     type SedimentationDirectModel
@@ -102,7 +121,10 @@ module ReactionRateModelsExt =
             | SedimentationDirectRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (p, m) = (p, m) |> SedimentationDirectRandomModel.tryCreate
+        static member tryCreate (si : SubstInfo) (p, m) =
+            (p, m)
+            |> SedimentationDirectRandomModel.tryCreate
+            |> SedimentationDirectSimilarModel.tryCreate (si.aminoAcids, si.sedDirReagents)
 
 
     type SedimentationAllRandomModel
@@ -194,10 +216,10 @@ module ReactionRateModelsExt =
             | CatalyticSynthesisRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate a (p, m) =
+        static member tryCreate (si : SubstInfo) (p, m) =
             (p, m)
             |> CatalyticSynthesisRandomModel.tryCreate
-            |> CatalyticSynthesisSimilarModel.tryCreate a
+            |> CatalyticSynthesisSimilarModel.tryCreate si.aminoAcids
 
 
     type DestructionModel
@@ -255,10 +277,10 @@ module ReactionRateModelsExt =
             | CatalyticDestructionRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate a (p, m) =
+        static member tryCreate (si : SubstInfo) (p, m) =
             (p, m)
             |> CatalyticDestructionRandomModel.tryCreate
-            |> CatalyticDestructionSimilarModel.tryCreate a
+            |> CatalyticDestructionSimilarModel.tryCreate si.aminoAcids
 
 
     type LigationRandomModel
@@ -369,18 +391,16 @@ module ReactionRateModelsExt =
             | CatalyticRacemizationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate a (p, m) =
+        static member tryCreate (si : SubstInfo) (p, m) =
             (p, m)
-            |> CatalyticRacemizationRandomModel.tryCreate a
-            |> CatalyticRacemizationSimilarModel.tryCreate a
+            |> CatalyticRacemizationRandomModel.tryCreate si.aminoAcids
+            |> CatalyticRacemizationSimilarModel.tryCreate si.aminoAcids
 
 
     type ReactionRateModel
         with
 
-        static member createAll (p : list<ReactionRateModelParamWithUsage>) (n : NumberOfAminoAcids) =
-            let a = AminoAcid.getAminoAcids n
-
+        static member createAll (p : list<ReactionRateModelParamWithUsage>) (si : SubstInfo) =
             (
                 [
                     FoodCreationModel.tryCreate
@@ -388,14 +408,14 @@ module ReactionRateModelsExt =
                     WasteRecyclingModel.tryCreate
                     SynthesisModel.tryCreate
                     DestructionModel.tryCreate
-                    CatalyticSynthesisModel.tryCreate a
-                    CatalyticDestructionModel.tryCreate a
+                    CatalyticSynthesisModel.tryCreate si
+                    CatalyticDestructionModel.tryCreate si
                     LigationModel.tryCreate
                     CatalyticLigationModel.tryCreate
-                    SedimentationDirectModel.tryCreate
+                    SedimentationDirectModel.tryCreate si
                     SedimentationAllModel.tryCreate
                     RacemizationModel.tryCreate
-                    CatalyticRacemizationModel.tryCreate a
+                    CatalyticRacemizationModel.tryCreate si
                 ]
                 |> List.fold (fun acc r -> r acc) (p, [])
             )

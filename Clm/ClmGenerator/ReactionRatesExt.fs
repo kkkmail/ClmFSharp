@@ -74,7 +74,7 @@ module ReactionRatesExt =
         member model.primaryDistribution =
             match model with
             | SedDirRndModel m -> Some m.inputParams.sedDirDistribution
-            | SedDirSimModel m -> Some m.inputParams.sedDirSimParam.sedDirSimBaseDistribution
+            | SedDirSimModel m -> Some m.inputParams.sedDirModel.inputParams.sedDirDistribution
 
 
     type SedimentationAllModel

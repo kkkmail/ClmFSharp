@@ -22,7 +22,9 @@ module ReactionRateFunctions =
         (primary : RateData)
         (r : 'R) =
 
-        if d.Count = 1_000_000 then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.Count (typedefof<'R>)
+        if d.Count > 0 && (d.Count % 1_000_000) = 0
+        then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.Count (typedefof<'R>)
+
         let enantiomer = getEnantiomer r
         if d.ContainsKey r |> not then d.Add(r, primary)
         if d.ContainsKey enantiomer |> not then d.Add(enantiomer, primary)

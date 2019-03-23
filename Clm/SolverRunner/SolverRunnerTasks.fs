@@ -66,7 +66,13 @@ module SolverRunnerTasks =
                 // TODO kk:20190208 - This must be split into several functions.
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
                 let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
-                let n = ResponseHandler.tryCreate()
+
+                let n =
+                    match results.TryGetResult NotifyAddress with
+                    | Some address ->
+                        let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
+                        ResponseHandler.tryCreate address port
+                    | None -> None
 
                 let a = results.GetResult (UseAbundant, defaultValue = false)
                 printfn "Starting at: %A" DateTime.Now

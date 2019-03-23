@@ -6,6 +6,12 @@ open System.Text
 
 module GeneralData =
 
+    /// TODO kk:20190322 - This does not belong here and it was originally placed in ContGenServiceInfo.ServiceInfo (where is does belong).
+    /// It should be properly propagated through command line and / or other parameters...
+    [<Literal>]
+    let ContGenServiceAddress = "localhost"
+
+
     /// String.Empty is not a const.
     [<Literal>]
     let EmptyString = ""

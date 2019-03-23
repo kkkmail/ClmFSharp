@@ -4,9 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_001_000 =
+module Defaults_001_003 =
 
-    let defaultSetIndex = 001_000
+    let defaultSetIndex = 001_003
 
     let defaultRateParams =
         //===========================================================
@@ -28,10 +28,10 @@ module Defaults_001_000 =
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
         //===========================================================
         // For n = 10
-        //let sedDirRndParam = (Some 0.000_1, 100.0)
+        //let sedDirRndParam = (Some 0.000_1, 3_000.0)
 
         // For n = 20
-        let sedDirRndParam = (Some 0.000_01, 100.0)
+        let sedDirRndParam = (Some 0.000_01, 3_000.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
         let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
         //===========================================================

@@ -4,8 +4,7 @@ open ClmSys.GeneralData
 
 module ServiceInfo =
 
-    [<Literal>]
-    let ContGenServiceAddress = "localhost"
+    // TODO kk:20190322 - ContGenServiceAddress was moved into ClmSys.GeneralData. Some refactoring is needed.
 
     [<Literal>]
     let ContGenServiceName = "ContGenService"
@@ -17,7 +16,11 @@ module ServiceInfo =
     let ProgramName = "ContGenService.exe"
 
 
-    let getServiceUrl() = "tcp://" + ContGenServiceAddress + ":" + (ContGenServicePort.ToString()) + "/" + ContGenServiceName
+    let getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
+        "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
+
+
+    let getServiceUrl() = getServiceUrlImpl ContGenServiceAddress ContGenServicePort ContGenServiceName
 
 
     type TaskProgress =

@@ -150,6 +150,7 @@ module ModelParams =
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 ModelId modelDataId
+                NotifyAddress ContGenServiceAddress
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

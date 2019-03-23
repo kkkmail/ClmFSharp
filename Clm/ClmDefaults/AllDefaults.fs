@@ -12,6 +12,9 @@ module AllDefaults =
             Defaults_000_005.defaultValue
 
             Defaults_001_000.defaultValue
+            Defaults_001_001.defaultValue
+            Defaults_001_002.defaultValue
+            Defaults_001_003.defaultValue
         ]
         |> List.map (fun e -> e.defaultSetIndex, e)
         |> Map.ofList

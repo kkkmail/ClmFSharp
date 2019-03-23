@@ -17,6 +17,7 @@ module CommandLine =
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>]  ModelId of int64
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>]  NotifyAddress of string
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  NotifyPort of int
         | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-ee")>] MinUsefulEe of double
 
 
@@ -28,5 +29,6 @@ module CommandLine =
                 | TotalAmount _ -> "specify t0."
                 | UseAbundant _ -> "specify if abundant substance is used."
                 | ModelId _ -> "specify model data id to run."
-                | NotifyAddress _ -> "notify specified web address about progress."
+                | NotifyAddress _ -> "notify specified web address about progress. If value is not provided, then notificaion will not be performed."
+                | NotifyPort _ -> "notify specified port of that web address about progress. Default will be used if value is not provided."
                 | MinUsefulEe _ -> "minimum value of max ee to generate plots (we don't want to generate all plots to save space)."

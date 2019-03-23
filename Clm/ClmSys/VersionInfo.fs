@@ -25,7 +25,7 @@ module VersionInfo =
     /// This is a version of Code Generator / Runner / Plotter.
     /// It should be the same or higher than FileStructureVersionNumber.
     [<Literal>]
-    let VersionNumber = "2.1.0.0"
+    let VersionNumber = "2.1.0.1"
 
 
     [<Literal>]

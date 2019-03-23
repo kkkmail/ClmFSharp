@@ -74,6 +74,7 @@
     <Compile Include="DefaultValues\Defaults_001_000.fs" />
     <Compile Include="DefaultValues\Defaults_001_001.fs" />
     <Compile Include="DefaultValues\Defaults_001_002.fs" />
+    <Compile Include="DefaultValues\Defaults_001_003.fs" />
     <Compile Include="AllDefaults.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

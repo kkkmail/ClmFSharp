@@ -26,14 +26,14 @@ module ModelParams =
 
     type ModelInfo =
         {
-            fileStructureVersionNumber : string
+            fileStructureVersion : decimal
             versionNumber : string
             modelDataId : ModelDataId
             numberOfSubstances : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int
-            defaultSetIndex : int
+            defaultSetIndex : int64
         }
 
 
@@ -134,6 +134,25 @@ module ModelParams =
                 allSubstData = info.regularParams.allSubstData
             }
 
+    type ClmDefaultValueId =
+        | ClmDefaultValueId of int64
+
+        member this.value = let (ClmDefaultValueId v) = this in v
+
+
+    type ClmTaskId =
+        | ClmTaskId of int
+
+        member this.value = let (ClmTaskId v) = this in v
+
+
+    type ClmDefaultValue =
+        {
+            clmDefaultValueId : ClmDefaultValueId
+            defaultRateParams : ReactionRateProviderParams
+            description : string option
+        }
+
 
     type ModelCommandLineParam =
         {
@@ -189,3 +208,18 @@ module ModelParams =
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
+
+
+    type ClmTask =
+        {
+            clmTaskId : ClmTaskId
+            clmDefaultValueId : ClmDefaultValueId
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+            y0 : decimal
+            tEnd : decimal
+            useAbundant : bool
+            repeat : bool
+            completed : bool
+            createdOn : DateTime
+        }

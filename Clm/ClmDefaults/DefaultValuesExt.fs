@@ -7,25 +7,6 @@ open Clm.ModelParams
 
 module DefaultValuesExt =
 
-    type ClmDefaultValue =
-        {
-            defaultSetIndex : int
-            modelCommandLineParams : list<ModelCommandLineParam>
-            defaultRateParams : ReactionRateProviderParams
-            description : string option
-        }
-
-
-    type NumberOfAminoAcids
-        with
-        static member defaultValue = EightAminoAcids
-
-
-    type MaxPeptideLength
-        with
-        static member defaultValue = ThreeMax
-
-
     let defaultRateMultiplierDistr threshold mult =
         Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None } |> RateMultDistr
 

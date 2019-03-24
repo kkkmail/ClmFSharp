@@ -28,13 +28,13 @@ module ClmModelData =
 
     type ModelGenerationParams =
         {
-            fileStructureVersionNumber : string
+            fileStructureVersion : string
             versionNumber : string
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
-            defaultSetIndex : int
+            defaultSetIndex : int64
         }
 
 
@@ -44,22 +44,20 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
-            let rates = d.defaultRateParams
-
+        static member getDefaultValue (c : list<ModelCommandLineParam>) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
             {
                 modelGenerationParams =
                     {
-                        fileStructureVersionNumber = FileStructureVersionNumber
+                        fileStructureVersion = FileStructureVersion
                         versionNumber = VersionNumber
                         numberOfAminoAcids = numberOfAminoAcids
                         maxPeptideLength = maxPeptideLength
-                        reactionRateModelParams = rates.rateParams
+                        reactionRateModelParams = d.defaultRateParams.rateParams
                         updateFuncType = UseFunctions
                         defaultSetIndex = d.defaultSetIndex
                     }
 
-                modelCommandLineParams = d.modelCommandLineParams
+                modelCommandLineParams = c
             }
 
     let reactionShift updateFuncType =

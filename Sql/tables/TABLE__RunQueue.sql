@@ -8,6 +8,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
 		[statusId] [int] NOT NULL DEFAULT ((0)),
+		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
 	(
 		[runQueueId] ASC

@@ -28,7 +28,7 @@ let rates = ReactionRateProvider.getDefaultRateModels rnd numberOfAminoAcids
 //===========================================================
 let modelGenerationParams = 
     {
-        fileStructureVersionNumber = FileStructureVersionNumber
+        fileStructureVersion = FileStructureVersion
         versionNumber = VersionNumber
         seedValue = Some seed
         numberOfAminoAcids = numberOfAminoAcids

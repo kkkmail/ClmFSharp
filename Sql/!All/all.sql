@@ -1,17 +1,18 @@
-IF OBJECT_ID('[dbo].[AllParams]') IS NULL begin
-	print 'Creating table [dbo].[AllParams] ...'
+IF OBJECT_ID('[dbo].[ClmDefaultValue]') IS NULL begin
+	print 'Creating table [dbo].[ClmDefaultValue] ...'
 
-	CREATE TABLE [dbo].[AllParams](
-		[allParamsId] [int] NOT NULL DEFAULT (0),
-		[allParams] [nvarchar](max) NOT NULL,
-	 CONSTRAINT [PK_AllParam] PRIMARY KEY CLUSTERED 
+	CREATE TABLE [dbo].[ClmDefaultValue](
+		clmDefaultValueId [bigint] NOT NULL,
+		[defaultRateParams] [nvarchar](max) NOT NULL,
+		[description] nvarchar(2000) NULL,
+		[fileStructureVersion] money NOT NULL,
+	 CONSTRAINT [PK_ClmDefaultValue] PRIMARY KEY CLUSTERED 
 	(
-		[allParamsId] ASC
-	),
-	constraint CK_AllParam CHECK ([allParamsId] = 0)
-	)
+		clmDefaultValueId ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[AllParams] already exists ...'
+	print 'Table [dbo].[ClmDefaultValue] already exists ...'
 end
 go
 
@@ -23,8 +24,8 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 		[modelDataId] [bigint] IDENTITY(1,1) NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
-		[defaultSetIndex] [int] NOT NULL DEFAULT ((-1)),
-		[fileStructureVersion] [nvarchar](50) NOT NULL,
+		[clmDefaultValueId] [bigint] NOT NULL DEFAULT ((-1)),
+		[fileStructureVersion] money NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
 		[modelBinaryData] [varbinary](max) NOT NULL,
@@ -82,6 +83,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
 		[statusId] [int] NOT NULL DEFAULT ((0)),
+		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
 	(
 		[runQueueId] ASC
@@ -89,6 +91,32 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	) ON [PRIMARY]
 end else begin
 	print 'Table [dbo].[RunQueue] already exists ...'
+end
+go
+
+
+
+IF OBJECT_ID('[dbo].[Task]') IS NULL begin
+	print 'Creating table [dbo].[Task] ...'
+
+	CREATE TABLE [dbo].[Task](
+		[taskId] [int] IDENTITY(1,1) NOT NULL,
+		[clmDefaultValueId] [bigint] NOT NULL,
+		[numberOfAminoAcids] [int] NOT NULL,
+		[maxPeptideLength] [int] NOT NULL,
+		[y0] [money] NOT NULL,
+		[tEnd] [money] NOT NULL,
+		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
+		[repeat] [bit] NOT NULL DEFAULT ((0)),
+		[completed] [bit] NOT NULL DEFAULT ((0)),
+		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
+	 CONSTRAINT [PK_Task] PRIMARY KEY CLUSTERED 
+	(
+		[taskId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+end else begin
+	print 'Table [dbo].[Task] already exists ...'
 end
 go
 

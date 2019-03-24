@@ -420,7 +420,7 @@ module CalculationData =
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int option
-            fileStructureVersion : string
+            fileStructureVersion : decimal
             modelData : ModelAllData
-            defaultSetIndex : int
+            clmDefaultValueId : ClmDefaultValueId
         }

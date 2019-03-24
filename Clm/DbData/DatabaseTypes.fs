@@ -11,12 +11,11 @@ open Clm.Substances
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
-open Clm.Generator.ClmModelData
+open Clm.ReactionRates
 
 
 /// You must add reference to System.Configuration !
 module DatabaseTypes =
-
 
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
@@ -35,23 +34,52 @@ module DatabaseTypes =
     type ResultDataTableRow = ResultDataTable.Row
     type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
 
-    [<Literal>]
-    let AllParamsId = 0
-
-    type AllParamsTable = ClmDB.dbo.Tables.AllParams
-    type AllParamsTableRow = AllParamsTable.Row
-    type AllParamsData = SqlCommandProvider<"select * from dbo.AllParams", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateAllParamsTbl = SqlCommandProvider<"truncate table dbo.AllParams", ClmSqlProviderName, ConfigFile = AppConfigFile>
+    type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
+    type ClmDefaultValueTableRow = ClmDefaultValueTable.Row
+    type ClmDefaultValueData = SqlCommandProvider<"select * from dbo.ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateClmDefaultValueTbl = SqlCommandProvider<"truncate table dbo.ClmDefaultValue", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
     type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
 
+    type TaskTable = ClmDB.dbo.Tables.Task
+    type TaskTableRow = TaskTable.Row
+    type TaskData = SqlCommandProvider<"select * from dbo.Task where taskId = @taskId", ClmConnectionStringValue, ResultType.DataReader>
+    type TaskAllIncompleteData = SqlCommandProvider<"select * from dbo.Task where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateTaskTbl = SqlCommandProvider<"truncate table dbo.ClmDefaultValue", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
-    type AllParams
+
+
+    type ClmDefaultValue
         with
-        static member create (r : AllParamsTableRow) =
-            r.allParams |> JsonConvert.DeserializeObject<AllParams>
+        static member create (r : ClmDefaultValueTableRow) =
+            {
+                clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
+                defaultRateParams = r.defaultRateParams |> JsonConvert.DeserializeObject<ReactionRateProviderParams>
+                description = r.description
+            }
+
+
+    type ClmTask
+        with
+        static member tryCreate (r : TaskTableRow) =
+            match r.numberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.maxPeptideLength |> MaxPeptideLength.tryCreate with
+            | Some n, Some m ->
+                {
+                    clmTaskId = r.taskId |> ClmTaskId
+                    clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
+                    numberOfAminoAcids = n
+                    maxPeptideLength = m
+                    y0 = r.y0
+                    tEnd = r.tEnd
+                    useAbundant = r.useAbundant
+                    repeat = r.repeat
+                    completed = r.completed
+                    createdOn = r.createdOn
+                }
+                |> Some
+            | _ -> None
 
 
     type ModelData
@@ -67,7 +95,7 @@ module DatabaseTypes =
                     modelDataId = r.modelDataId |> ModelDataId
                     numberOfAminoAcids = numberOfAminoAcids
                     maxPeptideLength = maxPeptideLength
-                    defaultSetIndex = r.defaultSetIndex
+                    clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
                     fileStructureVersion = r.fileStructureVersion
                     seedValue = r.seedValue
 
@@ -163,40 +191,41 @@ module DatabaseTypes =
             newRow
 
 
-    let tryloadAllParams (ConnectionString connectionString) =
+    let tryloadClmDefaultValue (ClmDefaultValueId clmDefaultValueId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
-        use d = new AllParamsData(conn)
-        let t = new AllParamsTable()
-        d.Execute() |> t.Load
-
-        t.Rows
-        |> Seq.tryFind (fun e -> e.allParamsId = AllParamsId)
-        |> Option.bind (fun v -> AllParams.create v |> Some)
+        use d = new ClmDefaultValueData(conn)
+        let t = new ClmDefaultValueTable()
+        d.Execute clmDefaultValueId |> t.Load
+        t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
 
 
-    let truncateAllParams (ConnectionString connectionString) =
+    let truncateAllDefaults (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
-        use t = new TruncateAllParamsTbl(conn)
+        use t = new TruncateClmDefaultValueTbl(conn)
         t.Execute() |> ignore
 
 
-    let saveAllParams (p : AllParams) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
-
-        use cmd = new SqlCommandProvider<"
-            INSERT INTO dbo.AllParams
-                       (AllParamsId
-                       ,AllParams)
-                 VALUES
-                       (@AllParamsId
-                       ,@AllParams)
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-        cmd.Execute(AllParamsId = AllParamsId, AllParams = (p |> JsonConvert.SerializeObject))
+    //let saveAllParams (p : AllParams) (ConnectionString connectionString) =
+    //    use conn = new SqlConnection(connectionString)
+    //    openConnIfClosed conn
+    //    let connectionString = conn.ConnectionString
+    //
+    //    use cmd = new SqlCommandProvider<"
+    //        INSERT INTO dbo.DefaultSet
+    //                   (defaultSetIndex
+    //                   ,defaultSet
+    //                   ,fileStructureVersion)
+    //             VALUES
+    //                   (@defaultSetIndex
+    //                   ,@defaultSet
+    //                   ,@fileStructureVersion)
+    //    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+    //
+    //    cmd.Execute(defaultSetIndex = p.modelGenerationParams.defaultSetIndex
+    //                , defaultSet = (p.modelGenerationParams |> JsonConvert.SerializeObject)
+    //                , fileStructureVersion = p.modelGenerationParams.fileStructureVersion)
 
 
     let getNewModelDataId (ConnectionString connectionString) =
@@ -208,8 +237,8 @@ module DatabaseTypes =
             t.NewRow(
                     numberOfAminoAcids = 0,
                     maxPeptideLength = 0,
-                    fileStructureVersion = FileStructureVersionNumber,
-                    defaultSetIndex = -1,
+                    fileStructureVersion = FileStructureVersion,
+                    clmDefaultValueId = -1L,
                     seedValue = None,
                     modelDataParams = "",
                     modelBinaryData = [||],
@@ -226,7 +255,7 @@ module DatabaseTypes =
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
-        d.Execute(modelDataId = modelDataId) |> t.Load
+        d.Execute modelDataId |> t.Load
         t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind (fun v -> ModelData.tryCreate v)
 
 
@@ -239,7 +268,7 @@ module DatabaseTypes =
             UPDATE dbo.ModelData
                 SET numberOfAminoAcids = @numberOfAminoAcids
                     ,maxPeptideLength = @maxPeptideLength
-                    ,defaultSetIndex = @defaultSetIndex
+                    ,clmDefaultValueId = @clmDefaultValueId
                     ,fileStructureVersion = @fileStructureVersion
                     ,seedValue = @seedValue
                     ,modelDataParams = @modelDataParams
@@ -252,7 +281,7 @@ module DatabaseTypes =
             cmdWithBinaryData.Execute(
                 numberOfAminoAcids = m.numberOfAminoAcids.length,
                 maxPeptideLength = m.maxPeptideLength.length,
-                defaultSetIndex = m.defaultSetIndex,
+                clmDefaultValueId = m.clmDefaultValueId.value,
                 fileStructureVersion = m.fileStructureVersion,
                 seedValue = (match m.seedValue with | Some s -> s | None -> -1),
                 modelDataParams = (m.modelData.modelDataParams |> JsonConvert.SerializeObject),

@@ -40,7 +40,7 @@ module ClmModel =
 
         let modelInfo =
             {
-                fileStructureVersionNumber = modelParams.fileStructureVersionNumber
+                fileStructureVersion = modelParams.fileStructureVersion
                 versionNumber = modelParams.versionNumber
                 modelDataId = modelDataId
                 numberOfSubstances = si.allSubst.Length
@@ -409,7 +409,7 @@ module ClmModel =
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = Some seedValue
-                fileStructureVersion = modelParams.fileStructureVersionNumber
+                fileStructureVersion = modelParams.fileStructureVersion
 
                 modelData =
                     {

@@ -501,7 +501,7 @@ module FSharpCodeExt =
         with
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
-            shift + "    fileStructureVersionNumber = " + "\"" + p.fileStructureVersionNumber + "\"" + Nl +
+            shift + "    fileStructureVersion = " + "\"" + p.fileStructureVersion + "\"" + Nl +
             shift + "    versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
             shift + "    modelDataId = " + p.modelDataId.toFSharpCode + Nl +
             shift + "    numberOfSubstances = " + p.numberOfSubstances.toFSharpCode + Nl +

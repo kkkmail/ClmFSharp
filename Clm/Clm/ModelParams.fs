@@ -24,6 +24,12 @@ module ModelParams =
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
 
 
+    type ClmDefaultValueId =
+        | ClmDefaultValueId of int64
+
+        member this.value = let (ClmDefaultValueId v) = this in v
+
+
     type ModelInfo =
         {
             fileStructureVersion : decimal
@@ -33,7 +39,7 @@ module ModelParams =
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int
-            defaultSetIndex : int64
+            clmDefaultValueId : ClmDefaultValueId
         }
 
 
@@ -76,7 +82,7 @@ module ModelParams =
     type BinaryInfo =
         {
             aminoAcids : list<AminoAcid>
-            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
+            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from the binary data but is needed here and there.
             allSubstData : AllSubstData
         }
 
@@ -133,11 +139,6 @@ module ModelParams =
                 maxPeptideLength = info.regularParams.modelDataParams.modelInfo.maxPeptideLength
                 allSubstData = info.regularParams.allSubstData
             }
-
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member this.value = let (ClmDefaultValueId v) = this in v
 
 
     type ClmTaskId =

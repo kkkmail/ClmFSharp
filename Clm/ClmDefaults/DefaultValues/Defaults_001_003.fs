@@ -6,7 +6,7 @@ open ClmDefaults.DefaultValuesExt
 
 module Defaults_001_003 =
 
-    let defaultSetIndex = 001_003L
+    let clmDefaultValueId = 001_003L |> ClmDefaultValueId
     let description = None
 
     let defaultRateParams =
@@ -74,7 +74,7 @@ module Defaults_001_003 =
 
     let defaultValue =
         {
-            defaultSetIndex = defaultSetIndex
+            clmDefaultValueId = clmDefaultValueId
             defaultRateParams = defaultRateParams
             description = description
         }

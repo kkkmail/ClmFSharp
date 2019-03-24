@@ -43,12 +43,11 @@ module DatabaseTypes =
     type RunQueueTableRow = RunQueueTable.Row
     type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
 
-    type TaskTable = ClmDB.dbo.Tables.Task
-    type TaskTableRow = TaskTable.Row
-    type TaskData = SqlCommandProvider<"select * from dbo.Task where taskId = @taskId", ClmConnectionStringValue, ResultType.DataReader>
-    type TaskAllIncompleteData = SqlCommandProvider<"select * from dbo.Task where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateTaskTbl = SqlCommandProvider<"truncate table dbo.ClmDefaultValue", ClmSqlProviderName, ConfigFile = AppConfigFile>
-
+    type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
+    type ClmTaskTableRow = ClmTaskTable.Row
+    type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
     type ClmDefaultValue
@@ -63,11 +62,11 @@ module DatabaseTypes =
 
     type ClmTask
         with
-        static member tryCreate (r : TaskTableRow) =
+        static member tryCreate (r : ClmTaskTableRow) =
             match r.numberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.maxPeptideLength |> MaxPeptideLength.tryCreate with
             | Some n, Some m ->
                 {
-                    clmTaskId = r.taskId |> ClmTaskId
+                    clmTaskId = r.clmTaskId |> ClmTaskId
                     clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
                     numberOfAminoAcids = n
                     maxPeptideLength = m

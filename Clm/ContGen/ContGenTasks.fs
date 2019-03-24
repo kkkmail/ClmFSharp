@@ -4,7 +4,6 @@ open System.Threading
 open Argu
 open ClmSys.ExitErrorCodes
 open Clm.Substances
-open ClmDefaults.DefaultValuesExt
 open DbData.Configuration
 open ContGen
 open Runner

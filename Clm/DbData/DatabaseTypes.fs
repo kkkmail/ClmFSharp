@@ -26,6 +26,17 @@ module DatabaseTypes =
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
+    type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
+    type ClmDefaultValueTableRow = ClmDefaultValueTable.Row
+    type ClmDefaultValueData = SqlCommandProvider<"select * from dbo.ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateClmDefaultValueTbl = SqlCommandProvider<"truncate table dbo.ClmDefaultValue", ClmSqlProviderName, ConfigFile = AppConfigFile>
+
+    type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
+    type ClmTaskTableRow = ClmTaskTable.Row
+    type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
+    type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
+
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
     type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
@@ -34,20 +45,9 @@ module DatabaseTypes =
     type ResultDataTableRow = ResultDataTable.Row
     type ResultDataTableData = SqlCommandProvider<"select * from dbo.ResultData where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
 
-    type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
-    type ClmDefaultValueTableRow = ClmDefaultValueTable.Row
-    type ClmDefaultValueData = SqlCommandProvider<"select * from dbo.ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateClmDefaultValueTbl = SqlCommandProvider<"truncate table dbo.ClmDefaultValue", ClmSqlProviderName, ConfigFile = AppConfigFile>
-
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
     type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
-
-    type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
-    type ClmTaskTableRow = ClmTaskTable.Row
-    type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
-    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
 
     type ClmDefaultValue
@@ -190,7 +190,7 @@ module DatabaseTypes =
             newRow
 
 
-    let tryloadClmDefaultValue (ClmDefaultValueId clmDefaultValueId) (ConnectionString connectionString) =
+    let tryLoadClmDefaultValue (ClmDefaultValueId clmDefaultValueId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ClmDefaultValueData(conn)
@@ -199,7 +199,7 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
 
 
-    let truncateAllDefaults (ConnectionString connectionString) =
+    let truncateClmDefaults (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new TruncateClmDefaultValueTbl(conn)
@@ -225,6 +225,19 @@ module DatabaseTypes =
     //    cmd.Execute(defaultSetIndex = p.modelGenerationParams.defaultSetIndex
     //                , defaultSet = (p.modelGenerationParams |> JsonConvert.SerializeObject)
     //                , fileStructureVersion = p.modelGenerationParams.fileStructureVersion)
+
+
+    let tryLoadIncompleteClmTasks (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use d = new ClmTaskAllIncompleteData(conn)
+        let t = new ClmTaskTable()
+        d.Execute() |> t.Load
+
+        t.Rows
+        |> Seq.toList
+        |> List.map (fun r -> ClmTask.tryCreate r)
+        |> List.choose id
 
 
     let getNewModelDataId (ConnectionString connectionString) =

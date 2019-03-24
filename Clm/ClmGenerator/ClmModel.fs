@@ -47,7 +47,7 @@ module ClmModel =
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
-                defaultSetIndex = modelParams.defaultSetIndex
+                clmDefaultValueId = modelParams.clmDefaultValueId
             }
 
         let noOfRawReactions n = bf.noOfRawReactions n
@@ -434,7 +434,7 @@ module ClmModel =
                             }
                     }
 
-                defaultSetIndex = modelParams.defaultSetIndex
+                clmDefaultValueId = modelParams.clmDefaultValueId
             }
 
         member model.allSubstances = si.allSubst

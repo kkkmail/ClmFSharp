@@ -62,6 +62,7 @@ module DatabaseTypes =
 
     type ClmTask
         with
+
         static member tryCreate (r : ClmTaskTableRow) =
             match r.numberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.maxPeptideLength |> MaxPeptideLength.tryCreate with
             | Some n, Some m ->
@@ -79,6 +80,23 @@ module DatabaseTypes =
                 }
                 |> Some
             | _ -> None
+
+        member r.addRow (t : ClmTaskTable) =
+            let newRow =
+                t.NewRow(
+                        clmDefaultValueId = r.clmDefaultValueId.value,
+                        numberOfAminoAcids = r.numberOfAminoAcids.length,
+                        maxPeptideLength = r.maxPeptideLength.length,
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant,
+                        repeat = r.repeat,
+                        completed = r.completed,
+                        createdOn = DateTime.Now
+                        )
+
+            t.Rows.Add newRow
+            newRow
 
 
     type ModelData
@@ -238,6 +256,22 @@ module DatabaseTypes =
         |> Seq.toList
         |> List.map (fun r -> ClmTask.tryCreate r)
         |> List.choose id
+
+
+    let addClmTask (c : ClmTask) (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new ClmTaskTable()
+        let row = c.addRow t
+        t.Update conn |> ignore
+        row.clmTaskId |> ClmTaskId
+
+
+    let truncateClmTasks (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new TruncateClmTaskTbl(conn)
+        t.Execute() |> ignore
 
 
     let getNewModelDataId (ConnectionString connectionString) =

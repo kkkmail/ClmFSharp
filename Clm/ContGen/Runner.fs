@@ -197,9 +197,3 @@ module Runner =
     let createOneTimeGenerator p =
         let r = ModelRunner p
         r.generate
-
-
-    let saveDefaults connectionString d n m =
-        truncateAllParams connectionString
-        let p = AllParams.getDefaultValue d n m
-        saveAllParams p connectionString

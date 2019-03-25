@@ -217,10 +217,7 @@ module ModelParams =
             clmDefaultValueId : ClmDefaultValueId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
-            y0 : decimal
-            tEnd : decimal
-            useAbundant : bool
-            repeat : bool
-            completed : bool
+            commandLineParam : ModelCommandLineParam
+            numberOfRepetitions : int option
             createdOn : DateTime
         }

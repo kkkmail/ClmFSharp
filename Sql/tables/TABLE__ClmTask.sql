@@ -9,8 +9,7 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[repeat] [bit] NOT NULL DEFAULT ((0)),
-		[completed] [bit] NOT NULL DEFAULT ((0)),
+		[numberOfRepetitions] [int] NULL DEFAULT ((1)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_Task] PRIMARY KEY CLUSTERED 
 	(

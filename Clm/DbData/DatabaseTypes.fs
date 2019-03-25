@@ -34,7 +34,7 @@ module DatabaseTypes =
     type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
     type ClmTaskTableRow = ClmTaskTable.Row
     type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
-    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where completed = 0", ClmConnectionStringValue, ResultType.DataReader>
+    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where numberOfRepetitions is null or numberOfRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
     type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
@@ -74,8 +74,7 @@ module DatabaseTypes =
                     y0 = r.y0
                     tEnd = r.tEnd
                     useAbundant = r.useAbundant
-                    repeat = r.repeat
-                    completed = r.completed
+                    numberOfRepetitions = r.numberOfRepetitions
                     createdOn = r.createdOn
                 }
                 |> Some
@@ -90,8 +89,7 @@ module DatabaseTypes =
                         y0 = r.y0,
                         tEnd = r.tEnd,
                         useAbundant = r.useAbundant,
-                        repeat = r.repeat,
-                        completed = r.completed,
+                        numberOfRepetitions = r.numberOfRepetitions,
                         createdOn = DateTime.Now
                         )
 

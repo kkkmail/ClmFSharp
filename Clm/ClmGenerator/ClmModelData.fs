@@ -44,20 +44,21 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue (c : list<ModelCommandLineParam>) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
+        //static member getDefaultValue (c : list<ModelCommandLineParam>) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
+        static member getDefaultValue (c : ClmTask) (d : ClmDefaultValue) =
             {
                 modelGenerationParams =
                     {
                         fileStructureVersion = FileStructureVersion
                         versionNumber = VersionNumber
-                        numberOfAminoAcids = numberOfAminoAcids
-                        maxPeptideLength = maxPeptideLength
+                        numberOfAminoAcids = c.numberOfAminoAcids
+                        maxPeptideLength = c.maxPeptideLength
                         reactionRateModelParams = d.defaultRateParams.rateParams
                         updateFuncType = UseFunctions
                         clmDefaultValueId = d.clmDefaultValueId
                     }
 
-                modelCommandLineParams = c
+                modelCommandLineParams = [ c.commandLineParam ]
             }
 
     let reactionShift updateFuncType =

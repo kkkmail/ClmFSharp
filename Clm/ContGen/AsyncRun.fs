@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
+open Clm.ModelParams
 open ClmSys.ExitErrorCodes
 open ContGenServiceInfo.ServiceInfo
 open System.Threading
@@ -73,7 +74,7 @@ module AsyncRun =
 
     type GeneratorInfo =
         {
-            generate : unit -> list<RunInfo>
+            generate : ClmTask -> list<RunInfo>
             getQueue : unit -> list<RunInfo>
             removeFromQueue : RunQueueId -> unit
             maxQueueLength : int

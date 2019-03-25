@@ -71,9 +71,12 @@ module DatabaseTypes =
                     clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
                     numberOfAminoAcids = n
                     maxPeptideLength = m
-                    y0 = r.y0
-                    tEnd = r.tEnd
-                    useAbundant = r.useAbundant
+                    commandLineParam =
+                        {
+                            y0 = r.y0
+                            tEnd = r.tEnd
+                            useAbundant = r.useAbundant
+                        }
                     numberOfRepetitions = r.numberOfRepetitions
                     createdOn = r.createdOn
                 }
@@ -86,9 +89,9 @@ module DatabaseTypes =
                         clmDefaultValueId = r.clmDefaultValueId.value,
                         numberOfAminoAcids = r.numberOfAminoAcids.length,
                         maxPeptideLength = r.maxPeptideLength.length,
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant,
+                        y0 = r.commandLineParam.y0,
+                        tEnd = r.commandLineParam.tEnd,
+                        useAbundant = r.commandLineParam.useAbundant,
                         numberOfRepetitions = r.numberOfRepetitions,
                         createdOn = DateTime.Now
                         )
@@ -243,7 +246,7 @@ module DatabaseTypes =
     //                , fileStructureVersion = p.modelGenerationParams.fileStructureVersion)
 
 
-    let tryLoadIncompleteClmTasks (ConnectionString connectionString) =
+    let loadIncompleteClmTasks (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ClmTaskAllIncompleteData(conn)

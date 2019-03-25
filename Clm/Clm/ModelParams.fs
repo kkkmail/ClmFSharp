@@ -142,7 +142,7 @@ module ModelParams =
 
 
     type ClmTaskId =
-        | ClmTaskId of int
+        | ClmTaskId of int64
 
         member this.value = let (ClmTaskId v) = this in v
 
@@ -217,7 +217,8 @@ module ModelParams =
             clmDefaultValueId : ClmDefaultValueId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
-            commandLineParam : ModelCommandLineParam
+            commandLineParams : list<ModelCommandLineParam>
             numberOfRepetitions : int option
+            remainingRepetitions : int option
             createdOn : DateTime
         }

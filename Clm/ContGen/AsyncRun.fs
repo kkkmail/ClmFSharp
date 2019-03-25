@@ -69,6 +69,7 @@ module AsyncRun =
             run : ProcessStartedCallBack -> ProcessResult
             modelId : ModelDataId
             runQueueId : RunQueueId
+            clmTaskId : ClmTaskId
         }
 
 
@@ -285,7 +286,7 @@ module AsyncRun =
             let x = Interlocked.CompareExchange(&generating, 1, 0) 
             x = 0
 
-        let releaseGenerating() = 
+        let releaseGenerating() =
             Interlocked.Exchange(&generating, 0) |> ignore
 
 

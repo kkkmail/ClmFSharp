@@ -140,6 +140,7 @@ module Runner =
                                                                 run = runModel e
                                                                 modelId = modelId
                                                                 runQueueId = getQueueId e modelId
+                                                                clmTaskId = c.clmTaskId
                                                             })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)

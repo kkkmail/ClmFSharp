@@ -35,11 +35,15 @@ module DatabaseTypes =
     type ClmTaskTableRow = ClmTaskTable.Row
     type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
     type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where numberOfRepetitions is null or numberOfRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
-    type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
+    //type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
+
+    type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
+    type CommandLineParamTableRow = CommandLineParamTable.Row
+    type CommandLineParamData = SqlCommandProvider<"select * from dbo.CommandLineParam where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
-    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
+    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId and clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
     type ResultDataTableRow = ResultDataTable.Row
@@ -60,24 +64,45 @@ module DatabaseTypes =
             }
 
 
+    type ModelCommandLineParam
+        with
+
+        static member create(r : CommandLineParamTableRow) =
+            {
+                y0 = r.y0
+                tEnd = r.tEnd
+                useAbundant = r.useAbundant
+            }
+
+        member r.addRow (ClmTaskId clmTaskId) (t : CommandLineParamTable) =
+            let newRow =
+                t.NewRow(
+                        clmTaskId = clmTaskId,
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant
+                        )
+
+            t.Rows.Add newRow
+            newRow
+
+
     type ClmTask
         with
 
-        static member tryCreate (r : ClmTaskTableRow) =
+        static member tryCreate (r : ClmTaskTableRow) (c : ClmTaskId -> list<ModelCommandLineParam>) =
             match r.numberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.maxPeptideLength |> MaxPeptideLength.tryCreate with
             | Some n, Some m ->
+                let clmTaskId = r.clmTaskId |> ClmTaskId
+
                 {
-                    clmTaskId = r.clmTaskId |> ClmTaskId
+                    clmTaskId = clmTaskId
                     clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
                     numberOfAminoAcids = n
                     maxPeptideLength = m
-                    commandLineParam =
-                        {
-                            y0 = r.y0
-                            tEnd = r.tEnd
-                            useAbundant = r.useAbundant
-                        }
+                    commandLineParams = c clmTaskId
                     numberOfRepetitions = r.numberOfRepetitions
+                    remainingRepetitions = r.remainingRepetitions
                     createdOn = r.createdOn
                 }
                 |> Some
@@ -89,10 +114,8 @@ module DatabaseTypes =
                         clmDefaultValueId = r.clmDefaultValueId.value,
                         numberOfAminoAcids = r.numberOfAminoAcids.length,
                         maxPeptideLength = r.maxPeptideLength.length,
-                        y0 = r.commandLineParam.y0,
-                        tEnd = r.commandLineParam.tEnd,
-                        useAbundant = r.commandLineParam.useAbundant,
                         numberOfRepetitions = r.numberOfRepetitions,
+                        remainingRepetitions = r.remainingRepetitions,
                         createdOn = DateTime.Now
                         )
 
@@ -103,29 +126,19 @@ module DatabaseTypes =
     type ModelData
         with
 
-        static member tryCreate (r : ModelDataTableRow) =
-            let n() = NumberOfAminoAcids.tryCreate r.numberOfAminoAcids
-            let m() = MaxPeptideLength.tryCreate r.maxPeptideLength
+        static member create (clmTask : ClmTask) (r : ModelDataTableRow) =
+            {
+                modelDataId = r.modelDataId |> ModelDataId
+                clmTask = clmTask
+                fileStructureVersion = r.fileStructureVersion
+                seedValue = r.seedValue
 
-            match n(), m() with
-            | Some numberOfAminoAcids, Some maxPeptideLength ->
-                {
-                    modelDataId = r.modelDataId |> ModelDataId
-                    numberOfAminoAcids = numberOfAminoAcids
-                    maxPeptideLength = maxPeptideLength
-                    clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
-                    fileStructureVersion = r.fileStructureVersion
-                    seedValue = r.seedValue
-
-                    modelData =
-                        {
-                            modelDataParams = r.modelDataParams |> JsonConvert.DeserializeObject<ModelDataParams>
-                            modelBinaryData = r.modelBinaryData |> unZip |> JsonConvert.DeserializeObject<ModelBinaryData>
-                        }
-
-                }
-                |> Some
-            | _ -> None
+                modelData =
+                    {
+                        modelDataParams = r.modelDataParams |> JsonConvert.DeserializeObject<ModelDataParams>
+                        modelBinaryData = r.modelBinaryData |> unZip |> JsonConvert.DeserializeObject<ModelBinaryData>
+                    }
+            }
 
 
     type ResultDataWithId
@@ -246,8 +259,28 @@ module DatabaseTypes =
     //                , fileStructureVersion = p.modelGenerationParams.fileStructureVersion)
 
 
-    let loadIncompleteClmTasks (ConnectionString connectionString) =
+    let loadCommandLineParams (ClmTaskId clmTaskId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use d = new CommandLineParamData(conn)
+        let t = new CommandLineParamTable()
+        d.Execute clmTaskId |> t.Load
+
+        t.Rows
+        |> Seq.toList
+        |> List.map (fun r -> ModelCommandLineParam.create r)
+
+
+    let addCommandLineParams clmTaskId (p : ModelCommandLineParam) (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new CommandLineParamTable()
+        p.addRow clmTaskId t |> ignore
+        t.Update conn |> ignore
+
+
+    let loadIncompleteClmTasks (connectionString : ConnectionString) =
+        use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use d = new ClmTaskAllIncompleteData(conn)
         let t = new ClmTaskTable()
@@ -255,37 +288,42 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.toList
-        |> List.map (fun r -> ClmTask.tryCreate r)
+        |> List.map (fun r -> ClmTask.tryCreate r (fun c -> loadCommandLineParams c connectionString))
         |> List.choose id
 
 
-    let addClmTask (c : ClmTask) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
+    let addClmTask (clmTask : ClmTask) (connectionString : ConnectionString) =
+        use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use t = new ClmTaskTable()
-        let row = c.addRow t
+        let row = clmTask.addRow t
         t.Update conn |> ignore
-        row.clmTaskId |> ClmTaskId
+        let clmTaskId = row.clmTaskId |> ClmTaskId
+        let newClmTask = { clmTask with clmTaskId = clmTaskId }
+
+        newClmTask.commandLineParams
+        |> List.map (fun e -> addCommandLineParams clmTaskId e connectionString)
+        |> ignore
+
+        newClmTask
 
 
-    let truncateClmTasks (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use t = new TruncateClmTaskTbl(conn)
-        t.Execute() |> ignore
+    //let truncateClmTasks (ConnectionString connectionString) =
+    //    use conn = new SqlConnection(connectionString)
+    //    openConnIfClosed conn
+    //    use t = new TruncateClmTaskTbl(conn)
+    //    t.Execute() |> ignore
 
 
-    let getNewModelDataId (ConnectionString connectionString) =
+    let getNewModelDataId (clmTask : ClmTask) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new ModelDataTable()
 
         let r =
             t.NewRow(
-                    numberOfAminoAcids = 0,
-                    maxPeptideLength = 0,
+                    clmTaskId = clmTask.clmTaskId.value,
                     fileStructureVersion = FileStructureVersion,
-                    clmDefaultValueId = -1L,
                     seedValue = None,
                     modelDataParams = "",
                     modelBinaryData = [||],
@@ -297,13 +335,13 @@ module DatabaseTypes =
         ModelDataId r.modelDataId
 
 
-    let tryLoadModelData (ModelDataId modelDataId) (ConnectionString connectionString) =
+    let tryLoadModelData (clmTask : ClmTask) (ModelDataId modelDataId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
         let t = new ModelDataTable()
-        d.Execute modelDataId |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind (fun v -> ModelData.tryCreate v)
+        d.Execute (modelDataId, clmTask.clmTaskId.value) |> t.Load
+        t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) |> Option.bind (fun v -> ModelData.create clmTask v |> Some)
 
 
     let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
@@ -313,9 +351,7 @@ module DatabaseTypes =
 
         use cmdWithBinaryData = new SqlCommandProvider<"
             UPDATE dbo.ModelData
-                SET numberOfAminoAcids = @numberOfAminoAcids
-                    ,maxPeptideLength = @maxPeptideLength
-                    ,clmDefaultValueId = @clmDefaultValueId
+                SET clmTaskId = @clmTaskId
                     ,fileStructureVersion = @fileStructureVersion
                     ,seedValue = @seedValue
                     ,modelDataParams = @modelDataParams
@@ -326,9 +362,7 @@ module DatabaseTypes =
 
         let recordsUpdated =
             cmdWithBinaryData.Execute(
-                numberOfAminoAcids = m.numberOfAminoAcids.length,
-                maxPeptideLength = m.maxPeptideLength.length,
-                clmDefaultValueId = m.clmDefaultValueId.value,
+                clmTaskId = m.clmTask.clmTaskId.value,
                 fileStructureVersion = m.fileStructureVersion,
                 seedValue = (match m.seedValue with | Some s -> s | None -> -1),
                 modelDataParams = (m.modelData.modelDataParams |> JsonConvert.SerializeObject),

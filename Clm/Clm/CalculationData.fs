@@ -417,10 +417,8 @@ module CalculationData =
     type ModelData =
         {
             modelDataId : ModelDataId
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
+            clmTask : ClmTask
             seedValue : int option
             fileStructureVersion : decimal
             modelData : ModelAllData
-            clmDefaultValueId : ClmDefaultValueId
         }

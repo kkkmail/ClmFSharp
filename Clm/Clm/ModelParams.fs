@@ -211,12 +211,18 @@ module ModelParams =
             }
 
 
-    type ClmTask =
+    type ClmTaskInfo =
         {
             clmTaskId : ClmTaskId
             clmDefaultValueId : ClmDefaultValueId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
+        }
+
+
+    type ClmTask =
+        {
+            clmTaskInfo : ClmTaskInfo
             commandLineParams : list<ModelCommandLineParam>
             numberOfRepetitions : int option
             remainingRepetitions : int option

@@ -417,7 +417,7 @@ module CalculationData =
     type ModelData =
         {
             modelDataId : ModelDataId
-            clmTask : ClmTask
+            clmTaskInfo : ClmTaskInfo
             seedValue : int option
             fileStructureVersion : decimal
             modelData : ModelAllData

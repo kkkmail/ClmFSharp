@@ -44,22 +44,25 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        //static member getDefaultValue (c : list<ModelCommandLineParam>) (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
-        static member getDefaultValue (c : ClmTask) (d : ClmDefaultValue) =
-            {
-                modelGenerationParams =
-                    {
-                        fileStructureVersion = FileStructureVersion
-                        versionNumber = VersionNumber
-                        numberOfAminoAcids = c.numberOfAminoAcids
-                        maxPeptideLength = c.maxPeptideLength
-                        reactionRateModelParams = d.defaultRateParams.rateParams
-                        updateFuncType = UseFunctions
-                        clmDefaultValueId = d.clmDefaultValueId
-                    }
+        static member tryGetDefaultValue (c : ClmTask) (d : ClmDefaultValueId -> ClmDefaultValue option) =
+            match d c.clmTaskInfo.clmDefaultValueId with
+            | Some v ->
+                {
+                    modelGenerationParams =
+                        {
+                            fileStructureVersion = FileStructureVersion
+                            versionNumber = VersionNumber
+                            numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
+                            maxPeptideLength = c.clmTaskInfo.maxPeptideLength
+                            reactionRateModelParams = v.defaultRateParams.rateParams
+                            updateFuncType = UseFunctions
+                            clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
+                        }
 
-                modelCommandLineParams = [ c.commandLineParam ]
-            }
+                    modelCommandLineParams = c.commandLineParams
+                }
+                |> Some
+            | None -> None
 
     let reactionShift updateFuncType =
         match updateFuncType with
@@ -74,7 +77,7 @@ module ClmModelData =
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
-    let allSubst = 
+    let allSubst =
         Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))

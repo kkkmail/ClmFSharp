@@ -163,12 +163,16 @@ module ContGenTasks =
                 printfn "addClmTask::loaded ClmDefaultValue was ignored..."
                 let t =
                     {
-                        clmTaskId = ClmTaskId -1
-                        clmDefaultValueId = i
-                        numberOfAminoAcids = n
-                        maxPeptideLength = m
-                        commandLineParam = c
+                        clmTaskInfo =
+                            {
+                                clmTaskId = ClmTaskId -1L
+                                clmDefaultValueId = i
+                                numberOfAminoAcids = n
+                                maxPeptideLength = m
+                            }
+                        commandLineParams = [ c ]
                         numberOfRepetitions = None
+                        remainingRepetitions = None
                         createdOn = DateTime.Now
                     }
 

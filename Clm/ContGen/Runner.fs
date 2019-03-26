@@ -53,14 +53,13 @@ module Runner =
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
-        let getModelId () = tryDbFun getNewModelDataId
+        let getModelId clmTaskId = tryDbFun (getNewModelDataId clmTaskId)
         let tryLoadIncompleteClmTasks () = tryDbFun loadIncompleteClmTasks
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
-            match tryDbFun (tryLoadClmDefaultValue c.clmDefaultValueId) |> Option.bind id with
-            | Some d -> AllParams.getDefaultValue c d |> Some
-            | None -> None
+            fun d -> tryDbFun (tryLoadClmDefaultValue d) |> Option.bind id
+            |> AllParams.tryGetDefaultValue c
 
 
         let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId =
@@ -128,7 +127,7 @@ module Runner =
 
         let generateImpl (c : ClmTask) =
             try
-                match getModelId () with
+                match getModelId c.clmTaskInfo.clmTaskId with
                     | Some modelId ->
                         match tryLoadParams c with
                         | Some a ->
@@ -140,7 +139,7 @@ module Runner =
                                                                 run = runModel e
                                                                 modelId = modelId
                                                                 runQueueId = getQueueId e modelId
-                                                                clmTaskId = c.clmTaskId
+                                                                clmTaskId = c.clmTaskInfo.clmTaskId
                                                             })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)

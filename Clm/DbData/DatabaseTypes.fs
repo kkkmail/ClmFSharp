@@ -34,6 +34,7 @@ module DatabaseTypes =
     type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
     type ClmTaskTableRow = ClmTaskTable.Row
     type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+    type ClmTaskByDefaultData = SqlCommandProvider<"select top 1 * from dbo.ClmTask where clmDefaultValueId = @clmDefaultValueId order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
     type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where numberOfRepetitions is null or numberOfRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
     //type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
 
@@ -295,6 +296,18 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.tryFind (fun e -> e.clmTaskId = clmTaskId)
+        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams c connectionString))
+
+
+    let tryLoadClmTaskByDefault (ClmDefaultValueId clmDefaultValueId) (connectionString : ConnectionString) =
+        use conn = new SqlConnection(connectionString.value)
+        openConnIfClosed conn
+        use d = new ClmTaskByDefaultData(conn)
+        let t = new ClmTaskTable()
+        d.Execute clmDefaultValueId |> t.Load
+
+        t.Rows
+        |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId)
         |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams c connectionString))
 
 

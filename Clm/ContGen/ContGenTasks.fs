@@ -35,6 +35,7 @@ module ContGenTasks =
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] TaskY0 of decimal
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TaskTEnd of decimal
             | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>]               Repetitions of int
+            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-g")>]               GenerateModelCode of bool
 
 
         with
@@ -47,6 +48,7 @@ module ContGenTasks =
                     | TaskY0 _ -> "value of total y0."
                     | TaskTEnd _ -> "value of tEnd."
                     | Repetitions _ -> "number of repetitions."
+                    | GenerateModelCode _ -> "set to true in order to generate and save model code."
 
 
     and
@@ -70,7 +72,6 @@ module ContGenTasks =
         ContGenArguments =
             | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("add")>]   AddClmTask of ParseResults<AddClmTaskArgs>
-            | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
             | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
 
         with
@@ -78,8 +79,7 @@ module ContGenTasks =
                 member this.Usage =
                     match this with
                     | RunContGen _ -> "runs Continuous Generation."
-                    | AddClmTask _ -> "adds task."
-                    | GenerateModel -> "generates a single model."
+                    | AddClmTask _ -> "adds task / generate a single model."
                     | RunModel _ -> "runs a given model."
 
 
@@ -133,6 +133,12 @@ module ContGenTasks =
         | None -> 1
 
 
+    let getGenerateModelCode (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | GenerateModelCode n -> Some n | _ -> None) with
+        | Some n -> n
+        | None -> false
+
+
     let logError e = printfn "Error: %A" e
     let tryDbFun f = tryDbFun logError clmConnectionString f
 
@@ -153,6 +159,7 @@ module ContGenTasks =
             match tryLoadClmDefaultValue i with
             | Some _ ->
                 let r = getNumberOrRepetitions p
+
                 let t =
                     {
                         clmTaskInfo =
@@ -168,7 +175,15 @@ module ContGenTasks =
                         createdOn = DateTime.Now
                     }
 
-                addClmTask t clmConnectionString |> ignore
+                let nt = addClmTask t clmConnectionString
+
+                match getGenerateModelCode p with
+                | true ->
+                    printfn "Genetrating model..."
+                    let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
+                    g nt |> ignore
+                | false -> ignore()
+
                 CompletedSuccessfully
             | None ->
                 printfn "updateParameters: Cannot find data for default set index %A." i
@@ -176,13 +191,6 @@ module ContGenTasks =
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
             InvalidCommandLineArgs
-
-
-    let generateModel () =
-        printfn "Genetrating and compiling model..."
-        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
-        g() |> ignore
-        CompletedSuccessfully
 
 
     /// TODO kk:20190107 - Implement.
@@ -194,14 +202,12 @@ module ContGenTasks =
     type ContGenTask =
         | RunContGenTask of list<RunContGenArgs>
         | AddClmTaskTask of list<AddClmTaskArgs>
-        | GenerateModelTask
         | RunModelTask of list<RunModelArgs>
 
         member task.run() =
             match task with
             | RunContGenTask p -> runContGen p
             | AddClmTaskTask p -> addClmTask p
-            | GenerateModelTask -> generateModel ()
             | RunModelTask p -> runModel p
 
         static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
@@ -210,16 +216,12 @@ module ContGenTasks =
         static member private tryCreateUpdateParametersTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
-        static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
-
         static member private tryCreateRunModelTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | RunModel q -> q.GetAllResults() |> RunModelTask |> Some | _ -> None)
 
         static member tryCreate (p : list<ContGenArguments>) =
             [
                 ContGenTask.tryCreateUpdateParametersTask
-                ContGenTask.tryCreateGenerateModelTask
                 ContGenTask.tryCreateRunModelTask
                 ContGenTask.tryCreateRunContGenTask
             ]

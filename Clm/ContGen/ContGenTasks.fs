@@ -127,19 +127,11 @@ module ContGenTasks =
         p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ClmDefaultValueId |> Some)
 
 
-    //let saveDefaults connectionString d n m =
-    //    truncateAllParams connectionString
-    //    let p = AllParams.getDefaultValue d n m
-    //    saveAllParams p connectionString
+    let getNumberOrRepetitions (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | Repetitions n -> Some n | _ -> None) with
+        | Some n -> n
+        | None -> 1
 
-        //let removeFromQueue runQueueId =
-        //    match tryDbFun (deleteRunQueueEntry runQueueId) with
-        //    | Some _ -> ignore()
-        //    | None ->
-        //        logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
-        //        ignore()
-
-//tryLoadClmDefaultValue
 
     let logError e = printfn "Error: %A" e
     let tryDbFun f = tryDbFun logError clmConnectionString f
@@ -159,8 +151,8 @@ module ContGenTasks =
         | Some i, Some n, Some m, Some c ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
             match tryLoadClmDefaultValue i with
-            | Some d ->
-                printfn "addClmTask::loaded ClmDefaultValue was ignored..."
+            | Some _ ->
+                let r = getNumberOrRepetitions p
                 let t =
                     {
                         clmTaskInfo =
@@ -171,8 +163,8 @@ module ContGenTasks =
                                 maxPeptideLength = m
                             }
                         commandLineParams = [ c ]
-                        numberOfRepetitions = None
-                        remainingRepetitions = None
+                        numberOfRepetitions = r
+                        remainingRepetitions = r
                         createdOn = DateTime.Now
                     }
 

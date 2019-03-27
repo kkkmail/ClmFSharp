@@ -54,7 +54,6 @@ module Runner =
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelId clmTaskId = tryDbFun (getNewModelDataId clmTaskId)
-        let tryLoadIncompleteClmTasks () = tryDbFun loadIncompleteClmTasks
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
@@ -62,11 +61,11 @@ module Runner =
             |> AllParams.tryGetDefaultValue c
 
 
-        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId =
+        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId clmTaskId =
             printfn "Creating model..."
             printfn "Starting at: %A" DateTime.Now
 
-            let model = ClmModel (modelGenerationParams, modelDataId)
+            let model = ClmModel (modelGenerationParams, modelDataId, clmTaskId)
 
             match p.saveModelCode with
             | true ->
@@ -125,15 +124,22 @@ module Runner =
             | None -> RunQueueId -1L
 
 
+        let updateTask (c : ClmTask) =
+            tryDbFun (tryUpdateClmTask c)
+            |> ignore
+
+
         let generateImpl (c : ClmTask) =
             try
                 match getModelId c.clmTaskInfo.clmTaskId with
                     | Some modelId ->
                         match tryLoadParams c with
                         | Some a ->
-                            match generateModel a.modelGenerationParams modelId |> saveModel with
+                            match generateModel a.modelGenerationParams modelId c.clmTaskInfo.clmTaskId |> saveModel with
                             | Some true ->
+                                updateTask { c with remainingRepetitions = c.remainingRepetitions - 1 }
                                 //compileModel modelId
+
                                 a.modelCommandLineParams |> List.map (fun e ->
                                                             {
                                                                 run = runModel e

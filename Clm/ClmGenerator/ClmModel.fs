@@ -18,7 +18,7 @@ open ClmImpure.RateProvider
 
 module ClmModel =
 
-    type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId) =
+    type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId, clmTaskId : ClmTaskId) =
         let rnd = RandomValueGetter.create()
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
@@ -403,11 +403,16 @@ module ClmModel =
 
             s
 
-        let getModelDataImpl () =
+        let getModelDataImpl clmTaskId =
             {
                 modelDataId = modelDataId
-                numberOfAminoAcids = modelParams.numberOfAminoAcids
-                maxPeptideLength = modelParams.maxPeptideLength
+                clmTaskInfo =
+                    {
+                        clmTaskId = clmTaskId
+                        numberOfAminoAcids = modelParams.numberOfAminoAcids
+                        maxPeptideLength = modelParams.maxPeptideLength
+                        clmDefaultValueId = modelParams.clmDefaultValueId
+                    }
                 seedValue = Some seedValue
                 fileStructureVersion = modelParams.fileStructureVersion
 
@@ -433,11 +438,9 @@ module ClmModel =
                                     |> List.map (fun (n, l) -> (n, int64 l.Length))
                             }
                     }
-
-                clmDefaultValueId = modelParams.clmDefaultValueId
             }
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
         member model.generateCode() = generateAndSave()
-        member model.getModelData() = getModelDataImpl()
+        member model.getModelData() = getModelDataImpl clmTaskId

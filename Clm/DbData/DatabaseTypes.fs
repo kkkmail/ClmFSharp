@@ -327,6 +327,25 @@ module DatabaseTypes =
         newClmTask
 
 
+    let tryUpdateClmTask (clmTask : ClmTask) (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        let connectionString = conn.ConnectionString
+
+        use cmd = new SqlCommandProvider<"
+            UPDATE dbo.ClmTask
+                SET remainingRepetitions = @remainingRepetitions
+            WHERE clmTaskId = @clmTaskId
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+        let recordsUpdated =
+            cmd.Execute(
+                clmTaskId = clmTask.clmTaskInfo.clmTaskId.value,
+                remainingRepetitions = clmTask.remainingRepetitions)
+
+        recordsUpdated = 1
+
+
     //let truncateClmTasks (ConnectionString connectionString) =
     //    use conn = new SqlConnection(connectionString)
     //    openConnIfClosed conn
@@ -392,7 +411,7 @@ module DatabaseTypes =
                 createdOn = DateTime.Now,
                 modelDataId = m.modelDataId.value)
 
-        if recordsUpdated = 1 then true else false
+        recordsUpdated = 1
 
 
     let saveResultData (r : ResultData) (ConnectionString connectionString) =

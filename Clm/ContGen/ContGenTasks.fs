@@ -9,11 +9,13 @@ open DbData.DatabaseTypes
 open ContGen
 open Runner
 open ClmSys.Retry
+open Clm.ModelParams
+open System
 
 module ContGenTasks =
-    open ClmDefaults
-    open Clm.ModelParams
-    open System
+
+    [<Literal>]
+    let ContGenAppName = "ContGen.exe"
 
     [<CliPrefix(CliPrefix.Dash)>]
     type RunContGenArgs =

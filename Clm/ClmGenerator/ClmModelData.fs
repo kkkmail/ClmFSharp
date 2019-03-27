@@ -10,7 +10,6 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.CalculationData
-open ClmDefaults.DefaultValuesExt
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt

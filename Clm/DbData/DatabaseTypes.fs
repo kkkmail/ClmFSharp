@@ -35,8 +35,7 @@ module DatabaseTypes =
     type ClmTaskTableRow = ClmTaskTable.Row
     type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
     type ClmTaskByDefaultData = SqlCommandProvider<"select top 1 * from dbo.ClmTask where clmDefaultValueId = @clmDefaultValueId order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
-    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where numberOfRepetitions is null or numberOfRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
-    //type TruncateClmTaskTbl = SqlCommandProvider<"truncate table dbo.ClmTask", ClmSqlProviderName, ConfigFile = AppConfigFile>
+    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where remainingRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
     type CommandLineParamTableRow = CommandLineParamTable.Row
@@ -246,25 +245,28 @@ module DatabaseTypes =
         t.Execute() |> ignore
 
 
-    //let saveAllParams (p : AllParams) (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    let connectionString = conn.ConnectionString
-    //
-    //    use cmd = new SqlCommandProvider<"
-    //        INSERT INTO dbo.DefaultSet
-    //                   (defaultSetIndex
-    //                   ,defaultSet
-    //                   ,fileStructureVersion)
-    //             VALUES
-    //                   (@defaultSetIndex
-    //                   ,@defaultSet
-    //                   ,@fileStructureVersion)
-    //    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-    //
-    //    cmd.Execute(defaultSetIndex = p.modelGenerationParams.defaultSetIndex
-    //                , defaultSet = (p.modelGenerationParams |> JsonConvert.SerializeObject)
-    //                , fileStructureVersion = p.modelGenerationParams.fileStructureVersion)
+    let trySaveClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        let connectionString = conn.ConnectionString
+    
+        use cmd = new SqlCommandProvider<"
+            INSERT INTO dbo.ClmDefaultValue
+                       (clmDefaultValueId
+                       ,defaultRateParams
+                       ,description
+                       ,fileStructureVersion)
+                 VALUES
+                       (@clmDefaultValueId
+                       ,@defaultRateParams
+                       ,@description
+                       ,@fileStructureVersion)
+        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+    
+        cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
+                    , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
+                    , description = match p.description with | Some d -> d | None -> null
+                    , fileStructureVersion = FileStructureVersion)
 
 
     let loadCommandLineParams (ClmTaskId clmTaskId) (ConnectionString connectionString) =
@@ -357,13 +359,6 @@ module DatabaseTypes =
                 remainingRepetitions = clmTask.remainingRepetitions)
 
         recordsUpdated = 1
-
-
-    //let truncateClmTasks (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    use t = new TruncateClmTaskTbl(conn)
-    //    t.Execute() |> ignore
 
 
     let getNewModelDataId (ClmTaskId clmTaskId) (ConnectionString connectionString) =

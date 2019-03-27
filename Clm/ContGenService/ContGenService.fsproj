@@ -91,6 +91,11 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
+      <Name>ClmDefaults</Name>
+      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj">
       <Name>SolverRunner</Name>
       <Project>{f0d4b13d-57ab-4ebf-ae90-4f758cf5741b}</Project>
@@ -121,11 +126,6 @@
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj">
-      <Name>ClmDefaults</Name>
-      <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
       <Name>ClmGenerator</Name>
       <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>

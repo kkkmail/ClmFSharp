@@ -15,8 +15,8 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Install -> "install services."
-                | Uninstall -> "uninstall services."
-                | Start -> "start services."
-                | Stop -> "stop services."
-                | Run -> "run services from command line without installing."
+                | Install -> "install service."
+                | Uninstall -> "uninstall service."
+                | Start -> "start service."
+                | Stop -> "stop service."
+                | Run -> "run service from command line without installing."

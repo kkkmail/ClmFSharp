@@ -224,7 +224,7 @@ module ModelParams =
         {
             clmTaskInfo : ClmTaskInfo
             commandLineParams : list<ModelCommandLineParam>
-            numberOfRepetitions : int option
-            remainingRepetitions : int option
+            numberOfRepetitions : int
+            remainingRepetitions : int
             createdOn : DateTime
         }

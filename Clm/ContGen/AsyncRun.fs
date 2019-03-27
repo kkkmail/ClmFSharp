@@ -69,13 +69,13 @@ module AsyncRun =
             run : ProcessStartedCallBack -> ProcessResult
             modelId : ModelDataId
             runQueueId : RunQueueId
-            clmTaskId : ClmTaskId
+            //clmTaskId : ClmTaskId
         }
 
 
     type GeneratorInfo =
         {
-            generate : ClmTask -> list<RunInfo>
+            generate : unit -> list<RunInfo>
             getQueue : unit -> list<RunInfo>
             removeFromQueue : RunQueueId -> unit
             maxQueueLength : int

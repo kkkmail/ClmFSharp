@@ -139,7 +139,6 @@ module Runner =
                                                                 run = runModel e
                                                                 modelId = modelId
                                                                 runQueueId = getQueueId e modelId
-                                                                clmTaskId = c.clmTaskInfo.clmTaskId
                                                             })
                             | Some false ->
                                 logError (sprintf "Cannot save modelId: %A." modelId)
@@ -157,6 +156,12 @@ module Runner =
                 | e ->
                     logError (sprintf "Exception: %A" e)
                     []
+
+
+        let generateAll() =
+            match tryDbFun loadIncompleteClmTasks with
+            | Some c -> c |> List.map generateImpl |> List.concat
+            | None -> []
 
 
         let getQueue () =
@@ -180,7 +185,7 @@ module Runner =
 
         let createGeneratorImpl() =
             {
-                generate = generateImpl
+                generate = generateAll
                 getQueue = getQueue
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4

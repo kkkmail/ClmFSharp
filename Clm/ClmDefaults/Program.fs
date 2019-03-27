@@ -1,6 +1,6 @@
 ﻿open ClmSys.ExitErrorCodes
-open Argu
 open ClmDefaults.ClmDefaultsTasks
+open Argu
 
 [<EntryPoint>]
 let main argv =

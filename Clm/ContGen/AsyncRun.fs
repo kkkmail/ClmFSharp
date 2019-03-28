@@ -164,7 +164,8 @@ module AsyncRun =
             match s.workState with
             | Idle -> w()
             | CanGenerate ->
-                if s.runningCount < s.runLimit then h.startGenerate() |> Async.Start
+                // Wait for the kick from the caller to attempt generating again.
+                //if s.runningCount > 0 && s.runningCount < s.runLimit then h.startGenerate() |> Async.Start
                 w()
             | ShuttingDown -> s
 
@@ -281,7 +282,7 @@ module AsyncRun =
     and AsyncRunner (generatorInfo : GeneratorInfo) =
         let mutable generating = 0
 
-        // Returns true if successfully acquired generating flag
+        // Returns true if successfully acquired generating flag.
         let tryAcquireGenerating() =
             let x = Interlocked.CompareExchange(&generating, 1, 0) 
             x = 0

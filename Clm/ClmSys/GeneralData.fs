@@ -6,16 +6,29 @@ open System.Text
 
 module GeneralData =
 
-    /// TODO kk:20190322 - This does not belong here and it was originally placed in ContGenServiceInfo.ServiceInfo (where is does belong).
-    /// It should be properly propagated through command line and / or other parameters...
+    /// A base name, which controls the database name and a working folder name.
+    /// It is loosely the same as a version number and it should be used when the old version is still running (for days).
+    /// However, it is needed to deploy a new version at the same time.
+    [<Literal>]
+    let ClmBaseName = "Clm3000"
+
+    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
+    [<Literal>]
+    let RootDrive = "C"
+
+    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     [<Literal>]
     let ContGenServiceAddress = "localhost"
 
+    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
+    /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
+    /// the old verison is finishig its run.
+    [<Literal>]
+    let ContGenServicePort = 3000
 
     /// String.Empty is not a const.
     [<Literal>]
     let EmptyString = ""
-
 
     /// Environment.NewLine is too long and it is not a const.
     [<Literal>]

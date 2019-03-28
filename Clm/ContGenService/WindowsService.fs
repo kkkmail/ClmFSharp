@@ -6,6 +6,7 @@ open System.Runtime.Remoting.Channels
 
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.GeneralData
 
 module WindowsService =
 

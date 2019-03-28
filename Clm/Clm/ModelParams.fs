@@ -15,7 +15,8 @@ module ModelParams =
 
     /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
-    let DefaultRootFolder = @"C:\Clm\"
+    let DefaultRootFolder = RootDrive + @":\" + ClmBaseName + @"\"
+
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
@@ -171,6 +172,7 @@ module ModelParams =
                 UseAbundant this.useAbundant
                 ModelId modelDataId
                 NotifyAddress ContGenServiceAddress
+                NotifyPort ContGenServicePort
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

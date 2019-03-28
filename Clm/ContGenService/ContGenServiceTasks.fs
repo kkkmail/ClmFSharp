@@ -95,10 +95,6 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
-        
-
-
-
     let runService () =
         let waitHandle = new ManualResetEvent(false)
 

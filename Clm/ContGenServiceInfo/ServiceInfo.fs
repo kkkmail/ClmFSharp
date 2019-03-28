@@ -4,13 +4,10 @@ open ClmSys.GeneralData
 
 module ServiceInfo =
 
-    // TODO kk:20190322 - ContGenServiceAddress was moved into ClmSys.GeneralData. Some refactoring is needed.
+    // TODO kk:20190328 - ContGenServiceAddress and ContGenServicePort were moved into ClmSys.GeneralData. Some refactoring is needed.
 
     [<Literal>]
     let ContGenServiceName = "ContGenService"
-
-    [<Literal>]
-    let ContGenServicePort = 12345
 
     [<Literal>]
     let ProgramName = "ContGenService.exe"

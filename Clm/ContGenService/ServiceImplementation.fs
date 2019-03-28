@@ -21,7 +21,6 @@ module ServiceImplementation =
         with
         member s.runnerState : ContGenRunnerState =
             {
-                //generating = s.generating
                 runLimit = s.runLimit
                 maxQueueLength = s.maxQueueLength
                 runningCount = s.runningCount

@@ -95,21 +95,41 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
+        
+
+
+
     let runService () =
+        let waitHandle = new ManualResetEvent(false)
+
         let logger e = printfn "Error: %A" e
         startServiceRun logger
         let service = (new ContGenResponseHandler()).contGenService
 
-        while true do
-            try
-                printfn "Getting state..."
-                let state = service.getState()
-                printfn "...state =\n%s\n\n" (state.ToString())
-                if state.queue.Length = 0 then service.startGenerate()
-            with
-                | e -> printfn "Exception: %A\n" e.Message
+        let eventHandler _ =
+            printfn "Getting state..."
+            let state = service.getState()
+            printfn "...state =\n%s\n\n" (state.ToString())
+            if state.queue.Length = 0 then service.startGenerate()
 
-            Thread.Sleep 30_000
+        let timer = new System.Timers.Timer(30_000.0)
+        do timer.AutoReset <- true
+        do timer.Elapsed.Add eventHandler
+        do timer.Start()
+
+        //while true do
+        //    try
+        //        printfn "Getting state..."
+        //        let state = service.getState()
+        //        printfn "...state =\n%s\n\n" (state.ToString())
+        //        if state.queue.Length = 0 then service.startGenerate()
+        //    with
+        //        | e -> printfn "Exception: %A\n" e.Message
+
+        //    Thread.Sleep 30_000
+
+        waitHandle.WaitOne() |> ignore
+
         0
 
 

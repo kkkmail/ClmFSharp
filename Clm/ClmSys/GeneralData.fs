@@ -7,8 +7,9 @@ open System.Text
 module GeneralData =
 
     /// A base name, which controls the database name and a working folder name.
-    /// It is loosely the same as a version number and it should be used when the old version is still running (for days).
-    /// However, it is needed to deploy a new version at the same time.
+    /// It is loosely the same as the version number.
+    /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
+    /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
     let ClmBaseName = "Clm3000"
 

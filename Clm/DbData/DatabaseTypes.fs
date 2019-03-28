@@ -238,55 +238,22 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
 
 
-    //let truncateClmDefaults (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    use t = new TruncateClmDefaultValueTbl(conn)
-    //    t.Execute() |> ignore
-
-
-    let trySaveClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
+    let tryUpsertClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
-    
-        use cmd = new SqlCommandProvider<"
-            INSERT INTO dbo.ClmDefaultValue
-                       (clmDefaultValueId
-                       ,defaultRateParams
-                       ,description
-                       ,fileStructureVersion)
-                 VALUES
-                       (@clmDefaultValueId
-                       ,@defaultRateParams
-                       ,@description
-                       ,@fileStructureVersion)
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-    
-        cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
-                    , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
-                    , description = match p.description with | Some d -> d | None -> null
-                    , fileStructureVersion = FileStructureVersion)
 
-
-    let tryUpdateClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
-    
         use cmd = new SqlCommandProvider<"
-            UPDATE dbo.ClmDefaultValue
-                       (clmDefaultValueId
-                       ,defaultRateParams
-                       ,description
-                       ,fileStructureVersion)
-                 VALUES
-                       (@clmDefaultValueId
-                       ,@defaultRateParams
-                       ,@description
-                       ,@fileStructureVersion)
+            merge ClmDefaultValue as target
+            using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+            on (target.clmDefaultValueId = source.clmDefaultValueId)
+            when not matched then
+                insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
+                values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
+            when matched then
+                update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-    
+
         cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
                     , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
                     , description = match p.description with | Some d -> d | None -> null
@@ -373,7 +340,7 @@ module DatabaseTypes =
 
         use cmd = new SqlCommandProvider<"
             UPDATE dbo.ClmTask
-                SET remainingRepetitions = @remainingRepetitions
+            SET remainingRepetitions = @remainingRepetitions
             WHERE clmTaskId = @clmTaskId
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 

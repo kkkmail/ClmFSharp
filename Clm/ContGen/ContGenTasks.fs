@@ -17,27 +17,27 @@ module ContGenTasks =
     [<Literal>]
     let ContGenAppName = "ContGen.exe"
 
-    [<CliPrefix(CliPrefix.Dash)>]
-    type RunContGenArgs =
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-ql")>] MaxQueueLength of int
+    //[<CliPrefix(CliPrefix.Dash)>]
+    //type RunContGenArgs =
+    //    | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-ql")>] MaxQueueLength of int
 
-    with
-        interface IArgParserTemplate with
-            member this.Usage =
-                match this with
-                | MaxQueueLength _ -> "max queue length."
+    //with
+    //    interface IArgParserTemplate with
+    //        member this.Usage =
+    //            match this with
+    //            | MaxQueueLength _ -> "max queue length."
 
 
-    and
+    type
         [<CliPrefix(CliPrefix.Dash)>]
         AddClmTaskArgs =
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] IndexOfDefault of int64
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] MaxPeptideLength of int
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] TaskY0 of decimal
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TaskTEnd of decimal
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>]               Repetitions of int
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-g")>]               GenerateModelCode of bool
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-i")>] IndexOfDefault of int64
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] MaxPeptideLength of int
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] TaskY0 of list<decimal>
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
+            | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
+            | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode of bool
 
 
         with
@@ -53,49 +53,49 @@ module ContGenTasks =
                     | GenerateModelCode _ -> "set to true in order to generate and save model code."
 
 
-    and
-        [<CliPrefix(CliPrefix.Dash)>]
-        RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelDataId of int
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of decimal
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of decimal
+    //and
+    //    [<CliPrefix(CliPrefix.Dash)>]
+    //    RunModelArgs =
+    //        | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelDataId of int
+    //        | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of decimal
+    //        | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of decimal
 
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | ModelDataId _ -> "id of the modelData to run."
-                    | Y0 _ -> "value of total y0."
-                    | TEnd _ -> "value of tEnd."
+    //    with
+    //        interface IArgParserTemplate with
+    //            member this.Usage =
+    //                match this with
+    //                | ModelDataId _ -> "id of the modelData to run."
+    //                | Y0 _ -> "value of total y0."
+    //                | TEnd _ -> "value of tEnd."
 
 
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenArguments =
-            | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
+            //| [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("add")>]   AddClmTask of ParseResults<AddClmTaskArgs>
-            | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
+            //| [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | RunContGen _ -> "runs Continuous Generation."
+                    //| RunContGen _ -> "runs Continuous Generation."
                     | AddClmTask _ -> "adds task / generate a single model."
-                    | RunModel _ -> "runs a given model."
+                    //| RunModel _ -> "runs a given model."
 
 
-    let runContGen (p :list<RunContGenArgs>) =
-        let a = createRunner ModelRunnerParam.defaultValue
-        a.start()
-        a.startGenerate()
+    //let runContGen (p :list<RunContGenArgs>) =
+    //    let a = createRunner ModelRunnerParam.defaultValue
+    //    a.start()
+    //    a.startGenerate()
 
-        while a.getState().isShuttingDown |> not do
-            Thread.Sleep(30000)
-            let state = a.getState()
-            printfn "a.getState() = %s" (state.ToString())
-            if state.queue.Length = 0 then a.startGenerate()
-        CompletedSuccessfully
+    //    while a.getState().isShuttingDown |> not do
+    //        Thread.Sleep(30000)
+    //        let state = a.getState()
+    //        printfn "a.getState() = %s" (state.ToString())
+    //        if state.queue.Length = 0 then a.startGenerate()
+    //    CompletedSuccessfully
 
 
     let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
@@ -103,13 +103,21 @@ module ContGenTasks =
         let y = p |> List.tryPick (fun e -> match e with | TaskY0 i -> Some i | _ -> None)
 
         match t, y with
-        | Some tEnd, Some y0 ->
-            {
-                tEnd = tEnd
-                y0 = y0
-                useAbundant = false
-            }
-            |> Some
+        | Some tl, Some yl ->
+            match tl.Length = yl.Length with
+            | true ->
+                List.zip tl yl
+                |> List.map (fun (tEnd, y0) -> 
+                                {
+                                    tEnd = tEnd
+                                    y0 = y0
+                                    useAbundant = false
+                                }
+                            )
+                |> Some
+            | false ->
+                printfn "Lists of t and y must have the same length!"
+                None
         | _ -> None
 
 
@@ -171,7 +179,7 @@ module ContGenTasks =
                                 numberOfAminoAcids = n
                                 maxPeptideLength = m
                             }
-                        commandLineParams = [ c ]
+                        commandLineParams = c
                         numberOfRepetitions = r
                         remainingRepetitions = r
                         createdOn = DateTime.Now
@@ -195,36 +203,36 @@ module ContGenTasks =
             InvalidCommandLineArgs
 
 
-    /// TODO kk:20190107 - Implement.
-    let runModel (p :list<RunModelArgs>) =
-        printfn "runModel is not implemented yet."
-        NotImplemented
+    ///// TODO kk:20190107 - Implement.
+    //let runModel (p :list<RunModelArgs>) =
+    //    printfn "runModel is not implemented yet."
+    //    NotImplemented
 
 
     type ContGenTask =
-        | RunContGenTask of list<RunContGenArgs>
+        //| RunContGenTask of list<RunContGenArgs>
         | AddClmTaskTask of list<AddClmTaskArgs>
-        | RunModelTask of list<RunModelArgs>
+        //| RunModelTask of list<RunModelArgs>
 
         member task.run() =
             match task with
-            | RunContGenTask p -> runContGen p
+            //| RunContGenTask p -> runContGen p
             | AddClmTaskTask p -> addClmTask p
-            | RunModelTask p -> runModel p
+            //| RunModelTask p -> runModel p
 
-        static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | RunContGen q -> q.GetAllResults() |> RunContGenTask |> Some | _ -> None)
+        //static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | RunContGen q -> q.GetAllResults() |> RunContGenTask |> Some | _ -> None)
 
         static member private tryCreateUpdateParametersTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
-        static member private tryCreateRunModelTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | RunModel q -> q.GetAllResults() |> RunModelTask |> Some | _ -> None)
+        //static member private tryCreateRunModelTask (p : list<ContGenArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | RunModel q -> q.GetAllResults() |> RunModelTask |> Some | _ -> None)
 
         static member tryCreate (p : list<ContGenArguments>) =
             [
                 ContGenTask.tryCreateUpdateParametersTask
-                ContGenTask.tryCreateRunModelTask
-                ContGenTask.tryCreateRunContGenTask
+                //ContGenTask.tryCreateRunModelTask
+                //ContGenTask.tryCreateRunContGenTask
             ]
             |> List.tryPick (fun e -> e p)

@@ -20,10 +20,10 @@ module ContGenAdmTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         ConfigureServiceArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-c")>] NumberOfCores of int
+            | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
             | [<Unique>] Start
             | [<Unique>] Stop
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-s")>] ShutDown of bool
+            | [<Unique>] [<AltCommandLine("-s")>] ShutDown of bool
 
         with
             interface IArgParserTemplate with
@@ -32,7 +32,7 @@ module ContGenAdmTasks =
                     | NumberOfCores _ -> "number of logical cores to use."
                     | Start -> "starts generating models."
                     | Stop -> "stops generating models."
-                    | ShutDown _ -> "shut down."
+                    | ShutDown _ -> "shut down (pass true to wait for completion of all running processes)."
 
             member this.configParam =
                 match this with

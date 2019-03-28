@@ -164,16 +164,6 @@ module Runner =
                     []
 
 
-        //let tryGetOrCreateClmTask d =
-        //    match tryDbFun (tryLoadClmTaskByDefault d) |> Option.bind id with
-        //    | Some x -> x
-        //    | None -> failwith ""
-
-
-        //let generateOnce() =
-        //    0
-
-
         let generateAll() =
             match tryDbFun loadIncompleteClmTasks with
             | Some c -> c |> List.map generateImpl |> List.concat

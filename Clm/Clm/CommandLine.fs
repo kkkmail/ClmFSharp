@@ -12,13 +12,13 @@ module CommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type SolverRunnerArguments =
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>]  EndTime of decimal
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y0")>] TotalAmount of decimal
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-a")>]  UseAbundant of bool
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>]  ModelId of int64
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>]  NotifyAddress of string
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-p")>]  NotifyPort of int
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-ee")>] MinUsefulEe of double
+        | [<Unique>] [<AltCommandLine("-t")>]  EndTime of decimal
+        | [<Unique>] [<AltCommandLine("-y0")>] TotalAmount of decimal
+        | [<Unique>] [<AltCommandLine("-a")>]  UseAbundant of bool
+        | [<Unique>] [<AltCommandLine("-m")>]  ModelId of int64
+        | [<Unique>] [<AltCommandLine("-n")>]  NotifyAddress of string
+        | [<Unique>] [<AltCommandLine("-p")>]  NotifyPort of int
+        | [<Unique>] [<AltCommandLine("-ee")>] MinUsefulEe of double
 
 
     with

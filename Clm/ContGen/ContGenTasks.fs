@@ -47,7 +47,7 @@ module ContGenTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelId of int64
+            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] ModelId of int64
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of decimal
             | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of decimal
 
@@ -63,9 +63,8 @@ module ContGenTasks =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenArguments =
-            //| [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
             | [<Unique>] [<AltCommandLine("add")>]   AddClmTask of ParseResults<AddClmTaskArgs>
-            | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
+            | [<Unique>] [<AltCommandLine("run")>]       RunModel of ParseResults<RunModelArgs>
 
         with
             interface IArgParserTemplate with

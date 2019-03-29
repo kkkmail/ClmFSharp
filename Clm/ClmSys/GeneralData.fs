@@ -1,4 +1,5 @@
 ﻿namespace ClmSys
+
 open System
 open System.IO
 open System.IO.Compression
@@ -23,7 +24,7 @@ module GeneralData =
 
     /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
-    /// the old verison is finishig its run.
+    /// the old verison is finishing its run.
     [<Literal>]
     let ContGenServicePort = 3000
 

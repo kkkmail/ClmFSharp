@@ -40,20 +40,12 @@ module Runner =
 
 
     type ModelRunner (p : ModelRunnerParam) =
-        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
-
-        let getExeName (ModelDataId modelId) =
-            // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
-            // See:
-            //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
-            //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
-            let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
-            //p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-            x + @"\" + p.exeName
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelId clmTaskId = tryDbFun (getNewModelDataId clmTaskId)
+        let runModel = runModel p.exeName
+        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
@@ -110,12 +102,6 @@ module Runner =
         //      |> ignore
         //
         //    Target.runOrDefault "Default"
-
-
-        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
-            let exeName = getExeName (c.calledBackModelId)
-            let commandLineParams = p.toCommandLine c.calledBackModelId
-            runProc c exeName commandLineParams None
 
 
         let getQueueId (p : ModelCommandLineParam) modelId =

@@ -47,9 +47,9 @@ module ContGenTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] ModelId of int64
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of decimal
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of decimal
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of int64
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] Y0 of decimal
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TEnd of decimal
 
         with
             interface IArgParserTemplate with

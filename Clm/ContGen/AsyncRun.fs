@@ -38,17 +38,15 @@ module AsyncRun =
 
     type ProcessStartInfo =
         {
-            startedProcessId : int
-            startedModelId : ModelDataId
-            startedRunQueueId : RunQueueId
+            processId : int
+            modelId : ModelDataId
+            runQueueId : RunQueueId
         }
 
 
     type ProcessResult =
         {
-            exitedProcessId : int
-            exitedModelId : ModelDataId
-            exitedRunQueueId : RunQueueId
+            startInfo : ProcessStartInfo
             exitCode : int
             runTime : int64
             outputs : seq<string>
@@ -69,7 +67,6 @@ module AsyncRun =
             run : ProcessStartedCallBack -> ProcessResult
             modelId : ModelDataId
             runQueueId : RunQueueId
-            //clmTaskId : ClmTaskId
         }
 
 
@@ -181,13 +178,13 @@ module AsyncRun =
 
         member s.completeRun h (x : ProcessResult) =
             let w() =
-                h.removeFromQueue x.exitedRunQueueId |> Async.Start
+                h.removeFromQueue x.startInfo.runQueueId |> Async.Start
 
-                match s.running.TryFind x.exitedProcessId with
+                match s.running.TryFind x.startInfo.processId with
                 | Some _ ->
                     let p, q = partition s.runLimit s.queue (s.runningCount - 1)
                     h.startModels p |> Async.Start
-                    { s with queue = q; running = s.running.Remove x.exitedProcessId }
+                    { s with queue = q; running = s.running.Remove x.startInfo.processId }
                 | None ->
                     let p, q = partition s.runLimit s.queue s.runningCount
                     h.startModels p |> Async.Start
@@ -198,7 +195,7 @@ module AsyncRun =
             | CanGenerate ->
                 h.startGenerate() |> Async.Start
                 w()
-            | ShuttingDown -> { s with running = s.running.tryRemove x.exitedProcessId }
+            | ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
 
         member s.startRun h r =
             let w() =
@@ -216,8 +213,8 @@ module AsyncRun =
             let r =
                 {
                     started = DateTime.Now
-                    runningProcessId = p.startedProcessId
-                    runningModelId = p.startedModelId
+                    runningProcessId = p.processId
+                    runningModelId = p.modelId
                     progress = TaskProgress.create 0.0m
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
@@ -396,13 +393,16 @@ module AsyncRun =
             printfn "Failed to start process %s" filename
 
             {
+                startInfo =
+                    {
+                        processId = -1
+                        modelId = c.calledBackModelId
+                        runQueueId = c.runQueueId
+                    }
                 exitCode = CannotFindSpecifiedFileException
-                exitedModelId = c.calledBackModelId
-                exitedRunQueueId = c.runQueueId
                 runTime = timer.ElapsedMilliseconds
                 outputs = []
                 errors = []
-                exitedProcessId = -1
             }
         else 
             p.PriorityClass <- ProcessPriorityClass.BelowNormal
@@ -410,7 +410,7 @@ module AsyncRun =
             let processId = p.Id
 
             printfn "Started %s with pid %i" p.ProcessName processId
-            c.notifyOnStarted { startedProcessId = processId; startedModelId = c.calledBackModelId; startedRunQueueId = c.runQueueId }
+            c.notifyOnStarted { processId = processId; modelId = c.calledBackModelId; runQueueId = c.runQueueId }
 
             p.BeginOutputReadLine()
             p.BeginErrorReadLine()
@@ -420,13 +420,16 @@ module AsyncRun =
             let cleanOut l = l |> Seq.filter (fun o -> String.IsNullOrEmpty o |> not)
 
             {
+                startInfo =
+                    {
+                        processId = processId
+                        modelId = c.calledBackModelId
+                        runQueueId = c.runQueueId
+                    }
                 exitCode = p.ExitCode
-                exitedModelId = c.calledBackModelId
-                exitedRunQueueId = c.runQueueId
                 runTime = timer.ElapsedMilliseconds
                 outputs = cleanOut outputs
                 errors = cleanOut errors
-                exitedProcessId = processId
             }
 
 

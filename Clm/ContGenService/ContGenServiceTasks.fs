@@ -12,7 +12,7 @@ open ContGenAdm.ContGenServiceResponse
 module ContGenServiceTasks =
 
     [<Literal>]
-    let ServiceTmeOut = 10000.0
+    let ServiceTmeOut = 10_000.0
 
 
     // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
@@ -96,6 +96,7 @@ module ContGenServiceTasks =
 
 
     let runService () =
+        printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
 
         let logger e = printfn "Error: %A" e
@@ -112,17 +113,7 @@ module ContGenServiceTasks =
         do timer.AutoReset <- true
         do timer.Elapsed.Add eventHandler
         do timer.Start()
-
-        //while true do
-        //    try
-        //        printfn "Getting state..."
-        //        let state = service.getState()
-        //        printfn "...state =\n%s\n\n" (state.ToString())
-        //        if state.queue.Length = 0 then service.startGenerate()
-        //    with
-        //        | e -> printfn "Exception: %A\n" e.Message
-
-        //    Thread.Sleep 30_000
+        eventHandler 0
 
         waitHandle.WaitOne() |> ignore
 

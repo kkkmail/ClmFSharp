@@ -58,23 +58,24 @@ module SolverRunnerTasks =
             }
 
 
+    let tryGetResponseHandler (results : ParseResults<SolverRunnerArguments>) =
+        match results.TryGetResult NotifyAddress with
+        | Some address ->
+            let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
+            ResponseHandler.tryCreate address port
+        | None -> None
+
+
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId with
         | Some tEnd, Some y0, Some modelDataId ->
             match tryDbFun (tryLoadModelData (ModelDataId modelDataId)) with
             | Some (Some md) ->
-                // TODO kk:20190208 - This must be split into several functions.
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
                 let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
-
-                let n =
-                    match results.TryGetResult NotifyAddress with
-                    | Some address ->
-                        let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
-                        ResponseHandler.tryCreate address port
-                    | None -> None
-
+                let n = tryGetResponseHandler results
                 let a = results.GetResult (UseAbundant, defaultValue = false)
+
                 printfn "Starting at: %A" DateTime.Now
                 let seed = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.seedValue
                 let rnd = RandomValueGetter.create (Some seed)

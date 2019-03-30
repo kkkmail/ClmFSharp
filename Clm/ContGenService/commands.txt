@@ -1,0 +1,5 @@
+:: Add
+ContGen.exe add -i 1001 -n 20 -m 3 -y 10 -t 10000 -r 20
+ContGen.exe add -i 1002 -n 20 -m 3 -y 10 -t 10000 -r 20
+
+:: Generate model

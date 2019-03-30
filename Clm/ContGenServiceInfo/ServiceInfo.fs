@@ -4,8 +4,6 @@ open ClmSys.GeneralData
 
 module ServiceInfo =
 
-    // TODO kk:20190328 - ContGenServiceAddress and ContGenServicePort were moved into ClmSys.GeneralData. Some refactoring is needed.
-
     [<Literal>]
     let ContGenServiceName = "ContGenService"
 
@@ -30,6 +28,19 @@ module ServiceInfo =
             | _ when d <= 0.0m -> NotStarted
             | _ when d < 1.0m -> InProgress d
             | _ -> Completed
+
+        member progress.estimateEndTime (started : DateTime) =
+            match progress with
+            | NotStarted -> None
+            | InProgress p ->
+                if p > 0.0m
+                then
+                    let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / p |> int64 |> TimeSpan.FromTicks
+                    started.Add estRunTime |> Some
+                else None
+            | Completed -> Some DateTime.Now
+
+
 
 
     type WorkState =
@@ -57,7 +68,13 @@ module ServiceInfo =
         override r.ToString() =
             let (ModelDataId modelDataId) = r.runningModelId
             let s = formatTimeSpan (DateTime.Now - r.started)
-            sprintf "{ running = %s, modelDataId = %A, processId = %A, progress = %A }" s modelDataId r.runningProcessId r.progress
+
+            let estCompl =
+                match r.progress.estimateEndTime r.started with
+                | Some e -> " completed by: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+                | None -> EmptyString
+
+            sprintf "{ running = %s,%s modelDataId = %A, processId = %A, progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
 
 
     type ContGenRunnerState =

@@ -15,6 +15,9 @@ module AllDefaults =
             Defaults_001_001.defaultValue
             Defaults_001_002.defaultValue
             Defaults_001_003.defaultValue
+
+            // Test defaults
+            Defaults_999_000.defaultValue
         ]
         |> List.map (fun e -> e.clmDefaultValueId, e)
         |> Map.ofList

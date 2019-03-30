@@ -71,10 +71,10 @@ module ServiceInfo =
 
             let estCompl =
                 match r.progress.estimateEndTime r.started with
-                | Some e -> " completed by: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+                | Some e -> " est. completion by: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ";"
                 | None -> EmptyString
 
-            sprintf "{ running = %s,%s modelDataId = %A, processId = %A, progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
+            sprintf "{ running = %s;%s modelDataId = %A; processId = %A; progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
 
 
     type ContGenRunnerState =

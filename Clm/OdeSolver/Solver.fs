@@ -64,7 +64,7 @@ module Solver =
 
         let notify t r m =
             match n.progressCallBack with
-            | Some c -> (decimal r) / (decimal m) |> c
+            | Some c -> (decimal (max 0 (r - 1))) / (decimal m) |> c
             | None -> ignore()
 
         let notifyChart t x =

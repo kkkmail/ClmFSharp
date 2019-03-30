@@ -123,7 +123,7 @@ module Runner =
                         | Some a ->
                             match generateModel a.modelGenerationParams modelId c.clmTaskInfo.clmTaskId |> saveModel with
                             | Some true ->
-                                updateTask { c with remainingRepetitions = c.remainingRepetitions - 1 }
+                                updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
                                 //compileModel modelId
 
                                 a.modelCommandLineParams |> List.map (fun e ->

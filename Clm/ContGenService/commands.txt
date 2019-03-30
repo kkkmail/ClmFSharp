@@ -1,7 +1,13 @@
-:: Add
+:: Catalytic destruction for n = 20
+
+:: Catalytic destruction + sedimentation direct for n = 20
 ContGen.exe add -i 1001 -n 20 -m 3 -y 10 -t 10000 -r 20
 ContGen.exe add -i 1002 -n 20 -m 3 -y 10 -t 10000 -r 20
 
+:: Catalytic destruction for n = 25
+ContGen.exe add -i 2000 -n 25 -m 3 -y 10 -t 50000 -r 20
+
+
 :: Generate model - for tests
-ContGen.exe add -i 999000 -n 5 -m 3 -y 10 -t 10000 -r 20 -g
+ContGen.exe add -i 999000 -n 5 -m 3 -y 10 -t 10000 -r 0 -g
 

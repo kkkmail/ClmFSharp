@@ -23,6 +23,11 @@ module FSharpCodeExt =
         member this.toFSharpCode = this.ToString() + "L"
 
 
+    type System.Decimal
+        with
+        member this.toFSharpCode = this.ToString() + "m"
+
+
     let fold f state (arr: 'a [,]) =
         Seq.cast<'a> arr
         |> Seq.fold f state
@@ -506,7 +511,7 @@ module FSharpCodeExt =
         with
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
-            shift + "    fileStructureVersion = " + "\"" + p.fileStructureVersion.ToString() + "\"" + Nl +
+            shift + "    fileStructureVersion = " + p.fileStructureVersion.toFSharpCode + Nl +
             shift + "    versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
             shift + "    modelDataId = " + p.modelDataId.toFSharpCode + Nl +
             shift + "    numberOfSubstances = " + p.numberOfSubstances.toFSharpCode + Nl +

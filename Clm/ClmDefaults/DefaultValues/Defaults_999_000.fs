@@ -7,7 +7,7 @@ open ClmDefaults.DefaultValuesExt
 module Defaults_999_000 =
 
     let clmDefaultValueId = 999_000L |> ClmDefaultValueId
-    let description = None
+    let description = Some "For n = 3 - 4"
 
     let defaultRateParams =
         //===========================================================
@@ -16,30 +16,33 @@ module Defaults_999_000 =
         let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
         //===========================================================
         let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (0.001, 0.001)
-        let catSynthRndParam = (synthParam, (Some 0.002), 10_000.0)
+        let catSynthRndParam = (synthParam, (Some 0.02), 10_000.0)
         //let catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParam catSynthRndParam
         let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.3)
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
-        let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)
+        let catDestrRndParam = (destrParam, (Some 0.02), 100_000.0)
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam
         let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.20)
         //===========================================================
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
-        let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
+        let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.005), 2_000.0)
         //===========================================================
+        // For n = ?
+        let sedDirRndParam = (Some 0.002, 1000.0)
+
         // For n = 10
         //let sedDirRndParam = (Some 0.000_1, 100.0)
 
         // For n = 20
-        let sedDirRndParam = (Some 0.000_01, 100.0)
+        //let sedDirRndParam = (Some 0.000_01, 100.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
         let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
         //===========================================================
         let sedAllParam = ReactionRateProviderParams.defaultSedAllRndParam 0.1
         //===========================================================
         let racemParam = ReactionRateProviderParams.defaultRacemRndParamImpl 0.001
-        let catRacemRndParam = (racemParam, (Some 0.000_5), 1_000.0)
+        let catRacemRndParam = (racemParam, (Some 0.02), 1_000.0)
         //let catRacemParam = ReactionRateProviderParams.defaultCatRacemRndParam catRacemRndParam
         let catRacemParam = ReactionRateProviderParams.defaultCatRacemSimParam catRacemRndParam (Some 0.2)
         //===========================================================

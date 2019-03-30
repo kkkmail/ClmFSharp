@@ -68,9 +68,7 @@ module ContGenAdmTasks =
 
         while true do
             try
-                printfn "Getting state..."
-                let state = service.getState()
-                printfn "...state = %A\n\n" state
+                getServiceState service
             with
                 | e -> printfn "Exception: %A\n" e.Message
 

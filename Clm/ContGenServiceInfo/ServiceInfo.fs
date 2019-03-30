@@ -41,8 +41,6 @@ module ServiceInfo =
             | Completed -> Some DateTime.Now
 
 
-
-
     type WorkState =
         | Idle
         | CanGenerate
@@ -109,3 +107,10 @@ module ServiceInfo =
         abstract startGenerate : unit -> unit
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
+
+
+    let getServiceState (service : IContGenService) =
+        printfn "Getting state..."
+        let state = service.getState()
+        printfn "...state =\n%s\n\n" (state.ToString())
+        if state.queue.Length = 0 then service.startGenerate()

@@ -8,8 +8,10 @@ open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
+open ClmSys.ExitErrorCodes
 
 module ContGenServiceTasks =
+    open ClmSys
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0
@@ -22,7 +24,7 @@ module ContGenServiceTasks =
         installer
 
 
-    let installServices () =
+    let installService () =
         try
             printfn "Attempting to install service %s ..." ContGenServiceName
             let i = getInstaller ()
@@ -38,7 +40,7 @@ module ContGenServiceTasks =
                 false
 
 
-    let uninstallServices () =
+    let uninstallService () =
         try
             printfn "Attempting to uninstall service %s ..." ContGenServiceName
             let i = getInstaller ()
@@ -70,7 +72,7 @@ module ContGenServiceTasks =
                 false
 
 
-    let startServices timeoutMilliseconds =
+    let startContGenService timeoutMilliseconds =
         (startService ContGenServiceName timeoutMilliseconds)
 
 
@@ -91,33 +93,26 @@ module ContGenServiceTasks =
                 false
 
 
-    let stopServices timeoutMilliseconds =
+    let stopContGenService timeoutMilliseconds =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
     let runService () =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
-
         let logger e = printfn "Error: %A" e
         startServiceRun logger
         let service = (new ContGenResponseHandler()).contGenService
-
-        let eventHandler _ =
-            printfn "Getting state..."
-            let state = service.getState()
-            printfn "...state =\n%s\n\n" (state.ToString())
-            if state.queue.Length = 0 then service.startGenerate()
+        let eventHandler _ = getServiceState service
 
         let timer = new System.Timers.Timer(30_000.0)
         do timer.AutoReset <- true
         do timer.Elapsed.Add eventHandler
         do timer.Start()
+
         eventHandler 0
-
         waitHandle.WaitOne() |> ignore
-
-        0
+        CompletedSuccessfully
 
 
     type ContGenServiceTask =
@@ -130,12 +125,12 @@ module ContGenServiceTasks =
         member task.run() =
             match task with
             | InstallServicesTask ->
-                if installServices () then startServices ServiceTmeOut |> ignore
+                if installService() then startContGenService ServiceTmeOut |> ignore
             | UninstallServicesTask ->
-                stopServices ServiceTmeOut |> ignore
-                uninstallServices () |> ignore
-            | StartServicesTask -> startServices ServiceTmeOut |> ignore
-            | StopServicesTask -> stopServices ServiceTmeOut |> ignore
+                stopContGenService ServiceTmeOut |> ignore
+                uninstallService() |> ignore
+            | StartServicesTask -> startContGenService ServiceTmeOut |> ignore
+            | StopServicesTask -> stopContGenService ServiceTmeOut |> ignore
             | RunServicesTask -> runService () |> ignore
 
         static member private tryCreateInstallServicesTask (p : list<SvcArguments>) =

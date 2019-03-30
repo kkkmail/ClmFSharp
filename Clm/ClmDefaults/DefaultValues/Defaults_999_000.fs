@@ -7,7 +7,7 @@ open ClmDefaults.DefaultValuesExt
 module Defaults_999_000 =
 
     let clmDefaultValueId = 999_000L |> ClmDefaultValueId
-    let description = Some "For n = 3 - 4"
+    let description = Some "For n = 3 - 5"
 
     let defaultRateParams =
         //===========================================================

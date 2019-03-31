@@ -19,12 +19,12 @@ The system uses F# type providers, which means that the database must be created
 4.	Load that file (`all.sql`) and run it in the database created on step #2. The script if fully reentrable, which means that it can be run many times without any side effects.
 5.	Once the database is built, F# solution `ContGen.sln` can be loaded and compiled.
 
-##Project and Folder Structure
+## Project and Folder Structure
 Folder `Clm` contains F# code. There are two solutions: the main solution `ContGen.sln` and model testing solution `Model.sln`. The fist solution builds the whole system and the second solution is used to perform the primary acceptance test. Given that a properly written F# code is 5-10 times more compact than the equivalent C# code and that, again, a properly written F# code should follow the paradigm: if it compiles, then it works, that removes probably somewhere between 90 to 99 percent of the tests needed to make a working C# code.
 Folder `Math` contains various Excel / Wolfram Mathematica helper files and are not needed for the operation of the system.
 Folder `SQL` contains the database code and various convenient select statements. 
 
-##Executables and Command Line Parameters
+## Executables and Command Line Parameters
 The project `ContGenService` is the primary one and it contains all executables needed for the operation of the system. The system uses `Argu` as a command line parser, so running any of the executables (except `ClmDefaults.exe`, which currently does not have any command line parameters) with `help` command will provide up to date command line parameter structure.
 
 There are currently five executables:
@@ -32,4 +32,4 @@ There are currently five executables:
 2.	`ContGen.exe` is used to add tasks / generate mode code for tests / run specific model “by hands”.
 3.	`ContGenService.exe`. This is the primary service. It can be run as a Windows service or as a regular executable.
 4.	If `ContGenService.exe` is run as a Windows service, then we need the functionality to control it. This is performed by `ContGenAdm.exe`.
-5.	Finally, `SolverRunner.exe` is the ultimate low-lever F# wrapper around ALGLIB vector ODE solver. It solves the given model with given parameters (`y0` and `tEnd`), This is the process that is spawned by `ContGenService.exe` / `ContGen.exe` when a model needs to be run. Running `SolverRunner.exe` “by hands” gives a little bit extra control and allows running a specific model directly. This becomes important when we want to re-run a specific model with some new values of `y0` / `tEnd`, which have not been covered in the relevant task.
+5.	Finally, `SolverRunner.exe` is the ultimate low-lever F# wrapper around ALGLIB vector ODE solver. It solves the given model with given parameters (`y0` and `tEnd`), This is the process that is spawned by `ContGenService.exe` / `ContGen.exe` when a model needs to be run. Running `SolverRunner.exe` “by hands” gives a little bit extra control and allows running a specific model directly. This becomes important when we want to re-run a specific model with some new values of `y0` / `tEnd`, which have not been covered in the relevant `ClmTask`.

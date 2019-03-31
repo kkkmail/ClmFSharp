@@ -2,6 +2,8 @@
 
 open Microsoft.FSharp.Core
 open System
+open ClmSys.GeneralData
+
 
 module Solver =
 
@@ -52,9 +54,19 @@ module Solver =
         }
 
 
+    let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
+
+
+    let estCompl s r m =
+        match (calculateProgress r m |> estimateEndTime) s with
+        | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+        | None -> EmptyString
+
+
     /// F# wrapper around Alglib ODE solver.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
+        let start = DateTime.Now
         let i = n.h n.y0
 
         let mutable progressCount = 0
@@ -64,7 +76,7 @@ module Solver =
 
         let notify t r m =
             match n.progressCallBack with
-            | Some c -> (decimal (max 0 (r - 1))) / (decimal m) |> c
+            | Some c -> calculateProgress r m |> c
             | None -> ignore()
 
         let notifyChart t x =
@@ -78,7 +90,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "\nStep: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
+                    printfn "\nStep: %A, time: %A,%A t = %A of %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd
                     notify t progressCount k
             | _ -> ignore()
 

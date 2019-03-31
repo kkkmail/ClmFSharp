@@ -189,3 +189,11 @@ module GeneralData =
 
         member this.addContent p = AddContent p |> chat.Post
         member this.getContent () = chat.PostAndReply GetContent
+
+
+    let estimateEndTime progress (started : DateTime) =
+        if progress > 0.0m && progress <= 1.0m
+        then
+            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
+            started.Add estRunTime |> Some
+        else None

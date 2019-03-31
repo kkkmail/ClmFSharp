@@ -32,12 +32,7 @@ module ServiceInfo =
         member progress.estimateEndTime (started : DateTime) =
             match progress with
             | NotStarted -> None
-            | InProgress p ->
-                if p > 0.0m
-                then
-                    let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / p |> int64 |> TimeSpan.FromTicks
-                    started.Add estRunTime |> Some
-                else None
+            | InProgress p -> estimateEndTime p started
             | Completed -> Some DateTime.Now
 
 

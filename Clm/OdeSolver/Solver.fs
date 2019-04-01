@@ -58,7 +58,7 @@ module Solver =
 
 
     let estCompl s r m =
-        match (calculateProgress r m |> estimateEndTime) s with
+        match estimateEndTime (calculateProgress r m) s with
         | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
         | None -> EmptyString
 
@@ -90,7 +90,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "\nStep: %A, time: %A,%s t = %A of %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd
+                    printfn "Step: %A, time: %A,%s t = %A of %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd
                     notify t progressCount k
             | _ -> ignore()
 

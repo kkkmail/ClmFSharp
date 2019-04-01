@@ -90,7 +90,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "Step: %A, time: %A,%s t = %A of %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd
+                    printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
                     notify t progressCount k
             | _ -> ignore()
 

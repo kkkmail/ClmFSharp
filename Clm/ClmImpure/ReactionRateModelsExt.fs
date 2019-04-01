@@ -6,8 +6,6 @@ open Clm.CalculationData
 
 open ClmImpure.ReactionRateModels
 
-/// TODO kk:20190329 - This is not the best code because it is mostly run time checked instead of being compile time checked.
-/// Perhaps it is possible to come up with some idea to make it fully compile time checked.
 module ReactionRateModelsExt =
 
     let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter

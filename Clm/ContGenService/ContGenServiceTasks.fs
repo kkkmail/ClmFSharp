@@ -10,8 +10,8 @@ open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
 open ClmSys.ExitErrorCodes
 
+
 module ContGenServiceTasks =
-    open ClmSys
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0
@@ -116,44 +116,44 @@ module ContGenServiceTasks =
 
 
     type ContGenServiceTask =
-        | InstallServicesTask
-        | UninstallServicesTask
-        | StartServicesTask
-        | StopServicesTask
-        | RunServicesTask
+        | InstallServiceTask
+        | UninstallServiceTask
+        | StartServiceTask
+        | StopServiceTask
+        | RunServiceTask
 
         member task.run() =
             match task with
-            | InstallServicesTask ->
+            | InstallServiceTask ->
                 if installService() then startContGenService ServiceTmeOut |> ignore
-            | UninstallServicesTask ->
+            | UninstallServiceTask ->
                 stopContGenService ServiceTmeOut |> ignore
                 uninstallService() |> ignore
-            | StartServicesTask -> startContGenService ServiceTmeOut |> ignore
-            | StopServicesTask -> stopContGenService ServiceTmeOut |> ignore
-            | RunServicesTask -> runService () |> ignore
+            | StartServiceTask -> startContGenService ServiceTmeOut |> ignore
+            | StopServiceTask -> stopContGenService ServiceTmeOut |> ignore
+            | RunServiceTask -> runService () |> ignore
 
-        static member private tryCreateInstallServicesTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Install -> InstallServicesTask |> Some | _ -> None)
+        static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateUninstallServicesTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServicesTask |> Some | _ -> None)
+        static member private tryCreateUninstallServiceTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStartServicesTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start -> StartServicesTask |> Some | _ -> None)
+        static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Start -> StartServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStopServicesTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Stop -> StopServicesTask |> Some | _ -> None)
+        static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServicesTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Run -> RunServicesTask |> Some | _ -> None)
+        static member private tryCreateRunServiceTask (p : list<SvcArguments>) =
+            p |> List.tryPick (fun e -> match e with | Run -> RunServiceTask |> Some | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =
             [
-                ContGenServiceTask.tryCreateUninstallServicesTask
-                ContGenServiceTask.tryCreateInstallServicesTask
-                ContGenServiceTask.tryCreateStopServicesTask
-                ContGenServiceTask.tryCreateStartServicesTask
-                ContGenServiceTask.tryCreateRunServicesTask
+                ContGenServiceTask.tryCreateUninstallServiceTask
+                ContGenServiceTask.tryCreateInstallServiceTask
+                ContGenServiceTask.tryCreateStopServiceTask
+                ContGenServiceTask.tryCreateStartServiceTask
+                ContGenServiceTask.tryCreateRunServiceTask
             ]
             |> List.tryPick (fun e -> e p)

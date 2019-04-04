@@ -9,12 +9,21 @@ open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
 open ClmSys.ExitErrorCodes
+open Argu
 
 
 module ContGenServiceTasks =
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0
+
+
+    type ContGenServiceRunParam =
+        | NumberOfCores of int
+
+        // TODO kk:20190404 - Implement and propagate the parameter all the way through to the service.
+        static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenServiceRunParam> =
+            []
 
 
     // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
@@ -72,7 +81,7 @@ module ContGenServiceTasks =
                 false
 
 
-    let startContGenService timeoutMilliseconds =
+    let startContGenService timeoutMilliseconds (p : list<ContGenServiceRunParam>) =
         (startService ContGenServiceName timeoutMilliseconds)
 
 
@@ -97,7 +106,7 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
-    let runService () =
+    let runService (p : list<ContGenServiceRunParam>)=
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
@@ -118,9 +127,9 @@ module ContGenServiceTasks =
     type ContGenServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
-        | StartServiceTask
+        | StartServiceTask of list<ContGenServiceRunParam>
         | StopServiceTask
-        | RunServiceTask
+        | RunServiceTask of list<ContGenServiceRunParam>
 
         member task.run() =
             match task with
@@ -129,9 +138,9 @@ module ContGenServiceTasks =
             | UninstallServiceTask ->
                 stopContGenService ServiceTmeOut |> ignore
                 uninstallService() |> ignore
-            | StartServiceTask -> startContGenService ServiceTmeOut |> ignore
+            | StartServiceTask p -> startContGenService ServiceTmeOut p |> ignore
             | StopServiceTask -> stopContGenService ServiceTmeOut |> ignore
-            | RunServiceTask -> runService () |> ignore
+            | RunServiceTask p -> runService p |> ignore
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
@@ -140,13 +149,13 @@ module ContGenServiceTasks =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
         static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start -> StartServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Start p -> ContGenServiceRunParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
         static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
         static member private tryCreateRunServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Run -> RunServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Run p -> ContGenServiceRunParam.fromParseResults p |> RunServiceTask |> Some | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =
             [

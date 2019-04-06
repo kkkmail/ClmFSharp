@@ -64,7 +64,8 @@ module AsyncRun =
 
     type RunInfo =
         {
-            run : ProcessStartedCallBack -> ProcessResult
+            //run : ProcessStartedCallBack -> ProcessResult
+            run : ProcessStartedCallBack -> ProcessStartInfo
             modelId : ModelDataId
             runQueueId : RunQueueId
         }
@@ -178,26 +179,47 @@ module AsyncRun =
             | CanGenerate -> w()
             | ShuttingDown -> s
 
-        member s.completeRun h (x : ProcessResult) =
-            let w() =
-                h.removeFromQueue x.startInfo.runQueueId |> Async.Start
+        //member s.completeRun h (x : ProcessResult) =
+        //    let w() =
+        //        h.removeFromQueue x.startInfo.runQueueId |> Async.Start
+        //
+        //        match s.running.TryFind x.startInfo.processId with
+        //        | Some _ ->
+        //            let p, q = partition s.runLimit s.queue (s.runningCount - 1)
+        //            h.startModels p |> Async.Start
+        //            { s with queue = q; running = s.running.Remove x.startInfo.processId }
+        //        | None ->
+        //            let p, q = partition s.runLimit s.queue s.runningCount
+        //            h.startModels p |> Async.Start
+        //            { s with queue = q }
+        //
+        //    match s.workState with
+        //    | Idle -> w()
+        //    | CanGenerate ->
+        //        h.startGenerate() |> Async.Start
+        //        w()
+        //    | ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
 
-                match s.running.TryFind x.startInfo.processId with
-                | Some _ ->
-                    let p, q = partition s.runLimit s.queue (s.runningCount - 1)
-                    h.startModels p |> Async.Start
-                    { s with queue = q; running = s.running.Remove x.startInfo.processId }
-                | None ->
-                    let p, q = partition s.runLimit s.queue s.runningCount
-                    h.startModels p |> Async.Start
-                    { s with queue = q }
+        member s.completeRun h (x : ProcessStartInfo) = s
+            //let w() =
+            //    h.removeFromQueue x.startInfo.runQueueId |> Async.Start
 
-            match s.workState with
-            | Idle -> w()
-            | CanGenerate ->
-                h.startGenerate() |> Async.Start
-                w()
-            | ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
+            //    match s.running.TryFind x.startInfo.processId with
+            //    | Some _ ->
+            //        let p, q = partition s.runLimit s.queue (s.runningCount - 1)
+            //        h.startModels p |> Async.Start
+            //        { s with queue = q; running = s.running.Remove x.startInfo.processId }
+            //    | None ->
+            //        let p, q = partition s.runLimit s.queue s.runningCount
+            //        h.startModels p |> Async.Start
+            //        { s with queue = q }
+
+            //match s.workState with
+            //| Idle -> w()
+            //| CanGenerate ->
+            //    h.startGenerate() |> Async.Start
+            //    w()
+            //| ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
 
         member s.startRun h r =
             let w() =
@@ -259,7 +281,8 @@ module AsyncRun =
         | StartRun of AsyncRunner * list<RunInfo>
         | Started of ProcessStartInfo
         | UpdateProgress of ProgressUpdateInfo
-        | CompleteRun of AsyncRunner * ProcessResult
+        //| CompleteRun of AsyncRunner * ProcessResult
+        | CompleteRun of AsyncRunner * ProcessStartInfo
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | ConfigureService of AsyncRunner * ContGenConfigParam
 
@@ -360,7 +383,7 @@ module AsyncRun =
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
     /// We can't really fail here, especially if it runs under Windows service.
-    let runProc (c : ProcessStartedCallBack) filename args startDir =
+    let runProcOld (c : ProcessStartedCallBack) filename args startDir =
         let timer = Stopwatch.StartNew()
 
         let procStartInfo =
@@ -434,6 +457,62 @@ module AsyncRun =
                 runTime = timer.ElapsedMilliseconds
                 outputs = cleanOut outputs
                 errors = cleanOut errors
+            }
+
+
+    let runProc (c : ProcessStartedCallBack) filename args startDir =
+        let timer = Stopwatch.StartNew()
+
+        let procStartInfo =
+            ProcessStartInfo(
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                FileName = filename,
+                Arguments = args
+            )
+
+        match startDir with | Some d -> procStartInfo.WorkingDirectory <- d | _ -> ()
+
+        let outputs = System.Collections.Generic.List<string>()
+        let errors = System.Collections.Generic.List<string>()
+        let outputHandler f (_sender:obj) (args:DataReceivedEventArgs) = f args.Data
+        let p = new Process(StartInfo = procStartInfo)
+        p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
+        p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
+
+        let started =
+            try
+                p.Start()
+            with
+                | ex ->
+                    // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
+                    // Otherwise runningCount is not dereased.
+                    ex.Data.Add("filename", filename)
+                    //reraise()
+                    false
+
+        if not started
+        then
+            printfn "Failed to start process %s" filename
+
+            {
+                processId = -1
+                modelId = c.calledBackModelId
+                runQueueId = c.runQueueId
+            }
+        else
+            p.PriorityClass <- ProcessPriorityClass.BelowNormal
+
+            let processId = p.Id
+
+            printfn "Started %s with pid %i" p.ProcessName processId
+            c.notifyOnStarted { processId = processId; modelId = c.calledBackModelId; runQueueId = c.runQueueId }
+
+            {
+                processId = processId
+                modelId = c.calledBackModelId
+                runQueueId = c.runQueueId
             }
 
 

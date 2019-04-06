@@ -134,13 +134,18 @@ module AsyncRun =
                 s
             | ShuttingDown -> s
 
-        member s.updateProgress (p : ProgressUpdateInfo) =
+        member s.updateProgress h (p : ProgressUpdateInfo) =
             match s.running.TryFind p.updatedProcessId with
             | Some e ->
                 match p.progress with
                 | NotStarted | InProgress _ ->
                     { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
                 | Completed ->
+                    match e.runningQueueId with
+                    | Some v ->
+                        h.removeFromQueue v |> Async.Start
+                    | None -> ignore()
+
                     { s with running = s.running.Remove p.updatedProcessId }
             | None ->
                 match p.progress with
@@ -150,6 +155,7 @@ module AsyncRun =
                             started = DateTime.Now
                             runningProcessId = p.updatedProcessId
                             runningModelId = p.updateModelId
+                            runningQueueId = None
                             progress = p.progress
                         }
                     { s with running = s.running.Add(p.updatedProcessId, e) }
@@ -200,26 +206,18 @@ module AsyncRun =
         //        w()
         //    | ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
 
-        member s.completeRun h (x : ProcessStartInfo) = s
-            //let w() =
-            //    h.removeFromQueue x.startInfo.runQueueId |> Async.Start
+        member s.completeRun h (x : ProcessStartInfo) =
+            let w() =
+                let p, q = partition s.runLimit s.queue (max 0 (s.runningCount - 1))
+                h.startModels p |> Async.Start
+                { s with queue = q }
 
-            //    match s.running.TryFind x.startInfo.processId with
-            //    | Some _ ->
-            //        let p, q = partition s.runLimit s.queue (s.runningCount - 1)
-            //        h.startModels p |> Async.Start
-            //        { s with queue = q; running = s.running.Remove x.startInfo.processId }
-            //    | None ->
-            //        let p, q = partition s.runLimit s.queue s.runningCount
-            //        h.startModels p |> Async.Start
-            //        { s with queue = q }
-
-            //match s.workState with
-            //| Idle -> w()
-            //| CanGenerate ->
-            //    h.startGenerate() |> Async.Start
-            //    w()
-            //| ShuttingDown -> { s with running = s.running.tryRemove x.startInfo.processId }
+            match s.workState with
+            | Idle -> w()
+            | CanGenerate ->
+                h.startGenerate() |> Async.Start
+                w()
+            | ShuttingDown -> s
 
         member s.startRun h r =
             let w() =
@@ -239,6 +237,7 @@ module AsyncRun =
                     started = DateTime.Now
                     runningProcessId = p.processId
                     runningModelId = p.modelId
+                    runningQueueId = Some p.runQueueId
                     progress = TaskProgress.create 0.0m
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
@@ -280,7 +279,7 @@ module AsyncRun =
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner * list<RunInfo>
         | Started of ProcessStartInfo
-        | UpdateProgress of ProgressUpdateInfo
+        | UpdateProgress of AsyncRunner * ProgressUpdateInfo
         //| CompleteRun of AsyncRunner * ProcessResult
         | CompleteRun of AsyncRunner * ProcessStartInfo
         | GetState of AsyncReplyChannel<AsyncRunnerState>
@@ -295,7 +294,7 @@ module AsyncRun =
             | CompleteGenerate (_, r) -> "CompleteGenerate: " + (toStr r)
             | StartRun (_, r) -> "StartRun: " + (toStr r)
             | Started p -> "Started: " + (p.ToString())
-            | UpdateProgress p -> "ProgressUpdate: " + (p.ToString())
+            | UpdateProgress (_, p) -> "ProgressUpdate: " + (p.ToString())
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
             | ConfigureService _ -> "ConfigureService"
@@ -358,7 +357,7 @@ module AsyncRun =
                             | CompleteGenerate (a, r) -> return! loop (s.completeGenerate (h a) r)
                             | StartRun (a, r) -> return! loop (s.startRun (h a) r)
                             | Started p -> return! loop (s.started p)
-                            | UpdateProgress p -> return! loop (s.updateProgress p)
+                            | UpdateProgress (a, p) -> return! loop (s.updateProgress (h a) p)
                             | CompleteRun (a, x) -> return! loop (s.completeRun (h a) x)
                             | GetState r -> return! loop (s.getState msgCount r.Reply)
                             | ConfigureService (a, p) -> return! loop (s.configureService (h a) p)

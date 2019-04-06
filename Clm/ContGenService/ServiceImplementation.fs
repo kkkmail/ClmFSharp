@@ -4,6 +4,7 @@ open System
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
+open System.ServiceModel
 
 module ServiceImplementation =
 
@@ -27,9 +28,10 @@ module ServiceImplementation =
                 running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
                 queue = s.queue |> List.map (fun e -> e.modelId) |> Array.ofList
                 workState = s.workState
+                messageCount = s.messageCount
             }
 
-
+    //[<ServiceContract>]
     type ContGenService () =
         inherit MarshalByRefObject()
 

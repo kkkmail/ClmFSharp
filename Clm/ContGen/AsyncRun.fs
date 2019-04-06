@@ -100,6 +100,7 @@ module AsyncRun =
             runLimit : int
             maxQueueLength : int
             workState : WorkState
+            messageCount : int64
         }
 
         member state.runningCount = state.running.Count
@@ -111,6 +112,7 @@ module AsyncRun =
                 runLimit = Environment.ProcessorCount
                 maxQueueLength = 4
                 workState = CanGenerate
+                messageCount = 0L
             }
 
         override s.ToString() =
@@ -219,9 +221,9 @@ module AsyncRun =
                 }
             { s with running = s.running.Add(r.runningProcessId, r)}
 
-        member s.getState reply =
-            toAsync (fun () -> reply s) |> Async.Start
-            s
+        member s.getState c reply =
+            toAsync (fun () -> reply { s with messageCount = c }) |> Async.Start
+            { s with messageCount = c }
 
         member s.configureService h (p : ContGenConfigParam) =
             match p with
@@ -278,6 +280,7 @@ module AsyncRun =
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
         let mutable generating = 0
+        let mutable msgCount = 0L
 
         // Returns true if successfully acquired generating flag.
         let tryAcquireGenerating() =
@@ -323,6 +326,7 @@ module AsyncRun =
                         {
                             //printfn "s = %s" (s.ToString())
                             let! m = u.Receive()
+                            Interlocked.Increment(&msgCount) |> ignore
                             //printfn "m = %s" (m.ToString())
 
                             match m with
@@ -333,7 +337,7 @@ module AsyncRun =
                             | Started p -> return! loop (s.started p)
                             | UpdateProgress p -> return! loop (s.updateProgress p)
                             | CompleteRun (a, x) -> return! loop (s.completeRun (h a) x)
-                            | GetState r -> return! loop (s.getState r.Reply)
+                            | GetState r -> return! loop (s.getState msgCount r.Reply)
                             | ConfigureService (a, p) -> return! loop (s.configureService (h a) p)
                         }
 

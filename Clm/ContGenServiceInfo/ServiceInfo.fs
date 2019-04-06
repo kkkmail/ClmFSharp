@@ -1,6 +1,7 @@
 ﻿namespace ContGenServiceInfo
 open System
 open ClmSys.GeneralData
+open System.Threading
 
 module ServiceInfo =
 
@@ -13,6 +14,7 @@ module ServiceInfo =
 
     let getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
         "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
+        //"soap.udp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
 
 
     let getServiceUrl() = getServiceUrlImpl ContGenServiceAddress ContGenServicePort ContGenServiceName
@@ -78,6 +80,7 @@ module ServiceInfo =
             queue : ModelDataId[]
             runningCount : int
             workState : WorkState
+            messageCount : int64
         }
 
         override s.ToString() =
@@ -86,7 +89,7 @@ module ServiceInfo =
 
             let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl
             let r = if r0 = EmptyString then "[]" else Nl + "        [" + Nl + r0 + Nl + "        ]"
-            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; workState = %A\n}" r q s.runLimit s.runningCount s.workState
+            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A\n}" r q s.runLimit s.runningCount s.messageCount s.workState
 
 
     type ContGenConfigParam =
@@ -104,8 +107,16 @@ module ServiceInfo =
         abstract configureService : ContGenConfigParam -> unit
 
 
+    let mutable callCount = -1
+
     let getServiceState (service : IContGenService) =
-        printfn "Getting state..."
-        let state = service.getState()
-        printfn "...state =\n%s\n\n" (state.ToString())
-        if state.queue.Length = 0 then service.startGenerate()
+        if Interlocked.Increment(&callCount) = 0
+        then
+            printfn "Getting state at %A ..." DateTime.Now
+            let state = service.getState()
+            printfn "...state at %A =\n%s\n\n" DateTime.Now (state.ToString())
+            if state.queue.Length = 0 then service.startGenerate()
+        else
+            printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
+            ignore()
+        Interlocked.Decrement(&callCount) |> ignore

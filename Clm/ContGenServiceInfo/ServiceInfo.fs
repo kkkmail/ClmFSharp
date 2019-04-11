@@ -73,6 +73,18 @@ module ServiceInfo =
             sprintf "{ running = %s;%s modelDataId = %A; processId = %A; progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
 
 
+    type ProgressUpdateInfo
+        with
+        member this.runningProcessInfo =
+            {
+                started = DateTime.Now
+                runningProcessId = this.updatedProcessId
+                runningModelId = this.updateModelId
+                runningQueueId = None
+                progress = this.progress
+            }
+
+
     type ContGenRunnerState =
         {
             runLimit : int

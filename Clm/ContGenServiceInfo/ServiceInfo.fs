@@ -130,6 +130,7 @@ module ServiceInfo =
             let state = service.getState()
             printfn "...state at %A =\n%s\n\n" DateTime.Now (state.ToString())
             if state.queue.Length = 0 then service.startGenerate()
+            service.loadQueue()
         else
             printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
             ignore()

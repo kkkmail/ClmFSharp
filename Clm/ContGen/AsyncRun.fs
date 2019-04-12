@@ -114,6 +114,9 @@ module AsyncRun =
 
         member state.runningCount = state.running.Count
 
+        member state.runningQueue =
+            state.running |> Map.toList |> List.map (fun (_, v) -> v.runningQueueId) |> List.choose id |> Set.ofList
+
         static member defaultValue =
             {
                 running = Map.empty
@@ -166,7 +169,8 @@ module AsyncRun =
             let w() =
                 h.releaseGenerating()
                 h.startRun () |> Async.Start
-                { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.runQueueId) }
+                let x = s.runningQueue
+                { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.runQueueId) |> List.filter (fun e -> x.Contains e.runQueueId |> not) }
 
             match s.workState with
             | Idle -> w()
@@ -185,7 +189,8 @@ module AsyncRun =
 
         member s.OnQueueObtained h p =
             h.startRun() |> Async.Start
-            { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.runQueueId) }
+            let x = s.runningQueue
+            { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.runQueueId) |> List.filter (fun e -> x.Contains e.runQueueId |> not) }
 
         member s.onProcessStarted h (x : ProcessStartInfo) =
             let w() =

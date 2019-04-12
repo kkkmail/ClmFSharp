@@ -40,6 +40,7 @@ module ServiceImplementation =
 
         interface IContGenService with
             member this.getState() = a.getState().runnerState
+            member this.loadQueue() = a.startQueue()
             member this.startGenerate() = a.startGenerate()
             member this.updateProgress p = a.updateProgress (a, p)
             member this.configureService (p : ContGenConfigParam) = a.configureService p

@@ -112,6 +112,7 @@ module ContGenServiceTasks =
         let logger e = printfn "Error: %A" e
         startServiceRun logger
         let service = (new ContGenResponseHandler()).contGenService
+        service.loadQueue()
         let eventHandler _ = getServiceState service
 
         let timer = new System.Timers.Timer(30_000.0)
@@ -119,7 +120,6 @@ module ContGenServiceTasks =
         do timer.Elapsed.Add eventHandler
         do timer.Start()
 
-        eventHandler 0
         waitHandle.WaitOne() |> ignore
         CompletedSuccessfully
 

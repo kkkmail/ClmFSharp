@@ -73,7 +73,6 @@ module AsyncRun =
 
     type RunInfo =
         {
-            //run : ProcessStartedCallBack -> ProcessResult
             run : ProcessStartedCallBack -> ProcessStartInfo
             modelId : ModelDataId
             runQueueId : RunQueueId
@@ -167,7 +166,7 @@ module AsyncRun =
             let w() =
                 h.releaseGenerating()
                 h.startRun () |> Async.Start
-                { s with queue = s.queue @ r }
+                { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.runQueueId) }
 
             match s.workState with
             | Idle -> w()
@@ -186,7 +185,7 @@ module AsyncRun =
 
         member s.OnQueueObtained h p =
             h.startRun() |> Async.Start
-            { s with queue = s.queue @ p }
+            { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.runQueueId) }
 
         member s.onProcessStarted h (x : ProcessStartInfo) =
             let w() =

@@ -97,7 +97,7 @@ module ServiceInfo =
         }
 
         override s.ToString() =
-            let q0 = "length: " + (s.queue.ToString()) + ", " + (s.queue |> Array.map (fun e -> e.value.ToString()) |> String.concat "; ")
+            let q0 = "length: " + (s.queue.Length.ToString()) + ", " + (s.queue |> Array.map (fun e -> e.value.ToString()) |> String.concat "; ")
             let q = if q0 = EmptyString then "[]" else "[ " + q0 + " ]"
 
             let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl

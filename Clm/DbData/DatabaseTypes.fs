@@ -35,11 +35,11 @@ module DatabaseTypes =
     type ClmTaskTableRow = ClmTaskTable.Row
     type ClmTaskData = SqlCommandProvider<"select * from dbo.ClmTask where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
     type ClmTaskByDefaultData = SqlCommandProvider<"select top 1 * from dbo.ClmTask where clmDefaultValueId = @clmDefaultValueId order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
-    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where remainingRepetitions > 0", ClmConnectionStringValue, ResultType.DataReader>
+    type ClmTaskAllIncompleteData = SqlCommandProvider<"select * from dbo.ClmTask where remainingRepetitions > 0 order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
     type CommandLineParamTableRow = CommandLineParamTable.Row
-    type CommandLineParamData = SqlCommandProvider<"select * from dbo.CommandLineParam where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+    type CommandLineParamData = SqlCommandProvider<"select * from dbo.CommandLineParam where clmTaskId = @clmTaskId order by commandLineParamId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
@@ -51,7 +51,7 @@ module DatabaseTypes =
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
-    type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0", ClmConnectionStringValue, ResultType.DataReader>
+    type RunQueueTableData = SqlCommandProvider<"select * from dbo.RunQueue where statusId = 0 order by runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ClmDefaultValue

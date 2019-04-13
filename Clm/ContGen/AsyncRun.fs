@@ -91,14 +91,16 @@ module AsyncRun =
     type AsyncRunnerHelper =
         {
             cancelProcess : int -> bool
-            generate : unit -> Async<unit>
-            startGenerate : unit -> Async<unit>
-            startRun : unit -> Async<unit> // Requests to run model(s)
-            startModel : RunInfo -> Async<unit> // Runs a specific model
-            getQueue : unit -> Async<unit>
-            removeFromQueue : RunQueueId -> Async<unit>
+            generate : unit -> unit
             tryAcquireGenerating : unit -> bool
             releaseGenerating : unit -> unit
+            startGenerate : unit -> unit
+            startRun : unit -> unit // Requests to run model(s).
+            tryAcquireStartingModel : unit -> bool
+            releaseStartingModel : unit -> unit
+            startModel : RunInfo -> unit // Schedules a model run.
+            getQueue : unit -> unit
+            removeFromQueue : RunQueueId -> unit
         }
 
 
@@ -142,7 +144,7 @@ module AsyncRun =
                 if s.queue.Length <= s.maxQueueLength
                 then
                     printfn "s.queue.Length = %A. Starting generating..." s.queue.Length
-                    if h.tryAcquireGenerating() then h.generate() |> Async.Start
+                    if h.tryAcquireGenerating() then h.generate()
                 s
             | ShuttingDown -> s
 
@@ -154,10 +156,10 @@ module AsyncRun =
                     { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
                 | Completed ->
                     match e.runningQueueId with
-                    | Some v -> h.removeFromQueue v |> Async.Start
+                    | Some v -> h.removeFromQueue v
                     | None -> ignore()
 
-                    h.startRun () |> Async.Start
+                    h.startRun ()
                     { s with running =  s.running.Remove p.updatedProcessId }
             | None ->
                 match p.progress with
@@ -168,7 +170,7 @@ module AsyncRun =
         member s.onGenerationCompleted h r =
             let w() =
                 h.releaseGenerating()
-                h.startRun () |> Async.Start
+                h.startRun ()
                 let x = s.runningQueue
                 { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.runQueueId) |> List.filter (fun e -> x.Contains e.runQueueId |> not) }
 
@@ -179,7 +181,7 @@ module AsyncRun =
 
         member s.onQueueStarting h =
             let w() =
-                h.getQueue() |> Async.Start
+                h.getQueue()
                 s
 
             match s.workState with
@@ -188,21 +190,24 @@ module AsyncRun =
             | ShuttingDown -> s
 
         member s.OnQueueObtained h p =
-            h.startRun() |> Async.Start
+            h.startRun()
             let x = s.runningQueue
             { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.runQueueId) |> List.filter (fun e -> x.Contains e.runQueueId |> not) }
 
         member s.onProcessStarted h (x : ProcessStartInfo) =
             let w() =
-                h.startRun () |> Async.Start
+                h.releaseStartingModel()
+                h.startRun()
                 { s with running = s.running.Add(x.processId, x.runningProcessInfo) }
 
             match s.workState with
             | Idle -> w()
             | CanGenerate ->
-                h.startGenerate() |> Async.Start
+                h.startGenerate()
                 w()
-            | ShuttingDown -> s
+            | ShuttingDown -> 
+                h.releaseStartingModel()
+                s
 
         member s.onRunStarting h =
             let w() =
@@ -211,8 +216,11 @@ module AsyncRun =
                     match s.queue with
                     | [] -> s
                     | p :: t ->
-                        h.startModel p |> Async.Start
-                        { s with queue = t }
+                        match h.tryAcquireStartingModel() with
+                        | true ->
+                            h.startModel p
+                            { s with queue = t }
+                        | false -> s
                 else s
 
             match s.workState with
@@ -232,7 +240,7 @@ module AsyncRun =
             match p with
             | SetToIdle -> { s with workState = Idle }
             | SetToCanGenerate ->
-                h.startGenerate() |> Async.Start
+                h.startGenerate()
                 { s with workState = CanGenerate }
             | RequestShutDown b ->
                 match b with
@@ -286,44 +294,46 @@ module AsyncRun =
     and AsyncRunner (generatorInfo : GeneratorInfo) =
         let mutable generating = 0
         let mutable msgCount = 0L
+        let mutable runningModel = 0
 
         // Returns true if successfully acquired generating flag.
-        let tryAcquireGenerating() =
-            let x = Interlocked.CompareExchange(&generating, 1, 0) 
-            x = 0
+        let tryAcquireGeneratingImpl() = Interlocked.CompareExchange(&generating, 1, 0) = 0
+        let releaseGeneratingImpl() = Interlocked.Exchange(&generating, 0) |> ignore
 
-        let releaseGenerating() =
-            Interlocked.Exchange(&generating, 0) |> ignore
+        let tryAcquireStartingModelImpl() = Interlocked.CompareExchange(&runningModel, 1, 0) = 0
+        let releaseStartingModelImpl() = Interlocked.Exchange(&runningModel, 0) |> ignore
 
+        let generateImpl (a : AsyncRunner) () = (fun() -> generatorInfo.generate () |> a.completeGenerate) |> toAsync |> Async.Start
+        let startGenerateImpl(a : AsyncRunner) () = a.startGenerate |> toAsync |> Async.Start
+        let startRunImpl (a : AsyncRunner) () = a.startRun |> toAsync |> Async.Start
+        let getQueueImpl (a : AsyncRunner) () = (fun () -> generatorInfo.getQueue() |> a.queueObtained) |> toAsync |> Async.Start
+        let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
 
-        let startModel (a : AsyncRunner) e =
+        let startModelImpl (a : AsyncRunner) e =
             printfn "Starting modelId: %A..." e.modelId
-            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) |> Async.Start
-            |> ignore
+            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) 
+            |> Async.Start
 
-        let cancelProcess i =
+        let cancelProcessImpl i =
             try
                 (Process.GetProcessById i).Kill()
                 true
             with
                 | e -> false
 
-
-        let getQueueAsync (a : AsyncRunner) : Async<unit> =
-            generatorInfo.getQueue() |> ignore
-            a.startRun |> toAsync
-
         let h (a : AsyncRunner) =
             {
-                cancelProcess = cancelProcess
-                generate = fun () -> toAsync (fun () -> generatorInfo.generate () |> a.completeGenerate)
-                startGenerate = fun () -> a.startGenerate |> toAsync
-                startRun = fun () -> a.startRun |> toAsync
-                startModel = fun r -> (fun () -> startModel a r) |> toAsync
-                getQueue = fun () -> toAsync (fun () -> generatorInfo.getQueue() |> a.queueObtained)
-                removeFromQueue = fun i -> (fun () -> generatorInfo.removeFromQueue i) |> toAsync
-                tryAcquireGenerating = tryAcquireGenerating
-                releaseGenerating = releaseGenerating
+                cancelProcess = cancelProcessImpl
+                generate = generateImpl a
+                startGenerate = startGenerateImpl a
+                startRun = startRunImpl a
+                tryAcquireStartingModel = tryAcquireStartingModelImpl
+                releaseStartingModel = releaseStartingModelImpl
+                startModel = startModelImpl a
+                getQueue = getQueueImpl a
+                removeFromQueue = removeFromQueueImpl
+                tryAcquireGenerating = tryAcquireGeneratingImpl
+                releaseGenerating = releaseGeneratingImpl
             }
 
         let messageLoop =

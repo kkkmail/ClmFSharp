@@ -1,5 +1,5 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 3.0.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 3.0.0.0.
 
 The main difficulty in modeling organic chemical systems is a very large number of possible reagents and reactions. For example, the number of peptide chains grows as: `(2 * M) * ((2 * M) ^ (N + 1) – 1) / ((2 * M) - 1)` where `M` is the number of considered amino acids and `N` is the maximum considered peptide length. That value for 20 amino acids and maximum peptide length of 3 gives 65,640 possible peptide chains. If some of the reactions can be catalyzed by some of these peptide chains, then, in theory, we must consider that *all* peptide chains can catalyze *all* such reactions, though most of the coefficients are exact zeros. This requires considering huge sparse matrices of coefficients of various reactions. Subsequently, it is not possible to use such matrices directly and all exact zeros must be removed from all equations. The model parameters control how sparse are the matrices and what are the values of non-zero coefficients. Each model describes a homogeneous chemical system. However, some of the reactions imply a separation of soluble and insoluble substances, which implies inhomogeneous systems.
 

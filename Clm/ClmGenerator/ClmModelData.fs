@@ -10,7 +10,6 @@ open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.CalculationData
-open ClmDefaults.DefaultValuesExt
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
@@ -28,13 +27,13 @@ module ClmModelData =
 
     type ModelGenerationParams =
         {
-            fileStructureVersionNumber : string
+            fileStructureVersion : decimal
             versionNumber : string
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
-            defaultSetIndex : int
+            clmDefaultValueId : ClmDefaultValueId
         }
 
 
@@ -44,23 +43,25 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member getDefaultValue (d : ClmDefaultValue) numberOfAminoAcids maxPeptideLength =
-            let rates = d.defaultRateParams
+        static member tryGetDefaultValue (c : ClmTask) (d : ClmDefaultValueId -> ClmDefaultValue option) =
+            match d c.clmTaskInfo.clmDefaultValueId with
+            | Some v ->
+                {
+                    modelGenerationParams =
+                        {
+                            fileStructureVersion = FileStructureVersion
+                            versionNumber = VersionNumber
+                            numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
+                            maxPeptideLength = c.clmTaskInfo.maxPeptideLength
+                            reactionRateModelParams = v.defaultRateParams.rateParams
+                            updateFuncType = UseFunctions
+                            clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
+                        }
 
-            {
-                modelGenerationParams =
-                    {
-                        fileStructureVersionNumber = FileStructureVersionNumber
-                        versionNumber = VersionNumber
-                        numberOfAminoAcids = numberOfAminoAcids
-                        maxPeptideLength = maxPeptideLength
-                        reactionRateModelParams = rates.rateParams
-                        updateFuncType = UseFunctions
-                        defaultSetIndex = d.defaultSetIndex
-                    }
-
-                modelCommandLineParams = d.modelCommandLineParams
-            }
+                    modelCommandLineParams = c.commandLineParams
+                }
+                |> Some
+            | None -> None
 
     let reactionShift updateFuncType =
         match updateFuncType with
@@ -75,7 +76,7 @@ module ClmModelData =
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
-    let allSubst = 
+    let allSubst =
         Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))

@@ -4,6 +4,7 @@ open System
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
+open System.ServiceModel
 
 module ServiceImplementation =
 
@@ -21,16 +22,16 @@ module ServiceImplementation =
         with
         member s.runnerState : ContGenRunnerState =
             {
-                //generating = s.generating
                 runLimit = s.runLimit
                 maxQueueLength = s.maxQueueLength
                 runningCount = s.runningCount
                 running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
                 queue = s.queue |> List.map (fun e -> e.modelId) |> Array.ofList
                 workState = s.workState
+                messageCount = s.messageCount
             }
 
-
+    //[<ServiceContract>]
     type ContGenService () =
         inherit MarshalByRefObject()
 
@@ -39,6 +40,7 @@ module ServiceImplementation =
 
         interface IContGenService with
             member this.getState() = a.getState().runnerState
+            member this.loadQueue() = a.startQueue()
             member this.startGenerate() = a.startGenerate()
-            member this.updateProgress p = a.updateProgress p
+            member this.updateProgress p = a.updateProgress (a, p)
             member this.configureService (p : ContGenConfigParam) = a.configureService p

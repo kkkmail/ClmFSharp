@@ -1,56 +1,61 @@
 ﻿namespace ContGen
 
-open System.Threading
 open Argu
+open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
 open Clm.Substances
-open ClmDefaults.DefaultValuesExt
 open DbData.Configuration
+open DbData.DatabaseTypes
 open ContGen
+open ContGen.AsyncRun
 open Runner
+open ClmSys.Retry
+open Clm.ModelParams
+open System
 
 module ContGenTasks =
-    open ClmDefaults
 
-    [<CliPrefix(CliPrefix.Dash)>]
-    type RunContGenArgs =
-        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-ql")>] MaxQueueLength of int
-
-    with
-        interface IArgParserTemplate with
-            member this.Usage =
-                match this with
-                | MaxQueueLength _ -> "max queue length."
+    [<Literal>]
+    let ContGenAppName = "ContGen.exe"
 
 
-    and
+    type
         [<CliPrefix(CliPrefix.Dash)>]
-        UpdateParametersArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-m")>] MaxPeptideLength of int
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] IndexOfDefault of int
+        AddClmTaskArgs =
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-i")>] IndexOfDefault of int64
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] MaxPeptideLength of int
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] TaskY0 of list<decimal>
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
+            | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
+            | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
+
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
+                    | IndexOfDefault _ -> "index of default value in a map of defaults."
                     | NumberOfAminoAcids _ -> "number of amino acids."
                     | MaxPeptideLength _ -> "max peptide length."
-                    | IndexOfDefault _ -> "0-based index of default value in an array of defaults."
+                    | TaskY0 _ -> "value of total y0."
+                    | TaskTEnd _ -> "value of tEnd."
+                    | Repetitions _ -> "number of repetitions."
+                    | GenerateModelCode -> "add in order to generate and save model code."
 
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-i")>] ModelDataId of int
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-y")>] Y0 of double
-            | [<Mandatory>] [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-t")>] TEnd of double
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of int64
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] Y0 of decimal
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TEnd of decimal
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | ModelDataId _ -> "id of the modelData to run."
+                    | ModelId _ -> "id of the modelData to run."
                     | Y0 _ -> "value of total y0."
                     | TEnd _ -> "value of tEnd."
 
@@ -58,58 +63,110 @@ module ContGenTasks =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenArguments =
-            | [<Unique>] [<AltCommandLine("run")>]      RunContGen of ParseResults<RunContGenArgs>
-            | [<Unique>] [<AltCommandLine("update")>]   UpdateParameters of ParseResults<UpdateParametersArgs>
-            | [<Unique>] [<AltCommandLine("generate")>] GenerateModel
-            | [<Unique>] [<AltCommandLine("rm")>]       RunModel of ParseResults<RunModelArgs>
+            | [<Unique>] [<AltCommandLine("add")>]   AddClmTask of ParseResults<AddClmTaskArgs>
+            | [<Unique>] [<AltCommandLine("run")>]       RunModel of ParseResults<RunModelArgs>
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | RunContGen _ -> "runs Continuous Generation."
-                    | UpdateParameters _ -> "updates parameters."
-                    | GenerateModel -> "generates a single model."
+                    | AddClmTask _ -> "adds task / generate a single model."
                     | RunModel _ -> "runs a given model."
 
 
-    let runContGen (p :list<RunContGenArgs>) =
-        let a = createRunner ModelRunnerParam.defaultValue
-        a.start()
-        a.startGenerate()
+    let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
+        let t = p |> List.tryPick (fun e -> match e with | TaskTEnd i -> Some i | _ -> None)
+        let y = p |> List.tryPick (fun e -> match e with | TaskY0 i -> Some i | _ -> None)
 
-        while a.getState().isShuttingDown |> not do
-            Thread.Sleep(30000)
-            let state = a.getState()
-            printfn "a.getState() = %s" (state.ToString())
-            if state.queue.Length = 0 then a.startGenerate()
-        CompletedSuccessfully
+        match t, y with
+        | Some tl, Some yl ->
+            match tl.Length = yl.Length with
+            | true ->
+                List.zip tl yl
+                |> List.map (fun (tEnd, y0) -> 
+                                {
+                                    tEnd = tEnd
+                                    y0 = y0
+                                    useAbundant = false
+                                }
+                            )
+                |> Some
+            | false ->
+                printfn "Lists of t and y must have the same length!"
+                None
+        | _ -> None
 
 
-    let updateParameters (p :list<UpdateParametersArgs>) =
-        let n =
-            match p |> List.tryPick (fun e -> match e with | NumberOfAminoAcids n -> Some n | _ -> None) with
-            | Some n -> NumberOfAminoAcids.tryCreate n
-            | None -> NumberOfAminoAcids.defaultValue |> Some
+    let tryGetNumberOfAminoAcids (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | NumberOfAminoAcids n -> Some n | _ -> None) with
+        | Some n -> NumberOfAminoAcids.tryCreate n
+        | None -> NumberOfAminoAcids.defaultValue |> Some
 
-        let m =
-            match p |> List.tryPick (fun e -> match e with | MaxPeptideLength n -> Some n | _ -> None) with
-            | Some n -> MaxPeptideLength.tryCreate n
-            | None -> MaxPeptideLength.defaultValue |> Some
 
-        let i = p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None)
-            //match p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) with
-            //| Some i ->
-            //    if i >= 0 && i < AllDefaults.defaultValues.Length then Some i
-            //    else None
-            //| None -> Some 0
+    let tryGetMaxPeptideLength (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | MaxPeptideLength n -> Some n | _ -> None) with
+        | Some n -> MaxPeptideLength.tryCreate n
+        | None -> MaxPeptideLength.defaultValue |> Some
 
-        match i, n, m with
-        | Some i, Some n, Some m ->
+
+    let tryGetClmDefaultValueId (p :list<AddClmTaskArgs>) =
+        p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ClmDefaultValueId |> Some)
+
+
+    let getNumberOrRepetitions (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | Repetitions n -> Some n | _ -> None) with
+        | Some n -> n
+        | None -> 1
+
+
+    let getGenerateModelCode (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | GenerateModelCode -> Some true | _ -> None) with
+        | Some n -> n
+        | None -> false
+
+
+    let logError e = printfn "Error: %A" e
+    let tryDbFun f = tryDbFun logError clmConnectionString f
+    let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (tryLoadClmDefaultValue clmDefaultValueId) |> Option.bind id
+
+
+    let addClmTask (p :list<AddClmTaskArgs>) =
+        let i = tryGetClmDefaultValueId p
+        let n = tryGetNumberOfAminoAcids p
+        let m = tryGetMaxPeptideLength p
+        let c = tryGetCommandLineParams p
+
+        match i, n, m, c with
+        | Some i, Some n, Some m, Some c ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
-            match AllDefaults.tryGetDefaultValues i with
-            | Some d ->
-                saveDefaults clmConnectionString d n m |> ignore
+            match tryLoadClmDefaultValue i with
+            | Some _ ->
+                let r = getNumberOrRepetitions p
+
+                let t =
+                    {
+                        clmTaskInfo =
+                            {
+                                clmTaskId = ClmTaskId -1L
+                                clmDefaultValueId = i
+                                numberOfAminoAcids = n
+                                maxPeptideLength = m
+                            }
+                        commandLineParams = c
+                        numberOfRepetitions = r
+                        remainingRepetitions = r
+                        createdOn = DateTime.Now
+                    }
+
+                let nt = addClmTask t clmConnectionString
+
+                match getGenerateModelCode p with
+                | true ->
+                    printfn "Genetrating model..."
+                    let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
+                    g nt |> ignore
+                | false -> ignore()
+
                 CompletedSuccessfully
             | None ->
                 printfn "updateParameters: Cannot find data for default set index %A." i
@@ -119,40 +176,49 @@ module ContGenTasks =
             InvalidCommandLineArgs
 
 
-    let generateModel () =
-        printfn "Genetrating and compiling model..."
-        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
-        g() |> ignore
-        CompletedSuccessfully
+    let tryGetModelId (p :list<RunModelArgs>) =
+        p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
 
 
-    /// TODO kk:20190107 - Implement.
+    let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
+    let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
+
+
     let runModel (p :list<RunModelArgs>) =
-        printfn "runModel is not implemented yet."
-        NotImplemented
+        match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
+        | Some m, Some y, Some t ->
+            let p =
+                {
+                    notifyOnStarted = fun _ -> ()
+                    calledBackModelId = m
+                    runQueueId = RunQueueId 0L
+                }
+
+            let c =
+                {
+                    tEnd = t
+                    y0 = y
+                    useAbundant = false
+                }
+
+            runModel ModelRunnerParam.defaultValue.exeName c p |> ignore
+            CompletedSuccessfully
+        | _ ->
+            printfn "Missing some command line arguments!"
+            InvalidCommandLineArgs
 
 
     type ContGenTask =
-        | RunContGenTask of list<RunContGenArgs>
-        | UpdateParametersTask of list<UpdateParametersArgs>
-        | GenerateModelTask
+        | AddClmTaskTask of list<AddClmTaskArgs>
         | RunModelTask of list<RunModelArgs>
 
         member task.run() =
             match task with
-            | RunContGenTask p -> runContGen p
-            | UpdateParametersTask p -> updateParameters p
-            | GenerateModelTask -> generateModel ()
+            | AddClmTaskTask p -> addClmTask p
             | RunModelTask p -> runModel p
 
-        static member private tryCreateRunContGenTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | RunContGen q -> q.GetAllResults() |> RunContGenTask |> Some | _ -> None)
-
         static member private tryCreateUpdateParametersTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | UpdateParameters q -> q.GetAllResults() |> UpdateParametersTask |> Some | _ -> None)
-
-        static member private tryCreateGenerateModelTask (p : list<ContGenArguments>) =
-            p |> List.tryPick (fun e -> match e with | GenerateModel -> GenerateModelTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
         static member private tryCreateRunModelTask (p : list<ContGenArguments>) =
             p |> List.tryPick (fun e -> match e with | RunModel q -> q.GetAllResults() |> RunModelTask |> Some | _ -> None)
@@ -160,8 +226,6 @@ module ContGenTasks =
         static member tryCreate (p : list<ContGenArguments>) =
             [
                 ContGenTask.tryCreateUpdateParametersTask
-                ContGenTask.tryCreateGenerateModelTask
                 ContGenTask.tryCreateRunModelTask
-                ContGenTask.tryCreateRunContGenTask
             ]
             |> List.tryPick (fun e -> e p)

@@ -6,6 +6,7 @@ open ContGenServiceInfo.ServiceInfo
 open ContGenService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
 open ContGenService.WindowsService
+open ClmSys.ExitErrorCodes
 
 module Program =
 
@@ -18,11 +19,11 @@ module Program =
             match results.GetAllResults() |> ContGenServiceTask.tryCreate with
             | Some task ->
                 task.run() |> ignore
-                0
+                CompletedSuccessfully
             | None ->
                 ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
-                0
+                CompletedSuccessfully
         with
             | exn ->
                 printfn "%s" exn.Message
-                -1
+                UnknownException

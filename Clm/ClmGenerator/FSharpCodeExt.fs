@@ -23,6 +23,11 @@ module FSharpCodeExt =
         member this.toFSharpCode = this.ToString() + "L"
 
 
+    type System.Decimal
+        with
+        member this.toFSharpCode = this.ToString() + "m"
+
+
     let fold f state (arr: 'a [,]) =
         Seq.cast<'a> arr
         |> Seq.fold f state
@@ -497,18 +502,23 @@ module FSharpCodeExt =
         member p.toFSharpCode = "MaxPeptideLength" + "." + p.ToString()
 
 
+    type ClmDefaultValueId
+        with
+        member p.toFSharpCode = "ClmDefaultValueId" + "." + p.ToString()
+
+
     type ModelInfo
         with
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
-            shift + "    fileStructureVersionNumber = " + "\"" + p.fileStructureVersionNumber + "\"" + Nl +
+            shift + "    fileStructureVersion = " + p.fileStructureVersion.toFSharpCode + Nl +
             shift + "    versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
             shift + "    modelDataId = " + p.modelDataId.toFSharpCode + Nl +
             shift + "    numberOfSubstances = " + p.numberOfSubstances.toFSharpCode + Nl +
             shift + "    numberOfAminoAcids = " + p.numberOfAminoAcids.toFSharpCode + Nl +
             shift + "    maxPeptideLength = " + p.maxPeptideLength.toFSharpCode + Nl +
             shift + "    seedValue = " + p.seedValue.toFSharpCode + Nl +
-            shift + "    defaultSetIndex = " + p.defaultSetIndex.toFSharpCode + Nl +
+            shift + "    clmDefaultValueId = " + p.clmDefaultValueId.toFSharpCode + Nl +
             shift + "}" + Nl
 
 

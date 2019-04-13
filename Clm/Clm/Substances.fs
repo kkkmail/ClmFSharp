@@ -113,6 +113,8 @@ module Substances =
         static member tryCreate n =
             NumberOfAminoAcids.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
 
+        static member defaultValue = EightAminoAcids
+
 
     type MaxPeptideLength =
         | OneMax // Not used as peptide length but is needed in some places.
@@ -140,6 +142,8 @@ module Substances =
 
         static member tryCreate n =
             MaxPeptideLength.all |> List.tryPick (fun a -> if a.length = n then Some a else None)
+
+        static member defaultValue = ThreeMax
 
 
     type AchiralSubst =

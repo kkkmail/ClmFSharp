@@ -18,7 +18,7 @@ open ClmImpure.RateProvider
 
 module ClmModel =
 
-    type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId) =
+    type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId, clmTaskId : ClmTaskId) =
         let rnd = RandomValueGetter.create()
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
@@ -40,14 +40,14 @@ module ClmModel =
 
         let modelInfo =
             {
-                fileStructureVersionNumber = modelParams.fileStructureVersionNumber
+                fileStructureVersion = modelParams.fileStructureVersion
                 versionNumber = modelParams.versionNumber
                 modelDataId = modelDataId
                 numberOfSubstances = si.allSubst.Length
                 numberOfAminoAcids = modelParams.numberOfAminoAcids
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
-                defaultSetIndex = modelParams.defaultSetIndex
+                clmDefaultValueId = modelParams.clmDefaultValueId
             }
 
         let noOfRawReactions n = bf.noOfRawReactions n
@@ -403,13 +403,18 @@ module ClmModel =
 
             s
 
-        let getModelDataImpl () =
+        let getModelDataImpl clmTaskId =
             {
                 modelDataId = modelDataId
-                numberOfAminoAcids = modelParams.numberOfAminoAcids
-                maxPeptideLength = modelParams.maxPeptideLength
+                clmTaskInfo =
+                    {
+                        clmTaskId = clmTaskId
+                        numberOfAminoAcids = modelParams.numberOfAminoAcids
+                        maxPeptideLength = modelParams.maxPeptideLength
+                        clmDefaultValueId = modelParams.clmDefaultValueId
+                    }
                 seedValue = Some seedValue
-                fileStructureVersion = modelParams.fileStructureVersionNumber
+                fileStructureVersion = modelParams.fileStructureVersion
 
                 modelData =
                     {
@@ -433,11 +438,9 @@ module ClmModel =
                                     |> List.map (fun (n, l) -> (n, int64 l.Length))
                             }
                     }
-
-                defaultSetIndex = modelParams.defaultSetIndex
             }
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
         member model.generateCode() = generateAndSave()
-        member model.getModelData() = getModelDataImpl()
+        member model.getModelData() = getModelDataImpl clmTaskId

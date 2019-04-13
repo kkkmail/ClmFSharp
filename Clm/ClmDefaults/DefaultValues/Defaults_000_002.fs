@@ -6,7 +6,8 @@ open ClmDefaults.DefaultValuesExt
 
 module Defaults_000_002 =
 
-    let defaultSetIndex = 000_002
+    let clmDefaultValueId = 000_002L |> ClmDefaultValueId
+    let description = None
 
     let defaultRateParams =
         //===========================================================
@@ -65,29 +66,7 @@ module Defaults_000_002 =
 
     let defaultValue =
         {
-            defaultSetIndex = defaultSetIndex
-
-            modelCommandLineParams =
-                [
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 10.0m
-                        useAbundant = false
-                    }
-
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 5.0m
-                        useAbundant = false
-                    }
-
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 20.0m
-                        useAbundant = false
-                    }
-                ]
-
+            clmDefaultValueId = clmDefaultValueId
             defaultRateParams = defaultRateParams
-            description = None
+            description = description
         }

@@ -6,7 +6,8 @@ open ClmDefaults.DefaultValuesExt
 
 module Defaults_001_000 =
 
-    let defaultSetIndex = 001_000
+    let clmDefaultValueId = 001_000L |> ClmDefaultValueId
+    let description = None
 
     let defaultRateParams =
         //===========================================================
@@ -28,10 +29,10 @@ module Defaults_001_000 =
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0)
         //===========================================================
         // For n = 10
-        //let sedDirRndParam = (Some 0.0001, 10_000.0)
+        //let sedDirRndParam = (Some 0.000_1, 100.0)
 
         // For n = 20
-        let sedDirRndParam = (Some 0.00001, 10_000.0)
+        let sedDirRndParam = (Some 0.000_01, 100.0)
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
         let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)
         //===========================================================
@@ -73,29 +74,7 @@ module Defaults_001_000 =
 
     let defaultValue =
         {
-            defaultSetIndex = defaultSetIndex
-
-            modelCommandLineParams =
-                [
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 10.0m
-                        useAbundant = false
-                    }
-
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 5.0m
-                        useAbundant = false
-                    }
-
-                    {
-                        tEnd = 250_000.0m
-                        y0 = 20.0m
-                        useAbundant = false
-                    }
-                ]
-
+            clmDefaultValueId = clmDefaultValueId
             defaultRateParams = defaultRateParams
-            description = None
+            description = description
         }

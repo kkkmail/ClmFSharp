@@ -3,9 +3,12 @@
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
+open System.ServiceModel
 
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.GeneralData
+open System
 
 module WindowsService =
 
@@ -13,6 +16,9 @@ module WindowsService =
         try
             let channel = new Tcp.TcpChannel (ContGenServicePort)
             ChannelServices.RegisterChannel (channel, false)
+
+            //let host = new ServiceHost(typeof<IContGenService>, new Uri(getServiceUrl()))
+            //do host.AddServiceEndpoint(typeof<IContGenService>, new UdpBinding(), "udp") |> ignore
 
             RemotingConfiguration.RegisterWellKnownServiceType
                 ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )

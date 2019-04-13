@@ -40,30 +40,24 @@ module Runner =
 
 
     type ModelRunner (p : ModelRunnerParam) =
-        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
-
-        let getExeName (ModelDataId modelId) =
-            // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
-            // See:
-            //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
-            //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
-            let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
-            //p.rootBuildFolder + (toModelName modelId) + @"\" + p.exeName
-            x + @"\" + p.exeName
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
-        let getModelId () = tryDbFun getNewModelDataId
+        let getModelId clmTaskId = tryDbFun (getNewModelDataId clmTaskId)
+        let runModel = runModel p.exeName
+        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
 
-        let tryLoadParams () = tryDbFun tryloadAllParams |> Option.bind id
+        let tryLoadParams (c : ClmTask) : AllParams option =
+            fun d -> tryDbFun (tryLoadClmDefaultValue d) |> Option.bind id
+            |> AllParams.tryGetDefaultValue c
 
 
-        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId =
+        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId clmTaskId =
             printfn "Creating model..."
             printfn "Starting at: %A" DateTime.Now
 
-            let model = ClmModel (modelGenerationParams, modelDataId)
+            let model = ClmModel (modelGenerationParams, modelDataId, clmTaskId)
 
             match p.saveModelCode with
             | true ->
@@ -110,27 +104,28 @@ module Runner =
         //    Target.runOrDefault "Default"
 
 
-        let runModel (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
-            let exeName = getExeName (c.calledBackModelId)
-            let commandLineParams = p.toCommandLine c.calledBackModelId
-            runProc c exeName commandLineParams None
-
-
         let getQueueId (p : ModelCommandLineParam) modelId =
             match tryDbFun (saveRunQueueEntry modelId p) with
             | Some q -> q
             | None -> RunQueueId -1L
 
 
-        let generateImpl() =
+        let updateTask (c : ClmTask) =
+            tryDbFun (tryUpdateClmTask c)
+            |> ignore
+
+
+        let generateImpl (c : ClmTask) =
             try
-                match getModelId () with
+                match getModelId c.clmTaskInfo.clmTaskId with
                     | Some modelId ->
-                        match tryLoadParams() with
+                        match tryLoadParams c with
                         | Some a ->
-                            match generateModel a.modelGenerationParams modelId |> saveModel with
+                            match generateModel a.modelGenerationParams modelId c.clmTaskInfo.clmTaskId |> saveModel with
                             | Some true ->
+                                updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
                                 //compileModel modelId
+
                                 a.modelCommandLineParams |> List.map (fun e ->
                                                             {
                                                                 run = runModel e
@@ -155,6 +150,12 @@ module Runner =
                     []
 
 
+        let generateAll() =
+            match tryDbFun loadIncompleteClmTasks with
+            | Some c -> c |> List.map generateImpl |> List.concat
+            | None -> []
+
+
         let getQueue () =
             match tryDbFun loadRunQueue with
             | Some q -> q |> List.map (fun e ->
@@ -176,7 +177,7 @@ module Runner =
 
         let createGeneratorImpl() =
             {
-                generate = generateImpl
+                generate = generateAll
                 getQueue = getQueue
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
@@ -197,9 +198,3 @@ module Runner =
     let createOneTimeGenerator p =
         let r = ModelRunner p
         r.generate
-
-
-    let saveDefaults connectionString d n m =
-        truncateAllParams connectionString
-        let p = AllParams.getDefaultValue d n m
-        saveAllParams p connectionString

@@ -15,7 +15,8 @@ module ModelParams =
 
     /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
-    let DefaultRootFolder = @"C:\Clm\"
+    let DefaultRootFolder = RootDrive + @":\" + ClmBaseName + @"\"
+
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
@@ -24,16 +25,22 @@ module ModelParams =
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
 
 
+    type ClmDefaultValueId =
+        | ClmDefaultValueId of int64
+
+        member this.value = let (ClmDefaultValueId v) = this in v
+
+
     type ModelInfo =
         {
-            fileStructureVersionNumber : string
+            fileStructureVersion : decimal
             versionNumber : string
             modelDataId : ModelDataId
             numberOfSubstances : int
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
             seedValue : int
-            defaultSetIndex : int
+            clmDefaultValueId : ClmDefaultValueId
         }
 
 
@@ -76,7 +83,7 @@ module ModelParams =
     type BinaryInfo =
         {
             aminoAcids : list<AminoAcid>
-            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from binary data but is needed here and there.
+            maxPeptideLength : MaxPeptideLength // Cannot be easily inferred from the binary data but is needed here and there.
             allSubstData : AllSubstData
         }
 
@@ -135,6 +142,20 @@ module ModelParams =
             }
 
 
+    type ClmTaskId =
+        | ClmTaskId of int64
+
+        member this.value = let (ClmTaskId v) = this in v
+
+
+    type ClmDefaultValue =
+        {
+            clmDefaultValueId : ClmDefaultValueId
+            defaultRateParams : ReactionRateProviderParams
+            description : string option
+        }
+
+
     type ModelCommandLineParam =
         {
             tEnd : decimal
@@ -150,6 +171,8 @@ module ModelParams =
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 ModelId modelDataId
+                NotifyAddress ContGenServiceAddress
+                NotifyPort ContGenServicePort
             ]
             |> parser.PrintCommandLineArgumentsFlat
 
@@ -188,3 +211,22 @@ module ModelParams =
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
+
+
+    type ClmTaskInfo =
+        {
+            clmTaskId : ClmTaskId
+            clmDefaultValueId : ClmDefaultValueId
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+        }
+
+
+    type ClmTask =
+        {
+            clmTaskInfo : ClmTaskInfo
+            commandLineParams : list<ModelCommandLineParam>
+            numberOfRepetitions : int
+            remainingRepetitions : int
+            createdOn : DateTime
+        }

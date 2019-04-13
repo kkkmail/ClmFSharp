@@ -1,10 +1,12 @@
 ﻿namespace DbData
+open ClmSys.GeneralData
 
 module Configuration =
-    open ClmSys.GeneralData
 
+    /// Note that the base name is used.
+    /// If the base name is changed, then a new database must be generated!
     [<Literal>]
-    let ClmDbName : string = "Clm"
+    let ClmDbName = ClmBaseName
 
     [<Literal>]
     let AppConfigFile : string = __SOURCE_DIRECTORY__ + "\.\App.config"

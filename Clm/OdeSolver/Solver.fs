@@ -2,6 +2,8 @@
 
 open Microsoft.FSharp.Core
 open System
+open ClmSys.GeneralData
+
 
 module Solver =
 
@@ -52,9 +54,19 @@ module Solver =
         }
 
 
+    let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
+
+
+    let estCompl s r m =
+        match estimateEndTime (calculateProgress r m) s with
+        | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+        | None -> EmptyString
+
+
     /// F# wrapper around Alglib ODE solver.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
+        let start = DateTime.Now
         let i = n.h n.y0
 
         let mutable progressCount = 0
@@ -64,8 +76,8 @@ module Solver =
 
         let notify t r m =
             match n.progressCallBack with
-            | Some c -> (decimal r) / (decimal m) |> c
-            | None -> printfn "Step: %A, time: %A, t = %A of %A." r (DateTime.Now) t n.tEnd
+            | Some c -> calculateProgress r m |> c
+            | None -> ignore()
 
         let notifyChart t x =
             match n.chartCallBack with
@@ -78,7 +90,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "\nStep: %A, time: %A, t = %A of %A." progressCount (DateTime.Now) t n.tEnd
+                    printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
                     notify t progressCount k
             | _ -> ignore()
 
@@ -92,22 +104,10 @@ module Solver =
 
             n.g x
 
-        //let nt =
-        //    match p.noOfOutputPoints with
-        //    | Some p when p >= 2 -> p
-        //    | _ -> 2
-
         let nt = 2
-
         let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
-
-        //printfn "nSolve::About to call alglib.ndimensional_ode_rp."
         let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
-
-        //printfn "nSolve::About to call alglib.odesolverrkck."
         let mutable s = alglib.odesolverrkck(i, x, p.eps, p.stepSize)
-
-        printfn "nSolve::About to call alglib.odesolversolve."
         do alglib.odesolversolve(s, d, null)
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 

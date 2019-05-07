@@ -88,6 +88,7 @@ module SolverRunnerTasks =
                 let chartInitData =
                     {
                         modelDataId = modelDataId
+                        defaultValueId = md.modelData.modelDataParams.modelInfo.clmDefaultValueId
                         binaryInfo = binaryInfo
                         y0 = y0
                         tEnd = tEnd

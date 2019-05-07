@@ -26,6 +26,7 @@ module ChartData =
     type ChartInitData =
         {
             modelDataId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             binaryInfo : BinaryInfo
             y0 : decimal
             tEnd : decimal

@@ -3,10 +3,8 @@ go
 
 
 -- Calculates how often the symmetry is broken for all processed default sets.
-declare @maxEeThreshold float --, @numberOfAminoAcids int
---set @numberOfAminoAcids = 20
+declare @maxEeThreshold float
 set @maxEeThreshold = 0.00001
-
 
 ; with
 w as
@@ -15,9 +13,9 @@ w as
 		r.modelDataId, 
 		t.numberOfAminoAcids,
 		(select top 1 t.clmDefaultValueId from ClmTask t inner join ModelData on t.clmTaskId = m.clmTaskId where m.modelDataId = r.modelDataId) as defaultSetIndex,
-		case when r.maxEe > @maxEeThreshold then 1 else 0 end as isSymmetryBroken
+		case when r.maxEe > @maxEeThreshold then 1 else 0 end as isSymmetryBroken,
+		cast(datediff(minute, m.createdOn, r.createdOn) as float) / 1440.0 as runTime
 	from ResultData r inner join ModelData m on r.modelDataId = m.modelDataId inner join ClmTask t on m.clmTaskId = t.clmTaskId
-	--where t.numberOfAminoAcids = @numberOfAminoAcids
 ),
 u as
 (
@@ -25,7 +23,8 @@ u as
 		modelDataId,
 		numberOfAminoAcids,
 		defaultSetIndex,
-		max(isSymmetryBroken) as isSymmetryBroken
+		max(isSymmetryBroken) as isSymmetryBroken,
+		avg(runTime) as runTime
 	from w
 	group by modelDataId, numberOfAminoAcids, defaultSetIndex
 ),
@@ -34,7 +33,8 @@ d as
 	select 
 		numberOfAminoAcids,
 		defaultSetIndex,
-		count(*) as modelCount
+		count(*) as modelCount,
+		avg(runTime) as runTime
 	from u
 	group by numberOfAminoAcids, defaultSetIndex
 ),
@@ -53,7 +53,8 @@ select
 	d.defaultSetIndex,
 	d.modelCount,
 	isnull(b.symmBrokenCount, 0) as symmBrokenCount,
-	cast(cast(isnull(b.symmBrokenCount, 0) as float) / cast(d.modelCount as float) as money) as symmBrokenPct
+	cast(cast(isnull(b.symmBrokenCount, 0) as float) / cast(d.modelCount as float) as money) as symmBrokenPct,
+	cast(d.runTime as decimal(10, 2)) as runTime
 from d left outer join b on d.defaultSetIndex = b.defaultSetIndex
 order by d.numberOfAminoAcids, d.defaultSetIndex
 

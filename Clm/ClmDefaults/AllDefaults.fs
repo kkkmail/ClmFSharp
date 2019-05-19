@@ -56,6 +56,10 @@ module AllDefaults =
             Defaults_002_014.defaultValue
 
 
+            // Catalytic destruction + catalytic synthesis for n = 20
+            Defaults_003_000.defaultValue
+            
+
             // Tests
             Defaults_999_000.defaultValue
         ]

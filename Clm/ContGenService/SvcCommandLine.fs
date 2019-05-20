@@ -7,16 +7,19 @@ module SvcCommandLine =
     [<CliPrefix(CliPrefix.Dash)>]
     type RunArgs =
         | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
+        | [<Unique>] [<AltCommandLine("-i")>] RunIdle
 
     with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
                 | NumberOfCores _ -> "number of logical cores to use."
+                | RunIdle -> "Start idle."
 
-        member this.configParam =
-            match this with
-            | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
+        //member this.configParam =
+        //    match this with
+        //    | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
+        //    | Idle -> ContGenConfigParam.SetToIdle
 
     and
         [<CliPrefix(CliPrefix.Dash)>]

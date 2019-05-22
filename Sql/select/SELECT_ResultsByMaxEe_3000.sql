@@ -1,3 +1,6 @@
+use clm3000
+go
+
 select count(*) as noOfResults from ResultData
 go
 

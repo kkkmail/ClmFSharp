@@ -63,14 +63,14 @@ module ContGenTasks =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenArguments =
-            | [<Unique>] [<AltCommandLine("add")>]   AddClmTask of ParseResults<AddClmTaskArgs>
-            | [<Unique>] [<AltCommandLine("run")>]       RunModel of ParseResults<RunModelArgs>
+            | [<Unique>] [<AltCommandLine("add")>] AddClmTask of ParseResults<AddClmTaskArgs>
+            | [<Unique>] [<AltCommandLine("run")>] RunModel   of ParseResults<RunModelArgs>
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | AddClmTask _ -> "adds task / generate a single model."
+                    | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."
 
 

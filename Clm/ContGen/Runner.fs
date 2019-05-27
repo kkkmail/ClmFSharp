@@ -192,8 +192,8 @@ module Runner =
                 ignore()
 
 
-        let runModel modelId (p : ModelCommandLineParam) =
-            match tryLoadModelData modelId with
+        let runModel i p =
+            match tryLoadModelData i with
             | Some parent ->
                 match tryLoadClmTask parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
                 | Some a, OwnData d ->
@@ -228,26 +228,15 @@ module Runner =
                                 let r =
                                     {
                                         run = runModel p
-                                        modelId = modelId
-                                        runQueueId = getQueueId p modelId
+                                        modelId = modelDataId
+                                        runQueueId = getQueueId p modelDataId
                                     }
                                 Some r
                             | _ -> None
                         | None -> None
                     | None -> None
                 | _ -> None
-
-
             | None -> None
-
-
-
-        //let runModel m p =
-        //    match addClmTaskForSingleRun m p with
-        //    | Some t -> 
-        //        failwith ""
-        //    | None -> 
-        //        failwith ""
 
 
         let createGeneratorImpl() =

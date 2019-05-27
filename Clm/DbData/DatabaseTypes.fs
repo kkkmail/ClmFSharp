@@ -43,7 +43,20 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
-    type ModelDataTableData = SqlCommandProvider<"select * from dbo.ModelData where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
+    type ModelDataTableData = SqlCommandProvider<"
+        select
+            m.modelDataId,
+            m.clmTaskId,
+            m.parentModelDataId,
+            isnull(p.fileStructureVersion, m.fileStructureVersion) as fileStructureVersion,
+            isnull(p.seedValue, m.seedValue) as seedValue,
+            isnull(p.modelDataParams, m.modelDataParams) as modelDataParams,
+            isnull(p.modelBinaryData, m.modelBinaryData) as modelBinaryData,
+            m.createdOn 
+        from
+            dbo.ModelData m
+            left outer join dbo.ModelData p on m.parentModelDataId = p.modelDataId
+        where m.modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
     type ResultDataTableRow = ResultDataTable.Row
@@ -132,17 +145,24 @@ module DatabaseTypes =
         static member tryCreate (c : ClmTaskId -> ClmTask option) (r : ModelDataTableRow) =
             match r.clmTaskId |> ClmTaskId |> c with
             | Some i ->
+                let rawData =
+                    {
+                        seedValue = r.seedValue
+                        fileStructureVersion = r.fileStructureVersion
+                        modelData =
+                            {
+                                modelDataParams = r.modelDataParams |> JsonConvert.DeserializeObject<ModelDataParams>
+                                modelBinaryData = r.modelBinaryData |> unZip |> JsonConvert.DeserializeObject<ModelBinaryData>
+                            }
+                    }
+
                 {
                     modelDataId = r.modelDataId |> ModelDataId
                     clmTaskInfo = i.clmTaskInfo
-                    fileStructureVersion = r.fileStructureVersion
-                    seedValue = r.seedValue
-
-                    modelData =
-                        {
-                            modelDataParams = r.modelDataParams |> JsonConvert.DeserializeObject<ModelDataParams>
-                            modelBinaryData = r.modelBinaryData |> unZip |> JsonConvert.DeserializeObject<ModelBinaryData>
-                        }
+                    data =
+                        match r.parentModelDataId with
+                        | Some p -> ParentProvided (ModelDataId p, rawData)
+                        | None -> OwnData rawData
                 }
                 |> Some
             | None -> None
@@ -389,27 +409,43 @@ module DatabaseTypes =
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
 
-        use cmdWithBinaryData = new SqlCommandProvider<"
-            UPDATE dbo.ModelData
-                SET clmTaskId = @clmTaskId
-                    ,fileStructureVersion = @fileStructureVersion
-                    ,seedValue = @seedValue
-                    ,modelDataParams = @modelDataParams
-                    ,modelBinaryData = @modelBinaryData
-                    ,createdOn = @createdOn
-            WHERE modelDataId = @modelDataId
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
         let recordsUpdated =
-            cmdWithBinaryData.Execute(
-                clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                fileStructureVersion = m.fileStructureVersion,
-                seedValue = (match m.seedValue with | Some s -> s | None -> -1),
-                modelDataParams = (m.modelData.modelDataParams |> JsonConvert.SerializeObject),
-                modelBinaryData = (m.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                createdOn = DateTime.Now,
-                modelDataId = m.modelDataId.value)
+            match m.data with
+            | OwnData d ->
+                use cmdWithBinaryData = new SqlCommandProvider<"
+                    UPDATE dbo.ModelData
+                        SET clmTaskId = @clmTaskId
+                            ,fileStructureVersion = @fileStructureVersion
+                            ,seedValue = @seedValue
+                            ,modelDataParams = @modelDataParams
+                            ,modelBinaryData = @modelBinaryData
+                            ,parentModelDataId = null
+                            ,createdOn = @createdOn
+                    WHERE modelDataId = @modelDataId
+                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
+                cmdWithBinaryData.Execute(
+                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                    fileStructureVersion = d.fileStructureVersion,
+                    seedValue = (match d.seedValue with | Some s -> s | None -> -1),
+                    modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
+                    modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
+                    createdOn = DateTime.Now,
+                    modelDataId = m.modelDataId.value)
+            | ParentProvided (ModelDataId parentModelDataId, _) ->
+                use cmdWithoutBinaryData = new SqlCommandProvider<"
+                    UPDATE dbo.ModelData
+                        SET clmTaskId = @clmTaskId
+                            ,parentModelDataId = @parentModelDataId
+                            ,createdOn = @createdOn
+                    WHERE modelDataId = @modelDataId
+                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+                cmdWithoutBinaryData.Execute(
+                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                    parentModelDataId = parentModelDataId,
+                    createdOn = DateTime.Now,
+                    modelDataId = m.modelDataId.value)
         recordsUpdated = 1
 
 

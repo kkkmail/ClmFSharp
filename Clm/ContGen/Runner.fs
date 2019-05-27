@@ -70,8 +70,8 @@ module Runner =
             model.getModelData
 
 
-        let saveModel getModelData =
-            getModelData() |> tryUpdateModelData |> tryDbFun
+        let saveModelData modelData = modelData |> tryUpdateModelData |> tryDbFun
+        let saveModel getModelData = getModelData() |> saveModelData
 
 
         // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
@@ -192,10 +192,10 @@ module Runner =
                 ignore()
 
 
-        let addClmTaskForSingleRun modelId (p : ModelCommandLineParam) =
+        let runModel modelId (p : ModelCommandLineParam) =
             match tryLoadModelData modelId with
-            | Some m ->
-                match tryLoadClmTask m.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, m.data with
+            | Some parent ->
+                match tryLoadClmTask parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
                 | Some a, OwnData d ->
                     let t =
                         {
@@ -220,16 +220,19 @@ module Runner =
                                 {
                                     modelDataId = modelDataId
                                     clmTaskInfo = t1.clmTaskInfo
-                                    data = (m.modelDataId, d) |> ParentProvided
+                                    data = (parent.modelDataId, d) |> ParentProvided
                                 }
 
-                            let r =
-                                {
-                                    run = runModel p
-                                    modelId = modelId
-                                    runQueueId = getQueueId p modelId
-                                }
-                            Some r
+                            match saveModelData m1 with
+                            | Some true ->
+                                let r =
+                                    {
+                                        run = runModel p
+                                        modelId = modelId
+                                        runQueueId = getQueueId p modelId
+                                    }
+                                Some r
+                            | _ -> None
                         | None -> None
                     | None -> None
                 | _ -> None
@@ -239,12 +242,12 @@ module Runner =
 
 
 
-        let runModel m p =
-            match addClmTaskForSingleRun m p with
-            | Some t -> 
-                failwith ""
-            | None -> 
-                failwith ""
+        //let runModel m p =
+        //    match addClmTaskForSingleRun m p with
+        //    | Some t -> 
+        //        failwith ""
+        //    | None -> 
+        //        failwith ""
 
 
         let createGeneratorImpl() =

@@ -78,18 +78,24 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">
-      <HintPath>..\packages\Argu.5.2.0\lib\net45\Argu.dll</HintPath>
+      <HintPath>..\packages\Argu.5.4.0\lib\net45\Argu.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Data.SqlClient">
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
@@ -97,9 +103,24 @@
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
       <Name>ContGenServiceInfo</Name>
       <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGen\ContGen.fsproj">
+      <Name>ContGen</Name>
+      <Project>{caa251ee-1f75-42c9-9655-3a692944fc7d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Name>DbData</Name>
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

@@ -85,7 +85,7 @@ module AsyncRun =
             getQueue : unit -> list<RunInfo>
             removeFromQueue : RunQueueId -> unit
             maxQueueLength : int
-            runModel : ModelDataId -> ModelCommandLineParam -> RunInfo
+            runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
         }
 
 
@@ -329,8 +329,11 @@ module AsyncRun =
             with
                 | e -> false
 
-        let runModelImpl (a : AsyncRunner) i p = 
-            [ generatorInfo.runModel i p ] |> a.completeGenerate
+        let runModelImpl (a : AsyncRunner) i p =
+            match generatorInfo.runModel i p with
+            | Some r -> [ r] |> a.completeGenerate
+            | None -> ignore()
+
 
         let h (a : AsyncRunner) =
             {
@@ -388,7 +391,7 @@ module AsyncRun =
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService
         member this.stop() = SetToIdle |> this.configureService
-        member this.runModel(m, p) = RunModel (this, m, p)
+        member this.runModel(m, p) = RunModel (this, m, p) |> messageLoop.Post
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.

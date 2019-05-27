@@ -18,12 +18,14 @@ module ContGenServiceTasks =
     let ServiceTmeOut = 10_000.0
 
 
-    type ContGenServiceRunParam =
-        | NumberOfCores of int
-
-        // TODO kk:20190404 - Implement and propagate the parameter all the way through to the service.
-        static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenServiceRunParam> =
-            []
+    type ContGenConfigParam
+        with
+        static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenConfigParam> =
+            [
+                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)            
+                p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
+            ]
+            |> List.choose id
 
 
     // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
@@ -80,8 +82,8 @@ module ContGenServiceTasks =
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
-
-    let startContGenService timeoutMilliseconds (p : list<ContGenServiceRunParam>) =
+    /// TODO kk:20190520 - Propagate p into service. 
+    let startContGenService timeoutMilliseconds (p : list<ContGenConfigParam>) =
         (startService ContGenServiceName timeoutMilliseconds)
 
 
@@ -106,12 +108,13 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
-    let runService (p : list<ContGenServiceRunParam>)=
+    let runService (p : list<ContGenConfigParam>)=
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
         startServiceRun logger
         let service = (new ContGenResponseHandler()).contGenService
+        p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()
         let eventHandler _ = getServiceState service
 
@@ -127,9 +130,9 @@ module ContGenServiceTasks =
     type ContGenServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
-        | StartServiceTask of list<ContGenServiceRunParam>
+        | StartServiceTask of list<ContGenConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<ContGenServiceRunParam>
+        | RunServiceTask of list<ContGenConfigParam>
 
         member task.run() =
             match task with
@@ -149,13 +152,13 @@ module ContGenServiceTasks =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
         static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start p -> ContGenServiceRunParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Start p -> ContGenConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
         static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
         static member private tryCreateRunServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Run p -> ContGenServiceRunParam.fromParseResults p |> RunServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Run p -> ContGenConfigParam.fromParseResults p |> RunServiceTask |> Some | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =
             [

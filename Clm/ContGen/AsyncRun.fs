@@ -274,6 +274,7 @@ module AsyncRun =
         | CompleteRun of AsyncRunner * ProcessStartInfo
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | ConfigureService of AsyncRunner * ContGenConfigParam
+        //| RunModel
 
         override m.ToString() =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
@@ -375,7 +376,6 @@ module AsyncRun =
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService
         member this.stop() = SetToIdle |> this.configureService
-        //member this.startRun1() = StartRun (this, (this.getState()).workState)
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.

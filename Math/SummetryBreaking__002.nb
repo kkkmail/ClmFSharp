@@ -1,0 +1,132 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4352,        124]
+NotebookOptionsPosition[      4028,        109]
+NotebookOutlinePosition[      4392,        125]
+CellTagsIndexPosition[      4349,        122]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Catalytic", " ", 
+    RowBox[{"synthesis", " ", "/", " ", "destruction"}]}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{"A", " ", "+", " ", "nLmD"}], " ", "\[Rule]", " ", 
+    RowBox[{"L", " ", "+", " ", "nLmD"}]}], " ", "*)"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"rL", "=", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"1", "+", "\[Eta]"}], ")"}], " ", "\[Theta]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"rD", "=", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"1", "-", "\[Eta]"}], ")"}], " ", "\[Theta]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"rnLmD", "=", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"1", "+", "\[Eta]1"}], ")"}], " ", "\[Theta]1"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"rnDmL", "=", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"1", "-", "\[Eta]1"}], ")"}], " ", "\[Theta]1"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"dL", " ", "=", 
+     RowBox[{
+      RowBox[{"kp", " ", "*", "rA", " ", "*", " ", "rnLmD"}], " ", "-", " ", 
+      RowBox[{"km", "*", "rL", "*", " ", "rnLmD"}], " ", "+", " ", 
+      RowBox[{"kpE", "*", "rA", "*", "rnDmL"}], "-", 
+      RowBox[{"kmE", "*", "rL", "*", "rnDmL"}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"dD", " ", "=", 
+     RowBox[{
+      RowBox[{"kp", " ", "*", "rA", " ", "*", " ", "rnDmL"}], " ", "-", " ", 
+      RowBox[{"km", "*", "rD", "*", " ", "rnDmL"}], " ", "+", " ", 
+      RowBox[{"kpE", "*", "rA", "*", "rnLmD"}], "-", 
+      RowBox[{"kmE", "*", "rD", "*", "rnLmD"}]}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"d\[Eta]", "=", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"dL", "-", "dD"}], ")"}], "/", "2"}], " ", "//", " ", 
+      "FullSimplify"}]}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"d\[Eta]", " ", "/.", " ", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"km", " ", "\[Rule]", " ", "0"}], ",", " ", 
+       RowBox[{"kmE", " ", "\[Rule]", " ", "0"}]}], "}"}]}], " ", "//", " ", 
+    "FullSimplify"}], "\[IndentingNewLine]", 
+   RowBox[{"Collect", "[", 
+    RowBox[{
+     RowBox[{"d\[Eta]", " ", "/.", " ", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"kp", " ", "\[Rule]", " ", "0"}], ",", " ", 
+        RowBox[{"kpE", " ", "\[Rule]", " ", "0"}]}], " ", "}"}]}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+      "\[Theta]", ",", " ", "\[Theta]1", ",", " ", "\[Eta]", ",", " ", 
+       "\[Eta]1"}], "}"}]}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.7654397741385913`*^9, 3.7654398642199717`*^9}, {
+   3.765439909780498*^9, 3.7654401783854246`*^9}, {3.7654404626574125`*^9, 
+   3.765440471349286*^9}, {3.7654405023696756`*^9, 3.7654405493741765`*^9}, {
+   3.7654406011375895`*^9, 3.765440655814496*^9}, {3.7654407608682117`*^9, 
+   3.7654407723281527`*^9}, {3.765461616540757*^9, 3.765461617870201*^9}, 
+   3.765461659258568*^9, {3.7654618225231266`*^9, 3.765461855855254*^9}, {
+   3.7654619167987127`*^9, 3.765461921304633*^9}, {3.766037017158599*^9, 
+   3.7660370194175873`*^9}, {3.766047414035425*^9, 3.766047417492179*^9}, {
+   3.766047555992532*^9, 
+   3.7660475634007163`*^9}},ExpressionUUID->"91eee09a-f021-49dc-a80d-\
+d975e6b01188"]
+},
+WindowSize->{967, 697},
+WindowMargins->{{Automatic, 248}, {7, Automatic}},
+Magnification->1.25,
+FrontEndVersion->"11.1 for Microsoft Windows (64-bit) (March 13, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 3466, 87, 399, "Input", "ExpressionUUID" -> \
+"91eee09a-f021-49dc-a80d-d975e6b01188"]
+}
+]
+*)
+

@@ -8,6 +8,7 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 		[maxPeptideLength] [int] NOT NULL,
 		[numberOfRepetitions] [int] NOT NULL DEFAULT ((1)),
 		[remainingRepetitions] [int] NOT NULL DEFAULT ((1)),
+		[statusId] [int] NOT NULL DEFAULT ((0)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_ClmTask] PRIMARY KEY CLUSTERED 
 	(

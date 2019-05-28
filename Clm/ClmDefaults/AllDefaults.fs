@@ -59,12 +59,12 @@ module AllDefaults =
         ]
         @
         [
-            // Catalytic destruction + catalytic synthesis for n = 20
+            // Catalytic synthesis + catalytic destruction for n = 20
             Defaults_003_000.defaultValue
         ]
         @
         [
-            // Catalytic synthesis for n = 20
+            // Catalytic synthesis + destruction for n = 20
             Defaults_004_000.defaultValue
             Defaults_004_001.defaultValue
             Defaults_004_002.defaultValue
@@ -86,6 +86,11 @@ module AllDefaults =
             Defaults_004_018.defaultValue
             Defaults_004_019.defaultValue
             Defaults_004_020.defaultValue
+        ]
+        @
+        [
+            // Catalytic synthesis for n = 20
+            Defaults_005_000.defaultValue
         ]
         @
         [

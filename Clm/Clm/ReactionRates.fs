@@ -102,6 +102,9 @@ module ReactionRates =
     ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
     ///     kb -  is backward multipler for a catalyst C
     ///     kbe - is backward multipler for a catalyst E(C)
+    /// Setting eeParams.eeBackwardDistribution = None imposes more stringent constraint that
+    /// forward and backward rate multipliers must be the same for each catalyst independently from
+    /// its enantiomer.
     let calculateCatRates<'R, 'C, 'RC> (i : CatRatesInfo<'R, 'C, 'RC>) =
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
 

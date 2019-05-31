@@ -413,31 +413,35 @@ module ClmModel =
                         maxPeptideLength = modelParams.maxPeptideLength
                         clmDefaultValueId = modelParams.clmDefaultValueId
                     }
-                seedValue = Some seedValue
-                fileStructureVersion = modelParams.fileStructureVersion
+                data =
+                {
+                    seedValue = Some seedValue
+                    fileStructureVersion = modelParams.fileStructureVersion
 
-                modelData =
-                    {
-                        modelDataParams =
-                            {
-                                modelInfo = modelInfo
-                                allParams = rateProvider.providerParams.allParams() |> Array.ofList
-                            }
+                    modelData =
+                        {
+                            modelDataParams =
+                                {
+                                    modelInfo = modelInfo
+                                    allParams = rateProvider.providerParams.allParams() |> Array.ofList
+                                }
 
-                        modelBinaryData =
-                            {
-                                calculationData = ModelCalculationData.create si allReac
+                            modelBinaryData =
+                                {
+                                    calculationData = ModelCalculationData.create si allReac
 
-                                allRawReactions =
-                                    ReactionName.all
-                                    |> List.map (fun n -> n, noOfRawReactions n)
+                                    allRawReactions =
+                                        ReactionName.all
+                                        |> List.map (fun n -> n, noOfRawReactions n)
 
-                                allReactions =
-                                    allReac
-                                    |> List.groupBy (fun r -> r.name)
-                                    |> List.map (fun (n, l) -> (n, int64 l.Length))
-                            }
-                    }
+                                    allReactions =
+                                        allReac
+                                        |> List.groupBy (fun r -> r.name)
+                                        |> List.map (fun (n, l) -> (n, int64 l.Length))
+                                }
+                        }
+                }
+                |> OwnData
             }
 
         member model.allSubstances = si.allSubst

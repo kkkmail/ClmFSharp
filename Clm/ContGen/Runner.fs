@@ -9,6 +9,7 @@ open DbData.DatabaseTypes
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open Clm.CommandLine
+open Clm.CalculationData
 open AsyncRun
 
 // ! Do not delete !
@@ -69,8 +70,8 @@ module Runner =
             model.getModelData
 
 
-        let saveModel getModelData =
-            getModelData() |> tryUpdateModelData |> tryDbFun
+        let saveModelData modelData = modelData |> tryUpdateModelData |> tryDbFun
+        let saveModel getModelData = getModelData() |> saveModelData
 
 
         // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
@@ -113,6 +114,22 @@ module Runner =
         let updateTask (c : ClmTask) =
             tryDbFun (tryUpdateClmTask c)
             |> ignore
+
+
+        let tryAddClmTask (c : ClmTask) =
+            tryDbFun (addClmTask c)
+
+
+        let tryLoadClmTask (i : ClmTaskId) =
+            match tryDbFun (tryLoadClmTask i) with
+            | Some (Some c) -> Some c
+            | _ -> None
+
+
+        let tryLoadModelData m =
+            match tryDbFun (tryLoadModelData m)with
+            | Some (Some c) -> Some c
+            | _ -> None
 
 
         let generateImpl (c : ClmTask) =
@@ -175,12 +192,60 @@ module Runner =
                 ignore()
 
 
+        let runModel i p =
+            match tryLoadModelData i with
+            | Some parent ->
+                match tryLoadClmTask parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
+                | Some a, OwnData d ->
+                    let t =
+                        {
+                            clmTaskInfo =
+                                {
+                                    clmTaskId = ClmTaskId -1L
+                                    clmDefaultValueId = a.modelGenerationParams.clmDefaultValueId
+                                    numberOfAminoAcids = a.modelGenerationParams.numberOfAminoAcids
+                                    maxPeptideLength = a.modelGenerationParams.maxPeptideLength
+                                }
+                            commandLineParams = [ p ]
+                            numberOfRepetitions = 1
+                            remainingRepetitions = 0
+                            createdOn = DateTime.Now
+                        }
+
+                    match tryAddClmTask t with
+                    | Some t1 ->
+                        match getModelId t1.clmTaskInfo.clmTaskId with
+                        | Some modelDataId ->
+                            let m1 =
+                                {
+                                    modelDataId = modelDataId
+                                    clmTaskInfo = t1.clmTaskInfo
+                                    data = (parent.modelDataId, d) |> ParentProvided
+                                }
+
+                            match saveModelData m1 with
+                            | Some true ->
+                                let r =
+                                    {
+                                        run = runModel p
+                                        modelId = modelDataId
+                                        runQueueId = getQueueId p modelDataId
+                                    }
+                                Some r
+                            | _ -> None
+                        | None -> None
+                    | None -> None
+                | _ -> None
+            | None -> None
+
+
         let createGeneratorImpl() =
             {
                 generate = generateAll
                 getQueue = getQueue
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
+                runModel = runModel
             }
 
 

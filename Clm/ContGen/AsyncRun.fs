@@ -85,6 +85,7 @@ module AsyncRun =
             getQueue : unit -> list<RunInfo>
             removeFromQueue : RunQueueId -> unit
             maxQueueLength : int
+            runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
         }
 
 
@@ -101,6 +102,7 @@ module AsyncRun =
             startModel : RunInfo -> unit // Schedules a model run.
             getQueue : unit -> unit
             removeFromQueue : RunQueueId -> unit
+            runModel : ModelDataId -> ModelCommandLineParam -> unit
         }
 
 
@@ -262,6 +264,10 @@ module AsyncRun =
             | Idle | CanGenerate -> false
             | ShuttingDown -> true
 
+        member s.runModel h i p =
+            h.runModel i p
+            s
+
 
     type RunnerMessage =
         | StartQueue of AsyncRunner
@@ -274,7 +280,7 @@ module AsyncRun =
         | CompleteRun of AsyncRunner * ProcessStartInfo
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | ConfigureService of AsyncRunner * ContGenConfigParam
-        //| RunModel
+        | RunModel of AsyncRunner * ModelDataId * ModelCommandLineParam
 
         override m.ToString() =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
@@ -290,6 +296,7 @@ module AsyncRun =
             | CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
             | GetState _ -> "GetState"
             | ConfigureService _ -> "ConfigureService"
+            | RunModel _ -> "RunModel"
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
@@ -322,6 +329,12 @@ module AsyncRun =
             with
                 | e -> false
 
+        let runModelImpl (a : AsyncRunner) i p =
+            match generatorInfo.runModel i p with
+            | Some r -> [ r] |> a.completeGenerate
+            | None -> ignore()
+
+
         let h (a : AsyncRunner) =
             {
                 cancelProcess = cancelProcessImpl
@@ -335,6 +348,7 @@ module AsyncRun =
                 removeFromQueue = removeFromQueueImpl
                 tryAcquireGenerating = tryAcquireGeneratingImpl
                 releaseGenerating = releaseGeneratingImpl
+                runModel = runModelImpl a
             }
 
         let messageLoop =
@@ -358,6 +372,7 @@ module AsyncRun =
                             | CompleteRun (a, x) -> return! loop (s.onProcessStarted (h a) x)
                             | GetState r -> return! loop (s.getState msgCount r.Reply)
                             | ConfigureService (a, p) -> return! loop (s.configureService (h a) p)
+                            | RunModel (a, m, p) -> return! loop (s.runModel (h a) m p)
                         }
 
                 loop AsyncRunnerState.defaultValue
@@ -376,6 +391,7 @@ module AsyncRun =
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService
         member this.stop() = SetToIdle |> this.configureService
+        member this.runModel(m, p) = RunModel (this, m, p) |> messageLoop.Post
 
 
     /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.

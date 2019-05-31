@@ -4,7 +4,6 @@ open System
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
-open System.ServiceModel
 
 module ServiceImplementation =
 
@@ -31,7 +30,7 @@ module ServiceImplementation =
                 messageCount = s.messageCount
             }
 
-    //[<ServiceContract>]
+
     type ContGenService () =
         inherit MarshalByRefObject()
 
@@ -44,3 +43,4 @@ module ServiceImplementation =
             member this.startGenerate() = a.startGenerate()
             member this.updateProgress p = a.updateProgress (a, p)
             member this.configureService (p : ContGenConfigParam) = a.configureService p
+            member this.runModel m p = a.runModel (m, p)

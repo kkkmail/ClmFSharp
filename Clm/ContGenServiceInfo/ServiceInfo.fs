@@ -2,6 +2,7 @@
 open System
 open ClmSys.GeneralData
 open System.Threading
+open Clm.ModelParams
 
 module ServiceInfo =
 
@@ -122,6 +123,7 @@ module ServiceInfo =
         abstract startGenerate : unit -> unit
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
+        abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
 
 
     let mutable callCount = -1

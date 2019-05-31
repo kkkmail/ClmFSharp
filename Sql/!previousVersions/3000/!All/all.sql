@@ -21,13 +21,12 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 	print 'Creating table [dbo].[ClmTask] ...'
 
 	CREATE TABLE [dbo].[ClmTask](
-		[clmTaskId] [uniqueidentifier] NOT NULL,
+		[clmTaskId] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmDefaultValueId] [bigint] NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
 		[numberOfRepetitions] [int] NOT NULL DEFAULT ((1)),
 		[remainingRepetitions] [int] NOT NULL DEFAULT ((1)),
-		[statusId] [int] NOT NULL DEFAULT ((0)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_ClmTask] PRIMARY KEY CLUSTERED 
 	(
@@ -45,12 +44,11 @@ IF OBJECT_ID('[dbo].[CommandLineParam]') IS NULL begin
 	print 'Creating table [dbo].[CommandLineParam] ...'
 
 	CREATE TABLE [dbo].[CommandLineParam](
-		commandLineParamId [uniqueidentifier] NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
+		commandLineParamId [bigint] IDENTITY(1,1) NOT NULL,
+		[clmTaskId] [bigint] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[createdOn] datetime not null default ((getdate())),
 	 CONSTRAINT [PK_TCommandLineParam] PRIMARY KEY CLUSTERED 
 	(
 		commandLineParamId ASC
@@ -72,9 +70,8 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	print 'Creating table [dbo].[ModelData] ...'
 
 	CREATE TABLE [dbo].[ModelData](
-		[modelDataId] [uniqueidentifier] NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[parentModelDataId] [uniqueidentifier] NULL,
+		[modelDataId] [bigint] IDENTITY(1,1) NOT NULL,
+		[clmTaskId] [bigint] NOT NULL,
 		[fileStructureVersion] money NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
@@ -86,15 +83,10 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ClmTask] FOREIGN KEY([clmTaskId])
+	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD  CONSTRAINT [FK_ModelData_ClmTask] FOREIGN KEY([clmTaskId])
 	REFERENCES [dbo].ClmTask ([clmTaskId])
 
 	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ClmTask]
-
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
-	REFERENCES [dbo].[ModelData] ([modelDataId])
-
-	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
 end else begin
 	print 'Table [dbo].[ModelData] already exists ...'
 end
@@ -107,8 +99,8 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 	print 'Creating table [dbo].[ResultData] ...'
 
 	CREATE TABLE [dbo].[ResultData](
-		[resultDataId] [uniqueidentifier] NOT NULL,
-		[modelDataId] [uniqueidentifier] NOT NULL,
+		[resultDataId] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelDataId] [bigint] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
@@ -137,8 +129,8 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	print 'Creating table [dbo].[RunQueue] ...'
 
 	CREATE TABLE [dbo].[RunQueue](
-		[runQueueId] [uniqueidentifier] NOT NULL,
-		[modelDataId] [uniqueidentifier] NOT NULL,
+		[runQueueId] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelDataId] [bigint] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),

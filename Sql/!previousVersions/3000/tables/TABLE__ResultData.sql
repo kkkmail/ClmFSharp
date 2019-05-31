@@ -2,8 +2,8 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 	print 'Creating table [dbo].[ResultData] ...'
 
 	CREATE TABLE [dbo].[ResultData](
-		[resultDataId] [uniqueidentifier] NOT NULL,
-		[modelDataId] [uniqueidentifier] NOT NULL,
+		[resultDataId] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelDataId] [bigint] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),

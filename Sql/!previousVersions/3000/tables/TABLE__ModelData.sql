@@ -2,9 +2,9 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	print 'Creating table [dbo].[ModelData] ...'
 
 	CREATE TABLE [dbo].[ModelData](
-		[modelDataId] [uniqueidentifier] NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[parentModelDataId] [uniqueidentifier] NULL,
+		[modelDataId] [bigint] IDENTITY(1,1) NOT NULL,
+		[clmTaskId] [bigint] NOT NULL,
+		[parentModelDataId] [bigint] NULL,
 		[fileStructureVersion] money NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,

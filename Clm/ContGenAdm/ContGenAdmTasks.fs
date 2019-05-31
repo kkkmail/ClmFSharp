@@ -9,7 +9,6 @@ open Clm.Substances
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGen
-open ContGen.AsyncRun
 open Runner
 open ClmSys.Retry
 open Clm.ModelParams
@@ -49,7 +48,7 @@ module ContGenAdmTasks =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of int64
+            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of Guid
             | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] Y0 of decimal
             | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TEnd of decimal
 
@@ -189,7 +188,7 @@ module ContGenAdmTasks =
                     {
                         clmTaskInfo =
                             {
-                                clmTaskId = ClmTaskId -1L
+                                clmTaskId = Guid.NewGuid() |> ClmTaskId
                                 clmDefaultValueId = i
                                 numberOfAminoAcids = n
                                 maxPeptideLength = m

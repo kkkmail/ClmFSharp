@@ -39,7 +39,7 @@ module AsyncRun =
     type ProcessStartInfo =
         {
             processId : int
-            modelId : ModelDataId
+            modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
 
@@ -47,7 +47,7 @@ module AsyncRun =
             {
                 started = DateTime.Now
                 runningProcessId = this.processId
-                runningModelId = this.modelId
+                runningModelId = this.modelDataId
                 runningQueueId = Some this.runQueueId
                 progress = TaskProgress.NotStarted
             }
@@ -74,7 +74,7 @@ module AsyncRun =
     type RunInfo =
         {
             run : ProcessStartedCallBack -> ProcessStartInfo
-            modelId : ModelDataId
+            modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
 
@@ -132,7 +132,7 @@ module AsyncRun =
             }
 
         override s.ToString() =
-            let q = s.queue |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", "
+            let q = s.queue |> List.map (fun e -> e.modelDataId.ToString()) |> String.concat ", "
             let r =
                 s.running
                 |> Map.toList
@@ -283,7 +283,7 @@ module AsyncRun =
         | RunModel of AsyncRunner * ModelDataId * ModelCommandLineParam
 
         override m.ToString() =
-            let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelId.ToString()) |> String.concat ", ") + "]"
+            let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.modelDataId.ToString()) |> String.concat ", ") + "]"
 
             match m with
             | StartQueue _ -> "StartQueue"
@@ -318,8 +318,8 @@ module AsyncRun =
         let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
 
         let startModelImpl (a : AsyncRunner) e =
-            printfn "Starting modelId: %A..." e.modelId
-            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) 
+            printfn "Starting modelId: %A..." e.modelDataId
+            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelDataId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) 
             |> Async.Start
 
         let cancelProcessImpl i =
@@ -436,7 +436,7 @@ module AsyncRun =
                 startInfo =
                     {
                         processId = -1
-                        modelId = c.calledBackModelId
+                        modelDataId = c.calledBackModelId
                         runQueueId = c.runQueueId
                     }
                 exitCode = CannotFindSpecifiedFileException
@@ -450,7 +450,7 @@ module AsyncRun =
             let processId = p.Id
 
             printfn "Started %s with pid %i" p.ProcessName processId
-            c.notifyOnStarted { processId = processId; modelId = c.calledBackModelId; runQueueId = c.runQueueId }
+            c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
 
             p.BeginOutputReadLine()
             p.BeginErrorReadLine()
@@ -463,7 +463,7 @@ module AsyncRun =
                 startInfo =
                     {
                         processId = processId
-                        modelId = c.calledBackModelId
+                        modelDataId = c.calledBackModelId
                         runQueueId = c.runQueueId
                     }
                 exitCode = p.ExitCode
@@ -511,7 +511,7 @@ module AsyncRun =
 
             {
                 processId = -1
-                modelId = c.calledBackModelId
+                modelDataId = c.calledBackModelId
                 runQueueId = c.runQueueId
             }
         else
@@ -520,11 +520,11 @@ module AsyncRun =
             let processId = p.Id
 
             printfn "Started %s with pid %i" p.ProcessName processId
-            c.notifyOnStarted { processId = processId; modelId = c.calledBackModelId; runQueueId = c.runQueueId }
+            c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
 
             {
                 processId = processId
-                modelId = c.calledBackModelId
+                modelDataId = c.calledBackModelId
                 runQueueId = c.runQueueId
             }
 

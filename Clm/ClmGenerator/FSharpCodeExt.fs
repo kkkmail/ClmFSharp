@@ -23,6 +23,11 @@ module FSharpCodeExt =
         member this.toFSharpCode = this.ToString() + "L"
 
 
+    type System.Guid
+        with
+        member this.toFSharpCode = "\"" + this.ToString() + "\""
+
+
     type System.Decimal
         with
         member this.toFSharpCode = this.ToString() + "m"

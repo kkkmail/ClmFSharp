@@ -25,7 +25,7 @@ module ServiceImplementation =
                 maxQueueLength = s.maxQueueLength
                 runningCount = s.runningCount
                 running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-                queue = s.queue |> List.map (fun e -> e.modelId) |> Array.ofList
+                queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
                 workState = s.workState
                 messageCount = s.messageCount
             }

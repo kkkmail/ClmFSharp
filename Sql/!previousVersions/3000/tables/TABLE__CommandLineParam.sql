@@ -2,12 +2,11 @@ IF OBJECT_ID('[dbo].[CommandLineParam]') IS NULL begin
 	print 'Creating table [dbo].[CommandLineParam] ...'
 
 	CREATE TABLE [dbo].[CommandLineParam](
-		commandLineParamId [uniqueidentifier] NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
+		commandLineParamId [bigint] IDENTITY(1,1) NOT NULL,
+		[clmTaskId] [bigint] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[createdOn] datetime not null default ((getdate())),
 	 CONSTRAINT [PK_TCommandLineParam] PRIMARY KEY CLUSTERED 
 	(
 		commandLineParamId ASC

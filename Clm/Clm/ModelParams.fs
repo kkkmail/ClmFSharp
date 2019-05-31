@@ -11,7 +11,7 @@ open Argu
 
 module ModelParams =
 
-    let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
+    let toModelName (n : Guid) = n.ToString()
 
     /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
@@ -143,7 +143,7 @@ module ModelParams =
 
 
     type ClmTaskId =
-        | ClmTaskId of int64
+        | ClmTaskId of Guid
 
         member this.value = let (ClmTaskId v) = this in v
 

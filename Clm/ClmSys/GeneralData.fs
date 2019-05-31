@@ -12,7 +12,7 @@ module GeneralData =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
-    let ClmBaseName = "Clm3000"
+    let ClmBaseName = "clm3100"
 
     /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     [<Literal>]
@@ -26,7 +26,7 @@ module GeneralData =
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
     [<Literal>]
-    let ContGenServicePort = 3000
+    let ContGenServicePort = 3100
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -81,19 +81,19 @@ module GeneralData =
 
 
     type ModelDataId =
-        | ModelDataId of int64
+        | ModelDataId of Guid
 
         member this.value = let (ModelDataId v) = this in v
 
 
     type ResultDataId =
-        | ResultDataId of int64
+        | ResultDataId of Guid
 
         member this.value = let (ResultDataId v) = this in v
 
 
     type RunQueueId =
-        | RunQueueId of int64
+        | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
 

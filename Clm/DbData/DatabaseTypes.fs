@@ -123,9 +123,11 @@ module DatabaseTypes =
                 useAbundant = r.useAbundant
             }
 
+        /// TODO kk:20190531 - Perhaps it is worth assigning commandLineParamId on the client OR by database.
         member r.addRow (ClmTaskId clmTaskId) (t : CommandLineParamTable) =
             let newRow =
                 t.NewRow(
+                        commandLineParamId = Guid.NewGuid(),
                         clmTaskId = clmTaskId,
                         y0 = r.y0,
                         tEnd = r.tEnd,
@@ -163,6 +165,7 @@ module DatabaseTypes =
         member r.addRow (t : ClmTaskTable) =
             let newRow =
                 t.NewRow(
+                        clmTaskId = r.clmTaskInfo.clmTaskId.value,
                         clmDefaultValueId = r.clmTaskInfo.clmDefaultValueId.value,
                         numberOfAminoAcids = r.clmTaskInfo.numberOfAminoAcids.length,
                         maxPeptideLength = r.clmTaskInfo.maxPeptideLength.length,
@@ -225,22 +228,19 @@ module DatabaseTypes =
                     }
             }
 
-
-    type ResultData
-        with
-
         member r.addRow (t : ResultDataTable) =
             let newRow =
                 t.NewRow(
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant,
+                        resultDataId = r.resultDataId.value,
+                        y0 = r.resultData.y0,
+                        tEnd = r.resultData.tEnd,
+                        useAbundant = r.resultData.useAbundant,
 
-                        maxEe = r.maxEe,
-                        maxAverageEe = r.maxAverageEe
+                        maxEe = r.resultData.maxEe,
+                        maxAverageEe = r.resultData.maxAverageEe
                         )
 
-            newRow.modelDataId <- r.modelDataId.value
+            newRow.modelDataId <- r.resultData.modelDataId.value
 
             t.Rows.Add newRow
             newRow
@@ -266,14 +266,11 @@ module DatabaseTypes =
                 statusId = r.statusId
             }
 
-
-    type RunQueueInfo
-        with
-
         member r.addRow (t : RunQueueTable) =
             let newRow =
                 t.NewRow(
-                        modelDataId = r.modelDataId.value,
+                        runQueueId = r.runQueueId.value,
+                        modelDataId = r.info.modelDataId.value,
                         y0 = r.modelCommandLineParam.y0,
                         tEnd = r.modelCommandLineParam.tEnd,
                         useAbundant = r.modelCommandLineParam.useAbundant
@@ -408,26 +405,6 @@ module DatabaseTypes =
         recordsUpdated = 1
 
 
-    let getNewModelDataId (ClmTaskId clmTaskId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use t = new ModelDataTable()
-
-        let r =
-            t.NewRow(
-                    clmTaskId = clmTaskId,
-                    fileStructureVersion = FileStructureVersion,
-                    seedValue = None,
-                    modelDataParams = "",
-                    modelBinaryData = [||],
-                    createdOn = DateTime.Now
-                    )
-
-        t.Rows.Add r
-        t.Update conn |> ignore
-        ModelDataId r.modelDataId
-
-
     let tryLoadModelData (ModelDataId modelDataId) (connectionString : ConnectionString) =
         use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
@@ -449,50 +426,55 @@ module DatabaseTypes =
             match m.data with
             | OwnData d ->
                 use cmdWithBinaryData = new SqlCommandProvider<"
-                    UPDATE dbo.ModelData
-                        SET clmTaskId = @clmTaskId
-                            ,fileStructureVersion = @fileStructureVersion
-                            ,seedValue = @seedValue
-                            ,modelDataParams = @modelDataParams
-                            ,modelBinaryData = @modelBinaryData
-                            ,parentModelDataId = null
-                            ,createdOn = @createdOn
-                    WHERE modelDataId = @modelDataId
+                    merge ModelData as target
+                    using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+                    as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                    on (target.modelDataId = source.modelDataId)
+                    when not matched then
+                        insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                        values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+                    when matched then
+                        update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
                     ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
                 cmdWithBinaryData.Execute(
+                    modelDataId = m.modelDataId.value,
                     clmTaskId = m.clmTaskInfo.clmTaskId.value,
                     fileStructureVersion = d.fileStructureVersion,
                     seedValue = (match d.seedValue with | Some s -> s | None -> -1),
                     modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
                     modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                    createdOn = DateTime.Now,
-                    modelDataId = m.modelDataId.value)
+                    createdOn = DateTime.Now)
             | ParentProvided (ModelDataId parentModelDataId, _) ->
                 use cmdWithoutBinaryData = new SqlCommandProvider<"
-                    UPDATE dbo.ModelData
-                        SET clmTaskId = @clmTaskId
-                            ,parentModelDataId = @parentModelDataId
-                            ,createdOn = @createdOn
-                    WHERE modelDataId = @modelDataId
+                    merge ModelData as target
+                    using (select @modelDataId, @clmTaskId, @parentModelDataId, @createdOn)
+                    as source (modelDataId, clmTaskId, parentModelDataId, createdOn)
+                    on (target.modelDataId = source.modelDataId)
+                    when not matched then
+                        insert (modelDataId, clmTaskId, parentModelDataId, createdOn)
+                        values (source.modelDataId, source.clmTaskId, source.parentModelDataId, source.createdOn)
+                    when matched then
+                        update set clmTaskId = source.clmTaskId, parentModelDataId = source.parentModelDataId, createdOn = source.createdOn;
                     ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
                 cmdWithoutBinaryData.Execute(
+                    modelDataId = m.modelDataId.value,
                     clmTaskId = m.clmTaskInfo.clmTaskId.value,
                     parentModelDataId = parentModelDataId,
-                    createdOn = DateTime.Now,
-                    modelDataId = m.modelDataId.value)
+                    createdOn = DateTime.Now)
         recordsUpdated = 1
 
 
-    let saveResultData (r : ResultData) (ConnectionString connectionString) =
+    let saveResultData (r : ResultDataWithId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let connectionString = conn.ConnectionString
 
         use cmd = new SqlCommandProvider<"
             INSERT INTO dbo.ResultData
-                       (modelDataId
+                       (resultDataId
+                       ,modelDataId
                        ,y0
                        ,tEnd
                        ,useAbundant
@@ -501,7 +483,8 @@ module DatabaseTypes =
                        ,createdOn)
                  OUTPUT Inserted.resultDataId
                  VALUES
-                       (@modelDataId
+                       (@resultDataId
+                       ,@modelDataId
                        ,@y0
                        ,@tEnd
                        ,@useAbundant
@@ -510,17 +493,15 @@ module DatabaseTypes =
                        ,@createdOn)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        let resultDataId =
-            cmd.Execute(
-                        modelDataId = r.modelDataId.value
-                        ,y0 = r.y0
-                        ,tEnd = r.tEnd
-                        ,useAbundant = r.useAbundant
-                        ,maxEe = r.maxEe
-                        ,maxAverageEe = r.maxAverageEe
-                        ,createdOn = DateTime.Now)
-
-        resultDataId |> Seq.head |> ResultDataId
+        cmd.Execute(
+                    resultDataId = r.resultDataId.value
+                    ,modelDataId = r.resultData.modelDataId.value
+                    ,y0 = r.resultData.y0
+                    ,tEnd = r.resultData.tEnd
+                    ,useAbundant = r.resultData.useAbundant
+                    ,maxEe = r.resultData.maxEe
+                    ,maxAverageEe = r.resultData.maxAverageEe
+                    ,createdOn = DateTime.Now) |> ignore
 
 
     let tryLoadResultData (ResultDataId resultDataId) (ConnectionString connectionString) =
@@ -543,14 +524,14 @@ module DatabaseTypes =
         |> List.map (fun e -> RunQueue.create e)
 
 
-    let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use t = new RunQueueTable()
-        let r = RunQueueInfo.fromModelCommandLineParam modelDataId p
-        let row = r.addRow t
-        t.Update conn |> ignore
-        row.runQueueId |> RunQueueId
+    //let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
+    //    use conn = new SqlConnection(connectionString)
+    //    openConnIfClosed conn
+    //    use t = new RunQueueTable()
+    //    let r = RunQueueInfo.fromModelCommandLineParam modelDataId p
+    //    let row = r.addRow t
+    //    t.Update conn |> ignore
+    //    row.runQueueId |> RunQueueId
 
 
     let deleteRunQueueEntry (RunQueueId runQueueId) (ConnectionString connectionString) =

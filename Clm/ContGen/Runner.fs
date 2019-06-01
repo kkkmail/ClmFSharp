@@ -105,7 +105,10 @@ module Runner =
         //    Target.runOrDefault "Default"
 
 
-        let getQueueId() = Guid.NewGuid() |> RunQueueId
+        let getQueueId (p : ModelCommandLineParam) modelId =
+             match tryDbFun (saveRunQueueEntry modelId p) with
+             | Some q -> q
+             | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
 
 
         let updateTask (c : ClmTask) =
@@ -143,7 +146,7 @@ module Runner =
                                                     {
                                                         run = runModel e
                                                         modelDataId = modelDataId
-                                                        runQueueId = getQueueId()
+                                                        runQueueId = getQueueId e modelDataId
                                                     })
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
@@ -222,7 +225,7 @@ module Runner =
                                 {
                                     run = runModel p
                                     modelDataId = modelDataId
-                                    runQueueId = getQueueId()
+                                    runQueueId = getQueueId p modelDataId
                                 }
                             Some r
                         | _ -> None

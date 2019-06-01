@@ -183,12 +183,6 @@ module ModelParams =
             modelCommandLineParam : ModelCommandLineParam
         }
 
-        static member fromModelCommandLineParam modelDataId p =
-            {
-                modelDataId = modelDataId
-                modelCommandLineParam = p
-            }
-
 
     type RunQueue =
         {
@@ -198,6 +192,19 @@ module ModelParams =
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
+
+        static member fromModelCommandLineParam modelDataId p =
+            {
+                runQueueId = Guid.NewGuid() |> RunQueueId
+
+                info =
+                    {
+                        modelDataId = modelDataId
+                        modelCommandLineParam = p
+                    }
+
+                statusId = 0
+            }
 
 
     type ResultInfo =

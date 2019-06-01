@@ -529,14 +529,14 @@ module DatabaseTypes =
         |> List.map (fun e -> RunQueue.create e)
 
 
-    //let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    use t = new RunQueueTable()
-    //    let r = RunQueueInfo.fromModelCommandLineParam modelDataId p
-    //    let row = r.addRow t
-    //    t.Update conn |> ignore
-    //    row.runQueueId |> RunQueueId
+    let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
+        use conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        use t = new RunQueueTable()
+        let r = RunQueue.fromModelCommandLineParam modelDataId p
+        let row = r.addRow t
+        t.Update conn |> ignore
+        row.runQueueId |> RunQueueId
 
 
     let deleteRunQueueEntry (RunQueueId runQueueId) (ConnectionString connectionString) =

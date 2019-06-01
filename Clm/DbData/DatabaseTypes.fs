@@ -493,7 +493,7 @@ module DatabaseTypes =
                        ,@createdOn)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        let result =
+        let _result =
             cmd.Execute(
                     resultDataId = r.resultDataId.value
                     ,modelDataId = r.resultData.modelDataId.value
@@ -505,7 +505,7 @@ module DatabaseTypes =
                     ,createdOn = DateTime.Now)
             |> Seq.toList
 
-        //printfn "saveResultData::result = %A" result
+        //printfn "saveResultData::result = %A" _result
         ignore()
 
 

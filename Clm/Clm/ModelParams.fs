@@ -11,18 +11,18 @@ open Argu
 
 module ModelParams =
 
-    let toModelName (n : Guid) = n.ToString()
-
     /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
     let DefaultRootFolder = RootDrive + @":\" + ClmBaseName + @"\"
-
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
+
+
+    let toModelName (n : Guid) = n.ToString()
 
 
     type ClmDefaultValueId =

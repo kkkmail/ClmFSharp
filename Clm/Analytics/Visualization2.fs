@@ -23,7 +23,7 @@ module Visualization2 =
         let description =
             [
                 "model name", p.initData.modelDataId.value |> toModelName
-                "default id", sprintf "%A" p.initData.defaultValueId
+                "default id", sprintf "%A" p.initData.defaultValueId.value
                 "y0", sprintf "%A" p.initData.y0
                 "number of amino acids", sprintf "%A" p.initData.binaryInfo.aminoAcids.Length
                 "max peptide length", sprintf "%A" p.initData.binaryInfo.maxPeptideLength.length

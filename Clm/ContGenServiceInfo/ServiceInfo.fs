@@ -71,7 +71,7 @@ module ServiceInfo =
                 | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ";"
                 | None -> EmptyString
 
-            sprintf "{ running = %s;%s modelDataId = %A; processId = %A; progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
+            sprintf "{ running = %s;%s modelDataId = %A; PID = %A; %A }" s estCompl modelDataId r.runningProcessId r.progress
 
 
     type ProgressUpdateInfo

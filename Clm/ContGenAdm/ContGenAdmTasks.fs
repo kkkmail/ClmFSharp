@@ -101,19 +101,24 @@ module ContGenAdmTasks =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenAdmArguments =
-            | [<Unique>] [<AltCommandLine("add")>] AddClmTask of ParseResults<AddClmTaskArgs>
-            | [<Unique>] [<AltCommandLine("run")>] RunModel   of ParseResults<RunModelArgs>
-            | [<Unique>] [<AltCommandLine("m")>]   Monitor of ParseResults<MonitorArgs>
-            | [<Unique>] [<AltCommandLine("c")>]   ConfigureService of ParseResults<ConfigureServiceArgs>
+            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
+            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
+            | [<Unique>] [<AltCommandLine("add")>]    AddClmTask of ParseResults<AddClmTaskArgs>
+            | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
+            | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
+            | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
+                    | ServerAddress _ -> "server address/ name."
+                    | ServerPort _ -> "server port."
                     | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
                     | ConfigureService _ -> "reconfigures service."
+
 
     let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
         let t = p |> List.tryPick (fun e -> match e with | TaskTEnd i -> Some i | _ -> None)
@@ -124,7 +129,7 @@ module ContGenAdmTasks =
             match tl.Length = yl.Length with
             | true ->
                 List.zip tl yl
-                |> List.map (fun (tEnd, y0) -> 
+                |> List.map (fun (tEnd, y0) ->
                                 {
                                     tEnd = tEnd
                                     y0 = y0
@@ -164,6 +169,21 @@ module ContGenAdmTasks =
         match p |> List.tryPick (fun e -> match e with | GenerateModelCode -> Some true | _ -> None) with
         | Some n -> n
         | None -> false
+
+
+    let tryGetServerAddress (p :list<ContGenAdmArguments>) =
+         p |> List.tryPick (fun e -> match e with | ServerAddress s -> Some s | _ -> None)
+
+
+    let tryGetServerPort (p :list<ContGenAdmArguments>) =
+        p |> List.tryPick (fun e -> match e with | ServerPort p -> Some p | _ -> None)
+
+
+    let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
+        {
+            server = tryGetServerAddress p
+            port = tryGetServerPort p
+        }
 
 
     let logError e = printfn "Error: %A" e

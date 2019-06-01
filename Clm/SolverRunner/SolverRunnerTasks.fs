@@ -62,7 +62,7 @@ module SolverRunnerTasks =
         match results.TryGetResult NotifyAddress with
         | Some address ->
             let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
-            ResponseHandler.tryCreate address port
+            ResponseHandler.tryCreate { server = Some address; port = Some port }
         | None -> None
 
 

@@ -22,13 +22,13 @@ module ContGenServiceTasks =
         with
         static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenConfigParam> =
             [
-                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)            
+                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
                 p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
             ]
             |> List.choose id
 
 
-    // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
+    /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
     let getInstaller () =
         let installer = new AssemblyInstaller(typedefof<ContGenWindowsService>.Assembly, null);
         installer.UseNewContext <- true
@@ -82,7 +82,7 @@ module ContGenServiceTasks =
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
-    /// TODO kk:20190520 - Propagate p into service. 
+    /// TODO kk:20190520 - Propagate p into service.
     let startContGenService timeoutMilliseconds (p : list<ContGenConfigParam>) =
         (startService ContGenServiceName timeoutMilliseconds)
 

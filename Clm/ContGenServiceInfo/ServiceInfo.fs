@@ -13,12 +13,28 @@ module ServiceInfo =
     let ProgramName = "ContGenService.exe"
 
 
-    let getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
+    type ServiceAccessInfo =
+        {
+            server : string option
+            port : int option
+        }
+
+
+    let private getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
         "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
-        //"soap.udp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
 
 
-    let getServiceUrl() = getServiceUrlImpl ContGenServiceAddress ContGenServicePort ContGenServiceName
+    let getServiceUrl (i : ServiceAccessInfo) = 
+        let address =
+            match i.server with
+            | Some s -> s
+            | None -> ContGenServiceAddress
+
+        let port =
+            match i.port with
+            | Some p -> p
+            | None -> ContGenServicePort
+        getServiceUrlImpl address port ContGenServiceName
 
 
     type TaskProgress =

@@ -11,15 +11,15 @@ module CommandLine =
     let DefaultMinEe = 0.000_01
 
 
-    [<CliPrefix(CliPrefix.Dash)>]
+    [<CliPrefix(CliPrefix.None)>]
     type SolverRunnerArguments =
-        | [<Unique>] [<AltCommandLine("-t")>]  EndTime of decimal
-        | [<Unique>] [<AltCommandLine("-y0")>] TotalAmount of decimal
-        | [<Unique>] [<AltCommandLine("-a")>]  UseAbundant of bool
-        | [<Unique>] [<AltCommandLine("-m")>]  ModelId of Guid
-        | [<Unique>] [<AltCommandLine("-n")>]  NotifyAddress of string
-        | [<Unique>] [<AltCommandLine("-p")>]  NotifyPort of int
-        | [<Unique>] [<AltCommandLine("-ee")>] MinUsefulEe of double
+        | [<Unique>] [<AltCommandLine("t")>]  EndTime of decimal
+        | [<Unique>] [<AltCommandLine("y0")>] TotalAmount of decimal
+        | [<Unique>] [<AltCommandLine("a")>]  UseAbundant of bool
+        | [<Unique>] [<AltCommandLine("m")>]  ModelId of Guid
+        | [<Unique>] [<AltCommandLine("n")>]  NotifyAddress of string
+        | [<Unique>] [<AltCommandLine("p")>]  NotifyPort of int
+        | [<Unique>] [<AltCommandLine("ee")>] MinUsefulEe of double
 
 
     with

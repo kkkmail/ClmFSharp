@@ -105,10 +105,7 @@ module Runner =
         //    Target.runOrDefault "Default"
 
 
-        let getQueueId (p : ModelCommandLineParam) modelId =
-            match tryDbFun (saveRunQueueEntry modelId p) with
-            | Some q -> q
-            | None -> Guid.NewGuid() |> RunQueueId
+        let getQueueId() = Guid.NewGuid() |> RunQueueId
 
 
         let updateTask (c : ClmTask) =
@@ -141,13 +138,12 @@ module Runner =
                     match generateModel a.modelGenerationParams modelDataId c.clmTaskInfo.clmTaskId |> saveModel with
                     | Some true ->
                         updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
-                        //compileModel modelId
 
                         a.modelCommandLineParams |> List.map (fun e ->
                                                     {
                                                         run = runModel e
                                                         modelDataId = modelDataId
-                                                        runQueueId = getQueueId e modelDataId
+                                                        runQueueId = getQueueId()
                                                     })
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
@@ -226,7 +222,7 @@ module Runner =
                                 {
                                     run = runModel p
                                     modelDataId = modelDataId
-                                    runQueueId = getQueueId p modelDataId
+                                    runQueueId = getQueueId()
                                 }
                             Some r
                         | _ -> None

@@ -126,14 +126,18 @@ module SolverRunnerTasks =
 
                 let r =
                     {
-                        modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
+                        resultDataId = Guid.NewGuid() |> ResultDataId
+                        resultData =
+                            {
+                                modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 
-                        y0 = decimal y0
-                        tEnd = decimal tEnd
-                        useAbundant = false // TODO kk:20190105 This should be propagated...
+                                y0 = decimal y0
+                                tEnd = decimal tEnd
+                                useAbundant = false // TODO kk:20190105 This should be propagated...
 
-                        maxEe = maxEe
-                        maxAverageEe = maxAverageEe
+                                maxEe = maxEe
+                                maxAverageEe = maxAverageEe
+                            }
                     }
 
                 r |> saveResultData |> tryDbFun |> ignore

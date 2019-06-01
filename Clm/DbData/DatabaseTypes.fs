@@ -493,7 +493,8 @@ module DatabaseTypes =
                        ,@createdOn)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        cmd.Execute(
+        let result =
+            cmd.Execute(
                     resultDataId = r.resultDataId.value
                     ,modelDataId = r.resultData.modelDataId.value
                     ,y0 = r.resultData.y0
@@ -501,7 +502,11 @@ module DatabaseTypes =
                     ,useAbundant = r.resultData.useAbundant
                     ,maxEe = r.resultData.maxEe
                     ,maxAverageEe = r.resultData.maxAverageEe
-                    ,createdOn = DateTime.Now) |> ignore
+                    ,createdOn = DateTime.Now)
+            |> Seq.toList
+
+        //printfn "saveResultData::result = %A" result
+        ignore()
 
 
     let tryLoadResultData (ResultDataId resultDataId) (ConnectionString connectionString) =

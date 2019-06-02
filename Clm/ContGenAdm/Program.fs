@@ -1,5 +1,6 @@
-﻿open ContGenAdm.ContGenServiceResponse
-open Argu
+﻿open Argu
+open ContGenAdm.ContGenServiceResponse
+open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
 

@@ -14,19 +14,16 @@ module GeneralData =
     [<Literal>]
     let ClmBaseName = "clm3100"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     [<Literal>]
-    let RootDrive = "C"
+    let DefaultRootDrive = "C"
 
-    ///// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
-    //[<Literal>]
-    //let ContGenServiceAddress = "localhost"
+    [<Literal>]
+    let DefaultContGenServiceAddress = "localhost"
 
-    ///// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
-    ///// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
-    ///// the old verison is finishing its run.
-    //[<Literal>]
-    //let ContGenServicePort = 3100
+    /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
+    /// the old verison is finishing its run.
+    [<Literal>]
+    let DefaultContGenServicePort = 3100
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -41,12 +38,14 @@ module GeneralData =
         | ServiceAddress of string
 
         member this.value = let (ServiceAddress v) = this in v
+        static member defaultValue = ServiceAddress DefaultContGenServiceAddress
 
 
     type ServicePort =
         | ServicePort of int
 
         member this.value = let (ServicePort v) = this in v
+        static member defaultValue = ServicePort DefaultContGenServicePort
 
 
     type ServiceAccessInfo =

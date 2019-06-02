@@ -9,8 +9,8 @@ module SvcCommandLine =
     type RunArgs =
         | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
         | [<Unique>] [<AltCommandLine("-i")>] RunIdle
-        | [<Unique>] [<AltCommandLine("-a")>] ServiceAddress of string
-        | [<Unique>] [<AltCommandLine("-p")>] ServicePort of int
+        | [<Unique>] [<AltCommandLine("-server")>] SvcAddress of string
+        | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
     with
         interface IArgParserTemplate with
@@ -18,8 +18,8 @@ module SvcCommandLine =
                 match this with
                 | NumberOfCores _ -> "number of logical cores to use."
                 | RunIdle -> "Start idle."
-                | ServiceAddress _ -> "service ip address / name."
-                | ServicePort _ -> "service port."
+                | SvcAddress _ -> "service ip address / name."
+                | SvcPort _ -> "service port."
 
 
     and
@@ -42,19 +42,26 @@ module SvcCommandLine =
                 | Run _ -> "run service from command line without installing."
 
     let tryGetServerAddress (p :list<RunArgs>) =
-         p |> List.tryPick (fun e -> match e with | ServiceAddress s -> s |> ClmSys.GeneralData.ServiceAddress |> Some | _ -> None)
+         p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
 
 
     let tryGetServerPort (p :list<RunArgs>) =
-        p |> List.tryPick (fun e -> match e with | ServicePort p -> p |> ClmSys.GeneralData.ServicePort |> Some | _ -> None)
+        p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
 
 
-    let tryGetServiceAccessInfo (p :list<RunArgs>) =
-        match tryGetServerAddress p, tryGetServerPort p with
-        | Some a, Some p ->
-            {
-                serviceAddress = a
-                servicePort = p
-            }
-            |> Some
-        | _ -> None
+    let getServiceAccessInfo (p :list<RunArgs>) =
+        let address =
+            match tryGetServerAddress p with
+            | Some a -> a
+            | None -> ServiceAddress.defaultValue
+
+        let port =
+            match tryGetServerPort p with
+            | Some a -> a
+            | None -> ServicePort.defaultValue
+
+        {
+            serviceAddress = address
+            servicePort = port
+        }
+

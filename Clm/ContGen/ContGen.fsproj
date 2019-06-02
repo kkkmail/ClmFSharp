@@ -71,8 +71,8 @@
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="AsyncRun.fs" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="AsyncRun.fs" />
     <Compile Include="Runner.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

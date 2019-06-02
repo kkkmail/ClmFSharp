@@ -163,12 +163,8 @@ module ContGenServiceTasks =
             p |> List.tryPick (fun e ->
                                 match e with
                                 | Run p ->
-                                    match tryGetServiceAccessInfo (p.GetAllResults()) with
-                                    | Some i ->
-                                        RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
-                                    | None ->
-                                        printfn "Cannot obtain service address and/or port from command line parameters."
-                                        None
+                                    let i = getServiceAccessInfo (p.GetAllResults())
+                                    RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
                                 | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =

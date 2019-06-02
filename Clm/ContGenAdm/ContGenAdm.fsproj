@@ -70,6 +70,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="AdmCommandLine.fs" />
     <Compile Include="ContGenServiceResponse.fs" />
     <Compile Include="ContGenAdmTasks.fs" />
     <Compile Include="Program.fs" />

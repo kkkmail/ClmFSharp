@@ -11,9 +11,8 @@ open Argu
 
 module ModelParams =
 
-    /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
-    let DefaultRootFolder = RootDrive + @":\" + ClmBaseName + @"\"
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"

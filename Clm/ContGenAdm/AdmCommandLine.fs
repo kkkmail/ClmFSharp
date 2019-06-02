@@ -100,23 +100,24 @@ module AdmCommandLine =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenAdmArguments =
-            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
-            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
             | [<Unique>] [<AltCommandLine("add")>]    AddClmTask of ParseResults<AddClmTaskArgs>
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
+            | [<Unique>] [<AltCommandLine("-server")>] ServerAddress of string
+            | [<Unique>] [<AltCommandLine("-port")>]   ServerPort of int
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | ServerAddress _ -> "server address / name."
-                    | ServerPort _ -> "server port."
                     | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
                     | ConfigureService _ -> "reconfigures service."
+                    | ServerAddress _ -> "server address / name."
+                    | ServerPort _ -> "server port."
+
 
     let tryGetServerAddress (p :list<ContGenAdmArguments>) =
          p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
@@ -126,15 +127,21 @@ module AdmCommandLine =
         p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
 
 
-    let tryGetServiceAccessInfo (p :list<ContGenAdmArguments>) =
-        match tryGetServerAddress p, tryGetServerPort p with
-        | Some a, Some p ->
-            {
-                serviceAddress = a
-                servicePort = p
-            }
-            |> Some
-        | _ -> None
+    let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
+        let address =
+            match tryGetServerAddress p with
+            | Some a -> a
+            | None -> ServiceAddress.defaultValue
+
+        let port =
+            match tryGetServerPort p with
+            | Some a -> a
+            | None -> ServicePort.defaultValue
+
+        {
+            serviceAddress = address
+            servicePort = port
+        }
 
 
     let tryGetCommandLineParams i (p :list<AddClmTaskArgs>) =

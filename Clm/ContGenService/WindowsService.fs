@@ -1,10 +1,8 @@
 ﻿namespace ContGenService
 
-open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
-open System.ServiceModel
 open Argu
 
 open ContGenService.ServiceImplementation
@@ -37,10 +35,10 @@ module WindowsService =
 
         override service.OnStart (args : string[]) =
             base.OnStart(args)
-            //let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
-            //let results = (parser.Parse args).GetAllResults()
-            //let i = getServiceAccessInfo results
-            //startServiceRun i logger
+            let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
+            let results = (parser.Parse args).GetAllResults()
+            let i = getServiceAccessInfo results
+            startServiceRun i logger
 
         override service.OnStop () =
             base.OnStop()

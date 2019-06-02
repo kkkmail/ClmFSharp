@@ -21,10 +21,9 @@ module Program =
                 task.run() |> ignore
                 CompletedSuccessfully
             | None ->
-                //ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
-                //CompletedSuccessfully
-                printfn "Unable to create task for command line parameter: \n%A" argv
-                InvalidCommandLineArgs
+                ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
+                CompletedSuccessfully
+
         with
             | exn ->
                 printfn "%s" exn.Message

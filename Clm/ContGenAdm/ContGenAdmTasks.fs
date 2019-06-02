@@ -112,7 +112,7 @@ module ContGenAdmTasks =
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | ServerAddress _ -> "server address/ name."
+                    | ServerAddress _ -> "server address / name."
                     | ServerPort _ -> "server port."
                     | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."

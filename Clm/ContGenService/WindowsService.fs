@@ -35,8 +35,7 @@ module WindowsService =
         do initService ()
         let logger e = ignore()
 
-        override service.OnStart (args:string[]) =
-
+        override service.OnStart (args : string[]) =
             let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
             let results = (parser.Parse args).GetAllResults()
 
@@ -45,7 +44,7 @@ module WindowsService =
                     base.OnStart(args)
                     startServiceRun i logger
                 | None ->
-                    let errMessage = "Invalid service address and/or port."
+                    let errMessage = sprintf "Invalid service address and/or port: %A." args
                     logger errMessage
                     failwith errMessage
 

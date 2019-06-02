@@ -129,6 +129,7 @@ module ServiceInfo =
 
     let mutable callCount = -1
 
+
     let getServiceState (service : IContGenService) =
         if Interlocked.Increment(&callCount) = 0
         then

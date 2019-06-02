@@ -7,7 +7,7 @@ open Clm.ModelParams
 module ServiceInfo =
 
     [<Literal>]
-    let ContGenServiceName = "ContGenServiceImpl"
+    let ContGenServiceName = "ContGenService"
 
     [<Literal>]
     let ProgramName = "ContGenService.exe"

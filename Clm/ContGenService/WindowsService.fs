@@ -21,7 +21,7 @@ module WindowsService =
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ContGenServiceImpl>, ContGenServiceName, WellKnownObjectMode.Singleton )
+                ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e
@@ -36,11 +36,11 @@ module WindowsService =
         let logger e = ignore()
 
         override service.OnStart (args : string[]) =
-            let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
-            let results = (parser.Parse args).GetAllResults()
-            let i = getServiceAccessInfo results
             base.OnStart(args)
-            startServiceRun i logger
+            //let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
+            //let results = (parser.Parse args).GetAllResults()
+            //let i = getServiceAccessInfo results
+            //startServiceRun i logger
 
         override service.OnStop () =
             base.OnStop()

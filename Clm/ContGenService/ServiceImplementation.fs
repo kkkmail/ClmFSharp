@@ -37,19 +37,13 @@ module ServiceImplementation =
 
     let mutable serviceAccessInfo : ServiceAccessInfo =
         {
-            serviceAddress = ServiceAddress ""
-            servicePort = ServicePort 0
+            serviceAddress = ServiceAddress DefaultContGenServiceAddress
+            servicePort = ServicePort DefaultContGenServicePort
         }
 
 
-    type ContGenServiceImpl () =
+    type ContGenService () =
         inherit MarshalByRefObject()
-
-        //let i : ServiceAccessInfo =
-        //    {
-        //        serviceAddress = ServiceAddress "localhost"
-        //        servicePort = ServicePort 12345
-        //    }
 
         let a = createServiceImpl serviceAccessInfo
 

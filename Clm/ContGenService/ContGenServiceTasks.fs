@@ -125,7 +125,7 @@ module ContGenServiceTasks =
         do timer.Start()
 
         waitHandle.WaitOne() |> ignore
-        CompletedSuccessfully
+        true
 
 
     /// TODO kk:20190601 - Propagage address / port into the service installation call.
@@ -138,14 +138,16 @@ module ContGenServiceTasks =
 
         member task.run() =
             match task with
-            | InstallServiceTask ->
-                if installService() then startContGenService ServiceTmeOut |> ignore
+            | InstallServiceTask -> installService()
             | UninstallServiceTask ->
-                stopContGenService ServiceTmeOut |> ignore
-                uninstallService() |> ignore
-            | StartServiceTask p -> startContGenService ServiceTmeOut p |> ignore
-            | StopServiceTask -> stopContGenService ServiceTmeOut |> ignore
-            | RunServiceTask (p, i) -> runService i p |> ignore
+                match stopContGenService ServiceTmeOut with
+                | true -> printfn "Successfully stopped service."
+                | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
+
+                uninstallService()
+            | StartServiceTask p -> startContGenService ServiceTmeOut p
+            | StopServiceTask -> stopContGenService ServiceTmeOut
+            | RunServiceTask (p, i) -> runService i p
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)

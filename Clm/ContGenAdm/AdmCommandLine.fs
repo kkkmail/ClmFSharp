@@ -104,8 +104,8 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
-            | [<Unique>] [<AltCommandLine("-server")>] ServerAddress of string
-            | [<Unique>] [<AltCommandLine("-port")>]   ServerPort of int
+            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
+            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
 
         with
             interface IArgParserTemplate with

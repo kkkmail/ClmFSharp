@@ -13,28 +13,22 @@ module ServiceInfo =
     let ProgramName = "ContGenService.exe"
 
 
-    type ServiceAccessInfo =
-        {
-            server : string option
-            port : int option
-        }
-
-
     let private getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
         "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
 
 
-    let getServiceUrl (i : ServiceAccessInfo) = 
-        let address =
-            match i.server with
-            | Some s -> s
-            | None -> ContGenServiceAddress
+    let getServiceUrl (i : ServiceAccessInfo) =
+        getServiceUrlImpl i.serviceAddress.value i.servicePort.value ContGenServiceName
+        //let address =
+        //    match i.server with
+        //    | Some s -> s
+        //    | None -> ContGenServiceAddress
 
-        let port =
-            match i.port with
-            | Some p -> p
-            | None -> ContGenServicePort
-        getServiceUrlImpl address port ContGenServiceName
+        //let port =
+        //    match i.port with
+        //    | Some p -> p
+        //    | None -> ContGenServicePort
+        //getServiceUrlImpl address port ContGenServiceName
 
 
     type TaskProgress =
@@ -140,6 +134,7 @@ module ServiceInfo =
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
+        abstract getServiceAccessInfo : unit -> ServiceAccessInfo
 
 
     let mutable callCount = -1

@@ -119,8 +119,26 @@ module ContGenAdmTasks =
                     | Monitor _ -> "starts monitor."
                     | ConfigureService _ -> "reconfigures service."
 
+    let tryGetServerAddress (p :list<ContGenAdmArguments>) =
+         p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
 
-    let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
+
+    let tryGetServerPort (p :list<ContGenAdmArguments>) =
+        p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
+
+
+    let tryGetServiceAccessInfo (p :list<ContGenAdmArguments>) =
+        match tryGetServerAddress p, tryGetServerPort p with
+        | Some a, Some p ->
+            {
+                serviceAddress = a
+                servicePort = p
+            }
+            |> Some
+        | _ -> None
+
+
+    let tryGetCommandLineParams i (p :list<AddClmTaskArgs>) =
         let t = p |> List.tryPick (fun e -> match e with | TaskTEnd i -> Some i | _ -> None)
         let y = p |> List.tryPick (fun e -> match e with | TaskY0 i -> Some i | _ -> None)
 
@@ -134,6 +152,7 @@ module ContGenAdmTasks =
                                     tEnd = tEnd
                                     y0 = y0
                                     useAbundant = false
+                                    serviceAccessInfo = i
                                 }
                             )
                 |> Some
@@ -171,31 +190,16 @@ module ContGenAdmTasks =
         | None -> false
 
 
-    let tryGetServerAddress (p :list<ContGenAdmArguments>) =
-         p |> List.tryPick (fun e -> match e with | ServerAddress s -> Some s | _ -> None)
-
-
-    let tryGetServerPort (p :list<ContGenAdmArguments>) =
-        p |> List.tryPick (fun e -> match e with | ServerPort p -> Some p | _ -> None)
-
-
-    let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
-        {
-            server = tryGetServerAddress p
-            port = tryGetServerPort p
-        }
-
-
     let logError e = printfn "Error: %A" e
     let tryDbFun f = tryDbFun logError clmConnectionString f
     let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (tryLoadClmDefaultValue clmDefaultValueId) |> Option.bind id
 
 
-    let addClmTask (p :list<AddClmTaskArgs>) =
+    let addClmTask s (p :list<AddClmTaskArgs>) =
         let i = tryGetClmDefaultValueId p
         let n = tryGetNumberOfAminoAcids p
         let m = tryGetMaxPeptideLength p
-        let c = tryGetCommandLineParams p
+        let c = tryGetCommandLineParams s p
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
@@ -245,7 +249,7 @@ module ContGenAdmTasks =
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
 
 
-    let runModel (service : IContGenService) (p :list<RunModelArgs>) =
+    let runModel (service : IContGenService) i (p :list<RunModelArgs>) =
         match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
         | Some m, Some y, Some t ->
             let c =
@@ -253,6 +257,7 @@ module ContGenAdmTasks =
                     tEnd = t
                     y0 = y
                     useAbundant = false
+                    serviceAccessInfo = i
                 }
 
             service.runModel m c
@@ -306,10 +311,10 @@ module ContGenAdmTasks =
         | MonitorTask of service : IContGenService * arguments : list<MonitorArgs>
         | ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
 
-        member task.run() =
+        member task.run i =
             match task with
-            | AddClmTaskTask p -> addClmTask p
-            | RunModelTask (s, p) -> runModel s p
+            | AddClmTaskTask p -> addClmTask i p
+            | RunModelTask (s, p) -> runModel s i p
             | MonitorTask (s, p) -> monitor s p
             | ConfigureServiceTask (s, p) -> configureService s p
 

@@ -18,15 +18,15 @@ module GeneralData =
     [<Literal>]
     let RootDrive = "C"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
-    [<Literal>]
-    let ContGenServiceAddress = "localhost"
+    ///// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
+    //[<Literal>]
+    //let ContGenServiceAddress = "localhost"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
-    /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
-    /// the old verison is finishing its run.
-    [<Literal>]
-    let ContGenServicePort = 3100
+    ///// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
+    ///// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
+    ///// the old verison is finishing its run.
+    //[<Literal>]
+    //let ContGenServicePort = 3100
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -35,6 +35,25 @@ module GeneralData =
     /// Environment.NewLine is too long and it is not a const.
     [<Literal>]
     let Nl = "\r\n"
+
+
+    type ServiceAddress =
+        | ServiceAddress of string
+
+        member this.value = let (ServiceAddress v) = this in v
+
+
+    type ServicePort =
+        | ServicePort of int
+
+        member this.value = let (ServicePort v) = this in v
+
+
+    type ServiceAccessInfo =
+        {
+            serviceAddress : ServiceAddress
+            servicePort : ServicePort
+        }
 
 
     let toVariableName (s : string) =

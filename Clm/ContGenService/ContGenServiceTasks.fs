@@ -4,12 +4,14 @@ open System
 open System.Threading
 open System.Configuration.Install
 open System.ServiceProcess
+open Argu
+
 open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
 open ClmSys.ExitErrorCodes
-open Argu
+open ClmSys.GeneralData
 
 module ContGenServiceTasks =
 
@@ -107,11 +109,11 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
-    let runService (p : list<ContGenConfigParam>) i =
+    let runService i (p : list<ContGenConfigParam>) =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
-        startServiceRun logger
+        startServiceRun i logger
         let service = (new ContGenResponseHandler(i)).contGenService
         p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()
@@ -143,7 +145,7 @@ module ContGenServiceTasks =
                 uninstallService() |> ignore
             | StartServiceTask p -> startContGenService ServiceTmeOut p |> ignore
             | StopServiceTask -> stopContGenService ServiceTmeOut |> ignore
-            | RunServiceTask (p, i) -> runService p i |> ignore
+            | RunServiceTask (p, i) -> runService i p |> ignore
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
@@ -161,8 +163,10 @@ module ContGenServiceTasks =
             p |> List.tryPick (fun e ->
                                 match e with
                                 | Run p ->
-                                    let i = getServiceAccessInfo (p.GetAllResults())
-                                    RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
+                                    match tryGetServiceAccessInfo (p.GetAllResults()) with
+                                    | Some i ->
+                                        RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
+                                    | None -> None
                                 | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =

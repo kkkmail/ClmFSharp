@@ -28,6 +28,7 @@ module Runner =
             buildTarget : string
             exeName : string
             saveModelCode : bool
+            serviceAccessInfo : ServiceAccessInfo
         }
 
         static member defaultValue =
@@ -37,6 +38,7 @@ module Runner =
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = SolverRunnerName
                 saveModelCode = false
+                serviceAccessInfo = failwith "ModelRunnerParam.defaultValue.serviceAccessInfo is not yet implemented."
             }
 
 
@@ -116,18 +118,18 @@ module Runner =
             |> ignore
 
 
-        let tryAddClmTask (c : ClmTask) =
+        let tryAddClmTask c =
             tryDbFun (addClmTask c)
 
 
-        let tryLoadClmTask (i : ClmTaskId) =
-            match tryDbFun (tryLoadClmTask i) with
+        let tryLoadClmTask i t =
+            match tryDbFun (tryLoadClmTask i t) with
             | Some (Some c) -> Some c
             | _ -> None
 
 
-        let tryLoadModelData m =
-            match tryDbFun (tryLoadModelData m)with
+        let tryLoadModelData i m =
+            match tryDbFun (tryLoadModelData i m) with
             | Some (Some c) -> Some c
             | _ -> None
 
@@ -163,14 +165,14 @@ module Runner =
                     []
 
 
-        let generateAll() =
-            match tryDbFun loadIncompleteClmTasks with
+        let generateAll i () =
+            match tryDbFun (loadIncompleteClmTasks i) with
             | Some c -> c |> List.map generateImpl |> List.concat
             | None -> []
 
 
-        let getQueue () =
-            match tryDbFun loadRunQueue with
+        let getQueue i () =
+            match tryDbFun (loadRunQueue i) with
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = e.modelCommandLineParam |> runModel
@@ -188,10 +190,10 @@ module Runner =
                 ignore()
 
 
-        let runModel i p =
-            match tryLoadModelData i with
+        let runModel j m p =
+            match tryLoadModelData j m with
             | Some parent ->
-                match tryLoadClmTask parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
+                match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
                 | Some a, OwnData d ->
                     let t =
                         {
@@ -236,11 +238,11 @@ module Runner =
 
         let createGeneratorImpl() =
             {
-                generate = generateAll
-                getQueue = getQueue
+                generate = generateAll p.serviceAccessInfo
+                getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
-                runModel = runModel
+                runModel = runModel p.serviceAccessInfo
             }
 
 

@@ -116,11 +116,12 @@ module DatabaseTypes =
     type ModelCommandLineParam
         with
 
-        static member create(r : CommandLineParamTableRow) =
+        static member create i (r : CommandLineParamTableRow) =
             {
                 y0 = r.y0
                 tEnd = r.tEnd
                 useAbundant = r.useAbundant
+                serviceAccessInfo = i
             }
 
         /// TODO kk:20190531 - Perhaps it is worth assigning commandLineParamId on the client OR by database.
@@ -249,7 +250,7 @@ module DatabaseTypes =
     type RunQueue
         with
 
-        static member create (r : RunQueueTableRow) =
+        static member create i (r : RunQueueTableRow) =
             {
                 runQueueId = RunQueueId r.runQueueId
                 info =
@@ -261,6 +262,7 @@ module DatabaseTypes =
                                 y0 = r.y0
                                 tEnd = r.tEnd
                                 useAbundant = r.useAbundant
+                                serviceAccessInfo = i
                             }
                     }
                 statusId = r.statusId
@@ -313,7 +315,7 @@ module DatabaseTypes =
                     , fileStructureVersion = FileStructureVersion)
 
 
-    let loadCommandLineParams (ClmTaskId clmTaskId) (ConnectionString connectionString) =
+    let loadCommandLineParams i (ClmTaskId clmTaskId) (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use d = new CommandLineParamData(conn)
@@ -322,7 +324,7 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.toList
-        |> List.map (fun r -> ModelCommandLineParam.create r)
+        |> List.map (fun r -> ModelCommandLineParam.create i r)
 
 
     let addCommandLineParams clmTaskId (p : ModelCommandLineParam) (ConnectionString connectionString) =
@@ -333,7 +335,7 @@ module DatabaseTypes =
         t.Update conn |> ignore
 
 
-    let tryLoadClmTask (ClmTaskId clmTaskId) (connectionString : ConnectionString) =
+    let tryLoadClmTask i (ClmTaskId clmTaskId) (connectionString : ConnectionString) =
         use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use d = new ClmTaskData(conn)
@@ -342,10 +344,10 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.tryFind (fun e -> e.clmTaskId = clmTaskId)
-        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams c connectionString))
+        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams i c connectionString))
 
 
-    let tryLoadClmTaskByDefault (ClmDefaultValueId clmDefaultValueId) (connectionString : ConnectionString) =
+    let tryLoadClmTaskByDefault i (ClmDefaultValueId clmDefaultValueId) (connectionString : ConnectionString) =
         use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use d = new ClmTaskByDefaultData(conn)
@@ -354,10 +356,10 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId)
-        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams c connectionString))
+        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams i c connectionString))
 
 
-    let loadIncompleteClmTasks (connectionString : ConnectionString) =
+    let loadIncompleteClmTasks i (connectionString : ConnectionString) =
         use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use d = new ClmTaskAllIncompleteData(conn)
@@ -366,7 +368,7 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.toList
-        |> List.map (fun r -> ClmTask.tryCreate r (fun c -> loadCommandLineParams c connectionString))
+        |> List.map (fun r -> ClmTask.tryCreate r (fun c -> loadCommandLineParams i c connectionString))
         |> List.choose id
 
 
@@ -405,7 +407,7 @@ module DatabaseTypes =
         recordsUpdated = 1
 
 
-    let tryLoadModelData (ModelDataId modelDataId) (connectionString : ConnectionString) =
+    let tryLoadModelData i (ModelDataId modelDataId) (connectionString : ConnectionString) =
         use conn = new SqlConnection(connectionString.value)
         openConnIfClosed conn
         use d = new ModelDataTableData(conn)
@@ -414,7 +416,7 @@ module DatabaseTypes =
 
         t.Rows
         |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
-        |> Option.bind (fun v -> ModelData.tryCreate (fun c -> tryLoadClmTask c connectionString) v)
+        |> Option.bind (fun v -> ModelData.tryCreate (fun c -> tryLoadClmTask i c connectionString) v)
 
 
     let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
@@ -518,7 +520,7 @@ module DatabaseTypes =
         t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId) |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
 
 
-    let loadRunQueue (ConnectionString connectionString) =
+    let loadRunQueue i (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         let runQueueTable = new RunQueueTable()
@@ -526,7 +528,7 @@ module DatabaseTypes =
 
         runQueueTable.Rows
         |> List.ofSeq
-        |> List.map (fun e -> RunQueue.create e)
+        |> List.map (fun e -> RunQueue.create i e)
 
 
     let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =

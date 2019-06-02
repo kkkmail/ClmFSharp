@@ -14,9 +14,9 @@ module Program =
     let main (argv : string[]) : int =
         try
             let parser = ArgumentParser.Create<SvcArguments>(programName = ProgramName)
-            let results = parser.Parse argv
+            let results = (parser.Parse argv).GetAllResults()
 
-            match results.GetAllResults() |> ContGenServiceTask.tryCreate with
+            match results |> ContGenServiceTask.tryCreate with
             | Some task ->
                 task.run() |> ignore
                 CompletedSuccessfully

@@ -1,6 +1,7 @@
 ﻿namespace ProgressNotifierClient
 
 open System
+open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 
 module ServiceResponse =

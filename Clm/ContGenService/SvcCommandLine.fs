@@ -1,6 +1,7 @@
 ﻿namespace ContGenService
+
 open Argu
-open ContGenServiceInfo.ServiceInfo
+open ClmSys.GeneralData
 
 module SvcCommandLine =
 
@@ -41,15 +42,19 @@ module SvcCommandLine =
                 | Run _ -> "run service from command line without installing."
 
     let tryGetServerAddress (p :list<RunArgs>) =
-         p |> List.tryPick (fun e -> match e with | ServiceAddress s -> Some s | _ -> None)
+         p |> List.tryPick (fun e -> match e with | ServiceAddress s -> s |> ClmSys.GeneralData.ServiceAddress |> Some | _ -> None)
 
 
     let tryGetServerPort (p :list<RunArgs>) =
-        p |> List.tryPick (fun e -> match e with | ServicePort p -> Some p | _ -> None)
+        p |> List.tryPick (fun e -> match e with | ServicePort p -> p |> ClmSys.GeneralData.ServicePort |> Some | _ -> None)
 
 
-    let getServiceAccessInfo (p :list<RunArgs>) =
-        {
-            server = tryGetServerAddress p
-            port = tryGetServerPort p
-        }
+    let tryGetServiceAccessInfo (p :list<RunArgs>) =
+        match tryGetServerAddress p, tryGetServerPort p with
+        | Some a, Some p ->
+            {
+                serviceAddress = a
+                servicePort = p
+            }
+            |> Some
+        | _ -> None

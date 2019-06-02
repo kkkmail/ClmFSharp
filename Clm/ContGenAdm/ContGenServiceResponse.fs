@@ -1,6 +1,7 @@
 ﻿namespace ContGenAdm
 
 open System
+open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 
 module ContGenServiceResponse =

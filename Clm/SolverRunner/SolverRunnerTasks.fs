@@ -58,22 +58,24 @@ module SolverRunnerTasks =
             }
 
 
-    let tryGetResponseHandler (results : ParseResults<SolverRunnerArguments>) =
-        match results.TryGetResult NotifyAddress with
-        | Some address ->
-            let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
-            ResponseHandler.tryCreate { server = Some address; port = Some port }
-        | None -> None
+    let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
+        match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
+        | Some address, Some port ->
+            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port }
+        | _ -> None
+
+
+    let getResponseHandler i = ResponseHandler.tryCreate i
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId with
-        | Some tEnd, Some y0, Some modelDataId ->
-            match tryDbFun (tryLoadModelData (ModelDataId modelDataId)) with
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
+        | Some tEnd, Some y0, Some modelDataId, Some i ->
+            match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) with
             | Some (Some md) ->
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
                 let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
-                let n = tryGetResponseHandler results
+                let n = getResponseHandler i
                 let a = results.GetResult (UseAbundant, defaultValue = false)
 
                 printfn "Starting at: %A" DateTime.Now

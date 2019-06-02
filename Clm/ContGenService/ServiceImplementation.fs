@@ -44,3 +44,4 @@ module ServiceImplementation =
             member this.updateProgress p = a.updateProgress (a, p)
             member this.configureService (p : ContGenConfigParam) = a.configureService p
             member this.runModel m p = a.runModel (m, p)
+            member this.getServiceAccessInfo () = failwith "ContGenService.getServiceAccessInfo is not yet imiplemented."

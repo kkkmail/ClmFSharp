@@ -166,7 +166,9 @@ module ContGenServiceTasks =
                                     match tryGetServiceAccessInfo (p.GetAllResults()) with
                                     | Some i ->
                                         RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
-                                    | None -> None
+                                    | None ->
+                                        printfn "Cannot obtain service address and/or port from command line parameters."
+                                        None
                                 | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =

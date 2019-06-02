@@ -7,7 +7,7 @@ open Clm.ModelParams
 module ServiceInfo =
 
     [<Literal>]
-    let ContGenServiceName = "ContGenService"
+    let ContGenServiceName = "ContGenServiceImpl"
 
     [<Literal>]
     let ProgramName = "ContGenService.exe"
@@ -19,16 +19,6 @@ module ServiceInfo =
 
     let getServiceUrl (i : ServiceAccessInfo) =
         getServiceUrlImpl i.serviceAddress.value i.servicePort.value ContGenServiceName
-        //let address =
-        //    match i.server with
-        //    | Some s -> s
-        //    | None -> ContGenServiceAddress
-
-        //let port =
-        //    match i.port with
-        //    | Some p -> p
-        //    | None -> ContGenServicePort
-        //getServiceUrlImpl address port ContGenServiceName
 
 
     type TaskProgress =
@@ -134,7 +124,7 @@ module ServiceInfo =
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
-        abstract getServiceAccessInfo : unit -> ServiceAccessInfo
+        //abstract getServiceAccessInfo : unit -> ServiceAccessInfo
 
 
     let mutable callCount = -1

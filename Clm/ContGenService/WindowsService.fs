@@ -16,11 +16,12 @@ module WindowsService =
 
     let startServiceRun (i : ServiceAccessInfo) logger =
         try
+            serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
+                ( typeof<ContGenServiceImpl>, ContGenServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e

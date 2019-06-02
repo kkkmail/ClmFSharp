@@ -31,14 +31,14 @@ module Runner =
             serviceAccessInfo : ServiceAccessInfo
         }
 
-        static member defaultValue =
+        static member defaultValue i =
             {
                 connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = SolverRunnerName
                 saveModelCode = false
-                serviceAccessInfo = failwith "ModelRunnerParam.defaultValue.serviceAccessInfo is not yet implemented."
+                serviceAccessInfo = i
             }
 
 

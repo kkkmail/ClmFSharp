@@ -228,8 +228,13 @@ module ContGenAdmTasks =
                 match getGenerateModelCode p with
                 | true ->
                     printfn "Genetrating model..."
-                    let g = createOneTimeGenerator { ModelRunnerParam.defaultValue with saveModelCode = true }
-                    g nt |> ignore
+                    match c with
+                    | [] ->
+                        printfn "Cannot get service address and/or port."
+                        ignore()
+                    | h :: _ ->
+                        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue h.serviceAccessInfo with saveModelCode = true }
+                        g nt |> ignore
                 | false -> ignore()
 
                 CompletedSuccessfully

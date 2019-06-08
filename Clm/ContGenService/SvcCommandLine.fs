@@ -2,6 +2,7 @@
 
 open Argu
 open ClmSys.GeneralData
+open Clm.CommandLine
 
 module SvcCommandLine =
 
@@ -9,6 +10,8 @@ module SvcCommandLine =
     type RunArgs =
         | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
         | [<Unique>] [<AltCommandLine("-i")>] RunIdle
+        | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
+
         | [<Unique>] [<AltCommandLine("-server")>] SvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
@@ -18,6 +21,8 @@ module SvcCommandLine =
                 match this with
                 | NumberOfCores _ -> "number of logical cores to use."
                 | RunIdle -> "Start idle."
+                | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
+
                 | SvcAddress _ -> "service ip address / name."
                 | SvcPort _ -> "service port."
 
@@ -64,4 +69,3 @@ module SvcCommandLine =
             serviceAddress = address
             servicePort = port
         }
-

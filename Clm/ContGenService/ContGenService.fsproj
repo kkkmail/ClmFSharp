@@ -64,6 +64,7 @@
     <DocumentationFile>bin\Release\DiscoverService.XML</DocumentationFile>
     <PlatformTarget>x64</PlatformTarget>
     <StartArguments>i</StartArguments>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '11.0'">

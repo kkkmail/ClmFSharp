@@ -7,6 +7,7 @@ open Clm.ModelParams
 open ClmSys.ExitErrorCodes
 open ContGenServiceInfo.ServiceInfo
 open System.Threading
+open Clm.CommandLine
 
 module AsyncRun =
 
@@ -114,6 +115,7 @@ module AsyncRun =
             maxQueueLength : int
             workState : WorkState
             messageCount : int64
+            minUsefulEe : double
         }
 
         member state.runningCount = state.running.Count
@@ -129,6 +131,7 @@ module AsyncRun =
                 maxQueueLength = 4
                 workState = CanGenerate
                 messageCount = 0L
+                minUsefulEe = DefaultMinEe
             }
 
         override s.ToString() =
@@ -256,8 +259,10 @@ module AsyncRun =
             | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
             | CancelTask i ->
                 match h.cancelProcess i with
-                | true -> { s with running = s.running.tryRemove i}
+                | true -> { s with running = s.running.tryRemove i }
                 | false -> s
+            | SetMinUsefulEe ee ->
+                { s with minUsefulEe = ee }
 
         member s.isShuttingDown =
             match s.workState with

@@ -10,7 +10,6 @@ open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
-open ClmSys.ExitErrorCodes
 open ClmSys.GeneralData
 
 module ContGenServiceTasks =
@@ -25,6 +24,7 @@ module ContGenServiceTasks =
             [
                 p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
                 p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
+                p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
             ]
             |> List.choose id
 

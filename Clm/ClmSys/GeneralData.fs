@@ -33,6 +33,9 @@ module GeneralData =
     [<Literal>]
     let Nl = "\r\n"
 
+    [<Literal>]
+    let DefaultMinEe = 0.000_01
+
 
     type ServiceAddress =
         | ServiceAddress of string
@@ -114,6 +117,13 @@ module GeneralData =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
+
+
+    type MinUsefulEe =
+        | MinUsefulEe of double
+
+        member this.value = let (MinUsefulEe v) = this in v
+        static member defaultValue = MinUsefulEe DefaultMinEe
 
 
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting

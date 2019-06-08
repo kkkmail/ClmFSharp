@@ -29,6 +29,7 @@ module Runner =
             exeName : string
             saveModelCode : bool
             serviceAccessInfo : ServiceAccessInfo
+            minUsefulEe : MinUsefulEe
         }
 
         static member defaultValue i =
@@ -39,6 +40,7 @@ module Runner =
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
+                minUsefulEe = MinUsefulEe.defaultValue
             }
 
 
@@ -47,7 +49,16 @@ module Runner =
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
-        let runModel = runModel p.exeName
+
+        let runModel e c =
+            {
+                exeName = p.exeName
+                commandLineParam = e
+                callBack = c
+                minUsefulEe = p.minUsefulEe
+            }
+            |> runModel
+
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
 

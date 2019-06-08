@@ -74,7 +74,7 @@ module SolverRunnerTasks =
             match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) with
             | Some (Some md) ->
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
-                let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
+                let minUsefulEe = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe)
                 let n = getResponseHandler i
                 let a = results.GetResult (UseAbundant, defaultValue = false)
 

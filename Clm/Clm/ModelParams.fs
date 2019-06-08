@@ -155,6 +155,14 @@ module ModelParams =
         }
 
 
+    /// Additional information needed to produce command line params for solver runner.
+    type ModelCommandLineData =
+        {
+            modelDataId : ModelDataId
+            minUsefulEe : MinUsefulEe
+        }
+
+
     type ModelCommandLineParam =
         {
             tEnd : decimal
@@ -163,16 +171,17 @@ module ModelParams =
             serviceAccessInfo : ServiceAccessInfo
         }
 
-        member this.toCommandLine (ModelDataId modelDataId) =
+        member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
 
             [
                 EndTime this.tEnd
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
-                ModelId modelDataId
+                ModelId d.modelDataId.value
                 NotifyAddress this.serviceAccessInfo.serviceAddress.value
                 NotifyPort this.serviceAccessInfo.servicePort.value
+                MinimumUsefulEe d.minUsefulEe.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

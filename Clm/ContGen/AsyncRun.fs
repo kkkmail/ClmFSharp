@@ -140,7 +140,7 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A, %A)" e.runningModelId e.runningProcessId e.started e.progress) |> String.concat ", "
-            sprintf "{ running: [%s], queue: [%s], runLimit = %A, runningCount: %A, workState: %A }" r q s.runLimit s.runningCount s.workState
+            sprintf "{ running: [%s]; queue: [%s]; runLimit = %A; runningCount: %A; workState: %A; minUsefulEe: %A }" r q s.runLimit s.runningCount s.workState s.minUsefulEe
 
         member s.onGenerationStarting h =
             match s.workState with
@@ -544,7 +544,23 @@ module AsyncRun =
         x + @"\" + exeName
 
 
-    let runModel exeName (p : ModelCommandLineParam) (c : ProcessStartedCallBack) =
-        let fullExeName = getExeName exeName (c.calledBackModelId)
-        let commandLineParams = p.toCommandLine c.calledBackModelId
-        runProc c fullExeName commandLineParams None
+    type RunModelParam =
+        {
+            exeName : string
+            commandLineParam : ModelCommandLineParam
+            callBack : ProcessStartedCallBack
+            minUsefulEe : MinUsefulEe
+        }
+
+
+    let runModel (p : RunModelParam) =
+        let fullExeName = getExeName p.exeName (p.callBack.calledBackModelId)
+
+        let data =
+            {
+                modelDataId = p.callBack.calledBackModelId
+                minUsefulEe = p.minUsefulEe
+            }
+
+        let commandLineParams = p.commandLineParam.toCommandLine data
+        runProc p.callBack fullExeName commandLineParams None

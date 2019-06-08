@@ -2,7 +2,6 @@
 
 open Argu
 open ClmSys.GeneralData
-open Clm.CommandLine
 
 module SvcCommandLine =
 

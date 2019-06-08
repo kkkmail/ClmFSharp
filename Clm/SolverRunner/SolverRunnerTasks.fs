@@ -11,7 +11,7 @@ open Clm.CommandLine
 open Clm.ChartData
 open OdeSolver.Solver
 open Analytics.ChartExt
-open Analytics.Visualization2
+open Analytics.Visualization
 open Argu
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -145,7 +145,7 @@ module SolverRunnerTasks =
                 r |> saveResultData |> tryDbFun |> ignore
 
                 let plotAll show =
-                    let plotter = new Plotter2(PlotDataInfo.defaultValue, chartData)
+                    let plotter = new Plotter(PlotDataInfo.defaultValue, chartData)
                     plotter.plotAminoAcids show
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show

@@ -40,6 +40,7 @@ module ServiceImplementation =
         {
             serviceAddress = ServiceAddress DefaultContGenServiceAddress
             servicePort = ServicePort DefaultContGenServicePort
+            minUsefulEe = MinUsefulEe DefaultMinEe
         }
 
 

@@ -61,7 +61,8 @@ module SolverRunnerTasks =
     let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
         | Some address, Some port ->
-            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port }
+            let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
+            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port; minUsefulEe = ee }
         | _ -> None
 
 
@@ -74,7 +75,6 @@ module SolverRunnerTasks =
             match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) with
             | Some (Some md) ->
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
-                let minUsefulEe = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe)
                 let n = getResponseHandler i
                 let a = results.GetResult (UseAbundant, defaultValue = false)
 
@@ -150,7 +150,7 @@ module SolverRunnerTasks =
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show
 
-                if maxEe >= minUsefulEe
+                if maxEe >= i.minUsefulEe.value
                 then
                     printfn "Generating plots..."
                     plotAll false

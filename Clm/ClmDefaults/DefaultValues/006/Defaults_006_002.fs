@@ -4,9 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_006_000 =
+module Defaults_006_002 =
 
-    let clmDefaultValueId = 006_000L |> ClmDefaultValueId
+    let clmDefaultValueId = 006_002L |> ClmDefaultValueId
     let description = None
     let catRateGenType = ByEnantiomerPairs
 
@@ -17,16 +17,16 @@ module Defaults_006_000 =
         let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
         //===========================================================
         let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (0.001, 0.001)
-        let catSynthRndParam = (synthParam, (Some 0.000_200), 10_000.0)
+        let catSynthRndParam = (synthParam, (Some 0.000_100), 10_000.0)
         //let catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParam catSynthRndParam catRateGenType
-        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.30) catRateGenType
+        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.20) catRateGenType
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
         let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam catRateGenType
         let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.20) catRateGenType
         //===========================================================
-        let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
+        let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (10.0, 10.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0) catRateGenType
         //===========================================================
         let sedDirRndParam = (Some 0.000_1, 100.0)

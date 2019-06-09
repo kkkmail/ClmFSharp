@@ -29,7 +29,6 @@ module Runner =
             exeName : string
             saveModelCode : bool
             serviceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
         }
 
         static member defaultValue i =
@@ -40,7 +39,6 @@ module Runner =
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
-                minUsefulEe = MinUsefulEe.defaultValue
             }
 
 
@@ -55,7 +53,7 @@ module Runner =
                 exeName = p.exeName
                 commandLineParam = e
                 callBack = c
-                minUsefulEe = p.minUsefulEe
+                minUsefulEe = p.serviceAccessInfo.minUsefulEe
             }
             |> runModel
 

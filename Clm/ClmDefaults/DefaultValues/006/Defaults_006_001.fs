@@ -17,9 +17,9 @@ module Defaults_006_001 =
         let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
         //===========================================================
         let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (0.001, 0.001)
-        let catSynthRndParam = (synthParam, (Some 0.001), 10_000.0)
+        let catSynthRndParam = (synthParam, (Some 0.000_100), 10_000.0)
         //let catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParam catSynthRndParam catRateGenType
-        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.2) catRateGenType
+        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.20) catRateGenType
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (0.001, 0.001)
         let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)

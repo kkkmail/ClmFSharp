@@ -53,6 +53,10 @@ module SvcCommandLine =
         p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
 
 
+    let tryGeMinUsefulEe (p :list<RunArgs>) =
+        p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
+
+
     let getServiceAccessInfo (p :list<RunArgs>) =
         let address =
             match tryGetServerAddress p with
@@ -64,7 +68,14 @@ module SvcCommandLine =
             | Some a -> a
             | None -> ServicePort.defaultValue
 
+        let ee =
+            match tryGeMinUsefulEe p with
+            | Some e -> e
+            | None -> MinUsefulEe DefaultMinEe
+
+
         {
             serviceAddress = address
             servicePort = port
+            minUsefulEe = ee
         }

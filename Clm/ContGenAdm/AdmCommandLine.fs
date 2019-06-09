@@ -109,6 +109,7 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
             | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
             | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
+            | [<Unique>] [<AltCommandLine("ee")>]   ServerMinUsefulEe of double
 
         with
             interface IArgParserTemplate with
@@ -120,6 +121,7 @@ module AdmCommandLine =
                     | ConfigureService _ -> "reconfigures service."
                     | ServerAddress _ -> "server address / name."
                     | ServerPort _ -> "server port."
+                    | ServerMinUsefulEe _ -> "server min useful ee."
 
 
     let tryGetServerAddress (p :list<ContGenAdmArguments>) =
@@ -128,6 +130,10 @@ module AdmCommandLine =
 
     let tryGetServerPort (p :list<ContGenAdmArguments>) =
         p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
+
+
+    let tryGetServerMinUsefulEe (p :list<ContGenAdmArguments>) =
+        p |> List.tryPick (fun e -> match e with | ServerMinUsefulEe e -> e |> MinUsefulEe |> Some | _ -> None)
 
 
     let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
@@ -141,9 +147,16 @@ module AdmCommandLine =
             | Some a -> a
             | None -> ServicePort.defaultValue
 
+        let ee =
+            match tryGetServerMinUsefulEe p with
+            | Some e -> e
+            | None -> MinUsefulEe.defaultValue
+
+
         {
             serviceAddress = address
             servicePort = port
+            minUsefulEe = ee
         }
 
 

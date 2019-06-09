@@ -32,6 +32,7 @@ module ServiceImplementation =
                 queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
                 workState = s.workState
                 messageCount = s.messageCount
+                minUsefulEe = s.minUsefulEe
             }
 
 

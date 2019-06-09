@@ -115,7 +115,7 @@ module AsyncRun =
             maxQueueLength : int
             workState : WorkState
             messageCount : int64
-            minUsefulEe : double
+            minUsefulEe : MinUsefulEe
         }
 
         member state.runningCount = state.running.Count
@@ -131,7 +131,7 @@ module AsyncRun =
                 maxQueueLength = 4
                 workState = CanGenerate
                 messageCount = 0L
-                minUsefulEe = DefaultMinEe
+                minUsefulEe = MinUsefulEe DefaultMinEe
             }
 
         override s.ToString() =
@@ -262,7 +262,7 @@ module AsyncRun =
                 | true -> { s with running = s.running.tryRemove i }
                 | false -> s
             | SetMinUsefulEe ee ->
-                { s with minUsefulEe = ee }
+                { s with minUsefulEe = MinUsefulEe ee }
 
         member s.isShuttingDown =
             match s.workState with

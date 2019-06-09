@@ -79,6 +79,7 @@ module AdmCommandLine =
             | [<Unique>] Start
             | [<Unique>] Stop
             | [<Unique>] [<AltCommandLine("-s")>] ShutDown of bool
+            | [<Unique>] [<AltCommandLine("-ee")>] SetMinUsefulEe of double
 
         with
             interface IArgParserTemplate with
@@ -88,6 +89,7 @@ module AdmCommandLine =
                     | Start -> "starts generating models."
                     | Stop -> "stops generating models."
                     | ShutDown _ -> "shut down (pass true to wait for completion of all running processes)."
+                    | SetMinUsefulEe _ -> "set minimum useful ee to generate charts. Set to 0.0 to generate all charts."
 
             member this.configParam =
                 match this with
@@ -95,6 +97,7 @@ module AdmCommandLine =
                 | Start -> SetToCanGenerate
                 | Stop -> SetToIdle
                 | ShutDown b -> RequestShutDown b
+                | SetMinUsefulEe ee -> ContGenConfigParam.SetMinUsefulEe ee
 
 
     and

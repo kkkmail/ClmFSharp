@@ -95,6 +95,7 @@ module ServiceInfo =
             runningCount : int
             workState : WorkState
             messageCount : int64
+            minUsefulEe : MinUsefulEe
         }
 
         override s.ToString() =
@@ -106,7 +107,7 @@ module ServiceInfo =
 
             let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl
             let r = if r0 = EmptyString then "[]" else Nl + "        [" + Nl + r0 + Nl + "        ]"
-            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A\n}" r q s.runLimit s.runningCount s.messageCount s.workState
+            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value
 
 
     type ContGenConfigParam =

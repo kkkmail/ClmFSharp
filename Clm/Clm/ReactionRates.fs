@@ -15,6 +15,14 @@ module ReactionRates =
         | RandomChoice
 
 
+    /// Specifies how to generate catalytic rates.
+    /// ByIndividualCatalyst - enforces thermodynamic constraint on each catalyst.
+    /// ByEnantiomerPairs - enforces thermodynamic constraint on a pair of enantiomer catalysts.
+    type CatalyticRateGenerationType =
+        | ByIndividualCatalyst
+        | ByEnantiomerPairs
+
+
     type RateData =
         {
             forwardRate : ReactionRate option

@@ -12,21 +12,18 @@ module GeneralData =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
-    let ClmBaseName = "Clm3000"
+    let ClmBaseName = "clm3100"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     [<Literal>]
-    let RootDrive = "C"
+    let DefaultRootDrive = "C"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     [<Literal>]
-    let ContGenServiceAddress = "localhost"
+    let DefaultContGenServiceAddress = "localhost"
 
-    /// TODO kk:20190328 - It should be properly propagated through command line and / or other parameters...
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
     [<Literal>]
-    let ContGenServicePort = 3000
+    let DefaultContGenServicePort = 3100
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -35,6 +32,38 @@ module GeneralData =
     /// Environment.NewLine is too long and it is not a const.
     [<Literal>]
     let Nl = "\r\n"
+
+    [<Literal>]
+    let DefaultMinEe = 0.000_01
+
+
+    type ServiceAddress =
+        | ServiceAddress of string
+
+        member this.value = let (ServiceAddress v) = this in v
+        static member defaultValue = ServiceAddress DefaultContGenServiceAddress
+
+
+    type ServicePort =
+        | ServicePort of int
+
+        member this.value = let (ServicePort v) = this in v
+        static member defaultValue = ServicePort DefaultContGenServicePort
+
+
+    type MinUsefulEe =
+        | MinUsefulEe of double
+
+        member this.value = let (MinUsefulEe v) = this in v
+        static member defaultValue = MinUsefulEe DefaultMinEe
+
+
+    type ServiceAccessInfo =
+        {
+            serviceAddress : ServiceAddress
+            servicePort : ServicePort
+            minUsefulEe : MinUsefulEe
+        }
 
 
     let toVariableName (s : string) =
@@ -81,19 +110,19 @@ module GeneralData =
 
 
     type ModelDataId =
-        | ModelDataId of int64
+        | ModelDataId of Guid
 
         member this.value = let (ModelDataId v) = this in v
 
 
     type ResultDataId =
-        | ResultDataId of int64
+        | ResultDataId of Guid
 
         member this.value = let (ResultDataId v) = this in v
 
 
     type RunQueueId =
-        | RunQueueId of int64
+        | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
 

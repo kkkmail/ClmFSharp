@@ -10,134 +10,83 @@ open ChartExt
 
 module Visualization =
 
-    type Plotter(i : PlotDataInfo, p : FullResultData) =
-        let foodIdx = p.binaryResultData.binaryInfo.allSubstData.allInd.TryFind (AchiralSubst.Food |> Simple)
-        let wasteIdx = p.binaryResultData.binaryInfo.allSubstData.allInd.TryFind (AchiralSubst.Waste |> Simple)
+    type Plotter(i : PlotDataInfo, p : ChartData) =
         let getFileName (ct : ChartType) = ct.getFileName (i, p)
-        let noOfOutputPoints = p.binaryResultData.t.Length - 1
-        let minMax = (0.0, float p.resultData.tEnd)
-        let fn = [ for i in 0..(p.binaryResultData.binaryInfo.aminoAcids.Length - 1) -> i ]
+        let noOfOutputPoints = p.allChartData.Length - 1
+        let allChartData = p.allChartData |> List.rev |> Array.ofList
+        let minMax = (0.0, float p.initData.tEnd)
+        let fn = [ for i in 0..(p.initData.binaryInfo.aminoAcids.Length - 1) -> i ]
         let tIdx = [ for i in 0..noOfOutputPoints -> i ]
         let showChart = showChart i
+        let xAxisName = "t"
 
 
         let description =
             [
-                //"Comleted at", sprintf "%A" (o.endTime)
-                //"run time", sprintf "%A" (o.endTime - o.startTime)
-                "model name", p.resultData.modelDataId.value |> toModelName
-                //"end time", sprintf "%A" o.endTime
-                "y0", sprintf "%A" p.resultData.y0
-                "number of amino acids", sprintf "%A" p.binaryResultData.binaryInfo.aminoAcids.Length
-                "max peptide length", sprintf "%A" p.binaryResultData.binaryInfo.maxPeptideLength.length
-                "number of substances", sprintf "%A" p.binaryResultData.binaryInfo.allSubstData.allSubst.Length
+                "model name", p.initData.modelDataId.value |> toModelName
+                "default id", sprintf "%A" p.initData.defaultValueId.value
+                "y0", sprintf "%A" p.initData.y0
+                "number of amino acids", sprintf "%A" p.initData.binaryInfo.aminoAcids.Length
+                "max peptide length", sprintf "%A" p.initData.binaryInfo.maxPeptideLength.length
+                "number of substances", sprintf "%A" p.initData.binaryInfo.allSubstData.allSubst.Length
             ]
             @
-            (p.binaryResultData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
+            (p.initData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
             @
-            (p.binaryResultData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
+            (p.initData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
 
-
-        //let plotAllImpl show =
-        //    let fn = [ for i in 0..p.binaryResultData.allSubst.Length - 1 -> i ]
-        //    let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-
-        //    let getFuncData i = 
-        //        tIdx
-        //        |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i])
-
-        //    Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = i.ToString())))
-        //    |> Chart.withX_AxisStyle("t", MinMax = minMax)
-        //    |> showChart show (getFileName PlotAllSubst) description
-
-
-        //let plotChiralAminoAcidsImpl show =
-        //    let fn = [ for i in 0..(p.binaryResultData.binaryInfo.aminoAcids.Length * 2 - 1) -> i ]
-
-        //    let name i = 
-        //        let idx = i / 2
-        //        if idx * 2 = i then AminoAcid.toString idx else (AminoAcid.toString idx).ToLower()
-
-        //    let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-        //    let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
-
-        //    let d t i = 
-        //        let idx = i / 2
-        //        if idx * 2 = i then a.[t].[idx] |> fst else a.[t].[idx] |> snd
-
-        //    let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
-
-        //    Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
-        //    |> Chart.withX_AxisStyle("t", MinMax = minMax)
-        //    |> showChart show (getFileName PlotChiralAminoAcids) description
-
-
         let plotAminoAcidsImpl show =
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
-            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
-            let d t i = (a.[t].[i] |> fst) + (a.[t].[i] |> snd)
-            let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
+            let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].aminoAcidsData.[i])
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotAminoAcids) description
 
 
         let plotEnantiomericExcessImpl show =
-            let name (i : int) = 
+            let name (i : int) =
                 let l = AminoAcid.toString i
                 let d = l.ToLower()
                 "(" + l + " - " + d + ") / (" + l + " + " + d + ")"
 
-            let a = tIdx |> Array.ofList |> Array.map (fun t -> p.getTotals p.binaryResultData.x.[t,*])
-
-            let d t i =
-                let (l, d) = a.[t].[i]
-                if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
-
-            let getFuncData i = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], d t i)
+            let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].enantiomericExcess.[i])
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotEnantiomericExcess) description
 
 
         let plotTotalSubstImpl show =
-            let totalData = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.getTotalSubst p.binaryResultData.x.[t,*])
-            let minData = tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,*] |> Array.min)
+            let totalData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.totalData)
+            let minData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.minData)
 
-            let foodData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i]) |> Some) foodIdx
-            let wasteData = Option.bind (fun i -> tIdx |> List.map (fun t -> p.binaryResultData.t.[t], p.binaryResultData.x.[t,i]) |> Some) wasteIdx
+            let foodData =
+                match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].totalSubst.foodData) |> List.choose id with
+                | [] -> None
+                | x -> Some x
 
-            let levelData level =
-                let levelSubst =
-                    p.binaryResultData.binaryInfo.allSubstData.allSubst
-                    |> List.filter (fun s -> s.length = level)
-                    |> List.map (fun s -> p.binaryResultData.binaryInfo.allSubstData.allInd.[s])
+            let wasteData =
+                match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].totalSubst.wasteData) |> List.choose id with
+                | [] -> None
+                | x -> Some x
 
-                let xData t =
-                    let d = p.binaryResultData.x.[t,*]
-                    levelSubst |> List.sumBy (fun i -> (double level) * d.[i])
-
-                tIdx |> List.map (fun t -> p.binaryResultData.t.[t], xData t)
+            let levelData level = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.levelData.[level])
 
             let charts =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ for level in 1..p.binaryResultData.binaryInfo.maxPeptideLength.length -> Chart.Line(levelData level, Name = level.ToString()) |> Some ]
+                @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Line(levelData level, Name = (level + 1).ToString()) |> Some ]
                 |> List.choose id
 
-
             Chart.Combine(charts)
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotTotalSubst) description
 
 
-        //member __.plotAll (show : bool) = plotAllImpl show
-        //member __.plotChiralAminoAcids (show : bool) = plotChiralAminoAcidsImpl show
         member __.plotAminoAcids (show : bool) = plotAminoAcidsImpl show
         member __.plotTotalSubst (show : bool) = plotTotalSubstImpl show
         member __.plotEnantiomericExcess (show : bool) = plotEnantiomericExcessImpl show

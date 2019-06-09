@@ -1,9 +1,7 @@
 ﻿namespace ClmDefaults
 
-open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates
-open Clm.ModelParams
 
 module DefaultValuesExt =
 
@@ -14,6 +12,12 @@ module DefaultValuesExt =
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
+
+
+    let defaultEeBackwardDistribution catRateGenType =
+        match catRateGenType with
+        | ByIndividualCatalyst -> defaultEeDistribution |> Some
+        | ByEnantiomerPairs -> None
 
 
     type ReactionRateProviderParams
@@ -61,7 +65,7 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultDestrRndParamImpl (forward, backward)
             |> DestructionRateParam
 
-        static member defaultCatSynthRndParamImpl (m, threshold, mult) =
+        static member defaultCatSynthRndParamImpl (m, threshold, mult) catRateGenType =
             {
                 synthesisParam = m
 
@@ -69,18 +73,18 @@ module DefaultValuesExt =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
                         eeForwardDistribution = defaultEeDistribution |> Some
-                        eeBackwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeBackwardDistribution catRateGenType
                     }
             }
 
-        static member defaultCatSynthRndParam (m, threshold, mult) = 
-            ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult)
+        static member defaultCatSynthRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult) catRateGenType
             |> CatSynthRndParam
             |> CatalyticSynthesisRateParam
 
-        static member defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold =
+        static member defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
             {
-                catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult)
+                catSynthParam = ReactionRateProviderParams.defaultCatSynthRndParamImpl (m, threshold, mult) catRateGenType
 
                 catSynthSimParam =
                     {
@@ -91,12 +95,12 @@ module DefaultValuesExt =
                     }
             }
 
-        static member defaultCatSynthSimParam (m, threshold, mult) simThreshold =
-            ReactionRateProviderParams.defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold
+        static member defaultCatSynthSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultCatSynthSimParamImpl (m, threshold, mult) simThreshold catRateGenType
             |> CatSynthSimParam
             |> CatalyticSynthesisRateParam
 
-        static member defaultCatDestrRndParamImpl (m, threshold, mult) =
+        static member defaultCatDestrRndParamImpl (m, threshold, mult) catRateGenType =
             {
                 destructionParam = m
 
@@ -104,18 +108,18 @@ module DefaultValuesExt =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
                         eeForwardDistribution = defaultEeDistribution |> Some
-                        eeBackwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeBackwardDistribution catRateGenType
                     }
             }
 
-        static member defaultCatDestrRndParam (m, threshold, mult) =
-            ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult)
+        static member defaultCatDestrRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult) catRateGenType
             |> CatDestrRndParam
             |> CatalyticDestructionRateParam
 
-        static member defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold =
+        static member defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
             {
-                catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult)
+                catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParamImpl (m, threshold, mult) catRateGenType
 
                 catDestrSimParam =
                     {
@@ -126,8 +130,8 @@ module DefaultValuesExt =
                     }
             }
 
-        static member defaultCatDestrSimParam (m, threshold, mult) simThreshold =
-            ReactionRateProviderParams.defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold
+        static member defaultCatDestrSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultCatDestrSimParamImpl (m, threshold, mult) simThreshold catRateGenType
             |> CatDestrSimParam
             |> CatalyticDestructionRateParam
 
@@ -143,7 +147,7 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultLigRndParamImpl (forward, backward)
             |> LigationRateParam
 
-        static member defaultCatLigRndParamImpl (m, threshold, mult) =
+        static member defaultCatLigRndParamImpl (m, threshold, mult) catRateGenType =
             {
                 ligationParam = m
 
@@ -151,12 +155,12 @@ module DefaultValuesExt =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
                         eeForwardDistribution = defaultEeDistribution |> Some
-                        eeBackwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeBackwardDistribution catRateGenType
                     }
             }
 
-        static member defaultCatLigRndParam (m, threshold, mult) =
-            ReactionRateProviderParams.defaultCatLigRndParamImpl (m, threshold, mult)
+        static member defaultCatLigRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultCatLigRndParamImpl (m, threshold, mult) catRateGenType
             |> CatLigRndParam
             |> CatalyticLigationRateParam
 
@@ -214,25 +218,25 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultRacemRndParamImpl forward
             |> RacemizationRateParam
 
-        static member defaultCatRacemRndParamImpl (m, threshold, mult) =
+        static member defaultCatRacemRndParamImpl (m, threshold, mult) catRateGenType =
             {
                 racemizationParam = m
                 catRacemRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
                         eeForwardDistribution = defaultEeDistribution |> Some
-                        eeBackwardDistribution = defaultEeDistribution |> Some
+                        eeBackwardDistribution = defaultEeBackwardDistribution catRateGenType
                     }
             }
 
-        static member defaultCatRacemRndParam (m, threshold, mult) =
-            ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult)
+        static member defaultCatRacemRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult) catRateGenType
             |> CatRacemRndParam
             |> CatalyticRacemizationRateParam
 
-        static member defaultCatRacemSimParam (m, threshold, mult) simThreshold =
+        static member defaultCatRacemSimParam (m, threshold, mult) simThreshold catRateGenType =
             {
-                catRacemParam = ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult)
+                catRacemParam = ReactionRateProviderParams.defaultCatRacemRndParamImpl (m, threshold, mult) catRateGenType
 
                 catRacemSimParam =
                     {

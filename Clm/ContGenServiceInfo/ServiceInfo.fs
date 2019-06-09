@@ -13,12 +13,12 @@ module ServiceInfo =
     let ProgramName = "ContGenService.exe"
 
 
-    let getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
+    let private getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
         "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
-        //"soap.udp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
 
 
-    let getServiceUrl() = getServiceUrlImpl ContGenServiceAddress ContGenServicePort ContGenServiceName
+    let getServiceUrl (i : ServiceAccessInfo) =
+        getServiceUrlImpl i.serviceAddress.value i.servicePort.value ContGenServiceName
 
 
     type TaskProgress =
@@ -71,7 +71,7 @@ module ServiceInfo =
                 | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ";"
                 | None -> EmptyString
 
-            sprintf "{ running = %s;%s modelDataId = %A; processId = %A; progress = %A }" s estCompl modelDataId r.runningProcessId r.progress
+            sprintf "{ running = %s;%s modelDataId = %A; PID = %A; %A }" s estCompl modelDataId r.runningProcessId r.progress
 
 
     type ProgressUpdateInfo
@@ -95,6 +95,7 @@ module ServiceInfo =
             runningCount : int
             workState : WorkState
             messageCount : int64
+            minUsefulEe : MinUsefulEe
         }
 
         override s.ToString() =
@@ -106,15 +107,16 @@ module ServiceInfo =
 
             let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl
             let r = if r0 = EmptyString then "[]" else Nl + "        [" + Nl + r0 + Nl + "        ]"
-            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A\n}" r q s.runLimit s.runningCount s.messageCount s.workState
+            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value
 
 
     type ContGenConfigParam =
         | SetToIdle
         | SetToCanGenerate
         | RequestShutDown of waitForCompletion : bool
-        | SetRunLimit of int
+        | SetRunLimit of numberOfCores : int
         | CancelTask of processId : int
+        | SetMinUsefulEe of ee : double
 
 
     type IContGenService =
@@ -124,9 +126,11 @@ module ServiceInfo =
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
+        //abstract getServiceAccessInfo : unit -> ServiceAccessInfo
 
 
     let mutable callCount = -1
+
 
     let getServiceState (service : IContGenService) =
         if Interlocked.Increment(&callCount) = 0

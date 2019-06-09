@@ -1,6 +1,7 @@
 ﻿namespace ContGenService
+
 open Argu
-open ContGenServiceInfo.ServiceInfo
+open ClmSys.GeneralData
 
 module SvcCommandLine =
 
@@ -8,6 +9,10 @@ module SvcCommandLine =
     type RunArgs =
         | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
         | [<Unique>] [<AltCommandLine("-i")>] RunIdle
+        | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
+
+        | [<Unique>] [<AltCommandLine("-server")>] SvcAddress of string
+        | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
     with
         interface IArgParserTemplate with
@@ -15,20 +20,20 @@ module SvcCommandLine =
                 match this with
                 | NumberOfCores _ -> "number of logical cores to use."
                 | RunIdle -> "Start idle."
+                | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
 
-        //member this.configParam =
-        //    match this with
-        //    | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
-        //    | Idle -> ContGenConfigParam.SetToIdle
+                | SvcAddress _ -> "service ip address / name."
+                | SvcPort _ -> "service port."
+
 
     and
-        [<CliPrefix(CliPrefix.Dash)>]
+        [<CliPrefix(CliPrefix.None)>]
         SvcArguments =
-        | [<Unique>] [<First>] [<AltCommandLine("-i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("-u")>] Uninstall
+        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
         | [<Unique>] [<First>] Start of ParseResults<RunArgs>
         | [<Unique>] [<First>] Stop
-        | [<Unique>] [<First>] [<AltCommandLine("-r")>] Run of ParseResults<RunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<RunArgs>
 
     with
         interface IArgParserTemplate with
@@ -39,3 +44,38 @@ module SvcCommandLine =
                 | Start _ -> "start service."
                 | Stop -> "stop service."
                 | Run _ -> "run service from command line without installing."
+
+    let tryGetServerAddress (p :list<RunArgs>) =
+         p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+
+
+    let tryGetServerPort (p :list<RunArgs>) =
+        p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
+
+
+    let tryGeMinUsefulEe (p :list<RunArgs>) =
+        p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
+
+
+    let getServiceAccessInfo (p :list<RunArgs>) =
+        let address =
+            match tryGetServerAddress p with
+            | Some a -> a
+            | None -> ServiceAddress.defaultValue
+
+        let port =
+            match tryGetServerPort p with
+            | Some a -> a
+            | None -> ServicePort.defaultValue
+
+        let ee =
+            match tryGeMinUsefulEe p with
+            | Some e -> e
+            | None -> MinUsefulEe DefaultMinEe
+
+
+        {
+            serviceAddress = address
+            servicePort = port
+            minUsefulEe = ee
+        }

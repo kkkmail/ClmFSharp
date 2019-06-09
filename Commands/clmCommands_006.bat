@@ -1,0 +1,9 @@
+ContGenAdm.exe add -i 2000 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2001 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2002 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2003 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2004 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2005 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2006 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2007 -n 5 -m 5 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 2008 -n 5 -m 5 -y 10 -t 250000 -r 25

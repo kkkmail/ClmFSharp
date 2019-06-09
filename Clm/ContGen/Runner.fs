@@ -28,15 +28,17 @@ module Runner =
             buildTarget : string
             exeName : string
             saveModelCode : bool
+            serviceAccessInfo : ServiceAccessInfo
         }
 
-        static member defaultValue =
+        static member defaultValue i =
             {
                 connectionString = clmConnectionString
                 rootBuildFolder = DefaultRootFolder + @"bin\"
                 buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = SolverRunnerName
                 saveModelCode = false
+                serviceAccessInfo = i
             }
 
 
@@ -44,8 +46,17 @@ module Runner =
 
         let logError e = printfn "Error: %A" e
         let tryDbFun f = tryDbFun logError (p.connectionString) f
-        let getModelId clmTaskId = tryDbFun (getNewModelDataId clmTaskId)
-        let runModel = runModel p.exeName
+        let getModelDataId() = Guid.NewGuid() |> ModelDataId
+
+        let runModel e c =
+            {
+                exeName = p.exeName
+                commandLineParam = e
+                callBack = c
+                minUsefulEe = p.serviceAccessInfo.minUsefulEe
+            }
+            |> runModel
+
         let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
 
 
@@ -106,9 +117,9 @@ module Runner =
 
 
         let getQueueId (p : ModelCommandLineParam) modelId =
-            match tryDbFun (saveRunQueueEntry modelId p) with
-            | Some q -> q
-            | None -> RunQueueId -1L
+             match tryDbFun (saveRunQueueEntry modelId p) with
+             | Some q -> q
+             | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
 
 
         let updateTask (c : ClmTask) =
@@ -116,69 +127,65 @@ module Runner =
             |> ignore
 
 
-        let tryAddClmTask (c : ClmTask) =
+        let tryAddClmTask c =
             tryDbFun (addClmTask c)
 
 
-        let tryLoadClmTask (i : ClmTaskId) =
-            match tryDbFun (tryLoadClmTask i) with
+        let tryLoadClmTask i t =
+            match tryDbFun (tryLoadClmTask i t) with
             | Some (Some c) -> Some c
             | _ -> None
 
 
-        let tryLoadModelData m =
-            match tryDbFun (tryLoadModelData m)with
+        let tryLoadModelData i m =
+            match tryDbFun (tryLoadModelData i m) with
             | Some (Some c) -> Some c
             | _ -> None
 
 
         let generateImpl (c : ClmTask) =
             try
-                match getModelId c.clmTaskInfo.clmTaskId with
-                    | Some modelId ->
-                        match tryLoadParams c with
-                        | Some a ->
-                            match generateModel a.modelGenerationParams modelId c.clmTaskInfo.clmTaskId |> saveModel with
-                            | Some true ->
-                                updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
-                                //compileModel modelId
+                let modelDataId = getModelDataId()
 
-                                a.modelCommandLineParams |> List.map (fun e ->
-                                                            {
-                                                                run = runModel e
-                                                                modelId = modelId
-                                                                runQueueId = getQueueId e modelId
-                                                            })
-                            | Some false ->
-                                logError (sprintf "Cannot save modelId: %A." modelId)
-                                []
-                            | None ->
-                                logError (sprintf "Exception occurred while saving modelId: %A." modelId)
-                                []
-                        | None ->
-                            logError (sprintf "Cannot load parameters for modelId: %A." modelId)
-                            []
-                    | None ->
-                        logError (sprintf "Cannot get modelId.")
+                match tryLoadParams c with
+                | Some a ->
+                    match generateModel a.modelGenerationParams modelDataId c.clmTaskInfo.clmTaskId |> saveModel with
+                    | Some true ->
+                        updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
+
+                        a.modelCommandLineParams |> List.map (fun e ->
+                                                    {
+                                                        run = runModel e
+                                                        modelDataId = modelDataId
+                                                        runQueueId = getQueueId e modelDataId
+                                                    })
+                    | Some false ->
+                        logError (sprintf "Cannot save modelId: %A." modelDataId)
                         []
+                    | None ->
+                        logError (sprintf "Exception occurred while saving modelId: %A." modelDataId)
+                        []
+                | None ->
+                    logError (sprintf "Cannot load parameters for modelId: %A." modelDataId)
+                    []
             with
                 | e ->
                     logError (sprintf "Exception: %A" e)
                     []
 
 
-        let generateAll() =
-            match tryDbFun loadIncompleteClmTasks with
+        let generateAll i () =
+            match tryDbFun (loadIncompleteClmTasks i) with
             | Some c -> c |> List.map generateImpl |> List.concat
             | None -> []
 
 
-        let getQueue () =
-            match tryDbFun loadRunQueue with
+        let getQueue i () =
+            match tryDbFun (loadRunQueue i) with
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = e.modelCommandLineParam |> runModel
-                                            modelId = e.info.modelDataId
+                                            modelDataId = e.info.modelDataId
                                             runQueueId = e.runQueueId
                                         })
             | None -> []
@@ -192,16 +199,16 @@ module Runner =
                 ignore()
 
 
-        let runModel i p =
-            match tryLoadModelData i with
+        let runModel j m p =
+            match tryLoadModelData j m with
             | Some parent ->
-                match tryLoadClmTask parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
+                match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
                 | Some a, OwnData d ->
                     let t =
                         {
                             clmTaskInfo =
                                 {
-                                    clmTaskId = ClmTaskId -1L
+                                    clmTaskId = Guid.NewGuid() |> ClmTaskId
                                     clmDefaultValueId = a.modelGenerationParams.clmDefaultValueId
                                     numberOfAminoAcids = a.modelGenerationParams.numberOfAminoAcids
                                     maxPeptideLength = a.modelGenerationParams.maxPeptideLength
@@ -214,26 +221,25 @@ module Runner =
 
                     match tryAddClmTask t with
                     | Some t1 ->
-                        match getModelId t1.clmTaskInfo.clmTaskId with
-                        | Some modelDataId ->
-                            let m1 =
-                                {
-                                    modelDataId = modelDataId
-                                    clmTaskInfo = t1.clmTaskInfo
-                                    data = (parent.modelDataId, d) |> ParentProvided
-                                }
+                        let modelDataId = getModelDataId()
 
-                            match saveModelData m1 with
-                            | Some true ->
-                                let r =
-                                    {
-                                        run = runModel p
-                                        modelId = modelDataId
-                                        runQueueId = getQueueId p modelDataId
-                                    }
-                                Some r
-                            | _ -> None
-                        | None -> None
+                        let m1 =
+                            {
+                                modelDataId = modelDataId
+                                clmTaskInfo = t1.clmTaskInfo
+                                data = (parent.modelDataId, d) |> ParentProvided
+                            }
+
+                        match saveModelData m1 with
+                        | Some true ->
+                            let r =
+                                {
+                                    run = runModel p
+                                    modelDataId = modelDataId
+                                    runQueueId = getQueueId p modelDataId
+                                }
+                            Some r
+                        | _ -> None
                     | None -> None
                 | _ -> None
             | None -> None
@@ -241,11 +247,11 @@ module Runner =
 
         let createGeneratorImpl() =
             {
-                generate = generateAll
-                getQueue = getQueue
+                generate = generateAll p.serviceAccessInfo
+                getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
-                runModel = runModel
+                runModel = runModel p.serviceAccessInfo
             }
 
 

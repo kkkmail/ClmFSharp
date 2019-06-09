@@ -2,7 +2,7 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 	print 'Creating table [dbo].[ClmTask] ...'
 
 	CREATE TABLE [dbo].[ClmTask](
-		[clmTaskId] [bigint] IDENTITY(1,1) NOT NULL,
+		[clmTaskId] [uniqueidentifier] NOT NULL,
 		[clmDefaultValueId] [bigint] NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,

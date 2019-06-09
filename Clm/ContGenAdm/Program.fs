@@ -1,17 +1,20 @@
-﻿open ContGenAdm.ContGenServiceResponse
-open Argu
+﻿open Argu
+open ContGenAdm.ContGenServiceResponse
+open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
+
 
 [<EntryPoint>]
 let main argv =
     try
-        let service = new ContGenResponseHandler()
         let parser = ArgumentParser.Create<ContGenAdmArguments>(programName = ContGenAdmAppName)
-        let results = parser.Parse argv
+        let results = (parser.Parse argv).GetAllResults()
+        let i = getServiceAccessInfo results
+        let service = new ContGenResponseHandler(i)
 
-        match results.GetAllResults() |> ContGenAdmTask.tryCreate service.contGenService with
-        | Some task -> task.run()
+        match results |> ContGenAdmTask.tryCreate service.contGenService with
+        | Some task -> task.run i
         | None ->
             printfn "%s" (parser.PrintUsage())
             InvalidCommandLineArgs

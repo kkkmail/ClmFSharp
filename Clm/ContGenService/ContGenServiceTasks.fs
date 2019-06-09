@@ -4,13 +4,13 @@ open System
 open System.Threading
 open System.Configuration.Install
 open System.ServiceProcess
+open Argu
+
 open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
-open ClmSys.ExitErrorCodes
-open Argu
-
+open ClmSys.GeneralData
 
 module ContGenServiceTasks =
 
@@ -22,13 +22,14 @@ module ContGenServiceTasks =
         with
         static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenConfigParam> =
             [
-                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)            
+                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
                 p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
+                p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
             ]
             |> List.choose id
 
 
-    // https://stackoverflow.com/questions/31081879/writing-a-service-in-f
+    /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
     let getInstaller () =
         let installer = new AssemblyInstaller(typedefof<ContGenWindowsService>.Assembly, null);
         installer.UseNewContext <- true
@@ -82,7 +83,7 @@ module ContGenServiceTasks =
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
-    /// TODO kk:20190520 - Propagate p into service. 
+    /// TODO kk:20190520 - Propagate p into service.
     let startContGenService timeoutMilliseconds (p : list<ContGenConfigParam>) =
         (startService ContGenServiceName timeoutMilliseconds)
 
@@ -108,12 +109,12 @@ module ContGenServiceTasks =
         (stopService ContGenServiceName timeoutMilliseconds)
 
 
-    let runService (p : list<ContGenConfigParam>)=
+    let runService i (p : list<ContGenConfigParam>) =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
-        startServiceRun logger
-        let service = (new ContGenResponseHandler()).contGenService
+        startServiceRun i logger
+        let service = (new ContGenResponseHandler(i)).contGenService
         p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()
         let eventHandler _ = getServiceState service
@@ -124,26 +125,29 @@ module ContGenServiceTasks =
         do timer.Start()
 
         waitHandle.WaitOne() |> ignore
-        CompletedSuccessfully
+        true
 
 
+    /// TODO kk:20190601 - Propagage address / port into the service installation call.
     type ContGenServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
         | StartServiceTask of list<ContGenConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<ContGenConfigParam>
+        | RunServiceTask of list<ContGenConfigParam> * ServiceAccessInfo
 
         member task.run() =
             match task with
-            | InstallServiceTask ->
-                if installService() then startContGenService ServiceTmeOut |> ignore
+            | InstallServiceTask -> installService()
             | UninstallServiceTask ->
-                stopContGenService ServiceTmeOut |> ignore
-                uninstallService() |> ignore
-            | StartServiceTask p -> startContGenService ServiceTmeOut p |> ignore
-            | StopServiceTask -> stopContGenService ServiceTmeOut |> ignore
-            | RunServiceTask p -> runService p |> ignore
+                match stopContGenService ServiceTmeOut with
+                | true -> printfn "Successfully stopped service."
+                | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
+
+                uninstallService()
+            | StartServiceTask p -> startContGenService ServiceTmeOut p
+            | StopServiceTask -> stopContGenService ServiceTmeOut
+            | RunServiceTask (p, i) -> runService i p
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
@@ -158,7 +162,12 @@ module ContGenServiceTasks =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
         static member private tryCreateRunServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Run p -> ContGenConfigParam.fromParseResults p |> RunServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e ->
+                                match e with
+                                | Run p ->
+                                    let i = getServiceAccessInfo (p.GetAllResults())
+                                    RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
+                                | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =
             [

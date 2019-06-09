@@ -1,20 +1,24 @@
 ﻿namespace ContGenService
 
 open System
+open ClmSys.GeneralData
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
 
 module ServiceImplementation =
 
-    let a = createRunner ModelRunnerParam.defaultValue
+    let createServiceImpl i =
+        let a = createRunner (ModelRunnerParam.defaultValue i)
 
-    // Send startGenerate in case runner stops due to some reason.
-    let eventHandler _ = a.startGenerate()
-    let timer = new System.Timers.Timer(60_000.0)
-    do timer.AutoReset <- true
-    do timer.Elapsed.Add eventHandler
-    do timer.Start()
+        // Send startGenerate in case runner stops due to some reason.
+        let eventHandler _ = a.startGenerate()
+        let timer = new System.Timers.Timer(60_000.0)
+        do timer.AutoReset <- true
+        do timer.Elapsed.Add eventHandler
+        do timer.Start()
+
+        a
 
 
     type AsyncRunnerState
@@ -25,14 +29,25 @@ module ServiceImplementation =
                 maxQueueLength = s.maxQueueLength
                 runningCount = s.runningCount
                 running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-                queue = s.queue |> List.map (fun e -> e.modelId) |> Array.ofList
+                queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
                 workState = s.workState
                 messageCount = s.messageCount
+                minUsefulEe = s.minUsefulEe
             }
+
+
+    let mutable serviceAccessInfo : ServiceAccessInfo =
+        {
+            serviceAddress = ServiceAddress DefaultContGenServiceAddress
+            servicePort = ServicePort DefaultContGenServicePort
+            minUsefulEe = MinUsefulEe DefaultMinEe
+        }
 
 
     type ContGenService () =
         inherit MarshalByRefObject()
+
+        let a = createServiceImpl serviceAccessInfo
 
         let initService () = ()
         do initService ()
@@ -44,3 +59,4 @@ module ServiceImplementation =
             member this.updateProgress p = a.updateProgress (a, p)
             member this.configureService (p : ContGenConfigParam) = a.configureService p
             member this.runModel m p = a.runModel (m, p)
+            //member this.getServiceAccessInfo () = failwith "ContGenService.getServiceAccessInfo is not yet imiplemented."

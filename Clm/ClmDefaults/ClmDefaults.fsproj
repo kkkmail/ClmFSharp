@@ -60,6 +60,7 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <PlatformTarget>x64</PlatformTarget>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
@@ -128,6 +129,13 @@
     <Compile Include="DefaultValues\004\Defaults_004_019.fs" />
     <Compile Include="DefaultValues\004\Defaults_004_020.fs" />
     <Compile Include="DefaultValues\005\Defaults_005_000.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_000.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_001.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_002.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_003.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_004.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_005.fs" />
+    <Compile Include="DefaultValues\006\Defaults_006_006.fs" />
     <Compile Include="DefaultValues\999\Defaults_999_000.fs" />
     <Compile Include="AllDefaults.fs" />
     <Compile Include="ClmDefaultsTasks.fs" />

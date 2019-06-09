@@ -2,8 +2,8 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	print 'Creating table [dbo].[RunQueue] ...'
 
 	CREATE TABLE [dbo].[RunQueue](
-		[runQueueId] [bigint] IDENTITY(1,1) NOT NULL,
-		[modelDataId] [bigint] NOT NULL,
+		[runQueueId] [uniqueidentifier] NOT NULL,
+		[modelDataId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),

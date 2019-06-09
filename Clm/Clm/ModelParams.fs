@@ -11,18 +11,17 @@ open Argu
 
 module ModelParams =
 
-    let toModelName (n : int64) = n.ToString().PadLeft(6, '0')
-
-    /// TODO kk:20190107 - This should be exposed as a command line parameter.
     [<Literal>]
-    let DefaultRootFolder = RootDrive + @":\" + ClmBaseName + @"\"
-
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
 
     [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
+
+
+    let toModelName (n : Guid) = n.ToString()
 
 
     type ClmDefaultValueId =
@@ -143,7 +142,7 @@ module ModelParams =
 
 
     type ClmTaskId =
-        | ClmTaskId of int64
+        | ClmTaskId of Guid
 
         member this.value = let (ClmTaskId v) = this in v
 
@@ -156,23 +155,33 @@ module ModelParams =
         }
 
 
+    /// Additional information needed to produce command line params for solver runner.
+    type ModelCommandLineData =
+        {
+            modelDataId : ModelDataId
+            minUsefulEe : MinUsefulEe
+        }
+
+
     type ModelCommandLineParam =
         {
             tEnd : decimal
             y0 : decimal
             useAbundant : bool
+            serviceAccessInfo : ServiceAccessInfo
         }
 
-        member this.toCommandLine (ModelDataId modelDataId) =
+        member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
 
             [
                 EndTime this.tEnd
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
-                ModelId modelDataId
-                NotifyAddress ContGenServiceAddress
-                NotifyPort ContGenServicePort
+                ModelId d.modelDataId.value
+                NotifyAddress this.serviceAccessInfo.serviceAddress.value
+                NotifyPort this.serviceAccessInfo.servicePort.value
+                MinimumUsefulEe d.minUsefulEe.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 
@@ -183,12 +192,6 @@ module ModelParams =
             modelCommandLineParam : ModelCommandLineParam
         }
 
-        static member fromModelCommandLineParam modelDataId p =
-            {
-                modelDataId = modelDataId
-                modelCommandLineParam = p
-            }
-
 
     type RunQueue =
         {
@@ -198,6 +201,19 @@ module ModelParams =
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
+
+        static member fromModelCommandLineParam modelDataId p =
+            {
+                runQueueId = Guid.NewGuid() |> RunQueueId
+
+                info =
+                    {
+                        modelDataId = modelDataId
+                        modelCommandLineParam = p
+                    }
+
+                statusId = 0
+            }
 
 
     type ResultInfo =

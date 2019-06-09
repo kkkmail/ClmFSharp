@@ -11,7 +11,7 @@ open Clm.CommandLine
 open Clm.ChartData
 open OdeSolver.Solver
 open Analytics.ChartExt
-open Analytics.Visualization2
+open Analytics.Visualization
 open Argu
 open DbData.Configuration
 open DbData.DatabaseTypes
@@ -58,22 +58,24 @@ module SolverRunnerTasks =
             }
 
 
-    let tryGetResponseHandler (results : ParseResults<SolverRunnerArguments>) =
-        match results.TryGetResult NotifyAddress with
-        | Some address ->
-            let port = results.GetResult(NotifyPort, defaultValue = ContGenServicePort)
-            ResponseHandler.tryCreate address port
-        | None -> None
+    let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
+        match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
+        | Some address, Some port ->
+            let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
+            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port; minUsefulEe = ee }
+        | _ -> None
+
+
+    let getResponseHandler i = ResponseHandler.tryCreate i
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId with
-        | Some tEnd, Some y0, Some modelDataId ->
-            match tryDbFun (tryLoadModelData (ModelDataId modelDataId)) with
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
+        | Some tEnd, Some y0, Some modelDataId, Some i ->
+            match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) with
             | Some (Some md) ->
                 let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
-                let minUsefulEe = results.GetResult(MinUsefulEe, defaultValue = DefaultMinEe)
-                let n = tryGetResponseHandler results
+                let n = getResponseHandler i
                 let a = results.GetResult (UseAbundant, defaultValue = false)
 
                 printfn "Starting at: %A" DateTime.Now
@@ -126,25 +128,29 @@ module SolverRunnerTasks =
 
                 let r =
                     {
-                        modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
+                        resultDataId = Guid.NewGuid() |> ResultDataId
+                        resultData =
+                            {
+                                modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
 
-                        y0 = decimal y0
-                        tEnd = decimal tEnd
-                        useAbundant = false // TODO kk:20190105 This should be propagated...
+                                y0 = decimal y0
+                                tEnd = decimal tEnd
+                                useAbundant = false // TODO kk:20190105 This should be propagated...
 
-                        maxEe = maxEe
-                        maxAverageEe = maxAverageEe
+                                maxEe = maxEe
+                                maxAverageEe = maxAverageEe
+                            }
                     }
 
                 r |> saveResultData |> tryDbFun |> ignore
 
                 let plotAll show =
-                    let plotter = new Plotter2(PlotDataInfo.defaultValue, chartData)
+                    let plotter = new Plotter(PlotDataInfo.defaultValue, chartData)
                     plotter.plotAminoAcids show
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show
 
-                if maxEe >= minUsefulEe
+                if maxEe >= i.minUsefulEe.value
                 then
                     printfn "Generating plots..."
                     plotAll false

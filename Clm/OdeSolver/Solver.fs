@@ -9,7 +9,7 @@ module Solver =
 
     type OdeParams =
         {
-            modelDataId : int64
+            modelDataId : Guid
             startTime : double
             endTime : double
             stepSize : double
@@ -20,7 +20,7 @@ module Solver =
 
         static member defaultValue =
             {
-                modelDataId = 0L
+                modelDataId = Guid.NewGuid()
                 startTime = 0.0
                 endTime = 10.0
                 stepSize = 0.01
@@ -32,7 +32,7 @@ module Solver =
 
     type OdeResult =
         {
-            modelDataId : int64
+            modelDataId : Guid
             y0 : double
             noOfOutputPoints : int
             startTime : double
@@ -44,7 +44,7 @@ module Solver =
 
     type NSolveParam =
         {
-            modelDataId : int64
+            modelDataId : Guid
             tEnd : double
             g : double[] -> double[]
             h : double -> double[]

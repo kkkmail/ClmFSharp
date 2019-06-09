@@ -23,6 +23,7 @@ type ContGenServiceInstaller() =
             StartType = ServiceStartMode.Automatic )
         |> base.Installers.Add |> ignore
 
+
 // Run the services when the process starts.
 module Main =
     ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]

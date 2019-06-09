@@ -18,6 +18,7 @@ module Visualization =
         let fn = [ for i in 0..(p.initData.binaryInfo.aminoAcids.Length - 1) -> i ]
         let tIdx = [ for i in 0..noOfOutputPoints -> i ]
         let showChart = showChart i
+        let xAxisName = "t"
 
 
         let description =
@@ -36,18 +37,17 @@ module Visualization =
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
 
-
         let plotAminoAcidsImpl show =
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].aminoAcidsData.[i])
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotAminoAcids) description
 
 
         let plotEnantiomericExcessImpl show =
-            let name (i : int) = 
+            let name (i : int) =
                 let l = AminoAcid.toString i
                 let d = l.ToLower()
                 "(" + l + " - " + d + ") / (" + l + " + " + d + ")"
@@ -55,7 +55,7 @@ module Visualization =
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].enantiomericExcess.[i])
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotEnantiomericExcess) description
 
 
@@ -83,7 +83,7 @@ module Visualization =
                 |> List.choose id
 
             Chart.Combine(charts)
-            |> Chart.withX_AxisStyle("t", MinMax = minMax)
+            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> showChart show (getFileName PlotTotalSubst) description
 
 

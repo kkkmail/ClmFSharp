@@ -4,9 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_006_001 =
+module Defaults_006_005 =
 
-    let clmDefaultValueId = 006_001L |> ClmDefaultValueId
+    let clmDefaultValueId = 006_005L |> ClmDefaultValueId
     let description = None
     let catRateGenType = ByEnantiomerPairs
 
@@ -26,10 +26,10 @@ module Defaults_006_001 =
         //let catDestrParam = ReactionRateProviderParams.defaultCatDestrRndParam catDestrRndParam catRateGenType
         let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.20) catRateGenType
         //===========================================================
-        let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
+        let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (10.0, 10.0)
         let catLigParam = ReactionRateProviderParams.defaultCatLigRndParam (ligParam, (Some 0.000_05), 2_000.0) catRateGenType
         //===========================================================
-        let sedDirRndParam = (Some 0.000_100, 100.0)
+        let sedDirRndParam = (Some 0.000_200, 100.0)
 
         //let sedDirParam = ReactionRateProviderParams.defaultSedDirRndParam sedDirRndParam
         let sedDirParam = ReactionRateProviderParams.defaultSedDirSimParam sedDirRndParam (Some 0.20)

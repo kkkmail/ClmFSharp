@@ -101,6 +101,10 @@ module AllDefaults =
                 Defaults_006_000.defaultValue
                 Defaults_006_001.defaultValue
                 Defaults_006_002.defaultValue
+                Defaults_006_003.defaultValue
+                Defaults_006_004.defaultValue
+                Defaults_006_005.defaultValue
+                Defaults_006_006.defaultValue
             ]
         @
         updateDescription "Tests."

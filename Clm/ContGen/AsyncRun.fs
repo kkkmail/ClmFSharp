@@ -324,7 +324,7 @@ module AsyncRun =
 
         let startModelImpl (a : AsyncRunner) e =
             printfn "Starting modelId: %A..." e.modelDataId
-            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelDataId; runQueueId = e.runQueueId } |> e.run |> a.completeRun) 
+            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelDataId; runQueueId = e.runQueueId } |> e.run |> a.completeRun)
             |> Async.Start
 
         let cancelProcessImpl i =
@@ -336,7 +336,7 @@ module AsyncRun =
 
         let runModelImpl (a : AsyncRunner) i p =
             match generatorInfo.runModel i p with
-            | Some r -> [ r] |> a.completeGenerate
+            | Some r -> [ r ] |> a.completeGenerate
             | None -> ignore()
 
 
@@ -563,4 +563,5 @@ module AsyncRun =
             }
 
         let commandLineParams = p.commandLineParam.toCommandLine data
+        printfn "runModel::commandLineParams = %A\n" commandLineParams
         runProc p.callBack fullExeName commandLineParams None

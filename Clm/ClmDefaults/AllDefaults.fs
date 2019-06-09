@@ -96,9 +96,10 @@ module AllDefaults =
                 Defaults_005_000.defaultValue
             ]
         @
-        updateDescription "Catalytic synthesis + sedimentation direct for n = 10."
+        updateDescription "Catalytic synthesis + sedimentation direct for n = 11."
             [
                 Defaults_006_000.defaultValue
+                Defaults_006_001.defaultValue
             ]
         @
         updateDescription "Tests."

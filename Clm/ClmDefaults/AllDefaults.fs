@@ -107,6 +107,20 @@ module AllDefaults =
                 Defaults_006_006.defaultValue
             ]
         @
+        updateDescription "Catalytic destruction / forward only for n = 20."
+            [
+                Defaults_007_000.defaultValue
+                Defaults_007_001.defaultValue
+            ]
+        @
+        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20."
+            [
+                Defaults_008_000.defaultValue
+                Defaults_008_001.defaultValue
+                Defaults_008_002.defaultValue
+                Defaults_008_003.defaultValue
+            ]
+        @
         updateDescription "Tests."
             [
                 Defaults_999_000.defaultValue

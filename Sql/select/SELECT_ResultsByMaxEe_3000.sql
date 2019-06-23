@@ -7,7 +7,7 @@ go
 
 -- Calculates how often the symmetry is broken for all processed default sets.
 declare @maxEeThreshold float
-set @maxEeThreshold = 0.0001
+set @maxEeThreshold = 0.00001
 
 ; with
 w as

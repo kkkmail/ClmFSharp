@@ -69,6 +69,11 @@ module SolverRunnerTasks =
     let getResponseHandler i = ResponseHandler.tryCreate i
 
 
+    let getPlotDataInfo (ClmDefaultValueId df) =
+        let d = PlotDataInfo.defaultValue
+        { d with resultInfo = { d.resultInfo with resultLocation = d.resultInfo.resultLocation + @"\" + df.ToString().PadLeft(6, '0') } }
+
+
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
@@ -145,7 +150,8 @@ module SolverRunnerTasks =
                 r |> saveResultData |> tryDbFun |> ignore
 
                 let plotAll show =
-                    let plotter = new Plotter(PlotDataInfo.defaultValue, chartData)
+                    let pdi = getPlotDataInfo md.modelData.modelDataParams.modelInfo.clmDefaultValueId
+                    let plotter = new Plotter(pdi, chartData)
                     plotter.plotAminoAcids show
                     plotter.plotTotalSubst show
                     plotter.plotEnantiomericExcess show

@@ -228,6 +228,8 @@ module DatabaseTypes =
 
                         maxEe = r.maxEe
                         maxAverageEe = r.maxAverageEe
+                        maxWeightedAverageEe = r.maxWeightedAverageEe
+                        maxLastEe = r.maxLastEe
                     }
             }
 
@@ -240,7 +242,9 @@ module DatabaseTypes =
                         useAbundant = r.resultData.useAbundant,
 
                         maxEe = r.resultData.maxEe,
-                        maxAverageEe = r.resultData.maxAverageEe
+                        maxAverageEe = r.resultData.maxAverageEe,
+                        maxWeightedAverageEe = r.resultData.maxWeightedAverageEe,
+                        maxLastEe = r.resultData.maxLastEe
                         )
 
             newRow.modelDataId <- r.resultData.modelDataId.value
@@ -484,6 +488,8 @@ module DatabaseTypes =
                        ,useAbundant
                        ,maxEe
                        ,maxAverageEe
+                       ,maxWeightedAverageEe
+                       ,maxLastEe
                        ,createdOn)
                  OUTPUT Inserted.resultDataId
                  VALUES
@@ -494,6 +500,8 @@ module DatabaseTypes =
                        ,@useAbundant
                        ,@maxEe
                        ,@maxAverageEe
+                       ,@maxWeightedAverageEe
+                       ,@maxLastEe
                        ,@createdOn)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
@@ -506,6 +514,8 @@ module DatabaseTypes =
                     ,useAbundant = r.resultData.useAbundant
                     ,maxEe = r.resultData.maxEe
                     ,maxAverageEe = r.resultData.maxAverageEe
+                    ,maxWeightedAverageEe = r.resultData.maxWeightedAverageEe
+                    ,maxLastEe = r.resultData.maxLastEe
                     ,createdOn = DateTime.Now)
             |> Seq.toList
 

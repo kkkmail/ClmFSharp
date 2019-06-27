@@ -58,8 +58,11 @@ module ModelParams =
             tEnd : decimal
             useAbundant : bool
 
-            maxEe : double
-            maxAverageEe : double
+            // All are using abs. Averaging is perfomred first, then abs is applied.
+            maxEe : double // max ee over all data points and all pairs of chiral substances.
+            maxAverageEe : double // max value of ee averaged over evolution period per each pair of chiral substances.
+            maxWeightedAverageEe : double // the same as above but using linear weighted average.
+            maxLastEe : double // max ee at the last point.
         }
 
 

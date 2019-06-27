@@ -49,7 +49,19 @@ module DefaultValuesExt =
             }
             |> SynthRndParam
 
-        static member defaultSynthRndParam (forward, backward) =
+        static member defaultSynthRndParamImpl (forward, backward) =
+            {
+                synthesisDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
+                forwardScale = forward
+                backwardScale = backward
+            }
+            |> SynthRndParam
+
+        static member defaultSynthRndParam (forward : double, backward : double) =
+            ReactionRateProviderParams.defaultSynthRndParamImpl (forward, backward)
+            |> SynthesisRateParam
+
+        static member defaultSynthRndParam (forward : double option, backward : double option) =
             ReactionRateProviderParams.defaultSynthRndParamImpl (forward, backward)
             |> SynthesisRateParam
 
@@ -61,7 +73,19 @@ module DefaultValuesExt =
             }
             |> DestrRndParam
 
-        static member defaultDestrRndParam (forward, backward) =
+        static member defaultDestrRndParamImpl (forward, backward) =
+            {
+                destructionDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
+                forwardScale = forward
+                backwardScale = backward
+            }
+            |> DestrRndParam
+
+        static member defaultDestrRndParam (forward : double, backward : double) =
+            ReactionRateProviderParams.defaultDestrRndParamImpl (forward, backward)
+            |> DestructionRateParam
+
+        static member defaultDestrRndParam (forward : double option, backward : double option) =
             ReactionRateProviderParams.defaultDestrRndParamImpl (forward, backward)
             |> DestructionRateParam
 
@@ -143,7 +167,19 @@ module DefaultValuesExt =
             }
             |> LigRndParam
 
-        static member defaultLigRndParam (forward, backward) =
+        static member defaultLigRndParamImpl (forward, backward) =
+            {
+                ligationDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
+                forwardScale = forward
+                backwardScale = backward
+            }
+            |> LigRndParam
+
+        static member defaultLigRndParam (forward : double, backward : double) =
+            ReactionRateProviderParams.defaultLigRndParamImpl (forward, backward)
+            |> LigationRateParam
+
+        static member defaultLigRndParam (forward : double option, backward : double option) =
             ReactionRateProviderParams.defaultLigRndParamImpl (forward, backward)
             |> LigationRateParam
 

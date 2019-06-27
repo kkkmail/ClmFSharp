@@ -31,7 +31,7 @@ module DatabaseTypes =
 
     type ClmDefaultValueData = SqlCommandProvider<"
         select * 
-        from dbo.ClmDefaultValue 
+        from dbo.ClmDefaultValue
         where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -97,9 +97,11 @@ module DatabaseTypes =
     type RunQueueTableRow = RunQueueTable.Row
 
     type RunQueueTableData = SqlCommandProvider<"
-        select *
-        from dbo.RunQueue
-        where statusId = 0
+        select r.*
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = m.clmTaskId
+        where r.statusId = 0 and t.statusId = 0
         order by runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
 

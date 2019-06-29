@@ -32,19 +32,16 @@ module Solver =
 
     type OdeResult =
         {
-            modelDataId : Guid
-            y0 : double
-            noOfOutputPoints : int
             startTime : double
             endTime : double
-            t : double[]
-            x : double[,]
+            xEnd : double[]
         }
 
 
     type NSolveParam =
         {
             modelDataId : Guid
+            tStart : double
             tEnd : double
             g : double[] -> double[]
             h : double -> double[]
@@ -72,7 +69,7 @@ module Solver =
         let mutable progressCount = 0
         let mutable outputCount = 0
 
-        let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; endTime = n.tEnd }
+        let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; startTime = n.tStart; endTime = n.tEnd }
 
         let notify t r m =
             match n.progressCallBack with
@@ -112,11 +109,7 @@ module Solver =
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 
         {
-            modelDataId = p.modelDataId
-            y0 = n.y0
-            noOfOutputPoints = nt
             startTime = p.startTime
             endTime = p.endTime
-            t = xtbl
-            x = ytbl
+            xEnd = ytbl.[nt - 1, *]
         }

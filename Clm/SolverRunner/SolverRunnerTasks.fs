@@ -110,6 +110,7 @@ module SolverRunnerTasks =
                 let p =
                     {
                         modelDataId = modelDataId.value
+                        tStart = 0.0
                         tEnd = double tEnd
                         g = md.modelData.modelBinaryData.calculationData.getDerivative
                         h = getInitValues
@@ -118,7 +119,7 @@ module SolverRunnerTasks =
                         chartCallBack = Some updateChart
                     }
 
-                nSolve p |> ignore
+                let result = nSolve p
 
                 // Notify of completion just in case.
                 match n with

@@ -204,7 +204,7 @@ module GeneralData =
 
 
     type AsyncUpdater<'I, 'A, 'S> (updater : IUpdater<'I, 'A, 'S>, i : 'I) =
-        let chat = Updater.Start(fun u -> 
+        let chat = Updater.Start(fun u ->
           let rec loop s = async {
             let! m = u.Receive()
 

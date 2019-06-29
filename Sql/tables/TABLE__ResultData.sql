@@ -9,7 +9,7 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
 		[maxEe] [float] NOT NULL DEFAULT ((0)),
 		[maxAverageEe] [float] NOT NULL DEFAULT ((0)),
-		[maxWeightedAverageEe] [float] NOT NULL DEFAULT ((0)),
+		[maxWeightedAverageAbsEe] [float] NOT NULL DEFAULT ((0)),
 		[maxLastEe] [float] NOT NULL DEFAULT ((0)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 

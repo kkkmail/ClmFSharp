@@ -129,7 +129,6 @@ module SolverRunnerTasks =
 
                 let chartData = chartDataUpdater.getContent()
                 let maxEe = chartData.maxEe
-                let maxAverageEe = chartData.maxAverageEe
 
                 let r =
                     {
@@ -143,7 +142,9 @@ module SolverRunnerTasks =
                                 useAbundant = false // TODO kk:20190105 This should be propagated...
 
                                 maxEe = maxEe
-                                maxAverageEe = maxAverageEe
+                                maxAverageEe = chartData.maxAverageEe
+                                maxWeightedAverageAbsEe = chartData.maxWeightedAverageAbsEe
+                                maxLastEe = chartData.maxLastEe
                             }
                     }
 

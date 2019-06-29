@@ -228,7 +228,7 @@ module DatabaseTypes =
 
                         maxEe = r.maxEe
                         maxAverageEe = r.maxAverageEe
-                        maxWeightedAverageEe = r.maxWeightedAverageEe
+                        maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
                         maxLastEe = r.maxLastEe
                     }
             }
@@ -243,7 +243,7 @@ module DatabaseTypes =
 
                         maxEe = r.resultData.maxEe,
                         maxAverageEe = r.resultData.maxAverageEe,
-                        maxWeightedAverageEe = r.resultData.maxWeightedAverageEe,
+                        maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe,
                         maxLastEe = r.resultData.maxLastEe
                         )
 
@@ -488,7 +488,7 @@ module DatabaseTypes =
                        ,useAbundant
                        ,maxEe
                        ,maxAverageEe
-                       ,maxWeightedAverageEe
+                       ,maxWeightedAverageAbsEe
                        ,maxLastEe
                        ,createdOn)
                  OUTPUT Inserted.resultDataId
@@ -500,7 +500,7 @@ module DatabaseTypes =
                        ,@useAbundant
                        ,@maxEe
                        ,@maxAverageEe
-                       ,@maxWeightedAverageEe
+                       ,@maxWeightedAverageAbsEe
                        ,@maxLastEe
                        ,@createdOn)
         ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
@@ -514,7 +514,7 @@ module DatabaseTypes =
                     ,useAbundant = r.resultData.useAbundant
                     ,maxEe = r.resultData.maxEe
                     ,maxAverageEe = r.resultData.maxAverageEe
-                    ,maxWeightedAverageEe = r.resultData.maxWeightedAverageEe
+                    ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
                     ,maxLastEe = r.resultData.maxLastEe
                     ,createdOn = DateTime.Now)
             |> Seq.toList

@@ -101,6 +101,36 @@ module ChartData =
                 |> Array.map (fun e -> List.average e |> abs)
                 |> Array.max
 
+        member cd.maxWeightedAverageAbsEe =
+            match cd.allChartData with
+            | [] -> 0.0
+            | h :: _ ->
+                let totalWeight =
+                    cd.allChartData
+                    |> List.mapi(fun i _ -> double i)
+                    |> List.sum
+
+                let weigh i e = e |> Array.map (fun x -> (double i) * (abs x) / totalWeight)
+
+                let ee =
+                    cd.allChartData
+                    |> List.rev
+                    |> List.mapi (fun i e -> weigh i e.enantiomericExcess)
+
+                let getData i = ee |> List.map (fun e -> e.[i])
+
+                h.enantiomericExcess
+                |> Array.mapi (fun i _ -> getData i)
+                |> Array.map (fun e -> List.average e)
+                |> Array.max
+
+        member cd.maxLastEe =
+            match cd.allChartData |> List.rev with
+            | [] -> 0.0
+            | h :: _ ->
+                h.enantiomericExcess
+                |> Array.map (fun e -> abs e)
+                |> Array.max
 
     type ChartDataUpdater () =
         interface IUpdater<ChartInitData, ChartSliceData, ChartData> with

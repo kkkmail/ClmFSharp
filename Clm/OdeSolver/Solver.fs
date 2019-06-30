@@ -18,11 +18,11 @@ module Solver =
             noOfProgressPoints : int option
         }
 
-        static member defaultValue =
+        static member defaultValue modelDataId startTime endTime =
             {
-                modelDataId = Guid.NewGuid()
-                startTime = 0.0
-                endTime = 10.0
+                modelDataId = modelDataId
+                startTime = startTime
+                endTime = endTime
                 stepSize = 0.01
                 eps = 0.00001
                 noOfOutputPoints = Some 1000
@@ -38,6 +38,18 @@ module Solver =
         }
 
 
+    type OdeCombinedResult =
+        {
+            completed : List<OdeResult>
+        }
+
+
+    type OdeController =
+        {
+            partition : OdeParams -> (OdeParams * OdeParams)
+        }
+
+
     type NSolveParam =
         {
             modelDataId : Guid
@@ -49,6 +61,8 @@ module Solver =
             progressCallBack : (decimal -> unit) option
             chartCallBack : (double -> double[] -> unit) option
         }
+
+        member p.next tEndNew = { p with tStart = p.tEnd; tEnd = tEndNew }
 
 
     let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
@@ -65,11 +79,9 @@ module Solver =
         printfn "nSolve::Starting."
         let start = DateTime.Now
         let i = n.h n.y0
-
         let mutable progressCount = 0
         let mutable outputCount = 0
-
-        let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; startTime = n.tStart; endTime = n.tEnd }
+        let p = OdeParams.defaultValue n.modelDataId n.tStart n.tEnd
 
         let notify t r m =
             match n.progressCallBack with
@@ -113,3 +125,15 @@ module Solver =
             endTime = p.endTime
             xEnd = ytbl.[nt - 1, *]
         }
+
+    type NSolvePartitionParam =
+        {
+            nSolveParam : NSolveParam
+            controller : OdeController
+        }
+
+
+    let nSolvePartitioned (p : NSolvePartitionParam) : unit =
+        
+
+        ignore()

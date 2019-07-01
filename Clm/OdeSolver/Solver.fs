@@ -9,7 +9,6 @@ module Solver =
 
     type OdeParams =
         {
-            modelDataId : Guid
             startTime : double
             endTime : double
             stepSize : double
@@ -18,9 +17,8 @@ module Solver =
             noOfProgressPoints : int option
         }
 
-        static member defaultValue modelDataId startTime endTime =
+        static member defaultValue startTime endTime =
             {
-                modelDataId = modelDataId
                 startTime = startTime
                 endTime = endTime
                 stepSize = 0.01
@@ -35,18 +33,6 @@ module Solver =
             startTime : double
             endTime : double
             xEnd : double[]
-        }
-
-
-    type OdeCombinedResult =
-        {
-            completed : List<OdeResult>
-        }
-
-
-    type OdeController =
-        {
-            partition : OdeParams -> (OdeParams * OdeParams)
         }
 
 
@@ -65,6 +51,25 @@ module Solver =
         member p.next tEndNew = { p with tStart = p.tEnd; tEnd = tEndNew }
 
 
+    type EeData =
+        {
+            maxEe : double
+            maxAverageEe : double
+            maxWeightedAverageAbsEe : double
+            maxLastEe : double
+        }
+
+
+    type OdeController =
+        {
+            partition : NSolveParam -> List<double[] -> NSolveParam>
+            continueRun : unit -> bool // this function is NOT pure because there is a MailboxProcessor behind it.
+        }
+
+        static member defaultValue =
+            0
+
+
     let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
 
 
@@ -81,7 +86,7 @@ module Solver =
         let i = n.h n.y0
         let mutable progressCount = 0
         let mutable outputCount = 0
-        let p = OdeParams.defaultValue n.modelDataId n.tStart n.tEnd
+        let p = OdeParams.defaultValue n.tStart n.tEnd
 
         let notify t r m =
             match n.progressCallBack with
@@ -134,6 +139,15 @@ module Solver =
 
 
     let nSolvePartitioned (p : NSolvePartitionParam) : unit =
-        
+        let d = p.controller.partition p.nSolveParam
+
+        let x =
+            d
+            |> List.fold(fun (a, b) e ->
+                            if b
+                            then
+                                let r = e a |> nSolve
+                                (r.xEnd, p.controller.continueRun())
+                            else (a, b)) ([||], true)
 
         ignore()

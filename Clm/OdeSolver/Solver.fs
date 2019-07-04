@@ -7,6 +7,15 @@ open ClmSys.GeneralData
 
 module Solver =
 
+    type EeData =
+        {
+            maxEe : double
+            maxAverageEe : double
+            maxWeightedAverageAbsEe : double
+            maxLastEe : double
+        }
+
+
     type OdeParams =
         {
             startTime : double
@@ -41,33 +50,14 @@ module Solver =
             modelDataId : Guid
             tStart : double
             tEnd : double
-            g : double[] -> double[]
-            h : double -> double[]
-            y0 : double
+            derivative : double[] -> double[]
+            initialValues : double[]
             progressCallBack : (decimal -> unit) option
             chartCallBack : (double -> double[] -> unit) option
+            getEeData : (unit -> EeData) option
         }
 
-        member p.next tEndNew = { p with tStart = p.tEnd; tEnd = tEndNew }
-
-
-    type EeData =
-        {
-            maxEe : double
-            maxAverageEe : double
-            maxWeightedAverageAbsEe : double
-            maxLastEe : double
-        }
-
-
-    type OdeController =
-        {
-            partition : NSolveParam -> List<double[] -> NSolveParam>
-            continueRun : unit -> bool // this function is NOT pure because there is a MailboxProcessor behind it.
-        }
-
-        static member defaultValue =
-            0
+        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
 
 
     let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
@@ -83,7 +73,6 @@ module Solver =
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
         let start = DateTime.Now
-        let i = n.h n.y0
         let mutable progressCount = 0
         let mutable outputCount = 0
         let p = OdeParams.defaultValue n.tStart n.tEnd
@@ -116,12 +105,12 @@ module Solver =
                     notifyChart t x
             | _ -> ignore()
 
-            n.g x
+            n.derivative x
 
         let nt = 2
         let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
         let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
-        let mutable s = alglib.odesolverrkck(i, x, p.eps, p.stepSize)
+        let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
         do alglib.odesolversolve(s, d, null)
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 
@@ -130,6 +119,65 @@ module Solver =
             endTime = p.endTime
             xEnd = ytbl.[nt - 1, *]
         }
+
+
+    type PartitionType =
+        | InsideInterval
+        | EndOfInterval
+        | OutsideInterval
+
+
+    type PartitionInfo =
+        {
+            partitionType : PartitionType
+            getNSolveParam : double[] -> NSolveParam
+        }
+
+
+    let defaultPartition (n : NSolveParam) : List<PartitionInfo> =
+        let p =
+            [
+                (30.0, InsideInterval)
+                (75.0, InsideInterval)
+                (150.0, InsideInterval)
+                (250.0, EndOfInterval)
+                (400.0, OutsideInterval)
+                (600.0, OutsideInterval)
+                (1000.0, OutsideInterval)
+            ]
+
+        let s =
+            match p |> List.tryPick (fun (a, b) -> match b with | EndOfInterval -> Some a | _ -> None) with
+            | Some a -> a
+            | None -> 250.0
+
+        p
+        |> List.mapi (fun i (a, b) ->
+                    {
+                        partitionType = b
+                        getNSolveParam =
+                            if i = 0
+                            then fun x -> { n with initialValues = x; tStart = n.tStart; tEnd = n.tEnd * a / s }
+                            else n.next (n.tEnd * a / s)
+                    })
+
+
+    let defaultContinueRun (n : NSolveParam) (p : PartitionInfo) =
+        failwith ""
+
+
+    type OdeController =
+        {
+            partition : NSolveParam -> List<PartitionInfo>
+            continueRun : NSolveParam -> PartitionInfo -> bool // This function is NOT pure because there is a MailboxProcessor behind it.
+        }
+
+        static member defaultValue =
+            {
+                partition = defaultPartition
+                continueRun = defaultContinueRun
+            }
+
 
     type NSolvePartitionParam =
         {
@@ -146,8 +194,8 @@ module Solver =
             |> List.fold(fun (a, b) e ->
                             if b
                             then
-                                let r = e a |> nSolve
-                                (r.xEnd, p.controller.continueRun())
-                            else (a, b)) ([||], true)
+                                let r = e.getNSolveParam a |> nSolve
+                                (r.xEnd, p.controller.continueRun p.nSolveParam e)
+                            else (a, b)) (p.nSolveParam.initialValues, true)
 
         ignore()

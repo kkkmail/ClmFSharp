@@ -109,9 +109,8 @@ module SolverRunnerTasks =
                     tEnd = tEnd
                 }
 
-            let updateChart =
-                let chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
-                fun t x -> ChartSliceData.create binaryInfo t x |> chartDataUpdater.addContent
+            let chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
+            let updateChart = fun t x -> ChartSliceData.create binaryInfo t x |> chartDataUpdater.addContent
 
             {
                 modelDataId = modelDataId
@@ -128,9 +127,20 @@ module SolverRunnerTasks =
                     | None -> ignore
 
                 chartInitData = chartInitData
-                chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
+                chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
                 progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+            }
+
+
+    type ChartData
+        with
+        member cd.toEeData() =
+            {
+                maxEe = cd.maxEe
+                maxAverageEe = cd.maxAverageEe
+                maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
+                maxLastEe = cd.maxLastEe
             }
 
 
@@ -139,11 +149,11 @@ module SolverRunnerTasks =
             modelDataId = d.modelDataId.value
             tStart = s
             tEnd = e
-            g = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
-            h = d.getInitValues
-            y0 = d.y0
+            derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
+            initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart
+            getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
         }
 
 

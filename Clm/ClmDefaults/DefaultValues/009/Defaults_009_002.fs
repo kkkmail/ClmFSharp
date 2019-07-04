@@ -4,9 +4,9 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 
-module Defaults_007_000 =
+module Defaults_009_002 =
 
-    let clmDefaultValueId = 007_000L |> ClmDefaultValueId
+    let clmDefaultValueId = 009_002L |> ClmDefaultValueId
     let description = None
     let catRateGenType = ByEnantiomerPairs
 
@@ -15,9 +15,11 @@ module Defaults_007_000 =
         let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
         //===========================================================
         let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
+        let catSynthRndParam = (synthParam, (Some 0.000_010), 100_000.0)
+        let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.20) catRateGenType
         //===========================================================
         let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
-        let catDestrRndParam = (destrParam, (Some 0.000_010), 100_000.0)
+        let catDestrRndParam = (destrParam, (Some 0.000_020), 100_000.0)
         let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some 0.20) catRateGenType
         //===========================================================
         let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
@@ -27,6 +29,7 @@ module Defaults_007_000 =
                 wasteRecyclingParam
 
                 synthParam |> SynthesisRateParam
+                catSynthParam
 
                 destrParam |> DestructionRateParam
                 catDestrParam

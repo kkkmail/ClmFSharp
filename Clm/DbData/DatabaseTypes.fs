@@ -100,7 +100,7 @@ module DatabaseTypes =
         select r.*
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
-        inner join dbo.ClmTask t on m.clmTaskId = m.clmTaskId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.statusId = 0 and t.statusId = 0
         order by runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 

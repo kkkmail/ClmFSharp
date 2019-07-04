@@ -121,9 +121,7 @@ module SolverRunnerTasks =
 
                 onCompleted =
                     match n with
-                    | Some svc ->
-                        notify modelDataId svc Completed
-                        ignore
+                    | Some svc -> fun () -> notify modelDataId svc Completed
                     | None -> ignore
 
                 chartInitData = chartInitData

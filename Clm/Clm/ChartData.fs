@@ -123,7 +123,7 @@ module ChartData =
 
                 h.enantiomericExcess
                 |> Array.mapi (fun i _ -> getData i)
-                |> Array.map (fun e -> List.average e)
+                |> Array.map List.sum
                 |> Array.max
 
         member cd.maxLastEe =

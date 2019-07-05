@@ -180,19 +180,17 @@ module Solver =
 
 
     /// The following rules are used:
-    ///     1. FOR (any interval)
-    ///            IF (maxWeightedAverageAbsEe >= maxWeightedAverageAbsEeMaxThreshold OR maxLastEe >= maxLastEeMaxThreshold)
-    ///            STOP.
+    ///     1. FOR (any interval):
+    ///        IF (maxWeightedAverageAbsEe >= maxWeightedAverageAbsEeMaxThreshold OR maxLastEe >= maxLastEeMaxThreshold)
+    ///        THEN STOP.
     ///
     ///     2. IF EndOfInterval
-    ///            AND (maxWeightedAverageAbsEe < maxWeightedAverageAbsEeMniThreshold AND maxLastEe < maxLastEeMinThreshold)
-    ///            STOP.
-    let defaultContinueRun (n : NSolveParam) (p : PartitionInfo) =
-        let c = ContinueRunParam.defaultValue
-
+    ///        AND (maxWeightedAverageAbsEe < maxWeightedAverageAbsEeMniThreshold AND maxLastEe < maxLastEeMinThreshold)
+    ///        THEN STOP.
+    let continueRun c n p =
         match n.getEeData |> Option.bind(fun x -> x() |> Some) with
         | Some d ->
-            let isEndOfInterval =
+            let isEndOfInterval() =
                 match p.partitionType with
                 | EndOfInterval -> true
                 | _ -> false
@@ -200,7 +198,7 @@ module Solver =
             let rules (e : EeData) =
                 [
                     e.maxWeightedAverageAbsEe >= c.maxWeightedAverageAbsEeMaxThreshold || e.maxLastEe >= c.maxLastEeMaxThreshold
-                    isEndOfInterval && (e.maxWeightedAverageAbsEe < c.maxWeightedAverageAbsEeMniThreshold || e.maxLastEe < c.maxLastEeMinThreshold)
+                    isEndOfInterval() && (e.maxWeightedAverageAbsEe < c.maxWeightedAverageAbsEeMniThreshold || e.maxLastEe < c.maxLastEeMinThreshold)
                 ]
 
             let stop = rules d |> List.fold (fun acc r -> r || acc) false
@@ -210,6 +208,9 @@ module Solver =
             | InsideInterval -> true
             | EndOfInterval -> false
             | OutsideInterval -> false
+
+
+    let defaultContinueRun = continueRun ContinueRunParam.defaultValue
 
 
     type OdeController =
@@ -230,6 +231,12 @@ module Solver =
             nSolveParam : NSolveParam
             controller : OdeController
         }
+
+        static member defaultValue n =
+            {
+                nSolveParam = n
+                controller = OdeController.defaultValue
+            }
 
 
     let nSolvePartitioned (p : NSolvePartitionParam) : unit =

@@ -162,7 +162,35 @@ module Solver =
                     })
 
 
+
+//type EeData =
+//    {
+//        maxEe : double
+//        maxAverageEe : double
+//        maxWeightedAverageAbsEe : double
+//        maxLastEe : double
+//    }
     /// TODO kk:20190704 - Implement
+    /// The following rules are used:
+    ///     0. All comparision values - mean parameter and rule specific values.
+    ///
+    ///     *. If (any interval)
+    ///            AND (maxWeightedAverageAbsEe >= maxThreshold OR maxLastEe >= maxThreshold)
+    ///            STOP.
+    ///
+    ///     *. If EndOfInterval
+    ///            AND (maxWeightedAverageAbsEe < minThreshold AND maxLastEe < minThreshold)
+    ///            STOP.
+    ///
+    ///     *. If InsideInterval AND maxWeightedAverageAbsEe < threshold AND maxLastEe < threshold continue.
+
+    ///     *.
+
+
+    ///     *. If EndOfInterval
+    ///            AND (maxWeightedAverageAbsEe > minThreshold OR maxLastEe > minThreshold)
+    ///            AND (maxWeightedAverageAbsEe < maxThreshold AND maxLastEe < maxThreshold)
+    ///            continue.
     let defaultContinueRun (n : NSolveParam) (p : PartitionInfo) =
         failwith ""
 

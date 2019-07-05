@@ -105,12 +105,14 @@ module ChartData =
             match cd.allChartData with
             | [] -> 0.0
             | h :: _ ->
+                let weightFun i = double i
+
                 let totalWeight =
                     cd.allChartData
-                    |> List.mapi(fun i _ -> double i)
+                    |> List.mapi(fun i _ -> weightFun i)
                     |> List.sum
 
-                let weigh i e = e |> Array.map (fun x -> (double i) * (abs x) / totalWeight)
+                let weigh i e = e |> Array.map (fun x -> (weightFun i) * (abs x) / totalWeight)
 
                 let ee =
                     cd.allChartData
@@ -125,7 +127,7 @@ module ChartData =
                 |> Array.max
 
         member cd.maxLastEe =
-            match cd.allChartData |> List.rev with
+            match cd.allChartData with
             | [] -> 0.0
             | h :: _ ->
                 h.enantiomericExcess

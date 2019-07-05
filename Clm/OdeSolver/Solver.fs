@@ -162,37 +162,54 @@ module Solver =
                     })
 
 
+    type ContinueRunParam =
+        {
+            maxWeightedAverageAbsEeMaxThreshold : double
+            maxLastEeMaxThreshold : double
+            maxWeightedAverageAbsEeMniThreshold : double
+            maxLastEeMinThreshold : double
+        }
 
-//type EeData =
-//    {
-//        maxEe : double
-//        maxAverageEe : double
-//        maxWeightedAverageAbsEe : double
-//        maxLastEe : double
-//    }
-    /// TODO kk:20190704 - Implement
+        static member defaultValue =
+            {
+                maxWeightedAverageAbsEeMaxThreshold = 0.500
+                maxLastEeMaxThreshold = 0.500
+                maxWeightedAverageAbsEeMniThreshold = 0.000_100
+                maxLastEeMinThreshold = 0.000_100
+            }
+
+
     /// The following rules are used:
-    ///     0. All comparision values - mean parameter and rule specific values.
-    ///
-    ///     *. If (any interval)
-    ///            AND (maxWeightedAverageAbsEe >= maxThreshold OR maxLastEe >= maxThreshold)
+    ///     1. FOR (any interval)
+    ///            IF (maxWeightedAverageAbsEe >= maxWeightedAverageAbsEeMaxThreshold OR maxLastEe >= maxLastEeMaxThreshold)
     ///            STOP.
     ///
-    ///     *. If EndOfInterval
-    ///            AND (maxWeightedAverageAbsEe < minThreshold AND maxLastEe < minThreshold)
+    ///     2. IF EndOfInterval
+    ///            AND (maxWeightedAverageAbsEe < maxWeightedAverageAbsEeMniThreshold AND maxLastEe < maxLastEeMinThreshold)
     ///            STOP.
-    ///
-    ///     *. If InsideInterval AND maxWeightedAverageAbsEe < threshold AND maxLastEe < threshold continue.
-
-    ///     *.
-
-
-    ///     *. If EndOfInterval
-    ///            AND (maxWeightedAverageAbsEe > minThreshold OR maxLastEe > minThreshold)
-    ///            AND (maxWeightedAverageAbsEe < maxThreshold AND maxLastEe < maxThreshold)
-    ///            continue.
     let defaultContinueRun (n : NSolveParam) (p : PartitionInfo) =
-        failwith ""
+        let c = ContinueRunParam.defaultValue
+
+        match n.getEeData |> Option.bind(fun x -> x() |> Some) with
+        | Some d ->
+            let isEndOfInterval =
+                match p.partitionType with
+                | EndOfInterval -> true
+                | _ -> false
+
+            let rules (e : EeData) =
+                [
+                    e.maxWeightedAverageAbsEe >= c.maxWeightedAverageAbsEeMaxThreshold || e.maxLastEe >= c.maxLastEeMaxThreshold
+                    isEndOfInterval && (e.maxWeightedAverageAbsEe < c.maxWeightedAverageAbsEeMniThreshold || e.maxLastEe < c.maxLastEeMinThreshold)
+                ]
+
+            let stop = rules d |> List.fold (fun acc r -> r || acc) false
+            not stop
+        | None ->
+            match p.partitionType with
+            | InsideInterval -> true
+            | EndOfInterval -> false
+            | OutsideInterval -> false
 
 
     type OdeController =

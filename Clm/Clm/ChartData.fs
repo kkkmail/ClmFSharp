@@ -17,7 +17,6 @@ module ChartData =
 
 
     type ChartType =
-        //| PlotChiralAminoAcids
         | PlotAminoAcids
         | PlotEnantiomericExcess
         | PlotTotalSubst
@@ -133,6 +132,7 @@ module ChartData =
                 h.enantiomericExcess
                 |> Array.map (fun e -> abs e)
                 |> Array.max
+
 
     type ChartDataUpdater () =
         interface IUpdater<ChartInitData, ChartSliceData, ChartData> with

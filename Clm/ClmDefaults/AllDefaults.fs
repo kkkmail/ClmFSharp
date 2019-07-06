@@ -107,7 +107,7 @@ module AllDefaults =
                 Defaults_006_006.defaultValue
             ]
         @
-        updateDescription "Catalytic destruction / forward only for n = 20 (sim param 0.20)."
+        updateDescription "Catalytic destruction / forward only for n = 20 (sim param = 0.20)."
             [
                 Defaults_007_000.defaultValue
                 Defaults_007_001.defaultValue
@@ -124,7 +124,7 @@ module AllDefaults =
                 Defaults_008_003.defaultValue
             ]
         @
-        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param 0.20)."
+        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param = 0.20)."
             [
                 Defaults_009_000.defaultValue
                 Defaults_009_001.defaultValue
@@ -137,10 +137,11 @@ module AllDefaults =
                 Defaults_009_008.defaultValue
             ]
         @
-        updateDescription "Catalytic synthesis / forward only only for n = 20 (sim param 0.20)."
+        updateDescription "Catalytic synthesis / forward only for n = 20 (sim param = 0.20)."
             [
                 Defaults_010_000.defaultValue
                 Defaults_010_001.defaultValue
+                Defaults_010_002.defaultValue
             ]
         @
         updateDescription "Tests."

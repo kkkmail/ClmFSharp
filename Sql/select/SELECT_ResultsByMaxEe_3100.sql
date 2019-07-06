@@ -7,7 +7,7 @@ go
 
 -- Calculates how often the symmetry is broken for all processed default sets.
 declare @maxEe float, @maxAverageEe float
-set @maxEe = 0.00001
+set @maxEe = 0.0001
 set @maxAverageEe = 0.000003
 
 ; with

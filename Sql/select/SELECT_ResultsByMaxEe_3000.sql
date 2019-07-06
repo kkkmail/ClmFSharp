@@ -6,8 +6,9 @@ go
 
 
 -- Calculates how often the symmetry is broken for all processed default sets.
-declare @maxEeThreshold float
-set @maxEeThreshold = 0.00001
+declare @maxEe float, @maxAverageEe float
+set @maxEe = 0.00001
+set @maxAverageEe = 0.000003
 
 ; with
 w as
@@ -16,7 +17,7 @@ w as
 		r.modelDataId, 
 		t.numberOfAminoAcids,
 		(select top 1 t.clmDefaultValueId from ClmTask t inner join ModelData on t.clmTaskId = m.clmTaskId where m.modelDataId = r.modelDataId) as defaultSetIndex,
-		case when r.maxEe > @maxEeThreshold then 1 else 0 end as isSymmetryBroken,
+		case when r.maxEe > @maxEe and r.maxAverageEe > @maxAverageEe then 1 else 0 end as isSymmetryBroken,
 		cast(datediff(minute, m.createdOn, r.createdOn) as float) / 1440.0 as runTime
 	from ResultData r inner join ModelData m on r.modelDataId = m.modelDataId inner join ClmTask t on m.clmTaskId = t.clmTaskId
 ),

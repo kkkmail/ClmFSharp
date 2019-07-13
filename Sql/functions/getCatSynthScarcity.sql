@@ -1,6 +1,10 @@
-declare @clmDefaultValueId bigint
-set @clmDefaultValueId = 9000
+drop function if exists dbo.getCatSynthScarcity
+go
 
+create function dbo.getCatSynthScarcity(@clmDefaultValueId bigint)
+returns float
+as
+begin
 	declare @json nvarchar(max), @retVal float
 	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
 
@@ -28,14 +32,14 @@ set @clmDefaultValueId = 9000
 		from t2
 		cross apply openjson(t2.[value]) as a
 		cross apply openjson(a.[value]) as b
-		where b.[key] = 'catDestrParam'
+		where b.[key] = 'catSynthParam'
 	)
 	,t4 as
 	(
 		select a.* 
 		from t3
 		cross apply openjson(t3.[value]) as a
-		where a.[key] = 'catDestrRndEeParams'
+		where a.[key] = 'catSynthRndEeParams'
 	)
 	,t5 as
 	(
@@ -85,33 +89,6 @@ set @clmDefaultValueId = 9000
 	from t10
 	cross apply openjson(t10.[value]) as a
 
-	--,t11 as
-	--(
-	--	select a.* 
-	--	from t10
-	--	cross apply openjson(t10.[value]) as a
-	--)
-	--select * from t11
-	--select @retval = cast(a.[value] as float)
-	--from t8
-	--cross apply openjson(t8.[value]) as a
-
-
-select @retVal
-
---select json_value(@json, '$.rateParams.ArrayValue[0]')
---select json_query(@json, '$.rateParams.ArrayValue[0]')
-
---select json_value(@json, '$.rateParams[0]')
-
---select 1 as id
---cross apply openjson(json_query(@json, '$.rateParams')) as x
---cross apply openjson(x.[value], '$') as y
-
---select json_value(@json, '$.rateParams[0].Case')
---select json_query(@json, '$.rateParams[0].Case')
-
---select * 
---from dbo.JSONHierarchy(@json, DEFAULT, DEFAULT, DEFAULT)
---where ValueType <> 'array'
-
+	return @retval
+end
+go

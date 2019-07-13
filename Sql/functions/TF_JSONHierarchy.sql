@@ -1,6 +1,5 @@
-IF  Object_Id('dbo.JSONHierarchy', 'TF') IS NOT NULL 
-	DROP FUNCTION dbo.JSONHierarchy
-GO
+drop function if exists dbo.JSONHierarchy
+go
 
 -- https://www.red-gate.com/simple-talk/blogs/consuming-hierarchical-json-documents-sql-server-using-openjson/
 CREATE FUNCTION dbo.JSONHierarchy

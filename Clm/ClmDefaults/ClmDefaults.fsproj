@@ -147,6 +147,7 @@
     <Compile Include="DefaultValues\008\Defaults_008_001.fs" />
     <Compile Include="DefaultValues\008\Defaults_008_002.fs" />
     <Compile Include="DefaultValues\008\Defaults_008_003.fs" />
+    <Compile Include="DefaultValues\009\Defaults_009.fs" />
     <Compile Include="DefaultValues\009\Defaults_009_000.fs" />
     <Compile Include="DefaultValues\009\Defaults_009_001.fs" />
     <Compile Include="DefaultValues\009\Defaults_009_002.fs" />

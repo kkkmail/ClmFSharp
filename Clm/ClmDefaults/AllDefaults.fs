@@ -127,17 +127,21 @@ module AllDefaults =
             ]
         @
         updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param = 0.20)."
-            [
-                Defaults_009_000.defaultValue
-                Defaults_009_001.defaultValue
-                Defaults_009_002.defaultValue
-                Defaults_009_003.defaultValue
-                Defaults_009_004.defaultValue
-                Defaults_009_005.defaultValue
-                Defaults_009_006.defaultValue
-                Defaults_009_007.defaultValue
-                Defaults_009_008.defaultValue
-            ]
+            (
+                [
+                    Defaults_009_000.defaultValue
+                    Defaults_009_001.defaultValue
+                    Defaults_009_002.defaultValue
+                    Defaults_009_003.defaultValue
+                    Defaults_009_004.defaultValue
+                    Defaults_009_005.defaultValue
+                    Defaults_009_006.defaultValue
+                    Defaults_009_007.defaultValue
+                    Defaults_009_008.defaultValue
+                ]
+                @
+                (Defaults_009.nsd |> List.map Defaults_009.getGefaultValue)
+            )
         @
         updateDescription "Catalytic synthesis / forward only for n = 20 (sim param = 0.20)."
             [

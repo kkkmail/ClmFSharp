@@ -12,7 +12,7 @@ module GeneralData =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
-    let ClmBaseName = "clm3100"
+    let ClmBaseName = "clm3200"
 
     [<Literal>]
     let DefaultRootDrive = "C"
@@ -23,7 +23,7 @@ module GeneralData =
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
     [<Literal>]
-    let DefaultContGenServicePort = 3100
+    let DefaultContGenServicePort = 3200
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -204,7 +204,7 @@ module GeneralData =
 
 
     type AsyncUpdater<'I, 'A, 'S> (updater : IUpdater<'I, 'A, 'S>, i : 'I) =
-        let chat = Updater.Start(fun u -> 
+        let chat = Updater.Start(fun u ->
           let rec loop s = async {
             let! m = u.Receive()
 

@@ -13,3 +13,4 @@ ContGenAdm.exe add -i 9008 -n 20 -m 3 -y 10 -t 250000 -r 25
 
 ContGenAdm.exe add -i 10000 -n 20 -m 3 -y 10 -t 250000 -r 25
 ContGenAdm.exe add -i 10001 -n 20 -m 3 -y 10 -t 250000 -r 25
+ContGenAdm.exe add -i 10002 -n 20 -m 3 -y 10 -t 250000 -r 25

@@ -17,7 +17,6 @@ module ChartData =
 
 
     type ChartType =
-        //| PlotChiralAminoAcids
         | PlotAminoAcids
         | PlotEnantiomericExcess
         | PlotTotalSubst
@@ -99,6 +98,39 @@ module ChartData =
                 h.enantiomericExcess
                 |> Array.mapi (fun i _ -> getData i)
                 |> Array.map (fun e -> List.average e |> abs)
+                |> Array.max
+
+        member cd.maxWeightedAverageAbsEe =
+            match cd.allChartData with
+            | [] -> 0.0
+            | h :: _ ->
+                let weightFun i = double i
+
+                let totalWeight =
+                    cd.allChartData
+                    |> List.mapi(fun i _ -> weightFun i)
+                    |> List.sum
+
+                let weigh i e = e |> Array.map (fun x -> (weightFun i) * (abs x) / totalWeight)
+
+                let ee =
+                    cd.allChartData
+                    |> List.rev
+                    |> List.mapi (fun i e -> weigh i e.enantiomericExcess)
+
+                let getData i = ee |> List.map (fun e -> e.[i])
+
+                h.enantiomericExcess
+                |> Array.mapi (fun i _ -> getData i)
+                |> Array.map List.sum
+                |> Array.max
+
+        member cd.maxLastEe =
+            match cd.allChartData with
+            | [] -> 0.0
+            | h :: _ ->
+                h.enantiomericExcess
+                |> Array.map (fun e -> abs e)
                 |> Array.max
 
 

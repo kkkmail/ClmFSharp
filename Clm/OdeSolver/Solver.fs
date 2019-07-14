@@ -7,9 +7,17 @@ open ClmSys.GeneralData
 
 module Solver =
 
+    type EeData =
+        {
+            maxEe : double
+            maxAverageEe : double
+            maxWeightedAverageAbsEe : double
+            maxLastEe : double
+        }
+
+
     type OdeParams =
         {
-            modelDataId : Guid
             startTime : double
             endTime : double
             stepSize : double
@@ -18,11 +26,10 @@ module Solver =
             noOfProgressPoints : int option
         }
 
-        static member defaultValue =
+        static member defaultValue startTime endTime =
             {
-                modelDataId = Guid.NewGuid()
-                startTime = 0.0
-                endTime = 10.0
+                startTime = startTime
+                endTime = endTime
                 stepSize = 0.01
                 eps = 0.00001
                 noOfOutputPoints = Some 1000
@@ -32,26 +39,25 @@ module Solver =
 
     type OdeResult =
         {
-            modelDataId : Guid
-            y0 : double
-            noOfOutputPoints : int
             startTime : double
             endTime : double
-            t : double[]
-            x : double[,]
+            xEnd : double[]
         }
 
 
     type NSolveParam =
         {
             modelDataId : Guid
+            tStart : double
             tEnd : double
-            g : double[] -> double[]
-            h : double -> double[]
-            y0 : double
+            derivative : double[] -> double[]
+            initialValues : double[]
             progressCallBack : (decimal -> unit) option
             chartCallBack : (double -> double[] -> unit) option
+            getEeData : (unit -> EeData) option
         }
+
+        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
 
 
     let calculateProgress r m = (decimal (max 0 (r - 1))) / (decimal m)
@@ -67,12 +73,9 @@ module Solver =
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
         let start = DateTime.Now
-        let i = n.h n.y0
-
         let mutable progressCount = 0
         let mutable outputCount = 0
-
-        let p = { OdeParams.defaultValue with modelDataId = n.modelDataId; endTime = n.tEnd }
+        let p = OdeParams.defaultValue n.tStart n.tEnd
 
         let notify t r m =
             match n.progressCallBack with
@@ -102,21 +105,150 @@ module Solver =
                     notifyChart t x
             | _ -> ignore()
 
-            n.g x
+            n.derivative x
 
         let nt = 2
         let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
         let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
-        let mutable s = alglib.odesolverrkck(i, x, p.eps, p.stepSize)
+        let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
         do alglib.odesolversolve(s, d, null)
         let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
 
         {
-            modelDataId = p.modelDataId
-            y0 = n.y0
-            noOfOutputPoints = nt
             startTime = p.startTime
             endTime = p.endTime
-            t = xtbl
-            x = ytbl
+            xEnd = ytbl.[nt - 1, *]
         }
+
+
+    type PartitionType =
+        | InsideInterval
+        | EndOfInterval
+        | OutsideInterval
+
+
+    type PartitionInfo =
+        {
+            partitionType : PartitionType
+            getNSolveParam : double[] -> NSolveParam
+        }
+
+
+    let defaultPartition (n : NSolveParam) : List<PartitionInfo> =
+        let p =
+            [
+                (30.0, InsideInterval)
+                (75.0, InsideInterval)
+                (150.0, InsideInterval)
+                (250.0, EndOfInterval)
+                (400.0, OutsideInterval)
+                (600.0, OutsideInterval)
+                (1000.0, OutsideInterval)
+            ]
+
+        let s =
+            match p |> List.tryPick (fun (a, b) -> match b with | EndOfInterval -> Some a | _ -> None) with
+            | Some a -> a
+            | None -> 250.0
+
+        p
+        |> List.mapi (fun i (a, b) ->
+                    {
+                        partitionType = b
+                        getNSolveParam =
+                            if i = 0
+                            then fun x -> { n with initialValues = x; tStart = n.tStart; tEnd = n.tEnd * a / s }
+                            else n.next (n.tEnd * a / s)
+                    })
+
+
+    type ContinueRunParam =
+        {
+            maxWeightedAverageAbsEeMaxThreshold : double
+            maxLastEeMaxThreshold : double
+            maxWeightedAverageAbsEeMniThreshold : double
+            maxLastEeMinThreshold : double
+        }
+
+        static member defaultValue =
+            {
+                maxWeightedAverageAbsEeMaxThreshold = 0.500
+                maxLastEeMaxThreshold = 0.500
+                maxWeightedAverageAbsEeMniThreshold = 0.000_100
+                maxLastEeMinThreshold = 0.000_100
+            }
+
+
+    /// The following rules are used:
+    ///     1. FOR (any interval):
+    ///        IF (maxWeightedAverageAbsEe >= maxWeightedAverageAbsEeMaxThreshold OR maxLastEe >= maxLastEeMaxThreshold)
+    ///        THEN STOP.
+    ///
+    ///     2. IF EndOfInterval
+    ///        AND (maxWeightedAverageAbsEe < maxWeightedAverageAbsEeMniThreshold AND maxLastEe < maxLastEeMinThreshold)
+    ///        THEN STOP.
+    let continueRun c n p =
+        match n.getEeData |> Option.bind(fun x -> x() |> Some) with
+        | Some d ->
+            let isEndOfInterval() =
+                match p.partitionType with
+                | EndOfInterval -> true
+                | _ -> false
+
+            let rules (e : EeData) =
+                [
+                    e.maxWeightedAverageAbsEe >= c.maxWeightedAverageAbsEeMaxThreshold || e.maxLastEe >= c.maxLastEeMaxThreshold
+                    isEndOfInterval() && (e.maxWeightedAverageAbsEe < c.maxWeightedAverageAbsEeMniThreshold || e.maxLastEe < c.maxLastEeMinThreshold)
+                ]
+
+            let stop = rules d |> List.fold (fun acc r -> r || acc) false
+            not stop
+        | None ->
+            match p.partitionType with
+            | InsideInterval -> true
+            | EndOfInterval -> false
+            | OutsideInterval -> false
+
+
+    let defaultContinueRun = continueRun ContinueRunParam.defaultValue
+
+
+    type OdeController =
+        {
+            partition : NSolveParam -> List<PartitionInfo>
+            continueRun : NSolveParam -> PartitionInfo -> bool // This function is NOT pure because there is a MailboxProcessor behind it.
+        }
+
+        static member defaultValue =
+            {
+                partition = defaultPartition
+                continueRun = defaultContinueRun
+            }
+
+
+    type NSolvePartitionParam =
+        {
+            nSolveParam : NSolveParam
+            controller : OdeController
+        }
+
+        static member defaultValue n =
+            {
+                nSolveParam = n
+                controller = OdeController.defaultValue
+            }
+
+
+    let nSolvePartitioned (p : NSolvePartitionParam) : unit =
+        let d = p.controller.partition p.nSolveParam
+
+        let x =
+            d
+            |> List.fold(fun (a, b) e ->
+                            if b
+                            then
+                                let r = e.getNSolveParam a |> nSolve
+                                (r.xEnd, p.controller.continueRun p.nSolveParam e)
+                            else (a, b)) (p.nSolveParam.initialValues, true)
+
+        ignore()

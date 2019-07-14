@@ -1,5 +1,5 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 3.1.0.0.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 3.2.0.0.
 
 ### Complexity
 The main difficulty in modeling organic chemical systems is a very large number of possible reagents and reactions. For example, the number of peptide chains grows as: `(2 * M) * ((2 * M) ^ (N + 1) – 1) / ((2 * M) - 1)` where `M` is the number of considered amino acids and `N` is the maximum considered peptide length. That value for 20 amino acids and maximum peptide length of 3 gives 65,640 possible peptide chains. If some of the reactions can be catalyzed by some of these peptide chains, then, in theory, we must consider that *all* peptide chains can catalyze *all* such reactions, though most of the coefficients are exact zeros. This requires considering huge sparse matrices of coefficients of various reactions. Subsequently, it is not possible to use such matrices directly and all exact zeros must be removed from all equations. 
@@ -15,14 +15,12 @@ The system core consists of a model generator, which generates models using prec
 The parameters of the models / tasks can be adjusted on the fly and that will affect the models, which are generated after that. Once any model run is completed the aggregate result is stored in `ResultData` table. The HTML chats are produced if symmetry breaking occurred in the model.
 
 ### Internal Storage and Communication
-The system uses MS SQL as a database to store various parameters and generates HTML charts stored in a local folder. All extensive data sets are stored in the database in JSON format and all binary data sets are stored as zipped JSON. Please, refer to `DbData.DatabaseTypes` for the details. 
-
-The components of the system “talk” to each other using WCF. However, since it is a barebone WCF without MEX endpoint exposed, most of the WCF test tools won’t be able to “see” it properly. Due to the time constraint, adding a MEX endpoint does not seem justified because the code works.
+The system uses MS SQL as a database to store various parameters and generates HTML charts stored in a local folder. All extensive data sets are stored in the database in JSON format and all binary data sets are stored as zipped JSON. Please, refer to `DbData.DatabaseTypes` for the details. The components of the system “talk” to each other using barebone `TcpChannel` functionality.
 
 
 ## Build order
 The system uses F# type providers, which means that the database must be created first. The compile time connection string (as well as the run time connection string) are loaded from `App.config`. See `DbData.DatabaseTypes` fro details. Because the database is primitive (it contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not seem justified. So, the procedure is as follows:
-1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm3100`) / adjust it as necessary.
+1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm3200`) / adjust it as necessary.
 2.	Create MSSQL database with the name from step #1.
 3.	Run `-build.bat` file from `SQL` folder. It will produce a file `all.sql` in the folder `!All`. If no changes to tables were made, then the file will come out the same as in repository.
 4.	Load that file (`all.sql`) and run it in the database created on step #2. The script is fully reentrable, which means that it can be run many times without any side effects.

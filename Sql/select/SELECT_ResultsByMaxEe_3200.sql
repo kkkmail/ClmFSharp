@@ -65,11 +65,11 @@ select
 	isnull(b.symmBrokenCount, 0) as symmBrokenCount,
 	cast(cast(isnull(b.symmBrokenCount, 0) as float) / cast(d.modelCount as float) as money) as symmBrokenPct,
 	cast(d.runTime as decimal(10, 2)) as runTime,
-	dbo.getWasteRecyclingRate(d.defaultSetIndex) as wasteRecyclingRate,
-	dbo.getCatSynthSim(d.defaultSetIndex) as catSynthSim,
-	dbo.getCatSynthScarcity(d.defaultSetIndex) as catSynthScarcity,
-	dbo.getCatDestrSim(d.defaultSetIndex) as catDestrSim,
-	dbo.getCatDestrScarcity(d.defaultSetIndex) as catDestrScarcity
+	isnull(cast(dbo.getWasteRecyclingRate(d.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
+	isnull(cast(dbo.getCatSynthSim(d.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
+	isnull(cast(dbo.getCatSynthScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
+	isnull(cast(dbo.getCatDestrSim(d.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
+	isnull(cast(dbo.getCatDestrScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity
 
 from d left outer join b on d.defaultSetIndex = b.defaultSetIndex
 order by d.numberOfAminoAcids, d.defaultSetIndex

@@ -107,16 +107,8 @@ module AllDefaults =
                 Defaults_006_006.defaultValue
             ]
         @
-        updateDescription "Catalytic destruction / forward only for n = 20 (sim param = 0.20)."
-            [
-                Defaults_007_000.defaultValue
-                Defaults_007_001.defaultValue
-                Defaults_007_002.defaultValue
-                Defaults_007_003.defaultValue
-                Defaults_007_004.defaultValue
-                Defaults_007_005.defaultValue
-                Defaults_007_006.defaultValue
-            ]
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrSim = 0.20, vary catDestrScarcity)."
+            (Defaults_007.nd |> List.map Defaults_007.getGefaultValue)
         @
         updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20."
             [
@@ -126,11 +118,23 @@ module AllDefaults =
                 Defaults_008_003.defaultValue
             ]
         @
-        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param = 0.20)."
+        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param = 0.20, vary both scarcity param)."
             (Defaults_009.nsd |> List.map Defaults_009.getGefaultValue)
         @
-        updateDescription "Catalytic synthesis / forward only for n = 20 (sim param = 0.20)."
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthSim = 0.20, vary catSynthScarcity)."
             (Defaults_010.ns |> List.map Defaults_010.getGefaultValue)
+        @
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrScarcity = 20, vary catDestrSim)."
+            (Defaults_011.nd |> List.map Defaults_011.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 20, vary catSynthSim)."
+            (Defaults_012.ns |> List.map Defaults_012.getGefaultValue)
+        @
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrScarcity = 20, catDestrSim = 0.20, vary wasteRecyclingRate)."
+            (Defaults_013.nw |> List.map Defaults_013.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 20, catSynthSim = 0.20, vary wasteRecyclingRate)."
+            (Defaults_014.nw |> List.map Defaults_014.getGefaultValue)
         @
         updateDescription "Tests."
             [

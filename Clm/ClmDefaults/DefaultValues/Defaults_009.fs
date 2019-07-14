@@ -8,28 +8,28 @@ module Defaults_009 =
 
     let nsd =
         [
-            (009_000L, 10, 10)
-            (009_001L, 10,  5)
-            (009_002L, 10, 20)
-            (009_003L,  5, 10)
-            (009_004L,  5,  5)
-            (009_005L,  5, 20)
-            (009_006L, 20, 10)
-            (009_007L, 20,  5)
-            (009_008L, 20, 20)
+            ( 0L, 10, 10)
+            ( 1L, 10,  5)
+            ( 2L, 10, 20)
+            ( 3L,  5, 10)
+            ( 4L,  5,  5)
+            ( 5L,  5, 20)
+            ( 6L, 20, 10)
+            ( 7L, 20,  5)
+            ( 8L, 20, 20)
 
-            (009_010L, 10, 50)
-            (009_013L,  5, 50)
-            (009_016L, 20, 50)
-            (009_025L, 50,  5)
-            (009_026L, 50, 10)
-            (009_027L, 50, 20)
-            (009_028L, 50, 50)
+            (10L, 10, 50)
+            (13L,  5, 50)
+            (16L, 20, 50)
+            (25L, 50,  5)
+            (26L, 50, 10)
+            (27L, 50, 20)
+            (28L, 50, 50)
         ]
 
 
     let getGefaultValue (n, s, d) =
-        let clmDefaultValueId = n |> ClmDefaultValueId
+        let clmDefaultValueId = (9_000L + n) |> ClmDefaultValueId
         let description = None
         let catRateGenType = ByEnantiomerPairs
 

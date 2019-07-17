@@ -505,7 +505,7 @@ module AsyncRun =
             with
                 | ex ->
                     // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
-                    // Otherwise runningCount is not dereased.
+                    // Otherwise runningCount is not decreased.
                     ex.Data.Add("filename", filename)
                     //reraise()
                     false
@@ -520,7 +520,7 @@ module AsyncRun =
                 runQueueId = c.runQueueId
             }
         else
-            p.PriorityClass <- ProcessPriorityClass.BelowNormal
+            p.PriorityClass <- ProcessPriorityClass.Idle
 
             let processId = p.Id
 

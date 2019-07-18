@@ -6,11 +6,13 @@ go
 
 
 -- Calculates how often the symmetry is broken for all processed default sets.
-declare @maxEe float, @maxAverageEe float, @maxWeightedAverageAbsEe float, @maxLastEe float
-set @maxEe = 0.00001
-set @maxAverageEe = 0.000003
-set @maxWeightedAverageAbsEe = 0.00001
-set @maxLastEe = 0.00001
+--declare @maxEe float, @maxAverageEe float
+--set @maxEe = 0.0001
+--set @maxAverageEe = 0.000003
+
+declare @maxWeightedAverageAbsEe float, @maxLastEe float
+set @maxWeightedAverageAbsEe = 0.0001
+set @maxLastEe = 0.0001
 
 ; with
 w as

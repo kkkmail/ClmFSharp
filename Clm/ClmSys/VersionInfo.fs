@@ -9,7 +9,7 @@ module VersionInfo =
 
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumber = "3.2.0.0"
+    let VersionNumber = "4.0.0.0"
 
 
     [<Literal>]

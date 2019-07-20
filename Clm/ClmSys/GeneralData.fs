@@ -12,7 +12,7 @@ module GeneralData =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
-    let ClmBaseName = "clm3200"
+    let ClmBaseName = "clm4000"
 
     [<Literal>]
     let DefaultRootDrive = "C"
@@ -23,7 +23,7 @@ module GeneralData =
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
     [<Literal>]
-    let DefaultContGenServicePort = 3200
+    let DefaultContGenServicePort = 4000
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -34,7 +34,7 @@ module GeneralData =
     let Nl = "\r\n"
 
     [<Literal>]
-    let DefaultMinEe = 0.000_01
+    let DefaultMinEe = 0.000_1
 
 
     type ServiceAddress =

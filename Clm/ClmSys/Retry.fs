@@ -1,12 +1,14 @@
 ﻿namespace ClmSys
 
+open System.Diagnostics
+
 // http://www.fssnip.net/bb/title/Exception-Retry-Computation-Expression
 module Retry =
     open System.Threading
     open System
 
 
-    type RetryParams = 
+    type RetryParams =
         {
             maxRetries : int
             waitBetweenRetries : int
@@ -56,10 +58,23 @@ module Retry =
 
     let tryDbFun logger connectionString f =
         try
-            (retry {
-                let! b = rm (fun _ -> f connectionString)
-                return Some b
-            }) defaultRetryParams
+            let p = Process.GetCurrentProcess()
+            let c = p.PriorityClass
+
+            try
+                try
+                    p.PriorityClass <- ProcessPriorityClass.High
+
+                    (retry {
+                        let! b = rm (fun _ -> f connectionString)
+                        return Some b
+                    }) defaultRetryParams
+                with
+                    | e ->
+                        logger e
+                        None
+            finally
+                p.PriorityClass <- c
         with
             | e ->
                 logger e

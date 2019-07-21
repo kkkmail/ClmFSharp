@@ -87,9 +87,7 @@
     <Compile Include="Installer.fs" />
     <Compile Include="ContGenServiceTasks.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="db.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="db.config" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>

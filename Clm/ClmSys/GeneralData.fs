@@ -226,3 +226,38 @@ module GeneralData =
             let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
             started.Add estRunTime |> Some
         else None
+
+
+    let partition maxVal q n =
+        let (a, b) =
+            q
+            |> List.mapi (fun i e -> (i + n + 1, e))
+            |> List.partition (fun (i, _) -> i <= maxVal)
+
+        (a |> List.map snd, b |> List.map snd)
+
+
+    type Map<'k, 'v when 'k : comparison>
+        with
+
+        member m.tryRemove k =
+            match m.ContainsKey k with
+            | true -> m.Remove k
+            | false -> m
+
+
+    //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
+    let rec removeFirst pred lst =
+        match lst with
+        | h::t when pred h -> t
+        | h::t -> h::removeFirst pred t
+        | _ -> []
+
+
+    let getExeName exeName =
+        // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
+        // See:
+        //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
+        //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
+        let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
+        x + @"\" + exeName

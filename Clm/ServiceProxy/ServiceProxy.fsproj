@@ -76,6 +76,11 @@
       <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\DbData\DbData.fsproj">
       <Name>DbData</Name>
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>

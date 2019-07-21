@@ -2,22 +2,19 @@
 
 open System
 open ClmSys.GeneralData
-open ClmSys.Retry
 open Clm.ModelParams
-//open DbData.Configuration
-//open DbData.DatabaseTypes
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open Clm.CommandLine
 open Clm.CalculationData
 open AsyncRun
+open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 
 module Runner =
 
     type ModelRunnerParam =
         {
-            //connectionString : ConnectionString
             exeName : string
             saveModelCode : bool
             serviceAccessInfo : ServiceAccessInfo
@@ -26,7 +23,6 @@ module Runner =
 
         static member defaultValue i p =
             {
-                //connectionString = clmConnectionString
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
@@ -36,7 +32,6 @@ module Runner =
 
     type ModelRunner (p : ModelRunnerParam) =
         let logError e = printfn "Error: %A" e
-        //let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
 
         let runModel e c =
@@ -46,7 +41,7 @@ module Runner =
                 callBack = c
                 minUsefulEe = p.serviceAccessInfo.minUsefulEe
             }
-            |> runModel
+            |> p.runnerProxy.runModel
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =

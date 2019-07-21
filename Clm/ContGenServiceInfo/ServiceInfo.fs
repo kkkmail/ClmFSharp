@@ -1,5 +1,7 @@
 ﻿namespace ContGenServiceInfo
+
 open System
+open System.Diagnostics
 open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
@@ -85,6 +87,48 @@ module ServiceInfo =
                 progress = this.progress
             }
 
+    type ProcessStartInfo =
+        {
+            processId : int
+            modelDataId : ModelDataId
+            runQueueId : RunQueueId
+        }
+
+        member this.runningProcessInfo =
+            {
+                started = DateTime.Now
+                runningProcessId = this.processId
+                runningModelId = this.modelDataId
+                runningQueueId = Some this.runQueueId
+                progress = TaskProgress.NotStarted
+            }
+
+
+    type ProcessResult =
+        {
+            startInfo : ProcessStartInfo
+            exitCode : int
+            runTime : int64
+            outputs : seq<string>
+            errors : seq<string>
+        }
+
+
+    type ProcessStartedCallBack =
+        {
+            notifyOnStarted : ProcessStartInfo -> unit
+            calledBackModelId : ModelDataId
+            runQueueId : RunQueueId
+        }
+
+
+    type RunInfo =
+        {
+            run : ProcessStartedCallBack -> ProcessStartInfo
+            modelDataId : ModelDataId
+            runQueueId : RunQueueId
+        }
+
 
     type ContGenRunnerState =
         {
@@ -129,7 +173,7 @@ module ServiceInfo =
         //abstract getServiceAccessInfo : unit -> ServiceAccessInfo
 
 
-    let mutable callCount = -1
+    let mutable private callCount = -1
 
 
     let getServiceState (service : IContGenService) =
@@ -143,3 +187,66 @@ module ServiceInfo =
             printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
             ignore()
         Interlocked.Decrement(&callCount) |> ignore
+
+
+    let runProc (c : ProcessStartedCallBack) filename args startDir =
+        let procStartInfo =
+            ProcessStartInfo(
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                FileName = filename,
+                Arguments = args
+            )
+
+        match startDir with | Some d -> procStartInfo.WorkingDirectory <- d | _ -> ()
+
+        let outputs = System.Collections.Generic.List<string>()
+        let errors = System.Collections.Generic.List<string>()
+        let outputHandler f (_sender:obj) (args:DataReceivedEventArgs) = f args.Data
+        let p = new Process(StartInfo = procStartInfo)
+        p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
+        p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
+
+        let started =
+            try
+                p.Start()
+            with
+                | ex ->
+                    // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
+                    // Otherwise runningCount is not decreased.
+                    ex.Data.Add("filename", filename)
+                    //reraise()
+                    false
+
+        if not started
+        then
+            printfn "Failed to start process %s" filename
+
+            {
+                processId = -1
+                modelDataId = c.calledBackModelId
+                runQueueId = c.runQueueId
+            }
+        else
+            p.PriorityClass <- ProcessPriorityClass.Idle
+
+            let processId = p.Id
+
+            printfn "Started %s with pid %i" p.ProcessName processId
+            c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
+
+            {
+                processId = processId
+                modelDataId = c.calledBackModelId
+                runQueueId = c.runQueueId
+            }
+
+
+    type RunModelParam =
+        {
+            exeName : string
+            commandLineParam : ModelCommandLineParam
+            callBack : ProcessStartedCallBack
+            minUsefulEe : MinUsefulEe
+        }

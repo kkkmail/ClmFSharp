@@ -2,8 +2,10 @@
 
 open ClmSys.Retry
 open ClmSys.GeneralData
+open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
+open ContGenServiceInfo.ServiceInfo
 
 module Runner =
 
@@ -55,6 +57,24 @@ module Runner =
             | RemoteRunner c -> failwith ""
 
 
+        let runModelImpl (p : RunModelParam) =
+            match i with
+            | LocalRunner c ->
+                let fullExeName = getExeName p.exeName
+
+                let data =
+                    {
+                        modelDataId = p.callBack.calledBackModelId
+                        minUsefulEe = p.minUsefulEe
+                    }
+
+                let commandLineParams = p.commandLineParam.toCommandLine data
+                printfn "runModel::commandLineParams = %A\n" commandLineParams
+                runProc p.callBack fullExeName commandLineParams None
+
+            | RemoteRunner c -> failwith ""
+
+
         let saveRunQueueEntryimpl modelId p = tryDbFun connectionString (saveRunQueueEntry modelId p)
         let tryUpdateClmTaskImpl c = tryDbFun connectionString (tryUpdateClmTask c)
         let addClmTaskImpl c = tryDbFun connectionString (addClmTask c)
@@ -75,3 +95,4 @@ module Runner =
         member __.loadIncompleteClmTasks i = loadIncompleteClmTasksImpl i
         member __.loadRunQueue i = loadRunQueueImpl i
         member __.deleteRunQueueEntry runQueueId = deleteRunQueueEntryImpl runQueueId
+        member __.runModel (p : RunModelParam) = runModelImpl (p : RunModelParam)

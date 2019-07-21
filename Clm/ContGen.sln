@@ -39,6 +39,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmDefaults", "ClmDefaults\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ServiceProxy", "ServiceProxy\ServiceProxy.fsproj", "{37054210-CE85-4B20-9B89-21A66A3BDF8E}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PartitionerServiceInfo", "PartitionerServiceInfo\PartitionerServiceInfo.fsproj", "{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PartitionerService", "PartitionerService\PartitionerService.fsproj", "{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -191,6 +195,22 @@ Global
 		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|x64.ActiveCfg = Release|Any CPU
 		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|x64.Build.0 = Release|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Debug|x64.Build.0 = Debug|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|x64.ActiveCfg = Release|Any CPU
+		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|x64.Build.0 = Release|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Debug|x64.Build.0 = Debug|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Release|x64.ActiveCfg = Release|Any CPU
+		{0C2D5E2B-6352-446E-8EEB-3B0D47750F2F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -261,3 +261,10 @@ module GeneralData =
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
         x + @"\" + exeName
+
+
+    type PartitionerAccessInfo =
+        {
+            partitionerAddress : ServiceAddress
+            partitionerPort : ServicePort
+        }

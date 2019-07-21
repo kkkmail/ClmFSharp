@@ -13,18 +13,19 @@ open OdeSolver.Solver
 open Analytics.ChartExt
 open Analytics.Visualization
 open Argu
-open DbData.Configuration
-open DbData.DatabaseTypes
+//open DbData.Configuration
+//open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
 open Clm.Distributions
 open Clm.CalculationData
+open ServiceProxy.SolverRunner
 
 module SolverRunnerTasks =
 
     let logError e = printfn "Error: %A." e
-    let tryDbFun f = tryDbFun logError clmConnectionString f
+    //let tryDbFun f = tryDbFun logError clmConnectionString f
 
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
@@ -65,6 +66,11 @@ module SolverRunnerTasks =
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
             Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port; minUsefulEe = ee }
         | _ -> None
+
+
+    let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
+        printfn "!!! Implement getSolverRunnerProxy !!!"
+        SolverRunnerProxyInfo.defaultValue
 
 
     let getResponseHandler i = ResponseHandler.tryCreate i
@@ -179,25 +185,42 @@ module SolverRunnerTasks =
         (r, chartData)
 
 
-    let plotAllResults (d : RunSolverData) (i : ServiceAccessInfo) (r : ResultDataWithId) chartData =
-        let plotAll show =
-            let pdi = getPlotDataInfo d.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
-            let plotter = new Plotter(pdi, chartData)
-            plotter.plotAminoAcids show
-            plotter.plotTotalSubst show
-            plotter.plotEnantiomericExcess show
+    type PlotResultsInfo =
+        {
+            runSolverData : RunSolverData
+            serviceAccessInfo : ServiceAccessInfo
+            resultDataWithId : ResultDataWithId
+            chartData : ChartData
+            sovlerRunnerProxy : SolverRunnerProxy
+        }
 
-        if r.resultData.maxEe >= i.minUsefulEe.value
+
+    let plotAllResults (i : PlotResultsInfo) =
+        let plotAll show =
+            let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
+            let plotter = new Plotter(pdi, i.chartData)
+
+            let plots =
+                [
+                    plotter.plotAminoAcids show
+                    plotter.plotTotalSubst show
+                    plotter.plotEnantiomericExcess show
+                ]
+
+            i.sovlerRunnerProxy.saveCharts plots
+
+        if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then
             printfn "Generating plots..."
-            plotAll false
-        else printfn "Value of maxEe = %A is too small. Not creating plots." r.resultData.maxEe
+            plotAll false 
+        else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
-            match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) |> Option.bind id with
+            let p = SolverRunnerProxy(getSolverRunnerProxy results)
+            match p.tryLoadModelData i (ModelDataId modelDataId) |> Option.bind id with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
@@ -209,9 +232,17 @@ module SolverRunnerTasks =
 
                 printfn "Saving."
                 let (r, chartData) = getResultAndChartData runSolverData
-                r |> saveResultData |> tryDbFun |> ignore
+                r |> p.saveResultData |> ignore
 
-                plotAllResults runSolverData i r chartData
+                {
+                    runSolverData = runSolverData
+                    serviceAccessInfo = i
+                    resultDataWithId = r
+                    chartData = chartData
+                    sovlerRunnerProxy = p
+                }
+                |> plotAllResults
+
                 printfn "Completed."
 
                 CompletedSuccessfully

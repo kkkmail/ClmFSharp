@@ -34,7 +34,6 @@ module Runner =
 
 
     type RunnerProxy(i : RunnerProxyInfo) =
-
         let logError e = printfn "Error: %A" e
         let tryDbFun c f = tryDbFun logError c f
 

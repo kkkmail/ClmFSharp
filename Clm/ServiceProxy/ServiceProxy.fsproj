@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Runner.fs" />
+    <Compile Include="SolverRunner.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

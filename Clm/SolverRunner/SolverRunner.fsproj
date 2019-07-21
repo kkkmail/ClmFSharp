@@ -148,6 +148,11 @@
       <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

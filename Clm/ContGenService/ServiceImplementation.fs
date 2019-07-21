@@ -5,11 +5,12 @@ open ClmSys.GeneralData
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
+open ServiceProxy.Runner
 
 module ServiceImplementation =
 
     let createServiceImpl i =
-        let a = createRunner (ModelRunnerParam.defaultValue i)
+        let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
         // Send startGenerate in case runner stops due to some reason.
         let eventHandler _ = a.startGenerate()

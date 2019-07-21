@@ -11,6 +11,7 @@ open ClmSys.Retry
 open Clm.ModelParams
 open System
 open ContGenAdm.AdmCommandLine
+open ServiceProxy.Runner
 
 module ContGenAdmTasks =
 
@@ -57,7 +58,7 @@ module ContGenAdmTasks =
                         printfn "Cannot get service address and/or port."
                         ignore()
                     | h :: _ ->
-                        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue h.serviceAccessInfo with saveModelCode = true }
+                        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue h.serviceAccessInfo (RunnerProxy()) with saveModelCode = true }
                         g nt |> ignore
                 | false -> ignore()
 

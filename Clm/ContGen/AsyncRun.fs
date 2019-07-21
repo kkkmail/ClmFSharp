@@ -4,10 +4,8 @@ open System
 open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
-open ClmSys.ExitErrorCodes
 open ContGenServiceInfo.ServiceInfo
 open System.Threading
-open Clm.CommandLine
 
 module AsyncRun =
 
@@ -399,88 +397,7 @@ module AsyncRun =
         member this.runModel(m, p) = RunModel (this, m, p) |> messageLoop.Post
 
 
-    /// http://www.fssnip.net/sw/title/RunProcess + some tweaks.
-    /// We can't really fail here, especially if it runs under Windows service.
-    let runProcOld (c : ProcessStartedCallBack) filename args startDir =
-        let timer = Stopwatch.StartNew()
-
-        let procStartInfo =
-            ProcessStartInfo(
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                FileName = filename,
-                Arguments = args
-            )
-
-        match startDir with | Some d -> procStartInfo.WorkingDirectory <- d | _ -> ()
-
-        let outputs = System.Collections.Generic.List<string>()
-        let errors = System.Collections.Generic.List<string>()
-        let outputHandler f (_sender:obj) (args:DataReceivedEventArgs) = f args.Data
-        let p = new Process(StartInfo = procStartInfo)
-        p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
-        p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
-
-        let started =
-            try
-                p.Start()
-            with
-                | ex ->
-                    // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
-                    // Otherwise runningCount is not dereased.
-                    ex.Data.Add("filename", filename)
-                    //reraise()
-                    false
-
-        if not started
-        then
-            printfn "Failed to start process %s" filename
-
-            {
-                startInfo =
-                    {
-                        processId = -1
-                        modelDataId = c.calledBackModelId
-                        runQueueId = c.runQueueId
-                    }
-                exitCode = CannotFindSpecifiedFileException
-                runTime = timer.ElapsedMilliseconds
-                outputs = []
-                errors = []
-            }
-        else 
-            p.PriorityClass <- ProcessPriorityClass.BelowNormal
-
-            let processId = p.Id
-
-            printfn "Started %s with pid %i" p.ProcessName processId
-            c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
-
-            p.BeginOutputReadLine()
-            p.BeginErrorReadLine()
-            p.WaitForExit()
-            timer.Stop()
-            printfn "Finished %s after %A." filename (timer.ElapsedMilliseconds |> double |> TimeSpan.FromMilliseconds)
-            let cleanOut l = l |> Seq.filter (fun o -> String.IsNullOrEmpty o |> not)
-
-            {
-                startInfo =
-                    {
-                        processId = processId
-                        modelDataId = c.calledBackModelId
-                        runQueueId = c.runQueueId
-                    }
-                exitCode = p.ExitCode
-                runTime = timer.ElapsedMilliseconds
-                outputs = cleanOut outputs
-                errors = cleanOut errors
-            }
-
-
     let runProc (c : ProcessStartedCallBack) filename args startDir =
-        let timer = Stopwatch.StartNew()
-
         let procStartInfo =
             ProcessStartInfo(
                 RedirectStandardOutput = true,

@@ -68,6 +68,7 @@
     <Compile Include="GeneralData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="Retry.fs" />
+    <Compile Include="Fake.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
   </ItemGroup>

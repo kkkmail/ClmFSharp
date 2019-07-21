@@ -80,13 +80,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">
-      <HintPath>..\packages\Argu.5.4.0\lib\net45\Argu.dll</HintPath>
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
-      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -123,6 +123,11 @@
     <ProjectReference Include="..\DbData\DbData.fsproj">
       <Name>DbData</Name>
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

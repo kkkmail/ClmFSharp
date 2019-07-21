@@ -4,48 +4,39 @@ open System
 open ClmSys.GeneralData
 open ClmSys.Retry
 open Clm.ModelParams
-open DbData.Configuration
-open DbData.DatabaseTypes
+//open DbData.Configuration
+//open DbData.DatabaseTypes
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open Clm.CommandLine
 open Clm.CalculationData
 open AsyncRun
-
-// ! Do not delete !
-open Fake.DotNet
-open Fake.Core
-open Fake.IO
-open Fake.Core.TargetOperators
-//open Fake.IO.Globbing.Operators //enables !! and globbing
+open ServiceProxy.Runner
 
 module Runner =
 
     type ModelRunnerParam =
         {
-            connectionString : ConnectionString
-            rootBuildFolder : string
-            buildTarget : string
+            //connectionString : ConnectionString
             exeName : string
             saveModelCode : bool
             serviceAccessInfo : ServiceAccessInfo
+            runnerProxy : RunnerProxy
         }
 
-        static member defaultValue i =
+        static member defaultValue i p =
             {
-                connectionString = clmConnectionString
-                rootBuildFolder = DefaultRootFolder + @"bin\"
-                buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
+                //connectionString = clmConnectionString
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
+                runnerProxy = p
             }
 
 
     type ModelRunner (p : ModelRunnerParam) =
-
         let logError e = printfn "Error: %A" e
-        let tryDbFun f = tryDbFun logError (p.connectionString) f
+        //let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
 
         let runModel e c =
@@ -57,11 +48,9 @@ module Runner =
             }
             |> runModel
 
-        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
-
 
         let tryLoadParams (c : ClmTask) : AllParams option =
-            fun d -> tryDbFun (tryLoadClmDefaultValue d) |> Option.bind id
+            fun d -> p.runnerProxy.tryLoadClmDefaultValue d |> Option.bind id
             |> AllParams.tryGetDefaultValue c
 
 
@@ -81,64 +70,26 @@ module Runner =
             model.getModelData
 
 
-        let saveModelData modelData = modelData |> tryUpdateModelData |> tryDbFun
+        let saveModelData modelData = p.runnerProxy.tryUpdateModelData modelData
         let saveModel getModelData = getModelData() |> saveModelData
+        let updateTask (c : ClmTask) = p.runnerProxy.tryUpdateClmTask c |> ignore
+        let tryAddClmTask c = p.runnerProxy.addClmTask c
 
 
-        // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
-        //let compileModel modelId =
-        //    let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
-        //    Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
-        //
-        //    // Properties
-        //    let buildDir = getBuildDir modelId
-        //
-        //    // Targets
-        //    Target.create "Clean" (fun _ ->
-        //      Shell.cleanDir buildDir
-        //    )
-        //
-        //    Target.create "BuildApp" (fun _ ->
-        //      [ p.buildTarget ]
-        //        |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
-        //        |> Trace.logItems "AppBuild-Output: "
-        //    )
-        //
-        //    Target.create "Default" (fun _ ->
-        //      Trace.trace "Built completed."
-        //    )
-        //
-        //    "Clean"
-        //      ==> "BuildApp"
-        //      ==> "Default"
-        //      |> ignore
-        //
-        //    Target.runOrDefault "Default"
-
-
-        let getQueueId (p : ModelCommandLineParam) modelId =
-             match tryDbFun (saveRunQueueEntry modelId p) with
+        let getQueueId (c : ModelCommandLineParam) modelId =
+             match p.runnerProxy.saveRunQueueEntry modelId c with
              | Some q -> q
              | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
 
 
-        let updateTask (c : ClmTask) =
-            tryDbFun (tryUpdateClmTask c)
-            |> ignore
-
-
-        let tryAddClmTask c =
-            tryDbFun (addClmTask c)
-
-
         let tryLoadClmTask i t =
-            match tryDbFun (tryLoadClmTask i t) with
+            match p.runnerProxy.tryLoadClmTask i t with
             | Some (Some c) -> Some c
             | _ -> None
 
 
         let tryLoadModelData i m =
-            match tryDbFun (tryLoadModelData i m) with
+            match p.runnerProxy.tryLoadModelData i m with
             | Some (Some c) -> Some c
             | _ -> None
 
@@ -175,13 +126,13 @@ module Runner =
 
 
         let generateAll i () =
-            match tryDbFun (loadIncompleteClmTasks i) with
+            match p.runnerProxy.loadIncompleteClmTasks i with
             | Some c -> c |> List.map generateImpl |> List.concat
             | None -> []
 
 
         let getQueue i () =
-            match tryDbFun (loadRunQueue i) with
+            match p.runnerProxy.loadRunQueue i with
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = e.modelCommandLineParam |> runModel
@@ -192,7 +143,7 @@ module Runner =
 
 
         let removeFromQueue runQueueId =
-            match tryDbFun (deleteRunQueueEntry runQueueId) with
+            match p.runnerProxy.deleteRunQueueEntry runQueueId with
             | Some _ -> ignore()
             | None ->
                 logError (sprintf "Cannot delete runQueueId = %A" runQueueId)

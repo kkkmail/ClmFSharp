@@ -99,13 +99,18 @@
       <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj">
       <Name>SolverRunner</Name>
       <Project>{f0d4b13d-57ab-4ebf-ae90-4f758cf5741b}</Project>
       <Private>True</Private>
     </ProjectReference>
     <Reference Include="Argu">
-      <HintPath>..\packages\Argu.5.4.0\lib\net45\Argu.dll</HintPath>
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Configuration">
       <HintPath>..\packages\FSharp.Configuration.1.5.0\lib\net45\FSharp.Configuration.dll</HintPath>

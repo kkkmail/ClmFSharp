@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2048
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Clm", "Clm\Clm.fsproj", "{2CFC7E81-4FB4-46B4-9534-C1455E2C4C14}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmImpure", "ClmImpure\ClmImpure.fsproj", "{C516437D-00B2-4D8F-8B5F-EC867CC8D277}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{740464F5-6E8C-4038-AB98-51DFA5A09EC1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ServiceProxy", "ServiceProxy\ServiceProxy.fsproj", "{37054210-CE85-4B20-9B89-21A66A3BDF8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,14 @@ Global
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.ActiveCfg = Release|x64
 		{740464F5-6E8C-4038-AB98-51DFA5A09EC1}.Release|x64.Build.0 = Release|x64
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Debug|x64.Build.0 = Debug|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|x64.ActiveCfg = Release|Any CPU
+		{37054210-CE85-4B20-9B89-21A66A3BDF8E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -170,7 +170,6 @@ module ServiceInfo =
         abstract updateProgress : ProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
-        //abstract getServiceAccessInfo : unit -> ServiceAccessInfo
 
 
     let mutable private callCount = -1

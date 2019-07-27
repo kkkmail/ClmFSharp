@@ -278,3 +278,9 @@ module GeneralData =
 
     let getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
         "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+
+
+    type NodeId =
+        | NodeId of Guid
+
+        member this.value = let (NodeId v) = this in v

@@ -1,4 +1,4 @@
-﻿namespace MessageServer.AssemblyInfo
+﻿namespace MessagingServer.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.InteropServices
@@ -7,11 +7,11 @@ open ClmSys.VersionInfo
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("MessageServer")>]
+[<assembly: AssemblyTitle("MessagingServer")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("MessageServer")>]
+[<assembly: AssemblyProduct("MessagingServer")>]
 [<assembly: AssemblyCopyright(CopyrightInfo)>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]

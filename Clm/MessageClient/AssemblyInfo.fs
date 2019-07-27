@@ -1,4 +1,4 @@
-﻿namespace MessageClient.AssemblyInfo
+﻿namespace Messaging.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.InteropServices
@@ -7,11 +7,11 @@ open ClmSys.VersionInfo
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("MessageClient")>]
+[<assembly: AssemblyTitle("Messaging")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("MessageClient")>]
+[<assembly: AssemblyProduct("Messaging")>]
 [<assembly: AssemblyCopyright(CopyrightInfo)>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]

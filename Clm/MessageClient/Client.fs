@@ -79,7 +79,7 @@ module Client =
     type MessageClientMessage<'T> =
         | Start
         | SendMessage of MessageInfo<'T>
-        | GetMessages of AsyncReplyChannel<MessageClientState<'T>>
+        | GetMessages of AsyncReplyChannel<List<Message<'T>>>
         | TransmitMessages
 
 
@@ -107,7 +107,9 @@ module Client =
             { s with outgoingMessages = message :: s.outgoingMessages }
 
 
-        let onGetMessages s =
+        let onGetMessages s (r : AsyncReplyChannel<List<Message<'T>>>) =
+            r.Reply s.incomingMessages
+
             s.incomingMessages
             |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
             |> List.map (fun e -> s.messageClientData.messageClientProxy.deleteMessage e.messageId)
@@ -138,9 +140,7 @@ module Client =
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
-                            | GetMessages r ->
-                                r.Reply s
-                                return! onGetMessages s |> loop
+                            | GetMessages r -> return! onGetMessages s r |> loop
                             | TransmitMessages -> return! onTransmitMessages s |> loop
                         }
 
@@ -148,10 +148,7 @@ module Client =
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
-
-        member __.getMessages() =
-            let state = messageLoop.PostAndReply GetMessages
-            state.incomingMessages |> List.rev
+        member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
 
 
 /////////////////////////////////////////////////////
@@ -191,16 +188,19 @@ module Client =
     type MessageServerMessage<'T> =
         | Start
         | SendMessage of Message<'T>
-        | GetMessages of AsyncReplyChannel<MessageServerState<'T>>
-        //| TransmitMessages
+        | GetMessages of NodeId * AsyncReplyChannel<List<Message<'T>>>
 
 
     type MessageServer<'T>(d : MessageServerData<'T>) =
+        let updateMessages s m =
+            match s.messages.TryFind m.messageInfo.recipient with
+            | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
+            | None -> { s with messages = s.messages.Add (m.messageInfo.recipient, [ m ]) }
+
+
         let onStart s =
-            //let messages = s.messageClientData.messageClientProxy.loadMessages()
-            //let (incoming, outgoing) = messages |> List.partition (fun e -> match e.messageType with | IncomingMessage -> true | OutgoingMessage -> false)
-            //{ s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
-            failwith ""
+            s.messageServerData.messageServerProxy.loadMessages()
+            |> List.fold (fun acc e -> updateMessages acc e) s
 
 
         let onSendMessage s (m : Message<'T>) =
@@ -208,35 +208,23 @@ module Client =
             | GuaranteedDelivery -> s.messageServerData.messageServerProxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
 
-            match s.messages.TryFind m.messageInfo.recipient with
-            | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
-            | None -> { s with messages = s.messages.Add (m.messageInfo.recipient, [ m ]) }
+            updateMessages s m
 
 
-        let onGetMessages s =
-            //s.incomingMessages
-            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            //|> List.map (fun e -> s.messageClientData.messageClientProxy.deleteMessage e.messageId)
-            //|> ignore
+        let onGetMessages s (n, r : AsyncReplyChannel<List<Message<'T>>>) =
+            match s.messages.TryFind n with
+            | Some v ->
+                r.Reply v
 
-            //{ s with incomingMessages = [] }
-            s
+                v
+                |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+                |> List.map (fun e -> s.messageServerData.messageServerProxy.deleteMessage e.messageId)
+                |> ignore
 
-
-        //let onTransmitMessages s =
-        //    let result =
-        //        s.outgoingMessages
-        //        |> List.rev
-        //        |> List.map (fun e -> { e with messageType = IncomingMessage })
-        //        |> s.messageClientData.messageClientProxy.sendMessages
-
-        //    let messages = s.messageClientData.messageClientProxy.receiveMessages()
-        //    let transmitted = result |> List.map (fun e -> e.messageId) |> Set.ofList
-        //    let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
-        //    let failed = Set.difference outgoing transmitted
-        //    let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId)
-        //    { s with outgoingMessages = remaining; incomingMessages = messages @ s.incomingMessages }
-
+                { s with messages = s.messages.Add(n, []) }
+            | None ->
+                r.Reply []
+                s
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -246,19 +234,11 @@ module Client =
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
-                            | GetMessages r ->
-                                r.Reply s
-                                return! onGetMessages s |> loop
-                            //| TransmitMessages -> return! onTransmitMessages s |> loop
+                            | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
                         }
 
                 onStart (MessageServerState<'T>.defaultValue d) |> loop
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
-
-        member __.getMessages (n : NodeId) =
-            //let state = GetMessages n |> messageLoop.PostAndReply
-            //state.incomingMessages |> List.rev
-            0
-
+        member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))

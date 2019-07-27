@@ -75,7 +75,11 @@ module SvcCommandLine =
 
 
         {
-            serviceAddress = address
-            servicePort = port
+            serviceAccessInfo =
+                {
+                    serviceAddress = address
+                    servicePort = port
+                }
+
             minUsefulEe = ee
         }

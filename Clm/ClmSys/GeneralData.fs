@@ -51,6 +51,13 @@ module GeneralData =
         static member defaultValue = ServicePort DefaultContGenServicePort
 
 
+    type ServiceAccessInfo =
+        {
+            serviceAddress : ServiceAddress
+            servicePort : ServicePort
+        }
+
+
     type MinUsefulEe =
         | MinUsefulEe of double
 
@@ -58,10 +65,9 @@ module GeneralData =
         static member defaultValue = MinUsefulEe DefaultMinEe
 
 
-    type ServiceAccessInfo =
+    type ContGenServiceAccessInfo =
         {
-            serviceAddress : ServiceAddress
-            servicePort : ServicePort
+            serviceAccessInfo : ServiceAccessInfo
             minUsefulEe : MinUsefulEe
         }
 
@@ -138,26 +144,26 @@ module GeneralData =
 
     let bigPartString p =
         match p with
-        | Days 0 -> ""
+        | Days 0 -> EmptyString
         | Days 1 -> "a day"
         | Days d -> sprintf "%i days" d
-        | Hours 0 -> ""
+        | Hours 0 -> EmptyString
         | Hours 1 -> "an hour"
         | Hours h -> sprintf "%i hours" h
-        | Minutes 0 -> ""
+        | Minutes 0 -> EmptyString
         | Minutes 1 -> "a minute"
         | Minutes m -> sprintf "%i minutes" m
-        | _ -> ""
+        | _ -> EmptyString
 
 
     let smallPartString s m =
         match s, m with
-        | Seconds 0, Milliseconds 0  -> ""
+        | Seconds 0, Milliseconds 0  -> EmptyString
         | Seconds 0, Milliseconds ms -> sprintf "%ims" ms
         | Seconds 1, Milliseconds 0  -> sprintf "a second"
         | Seconds s, Milliseconds 0  -> sprintf "%i seconds" s
         | Seconds s, Milliseconds ms -> sprintf "%i.%i seconds" s ms
-        | _                          -> ""
+        | _                          -> EmptyString
 
 
     let formatTimeSpanDetailed maxParts (ts:TimeSpan) =
@@ -268,3 +274,7 @@ module GeneralData =
             partitionerAddress : ServiceAddress
             partitionerPort : ServicePort
         }
+
+
+    let getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName

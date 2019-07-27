@@ -24,7 +24,7 @@ module ServiceImplementation =
 
     type AsyncRunnerState
         with
-        member s.runnerState : ContGenRunnerState =
+        member s.runnerState =
             {
                 runLimit = s.runLimit
                 maxQueueLength = s.maxQueueLength
@@ -37,10 +37,14 @@ module ServiceImplementation =
             }
 
 
-    let mutable serviceAccessInfo : ServiceAccessInfo =
+    let mutable serviceAccessInfo =
         {
-            serviceAddress = ServiceAddress DefaultContGenServiceAddress
-            servicePort = ServicePort DefaultContGenServicePort
+            serviceAccessInfo =
+                {
+                    serviceAddress = ServiceAddress DefaultContGenServiceAddress
+                    servicePort = ServicePort DefaultContGenServicePort
+                }
+
             minUsefulEe = MinUsefulEe DefaultMinEe
         }
 

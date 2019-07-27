@@ -6,8 +6,8 @@ open ContGenServiceInfo.ServiceInfo
 
 module ServiceResponse =
 
-    type ResponseHandler (i : ServiceAccessInfo) =
-        let service = Activator.GetObject (typeof<IContGenService>, getServiceUrl i) :?> IContGenService
+    type ResponseHandler (i : ContGenServiceAccessInfo) =
+        let service = Activator.GetObject (typeof<IContGenService>, getServiceUrl i.serviceAccessInfo) :?> IContGenService
 
         member this.progressNotifierService : IContGenService = service
 

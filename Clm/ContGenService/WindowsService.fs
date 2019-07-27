@@ -12,10 +12,10 @@ open ContGenService.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (i : ServiceAccessInfo) logger =
+    let startServiceRun (i : ContGenServiceAccessInfo) logger =
         try
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.servicePort.value)
+            let channel = new Tcp.TcpChannel (i.serviceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
@@ -40,5 +40,4 @@ module WindowsService =
             let i = getServiceAccessInfo results
             startServiceRun i logger
 
-        override service.OnStop () =
-            base.OnStop()
+        override service.OnStop () = base.OnStop()

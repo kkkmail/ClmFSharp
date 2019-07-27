@@ -161,8 +161,6 @@ module Client =
             loadMessages : unit -> List<Message<'T>>
             saveMessage : Message<'T> -> unit
             deleteMessage : MessageId -> unit
-            //sendMessages : List<Message<'T>> -> List<Message<'T>>
-            //receiveMessages : unit -> List<Message<'T>>
         }
 
 

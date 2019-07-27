@@ -64,7 +64,16 @@ module SolverRunnerTasks =
         match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
-            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port; minUsefulEe = ee }
+            {
+                serviceAccessInfo =
+                    {
+                        serviceAddress = ServiceAddress address
+                        servicePort = ServicePort port
+                    }
+
+                minUsefulEe = ee
+            }
+            |> Some
         | _ -> None
 
 
@@ -188,7 +197,7 @@ module SolverRunnerTasks =
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            serviceAccessInfo : ServiceAccessInfo
+            serviceAccessInfo : ContGenServiceAccessInfo
             resultDataWithId : ResultDataWithId
             chartData : ChartData
             sovlerRunnerProxy : SolverRunnerProxy

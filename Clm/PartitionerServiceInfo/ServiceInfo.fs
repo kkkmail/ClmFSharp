@@ -11,10 +11,6 @@ module ServiceInfo =
     let ProgramName = "PartitionerService.exe"
 
 
-    let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
-        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
-
-
     let getServiceUrl (i : PartitionerAccessInfo) =
         getServiceUrlImpl i.partitionerAddress.value i.partitionerPort.value PartitionerServiceName
 

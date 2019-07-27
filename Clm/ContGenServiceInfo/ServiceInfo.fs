@@ -15,10 +15,6 @@ module ServiceInfo =
     let ProgramName = "ContGenService.exe"
 
 
-    let private getServiceUrlImpl contGenServiceAddress (contGenServicePort : int) contGenServiceName =
-        "tcp://" + contGenServiceAddress + ":" + (contGenServicePort.ToString()) + "/" + contGenServiceName
-
-
     let getServiceUrl (i : ServiceAccessInfo) =
         getServiceUrlImpl i.serviceAddress.value i.servicePort.value ContGenServiceName
 

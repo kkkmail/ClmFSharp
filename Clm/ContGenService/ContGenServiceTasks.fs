@@ -134,7 +134,7 @@ module ContGenServiceTasks =
         | UninstallServiceTask
         | StartServiceTask of list<ContGenConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<ContGenConfigParam> * ServiceAccessInfo
+        | RunServiceTask of list<ContGenConfigParam> * ContGenServiceAccessInfo
 
         member task.run() =
             match task with

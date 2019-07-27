@@ -171,7 +171,7 @@ module ModelParams =
             tEnd : decimal
             y0 : decimal
             useAbundant : bool
-            serviceAccessInfo : ServiceAccessInfo
+            serviceAccessInfo : ContGenServiceAccessInfo
         }
 
         member this.toCommandLine (d : ModelCommandLineData) =
@@ -182,8 +182,8 @@ module ModelParams =
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 ModelId d.modelDataId.value
-                NotifyAddress this.serviceAccessInfo.serviceAddress.value
-                NotifyPort this.serviceAccessInfo.servicePort.value
+                NotifyAddress this.serviceAccessInfo.serviceAccessInfo.serviceAddress.value
+                NotifyPort this.serviceAccessInfo.serviceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
             ]
             |> parser.PrintCommandLineArgumentsFlat

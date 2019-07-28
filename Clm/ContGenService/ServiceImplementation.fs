@@ -39,7 +39,7 @@ module ServiceImplementation =
 
     let mutable serviceAccessInfo =
         {
-            serviceAccessInfo =
+            contGenServiceAccessInfo =
                 {
                     serviceAddress = ServiceAddress DefaultContGenServiceAddress
                     servicePort = ServicePort DefaultContGenServicePort

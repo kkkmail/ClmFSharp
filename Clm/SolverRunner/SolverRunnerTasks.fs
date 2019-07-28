@@ -65,7 +65,7 @@ module SolverRunnerTasks =
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
             {
-                serviceAccessInfo =
+                contGenServiceAccessInfo =
                     {
                         serviceAddress = ServiceAddress address
                         servicePort = ServicePort port

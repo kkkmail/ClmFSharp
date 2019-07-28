@@ -67,7 +67,7 @@ module GeneralData =
 
     type ContGenServiceAccessInfo =
         {
-            serviceAccessInfo : ServiceAccessInfo
+            contGenServiceAccessInfo : ServiceAccessInfo
             minUsefulEe : MinUsefulEe
         }
 
@@ -271,8 +271,7 @@ module GeneralData =
 
     type PartitionerAccessInfo =
         {
-            partitionerAddress : ServiceAddress
-            partitionerPort : ServicePort
+             partitionerAccessInfo : ServiceAccessInfo
         }
 
 
@@ -284,3 +283,9 @@ module GeneralData =
         | NodeId of Guid
 
         member this.value = let (NodeId v) = this in v
+
+
+    type MessagingServiceAccessInfo =
+        {
+            messagingServiceAccessInfo : ServiceAccessInfo
+        }

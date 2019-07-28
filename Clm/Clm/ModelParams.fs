@@ -182,8 +182,8 @@ module ModelParams =
                 TotalAmount this.y0
                 UseAbundant this.useAbundant
                 ModelId d.modelDataId.value
-                NotifyAddress this.serviceAccessInfo.serviceAccessInfo.serviceAddress.value
-                NotifyPort this.serviceAccessInfo.serviceAccessInfo.servicePort.value
+                NotifyAddress this.serviceAccessInfo.contGenServiceAccessInfo.serviceAddress.value
+                NotifyPort this.serviceAccessInfo.contGenServiceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
             ]
             |> parser.PrintCommandLineArgumentsFlat

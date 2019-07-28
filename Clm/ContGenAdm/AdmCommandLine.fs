@@ -154,7 +154,7 @@ module AdmCommandLine =
 
 
         {
-            serviceAccessInfo =
+            contGenServiceAccessInfo =
                 {
                     serviceAddress = address
                     servicePort = port

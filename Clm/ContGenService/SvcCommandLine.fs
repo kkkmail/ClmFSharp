@@ -75,7 +75,7 @@ module SvcCommandLine =
 
 
         {
-            serviceAccessInfo =
+            contGenServiceAccessInfo =
                 {
                     serviceAddress = address
                     servicePort = port

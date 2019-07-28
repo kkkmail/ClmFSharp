@@ -15,7 +15,7 @@ module WindowsService =
     let startServiceRun (i : ContGenServiceAccessInfo) logger =
         try
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.serviceAccessInfo.servicePort.value)
+            let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType

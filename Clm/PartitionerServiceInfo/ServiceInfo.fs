@@ -12,7 +12,7 @@ module ServiceInfo =
 
 
     let getServiceUrl (i : PartitionerAccessInfo) =
-        getServiceUrlImpl i.partitionerAddress.value i.partitionerPort.value PartitionerServiceName
+        getServiceUrlImpl i.partitionerAccessInfo.serviceAddress.value i.partitionerAccessInfo.servicePort.value PartitionerServiceName
 
 
     type RegisterContGenServiceData =

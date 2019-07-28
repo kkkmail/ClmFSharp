@@ -34,7 +34,7 @@ module Retry =
                     try
                         f retryParams
                     with
-                        | e -> 
+                        | e ->
                             Thread.Sleep(retryParams.waitBetweenRetries)
                             execWithRetry f (i + 1) e
             execWithRetry f 0 (Exception())
@@ -42,7 +42,7 @@ module Retry =
 
 
     type RetryBuilder() =
-        member this.Bind (p : RetryMonad<'a>, f : 'a -> RetryMonad<'b>)  =
+        member this.Bind (p : RetryMonad<'a>, f : 'a -> RetryMonad<'b>) =
             rm (fun retryParams -> 
                 let value = retryFunc p retryParams
                 f value retryParams

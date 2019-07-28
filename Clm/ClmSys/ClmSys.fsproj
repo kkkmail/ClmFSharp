@@ -68,12 +68,16 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="GeneralData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
-    <Compile Include="Retry.fs" />
     <Compile Include="Fake.fs" />
+    <Compile Include="Retry.fs" />
+    <Compile Include="Registry.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Fake.Windows.Registry">
+      <HintPath>..\packages\Fake.Windows.Registry.5.15.4\lib\net46\Fake.Windows.Registry.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>

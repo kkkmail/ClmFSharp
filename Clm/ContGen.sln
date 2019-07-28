@@ -49,6 +49,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingServer", "MessageS
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingServiceInfo", "MessageServiceInfo\MessagingServiceInfo.fsproj", "{A993F0A8-3659-4A7D-87FC-E25902ADEA5E}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingTestClient", "MessagingTestClient\MessagingTestClient.fsproj", "{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -241,6 +243,14 @@ Global
 		{A993F0A8-3659-4A7D-87FC-E25902ADEA5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A993F0A8-3659-4A7D-87FC-E25902ADEA5E}.Release|x64.ActiveCfg = Release|x64
 		{A993F0A8-3659-4A7D-87FC-E25902ADEA5E}.Release|x64.Build.0 = Release|x64
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Debug|x64.ActiveCfg = Debug|x64
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Debug|x64.Build.0 = Debug|x64
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Release|x64.ActiveCfg = Release|x64
+		{0C9BA88C-69CE-4E51-96E6-014FEBEE988B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

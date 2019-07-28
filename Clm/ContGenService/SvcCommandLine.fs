@@ -45,19 +45,19 @@ module SvcCommandLine =
                 | Stop -> "stop service."
                 | Run _ -> "run service from command line without installing."
 
-    let tryGetServerAddress (p :list<RunArgs>) =
+    let tryGetServerAddress p =
          p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
 
 
-    let tryGetServerPort (p :list<RunArgs>) =
+    let tryGetServerPort p =
         p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
 
 
-    let tryGeMinUsefulEe (p :list<RunArgs>) =
+    let tryGeMinUsefulEe p =
         p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
 
-    let getServiceAccessInfo (p :list<RunArgs>) =
+    let getServiceAccessInfo p =
         let address =
             match tryGetServerAddress p with
             | Some a -> a

@@ -2,20 +2,26 @@
 
 open Argu
 open ClmSys.GeneralData
+open ClmSys.Registry
 
 module SvcCommandLine =
+
+    let logger e = printfn "Error / Exception: %A" e
+
 
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingServerRunArgs =
         | [<Unique>] [<AltCommandLine("-server")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
+        | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
 
     with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | MsgSvcAddress _ -> "service ip address / name."
-                | MsgSvcPort _ -> "service port."
+                | MsgSvcAddress _ -> "messaging server ip address / name."
+                | MsgSvcPort _ -> "messaging server port."
+                | MsgSaveSettings -> "saves settings to the Registry."
 
 
     and
@@ -37,31 +43,44 @@ module SvcCommandLine =
                 | Stop -> "stop messaging service."
                 | Run _ -> "run messaging service from command line without installing."
 
-    let tryGetServerAddress (p :list<MessagingServerRunArgs>) =
+
+    let tryGetServerAddress p =
          p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
 
 
-    let tryGetServerPort (p :list<MessagingServerRunArgs>) =
+    let tryGetServerPort p =
         p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
 
 
-    let getServiceAccessInfo (p :list<MessagingServerRunArgs>) =
-        let address =
+    let tryGetSaveSettings p =
+        p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
+
+
+    let tryGetServiceAccessInfo p =
+        let ao =
             match tryGetServerAddress p with
-            | Some a -> a
-            | None -> ServiceAddress.defaultValue
+            | Some a -> Some a
+            | None -> tryGetMessagingServerAddress logger
 
-        let port =
+        let po =
             match tryGetServerPort p with
-            | Some a -> a
-            | None -> ServicePort.defaultValue
+            | Some a -> Some a
+            | None -> tryGetMessagingServerPort logger
 
-        {
-            serviceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                }
+        match ao, po with
+        | Some address, Some port ->
+            match tryGetSaveSettings p with
+            | Some _ ->
+                trySetMessagingServerAddress logger address |> ignore
+                trySetMessagingServerPort logger port |> ignore
+            | None -> ignore()
 
-            minUsefulEe = ee
-        }
+            {
+                messagingServerAccessInfo =
+                    {
+                        serviceAddress = address
+                        servicePort = port
+                    }
+            }
+            |> Some
+        | _ -> None

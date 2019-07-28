@@ -285,7 +285,7 @@ module GeneralData =
         member this.value = let (NodeId v) = this in v
 
 
-    type MessagingServiceAccessInfo =
+    type MessagingServerAccessInfo =
         {
-            messagingServiceAccessInfo : ServiceAccessInfo
+            messagingServerAccessInfo : ServiceAccessInfo
         }

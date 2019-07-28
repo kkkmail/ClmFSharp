@@ -1,4 +1,4 @@
-﻿namespace ContGenService
+﻿namespace MessagingServer
 
 open System
 open ClmSys.GeneralData

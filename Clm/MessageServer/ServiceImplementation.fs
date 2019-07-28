@@ -2,54 +2,50 @@
 
 open System
 open ClmSys.GeneralData
-open ContGen.AsyncRun
-open ContGen.Runner
-open ContGenServiceInfo.ServiceInfo
-open ServiceProxy.Runner
+open MessagingServiceInfo.ServiceInfo
+open ServiceProxy.MessagingServer
 
 module ServiceImplementation =
 
-    let createServiceImpl i =
-        let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
+    //let createServiceImpl i =
+    //    let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
-        // Send startGenerate in case runner stops due to some reason.
-        let eventHandler _ = a.startGenerate()
-        let timer = new System.Timers.Timer(60_000.0)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
-        do timer.Start()
+    //    // Send startGenerate in case runner stops due to some reason.
+    //    let eventHandler _ = a.startGenerate()
+    //    let timer = new System.Timers.Timer(60_000.0)
+    //    do timer.AutoReset <- true
+    //    do timer.Elapsed.Add eventHandler
+    //    do timer.Start()
 
-        a
+    //    a
 
 
-    type AsyncRunnerState
-        with
-        member s.runnerState =
-            {
-                runLimit = s.runLimit
-                maxQueueLength = s.maxQueueLength
-                runningCount = s.runningCount
-                running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-                queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
-                workState = s.workState
-                messageCount = s.messageCount
-                minUsefulEe = s.minUsefulEe
-            }
+    //type AsyncRunnerState
+    //    with
+    //    member s.runnerState =
+    //        {
+    //            runLimit = s.runLimit
+    //            maxQueueLength = s.maxQueueLength
+    //            runningCount = s.runningCount
+    //            running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
+    //            queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
+    //            workState = s.workState
+    //            messageCount = s.messageCount
+    //            minUsefulEe = s.minUsefulEe
+    //        }
 
 
     let mutable serviceAccessInfo =
         {
-            serviceAccessInfo =
+            messagingServerAccessInfo =
                 {
                     serviceAddress = ServiceAddress DefaultContGenServiceAddress
                     servicePort = ServicePort DefaultContGenServicePort
                 }
-
-            minUsefulEe = MinUsefulEe DefaultMinEe
         }
 
 
-    type ContGenService () =
+    type MessagingServer () =
         inherit MarshalByRefObject()
 
         let a = createServiceImpl serviceAccessInfo

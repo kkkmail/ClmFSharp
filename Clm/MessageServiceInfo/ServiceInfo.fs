@@ -51,19 +51,13 @@ module ServiceInfo =
         }
 
 
-    //type ContGenConfigParam =
-    //    | SetToIdle
-    //    | SetToCanGenerate
-    //    | RequestShutDown of waitForCompletion : bool
-    //    | SetRunLimit of numberOfCores : int
-    //    | CancelTask of processId : int
-    //    | SetMinUsefulEe of ee : double
+    type IMessagingServer<'T> =
+        abstract sendMessage : Message<'T> -> unit
+        abstract getMessages : NodeId -> List<Message<'T>>
 
 
-    //type IMessageService =
-    //    abstract getState : unit -> ContGenRunnerState
-    //    abstract loadQueue : unit -> unit
-    //    abstract startGenerate : unit -> unit
-    //    abstract updateProgress : ProgressUpdateInfo -> unit
-    //    abstract configureService : ContGenConfigParam -> unit
-    //    abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
+    type ClmMesage =
+        | Dummmy
+
+
+    type IClmMessagingServer = IMessagingServer<ClmMesage>

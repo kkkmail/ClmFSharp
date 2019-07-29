@@ -8,14 +8,14 @@ open System.Threading
 module ServiceInfo =
 
     [<Literal>]
-    let ServiceName = "MessagingService"
+    let MessagingServiceName = "MessagingServer"
 
     [<Literal>]
-    let ProgramName = "MessagingService.exe"
+    let MessagingProgramName = "MessagingServer.exe"
 
 
     let getServiceUrl (i : ServiceAccessInfo) =
-        getServiceUrlImpl i.serviceAddress.value i.servicePort.value ServiceName
+        getServiceUrlImpl i.serviceAddress.value i.servicePort.value MessagingServiceName
 
 
     type MessageId =

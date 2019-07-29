@@ -5,29 +5,30 @@ open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open Argu
 
-open ContGenService.ServiceImplementation
-open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
-open ContGenService.SvcCommandLine
+open MessagingServiceInfo.ServiceInfo
+open MessagingServer.ServiceImplementation
+open Messaging.Server
+open MessagingServer.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (i : ContGenServiceAccessInfo) logger =
+    let startServiceRun (i : MessagingServerAccessInfo) logger =
         try
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.serviceAccessInfo.servicePort.value)
+            let channel = new Tcp.TcpChannel (i.messagingServerAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
+                ( typeof<ClmMessagingServer>, MessagingServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e
                 ignore()
 
 
-    type public ContGenWindowsService () =
-        inherit ServiceBase (ServiceName = ContGenServiceName)
+    type public MessagingServerWindowsService () =
+        inherit ServiceBase (ServiceName = MessagingServiceName)
 
         let initService () = ()
         do initService ()
@@ -35,7 +36,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
+            let parser = ArgumentParser.Create<MessagingServerRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             startServiceRun i logger

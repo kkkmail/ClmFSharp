@@ -4,8 +4,8 @@ open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
 
-open ContGenServiceInfo.ServiceInfo
-open ContGenService.WindowsService
+open MessagingServiceInfo.ServiceInfo
+open MessagingServer.WindowsService
 
 [<RunInstaller(true)>]
 type ContGenServiceInstaller() =
@@ -18,12 +18,12 @@ type ContGenServiceInstaller() =
 
         // Specify properties of the service running inside the process.
         new ServiceInstaller
-          ( DisplayName = ContGenServiceName,
-            ServiceName = ContGenServiceName,
+          ( DisplayName = MessagingServiceName,
+            ServiceName = MessagingServiceName,
             StartType = ServiceStartMode.Automatic )
         |> base.Installers.Add |> ignore
 
 
 // Run the services when the process starts.
 module Main =
-    ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
+    ServiceBase.Run [| new MessagingServerWindowsService() :> ServiceBase |]

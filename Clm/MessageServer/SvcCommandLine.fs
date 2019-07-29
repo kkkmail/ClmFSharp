@@ -56,31 +56,33 @@ module SvcCommandLine =
         p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
 
-    let tryGetServiceAccessInfo p =
-        let ao =
+    let getServiceAccessInfo p =
+        let address =
             match tryGetServerAddress p with
-            | Some a -> Some a
-            | None -> tryGetMessagingServerAddress logger
+            | Some a -> a
+            | None ->
+                match tryGetMessagingServerAddress logger with
+                | Some a -> a
+                | None -> ServiceAddress.defaultMessagingServerValue
 
-        let po =
+        let port =
             match tryGetServerPort p with
-            | Some a -> Some a
-            | None -> tryGetMessagingServerPort logger
+            | Some a -> a
+            | None ->
+                match tryGetMessagingServerPort logger with
+                | Some a -> a
+                | None -> ServicePort.defaultMessagingServerValue
 
-        match ao, po with
-        | Some address, Some port ->
-            match tryGetSaveSettings p with
-            | Some _ ->
-                trySetMessagingServerAddress logger address |> ignore
-                trySetMessagingServerPort logger port |> ignore
-            | None -> ignore()
+        match tryGetSaveSettings p with
+        | Some _ ->
+            trySetMessagingServerAddress logger address |> ignore
+            trySetMessagingServerPort logger port |> ignore
+        | None -> ignore()
 
-            {
-                messagingServerAccessInfo =
-                    {
-                        serviceAddress = address
-                        servicePort = port
-                    }
-            }
-            |> Some
-        | _ -> None
+        {
+            messagingServerAccessInfo =
+                {
+                    serviceAddress = address
+                    servicePort = port
+                }
+        }

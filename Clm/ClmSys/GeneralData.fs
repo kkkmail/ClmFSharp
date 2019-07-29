@@ -48,6 +48,7 @@ module GeneralData =
 
         member this.value = let (ServiceAddress v) = this in v
         static member defaultValue = ServiceAddress DefaultContGenServiceAddress
+        static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
 
 
     type ServicePort =
@@ -55,6 +56,7 @@ module GeneralData =
 
         member this.value = let (ServicePort v) = this in v
         static member defaultValue = ServicePort DefaultContGenServicePort
+        static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
 
 
     type ServiceAccessInfo =

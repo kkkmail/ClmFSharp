@@ -6,13 +6,13 @@ open System.Configuration.Install
 open System.ServiceProcess
 open Argu
 
-open ContGenService.SvcCommandLine
-open ContGenService.WindowsService
-open ContGenServiceInfo.ServiceInfo
-open ContGenAdm.ContGenServiceResponse
 open ClmSys.GeneralData
+open MessagingServer.SvcCommandLine
+open MessagingServer.WindowsService
+open MessagingServiceInfo.ServiceInfo
+//open ContGenAdm.ContGenServiceResponse
 
-module ContGenServiceTasks =
+module MessagingServerServiceTasks =
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0

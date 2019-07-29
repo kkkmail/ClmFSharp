@@ -72,7 +72,7 @@
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
-    <Compile Include="ContGenServiceTasks.fs" />
+    <Compile Include="MessagingServerServiceTasks.fs" />
     <Compile Include="Program.fs" />
     <Content Include="db.config" />
     <Content Include="App.config" />
@@ -91,6 +91,7 @@
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>

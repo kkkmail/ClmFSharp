@@ -6,20 +6,20 @@ open ServiceProxy.MessagingClient
 
 module Client =
 
-    type MessageClientData<'T> =
+    type MessagingClientData<'T> =
         {
-            messageClientProxy : MessageClientProxy<'T>
+            messageClientProxy : MessagingClientProxy<'T>
         }
 
 
-    type MessageClientState<'T> =
+    type MessagingClientState<'T> =
         {
-            messageClientData : MessageClientData<'T>
+            messageClientData : MessagingClientData<'T>
             incomingMessages : List<Message<'T>>
             outgoingMessages : List<Message<'T>>
         }
 
-        /// kk:20190726 - Removing d makes F# compiler fail on type MessageClient<'T> with:
+        /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
         /// "This code is not sufficiently generic. The type variable 'T could not be generalized because it would escape its scope.". WTF!!!
         static member defaultValue d =
             {
@@ -29,14 +29,14 @@ module Client =
             }
 
 
-    type MessageClientMessage<'T> =
+    type MessagingClientMessage<'T> =
         | Start
         | SendMessage of MessageInfo<'T>
         | GetMessages of AsyncReplyChannel<List<Message<'T>>>
         | TransmitMessages
 
 
-    type MessageClient<'T>(d : MessageClientData<'T>) =
+    type MessagingClient<'T>(d : MessagingClientData<'T>) =
         let onStart s =
             let messages = s.messageClientData.messageClientProxy.loadMessages()
             let (i, o) = messages |> List.partition (fun e -> match fst e with | IncomingMessage -> true | OutgoingMessage -> false)
@@ -87,7 +87,7 @@ module Client =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessageClientState<'T> ) =
+                let rec loop (s : MessagingClientState<'T> ) =
                     async
                         {
                             match! u.Receive() with
@@ -97,8 +97,11 @@ module Client =
                             | TransmitMessages -> return! onTransmitMessages s |> loop
                         }
 
-                onStart (MessageClientState<'T>.defaultValue d) |> loop
+                onStart (MessagingClientState<'T>.defaultValue d) |> loop
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
+
+
+    type ClmMessagingClient = MessagingClient<ClmMesage>

@@ -25,6 +25,12 @@ module GeneralData =
     [<Literal>]
     let DefaultContGenServicePort = 4000
 
+    [<Literal>]
+    let DefaultMessagingServerAddress = "localhost"
+    
+    [<Literal>]
+    let DefaultMessagingServerPort = 34000
+
     /// String.Empty is not a const.
     [<Literal>]
     let EmptyString = ""

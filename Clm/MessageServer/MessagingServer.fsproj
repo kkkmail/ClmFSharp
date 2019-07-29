@@ -102,6 +102,11 @@
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\MessageClient\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
       <Name>MessagingServiceInfo</Name>
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>

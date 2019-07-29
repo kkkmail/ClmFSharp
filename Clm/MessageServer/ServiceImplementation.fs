@@ -3,44 +3,30 @@
 open System
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
+open Messaging.Server
 open ServiceProxy.MessagingServer
 
 module ServiceImplementation =
 
-    //let createServiceImpl i =
-    //    let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
+    let createServiceImpl i : ClmMessagingServer =
+        //let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
-    //    // Send startGenerate in case runner stops due to some reason.
-    //    let eventHandler _ = a.startGenerate()
-    //    let timer = new System.Timers.Timer(60_000.0)
-    //    do timer.AutoReset <- true
-    //    do timer.Elapsed.Add eventHandler
-    //    do timer.Start()
+        //// Send startGenerate in case runner stops due to some reason.
+        //let eventHandler _ = a.startGenerate()
+        //let timer = new System.Timers.Timer(60_000.0)
+        //do timer.AutoReset <- true
+        //do timer.Elapsed.Add eventHandler
+        //do timer.Start()
 
-    //    a
-
-
-    //type AsyncRunnerState
-    //    with
-    //    member s.runnerState =
-    //        {
-    //            runLimit = s.runLimit
-    //            maxQueueLength = s.maxQueueLength
-    //            runningCount = s.runningCount
-    //            running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-    //            queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
-    //            workState = s.workState
-    //            messageCount = s.messageCount
-    //            minUsefulEe = s.minUsefulEe
-    //        }
-
+        //a
+        failwith ""
 
     let mutable serviceAccessInfo =
         {
             messagingServerAccessInfo =
                 {
-                    serviceAddress = ServiceAddress DefaultContGenServiceAddress
-                    servicePort = ServicePort DefaultContGenServicePort
+                    serviceAddress = ServiceAddress DefaultMessagingServerAddress
+                    servicePort = ServicePort DefaultMessagingServerPort
                 }
         }
 
@@ -53,10 +39,6 @@ module ServiceImplementation =
         let initService () = ()
         do initService ()
 
-        interface IContGenService with
-            member __.getState() = a.getState().runnerState
-            member __.loadQueue() = a.startQueue()
-            member __.startGenerate() = a.startGenerate()
-            member __.updateProgress p = a.updateProgress (a, p)
-            member __.configureService (p : ContGenConfigParam) = a.configureService p
-            member __.runModel m p = a.runModel (m, p)
+        interface IClmMessagingServer with
+            member __.sendMessage m = a.sendMessage m
+            member __.getMessages n = a.getMessages n

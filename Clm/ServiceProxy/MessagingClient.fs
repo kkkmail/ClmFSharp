@@ -8,7 +8,7 @@ open MessagingServiceInfo.ServiceInfo
 
 module MessagingClient =
 
-    type MessageClientProxy<'T> =
+    type MessagingClientProxy<'T> =
         {
             loadMessages : unit -> List<MessageType * Message<'T>>
             saveMessage : MessageType -> Message<'T> -> unit

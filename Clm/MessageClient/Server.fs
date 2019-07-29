@@ -7,15 +7,15 @@ open ServiceProxy.MessagingServer
 
 module Server =
 
-    type MessageServerData<'T> =
+    type MessagingServerData<'T> =
         {
-            messageServerProxy : MessageServerProxy<'T>
+            messageServerProxy : MessagingServerProxy<'T>
         }
 
 
-    type MessageServerState<'T> =
+    type MessagingServerState<'T> =
         {
-            messageServerData : MessageServerData<'T>
+            messageServerData : MessagingServerData<'T>
             messages : Map<NodeId, List<Message<'T>>>
         }
 
@@ -26,13 +26,13 @@ module Server =
             }
 
 
-    type MessageServerMessage<'T> =
+    type MessagingServerMessage<'T> =
         | Start
         | SendMessage of Message<'T>
         | GetMessages of NodeId * AsyncReplyChannel<List<Message<'T>>>
 
 
-    type MessageServer<'T>(d : MessageServerData<'T>) =
+    type MessagingServer<'T>(d : MessagingServerData<'T>) =
         let updateMessages s m =
             match s.messages.TryFind m.messageInfo.recipient with
             | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
@@ -69,7 +69,7 @@ module Server =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessageServerState<'T> ) =
+                let rec loop (s : MessagingServerState<'T> ) =
                     async
                         {
                             match! u.Receive() with
@@ -78,8 +78,11 @@ module Server =
                             | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
                         }
 
-                onStart (MessageServerState<'T>.defaultValue d) |> loop
+                onStart (MessagingServerState<'T>.defaultValue d) |> loop
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
+
+
+    type ClmMessagingServer = MessagingServer<ClmMesage>

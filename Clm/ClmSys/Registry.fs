@@ -1,19 +1,21 @@
 ﻿namespace ClmSys
+
 open System
 open VersionInfo
 open GeneralData
+open MessagingData
 open Fake.Windows
 
 module Registry =
 
     [<Literal>]
-    let TopSubKey = "CLM"
+    let TopSubKey = "CLM" + "\\" + VersionNumber
 
     [<Literal>]
     let NodeSubKey = "Node"
 
     [<Literal>]
-    let NodeSubKeyFull = TopSubKey + "\\" + NodeSubKey + "\\" + VersionNumber
+    let NodeSubKeyFull = TopSubKey + "\\" + NodeSubKey
 
     [<Literal>]
     let NodeIdKey = "NodeId"
@@ -22,13 +24,19 @@ module Registry =
     let MessagingSubKey = "Messaging"
 
     [<Literal>]
-    let MessagingSubKeyFull = TopSubKey + "\\" + MessagingSubKey + "\\" + VersionNumber
+    let MessagingServerSubKeyFull = TopSubKey + "\\" + MessagingSubKey + "\\" + "Server"
 
     [<Literal>]
-    let MessagingServerAddressKey = "MessagingServerAddress"
+    let MessagingClientSubKeyFull = TopSubKey + "\\" + MessagingSubKey + "\\" + "Client"
 
     [<Literal>]
-    let MessagingServerPortKey = "MessagingServerPort"
+    let MessagingServiceAddressKey = "ServiceAddress"
+
+    [<Literal>]
+    let MessagingServicePortKey = "ServicePort"
+
+    [<Literal>]
+    let MessagingClientIdKey = "ClientId"
 
 
     let private tryCreateRegistrySubKey logger subKey =
@@ -110,20 +118,21 @@ module Registry =
         | None -> None
 
 
+    // Messsaging Server
     let tryGetMessagingServerAddress logger =
-        match tryGetRegistryValue logger MessagingSubKeyFull MessagingServerAddressKey with
+        match tryGetRegistryValue logger MessagingServerSubKeyFull MessagingServiceAddressKey with
         | Some s -> ServiceAddress s |> Some
         | None -> None
 
 
     let trySetMessagingServerAddress logger (ServiceAddress a) =
-        match tryCreateRegistrySubKey logger MessagingSubKeyFull with
-        | Some _ -> trySetRegistryValue logger MessagingSubKeyFull MessagingServerAddressKey a
+        match tryCreateRegistrySubKey logger MessagingServerSubKeyFull with
+        | Some _ -> trySetRegistryValue logger MessagingServerSubKeyFull MessagingServiceAddressKey a
         | None -> None
 
 
     let tryGetMessagingServerPort logger =
-        match tryGetRegistryValue logger MessagingSubKeyFull MessagingServerPortKey with
+        match tryGetRegistryValue logger MessagingServerSubKeyFull MessagingServicePortKey with
         | Some s ->
             match Int32.TryParse s with
             | true, v -> ServicePort v |> Some
@@ -131,6 +140,54 @@ module Registry =
         | None -> None
 
     let trySetMessagingServerPort logger (ServicePort p) =
-        match tryCreateRegistrySubKey logger MessagingSubKeyFull with
-        | Some _ -> trySetRegistryValue logger MessagingSubKeyFull MessagingServerPortKey (p.ToString())
+        match tryCreateRegistrySubKey logger MessagingServerSubKeyFull with
+        | Some _ -> trySetRegistryValue logger MessagingServerSubKeyFull MessagingServicePortKey (p.ToString())
+        | None -> None
+
+
+    let private getMessagingClientSubKey c =
+        match c with
+        | Unnamed -> MessagingServerSubKeyFull
+        | Named n -> MessagingServerSubKeyFull + "\\" + n
+
+
+    // Messsaging Client
+    let tryGetMessagingClientAddress logger c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey c) MessagingServiceAddressKey with
+        | Some s -> ServiceAddress s |> Some
+        | None -> None
+
+
+    let trySetMessagingClientAddress logger c (ServiceAddress a) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey c) MessagingServiceAddressKey a
+        | None -> None
+
+
+    let tryGetMessagingClientPort logger c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey c) MessagingServicePortKey with
+        | Some s ->
+            match Int32.TryParse s with
+            | true, v -> ServicePort v |> Some
+            | false, _ -> None
+        | None -> None
+
+    let trySetMessagingClientPort logger c (ServicePort p) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey c) MessagingServicePortKey (p.ToString())
+        | None -> None
+
+
+    let tryGetMessagingClientId logger c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey c) MessagingClientIdKey with
+        | Some s ->
+            match Guid.TryParse s with
+            | true, v -> MessagingClientId v |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetMessagingClientId logger c (MessagingClientId i) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey c) MessagingClientIdKey (i.ToString())
         | None -> None

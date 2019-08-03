@@ -34,6 +34,7 @@ module Client =
         | SendMessage of MessageInfo<'T>
         | GetMessages of AsyncReplyChannel<List<Message<'T>>>
         | TransmitMessages
+        | ConfigureClient of MessagingClientConfigParam
 
 
     type MessagingClient<'T>(d : MessagingClientData<'T>) =
@@ -85,6 +86,10 @@ module Client =
             { s with outgoingMessages = remaining; incomingMessages = messages @ s.incomingMessages }
 
 
+        let onConfigureClient s x =
+            s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop (s : MessagingClientState<'T> ) =
@@ -95,6 +100,7 @@ module Client =
                             | SendMessage m -> return! onSendMessage s m |> loop
                             | GetMessages r -> return! onGetMessages s r |> loop
                             | TransmitMessages -> return! onTransmitMessages s |> loop
+                            | ConfigureClient x -> return! onConfigureClient s x |> loop
                         }
 
                 onStart (MessagingClientState<'T>.defaultValue d) |> loop
@@ -102,6 +108,7 @@ module Client =
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
+        member __.configureClient x = ConfigureClient x |> messageLoop.Post
 
 
     type ClmMessagingClient = MessagingClient<ClmMesage>

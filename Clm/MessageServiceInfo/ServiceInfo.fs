@@ -3,15 +3,16 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open System.Threading
 
 module ServiceInfo =
 
     [<Literal>]
-    let MessagingServiceName = "MessagingServer"
+    let MessagingServiceName = "MessagingService"
 
     [<Literal>]
-    let MessagingProgramName = "MessagingServer.exe"
+    let MessagingProgramName = "MessagingService.exe"
 
 
     let getServiceUrl (i : ServiceAccessInfo) =
@@ -52,6 +53,10 @@ module ServiceInfo =
 
 
     type MessagingConfigParam =
+        | DummyConfig
+
+
+    type MessagingClientConfigParam =
         | DummyConfig
 
 

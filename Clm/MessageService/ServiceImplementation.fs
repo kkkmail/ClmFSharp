@@ -1,8 +1,8 @@
 ﻿namespace MessagingService
 
 open System
-open ClmSys.GeneralData
 open ClmSys.VersionInfo
+open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Server
@@ -27,7 +27,7 @@ module ServiceImplementation =
     let mutable serviceAccessInfo = getServiceAccessInfo versionNumberValue []
 
 
-    type MessagingServer () =
+    type MessagingService () =
         inherit MarshalByRefObject()
 
         let a = createServiceImpl serviceAccessInfo

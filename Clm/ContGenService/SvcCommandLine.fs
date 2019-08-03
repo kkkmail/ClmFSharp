@@ -11,7 +11,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-i")>] RunIdle
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
 
-        | [<Unique>] [<AltCommandLine("-server")>] SvcAddress of string
+        | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
     with

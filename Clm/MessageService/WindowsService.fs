@@ -14,10 +14,10 @@ open MessagingService.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (i : MessagingServerAccessInfo) logger =
+    let startServiceRun (i : MessagingServiceAccessInfo) logger =
         try
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.messagingServerAccessInfo.servicePort.value)
+            let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType

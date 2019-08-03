@@ -11,7 +11,7 @@ module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingServiceRunArgs =
-        | [<Unique>] [<AltCommandLine("-server")>] MsgSvcAddress of string
+        | [<Unique>] [<AltCommandLine("-address")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
 
@@ -80,7 +80,7 @@ module SvcCommandLine =
         | None -> ignore()
 
         {
-            messagingServerAccessInfo =
+            messagingServiceAccessInfo =
                 {
                     serviceAddress = address
                     servicePort = port

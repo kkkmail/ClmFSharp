@@ -136,7 +136,7 @@ module ServiceTasks =
         | UninstallServiceTask
         | StartServiceTask of list<MessagingConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<MessagingConfigParam> * MessagingServerAccessInfo
+        | RunServiceTask of list<MessagingConfigParam> * MessagingServiceAccessInfo
 
         member task.run() =
             match task with

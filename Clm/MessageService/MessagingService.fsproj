@@ -5,15 +5,15 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>fafb8e2d-719c-4e49-9ecc-febc10acd5f1</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>MessageClient</RootNamespace>
-    <AssemblyName>Messaging</AssemblyName>
+    <ProjectGuid>fc9c81b4-b256-4892-83ea-26b870d24ff6</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MessagingService</RootNamespace>
+    <AssemblyName>MessagingService</AssemblyName>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <WarningsAsErrors>3239;$(WarningsAsErrors)</WarningsAsErrors>
-    <Name>Messaging</Name>
+    <Name>MessagingService</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -68,18 +68,31 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Client.fs" />
-    <Compile Include="Server.fs" />
+    <Compile Include="SvcCommandLine.fs" />
+    <Compile Include="ServiceImplementation.fs" />
+    <Compile Include="WindowsService.fs" />
+    <Compile Include="Installer.fs" />
+    <Compile Include="ServiceTasks.fs" />
+    <Compile Include="Program.fs" />
+    <Content Include="db.config" />
+    <Content Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
@@ -93,6 +106,11 @@
     <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
       <Name>MessagingServiceInfo</Name>
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Messaging\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">

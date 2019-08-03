@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace MessagingService
 
 open System
 open System.Threading
@@ -12,7 +12,7 @@ open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo
 //open ContGenAdm.ContGenServiceResponse
 
-module MessagingServerServiceTasks =
+module ServiceTasks =
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0

@@ -50,7 +50,7 @@ module ClmModelData =
                     modelGenerationParams =
                         {
                             fileStructureVersion = FileStructureVersion
-                            versionNumber = VersionNumber
+                            versionNumber = VersionNumberValue
                             numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
                             maxPeptideLength = c.clmTaskInfo.maxPeptideLength
                             reactionRateModelParams = v.defaultRateParams.rateParams

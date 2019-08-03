@@ -9,7 +9,7 @@ open Fake.Windows
 module Registry =
 
     [<Literal>]
-    let TopSubKey = "CLM" + "\\" + VersionNumber
+    let TopSubKey = "CLM" + "\\" + VersionNumberValue
 
     [<Literal>]
     let NodeSubKey = "Node"

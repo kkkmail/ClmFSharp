@@ -14,3 +14,12 @@ module MessagingService =
             saveMessage : Message<'T> -> unit
             deleteMessage : MessageId -> unit
         }
+
+        /// Default value does nothing.
+        static member defaultValue =
+            {
+                loadMessages = fun () -> []
+                saveMessage = fun _ -> ()
+                deleteMessage = fun _ -> ()
+            }
+

@@ -16,3 +16,13 @@ module MessagingClient =
             sendMessages : List<Message<'T>> -> List<Message<'T>>
             receiveMessages : unit -> List<Message<'T>>
         }
+
+        /// Default value does nothing.
+        static member defaultValue =
+            {
+                loadMessages = fun () -> []
+                saveMessage = fun _ _ -> ()
+                deleteMessage = fun _ -> ()
+                sendMessages = fun _ -> []
+                receiveMessages = fun () -> []
+            }

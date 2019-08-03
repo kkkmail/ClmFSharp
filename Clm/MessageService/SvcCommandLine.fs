@@ -1,6 +1,7 @@
 ﻿namespace MessagingService
 
 open Argu
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.Registry
 
@@ -14,6 +15,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-address")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
+        | [<Unique>] [<AltCommandLine("-version")>] MsgVersion of string
 
     with
         interface IArgParserTemplate with
@@ -22,16 +24,18 @@ module SvcCommandLine =
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
                 | MsgSaveSettings -> "saves settings to the Registry."
+                | MsgVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
 
     and
         [<CliPrefix(CliPrefix.None)>]
-        SvcArguments =
+        MsgSvcArguments =
         | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
         | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
         | [<Unique>] [<First>] Start of ParseResults<MessagingServiceRunArgs>
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
 
     with
         interface IArgParserTemplate with
@@ -42,6 +46,7 @@ module SvcCommandLine =
                 | Start _ -> "start messaging service."
                 | Stop -> "stop messaging service."
                 | Run _ -> "run messaging service from command line without installing."
+                | Save -> "save parameters into the registry."
 
 
     let tryGetServerAddress p =
@@ -56,12 +61,21 @@ module SvcCommandLine =
         p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
 
-    let getServiceAccessInfo v p =
+    let tryGetVersion p =
+        p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
+
+
+    let getServiceAccessInfo p =
+        let version =
+            match tryGetVersion p with
+            | Some x -> x
+            | None -> versionNumberValue
+
         let address =
             match tryGetServerAddress p with
             | Some a -> a
             | None ->
-                match tryGetMessagingServerAddress logger v with
+                match tryGetMessagingServerAddress logger version with
                 | Some a -> a
                 | None -> ServiceAddress.defaultMessagingServerValue
 
@@ -69,14 +83,14 @@ module SvcCommandLine =
             match tryGetServerPort p with
             | Some a -> a
             | None ->
-                match tryGetMessagingServerPort logger v with
+                match tryGetMessagingServerPort logger version with
                 | Some a -> a
                 | None -> ServicePort.defaultMessagingServerValue
 
         match tryGetSaveSettings p with
         | Some _ ->
-            trySetMessagingServerAddress logger v address |> ignore
-            trySetMessagingServerPort logger v port |> ignore
+            trySetMessagingServerAddress logger versionNumberValue address |> ignore
+            trySetMessagingServerPort logger versionNumberValue port |> ignore
         | None -> ignore()
 
         {

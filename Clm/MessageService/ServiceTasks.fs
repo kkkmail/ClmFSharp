@@ -151,32 +151,32 @@ module ServiceTasks =
             | StopServiceTask -> stopContGenService ServiceTmeOut
             | RunServiceTask (p, i) -> runService i p
 
-        static member private tryCreateInstallServiceTask (p : list<SvcArguments>) =
+        static member private tryCreateInstallServiceTask (p : list<MsgSvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateUninstallServiceTask (p : list<SvcArguments>) =
+        static member private tryCreateUninstallServiceTask (p : list<MsgSvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
+        static member private tryCreateStartServiceTask (p : list<MsgSvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Start p -> MessagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
+        static member private tryCreateStopServiceTask (p : list<MsgSvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServiceTask v (p : list<SvcArguments>) =
+        static member private tryCreateRunServiceTask (p : list<MsgSvcArguments>) =
             p |> List.tryPick (fun e ->
                                 match e with
                                 | Run p ->
-                                    let i = getServiceAccessInfo v (p.GetAllResults())
+                                    let i = getServiceAccessInfo (p.GetAllResults())
                                     RunServiceTask(MessagingConfigParam.fromParseResults p, i) |> Some
                                 | _ -> None)
 
-        static member tryCreate (p : list<SvcArguments>) =
+        static member tryCreate (p : list<MsgSvcArguments>) =
             [
                 MessagingServiceTask.tryCreateUninstallServiceTask
                 MessagingServiceTask.tryCreateInstallServiceTask
                 MessagingServiceTask.tryCreateStopServiceTask
                 MessagingServiceTask.tryCreateStartServiceTask
-                MessagingServiceTask.tryCreateRunServiceTask versionNumberValue
+                MessagingServiceTask.tryCreateRunServiceTask
             ]
             |> List.tryPick (fun e -> e p)

@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<SvcArguments>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<MsgSvcArguments>(programName = MessagingProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
             match results |> MessagingServiceTask.tryCreate with

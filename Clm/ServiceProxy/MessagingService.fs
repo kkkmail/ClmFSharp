@@ -6,9 +6,9 @@ open DbData.Configuration
 open DbData.DatabaseTypes
 open MessagingServiceInfo.ServiceInfo
 
-module MessagingServer =
+module MessagingService =
 
-    type MessagingServerProxy<'T> =
+    type MessagingServiceProxy<'T> =
         {
             loadMessages : unit -> List<Message<'T>>
             saveMessage : Message<'T> -> unit

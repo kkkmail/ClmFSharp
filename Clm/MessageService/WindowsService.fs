@@ -39,7 +39,7 @@ module WindowsService =
             base.OnStart(args)
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
-            let i = getServiceAccessInfo versionNumberValue results
+            let i = getServiceAccessInfo results
             startServiceRun i logger
 
         override __.OnStop () = base.OnStop()

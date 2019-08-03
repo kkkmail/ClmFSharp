@@ -2,13 +2,13 @@
 
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
-open ServiceProxy.MessagingServer
+open ServiceProxy.MessagingService
 
 module Server =
 
     type MessagingServerData<'T> =
         {
-            messageServerProxy : MessagingServerProxy<'T>
+            messageServerProxy : MessagingServiceProxy<'T>
         }
 
 

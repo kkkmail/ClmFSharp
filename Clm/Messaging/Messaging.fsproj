@@ -69,7 +69,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Client.fs" />
-    <Compile Include="Server.fs" />
+    <Compile Include="Service.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

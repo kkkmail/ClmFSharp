@@ -9,7 +9,7 @@ open ClmSys.GeneralData
 open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
-open Messaging.Server
+open Messaging.Service
 open MessagingService.SvcCommandLine
 
 module WindowsService =
@@ -21,7 +21,7 @@ module WindowsService =
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ClmMessagingServer>, MessagingServiceName, WellKnownObjectMode.Singleton )
+                ( typeof<ClmMessagingService>, MessagingServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e

@@ -5,12 +5,12 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
-open Messaging.Server
+open Messaging.Service
 open ServiceProxy.MessagingService
 
 module ServiceImplementation =
 
-    let createServiceImpl i : ClmMessagingServer =
+    let createServiceImpl i : ClmMessagingService =
         //let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
         //// Send startGenerate in case runner stops due to some reason.

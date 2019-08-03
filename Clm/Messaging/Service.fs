@@ -4,35 +4,35 @@ open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MessagingService
 
-module Server =
+module Service =
 
-    type MessagingServerData<'T> =
+    type MessagingServiceData<'T> =
         {
             messageServerProxy : MessagingServiceProxy<'T>
         }
 
 
-    type MessagingServerState<'T> =
+    type MessagingServiceState<'T> =
         {
-            messageServerData : MessagingServerData<'T>
+            messageServiceData : MessagingServiceData<'T>
             messages : Map<NodeId, List<Message<'T>>>
         }
 
         static member defaultValue d =
             {
-                messageServerData = d
+                messageServiceData = d
                 messages = Map.empty
             }
 
 
-    type MessagingServerMessage<'T> =
+    type MessagingServiceMessage<'T> =
         | Start
         | SendMessage of Message<'T>
         | GetMessages of NodeId * AsyncReplyChannel<List<Message<'T>>>
         | ConfigureService of MessagingConfigParam
 
 
-    type MessagingServer<'T>(d : MessagingServerData<'T>) =
+    type MessagingService<'T>(d : MessagingServiceData<'T>) =
         let updateMessages s m =
             match s.messages.TryFind m.messageInfo.recipient with
             | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
@@ -40,13 +40,13 @@ module Server =
 
 
         let onStart s =
-            s.messageServerData.messageServerProxy.loadMessages()
+            s.messageServiceData.messageServerProxy.loadMessages()
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
         let onSendMessage s (m : Message<'T>) =
             match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> s.messageServerData.messageServerProxy.saveMessage m
+            | GuaranteedDelivery -> s.messageServiceData.messageServerProxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
 
             updateMessages s m
@@ -59,7 +59,7 @@ module Server =
 
                 v
                 |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-                |> List.map (fun e -> s.messageServerData.messageServerProxy.deleteMessage e.messageId)
+                |> List.map (fun e -> s.messageServiceData.messageServerProxy.deleteMessage e.messageId)
                 |> ignore
 
                 { s with messages = s.messages.Add(n, []) }
@@ -74,7 +74,7 @@ module Server =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessagingServerState<'T> ) =
+                let rec loop (s : MessagingServiceState<'T> ) =
                     async
                         {
                             match! u.Receive() with
@@ -84,7 +84,7 @@ module Server =
                             | ConfigureService x -> return! onConfigure s x |> loop
                         }
 
-                onStart (MessagingServerState<'T>.defaultValue d) |> loop
+                onStart (MessagingServiceState<'T>.defaultValue d) |> loop
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
@@ -92,4 +92,4 @@ module Server =
         member __.configureService x = ConfigureService x |> messageLoop.Post
 
 
-    type ClmMessagingServer = MessagingServer<ClmMesage>
+    type ClmMessagingService = MessagingService<ClmMesage>

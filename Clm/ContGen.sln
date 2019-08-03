@@ -45,7 +45,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PartitionerService", "Parti
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Messaging", "MessageClient\Messaging.fsproj", "{FAFB8E2D-719C-4E49-9ECC-FEBC10ACD5F1}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingServer", "MessageServer\MessagingServer.fsproj", "{FC9C81B4-B256-4892-83EA-26B870D24FF6}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingService", "MessageServer\MessagingService.fsproj", "{FC9C81B4-B256-4892-83EA-26B870D24FF6}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingServiceInfo", "MessageServiceInfo\MessagingServiceInfo.fsproj", "{A993F0A8-3659-4A7D-87FC-E25902ADEA5E}"
 EndProject

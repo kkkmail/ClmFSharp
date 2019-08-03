@@ -7,8 +7,8 @@ open System.ServiceProcess
 open Argu
 
 open ClmSys.GeneralData
-open MessagingServer.SvcCommandLine
-open MessagingServer.WindowsService
+open MessagingService.SvcCommandLine
+open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo
 //open ContGenAdm.ContGenServiceResponse
 
@@ -18,27 +18,27 @@ module MessagingServerServiceTasks =
     let ServiceTmeOut = 10_000.0
 
 
-    type ContGenConfigParam
+    type MesssagingConfigParam
         with
-        static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenConfigParam> =
+        static member fromParseResults (p : ParseResults<MessagingServiceRunArgs>) : list<MesssagingConfigParam> =
             [
-                p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
-                p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
-                p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
+                //p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
+                //p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
+                //p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
             ]
             |> List.choose id
 
 
     /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
     let getInstaller () =
-        let installer = new AssemblyInstaller(typedefof<ContGenWindowsService>.Assembly, null);
+        let installer = new AssemblyInstaller(typedefof<MessagingWindowsService>.Assembly, null);
         installer.UseNewContext <- true
         installer
 
 
     let installService () =
         try
-            printfn "Attempting to install service %s ..." ContGenServiceName
+            printfn "Attempting to install service %s ..." MessagingServiceName
             let i = getInstaller ()
             let d = new System.Collections.Hashtable()
             i.Install(d)
@@ -54,7 +54,7 @@ module MessagingServerServiceTasks =
 
     let uninstallService () =
         try
-            printfn "Attempting to uninstall service %s ..." ContGenServiceName
+            printfn "Attempting to uninstall service %s ..." MessagingServiceName
             let i = getInstaller ()
             let d = new System.Collections.Hashtable()
             i.Uninstall(d)
@@ -84,8 +84,8 @@ module MessagingServerServiceTasks =
                 false
 
     /// TODO kk:20190520 - Propagate p into service.
-    let startContGenService timeoutMilliseconds (p : list<ContGenConfigParam>) =
-        (startService ContGenServiceName timeoutMilliseconds)
+    let startContGenService timeoutMilliseconds (p : list<MesssagingConfigParam>) =
+        (startService MessagingServiceName timeoutMilliseconds)
 
 
     let stopService serviceName timeoutMilliseconds =
@@ -106,35 +106,36 @@ module MessagingServerServiceTasks =
 
 
     let stopContGenService timeoutMilliseconds =
-        (stopService ContGenServiceName timeoutMilliseconds)
+        (stopService MessagingServiceName timeoutMilliseconds)
 
 
-    let runService i (p : list<ContGenConfigParam>) =
+    let runService i (p : list<MesssagingConfigParam>) =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
         startServiceRun i logger
-        let service = (new ContGenResponseHandler(i)).contGenService
-        p |> List.map (fun e -> service.configureService e) |> ignore
-        service.loadQueue()
-        let eventHandler _ = getServiceState service
 
-        let timer = new System.Timers.Timer(30_000.0)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
-        do timer.Start()
+        //let service = (new ContGenResponseHandler(i)).contGenService
+        //p |> List.map (fun e -> service.configureService e) |> ignore
+        //service.loadQueue()
+        //let eventHandler _ = getServiceState service
+
+        //let timer = new System.Timers.Timer(30_000.0)
+        //do timer.AutoReset <- true
+        //do timer.Elapsed.Add eventHandler
+        //do timer.Start()
 
         waitHandle.WaitOne() |> ignore
         true
 
 
     /// TODO kk:20190601 - Propagage address / port into the service installation call.
-    type ContGenServiceTask =
+    type MessagingServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
-        | StartServiceTask of list<ContGenConfigParam>
+        | StartServiceTask of list<MesssagingConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<ContGenConfigParam> * ContGenServiceAccessInfo
+        | RunServiceTask of list<MesssagingConfigParam> * MessagingServerAccessInfo
 
         member task.run() =
             match task with
@@ -156,7 +157,7 @@ module MessagingServerServiceTasks =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
         static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start p -> ContGenConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Start p -> MesssagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
         static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
@@ -166,15 +167,15 @@ module MessagingServerServiceTasks =
                                 match e with
                                 | Run p ->
                                     let i = getServiceAccessInfo (p.GetAllResults())
-                                    RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
+                                    RunServiceTask(MesssagingConfigParam.fromParseResults p, i) |> Some
                                 | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =
             [
-                ContGenServiceTask.tryCreateUninstallServiceTask
-                ContGenServiceTask.tryCreateInstallServiceTask
-                ContGenServiceTask.tryCreateStopServiceTask
-                ContGenServiceTask.tryCreateStartServiceTask
-                ContGenServiceTask.tryCreateRunServiceTask
+                MessagingServiceTask.tryCreateUninstallServiceTask
+                MessagingServiceTask.tryCreateInstallServiceTask
+                MessagingServiceTask.tryCreateStopServiceTask
+                MessagingServiceTask.tryCreateStartServiceTask
+                MessagingServiceTask.tryCreateRunServiceTask
             ]
             |> List.tryPick (fun e -> e p)

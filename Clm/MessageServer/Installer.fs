@@ -1,11 +1,11 @@
-﻿namespace ContGenServMessagingServerice
+﻿namespace MessagingService
 
 open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
 
 open MessagingServiceInfo.ServiceInfo
-open MessagingServer.WindowsService
+open MessagingService.WindowsService
 
 [<RunInstaller(true)>]
 type ContGenServiceInstaller() =
@@ -26,4 +26,4 @@ type ContGenServiceInstaller() =
 
 // Run the services when the process starts.
 module Main =
-    ServiceBase.Run [| new MessagingServerWindowsService() :> ServiceBase |]
+    ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]

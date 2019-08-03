@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace MessagingService
 
 open Argu
 open ClmSys.GeneralData
@@ -10,7 +10,7 @@ module SvcCommandLine =
 
 
     [<CliPrefix(CliPrefix.Dash)>]
-    type MessagingServerRunArgs =
+    type MessagingServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-server")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
@@ -29,9 +29,9 @@ module SvcCommandLine =
         SvcArguments =
         | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
         | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start of ParseResults<MessagingServerRunArgs>
+        | [<Unique>] [<First>] Start of ParseResults<MessagingServiceRunArgs>
         | [<Unique>] [<First>] Stop
-        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServerRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
 
     with
         interface IArgParserTemplate with

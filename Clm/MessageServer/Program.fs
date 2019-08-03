@@ -2,8 +2,8 @@
 
 open System.ServiceProcess
 open Argu
-open ContGenServiceInfo.ServiceInfo
-open ContGenService.SvcCommandLine
+open MessagingServiceInfo.ServiceInfo
+open MessagingService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
 open ContGenService.WindowsService
 open ClmSys.ExitErrorCodes

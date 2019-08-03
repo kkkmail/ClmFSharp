@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace MessagingService
 
 open System
 open ClmSys.GeneralData
@@ -42,3 +42,4 @@ module ServiceImplementation =
         interface IClmMessagingServer with
             member __.sendMessage m = a.sendMessage m
             member __.getMessages n = a.getMessages n
+            member __.configureService x = failwith ""

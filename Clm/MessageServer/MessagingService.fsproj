@@ -7,13 +7,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>fc9c81b4-b256-4892-83ea-26b870d24ff6</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>MessageServer</RootNamespace>
-    <AssemblyName>MessagingServer</AssemblyName>
+    <RootNamespace>MessagingService</RootNamespace>
+    <AssemblyName>MessagingService</AssemblyName>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <WarningsAsErrors>3239;$(WarningsAsErrors)</WarningsAsErrors>
-    <Name>MessagingServer</Name>
+    <Name>MessagingService</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,7 +72,7 @@
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
-    <Compile Include="MessagingServerServiceTasks.fs" />
+    <Compile Include="ServiceTasks.fs" />
     <Compile Include="Program.fs" />
     <Content Include="db.config" />
     <Content Include="App.config" />

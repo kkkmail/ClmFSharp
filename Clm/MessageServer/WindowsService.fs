@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace MessagingService
 
 open System.ServiceProcess
 open System.Runtime.Remoting
@@ -7,9 +7,9 @@ open Argu
 
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
-open MessagingServer.ServiceImplementation
+open MessagingService.ServiceImplementation
 open Messaging.Server
-open MessagingServer.SvcCommandLine
+open MessagingService.SvcCommandLine
 
 module WindowsService =
 
@@ -27,7 +27,7 @@ module WindowsService =
                 ignore()
 
 
-    type public MessagingServerWindowsService () =
+    type public MessagingWindowsService () =
         inherit ServiceBase (ServiceName = MessagingServiceName)
 
         let initService () = ()
@@ -36,7 +36,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<MessagingServerRunArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             startServiceRun i logger

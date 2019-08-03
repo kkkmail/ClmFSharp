@@ -14,3 +14,12 @@ module VersionInfo =
 
     [<Literal>]
     let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2019."
+
+
+    type VersionNumber =
+        | VersionNumber of string
+
+        member this.value = let (VersionNumber v) = this in v
+
+
+    let versionNumberValue = VersionNumber VersionNumberValue

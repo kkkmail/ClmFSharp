@@ -6,6 +6,7 @@ open System.Configuration.Install
 open System.ServiceProcess
 open Argu
 
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService
@@ -162,11 +163,11 @@ module ServiceTasks =
         static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServiceTask (p : list<SvcArguments>) =
+        static member private tryCreateRunServiceTask v (p : list<SvcArguments>) =
             p |> List.tryPick (fun e ->
                                 match e with
                                 | Run p ->
-                                    let i = getServiceAccessInfo (p.GetAllResults())
+                                    let i = getServiceAccessInfo v (p.GetAllResults())
                                     RunServiceTask(MessagingConfigParam.fromParseResults p, i) |> Some
                                 | _ -> None)
 
@@ -176,6 +177,6 @@ module ServiceTasks =
                 MessagingServiceTask.tryCreateInstallServiceTask
                 MessagingServiceTask.tryCreateStopServiceTask
                 MessagingServiceTask.tryCreateStartServiceTask
-                MessagingServiceTask.tryCreateRunServiceTask
+                MessagingServiceTask.tryCreateRunServiceTask versionNumberValue
             ]
             |> List.tryPick (fun e -> e p)

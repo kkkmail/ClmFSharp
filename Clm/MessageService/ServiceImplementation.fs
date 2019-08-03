@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.GeneralData
+open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Server
@@ -23,7 +24,7 @@ module ServiceImplementation =
         failwith ""
 
 
-    let mutable serviceAccessInfo = getServiceAccessInfo []
+    let mutable serviceAccessInfo = getServiceAccessInfo versionNumberValue []
 
 
     type MessagingServer () =

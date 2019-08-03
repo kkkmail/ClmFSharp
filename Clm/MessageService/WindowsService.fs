@@ -6,6 +6,7 @@ open System.Runtime.Remoting.Channels
 open Argu
 
 open ClmSys.GeneralData
+open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open Messaging.Server
@@ -38,7 +39,7 @@ module WindowsService =
             base.OnStart(args)
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
-            let i = getServiceAccessInfo results
+            let i = getServiceAccessInfo versionNumberValue results
             startServiceRun i logger
 
         override __.OnStop () = base.OnStop()

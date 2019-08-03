@@ -18,9 +18,9 @@ module ServiceTasks =
     let ServiceTmeOut = 10_000.0
 
 
-    type MesssagingConfigParam
+    type MessagingConfigParam
         with
-        static member fromParseResults (p : ParseResults<MessagingServiceRunArgs>) : list<MesssagingConfigParam> =
+        static member fromParseResults (p : ParseResults<MessagingServiceRunArgs>) : list<MessagingConfigParam> =
             [
                 //p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
                 //p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
@@ -84,7 +84,7 @@ module ServiceTasks =
                 false
 
     /// TODO kk:20190520 - Propagate p into service.
-    let startContGenService timeoutMilliseconds (p : list<MesssagingConfigParam>) =
+    let startContGenService timeoutMilliseconds (p : list<MessagingConfigParam>) =
         (startService MessagingServiceName timeoutMilliseconds)
 
 
@@ -109,7 +109,7 @@ module ServiceTasks =
         (stopService MessagingServiceName timeoutMilliseconds)
 
 
-    let runService i (p : list<MesssagingConfigParam>) =
+    let runService i (p : list<MessagingConfigParam>) =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
@@ -133,9 +133,9 @@ module ServiceTasks =
     type MessagingServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
-        | StartServiceTask of list<MesssagingConfigParam>
+        | StartServiceTask of list<MessagingConfigParam>
         | StopServiceTask
-        | RunServiceTask of list<MesssagingConfigParam> * MessagingServerAccessInfo
+        | RunServiceTask of list<MessagingConfigParam> * MessagingServerAccessInfo
 
         member task.run() =
             match task with
@@ -157,7 +157,7 @@ module ServiceTasks =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
         static member private tryCreateStartServiceTask (p : list<SvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start p -> MesssagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Start p -> MessagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
         static member private tryCreateStopServiceTask (p : list<SvcArguments>) =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
@@ -167,7 +167,7 @@ module ServiceTasks =
                                 match e with
                                 | Run p ->
                                     let i = getServiceAccessInfo (p.GetAllResults())
-                                    RunServiceTask(MesssagingConfigParam.fromParseResults p, i) |> Some
+                                    RunServiceTask(MessagingConfigParam.fromParseResults p, i) |> Some
                                 | _ -> None)
 
         static member tryCreate (p : list<SvcArguments>) =

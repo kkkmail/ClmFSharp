@@ -1,6 +1,5 @@
 ﻿namespace Messaging
 
-open System
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MessagingServer
@@ -30,6 +29,7 @@ module Server =
         | Start
         | SendMessage of Message<'T>
         | GetMessages of NodeId * AsyncReplyChannel<List<Message<'T>>>
+        | ConfigureService of MessagingConfigParam
 
 
     type MessagingServer<'T>(d : MessagingServerData<'T>) =
@@ -67,6 +67,11 @@ module Server =
                 r.Reply []
                 s
 
+
+        let onConfigure s x =
+            s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop (s : MessagingServerState<'T> ) =
@@ -76,6 +81,7 @@ module Server =
                             | Start -> return! onStart s |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
                             | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
+                            | ConfigureService x -> return! onConfigure s x |> loop
                         }
 
                 onStart (MessagingServerState<'T>.defaultValue d) |> loop
@@ -83,6 +89,7 @@ module Server =
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
+        member __.configureService x = ConfigureService x |> messageLoop.Post
 
 
     type ClmMessagingServer = MessagingServer<ClmMesage>

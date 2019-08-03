@@ -51,14 +51,14 @@ module ServiceInfo =
         }
 
 
-    type MesssagingConfigParam =
+    type MessagingConfigParam =
         | DummyConfig
 
 
     type IMessagingServer<'T> =
         abstract sendMessage : Message<'T> -> unit
         abstract getMessages : NodeId -> List<Message<'T>>
-        abstract configureService : MesssagingConfigParam -> unit
+        abstract configureService : MessagingConfigParam -> unit
 
 
 

@@ -3,6 +3,7 @@
 open System
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
+open MessagingService.SvcCommandLine
 open Messaging.Server
 open ServiceProxy.MessagingServer
 
@@ -21,14 +22,8 @@ module ServiceImplementation =
         //a
         failwith ""
 
-    let mutable serviceAccessInfo =
-        {
-            messagingServerAccessInfo =
-                {
-                    serviceAddress = ServiceAddress DefaultMessagingServerAddress
-                    servicePort = ServicePort DefaultMessagingServerPort
-                }
-        }
+
+    let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
     type MessagingServer () =
@@ -42,4 +37,4 @@ module ServiceImplementation =
         interface IClmMessagingServer with
             member __.sendMessage m = a.sendMessage m
             member __.getMessages n = a.getMessages n
-            member __.configureService x = failwith ""
+            member __.configureService x = a.configureService x

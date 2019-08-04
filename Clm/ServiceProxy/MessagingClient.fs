@@ -13,8 +13,8 @@ module MessagingClient =
             loadMessages : unit -> List<MessageType * Message<'T>>
             saveMessage : MessageType -> Message<'T> -> unit
             deleteMessage : MessageId -> unit
-            //sendMessages : List<Message<'T>> -> List<Message<'T>>
-            //receiveMessages : unit -> List<Message<'T>>
+            sendMessages : List<Message<'T>> -> List<Message<'T>>
+            receiveMessages : unit -> List<Message<'T>>
         }
 
         /// Default value does nothing.
@@ -23,6 +23,6 @@ module MessagingClient =
                 loadMessages = fun () -> []
                 saveMessage = fun _ _ -> ()
                 deleteMessage = fun _ -> ()
-                //sendMessages = fun _ -> []
-                //receiveMessages = fun () -> []
+                sendMessages = fun _ -> []
+                receiveMessages = fun () -> []
             }

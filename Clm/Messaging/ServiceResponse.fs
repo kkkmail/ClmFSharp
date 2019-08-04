@@ -1,4 +1,4 @@
-﻿namespace MessagingClient
+﻿namespace Messaging
 
 open System
 open ClmSys.GeneralData

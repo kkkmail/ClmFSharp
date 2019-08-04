@@ -35,7 +35,7 @@ module ServiceImplementation =
         let initService () = ()
         do initService ()
 
-        interface IClmMessagingServer with
+        interface IClmMessagingService with
             member __.sendMessage m = a.sendMessage m
             member __.getMessages n = a.getMessages n
             member __.configureService x = a.configureService x

@@ -9,7 +9,7 @@ module ServiceResponse =
     type ResponseHandler (i : MessagingServiceAccessInfo) =
         let service = Activator.GetObject (typeof<IClmMessagingService>, getServiceUrl i.messagingServiceAccessInfo) :?> IClmMessagingService
 
-        member this.progressNotifierService = service
+        member __.messagingService = service
 
         static member tryCreate i =
             try

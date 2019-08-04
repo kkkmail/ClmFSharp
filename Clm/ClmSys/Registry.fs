@@ -17,11 +17,8 @@ module Registry =
     let private getNodeSubKey v = (getTopSubKey v) + "\\" + "Node"
     let private getMessagingServerSubKey v = (getTopSubKey v) + "\\" + "Messaging" + "\\" + "Server"
     
-    let private getMessagingClientSubKey v c =
-        let t = (getTopSubKey v) + "\\" +  "Messaging" + "\\" + "Client"
-        match c with
-        | Unnamed -> t
-        | Named n -> t + "\\" + n
+    let private getMessagingClientSubKey v (MessagingClientName c) =
+        (getTopSubKey v) + "\\" +  "Messaging" + "\\" + "Client" + "\\" + c
 
 
     let private tryCreateRegistrySubKey logger subKey =
@@ -89,19 +86,19 @@ module Registry =
                 None
 
 
-    let tryGetNodeId logger v =
-        match tryGetRegistryValue logger (getNodeSubKey v) nodeIdKey with
-        | Some s ->
-            match Guid.TryParse s with
-            | true, v -> NodeId v |> Some
-            | false, _ -> None
-        | None -> None
+    //let tryGetNodeId logger v =
+    //    match tryGetRegistryValue logger (getNodeSubKey v) nodeIdKey with
+    //    | Some s ->
+    //        match Guid.TryParse s with
+    //        | true, v -> NodeId v |> Some
+    //        | false, _ -> None
+    //    | None -> None
 
 
-    let trySetNodeId logger v (NodeId n) =
-        match tryCreateRegistrySubKey logger (getNodeSubKey v) with
-        | Some _ -> trySetRegistryValue logger (getNodeSubKey v) nodeIdKey (n.ToString())
-        | None -> None
+    //let trySetNodeId logger v (NodeId n) =
+    //    match tryCreateRegistrySubKey logger (getNodeSubKey v) with
+    //    | Some _ -> trySetRegistryValue logger (getNodeSubKey v) nodeIdKey (n.ToString())
+    //    | None -> None
 
 
     // Messsaging Server

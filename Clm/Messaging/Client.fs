@@ -10,8 +10,10 @@ module Client =
 
     type MessagingClientData<'T> =
         {
-            x : MessagingClientAccessInfo
-            messageClientProxy : MessagingClientProxy<'T>
+            msgAccessInfo : MessagingClientAccessInfo
+            msgResponseHandler : MsgResponseHandler<'T>
+            msgClientProxy : MessagingClientProxy<'T>
+            logger : exn -> unit
         }
 
 
@@ -42,7 +44,7 @@ module Client =
 
     type MessagingClient<'T>(d : MessagingClientData<'T>) =
         let onStart s =
-            let messages = s.messageClientData.messageClientProxy.loadMessages()
+            let messages = s.messageClientData.msgClientProxy.loadMessages()
             let (i, o) = messages |> List.partition (fun e -> match fst e with | IncomingMessage -> true | OutgoingMessage -> false)
             let incoming = i |> List.map snd
             let outgoing = o |> List.map snd
@@ -53,12 +55,13 @@ module Client =
             let message =
                 {
                     messageId = MessageId.create()
+                    sender = d.msgAccessInfo.msgClientId
                     messageInfo = m
                     createdOn = DateTime.Now
                 }
 
             match m.deliveryType with
-            | GuaranteedDelivery -> s.messageClientData.messageClientProxy.saveMessage OutgoingMessage message
+            | GuaranteedDelivery -> s.messageClientData.msgClientProxy.saveMessage OutgoingMessage message
             | NonGuaranteedDelivery -> ignore()
 
             { s with outgoingMessages = message :: s.outgoingMessages }
@@ -69,24 +72,44 @@ module Client =
 
             s.incomingMessages
             |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> s.messageClientData.messageClientProxy.deleteMessage e.messageId)
+            |> List.map (fun e -> s.messageClientData.msgClientProxy.deleteMessage e.messageId)
             |> ignore
 
             { s with incomingMessages = [] }
+
+
+        let sendMessageImpl s m =
+            try
+                s.messageClientData.msgResponseHandler.messagingService.sendMessage m
+                Some m
+            with
+                | e ->
+                    s.messageClientData.logger e
+                    None
+
+
+        let receiveMessagesImpl s =
+            try
+                s.messageClientData.msgResponseHandler.messagingService.getMessages s.messageClientData.msgAccessInfo.msgClientId
+            with
+                | e ->
+                    s.messageClientData.logger e
+                    []
 
 
         let onTransmitMessages s =
             let result =
                 s.outgoingMessages
                 |> List.rev
-                |> s.messageClientData.messageClientProxy.sendMessages
+                |> List.map (sendMessageImpl s)
+                |> List.choose id
 
-            let messages = s.messageClientData.messageClientProxy.receiveMessages()
             let transmitted = result |> List.map (fun e -> e.messageId) |> Set.ofList
+            let received = receiveMessagesImpl s
             let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
             let failed = Set.difference outgoing transmitted
             let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId)
-            { s with outgoingMessages = remaining; incomingMessages = messages @ s.incomingMessages }
+            { s with outgoingMessages = remaining; incomingMessages = received @ s.incomingMessages }
 
 
         let onConfigureClient s x =

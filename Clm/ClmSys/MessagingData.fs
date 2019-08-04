@@ -6,17 +6,9 @@ open ClmSys.GeneralData
 module MessagingData =
 
     type MessagingClientName =
-        | Unnamed
-        | Named of string
+        | MessagingClientName of string
 
-        //member this.name =
-        //    match this with
-        //    | Unnamed -> EmptyString
-        //    | Named n -> n
-
-        static member create s =
-            if s = EmptyString then Unnamed
-            else Named s
+        member this.value = let (MessagingClientName v) = this in v
 
 
     type MessagingClientId =

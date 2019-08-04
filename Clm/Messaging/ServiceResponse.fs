@@ -7,15 +7,20 @@ open MessagingServiceInfo.ServiceInfo
 
 module ServiceResponse =
 
-    type ResponseHandler (i : MessagingServiceAccessInfo) =
-        let service = Activator.GetObject (typeof<IClmMessagingService>, getServiceUrl i.messagingServiceAccessInfo) :?> IClmMessagingService
+    type MsgResponseHandler<'T> (i : MessagingClientAccessInfo) =
+        let service = Activator.GetObject (typeof<IMessagingService<'T>>, getServiceUrl i.msgSvcAccessInfo) :?> IMessagingService<'T>
 
         member __.messagingService = service
 
         static member tryCreate i =
             try
-                ResponseHandler i |> Some
+                MsgResponseHandler i |> Some
             with
                 | exn ->
                     printfn "Exception occurred: %s." exn.Message
                     None
+
+
+    type ClmMsgResponseHandler (i) =
+        inherit MsgResponseHandler<ClmMesage>(i)
+        //IClmMessagingService

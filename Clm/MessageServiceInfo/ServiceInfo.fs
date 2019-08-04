@@ -33,7 +33,7 @@ module ServiceInfo =
 
     type MessageInfo<'T> =
         {
-            recipient : NodeId
+            recipient : MessagingClientId
             deliveryType : MessageDeliveryType
             messageData : 'T
         }
@@ -47,6 +47,7 @@ module ServiceInfo =
     type Message<'T> =
         {
             messageId : MessageId
+            sender : MessagingClientId
             messageInfo : MessageInfo<'T>
             createdOn : DateTime
         }
@@ -62,9 +63,8 @@ module ServiceInfo =
 
     type IMessagingService<'T> =
         abstract sendMessage : Message<'T> -> unit
-        abstract getMessages : NodeId -> List<Message<'T>>
+        abstract getMessages : MessagingClientId -> List<Message<'T>>
         abstract configureService : MessagingConfigParam -> unit
-
 
 
     type ClmMesage =

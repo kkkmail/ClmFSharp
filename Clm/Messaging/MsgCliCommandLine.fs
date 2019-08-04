@@ -6,6 +6,7 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.Registry
 open ClmSys.MessagingData
+open Messaging.ServiceResponse
 
 module MsgCliCommandLine =
 
@@ -53,70 +54,71 @@ module MsgCliCommandLine =
         p |> List.tryPick (fun e -> match e with | MsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
 
 
-    let getClientName p =
-        match p |> List.tryPick (fun e -> match e with | MsgCliName p -> p |> MessagingClientName.create |> Some | _ -> None) with
-        | Some e -> e
-        | None -> MessagingClientName.Unnamed
+    let tryGetClientName p =
+        p |> List.tryPick (fun e -> match e with | MsgCliName p -> p |> MessagingClientName |> Some | _ -> None)
 
 
-    let tryGetClientServiceAccessInfo p =
+    let tryGetClientServiceAccessInfo p no =
         let version =
             match tryGetVersion p with
             | Some x -> x
             | None -> versionNumberValue
 
-        let name = getClientName p
-
-        let address =
-            match tryGetServerAddress p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingClientAddress logger version name with
-                | Some a -> a
-                | None -> ServiceAddress.defaultMessagingServerValue
-
-        let port =
-            match tryGetServerPort p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingClientPort logger version name with
-                | Some a -> a
-                | None -> ServicePort.defaultMessagingServerValue
-
-        let trySaveSettings c =
-            match tryGetSaveSettings p with
-            | Some _ ->
-                trySetMessagingClientAddress logger versionNumberValue name address |> ignore
-                trySetMessagingClientPort logger versionNumberValue name port |> ignore
-                trySetMessagingClientId logger versionNumberValue name c |> ignore
-            | None -> ignore()
-
-        let co =
-            match tryGetClientId p with
+        let nameOpt =
+            match tryGetClientName p with
             | Some c -> Some c
-            | None ->
-                match tryGetMessagingClientId logger version name with
+            | None -> no
+
+        match nameOpt with
+        | Some name ->
+            let address =
+                match tryGetServerAddress p with
+                | Some a -> a
+                | None ->
+                    match tryGetMessagingClientAddress logger version name with
+                    | Some a -> a
+                    | None -> ServiceAddress.defaultMessagingServerValue
+
+            let port =
+                match tryGetServerPort p with
+                | Some a -> a
+                | None ->
+                    match tryGetMessagingClientPort logger version name with
+                    | Some a -> a
+                    | None -> ServicePort.defaultMessagingServerValue
+
+            let trySaveSettings c =
+                match tryGetSaveSettings p with
+                | Some _ ->
+                    trySetMessagingClientAddress logger versionNumberValue name address |> ignore
+                    trySetMessagingClientPort logger versionNumberValue name port |> ignore
+                    trySetMessagingClientId logger versionNumberValue name c |> ignore
+                | None -> ignore()
+
+            let co =
+                match tryGetClientId p with
                 | Some c -> Some c
-                | None -> None
+                | None -> tryGetMessagingClientId logger version name
 
-        match co with
-        | Some c ->
-            trySaveSettings c
+            match co with
+            | Some c ->
+                trySaveSettings c
 
-            {
-                msgClientId = c
+                {
+                    msgClientId = c
 
-                msgSvcAccessInfo =
-                    {
-                        serviceAddress = address
-                        servicePort = port
-                    }
-            }
-            |> Some
+                    msgSvcAccessInfo =
+                        {
+                            serviceAddress = address
+                            servicePort = port
+                        }
+                }
+                |> Some
+            | None -> None
         | None -> None
 
 
-    let tryCreateX p =
-        match tryGetClientServiceAccessInfo p with
-        | Some x -> failwith ""
+    let tryCreateMsgResponseHandler p no =
+        match tryGetClientServiceAccessInfo p no with
+        | Some i -> MsgResponseHandler.tryCreate i
         | None -> None

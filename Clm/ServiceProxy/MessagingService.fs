@@ -23,3 +23,5 @@ module MessagingService =
                 deleteMessage = fun _ -> ()
             }
 
+
+    type ClmMessagingServiceProxy = MessagingServiceProxy<ClmMesage>

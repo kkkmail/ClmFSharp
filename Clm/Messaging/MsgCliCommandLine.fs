@@ -22,6 +22,9 @@ module MsgCliCommandLine =
         | [<Unique>] [<AltCommandLine("-id")>] MsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-name")>] MsgCliName of string
 
+        /// For debugging, comment when not needed.
+        | [<Unique>] [<AltCommandLine("-rcp")>] MsgRcpId of Guid
+
     with
         interface IArgParserTemplate with
             member this.Usage =
@@ -32,6 +35,9 @@ module MsgCliCommandLine =
                 | MsgCliVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
                 | MsgCliId _ -> "id of the client - it is like an \"email\" address of a client."
                 | MsgCliName _ -> "optinal client name to distinguish clients when there is more than one on a machine."
+
+                /// For debugging, comment when not needed.
+                | MsgRcpId _ -> "id of message recipient."
 
 
     let tryGetServerAddress p =
@@ -56,6 +62,10 @@ module MsgCliCommandLine =
 
     let tryGetClientName p =
         p |> List.tryPick (fun e -> match e with | MsgCliName p -> p |> MessagingClientName |> Some | _ -> None)
+
+
+    let tryGetRecipientId p =
+        p |> List.tryPick (fun e -> match e with | MsgRcpId p -> p |> MessagingClientId |> Some | _ -> None)
 
 
     let tryGetClientServiceAccessInfo p no =

@@ -11,6 +11,7 @@ open ServiceProxy.MessagingService
 module ServiceImplementation =
 
     let createServiceImpl i : ClmMessagingService =
+        let x = ClmMessagingServiceProxy()
         //let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
         //// Send startGenerate in case runner stops due to some reason.

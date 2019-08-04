@@ -9,7 +9,7 @@ module Service =
 
     type MessagingServiceData<'T> =
         {
-            messageServerProxy : MessagingServiceProxy<'T>
+            messagingServiceProxy : MessagingServiceProxy<'T>
         }
 
 
@@ -32,6 +32,9 @@ module Service =
         | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message<'T>>>
         | ConfigureService of MessagingConfigParam
 
+        /// For debugging.
+        | GetState of AsyncReplyChannel< MessagingServiceState<'T>>
+
 
     type MessagingService<'T>(d : MessagingServiceData<'T>) =
         let updateMessages s m =
@@ -41,13 +44,13 @@ module Service =
 
 
         let onStart s =
-            s.messageServiceData.messageServerProxy.loadMessages()
+            s.messageServiceData.messagingServiceProxy.loadMessages()
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
         let onSendMessage s (m : Message<'T>) =
             match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> s.messageServiceData.messageServerProxy.saveMessage m
+            | GuaranteedDelivery -> s.messageServiceData.messagingServiceProxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
 
             updateMessages s m
@@ -60,7 +63,7 @@ module Service =
 
                 v
                 |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-                |> List.map (fun e -> s.messageServiceData.messageServerProxy.deleteMessage e.messageId)
+                |> List.map (fun e -> s.messageServiceData.messagingServiceProxy.deleteMessage e.messageId)
                 |> ignore
 
                 { s with messages = s.messages.Add(n, []) }
@@ -83,6 +86,7 @@ module Service =
                             | SendMessage m -> return! onSendMessage s m |> loop
                             | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
+                            | GetState _ -> failwith ""
                         }
 
                 onStart (MessagingServiceState<'T>.defaultValue d) |> loop
@@ -91,6 +95,8 @@ module Service =
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
+        member __.getState() = GetState |> messageLoop.PostAndReply
 
 
+    type ClmMessagingServiceData = MessagingServiceData<ClmMesage>
     type ClmMessagingService = MessagingService<ClmMesage>

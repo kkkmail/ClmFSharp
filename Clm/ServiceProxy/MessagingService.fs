@@ -18,7 +18,7 @@ module MessagingService =
         /// Default value does nothing.
         static member defaultValue =
             {
-                loadMessages = fun () -> []
+                loadMessages = fun () -> List<Message<'T>>.Empty
                 saveMessage = fun _ -> ()
                 deleteMessage = fun _ -> ()
             }

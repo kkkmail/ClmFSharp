@@ -3,6 +3,7 @@
 open System
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
@@ -10,19 +11,21 @@ open ServiceProxy.MessagingService
 
 module ServiceImplementation =
 
-    let createServiceImpl i : ClmMessagingService =
-        let x = ClmMessagingServiceProxy()
-        //let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
+    let createServiceImpl (i : MessagingServiceAccessInfo) : ClmMessagingService =
+        let d : ClmMessagingServiceData =
+            {
+                messagingServiceProxy = ClmMessagingServiceProxy.defaultValue
+            }
 
-        //// Send startGenerate in case runner stops due to some reason.
+        let a = ClmMessagingService d
+
         //let eventHandler _ = a.startGenerate()
         //let timer = new System.Timers.Timer(60_000.0)
         //do timer.AutoReset <- true
         //do timer.Elapsed.Add eventHandler
         //do timer.Start()
 
-        //a
-        failwith ""
+        a
 
 
     let mutable serviceAccessInfo = getServiceAccessInfo []

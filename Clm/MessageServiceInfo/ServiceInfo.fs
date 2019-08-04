@@ -60,7 +60,7 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type IMessagingServer<'T> =
+    type IMessagingService<'T> =
         abstract sendMessage : Message<'T> -> unit
         abstract getMessages : NodeId -> List<Message<'T>>
         abstract configureService : MessagingConfigParam -> unit
@@ -74,4 +74,4 @@ module ServiceInfo =
     type ClmMessageInfo = MessageInfo<ClmMesage>
 
 
-    type IClmMessagingServer = IMessagingServer<ClmMesage>
+    type IClmMessagingService = IMessagingService<ClmMesage>

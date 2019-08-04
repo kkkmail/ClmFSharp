@@ -24,3 +24,17 @@ module MessagingData =
 
         member this.value = let (MessagingClientId v) = this in v
         static member create() = Guid.NewGuid() |> MessagingClientId
+
+
+    type MessagingClientAccessInfo =
+        {
+            msgClientId : MessagingClientId
+            msgSvcAccessInfo : ServiceAccessInfo
+        }
+
+
+    type MessagingServiceAccessInfo =
+        {
+            messagingServiceAccessInfo : ServiceAccessInfo
+        }
+

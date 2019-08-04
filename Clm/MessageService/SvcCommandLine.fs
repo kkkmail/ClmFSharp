@@ -3,6 +3,7 @@
 open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open ClmSys.Registry
 
 module SvcCommandLine =

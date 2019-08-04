@@ -8,6 +8,7 @@ open Argu
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo

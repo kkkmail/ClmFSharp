@@ -13,6 +13,8 @@ module MessagingClient =
             loadMessages : unit -> List<MessageType * Message<'T>>
             saveMessage : MessageType -> Message<'T> -> unit
             deleteMessage : MessageId -> unit
+            //onMessageReceived : Message<'T> -> unit
+
             //sendMessages : List<Message<'T>> -> List<Message<'T>>
             //receiveMessages : unit -> List<Message<'T>>
         }
@@ -23,6 +25,11 @@ module MessagingClient =
                 loadMessages = fun () -> []
                 saveMessage = fun _ _ -> ()
                 deleteMessage = fun _ -> ()
+
+                //onMessageReceived =
+                //    fun m -> printfn "Message received: %A" m
+                //    //fun _ -> ()
+
                 //sendMessages = fun _ -> []
                 //receiveMessages = fun () -> []
             }

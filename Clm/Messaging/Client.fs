@@ -1,13 +1,16 @@
 ﻿namespace Messaging
 
 open System
+open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MessagingClient
+open Messaging.ServiceResponse
 
 module Client =
 
     type MessagingClientData<'T> =
         {
+            x : MessagingClientAccessInfo
             messageClientProxy : MessagingClientProxy<'T>
         }
 

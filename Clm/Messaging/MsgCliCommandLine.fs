@@ -104,11 +104,19 @@ module MsgCliCommandLine =
             trySaveSettings c
 
             {
-                messagingServiceAccessInfo =
+                msgClientId = c
+
+                msgSvcAccessInfo =
                     {
                         serviceAddress = address
                         servicePort = port
                     }
             }
             |> Some
+        | None -> None
+
+
+    let tryCreateX p =
+        match tryGetClientServiceAccessInfo p with
+        | Some x -> failwith ""
         | None -> None

@@ -5,8 +5,9 @@ open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open Argu
 
-open ClmSys.GeneralData
 open ClmSys.VersionInfo
+open ClmSys.GeneralData
+open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open Messaging.Service

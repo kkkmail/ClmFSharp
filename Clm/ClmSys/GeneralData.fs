@@ -291,9 +291,3 @@ module GeneralData =
         | NodeId of Guid
 
         member this.value = let (NodeId v) = this in v
-
-
-    type MessagingServiceAccessInfo =
-        {
-            messagingServiceAccessInfo : ServiceAccessInfo
-        }

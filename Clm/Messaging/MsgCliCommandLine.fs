@@ -120,5 +120,5 @@ module MsgCliCommandLine =
 
     let tryCreateMsgResponseHandler p no =
         match tryGetClientServiceAccessInfo p no with
-        | Some i -> MsgResponseHandler.tryCreate i
+        | Some i -> ClmMsgResponseHandler.tryCreate i
         | None -> None

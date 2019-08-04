@@ -1,6 +1,7 @@
 ﻿namespace Messaging
 
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MessagingService
 
@@ -15,7 +16,7 @@ module Service =
     type MessagingServiceState<'T> =
         {
             messageServiceData : MessagingServiceData<'T>
-            messages : Map<NodeId, List<Message<'T>>>
+            messages : Map<MessagingClientId, List<Message<'T>>>
         }
 
         static member defaultValue d =
@@ -28,7 +29,7 @@ module Service =
     type MessagingServiceMessage<'T> =
         | Start
         | SendMessage of Message<'T>
-        | GetMessages of NodeId * AsyncReplyChannel<List<Message<'T>>>
+        | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message<'T>>>
         | ConfigureService of MessagingConfigParam
 
 

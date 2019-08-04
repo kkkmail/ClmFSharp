@@ -153,6 +153,7 @@ module Registry =
             | false, _ -> None
         | None -> None
 
+
     let trySetMessagingClientPort logger v c (ServicePort p) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) servicePortKey (p.ToString())

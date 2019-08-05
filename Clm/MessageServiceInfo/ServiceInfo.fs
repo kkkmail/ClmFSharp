@@ -72,6 +72,4 @@ module ServiceInfo =
 
 
     type ClmMessageInfo = MessageInfo<ClmMesage>
-
-
     type IClmMessagingService = IMessagingService<ClmMesage>

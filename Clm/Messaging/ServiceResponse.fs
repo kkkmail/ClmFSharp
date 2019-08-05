@@ -14,13 +14,11 @@ module ServiceResponse =
 
         static member tryCreate i =
             try
-                MsgResponseHandler i |> Some
+                MsgResponseHandler<'T> i |> Some
             with
                 | exn ->
                     printfn "Exception occurred: %s." exn.Message
                     None
 
 
-    type ClmMsgResponseHandler (i) =
-        inherit MsgResponseHandler<ClmMesage>(i)
-        //IClmMessagingService
+    type ClmMsgResponseHandler = MsgResponseHandler<ClmMesage>

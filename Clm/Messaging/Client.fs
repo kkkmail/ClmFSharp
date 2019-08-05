@@ -137,4 +137,5 @@ module Client =
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
 
 
+    type ClmMessagingClientData = MessagingClientData<ClmMesage>
     type ClmMessagingClient = MessagingClient<ClmMesage>

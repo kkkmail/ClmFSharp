@@ -20,7 +20,7 @@ module MessagingClient =
         }
 
         /// Default value does nothing.
-        static member defaultValue =
+        static member defaultValue : MessagingClientProxy<'T> =
             {
                 loadMessages = fun () -> []
                 saveMessage = fun _ _ -> ()
@@ -33,3 +33,6 @@ module MessagingClient =
                 //sendMessages = fun _ -> []
                 //receiveMessages = fun () -> []
             }
+
+
+    type ClmMessagingClientProxy = MessagingClientProxy<ClmMesage>

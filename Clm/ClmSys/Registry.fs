@@ -8,17 +8,17 @@ open Fake.Windows
 
 module Registry =
 
-    let private nodeIdKey = "NodeId"
     let private serviceAddressKey = "ServiceAddress"
     let private servicePortKey = "ServicePort"
     let private messagingClientIdKey = "ClientId"
 
-    let private getTopSubKey (VersionNumber v) = "CLM" + "\\" + v
-    let private getNodeSubKey v = (getTopSubKey v) + "\\" + "Node"
+    let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
+    let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)
+    let private formatSubKeyKey subKey key = (sprintf "subKey: '%s', key = '%s'." subKey key)
+
+    let private getTopSubKey (VersionNumber v) = "SOFTWARE" + "\\" + SystemName + "\\" + v
     let private getMessagingServerSubKey v = (getTopSubKey v) + "\\" + "Messaging" + "\\" + "Server"
-    
-    let private getMessagingClientSubKey v (MessagingClientName c) =
-        (getTopSubKey v) + "\\" +  "Messaging" + "\\" + "Client" + "\\" + c
+    let private getMessagingClientSubKey v (MessagingClientName c) = (getTopSubKey v) + "\\" + "Messaging" + "\\" + "Client" + "\\" + c
 
 
     let private tryCreateRegistrySubKey logger subKey =
@@ -27,7 +27,7 @@ module Registry =
             Some ()
         with
             | e ->
-                logger e
+                logger (formatSubKey subKey) e
                 None
 
 
@@ -37,7 +37,7 @@ module Registry =
             Some ()
         with
             | e ->
-                logger e
+                logger (formatSubKeyValue subKey value) e
                 None
 
 
@@ -46,7 +46,7 @@ module Registry =
             Registry.getRegistryValueNames Registry.HKEYLocalMachine subKey |> Some
         with
             | e ->
-                logger e
+                logger (formatSubKey subKey) e
                 None
 
 
@@ -55,7 +55,7 @@ module Registry =
              Registry.getRegistryValue Registry.HKEYLocalMachine subKey key |> Some
         with
             | e ->
-                logger e
+                logger (formatSubKeyKey subKey key) e
                 None
 
 
@@ -64,7 +64,7 @@ module Registry =
             Registry.valueExistsForKey Registry.HKEYLocalMachine subKey key
         with
             | e ->
-                logger e
+                logger (formatSubKeyKey subKey key) e
                 false
 
 
@@ -73,7 +73,7 @@ module Registry =
              Registry.deleteRegistryValue Registry.HKEYLocalMachine subKey key |> Some
         with
             | e ->
-                logger e
+                logger (formatSubKeyKey subKey key) e
                 None
 
 
@@ -82,7 +82,7 @@ module Registry =
              Registry.deleteRegistrySubKey Registry.HKEYLocalMachine subKey |> Some
         with
             | e ->
-                logger e
+                logger (formatSubKey subKey) e
                 None
 
 

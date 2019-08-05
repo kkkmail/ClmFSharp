@@ -12,6 +12,11 @@ module VersionInfo =
     let VersionNumberValue = "4.0.0.0"
 
 
+    /// This is teh name of the system used, for example, to access the Registry.
+    [<Literal>]
+    let SystemName = "CLM"
+
+
     [<Literal>]
     let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2019."
 

@@ -10,7 +10,7 @@ open Messaging.ServiceResponse
 
 module MsgCliCommandLine =
 
-    let logger e = printfn "Error / Exception: %A" e
+    let logger m e = printfn "Error / Exception for %A: %A" m e
 
 
     [<CliPrefix(CliPrefix.Dash)>]

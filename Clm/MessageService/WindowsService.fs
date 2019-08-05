@@ -22,7 +22,7 @@ module WindowsService =
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ClmMessagingService>, MessagingServiceName, WellKnownObjectMode.Singleton )
+                ( typeof<ClmMessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e

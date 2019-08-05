@@ -31,7 +31,7 @@ module ServiceImplementation =
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
-    type MessagingService () =
+    type ClmMessagingRemoteService () =
         inherit MarshalByRefObject()
 
         let a = createServiceImpl serviceAccessInfo

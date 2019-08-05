@@ -132,9 +132,21 @@ module Client =
                 onStart (MessagingClientState<'T>.defaultValue d) |> loop
                 )
 
+
+        let eventHandler _ =
+            printfn "Transmitting messages..."
+            TransmitMessages |> messageLoop.Post
+
+        let timer = new System.Timers.Timer(30_000.0)
+        do timer.AutoReset <- true
+        do timer.Elapsed.Add eventHandler
+        do timer.Start()
+
+
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
+        member __.transmitMessages() = TransmitMessages |> messageLoop.Post
 
 
     type ClmMessagingClientData = MessagingClientData<ClmMesage>

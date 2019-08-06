@@ -1,10 +1,8 @@
 ﻿namespace MessagingServiceInfo
 
 open System
-open System.Diagnostics
 open ClmSys.GeneralData
 open ClmSys.MessagingData
-open System.Threading
 
 module ServiceInfo =
 
@@ -70,11 +68,3 @@ module ServiceInfo =
         abstract sendMessage : Message -> unit
         abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit
-
-
-    //type ClmMesage =
-    //    | Dummmy
-
-
-    //type ClmMessageInfo = MessageInfo<ClmMesage>
-    //type IClmMessagingService = IMessagingService<ClmMesage>

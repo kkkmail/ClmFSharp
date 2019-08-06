@@ -1,13 +1,11 @@
 ﻿namespace MessagingService
 
 open System
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
-open ServiceProxy.MessagingService
+open MessagingServiceInfo.ServiceProxy
 
 module ServiceImplementation =
 

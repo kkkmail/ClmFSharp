@@ -6,9 +6,8 @@ open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.MsgCliCommandLine
 open Messaging.ServiceResponse
-open MessagingServiceInfo.ServiceInfo
 open ClmSys.MessagingData
-open ServiceProxy.MessagingClient
+open MessagingServiceInfo.ServiceProxy
 
 module MessagingTestClientTask =
 

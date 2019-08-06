@@ -3,7 +3,7 @@
 open System
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
-open ServiceProxy.MessagingClient
+open MessagingServiceInfo.ServiceProxy
 open Messaging.ServiceResponse
 
 module Client =
@@ -147,7 +147,3 @@ module Client =
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
         member __.transmitMessages() = TransmitMessages |> messageLoop.Post
-
-
-    //type ClmMessagingClientData = MessagingClientData<ClmMesage>
-    //type ClmMessagingClient = MessagingClient<ClmMesage>

@@ -1,9 +1,8 @@
 ﻿namespace Messaging
 
-open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
-open ServiceProxy.MessagingService
+open MessagingServiceInfo.ServiceProxy
 
 module Service =
 
@@ -96,7 +95,3 @@ module Service =
         member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply
-
-
-    //type ClmMessagingServiceData = MessagingServiceData<ClmMesage>
-    //type ClmMessagingService = MessagingService<ClmMesage>

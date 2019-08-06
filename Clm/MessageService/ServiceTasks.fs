@@ -116,17 +116,6 @@ module ServiceTasks =
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
         startServiceRun i logger
-
-        //let service = (new ContGenResponseHandler(i)).contGenService
-        //p |> List.map (fun e -> service.configureService e) |> ignore
-        //service.loadQueue()
-        //let eventHandler _ = getServiceState service
-
-        //let timer = new System.Timers.Timer(30_000.0)
-        //do timer.AutoReset <- true
-        //do timer.Elapsed.Add eventHandler
-        //do timer.Start()
-
         waitHandle.WaitOne() |> ignore
         true
 

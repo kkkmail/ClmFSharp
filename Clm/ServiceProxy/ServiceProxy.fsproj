@@ -68,8 +68,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="MessagingClient.fs" />
-    <Compile Include="MessagingService.fs" />
     <Compile Include="Runner.fs" />
     <Compile Include="SolverRunner.fs" />
     <Content Include="packages.config" />

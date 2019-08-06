@@ -22,7 +22,8 @@ module SolverRunner =
 
     type RemoteSolverRunnerConfig =
         {
-            connectionString : ConnectionString
+            //connectionString : ConnectionString
+            dummy : int
         }
 
 
@@ -35,17 +36,37 @@ module SolverRunner =
 
     type SolverRunnerProxy(i : SolverRunnerProxyInfo) =
         let logError e = printfn "Error: %A" e
+        let tryFun f = tryFun logError f
         let tryDbFun c f = tryDbFun logError c f
 
 
-        let connectionString =
-            match i with
-            | LocalSolverRunner c -> c.connectionString
-            | RemoteSolverRunner c -> c.connectionString
+        let tryLoadModelDataRemote (a : ContGenServiceAccessInfo) (m : ModelDataId) =
+            failwith ""
 
-        let tryLoadModelDataImpl i m = tryDbFun connectionString (tryLoadModelData i m)
-        let saveResultDataImpl r = tryDbFun connectionString (saveResultData r)
-        let saveChartsImpl p = ignore()
+        let saveResultDataRemote (r : ResultDataWithId) =
+            failwith ""
+
+
+        let saveChartsRemote (p : List<string>) =
+            failwith ""
+
+
+        let tryLoadModelDataImpl a m =
+            match i with
+            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
+            | RemoteSolverRunner c -> tryLoadModelDataRemote a m
+
+
+        let saveResultDataImpl r =
+            match i with
+            | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r)
+            | RemoteSolverRunner c -> tryFun (saveResultDataRemote r)
+
+
+        let saveChartsImpl p =
+            match i with
+            | LocalSolverRunner c -> ignore()
+            | RemoteSolverRunner c -> tryFun (saveChartsRemote p) |> ignore
 
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m

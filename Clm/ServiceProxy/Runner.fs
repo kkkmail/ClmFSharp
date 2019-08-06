@@ -74,7 +74,7 @@ module Runner =
             | RemoteRunner c -> failwith ""
 
 
-        let saveRunQueueEntryimpl modelId p = tryDbFun connectionString (saveRunQueueEntry modelId p)
+        let saveRunQueueEntryImpl modelId p = tryDbFun connectionString (saveRunQueueEntry modelId p)
         let tryUpdateClmTaskImpl c = tryDbFun connectionString (tryUpdateClmTask c)
         let addClmTaskImpl c = tryDbFun connectionString (addClmTask c)
         let tryLoadClmTaskImpl i t = tryDbFun connectionString (tryLoadClmTask i t)
@@ -86,7 +86,7 @@ module Runner =
         new() = RunnerProxy(RunnerProxyInfo.defaultValue)
         member __.tryLoadClmDefaultValue d = tryLoadClmDefaultValueImpl d
         member __.tryUpdateModelData m = tryUpdateModelDataImpl m
-        member __.saveRunQueueEntry modelId p = saveRunQueueEntryimpl modelId p
+        member __.saveRunQueueEntry modelId p = saveRunQueueEntryImpl modelId p
         member __.tryUpdateClmTask c = tryUpdateClmTaskImpl c
         member __.addClmTask c = addClmTaskImpl c
         member __.tryLoadClmTask i t = tryLoadClmTaskImpl i t

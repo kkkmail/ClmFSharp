@@ -1,5 +1,6 @@
 ﻿namespace MessagingTestClient
 
+open System
 open System.Threading
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
@@ -18,11 +19,11 @@ module MessagingTestClientTask =
             {
                 msgAccessInfo = i
                 msgResponseHandler = h
-                msgClientProxy = ClmMessagingClientProxy.defaultValue
+                msgClientProxy = MessagingClientProxy.defaultValue
                 logger = logger
             }
 
-        let a = ClmMessagingClient d
+        let a = MessagingClient d
 
         while true do
             printfn "Sending message to %A" r
@@ -31,7 +32,7 @@ module MessagingTestClientTask =
                 {
                     recipient = r
                     deliveryType = NonGuaranteedDelivery
-                    messageData = ClmMesage.Dummmy
+                    messageData = sprintf "Message sent at %A." DateTime.Now |> TextData
                 }
 
             a.sendMessage m
@@ -45,7 +46,7 @@ module MessagingTestClientTask =
 
 
     type MessagingTestClientTask =
-        | RunTestClientTask of MessagingClientAccessInfo * ClmMsgResponseHandler * MessagingClientId
+        | RunTestClientTask of MessagingClientAccessInfo * MsgResponseHandler * MessagingClientId
 
         member task.run() =
             match task with

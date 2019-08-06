@@ -22,7 +22,7 @@ module MsgCliCommandLine =
         | [<Unique>] [<AltCommandLine("-id")>] MsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-name")>] MsgCliName of string
 
-        /// For debugging, comment when not needed.
+        /// For debugging.
         | [<Unique>] [<AltCommandLine("-rcp")>] MsgRcpId of Guid
 
     with
@@ -130,5 +130,5 @@ module MsgCliCommandLine =
 
     let tryCreateMsgResponseHandler p no =
         match tryGetClientServiceAccessInfo p no with
-        | Some i -> ClmMsgResponseHandler.tryCreate i
+        | Some i -> MsgResponseHandler.tryCreate i
         | None -> None

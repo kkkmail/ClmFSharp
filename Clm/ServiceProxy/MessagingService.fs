@@ -8,20 +8,20 @@ open MessagingServiceInfo.ServiceInfo
 
 module MessagingService =
 
-    type MessagingServiceProxy<'T> =
+    type MessagingServiceProxy =
         {
-            loadMessages : unit -> List<Message<'T>>
-            saveMessage : Message<'T> -> unit
+            loadMessages : unit -> List<Message>
+            saveMessage : Message -> unit
             deleteMessage : MessageId -> unit
         }
 
         /// Default value does nothing.
         static member defaultValue =
             {
-                loadMessages = fun () -> List<Message<'T>>.Empty
+                loadMessages = fun () -> []
                 saveMessage = fun _ -> ()
                 deleteMessage = fun _ -> ()
             }
 
 
-    type ClmMessagingServiceProxy = MessagingServiceProxy<ClmMesage>
+    //type ClmMessagingServiceProxy = MessagingServiceProxy<ClmMesage>

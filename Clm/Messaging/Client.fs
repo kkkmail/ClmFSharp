@@ -8,20 +8,20 @@ open Messaging.ServiceResponse
 
 module Client =
 
-    type MessagingClientData<'T> =
+    type MessagingClientData =
         {
             msgAccessInfo : MessagingClientAccessInfo
-            msgResponseHandler : MsgResponseHandler<'T>
-            msgClientProxy : MessagingClientProxy<'T>
+            msgResponseHandler : MsgResponseHandler
+            msgClientProxy : MessagingClientProxy
             logger : exn -> unit
         }
 
 
-    type MessagingClientState<'T> =
+    type MessagingClientState =
         {
-            messageClientData : MessagingClientData<'T>
-            incomingMessages : List<Message<'T>>
-            outgoingMessages : List<Message<'T>>
+            messageClientData : MessagingClientData
+            incomingMessages : List<Message>
+            outgoingMessages : List<Message>
         }
 
         /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
@@ -34,15 +34,15 @@ module Client =
             }
 
 
-    type MessagingClientMessage<'T> =
+    type MessagingClientMessage =
         | Start
-        | SendMessage of MessageInfo<'T>
-        | GetMessages of AsyncReplyChannel<List<Message<'T>>>
+        | SendMessage of MessageInfo
+        | GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
         | ConfigureClient of MessagingClientConfigParam
 
 
-    type MessagingClient<'T>(d : MessagingClientData<'T>) =
+    type MessagingClient(d : MessagingClientData) =
         let onStart s =
             let messages = s.messageClientData.msgClientProxy.loadMessages()
             let (i, o) = messages |> List.partition (fun e -> match fst e with | IncomingMessage -> true | OutgoingMessage -> false)
@@ -67,7 +67,7 @@ module Client =
             { s with outgoingMessages = message :: s.outgoingMessages }
 
 
-        let onGetMessages s (r : AsyncReplyChannel<List<Message<'T>>>) =
+        let onGetMessages s (r : AsyncReplyChannel<List<Message>>) =
             r.Reply s.incomingMessages
 
             s.incomingMessages
@@ -118,7 +118,7 @@ module Client =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessagingClientState<'T> ) =
+                let rec loop s =
                     async
                         {
                             match! u.Receive() with
@@ -129,7 +129,7 @@ module Client =
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                         }
 
-                onStart (MessagingClientState<'T>.defaultValue d) |> loop
+                onStart (MessagingClientState.defaultValue d) |> loop
                 )
 
 
@@ -149,5 +149,5 @@ module Client =
         member __.transmitMessages() = TransmitMessages |> messageLoop.Post
 
 
-    type ClmMessagingClientData = MessagingClientData<ClmMesage>
-    type ClmMessagingClient = MessagingClient<ClmMesage>
+    //type ClmMessagingClientData = MessagingClientData<ClmMesage>
+    //type ClmMessagingClient = MessagingClient<ClmMesage>

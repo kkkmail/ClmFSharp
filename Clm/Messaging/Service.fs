@@ -7,16 +7,16 @@ open ServiceProxy.MessagingService
 
 module Service =
 
-    type MessagingServiceData<'T> =
+    type MessagingServiceData =
         {
-            messagingServiceProxy : MessagingServiceProxy<'T>
+            messagingServiceProxy : MessagingServiceProxy
         }
 
 
-    type MessagingServiceState<'T> =
+    type MessagingServiceState =
         {
-            messageServiceData : MessagingServiceData<'T>
-            messages : Map<MessagingClientId, List<Message<'T>>>
+            messageServiceData : MessagingServiceData
+            messages : Map<MessagingClientId, List<Message>>
         }
 
         static member defaultValue d =
@@ -26,17 +26,17 @@ module Service =
             }
 
 
-    type MessagingServiceMessage<'T> =
+    type MessagingServiceMessage =
         | Start
-        | SendMessage of Message<'T>
-        | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message<'T>>>
+        | SendMessage of Message
+        | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
 
         /// For debugging.
-        | GetState of AsyncReplyChannel< MessagingServiceState<'T>>
+        | GetState of AsyncReplyChannel<MessagingServiceState>
 
 
-    type MessagingService<'T>(d : MessagingServiceData<'T>) =
+    type MessagingService(d : MessagingServiceData) =
         let updateMessages s m =
             match s.messages.TryFind m.messageInfo.recipient with
             | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
@@ -48,7 +48,7 @@ module Service =
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
-        let onSendMessage s (m : Message<'T>) =
+        let onSendMessage s m =
             match m.messageInfo.deliveryType with
             | GuaranteedDelivery -> s.messageServiceData.messagingServiceProxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
@@ -56,7 +56,7 @@ module Service =
             updateMessages s m
 
 
-        let onGetMessages s (n, r : AsyncReplyChannel<List<Message<'T>>>) =
+        let onGetMessages s (n, r : AsyncReplyChannel<List<Message>>) =
             match s.messages.TryFind n with
             | Some v ->
                 r.Reply v
@@ -78,7 +78,7 @@ module Service =
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessagingServiceState<'T> ) =
+                let rec loop s =
                     async
                         {
                             match! u.Receive() with
@@ -89,7 +89,7 @@ module Service =
                             | GetState _ -> failwith ""
                         }
 
-                onStart (MessagingServiceState<'T>.defaultValue d) |> loop
+                onStart (MessagingServiceState.defaultValue d) |> loop
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
@@ -98,5 +98,5 @@ module Service =
         member __.getState() = GetState |> messageLoop.PostAndReply
 
 
-    type ClmMessagingServiceData = MessagingServiceData<ClmMesage>
-    type ClmMessagingService = MessagingService<ClmMesage>
+    //type ClmMessagingServiceData = MessagingServiceData<ClmMesage>
+    //type ClmMessagingService = MessagingService<ClmMesage>

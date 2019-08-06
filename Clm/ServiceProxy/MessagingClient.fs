@@ -8,10 +8,10 @@ open MessagingServiceInfo.ServiceInfo
 
 module MessagingClient =
 
-    type MessagingClientProxy<'T> =
+    type MessagingClientProxy =
         {
-            loadMessages : unit -> List<MessageType * Message<'T>>
-            saveMessage : MessageType -> Message<'T> -> unit
+            loadMessages : unit -> List<MessageType * Message>
+            saveMessage : MessageType -> Message -> unit
             deleteMessage : MessageId -> unit
             //onMessageReceived : Message<'T> -> unit
 
@@ -20,7 +20,7 @@ module MessagingClient =
         }
 
         /// Default value does nothing.
-        static member defaultValue : MessagingClientProxy<'T> =
+        static member defaultValue : MessagingClientProxy =
             {
                 loadMessages = fun () -> []
                 saveMessage = fun _ _ -> ()
@@ -35,4 +35,4 @@ module MessagingClient =
             }
 
 
-    type ClmMessagingClientProxy = MessagingClientProxy<ClmMesage>
+    //type ClmMessagingClientProxy = MessagingClientProxy<ClmMesage>

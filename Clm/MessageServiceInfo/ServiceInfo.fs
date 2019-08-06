@@ -31,11 +31,16 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
-    type MessageInfo<'T> =
+    type MessageData =
+        | TextData of string
+        | BinaryData of byte[]
+
+
+    type MessageInfo =
         {
             recipient : MessagingClientId
             deliveryType : MessageDeliveryType
-            messageData : 'T
+            messageData : MessageData
         }
 
 
@@ -44,11 +49,11 @@ module ServiceInfo =
         | OutgoingMessage
 
 
-    type Message<'T> =
+    type Message =
         {
             messageId : MessageId
             sender : MessagingClientId
-            messageInfo : MessageInfo<'T>
+            messageInfo : MessageInfo
             createdOn : DateTime
         }
 
@@ -61,15 +66,15 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type IMessagingService<'T> =
-        abstract sendMessage : Message<'T> -> unit
-        abstract getMessages : MessagingClientId -> List<Message<'T>>
+    type IMessagingService =
+        abstract sendMessage : Message -> unit
+        abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit
 
 
-    type ClmMesage =
-        | Dummmy
+    //type ClmMesage =
+    //    | Dummmy
 
 
-    type ClmMessageInfo = MessageInfo<ClmMesage>
-    type IClmMessagingService = IMessagingService<ClmMesage>
+    //type ClmMessageInfo = MessageInfo<ClmMesage>
+    //type IClmMessagingService = IMessagingService<ClmMesage>

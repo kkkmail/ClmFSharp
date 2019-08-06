@@ -11,13 +11,13 @@ open ServiceProxy.MessagingService
 
 module ServiceImplementation =
 
-    let createServiceImpl (i : MessagingServiceAccessInfo) : ClmMessagingService =
-        let d : ClmMessagingServiceData =
+    let createServiceImpl (i : MessagingServiceAccessInfo) : MessagingService =
+        let d : MessagingServiceData =
             {
-                messagingServiceProxy = ClmMessagingServiceProxy.defaultValue
+                messagingServiceProxy = MessagingServiceProxy.defaultValue
             }
 
-        let a = ClmMessagingService d
+        let a = MessagingService d
 
         //let eventHandler _ = a.startGenerate()
         //let timer = new System.Timers.Timer(60_000.0)
@@ -31,7 +31,7 @@ module ServiceImplementation =
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
-    type ClmMessagingRemoteService () =
+    type MessagingRemoteService () =
         inherit MarshalByRefObject()
 
         let a = createServiceImpl serviceAccessInfo
@@ -39,7 +39,7 @@ module ServiceImplementation =
         let initService () = ()
         do initService ()
 
-        interface IClmMessagingService with
+        interface IMessagingService with
             member __.sendMessage m = a.sendMessage m
             member __.getMessages n = a.getMessages n
             member __.configureService x = a.configureService x

@@ -11,6 +11,8 @@ module Registry =
     let private serviceAddressKey = "ServiceAddress"
     let private servicePortKey = "ServicePort"
     let private messagingClientIdKey = "ClientId"
+    let private partitionerMessagingClientIdKey = "PartitionerId"
+    let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)
@@ -101,7 +103,7 @@ module Registry =
     //    | None -> None
 
 
-    // Messsaging Server
+    // Messaging Server
     let tryGetMessagingServerAddress logger v =
         match tryGetRegistryValue logger (getMessagingServerSubKey v) serviceAddressKey with
         | Some s -> ServiceAddress s |> Some
@@ -129,7 +131,7 @@ module Registry =
         | None -> None
 
 
-    // Messsaging Client
+    // Messaging Client
     let tryGetMessagingClientAddress logger v c =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) serviceAddressKey with
         | Some s -> ServiceAddress s |> Some
@@ -169,4 +171,20 @@ module Registry =
     let trySetMessagingClientId logger v c (MessagingClientId i) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) messagingClientIdKey (i.ToString())
+        | None -> None
+
+
+    // Partitioner - Messaging Client Id
+    let tryGetPartitionerMessagingClientId logger v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey with
+        | Some s ->
+            match Guid.TryParse s with
+            | true, v -> MessagingClientId v |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetPartitionerMessagingClientId logger v c (MessagingClientId i) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey (i.ToString())
         | None -> None

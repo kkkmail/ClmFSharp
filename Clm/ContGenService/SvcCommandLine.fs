@@ -7,7 +7,7 @@ open ClmSys.ServiceInstaller
 module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
-    type RunArgs =
+    type ContGenRunArgs =
         | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
         | [<Unique>] [<AltCommandLine("-i")>] RunIdle
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
@@ -27,7 +27,7 @@ module SvcCommandLine =
                 | SvcPort _ -> "service port."
 
 
-    type ContGenSvcArguments = SvcArguments<RunArgs>
+    type ContGenSvcArguments = SvcArguments<ContGenRunArgs>
 
 
     let tryGetServerAddress p =

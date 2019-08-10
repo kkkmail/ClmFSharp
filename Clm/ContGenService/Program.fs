@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<SvcArguments>(programName = ProgramName)
+            let parser = ArgumentParser.Create<ContGenSvcArguments>(programName = ProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
             match results |> ContGenServiceTask.tryCreate with

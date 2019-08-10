@@ -35,7 +35,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<RunArgs>(programName = ProgramName)
+            let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             startServiceRun i logger

@@ -14,7 +14,7 @@ module ContGenServiceTasks =
 
     type ContGenConfigParam
         with
-        static member fromParseResults (p : ParseResults<RunArgs>) : list<ContGenConfigParam> =
+        static member fromParseResults (p : ParseResults<ContGenRunArgs>) : list<ContGenConfigParam> =
             [
                 p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
                 p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
@@ -52,52 +52,53 @@ module ContGenServiceTasks =
 
 
     /// TODO kk:20190601 - Propagage address / port into the service installation call.
-    type ContGenServiceTask =
-        | InstallServiceTask
-        | UninstallServiceTask
-        | StartServiceTask of list<ContGenConfigParam>
-        | StopServiceTask
-        | RunServiceTask of list<ContGenConfigParam> * ContGenServiceAccessInfo
+    type ContGenServiceTask = ServiceTask<ContGenWindowsService, ContGenConfigParam, ContGenSvcArguments>
 
-        member task.run() =
-            match task with
-            | InstallServiceTask -> installService<ContGenWindowsService> ContGenServiceName
-            | UninstallServiceTask ->
-                match stopContGenService ServiceTmeOut with
-                | true -> printfn "Successfully stopped service."
-                | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
+        //| InstallServiceTask
+        //| UninstallServiceTask
+        //| StartServiceTask of list<ContGenConfigParam>
+        //| StopServiceTask
+        //| RunServiceTask of list<ContGenConfigParam> * ContGenServiceAccessInfo
 
-                uninstallService<ContGenWindowsService> ContGenServiceName
-            | StartServiceTask p -> startContGenService ServiceTmeOut p
-            | StopServiceTask -> stopContGenService ServiceTmeOut
-            | RunServiceTask (p, i) -> runService i p
+        //member task.run() =
+        //    match task with
+        //    | InstallServiceTask -> installService<ContGenWindowsService> ContGenServiceName
+        //    | UninstallServiceTask ->
+        //        match stopContGenService ServiceTmeOut with
+        //        | true -> printfn "Successfully stopped service."
+        //        | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
 
-        static member private tryCreateInstallServiceTask (p : list<ContGenSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
+        //        uninstallService<ContGenWindowsService> ContGenServiceName
+        //    | StartServiceTask p -> startContGenService ServiceTmeOut p
+        //    | StopServiceTask -> stopContGenService ServiceTmeOut
+        //    | RunServiceTask (p, i) -> runService i p
 
-        static member private tryCreateUninstallServiceTask (p : list<ContGenSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
+        //static member private tryCreateInstallServiceTask (p : list<ContGenSvcArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStartServiceTask (p : list<ContGenSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start p -> ContGenConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
+        //static member private tryCreateUninstallServiceTask (p : list<ContGenSvcArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStopServiceTask (p : list<ContGenSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
+        //static member private tryCreateStartServiceTask (p : list<ContGenSvcArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | Start p -> ContGenConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServiceTask (p : list<ContGenSvcArguments>) =
-            p |> List.tryPick (fun e ->
-                                match e with
-                                | Run p ->
-                                    let i = getServiceAccessInfo (p.GetAllResults())
-                                    RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
-                                | _ -> None)
+        //static member private tryCreateStopServiceTask (p : list<ContGenSvcArguments>) =
+        //    p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member tryCreate (p : list<ContGenSvcArguments>) =
-            [
-                ContGenServiceTask.tryCreateUninstallServiceTask
-                ContGenServiceTask.tryCreateInstallServiceTask
-                ContGenServiceTask.tryCreateStopServiceTask
-                ContGenServiceTask.tryCreateStartServiceTask
-                ContGenServiceTask.tryCreateRunServiceTask
-            ]
-            |> List.tryPick (fun e -> e p)
+        //static member private tryCreateRunServiceTask (p : list<ContGenSvcArguments>) =
+        //    p |> List.tryPick (fun e ->
+        //                        match e with
+        //                        | Run p ->
+        //                            let i = getServiceAccessInfo (p.GetAllResults())
+        //                            RunServiceTask(ContGenConfigParam.fromParseResults p, i) |> Some
+        //                        | _ -> None)
+
+        //static member tryCreate (p : list<ContGenSvcArguments>) =
+        //    [
+        //        ContGenServiceTask.tryCreateUninstallServiceTask
+        //        ContGenServiceTask.tryCreateInstallServiceTask
+        //        ContGenServiceTask.tryCreateStopServiceTask
+        //        ContGenServiceTask.tryCreateStartServiceTask
+        //        ContGenServiceTask.tryCreateRunServiceTask
+        //    ]
+        //    |> List.tryPick (fun e -> e p)

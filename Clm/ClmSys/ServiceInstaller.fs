@@ -12,6 +12,23 @@ module ServiceInstaller =
     let ServiceTmeOut = 10_000.0
 
 
+    type ServiceName =
+        | ServiceName of string
+
+        member this.value = let (ServiceName v) = this in v
+
+
+    type ServiceInfo<'S, 'R> =
+        {
+            serviceName : ServiceName
+            startServiceConfig : 'S
+            runServiceConfig : 'R
+            timeoutMilliseconds : int
+        }
+
+        member this.timeout = TimeSpan.FromMilliseconds (float this.timeoutMilliseconds)
+
+
     [<CliPrefix(CliPrefix.None)>]
     type SvcArguments<'A when 'A :> IArgParserTemplate> =
         | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
@@ -38,7 +55,7 @@ module ServiceInstaller =
         installer
 
 
-    let private installService<'T> serviceName =
+    let private installService<'T> (ServiceName serviceName) =
         try
             printfn "Attempting to install service %s ..." serviceName
             let i = getInstaller<'T> ()
@@ -54,7 +71,7 @@ module ServiceInstaller =
                 false
 
 
-    let private uninstallService<'T> serviceName =
+    let private uninstallService<'T> (ServiceName serviceName) =
         try
             printfn "Attempting to uninstall service %s ..." serviceName
             let i = getInstaller<'T> ()
@@ -69,41 +86,37 @@ module ServiceInstaller =
                 false
 
 
-    let private startService s serviceName timeoutMilliseconds =
+    let private startService (i : ServiceInfo<'S, 'R>) =
         try
-            printfn "Attempting to start service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
-
+            printfn "Attempting to start service %s ..." i.serviceName.value
+            let service = new ServiceController(i.serviceName.value)
             service.Start ()
-            service.WaitForStatus(ServiceControllerStatus.Running, timeout)
-            printfn "... service %s started successfully.\n" serviceName
+            service.WaitForStatus(ServiceControllerStatus.Running, i.timeout)
+            printfn "... service %s started successfully.\n" i.serviceName.value
             true
         with
             | e ->
-                printfn "FAILED to start service %s!" serviceName
+                printfn "FAILED to start service %s!" i.serviceName.value
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
 
-    let private stopService serviceName timeoutMilliseconds =
+    let private stopService (i : ServiceInfo<'S, 'R>) =
         try
-            printfn "Attempting to stop service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
-
+            printfn "Attempting to stop service %s ..." i.serviceName.value
+            let service = new ServiceController(i.serviceName.value)
             service.Stop ()
-            service.WaitForStatus(ServiceControllerStatus.Stopped, timeout)
-            printfn "... service %s stopped successfully.\n" serviceName
+            service.WaitForStatus(ServiceControllerStatus.Stopped, i.timeout)
+            printfn "... service %s stopped successfully.\n" i.serviceName.value
             true
         with
             | e ->
-                printfn "FAILED to stop service %s!" serviceName
+                printfn "FAILED to stop service %s!" i.serviceName.value
                 printfn "    Error message : %s\n" (e.Message)
                 false
 
 
-    let private runService r =
+    let private runService (i : ServiceInfo<'S, 'R>) =
         printfn "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let logger e = printfn "Error: %A" e
@@ -119,17 +132,17 @@ module ServiceInstaller =
         | StopServiceTask
         | RunServiceTask of 'R
 
-        member task.run serviceName =
+        member task.run (i : ServiceInfo<'S, 'R>) =
             match task with
-            | InstallServiceTask -> installService<'T> serviceName
+            | InstallServiceTask -> installService<'T> i.serviceName
             | UninstallServiceTask ->
-                match stopService serviceName ServiceTmeOut with
-                | true -> printfn "Successfully stopped service %s." serviceName
-                | false -> printfn "Failed to stop service %s! Proceeding with uninstall anyway." serviceName
+                match stopService i with
+                | true -> printfn "Successfully stopped service %s." i.serviceName.value
+                | false -> printfn "Failed to stop service %s! Proceeding with uninstall anyway." i.serviceName.value
 
-                uninstallService<'T> serviceName
-            | StartServiceTask s -> startService s serviceName ServiceTmeOut
-            | StopServiceTask -> stopService serviceName ServiceTmeOut
+                uninstallService<'T> i.serviceName
+            | StartServiceTask s -> startService i
+            | StopServiceTask -> stopService i
             | RunServiceTask r -> runService r
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'S, 'R, 'A> option =

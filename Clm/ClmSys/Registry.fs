@@ -13,6 +13,7 @@ module Registry =
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
+    let private numberOfCoresKey = "NumberOfCores"
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)
@@ -188,3 +189,20 @@ module Registry =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey (i.ToString())
         | None -> None
+
+
+    // Number Of Cores
+    let tryGetNumberOfCores logger v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey with
+        | Some s ->
+            match Guid.TryParse s with
+            | true, v -> MessagingClientId v |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetNumberOfCores logger v c n =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey (n.ToString())
+        | None -> None
+

@@ -9,6 +9,7 @@ module WorkerNodeData =
     type WorkerNodeServiceAccessInfo =
         {
             wrkMsgClientId : MessagingClientId
-            partitionerMsgClientId : MessagingClientId
+            prtMsgClientId : MessagingClientId
+            noOfCores : int
             msgSvcAccessInfo : ServiceAccessInfo
         }

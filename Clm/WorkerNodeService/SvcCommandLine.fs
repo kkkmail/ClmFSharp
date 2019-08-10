@@ -21,7 +21,8 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] WrkVersion of string
         | [<Unique>] [<AltCommandLine("-part")>] WrkPartitioner of Guid
-        | [<Unique>] [<AltCommandLine("-id")>] WrkCliId of Guid
+        | [<Unique>] [<AltCommandLine("-id")>] WrkMsgCliId of Guid
+        | [<Unique>] [<AltCommandLine("-id")>] WrkNoOfCores of int
 
     with
         interface IArgParserTemplate with
@@ -32,7 +33,8 @@ module SvcCommandLine =
                 | WrkSaveSettings -> "saves settings to the Registry."
                 | WrkVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
                 | WrkPartitioner _ -> "messaging client id of a partitioner service."
-                | WrkCliId _ -> "messaging client id of current worker node service."
+                | WrkMsgCliId _ -> "messaging client id of current worker node service."
+                | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
 
     and
@@ -78,7 +80,11 @@ module SvcCommandLine =
 
 
     let tryGetClientId p =
-        p |> List.tryPick (fun e -> match e with | WrkCliId p -> p |> MessagingClientId |> Some | _ -> None)
+        p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
+
+
+    let tryGetNoOfCores p =
+        p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
 
     let getServiceAccessInfo p =
@@ -113,6 +119,13 @@ module SvcCommandLine =
                 | Some x -> x
                 | None -> PartitionerData.defaultValue.partitionerMessangerClientId
 
+        let noOfCores =
+            let n =
+                match tryGetNoOfCores p with
+                | Some n -> n
+                | None -> Environment.ProcessorCount / 2
+            max 1 (min n Environment.ProcessorCount)
+
         let trySaveSettings c =
             match tryGetSaveSettings p with
             | Some _ ->
@@ -134,7 +147,8 @@ module SvcCommandLine =
 
         {
             wrkMsgClientId  = c
-            partitionerMsgClientId = partitioner
+            prtMsgClientId = partitioner
+            noOfCores = 0
 
             msgSvcAccessInfo =
                 {

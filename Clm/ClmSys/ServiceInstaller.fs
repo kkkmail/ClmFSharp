@@ -5,6 +5,7 @@ open System.Threading
 open System.Configuration.Install
 open System.ServiceProcess
 open Argu
+open ClmSys.Logging
 
 module ServiceInstaller =
 
@@ -18,22 +19,26 @@ module ServiceInstaller =
         member this.value = let (ServiceName v) = this in v
 
 
-    type ServiceInfo<'S, 'R> =
+    type ServiceInfo<'R> =
         {
             serviceName : ServiceName
-            startServiceConfig : 'S
-            runServiceConfig : 'R
-            timeoutMilliseconds : int
+            runService : Logger -> 'R -> unit
+            timeoutMilliseconds : int option
+            logger : Logger
         }
 
-        member this.timeout = TimeSpan.FromMilliseconds (float this.timeoutMilliseconds)
+        member this.timeout =
+            match this.timeoutMilliseconds with
+            | Some t -> float t
+            | None -> ServiceTmeOut
+            |> TimeSpan.FromMilliseconds
 
 
     [<CliPrefix(CliPrefix.None)>]
     type SvcArguments<'A when 'A :> IArgParserTemplate> =
         | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
         | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start of ParseResults<'A>
+        | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<'A>
 
@@ -43,7 +48,7 @@ module ServiceInstaller =
                 match s with
                 | Install -> "install service."
                 | Uninstall -> "uninstall service."
-                | Start _ -> "start service."
+                | Start -> "start service."
                 | Stop -> "stop service."
                 | Run _ -> "run service from command line without installing."
 
@@ -55,117 +60,116 @@ module ServiceInstaller =
         installer
 
 
-    let private installService<'T> (ServiceName serviceName) =
+    let private installService<'T> (l : Logger) (ServiceName serviceName) =
         try
-            printfn "Attempting to install service %s ..." serviceName
+            l.logInfo (sprintf "Attempting to install service %s ..." serviceName)
             let i = getInstaller<'T> ()
             let d = new System.Collections.Hashtable()
             i.Install(d)
             i.Commit(d)
-            printfn "... services installed successfully.\n"
+            l.logInfo "... services installed successfully.\n"
             true
         with
-            | e -> 
-                printfn "FAILED to install services!"
-                printfn "    Error message : %s\n" (e.Message)
+            | e ->
+                l.logErr "FAILED to install services!"
+                l.logErr (sprintf "    Error message : %s\n" e.Message)
                 false
 
 
-    let private uninstallService<'T> (ServiceName serviceName) =
+    let private uninstallService<'T>  (l : Logger) (ServiceName serviceName) =
         try
-            printfn "Attempting to uninstall service %s ..." serviceName
+            l.logInfo (sprintf "Attempting to uninstall service %s ..." serviceName)
             let i = getInstaller<'T> ()
             let d = new System.Collections.Hashtable()
             i.Uninstall(d)
-            printfn "... services uninstalled successfully.\n"
+            l.logInfo "... services uninstalled successfully.\n"
             true
         with
             | e -> 
-                printfn "FAILED to uninstall services!"
-                printfn "    Error message : %s\n" (e.Message)
+                l.logErr "FAILED to uninstall services!"
+                l.logErr (sprintf "    Error message : %s\n" (e.Message))
                 false
 
 
-    let private startService (i : ServiceInfo<'S, 'R>) =
+    let private startService (i : ServiceInfo<'R>) =
         try
-            printfn "Attempting to start service %s ..." i.serviceName.value
+            i.logger.logInfo (sprintf "Attempting to start service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
             service.Start ()
             service.WaitForStatus(ServiceControllerStatus.Running, i.timeout)
-            printfn "... service %s started successfully.\n" i.serviceName.value
+            i.logger.logInfo (sprintf "... service %s started successfully.\n" i.serviceName.value)
             true
         with
             | e ->
-                printfn "FAILED to start service %s!" i.serviceName.value
-                printfn "    Error message : %s\n" (e.Message)
+                i.logger.logErr (sprintf "FAILED to start service %s!" i.serviceName.value)
+                i.logger.logErr (sprintf "    Error message : %s\n" (e.Message))
                 false
 
 
-    let private stopService (i : ServiceInfo<'S, 'R>) =
+    let private stopService (i : ServiceInfo<'R>) =
         try
-            printfn "Attempting to stop service %s ..." i.serviceName.value
+            i.logger.logInfo (sprintf "Attempting to stop service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
             service.Stop ()
             service.WaitForStatus(ServiceControllerStatus.Stopped, i.timeout)
-            printfn "... service %s stopped successfully.\n" i.serviceName.value
+            i.logger.logInfo (sprintf "... service %s stopped successfully.\n" i.serviceName.value)
             true
         with
             | e ->
-                printfn "FAILED to stop service %s!" i.serviceName.value
-                printfn "    Error message : %s\n" (e.Message)
+                i.logger.logErr (sprintf "FAILED to stop service %s!" i.serviceName.value)
+                i.logger.logErr (sprintf "    Error message : %s\n" (e.Message))
                 false
 
 
-    let private runService (i : ServiceInfo<'S, 'R>) =
-        printfn "Starting..."
+    let private runService (i : ServiceInfo<'R>) r =
+        i.logger.logInfo "Starting..."
         let waitHandle = new ManualResetEvent(false)
-        let logger e = printfn "Error: %A" e
-        r logger
+        i.runService i.logger r
         waitHandle.WaitOne() |> ignore
         true
 
 
-    type ServiceTask<'T, 'S, 'R, 'A when 'A :> IArgParserTemplate> =
+    type ServiceTask<'T, 'R, 'A when 'A :> IArgParserTemplate> =
         | InstallServiceTask
         | UninstallServiceTask
-        | StartServiceTask of 'S
+        | StartServiceTask
         | StopServiceTask
         | RunServiceTask of 'R
 
-        member task.run (i : ServiceInfo<'S, 'R>) =
+        member task.run (i : ServiceInfo<'R>) =
             match task with
-            | InstallServiceTask -> installService<'T> i.serviceName
+            | InstallServiceTask -> installService<'T> i.logger i.serviceName
             | UninstallServiceTask ->
                 match stopService i with
-                | true -> printfn "Successfully stopped service %s." i.serviceName.value
-                | false -> printfn "Failed to stop service %s! Proceeding with uninstall anyway." i.serviceName.value
+                | true -> i.logger.logInfo (sprintf "Successfully stopped service %s." i.serviceName.value)
+                | false -> i.logger.logInfo (sprintf "Failed to stop service %s! Proceeding with uninstall anyway." i.serviceName.value)
 
-                uninstallService<'T> i.serviceName
-            | StartServiceTask s -> startService i
+                uninstallService<'T> i.logger i.serviceName
+            | StartServiceTask -> startService i
             | StopServiceTask -> stopService i
-            | RunServiceTask r -> runService r
+            | RunServiceTask r -> runService i r
 
-        static member private tryCreateInstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'S, 'R, 'A> option =
+        static member private tryCreateInstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateUninstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'S, 'R, 'A> option =
+        static member private tryCreateUninstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStartServiceTask s (p : list<SvcArguments<'A>>) :ServiceTask<'T, 'S, 'R, 'A> option =
-            p |> List.tryPick (fun e -> match e with | Start p -> s p |> StartServiceTask |> Some | _ -> None)
+        static member private tryCreateStartServiceTask (p : list<SvcArguments<'A>>) :ServiceTask<'T, 'R, 'A> option =
+            p |> List.tryPick (fun e -> match e with | Start -> StartServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStopServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'S, 'R, 'A> option =
+        static member private tryCreateStopServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServiceTask r (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'S, 'R, 'A> option =
-            p |> List.tryPick (fun e -> match e with | Start p -> r p |> RunServiceTask |> Some | _ -> None)
+        static member private tryCreateRunServiceTask r (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
+            p |> List.tryPick (fun e -> match e with | Run p -> r p |> RunServiceTask |> Some | _ -> None)
 
-        static member tryCreate s r p : ServiceTask<'T, 'S, 'R, 'A> option =
+        static member tryCreate r p : ServiceTask<'T, 'R, 'A> option =
             [
                 ServiceTask.tryCreateUninstallServiceTask
                 ServiceTask.tryCreateInstallServiceTask
                 ServiceTask.tryCreateStopServiceTask
-                ServiceTask.tryCreateStartServiceTask s
+                ServiceTask.tryCreateStartServiceTask
                 ServiceTask.tryCreateRunServiceTask r
             ]
             |> List.tryPick (fun e -> e p)

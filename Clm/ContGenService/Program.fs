@@ -16,9 +16,9 @@ module Program =
             let parser = ArgumentParser.Create<ContGenSvcArguments>(programName = ProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
-            match results |> ContGenServiceTask.tryCreate with
+            match ContGenServiceTask.tryCreate getParams results with
             | Some task ->
-                task.run() |> ignore
+                task.run serviceInfo |> ignore
                 CompletedSuccessfully
             | None ->
                 ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]

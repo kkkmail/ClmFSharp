@@ -5,11 +5,10 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.Registry
+open ClmSys.Logging
+open ClmSys.ServiceInstaller
 
 module SvcCommandLine =
-
-    let logger m e = printfn "Error / Exception for %A: %A" m e
-
 
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingServiceRunArgs =
@@ -28,26 +27,28 @@ module SvcCommandLine =
                 | MsgVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
 
-    and
-        [<CliPrefix(CliPrefix.None)>]
-        MsgSvcArguments =
-        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start of ParseResults<MessagingServiceRunArgs>
-        | [<Unique>] [<First>] Stop
-        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
-        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+    type MsgSvcArguments = SvcArguments<MessagingServiceRunArgs>
 
-    with
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Install -> "install messaging service."
-                | Uninstall -> "uninstall messaging service."
-                | Start _ -> "start messaging service."
-                | Stop -> "stop messaging service."
-                | Run _ -> "run messaging service from command line without installing."
-                | Save -> "save parameters into the registry."
+    //and
+    //    [<CliPrefix(CliPrefix.None)>]
+    //    MsgSvcArguments =
+    //    | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+    //    | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
+    //    | [<Unique>] [<First>] Start of ParseResults<MessagingServiceRunArgs>
+    //    | [<Unique>] [<First>] Stop
+    //    | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
+    //    | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+
+    //with
+    //    interface IArgParserTemplate with
+    //        member s.Usage =
+    //            match s with
+    //            | Install -> "install messaging service."
+    //            | Uninstall -> "uninstall messaging service."
+    //            | Start _ -> "start messaging service."
+    //            | Stop -> "stop messaging service."
+    //            | Run _ -> "run messaging service from command line without installing."
+    //            | Save -> "save parameters into the registry."
 
 
     let tryGetServerAddress p =

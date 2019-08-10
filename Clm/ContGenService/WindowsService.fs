@@ -8,11 +8,12 @@ open Argu
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
+open ClmSys.Logging
 open ContGenService.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (i : ContGenServiceAccessInfo) logger =
+    let startServiceRun (l : Logger) (i : ContGenServiceAccessInfo) =
         try
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
@@ -22,7 +23,7 @@ module WindowsService =
                 ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
-                logger e
+                l.logExn "Starting service" e
                 ignore()
 
 
@@ -31,13 +32,13 @@ module WindowsService =
 
         let initService () = ()
         do initService ()
-        let logger _ = ignore()
+        let logger = Logger.ignored
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            startServiceRun i logger
+            startServiceRun logger i
 
         override __.OnStop () = base.OnStop()

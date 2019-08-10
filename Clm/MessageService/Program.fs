@@ -16,9 +16,9 @@ module Program =
             let parser = ArgumentParser.Create<MsgSvcArguments>(programName = MessagingProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
-            match results |> MessagingServiceTask.tryCreate with
+            match MessagingServiceTask.tryCreate getParams results with
             | Some task ->
-                task.run() |> ignore
+                task.run serviceInfo |> ignore
                 CompletedSuccessfully
             | None ->
                 ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]

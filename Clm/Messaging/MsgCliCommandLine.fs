@@ -6,12 +6,10 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.Registry
 open ClmSys.MessagingData
+open ClmSys.Logging
 open Messaging.ServiceResponse
 
 module MsgCliCommandLine =
-
-    let logger m e = printfn "Error / Exception for %A: %A" m e
-
 
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingClientRunArgs =

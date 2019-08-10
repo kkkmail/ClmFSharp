@@ -39,54 +39,13 @@ module SvcCommandLine =
     type WrkNodeSvcArguments = SvcArguments<WorkerNodeServiceRunArgs>
 
 
-    //and
-    //    [<CliPrefix(CliPrefix.None)>]
-    //    WrkNodeSvcArguments =
-    //    | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-    //    | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-    //    | [<Unique>] [<First>] Start of ParseResults<WorkerNodeServiceRunArgs>
-    //    | [<Unique>] [<First>] Stop
-    //    | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
-    //    | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
-
-    //with
-    //    interface IArgParserTemplate with
-    //        member s.Usage =
-    //            match s with
-    //            | Install -> "install worker node service."
-    //            | Uninstall -> "uninstall worker node service."
-    //            | Start _ -> "start worker node service."
-    //            | Stop -> "stop worker node service."
-    //            | Run _ -> "run worker node service from command line without installing."
-    //            | Save -> "save parameters into the registry without running."
-
-
-    let tryGetServerAddress p =
-         p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-
-
-    let tryGetServerPort p =
-        p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
-
-
-    let tryGetSaveSettings p =
-        p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
-
-
-    let tryGetVersion p =
-        p |> List.tryPick (fun e -> match e with | WrkVersion p -> p |> VersionNumber |> Some | _ -> None)
-
-
-    let tryGetPartitioner p =
-        p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> Some | _ -> None)
-
-
-    let tryGetClientId p =
-        p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
-
-
-    let tryGetNoOfCores p =
-        p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
+    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
+    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | WrkVersion p -> p |> VersionNumber |> Some | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
 
     let getServiceAccessInfo p =

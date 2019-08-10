@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.GeneralData
+open ClmSys.TimerEvents
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
@@ -13,12 +14,13 @@ module ServiceImplementation =
         let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
 
         // Send startGenerate in case runner stops due to some reason.
-        let eventHandler _ = a.startGenerate()
-        let timer = new System.Timers.Timer(60_000.0)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
-        do timer.Start()
-
+        //let eventHandler _ = a.startGenerate()
+        //let timer = new System.Timers.Timer(60_000.0)
+        //do timer.AutoReset <- true
+        //do timer.Elapsed.Add eventHandler
+        //do timer.Start()
+        let h = new EventHandler(EventHandlerInfo.defaultValue a.startGenerate)
+        do h.start()
         a
 
 

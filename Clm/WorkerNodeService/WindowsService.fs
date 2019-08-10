@@ -4,21 +4,16 @@ open System.ServiceProcess
 open Argu
 
 open ClmSys.Logging
-open MessagingServiceInfo.ServiceInfo
+open ClmSys.WorkerNodeData
+open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.ServiceImplementation
 open WorkerNodeService.SvcCommandLine
-open ClmSys.WorkerNodeData
 
 module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
         try
-            serviceAccessInfo <- i
-            //let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
-            //ChannelServices.RegisterChannel (channel, false)
-
-            //RemotingConfiguration.RegisterWellKnownServiceType
-            //    ( typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton )
+            createServiceImpl i
         with
             | e ->
                 logger.logExn "Error occurred" e
@@ -26,7 +21,7 @@ module WindowsService =
 
 
     type public WorkerNodeWindowsService () =
-        inherit ServiceBase (ServiceName = MessagingServiceName)
+        inherit ServiceBase (ServiceName = WorkerNodeServiceName)
 
         let initService () = ()
         do initService ()
@@ -34,7 +29,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             startServiceRun logger i

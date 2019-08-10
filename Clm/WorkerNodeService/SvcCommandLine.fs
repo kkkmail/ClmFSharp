@@ -20,9 +20,9 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-port")>] WrkSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] WrkVersion of string
-        | [<Unique>] [<AltCommandLine("-part")>] WrkPartitioner of Guid
+        | [<Unique>] [<AltCommandLine("-p")>] WrkPartitioner of Guid
         | [<Unique>] [<AltCommandLine("-id")>] WrkMsgCliId of Guid
-        | [<Unique>] [<AltCommandLine("-id")>] WrkNoOfCores of int
+        | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
 
     with
         interface IArgParserTemplate with
@@ -56,7 +56,7 @@ module SvcCommandLine =
                 | Start _ -> "start worker node service."
                 | Stop -> "stop worker node service."
                 | Run _ -> "run worker node service from command line without installing."
-                | Save -> "save parameters into the registry."
+                | Save -> "save parameters into the registry without running."
 
 
     let tryGetServerAddress p =
@@ -133,6 +133,7 @@ module SvcCommandLine =
                 trySetMessagingClientPort logger versionNumberValue name port |> ignore
                 trySetMessagingClientId logger versionNumberValue name c |> ignore
                 trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+                trySetNumberOfCores logger versionNumberValue name noOfCores |> ignore
             | None -> ignore()
 
         let c =
@@ -148,7 +149,7 @@ module SvcCommandLine =
         {
             wrkMsgClientId  = c
             prtMsgClientId = partitioner
-            noOfCores = 0
+            noOfCores = noOfCores
 
             msgSvcAccessInfo =
                 {

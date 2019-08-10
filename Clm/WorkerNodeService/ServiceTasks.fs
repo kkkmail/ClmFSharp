@@ -1,4 +1,4 @@
-﻿namespace MessagingService
+﻿namespace WorkerNodeService
 
 open System
 open System.Threading

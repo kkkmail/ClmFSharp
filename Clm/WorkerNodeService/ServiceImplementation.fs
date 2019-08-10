@@ -35,15 +35,18 @@ module ServiceImplementation =
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
-    type MessagingRemoteService () =
-        inherit MarshalByRefObject()
+    type WrkNodeService () =
+        //inherit MarshalByRefObject()
 
         let a = createServiceImpl serviceAccessInfo
 
         let initService () = ()
         do initService ()
 
-        interface IMessagingService with
-            member __.sendMessage m = a.sendMessage m
-            member __.getMessages n = a.getMessages n
-            member __.configureService x = a.configureService x
+        //interface IMessagingService with
+        //    member __.sendMessage m = a.sendMessage m
+        //    member __.getMessages n = a.getMessages n
+        //    member __.configureService x = a.configureService x
+
+        member __.doSomething() =
+            failwith ""

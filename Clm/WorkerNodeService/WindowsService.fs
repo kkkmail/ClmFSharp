@@ -1,4 +1,4 @@
-﻿namespace MessagingService
+﻿namespace WorkerNodeService
 
 open System.ServiceProcess
 open System.Runtime.Remoting
@@ -9,20 +9,23 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
-open MessagingService.ServiceImplementation
-open Messaging.Service
-open MessagingService.SvcCommandLine
+open WorkerNodeService.ServiceImplementation
+open WorkerNodeService.SvcCommandLine
+open ClmSys.WorkerNodeData
+
+//open Messaging.Service
+//open MessagingService.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (i : MessagingServiceAccessInfo) logger =
+    let startServiceRun (i : WorkerNodeServiceAccessInfo) logger =
         try
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
-            ChannelServices.RegisterChannel (channel, false)
+            //let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
+            //ChannelServices.RegisterChannel (channel, false)
 
-            RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton )
+            //RemotingConfiguration.RegisterWellKnownServiceType
+            //    ( typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger e
@@ -38,7 +41,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             startServiceRun i logger

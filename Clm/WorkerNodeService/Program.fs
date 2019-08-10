@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace WorkerNodeService
 
 open System.ServiceProcess
 open Argu

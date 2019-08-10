@@ -1,11 +1,11 @@
-﻿namespace MessagingService
+﻿namespace WorkerNodeService
 
 open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
 
 open MessagingServiceInfo.ServiceInfo
-open MessagingService.WindowsService
+open WorkerNodeService.WindowsService
 
 [<RunInstaller(true)>]
 type ContGenServiceInstaller() =

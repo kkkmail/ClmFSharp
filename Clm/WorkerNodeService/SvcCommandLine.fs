@@ -36,7 +36,38 @@ module SvcCommandLine =
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
 
-    type WrkNodeSvcArguments = SvcArguments<WorkerNodeServiceRunArgs>
+    type WorkerNodeServiceArgs = SvcArguments<WorkerNodeServiceRunArgs>
+
+    and
+        [<CliPrefix(CliPrefix.None)>]
+        WorkerNodeServiceArguArgs =
+        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
+        | [<Unique>] [<First>] Start
+        | [<Unique>] [<First>] Stop
+        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+
+    with
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Install -> "install worker node service."
+                | Uninstall -> "uninstall worker node service."
+                | Start _ -> "start worker node service."
+                | Stop -> "stop worker node service."
+                | Run _ -> "run worker node service from command line without installing."
+                | Save -> "save parameters into the registry."
+
+
+    let convertArgs s =
+        match s with
+        | Install -> WorkerNodeServiceArgs.Install
+        | Uninstall -> WorkerNodeServiceArgs.Uninstall
+        | Start -> WorkerNodeServiceArgs.Start
+        | Stop -> WorkerNodeServiceArgs.Stop
+        | Run a -> WorkerNodeServiceArgs.Run a
+        | Save -> WorkerNodeServiceArgs.Save
 
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)

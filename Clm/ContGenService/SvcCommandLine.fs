@@ -26,8 +26,39 @@ module SvcCommandLine =
                 | SvcAddress _ -> "service ip address / name."
                 | SvcPort _ -> "service port."
 
+    and
+        [<CliPrefix(CliPrefix.None)>]
+        ContGenSvcArguArgs =
+        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
+        | [<Unique>] [<First>] Start
+        | [<Unique>] [<First>] Stop
+        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<ContGenRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
 
-    type ContGenSvcArguments = SvcArguments<ContGenRunArgs>
+    with
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Install -> "install ContGen service."
+                | Uninstall -> "uninstall ContGen service."
+                | Start -> "start ContGen service."
+                | Stop -> "stop ContGen service."
+                | Run _ -> "run ContGen service from command line without installing."
+                | Save -> "save parameters into the registry."
+
+
+    type ContGenSvcArgs = SvcArguments<ContGenRunArgs>
+
+
+    let convertArgs s =
+        match s with
+        | Install -> ContGenSvcArgs.Install
+        | Uninstall -> ContGenSvcArgs.Uninstall
+        | Start -> ContGenSvcArgs.Start
+        | Stop -> ContGenSvcArgs.Stop
+        | Run a -> ContGenSvcArgs.Run a
+        | Save -> ContGenSvcArgs.Save
 
 
     let tryGetServerAddress p =

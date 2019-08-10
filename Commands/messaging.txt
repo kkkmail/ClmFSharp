@@ -1,0 +1,7 @@
+
+MessagingTestClient.exe -name Client1 -address localhost -id 24787A6E-47C0-4140-9C26-883E14D39618 -save
+MessagingTestClient.exe -name Client2 -address localhost -id F1486FCF-C084-4CA8-BF9E-7483F31620DC -save
+
+MessagingTestClient.exe -name Client1 -rcp F1486FCF-C084-4CA8-BF9E-7483F31620DC
+MessagingTestClient.exe -name Client2 -rcp 24787A6E-47C0-4140-9C26-883E14D39618
+

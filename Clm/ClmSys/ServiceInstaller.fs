@@ -41,18 +41,9 @@ module ServiceInstaller =
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<'A>
-        //| [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
 
-    with
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Install -> "install service."
-                | Uninstall -> "uninstall service."
-                | Start -> "start service."
-                | Stop -> "stop service."
-                | Run _ -> "run service from command line without installing."
-                //| Save -> "save parameters into the registry without running."
+        static member fromArgu c a : list<SvcArguments<'A>> = a |> List.map (fun e -> c e)
 
 
     /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f

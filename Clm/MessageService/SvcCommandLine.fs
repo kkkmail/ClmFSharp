@@ -27,28 +27,38 @@ module SvcCommandLine =
                 | MsgVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
 
-    type MsgSvcArguments = SvcArguments<MessagingServiceRunArgs>
+    type MsgSvcArgs = SvcArguments<MessagingServiceRunArgs>
 
-    //and
-    //    [<CliPrefix(CliPrefix.None)>]
-    //    MsgSvcArguments =
-    //    | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-    //    | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-    //    | [<Unique>] [<First>] Start of ParseResults<MessagingServiceRunArgs>
-    //    | [<Unique>] [<First>] Stop
-    //    | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
-    //    | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+    and
+        [<CliPrefix(CliPrefix.None)>]
+        MsgSvcArguArgs =
+        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
+        | [<Unique>] [<First>] Start
+        | [<Unique>] [<First>] Stop
+        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
 
-    //with
-    //    interface IArgParserTemplate with
-    //        member s.Usage =
-    //            match s with
-    //            | Install -> "install messaging service."
-    //            | Uninstall -> "uninstall messaging service."
-    //            | Start _ -> "start messaging service."
-    //            | Stop -> "stop messaging service."
-    //            | Run _ -> "run messaging service from command line without installing."
-    //            | Save -> "save parameters into the registry."
+    with
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Install -> "install messaging service."
+                | Uninstall -> "uninstall messaging service."
+                | Start _ -> "start messaging service."
+                | Stop -> "stop messaging service."
+                | Run _ -> "run messaging service from command line without installing."
+                | Save -> "save parameters into the registry."
+
+
+    let convertArgs s =
+        match s with
+        | Install -> MsgSvcArgs.Install
+        | Uninstall -> MsgSvcArgs.Uninstall
+        | Start -> MsgSvcArgs.Start
+        | Stop -> MsgSvcArgs.Stop
+        | Run a -> MsgSvcArgs.Run a
+        | Save -> MsgSvcArgs.Save
 
 
     let tryGetServerAddress p =

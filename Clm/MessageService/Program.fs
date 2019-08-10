@@ -13,8 +13,8 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<MsgSvcArguments>(programName = MessagingProgramName)
-            let results = (parser.Parse argv).GetAllResults()
+            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = MessagingProgramName)
+            let results = (parser.Parse argv).GetAllResults() |> MsgSvcArgs.fromArgu convertArgs
 
             match MessagingServiceTask.tryCreate getParams results with
             | Some task -> task.run serviceInfo |> ignore

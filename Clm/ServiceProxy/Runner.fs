@@ -37,7 +37,6 @@ module Runner =
         let logError e = printfn "Error: %A" e
         let tryDbFun c f = tryDbFun logError c f
 
-
         let connectionString =
             match i with
             | LocalRunner c -> c.connectionString
@@ -46,8 +45,8 @@ module Runner =
 
         let tryLoadClmDefaultValueImpl d =
             match i with
-            | LocalRunner c -> tryDbFun c.connectionString (tryLoadClmDefaultValue d)
-            | RemoteRunner c -> failwith ""
+            | LocalRunner c -> tryDbFun c.connectionString (tryLoadClmDefaultValue d) |> Option.bind id
+            | RemoteRunner c -> c.tryLoadClmDefaultValue d
 
 
         let tryUpdateModelDataImpl m =
@@ -58,7 +57,7 @@ module Runner =
 
         let runModelImpl (p : RunModelParam) =
             match i with
-            | LocalRunner c ->
+            | LocalRunner _ ->
                 let fullExeName = getExeName p.exeName
 
                 let data =
@@ -74,16 +73,56 @@ module Runner =
             | RemoteRunner c -> failwith ""
 
 
-        let saveRunQueueEntryImpl modelId p = tryDbFun connectionString (saveRunQueueEntry modelId p)
-        let tryUpdateClmTaskImpl c = tryDbFun connectionString (tryUpdateClmTask c)
-        let addClmTaskImpl c = tryDbFun connectionString (addClmTask c)
-        let tryLoadClmTaskImpl i t = tryDbFun connectionString (tryLoadClmTask i t)
-        let tryLoadModelDataImpl i m = tryDbFun connectionString (tryLoadModelData i m)
-        let loadIncompleteClmTasksImpl i = tryDbFun connectionString (loadIncompleteClmTasks i)
-        let loadRunQueueImpl i = tryDbFun connectionString (loadRunQueue i)
-        let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
+        let saveRunQueueEntryImpl modelId p =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (saveRunQueueEntry modelId p)
+            | RemoteRunner c -> failwith ""
+
+
+        let tryUpdateClmTaskImpl a =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (tryUpdateClmTask a)
+            | RemoteRunner c -> failwith ""
+
+
+        let addClmTaskImpl a =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (addClmTask a)
+            | RemoteRunner c -> failwith ""
+
+
+        let tryLoadClmTaskImpl a t =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (tryLoadClmTask a t)
+            | RemoteRunner c -> failwith ""
+
+
+        let tryLoadModelDataImpl a m =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
+            | RemoteRunner c -> failwith ""
+
+
+        let loadIncompleteClmTasksImpl a =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (loadIncompleteClmTasks a)
+            | RemoteRunner c -> failwith ""
+
+
+        let loadRunQueueImpl a =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (loadRunQueue a)
+            | RemoteRunner c -> failwith ""
+
+
+        let deleteRunQueueEntryImpl runQueueId =
+            match i with
+            | LocalRunner c -> tryDbFun c.connectionString (deleteRunQueueEntry runQueueId)
+            | RemoteRunner c -> failwith ""
+
 
         new() = RunnerProxy(RunnerProxyInfo.defaultValue)
+
         member __.tryLoadClmDefaultValue d = tryLoadClmDefaultValueImpl d
         member __.tryUpdateModelData m = tryUpdateModelDataImpl m
         member __.saveRunQueueEntry modelId p = saveRunQueueEntryImpl modelId p
@@ -94,4 +133,4 @@ module Runner =
         member __.loadIncompleteClmTasks i = loadIncompleteClmTasksImpl i
         member __.loadRunQueue i = loadRunQueueImpl i
         member __.deleteRunQueueEntry runQueueId = deleteRunQueueEntryImpl runQueueId
-        member __.runModel (p : RunModelParam) = runModelImpl (p : RunModelParam)
+        member __.runModel p = runModelImpl p

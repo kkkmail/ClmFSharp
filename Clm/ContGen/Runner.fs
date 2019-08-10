@@ -45,7 +45,7 @@ module Runner =
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
-            fun d -> p.runnerProxy.tryLoadClmDefaultValue d |> Option.bind id
+            fun d -> p.runnerProxy.tryLoadClmDefaultValue d
             |> AllParams.tryGetDefaultValue c
 
 

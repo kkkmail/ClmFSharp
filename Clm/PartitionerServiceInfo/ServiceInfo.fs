@@ -98,7 +98,7 @@ module ServiceInfo =
         }
 
 
-    type CancelModealData =
+    type CancelModelData =
         {
             dummy : int
         }
@@ -107,7 +107,7 @@ module ServiceInfo =
     type SolverRunnerResponseMessage =
         | UpdateDefaults of UpdateDefaultsData
         | RunModel of RunModelData
-        | CancelModel of CancelModealData
+        | CancelModel of CancelModelData
 
 
     type SolverRunnerResponse =

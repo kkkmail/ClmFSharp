@@ -4,7 +4,7 @@ open System.ServiceProcess
 open Argu
 open PartitionerServiceInfo.ServiceInfo
 open PartitionerService.SvcCommandLine
-open PartitionerService.PartitionerServiceTasks
+open PartitionerService.ServiceTasks
 open PartitionerService.WindowsService
 open ClmSys.ExitErrorCodes
 

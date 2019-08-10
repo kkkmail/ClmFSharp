@@ -77,7 +77,7 @@
     <Compile Include="ServiceImplementation.fs" />
     <Compile Include="WindowsService.fs" />
     <Compile Include="Installer.fs" />
-    <Compile Include="PartitionerServiceTasks.fs" />
+    <Compile Include="ServiceTasks.fs" />
     <Compile Include="Program.fs" />
     <Content Include="db.config" />
     <None Include="App.config" />

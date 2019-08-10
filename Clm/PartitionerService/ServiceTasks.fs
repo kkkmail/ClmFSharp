@@ -9,7 +9,7 @@ open PartitionerService.SvcCommandLine
 open PartitionerService.WindowsService
 open PartitionerServiceInfo.ServiceInfo
 
-module PartitionerServiceTasks =
+module ServiceTasks =
 
     let runService l i = startServiceRun l i
 

@@ -6,6 +6,7 @@ open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
+open Clm.CalculationData
 
 module SolverRunner =
 
@@ -22,8 +23,9 @@ module SolverRunner =
 
     type RemoteSolverRunnerConfig =
         {
-            //connectionString : ConnectionString
-            dummy : int
+            tryLoadModelData : ContGenServiceAccessInfo -> ModelDataId -> ModelData option
+            saveResultData : ResultDataWithId -> unit
+            saveCharts : list<string> -> unit
         }
 
 
@@ -36,37 +38,25 @@ module SolverRunner =
 
     type SolverRunnerProxy(i : SolverRunnerProxyInfo) =
         let logError e = printfn "Error: %A" e
-        let tryFun f = tryFun logError f
         let tryDbFun c f = tryDbFun logError c f
-
-
-        let tryLoadModelDataRemote (a : ContGenServiceAccessInfo) (m : ModelDataId) =
-            failwith ""
-
-        let saveResultDataRemote (r : ResultDataWithId) =
-            failwith ""
-
-
-        let saveChartsRemote (p : List<string>) =
-            failwith ""
 
 
         let tryLoadModelDataImpl a m =
             match i with
-            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
-            | RemoteSolverRunner c -> tryLoadModelDataRemote a m
+            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m) |> Option.bind id
+            | RemoteSolverRunner c -> c.tryLoadModelData a m
 
 
         let saveResultDataImpl r =
             match i with
-            | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r)
-            | RemoteSolverRunner c -> tryFun (saveResultDataRemote r)
+            | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r) |> ignore
+            | RemoteSolverRunner c -> c.saveResultData r
 
 
         let saveChartsImpl p =
             match i with
-            | LocalSolverRunner c -> ignore()
-            | RemoteSolverRunner c -> tryFun (saveChartsRemote p) |> ignore
+            | LocalSolverRunner _ -> ignore()
+            | RemoteSolverRunner c -> c.saveCharts p
 
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m

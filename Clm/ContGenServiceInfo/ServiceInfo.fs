@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open System.Threading
 open Clm.ModelParams
 
@@ -43,9 +44,14 @@ module ServiceInfo =
         | ShuttingDown
 
 
+    type ProcessId =
+        | LocalProcess of int
+        | RemoteProcess of MessagingClientId * int
+
+
     type ProgressUpdateInfo =
         {
-            updatedProcessId : int
+            updatedProcessId : ProcessId
             updateModelId : ModelDataId
             progress : TaskProgress
         }
@@ -54,7 +60,7 @@ module ServiceInfo =
     type RunningProcessInfo =
         {
             started : DateTime
-            runningProcessId : int
+            runningProcessId : ProcessId
             runningModelId : ModelDataId
             runningQueueId : RunQueueId option
             progress : TaskProgress
@@ -83,9 +89,10 @@ module ServiceInfo =
                 progress = this.progress
             }
 
+
     type ProcessStartInfo =
         {
-            processId : int
+            processId : ProcessId
             modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
@@ -155,7 +162,7 @@ module ServiceInfo =
         | SetToCanGenerate
         | RequestShutDown of waitForCompletion : bool
         | SetRunLimit of numberOfCores : int
-        | CancelTask of processId : int
+        | CancelTask of processId : ProcessId
         | SetMinUsefulEe of ee : double
 
 
@@ -211,7 +218,6 @@ module ServiceInfo =
                     // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
                     // Otherwise runningCount is not decreased.
                     ex.Data.Add("filename", filename)
-                    //reraise()
                     false
 
         if not started
@@ -219,16 +225,16 @@ module ServiceInfo =
             printfn "Failed to start process %s" filename
 
             {
-                processId = -1
+                processId = LocalProcess -1
                 modelDataId = c.calledBackModelId
                 runQueueId = c.runQueueId
             }
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
 
-            let processId = p.Id
+            let processId = LocalProcess p.Id
 
-            printfn "Started %s with pid %i" p.ProcessName processId
+            printfn "Started %s with pid %A" p.ProcessName processId
             c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
 
             {

@@ -54,7 +54,7 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedProcessId = Process.GetCurrentProcess().Id
+                updatedProcessId = Process.GetCurrentProcess().Id |> LocalProcess
                 updateModelId = m
                 progress = t
             }
@@ -229,7 +229,7 @@ module SolverRunnerTasks =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
-            match p.tryLoadModelData i (ModelDataId modelDataId) |> Option.bind id with
+            match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)

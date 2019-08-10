@@ -21,7 +21,7 @@ module AsyncRun =
 
     type AsyncRunnerHelper =
         {
-            cancelProcess : int -> bool
+            cancelProcess : ProcessId -> bool
             generate : unit -> unit
             tryAcquireGenerating : unit -> bool
             releaseGenerating : unit -> unit
@@ -38,7 +38,7 @@ module AsyncRun =
 
     type AsyncRunnerState =
         {
-            running : Map<int, RunningProcessInfo>
+            running : Map<ProcessId, RunningProcessInfo>
             queue : list<RunInfo>
             runLimit : int
             maxQueueLength : int
@@ -258,7 +258,10 @@ module AsyncRun =
 
         let cancelProcessImpl i =
             try
-                (Process.GetProcessById i).Kill()
+                match i with
+                | LocalProcess a -> (Process.GetProcessById a).Kill()
+                | RemoteProcess (b, c) ->
+                    printfn "Cannot yet cancel remove process: %A - %A." b c
                 true
             with
                 | e -> false

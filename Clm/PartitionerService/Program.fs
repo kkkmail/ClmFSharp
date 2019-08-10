@@ -13,17 +13,14 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            failwith ""
-        //    let parser = ArgumentParser.Create<SvcArguments>(programName = ProgramName)
-        //    let results = (parser.Parse argv).GetAllResults()
+            let parser = ArgumentParser.Create<PartitionerServiceArguArgs>(programName = PartitionerServiceProgramName)
+            let results = (parser.Parse argv).GetAllResults() |> PartitionerServiceArgs.fromArgu convertArgs
 
-        //    match results |> ContGenServiceTask.tryCreate with
-        //    | Some task ->
-        //        task.run() |> ignore
-        //        CompletedSuccessfully
-        //    | None ->
-        //        ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
-        //        CompletedSuccessfully
+            match PartitionerServiceTask.tryCreate getParams results with
+            | Some task -> task.run serviceInfo |> ignore
+            | None -> ServiceBase.Run [| new PartitionerWindowsService() :> ServiceBase |]
+
+            CompletedSuccessfully
 
         with
             | exn ->

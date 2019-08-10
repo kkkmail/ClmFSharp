@@ -6,14 +6,11 @@ open ClmSys.MessagingData
 
 module PartitionerData =
 
-    type PartitionerData =
+    let defaultPartitionerMessagingClientId = new Guid("F941F87C-BEBC-43E7-ABD3-967E377CBD57") |> MessagingClientId
+
+
+    type PartitionerServiceAccessInfo =
         {
-            partitionerMessangerClientId : MessagingClientId
+            partitionerMsgClientId : MessagingClientId
+            msgSvcAccessInfo : ServiceAccessInfo
         }
-
-        static member defaultValue =
-            {
-                partitionerMessangerClientId = new Guid("F941F87C-BEBC-43E7-ABD3-967E377CBD57") |> MessagingClientId
-            }
-
-

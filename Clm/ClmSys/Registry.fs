@@ -13,8 +13,10 @@ module Registry =
     let private servicePortKey = "ServicePort"
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
-    let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
     let private numberOfCoresKey = "NumberOfCores"
+
+    let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
+    let partitionerServiceName ="PartitionerService" |> MessagingClientName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)

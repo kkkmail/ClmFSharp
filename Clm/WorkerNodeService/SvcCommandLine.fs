@@ -109,7 +109,7 @@ module SvcCommandLine =
             | None ->
                 match tryGetPartitionerMessagingClientId logger version name with
                 | Some x -> x
-                | None -> PartitionerData.defaultValue.partitionerMessangerClientId
+                | None -> defaultPartitionerMessagingClientId
 
         let noOfCores =
             let n =

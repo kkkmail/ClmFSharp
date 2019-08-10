@@ -1,6 +1,5 @@
 ﻿namespace ClmSys
 
-open System
 open ClmSys.GeneralData
 open MessagingData
 

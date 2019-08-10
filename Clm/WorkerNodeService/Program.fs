@@ -16,7 +16,7 @@ module Program =
             let parser = ArgumentParser.Create<WorkerNodeServiceArguArgs>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse argv).GetAllResults() |> WorkerNodeServiceArgs.fromArgu convertArgs
 
-            match MessagingServiceTask.tryCreate getParams results with
+            match WorkerNodeServiceTask.tryCreate getParams results with
             | Some task -> task.run serviceInfo |> ignore
             | None -> ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]
 

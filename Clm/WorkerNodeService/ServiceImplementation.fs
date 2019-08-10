@@ -6,10 +6,15 @@ open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
-//open Messaging.Service
 open MessagingServiceInfo.ServiceProxy
 
 module ServiceImplementation =
+
+    type WorkerNodeMessage =
+        | StartWorkerNode
+        | Register
+        | Unregister
+
 
     type WorkerNodeService(i : WorkerNodeServiceAccessInfo) =
 

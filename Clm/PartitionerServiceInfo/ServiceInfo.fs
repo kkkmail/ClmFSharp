@@ -8,7 +8,7 @@ module ServiceInfo =
     let PartitionerServiceName = "PartitionerService"
 
     [<Literal>]
-    let ProgramName = "PartitionerService.exe"
+    let PartitionerServiceProgramName = "PartitionerService.exe"
 
 
     let getServiceUrl (i : PartitionerAccessInfo) =

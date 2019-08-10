@@ -2,6 +2,7 @@
 
 open Argu
 open ClmSys.GeneralData
+open ClmSys.ServiceInstaller
 
 module SvcCommandLine =
 
@@ -26,24 +27,8 @@ module SvcCommandLine =
                 | SvcPort _ -> "service port."
 
 
-    and
-        [<CliPrefix(CliPrefix.None)>]
-        SvcArguments =
-        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start of ParseResults<RunArgs>
-        | [<Unique>] [<First>] Stop
-        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<RunArgs>
+    type ContGenSvcArguments = SvcArguments<RunArgs>
 
-    with
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Install -> "install service."
-                | Uninstall -> "uninstall service."
-                | Start _ -> "start service."
-                | Stop -> "stop service."
-                | Run _ -> "run service from command line without installing."
 
     let tryGetServerAddress p =
          p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)

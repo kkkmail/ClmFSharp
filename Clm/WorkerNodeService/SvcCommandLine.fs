@@ -39,7 +39,7 @@ module SvcCommandLine =
 
     and
         [<CliPrefix(CliPrefix.None)>]
-        MsgSvcArguments =
+        WrkNodeSvcArguments =
         | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
         | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
         | [<Unique>] [<First>] Start of ParseResults<WorkerNodeServiceRunArgs>

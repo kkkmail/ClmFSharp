@@ -2,10 +2,10 @@
 
 open System.ServiceProcess
 open Argu
-open MessagingServiceInfo.ServiceInfo
-open MessagingService.SvcCommandLine
-open MessagingService.ServiceTasks
-open MessagingService.WindowsService
+open WorkerNodeServiceInfo.ServiceInfo
+open WorkerNodeService.SvcCommandLine
+open WorkerNodeService.ServiceTasks
+open WorkerNodeService.WindowsService
 open ClmSys.ExitErrorCodes
 
 module Program =
@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<MsgSvcArguments>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<WrkNodeSvcArguments>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
             match results |> MessagingServiceTask.tryCreate with
@@ -21,7 +21,7 @@ module Program =
                 task.run() |> ignore
                 CompletedSuccessfully
             | None ->
-                ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]
+                ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]
                 CompletedSuccessfully
 
         with

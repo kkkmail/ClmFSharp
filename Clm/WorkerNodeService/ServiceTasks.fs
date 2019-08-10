@@ -8,107 +8,104 @@ open Argu
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
-open MessagingService.SvcCommandLine
-open MessagingService.WindowsService
-open MessagingServiceInfo.ServiceInfo
+open ClmSys.ServiceInstaller
+//open ClmSys.MessagingData
+open WorkerNodeService.SvcCommandLine
+open WorkerNodeService.WindowsService
+open WorkerNodeServiceInfo.ServiceInfo
 //open ContGenAdm.ContGenServiceResponse
 
 module ServiceTasks =
 
-    [<Literal>]
-    let ServiceTmeOut = 10_000.0
+    //type MessagingConfigParam
+    //    with
+    //    static member fromParseResults (p : ParseResults<WorkerNodeServiceRunArgs>) : list<MessagingConfigParam> =
+    //        [
+    //            //p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
+    //            //p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
+    //            //p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
+    //        ]
+    //        |> List.choose id
 
 
-    type MessagingConfigParam
-        with
-        static member fromParseResults (p : ParseResults<MessagingServiceRunArgs>) : list<MessagingConfigParam> =
-            [
-                //p.TryGetResult NumberOfCores |> Option.bind (fun c -> SetRunLimit c |> Some)
-                //p.TryGetResult RunIdle |> Option.bind (fun _ -> Some SetToIdle)
-                //p.TryGetResult MinimumUsefulEe |> Option.bind (fun ee -> ee |> SetMinUsefulEe |> Some)
-            ]
-            |> List.choose id
+    ///// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
+    //let getInstaller () =
+    //    let installer = new AssemblyInstaller(typedefof<WorkerNodeWindowsService>.Assembly, null);
+    //    installer.UseNewContext <- true
+    //    installer
 
 
-    /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
-    let getInstaller () =
-        let installer = new AssemblyInstaller(typedefof<MessagingWindowsService>.Assembly, null);
-        installer.UseNewContext <- true
-        installer
+    //let installService () =
+    //    try
+    //        printfn "Attempting to install service %s ..." WorkerNodeServiceName
+    //        let i = getInstaller ()
+    //        let d = new System.Collections.Hashtable()
+    //        i.Install(d)
+    //        i.Commit(d)
+    //        printfn "... services installed successfully.\n"
+    //        true
+    //    with
+    //        | e -> 
+    //            printfn "FAILED to install services!"
+    //            printfn "    Error message : %s\n" (e.Message)
+    //            false
 
 
-    let installService () =
-        try
-            printfn "Attempting to install service %s ..." MessagingServiceName
-            let i = getInstaller ()
-            let d = new System.Collections.Hashtable()
-            i.Install(d)
-            i.Commit(d)
-            printfn "... services installed successfully.\n"
-            true
-        with
-            | e -> 
-                printfn "FAILED to install services!"
-                printfn "    Error message : %s\n" (e.Message)
-                false
+    //let uninstallService () =
+    //    try
+    //        printfn "Attempting to uninstall service %s ..." WorkerNodeServiceName
+    //        let i = getInstaller ()
+    //        let d = new System.Collections.Hashtable()
+    //        i.Uninstall(d)
+    //        printfn "... services uninstalled successfully.\n"
+    //        true
+    //    with
+    //        | e -> 
+    //            printfn "FAILED to uninstall services!"
+    //            printfn "    Error message : %s\n" (e.Message)
+    //            false
 
 
-    let uninstallService () =
-        try
-            printfn "Attempting to uninstall service %s ..." MessagingServiceName
-            let i = getInstaller ()
-            let d = new System.Collections.Hashtable()
-            i.Uninstall(d)
-            printfn "... services uninstalled successfully.\n"
-            true
-        with
-            | e -> 
-                printfn "FAILED to uninstall services!"
-                printfn "    Error message : %s\n" (e.Message)
-                false
+    //let startService serviceName timeoutMilliseconds =
+    //    try
+    //        printfn "Attempting to start service %s ..." serviceName
+    //        let service = new ServiceController(serviceName)
+    //        let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
 
-
-    let startService serviceName timeoutMilliseconds =
-        try
-            printfn "Attempting to start service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
-
-            service.Start ()
-            service.WaitForStatus(ServiceControllerStatus.Running, timeout)
-            printfn "... service %s started successfully.\n" serviceName
-            true
-        with
-            | e ->
-                printfn "FAILED to start service %s!" serviceName
-                printfn "    Error message : %s\n" (e.Message)
-                false
+    //        service.Start ()
+    //        service.WaitForStatus(ServiceControllerStatus.Running, timeout)
+    //        printfn "... service %s started successfully.\n" serviceName
+    //        true
+    //    with
+    //        | e ->
+    //            printfn "FAILED to start service %s!" serviceName
+    //            printfn "    Error message : %s\n" (e.Message)
+    //            false
 
     /// TODO kk:20190520 - Propagate p into service.
     let startContGenService timeoutMilliseconds (p : list<MessagingConfigParam>) =
-        (startService MessagingServiceName timeoutMilliseconds)
+        (startService WorkerNodeServiceName timeoutMilliseconds)
 
 
-    let stopService serviceName timeoutMilliseconds =
-        try
-            printfn "Attempting to stop service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
+    //let stopService serviceName timeoutMilliseconds =
+    //    try
+    //        printfn "Attempting to stop service %s ..." serviceName
+    //        let service = new ServiceController(serviceName)
+    //        let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
 
-            service.Stop ()
-            service.WaitForStatus(ServiceControllerStatus.Stopped, timeout)
-            printfn "... service %s stopped successfully.\n" serviceName
-            true
-        with
-            | e -> 
-                printfn "FAILED to stop service %s!" serviceName
-                printfn "    Error message : %s\n" (e.Message)
-                false
+    //        service.Stop ()
+    //        service.WaitForStatus(ServiceControllerStatus.Stopped, timeout)
+    //        printfn "... service %s stopped successfully.\n" serviceName
+    //        true
+    //    with
+    //        | e -> 
+    //            printfn "FAILED to stop service %s!" serviceName
+    //            printfn "    Error message : %s\n" (e.Message)
+    //            false
 
 
-    let stopContGenService timeoutMilliseconds =
-        (stopService MessagingServiceName timeoutMilliseconds)
+    let stopWrkNodeService timeoutMilliseconds =
+        (stopService WorkerNodeServiceName timeoutMilliseconds)
 
 
     let runService i (p : list<MessagingConfigParam>) =
@@ -120,7 +117,6 @@ module ServiceTasks =
         true
 
 
-    /// TODO kk:20190601 - Propagage address / port into the service installation call.
     type MessagingServiceTask =
         | InstallServiceTask
         | UninstallServiceTask
@@ -130,13 +126,13 @@ module ServiceTasks =
 
         member task.run() =
             match task with
-            | InstallServiceTask -> installService()
+            | InstallServiceTask -> installService<WorkerNodeWindowsService> WorkerNodeServiceName
             | UninstallServiceTask ->
                 match stopContGenService ServiceTmeOut with
                 | true -> printfn "Successfully stopped service."
                 | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
 
-                uninstallService()
+                uninstallService<WorkerNodeWindowsService> WorkerNodeServiceName
             | StartServiceTask p -> startContGenService ServiceTmeOut p
             | StopServiceTask -> stopContGenService ServiceTmeOut
             | RunServiceTask (p, i) -> runService i p

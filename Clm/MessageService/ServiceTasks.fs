@@ -8,17 +8,13 @@ open Argu
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.ServiceInstaller
 open ClmSys.MessagingData
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo
-//open ContGenAdm.ContGenServiceResponse
 
 module ServiceTasks =
-
-    [<Literal>]
-    let ServiceTmeOut = 10_000.0
-
 
     type MessagingConfigParam
         with
@@ -31,84 +27,12 @@ module ServiceTasks =
             |> List.choose id
 
 
-    /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
-    let getInstaller () =
-        let installer = new AssemblyInstaller(typedefof<MessagingWindowsService>.Assembly, null);
-        installer.UseNewContext <- true
-        installer
-
-
-    let installService () =
-        try
-            printfn "Attempting to install service %s ..." MessagingServiceName
-            let i = getInstaller ()
-            let d = new System.Collections.Hashtable()
-            i.Install(d)
-            i.Commit(d)
-            printfn "... services installed successfully.\n"
-            true
-        with
-            | e -> 
-                printfn "FAILED to install services!"
-                printfn "    Error message : %s\n" (e.Message)
-                false
-
-
-    let uninstallService () =
-        try
-            printfn "Attempting to uninstall service %s ..." MessagingServiceName
-            let i = getInstaller ()
-            let d = new System.Collections.Hashtable()
-            i.Uninstall(d)
-            printfn "... services uninstalled successfully.\n"
-            true
-        with
-            | e -> 
-                printfn "FAILED to uninstall services!"
-                printfn "    Error message : %s\n" (e.Message)
-                false
-
-
-    let startService serviceName timeoutMilliseconds =
-        try
-            printfn "Attempting to start service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
-
-            service.Start ()
-            service.WaitForStatus(ServiceControllerStatus.Running, timeout)
-            printfn "... service %s started successfully.\n" serviceName
-            true
-        with
-            | e ->
-                printfn "FAILED to start service %s!" serviceName
-                printfn "    Error message : %s\n" (e.Message)
-                false
-
     /// TODO kk:20190520 - Propagate p into service.
-    let startContGenService timeoutMilliseconds (p : list<MessagingConfigParam>) =
+    let startMsgService timeoutMilliseconds (p : list<MessagingConfigParam>) =
         (startService MessagingServiceName timeoutMilliseconds)
 
 
-    let stopService serviceName timeoutMilliseconds =
-        try
-            printfn "Attempting to stop service %s ..." serviceName
-            let service = new ServiceController(serviceName)
-            let timeout = TimeSpan.FromMilliseconds (timeoutMilliseconds)
-
-            service.Stop ()
-            service.WaitForStatus(ServiceControllerStatus.Stopped, timeout)
-            printfn "... service %s stopped successfully.\n" serviceName
-            true
-        with
-            | e -> 
-                printfn "FAILED to stop service %s!" serviceName
-                printfn "    Error message : %s\n" (e.Message)
-                false
-
-
-    let stopContGenService timeoutMilliseconds =
-        (stopService MessagingServiceName timeoutMilliseconds)
+    let stopMsgService timeoutMilliseconds = (stopService MessagingServiceName timeoutMilliseconds)
 
 
     let runService i (p : list<MessagingConfigParam>) =
@@ -130,15 +54,15 @@ module ServiceTasks =
 
         member task.run() =
             match task with
-            | InstallServiceTask -> installService()
+            | InstallServiceTask -> installService<MessagingWindowsService> MessagingServiceName
             | UninstallServiceTask ->
-                match stopContGenService ServiceTmeOut with
+                match stopMsgService ServiceTmeOut with
                 | true -> printfn "Successfully stopped service."
                 | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
 
-                uninstallService()
-            | StartServiceTask p -> startContGenService ServiceTmeOut p
-            | StopServiceTask -> stopContGenService ServiceTmeOut
+                uninstallService<MessagingWindowsService> MessagingServiceName
+            | StartServiceTask p -> startMsgService ServiceTmeOut p
+            | StopServiceTask -> stopMsgService ServiceTmeOut
             | RunServiceTask (p, i) -> runService i p
 
         static member private tryCreateInstallServiceTask (p : list<MsgSvcArguments>) =

@@ -32,7 +32,7 @@ module WindowsService =
                 ignore()
 
 
-    type public MessagingWindowsService () =
+    type public WorkerNodeWindowsService () =
         inherit ServiceBase (ServiceName = MessagingServiceName)
 
         let initService () = ()

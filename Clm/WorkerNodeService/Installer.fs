@@ -4,7 +4,7 @@ open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
 
-open MessagingServiceInfo.ServiceInfo
+open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.WindowsService
 
 [<RunInstaller(true)>]
@@ -18,12 +18,12 @@ type ContGenServiceInstaller() =
 
         // Specify properties of the service running inside the process.
         new ServiceInstaller
-          ( DisplayName = MessagingServiceName,
-            ServiceName = MessagingServiceName,
+          ( DisplayName = WorkerNodeServiceName,
+            ServiceName = WorkerNodeServiceName,
             StartType = ServiceStartMode.Automatic )
         |> base.Installers.Add |> ignore
 
 
 // Run the services when the process starts.
 module Main =
-    ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]
+    ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]

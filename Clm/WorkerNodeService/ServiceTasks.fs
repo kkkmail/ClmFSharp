@@ -9,6 +9,8 @@ open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ServiceInstaller
+open ClmSys.Logging
+open ClmSys.WorkerNodeData
 //open ClmSys.MessagingData
 open WorkerNodeService.SvcCommandLine
 open WorkerNodeService.WindowsService
@@ -16,6 +18,22 @@ open WorkerNodeServiceInfo.ServiceInfo
 //open ContGenAdm.ContGenServiceResponse
 
 module ServiceTasks =
+
+    let runService l i = startServiceRun l i
+
+
+    let serviceInfo =
+        {
+            serviceName = ServiceName WorkerNodeServiceName
+            runService = runService
+            timeoutMilliseconds = None
+            logger = logger
+        }
+
+
+    let getParams (p : ParseResults<WorkerNodeServiceRunArgs>) = getServiceAccessInfo (p.GetAllResults())
+    type MessagingServiceTask = ServiceTask<WorkerNodeWindowsService, WorkerNodeServiceAccessInfo, WorkerNodeServiceRunArgs>
+
 
     //type MessagingConfigParam
     //    with
@@ -82,9 +100,9 @@ module ServiceTasks =
     //            printfn "    Error message : %s\n" (e.Message)
     //            false
 
-    /// TODO kk:20190520 - Propagate p into service.
-    let startContGenService timeoutMilliseconds (p : list<MessagingConfigParam>) =
-        (startService WorkerNodeServiceName timeoutMilliseconds)
+    ///// TODO kk:20190520 - Propagate p into service.
+    //let startContGenService timeoutMilliseconds (p : list<MessagingConfigParam>) =
+    //    (startService WorkerNodeServiceName timeoutMilliseconds)
 
 
     //let stopService serviceName timeoutMilliseconds =
@@ -104,65 +122,65 @@ module ServiceTasks =
     //            false
 
 
-    let stopWrkNodeService timeoutMilliseconds =
-        (stopService WorkerNodeServiceName timeoutMilliseconds)
+    //let stopWrkNodeService timeoutMilliseconds =
+    //    (stopService WorkerNodeServiceName timeoutMilliseconds)
 
 
-    let runService i (p : list<MessagingConfigParam>) =
-        printfn "Starting..."
-        let waitHandle = new ManualResetEvent(false)
-        let logger e = printfn "Error: %A" e
-        startServiceRun i logger
-        waitHandle.WaitOne() |> ignore
-        true
+    //let runService i (p : list<MessagingConfigParam>) =
+    //    printfn "Starting..."
+    //    let waitHandle = new ManualResetEvent(false)
+    //    let logger e = printfn "Error: %A" e
+    //    startServiceRun i logger
+    //    waitHandle.WaitOne() |> ignore
+    //    true
 
 
-    type MessagingServiceTask =
-        | InstallServiceTask
-        | UninstallServiceTask
-        | StartServiceTask of list<MessagingConfigParam>
-        | StopServiceTask
-        | RunServiceTask of list<MessagingConfigParam> * MessagingServiceAccessInfo
+    //type MessagingServiceTask =
+    //    | InstallServiceTask
+    //    | UninstallServiceTask
+    //    | StartServiceTask of list<MessagingConfigParam>
+    //    | StopServiceTask
+    //    | RunServiceTask of list<MessagingConfigParam> * MessagingServiceAccessInfo
 
-        member task.run() =
-            match task with
-            | InstallServiceTask -> installService<WorkerNodeWindowsService> WorkerNodeServiceName
-            | UninstallServiceTask ->
-                match stopContGenService ServiceTmeOut with
-                | true -> printfn "Successfully stopped service."
-                | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
+    //    member task.run() =
+    //        match task with
+    //        | InstallServiceTask -> installService<WorkerNodeWindowsService> WorkerNodeServiceName
+    //        | UninstallServiceTask ->
+    //            match stopContGenService ServiceTmeOut with
+    //            | true -> printfn "Successfully stopped service."
+    //            | false -> printfn "Failed to stop service! Proceeding with uninstall anyway."
 
-                uninstallService<WorkerNodeWindowsService> WorkerNodeServiceName
-            | StartServiceTask p -> startContGenService ServiceTmeOut p
-            | StopServiceTask -> stopContGenService ServiceTmeOut
-            | RunServiceTask (p, i) -> runService i p
+    //            uninstallService<WorkerNodeWindowsService> WorkerNodeServiceName
+    //        | StartServiceTask p -> startContGenService ServiceTmeOut p
+    //        | StopServiceTask -> stopContGenService ServiceTmeOut
+    //        | RunServiceTask (p, i) -> runService i p
 
-        static member private tryCreateInstallServiceTask (p : list<MsgSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
+    //    static member private tryCreateInstallServiceTask (p : list<MsgSvcArguments>) =
+    //        p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateUninstallServiceTask (p : list<MsgSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
+    //    static member private tryCreateUninstallServiceTask (p : list<MsgSvcArguments>) =
+    //        p |> List.tryPick (fun e -> match e with | Uninstall -> UninstallServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStartServiceTask (p : list<MsgSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Start p -> MessagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
+    //    static member private tryCreateStartServiceTask (p : list<MsgSvcArguments>) =
+    //        p |> List.tryPick (fun e -> match e with | Start p -> MessagingConfigParam.fromParseResults p |> StartServiceTask |> Some | _ -> None)
 
-        static member private tryCreateStopServiceTask (p : list<MsgSvcArguments>) =
-            p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
+    //    static member private tryCreateStopServiceTask (p : list<MsgSvcArguments>) =
+    //        p |> List.tryPick (fun e -> match e with | Stop -> StopServiceTask |> Some | _ -> None)
 
-        static member private tryCreateRunServiceTask (p : list<MsgSvcArguments>) =
-            p |> List.tryPick (fun e ->
-                                match e with
-                                | Run p ->
-                                    let i = getServiceAccessInfo (p.GetAllResults())
-                                    RunServiceTask(MessagingConfigParam.fromParseResults p, i) |> Some
-                                | _ -> None)
+    //    static member private tryCreateRunServiceTask (p : list<MsgSvcArguments>) =
+    //        p |> List.tryPick (fun e ->
+    //                            match e with
+    //                            | Run p ->
+    //                                let i = getServiceAccessInfo (p.GetAllResults())
+    //                                RunServiceTask(MessagingConfigParam.fromParseResults p, i) |> Some
+    //                            | _ -> None)
 
-        static member tryCreate (p : list<MsgSvcArguments>) =
-            [
-                MessagingServiceTask.tryCreateUninstallServiceTask
-                MessagingServiceTask.tryCreateInstallServiceTask
-                MessagingServiceTask.tryCreateStopServiceTask
-                MessagingServiceTask.tryCreateStartServiceTask
-                MessagingServiceTask.tryCreateRunServiceTask
-            ]
-            |> List.tryPick (fun e -> e p)
+    //    static member tryCreate (p : list<MsgSvcArguments>) =
+    //        [
+    //            MessagingServiceTask.tryCreateUninstallServiceTask
+    //            MessagingServiceTask.tryCreateInstallServiceTask
+    //            MessagingServiceTask.tryCreateStopServiceTask
+    //            MessagingServiceTask.tryCreateStartServiceTask
+    //            MessagingServiceTask.tryCreateRunServiceTask
+    //        ]
+    //        |> List.tryPick (fun e -> e p)

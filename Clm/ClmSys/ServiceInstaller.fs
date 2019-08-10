@@ -41,6 +41,7 @@ module ServiceInstaller =
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<'A>
+        //| [<Unique>] [<First>] [<AltCommandLine("s")>] Save
 
     with
         interface IArgParserTemplate with
@@ -51,6 +52,7 @@ module ServiceInstaller =
                 | Start -> "start service."
                 | Stop -> "stop service."
                 | Run _ -> "run service from command line without installing."
+                //| Save -> "save parameters into the registry without running."
 
 
     /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f

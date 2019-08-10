@@ -17,12 +17,9 @@ module Program =
             let results = (parser.Parse argv).GetAllResults()
 
             match ContGenServiceTask.tryCreate getParams results with
-            | Some task ->
-                task.run serviceInfo |> ignore
-                CompletedSuccessfully
-            | None ->
-                ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
-                CompletedSuccessfully
+            | Some task -> task.run serviceInfo |> ignore
+            | None -> ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
+            CompletedSuccessfully
 
         with
             | exn ->

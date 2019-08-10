@@ -6,13 +6,12 @@ open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.PartitionerData
 open ClmSys.Registry
+open ClmSys.Logging
+open ClmSys.ServiceInstaller
 open System
 open ClmSys.WorkerNodeData
 
 module SvcCommandLine =
-
-    let logger m e = printfn "Error / Exception for %A: %A" m e
-
 
     [<CliPrefix(CliPrefix.Dash)>]
     type WorkerNodeServiceRunArgs =
@@ -37,26 +36,29 @@ module SvcCommandLine =
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
 
-    and
-        [<CliPrefix(CliPrefix.None)>]
-        WrkNodeSvcArguments =
-        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start of ParseResults<WorkerNodeServiceRunArgs>
-        | [<Unique>] [<First>] Stop
-        | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
-        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+    type WrkNodeSvcArguments = SvcArguments<WorkerNodeServiceRunArgs>
 
-    with
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Install -> "install worker node service."
-                | Uninstall -> "uninstall worker node service."
-                | Start _ -> "start worker node service."
-                | Stop -> "stop worker node service."
-                | Run _ -> "run worker node service from command line without installing."
-                | Save -> "save parameters into the registry without running."
+
+    //and
+    //    [<CliPrefix(CliPrefix.None)>]
+    //    WrkNodeSvcArguments =
+    //    | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
+    //    | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
+    //    | [<Unique>] [<First>] Start of ParseResults<WorkerNodeServiceRunArgs>
+    //    | [<Unique>] [<First>] Stop
+    //    | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
+    //    | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+
+    //with
+    //    interface IArgParserTemplate with
+    //        member s.Usage =
+    //            match s with
+    //            | Install -> "install worker node service."
+    //            | Uninstall -> "uninstall worker node service."
+    //            | Start _ -> "start worker node service."
+    //            | Stop -> "stop worker node service."
+    //            | Run _ -> "run worker node service from command line without installing."
+    //            | Save -> "save parameters into the registry without running."
 
 
     let tryGetServerAddress p =

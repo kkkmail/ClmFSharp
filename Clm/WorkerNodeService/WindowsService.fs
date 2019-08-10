@@ -1,24 +1,17 @@
 ﻿namespace WorkerNodeService
 
 open System.ServiceProcess
-open System.Runtime.Remoting
-open System.Runtime.Remoting.Channels
 open Argu
 
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
-open ClmSys.MessagingData
+open ClmSys.Logging
 open MessagingServiceInfo.ServiceInfo
 open WorkerNodeService.ServiceImplementation
 open WorkerNodeService.SvcCommandLine
 open ClmSys.WorkerNodeData
 
-//open Messaging.Service
-//open MessagingService.SvcCommandLine
-
 module WindowsService =
 
-    let startServiceRun (i : WorkerNodeServiceAccessInfo) logger =
+    let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
         try
             serviceAccessInfo <- i
             //let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
@@ -28,7 +21,7 @@ module WindowsService =
             //    ( typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
-                logger e
+                logger.logExn "Error occurred" e
                 ignore()
 
 
@@ -37,13 +30,13 @@ module WindowsService =
 
         let initService () = ()
         do initService ()
-        let logger _ = ignore()
+        let logger = Logger.ignored
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            startServiceRun i logger
+            startServiceRun logger i
 
         override __.OnStop () = base.OnStop()

@@ -17,12 +17,10 @@ module Program =
             let results = (parser.Parse argv).GetAllResults()
 
             match MessagingServiceTask.tryCreate getParams results with
-            | Some task ->
-                task.run serviceInfo |> ignore
-                CompletedSuccessfully
-            | None ->
-                ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]
-                CompletedSuccessfully
+            | Some task -> task.run serviceInfo |> ignore
+            | None -> ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]
+
+            CompletedSuccessfully
 
         with
             | exn ->

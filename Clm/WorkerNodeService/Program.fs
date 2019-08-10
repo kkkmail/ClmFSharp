@@ -16,13 +16,11 @@ module Program =
             let parser = ArgumentParser.Create<WrkNodeSvcArguments>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse argv).GetAllResults()
 
-            match results |> MessagingServiceTask.tryCreate with
-            | Some task ->
-                task.run() |> ignore
-                CompletedSuccessfully
-            | None ->
-                ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]
-                CompletedSuccessfully
+            match MessagingServiceTask.tryCreate getParams results with
+            | Some task -> task.run serviceInfo |> ignore
+            | None -> ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]
+
+            CompletedSuccessfully
 
         with
             | exn ->

@@ -1,6 +1,8 @@
 ﻿namespace WorkerNodeService
 
 open System.ServiceProcess
+open System.Runtime.Remoting
+open System.Runtime.Remoting.Channels
 open Argu
 
 open ClmSys.Logging
@@ -13,7 +15,12 @@ module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
         try
-            createServiceImpl i
+            serviceAccessInfo <- i
+            let channel = new Tcp.TcpChannel (i.wrkSvcAccessInfo.servicePort.value)
+            ChannelServices.RegisterChannel (channel, false)
+
+            RemotingConfiguration.RegisterWellKnownServiceType
+                ( typeof<WorkerNodeService>, WorkerNodeServiceName, WellKnownObjectMode.Singleton )
         with
             | e ->
                 logger.logExn "Error occurred" e

@@ -4,7 +4,6 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
-open ClmSys.Retry
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
@@ -13,8 +12,6 @@ open OdeSolver.Solver
 open Analytics.ChartExt
 open Analytics.Visualization
 open Argu
-//open DbData.Configuration
-//open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
@@ -25,7 +22,6 @@ open ServiceProxy.SolverRunner
 module SolverRunnerTasks =
 
     let logError e = printfn "Error: %A." e
-    //let tryDbFun f = tryDbFun logError clmConnectionString f
 
 
     let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
@@ -78,8 +74,9 @@ module SolverRunnerTasks =
 
 
     let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
-        printfn "!!! Implement getSolverRunnerProxy !!!"
-        SolverRunnerProxyInfo.defaultValue
+        match results.TryGetResult Remote with
+        | None -> SolverRunnerProxyInfo.defaultValue
+        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
 
 
     let getResponseHandler i = ResponseHandler.tryCreate i
@@ -237,7 +234,6 @@ module SolverRunnerTasks =
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
                 let result = nSolve data
-                runSolverData.onCompleted()
 
                 printfn "Saving."
                 let (r, chartData) = getResultAndChartData runSolverData
@@ -253,6 +249,7 @@ module SolverRunnerTasks =
                 |> plotAllResults
 
                 printfn "Completed."
+                runSolverData.onCompleted()
 
                 CompletedSuccessfully
             | _ -> UnknownException

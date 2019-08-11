@@ -17,6 +17,7 @@ module Registry =
 
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
     let partitionerServiceName ="PartitionerService" |> MessagingClientName
+    let SolverRunnerName ="SolverRunner" |> MessagingClientName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)

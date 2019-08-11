@@ -5,7 +5,6 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 
 module SolverRunner =
@@ -28,12 +27,20 @@ module SolverRunner =
             saveCharts : list<string> -> unit
         }
 
+        static member defaultValue =
+            {
+                tryLoadModelData = failwith ""
+                saveResultData = failwith ""
+                saveCharts = failwith ""
+            }
+
 
     type SolverRunnerProxyInfo =
         | LocalSolverRunner of LocalSolverRunnerConfig
         | RemoteSolverRunner of RemoteSolverRunnerConfig
 
         static member defaultValue = LocalSolverRunner LocalSolverRunnerConfig.defaultValue
+        static member defaultRemoteValue = RemoteSolverRunner RemoteSolverRunnerConfig.defaultValue
 
 
     type SolverRunnerProxy(i : SolverRunnerProxyInfo) =

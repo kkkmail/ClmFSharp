@@ -26,10 +26,10 @@ module ServiceInfo =
         | Completed
 
         static member create d =
-            match d with 
+            match d with
             | _ when d <= 0.0m -> NotStarted
             | _ when d < 1.0m -> InProgress d
-            | _ -> Completed
+            | _ -> InProgress 1.0m
 
         member progress.estimateEndTime (started : DateTime) =
             match progress with

@@ -12,7 +12,7 @@ module VersionInfo =
     let VersionNumberValue = "4.0.0.0"
 
 
-    /// This is teh name of the system used, for example, to access the Registry.
+    /// This is the name of the system used, for example, to access the Registry.
     [<Literal>]
     let SystemName = "CLM"
 

@@ -18,6 +18,9 @@ module ModelParams =
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
 
     [<Literal>]
+    let DefaultFileStorageFolder = DefaultRootFolder + @"FileStorage"
+
+    [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
 
 

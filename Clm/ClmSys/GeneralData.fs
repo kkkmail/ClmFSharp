@@ -26,10 +26,16 @@ module GeneralData =
     let DefaultContGenServicePort = 4000
 
     [<Literal>]
+    let DefaultWorkerNodeServiceAddress = "localhost"
+
+    [<Literal>]
+    let DefaultWorkerNodeServicePort = 24000
+
+    [<Literal>]
     let DefaultMessagingServerAddress = "localhost"
     
     [<Literal>]
-    let DefaultMessagingServerPort = 34000
+    let DefaultMessagingServerPort = 44000
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -49,6 +55,7 @@ module GeneralData =
         member this.value = let (ServiceAddress v) = this in v
         static member defaultValue = ServiceAddress DefaultContGenServiceAddress
         static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
+        static member defaultWorkerNodeServiceValue = ServiceAddress DefaultWorkerNodeServiceAddress
 
 
     type ServicePort =
@@ -57,6 +64,7 @@ module GeneralData =
         member this.value = let (ServicePort v) = this in v
         static member defaultValue = ServicePort DefaultContGenServicePort
         static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
+        static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
     type ServiceAccessInfo =

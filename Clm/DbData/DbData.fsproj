@@ -68,7 +68,6 @@
     <Compile Include="Configuration.fs" />
     <Compile Include="DynamicSql.fs" />
     <Compile Include="DatabaseTypes.fs" />
-    <Compile Include="FileSystemTypes.fs" />
     <Content Include="packages.config" />
     <None Include="SqlServerTypes\readme.htm" />
     <None Include="SqlServerTypes\Loader.cs" />

@@ -6,6 +6,7 @@ open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.CalculationData
+open NoSql.FileSystemTypes
 
 module SolverRunner =
 
@@ -21,18 +22,7 @@ module SolverRunner =
 
 
     type RemoteSolverRunnerConfig =
-        {
-            tryLoadModelData : ContGenServiceAccessInfo -> ModelDataId -> ModelData option
-            saveResultData : ResultDataWithId -> unit
-            saveCharts : list<string> -> unit
-        }
-
-        static member defaultValue =
-            {
-                tryLoadModelData = failwith ""
-                saveResultData = failwith ""
-                saveCharts = failwith ""
-            }
+        | RemoteSolverRunnerConfig
 
 
     type SolverRunnerProxyInfo =
@@ -40,32 +30,34 @@ module SolverRunner =
         | RemoteSolverRunner of RemoteSolverRunnerConfig
 
         static member defaultValue = LocalSolverRunner LocalSolverRunnerConfig.defaultValue
-        static member defaultRemoteValue = RemoteSolverRunner RemoteSolverRunnerConfig.defaultValue
+        static member defaultRemoteValue = RemoteSolverRunner RemoteSolverRunnerConfig
 
 
     type SolverRunnerProxy(i : SolverRunnerProxyInfo) =
         let logError e = printfn "Error: %A" e
         let tryDbFun c f = tryDbFun logError c f
+        let tryFun f = tryFun logError f
 
 
         let tryLoadModelDataImpl a m =
             match i with
-            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m) |> Option.bind id
-            | RemoteSolverRunner c -> c.tryLoadModelData a m
+            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
+            | RemoteSolverRunner c -> tryFun (fun _ -> tryLoadModelDataFs m)
+            |> Option.bind id
 
 
         let saveResultDataImpl r =
             match i with
             | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r) |> ignore
-            | RemoteSolverRunner c -> c.saveResultData r
+            | RemoteSolverRunner _ -> tryFun (fun _ -> saveResultDataFs r) |> ignore
 
 
-        let saveChartsImpl p =
+        let saveChartsImpl r p =
             match i with
             | LocalSolverRunner _ -> ignore()
-            | RemoteSolverRunner c -> c.saveCharts p
+            | RemoteSolverRunner _ -> saveChartsFs r p |> ignore
 
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m
         member __.saveResultData r = saveResultDataImpl r
-        member __.saveCharts (p : List<string>) = saveChartsImpl p
+        member __.saveCharts (r : ResultDataId) (p : List<string>) = saveChartsImpl r p

@@ -432,9 +432,6 @@ module CalculationData =
             modelDataId : ModelDataId
             clmTaskInfo : ClmTaskInfo
             data : ModelDataSrc
-            //seedValue : int option
-            //fileStructureVersion : decimal
-            //modelData : ModelAllData
         }
 
         member this.seedValue =

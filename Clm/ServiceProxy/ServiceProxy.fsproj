@@ -115,6 +115,11 @@
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\NoSql\NoSql.fsproj">
+      <Name>NoSql</Name>
+      <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

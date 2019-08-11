@@ -14,6 +14,8 @@ module Registry =
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let private numberOfCoresKey = "NumberOfCores"
+    let private contGenServiceAddressKey = "ContGenServiceAddress"
+    let private contGenServicePortKey = "ContGenServicePort"
 
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
     let partitionerServiceName ="PartitionerService" |> MessagingClientName
@@ -199,8 +201,8 @@ module Registry =
     let tryGetNumberOfCores (logger : Logger) v c =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey with
         | Some s ->
-            match Guid.TryParse s with
-            | true, v -> MessagingClientId v |> Some
+            match Int32.TryParse s with
+            | true, v -> Some v
             | false, _ -> None
         | None -> None
 
@@ -208,4 +210,31 @@ module Registry =
     let trySetNumberOfCores (logger : Logger) v c n =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey (n.ToString())
+        | None -> None
+
+
+    let tryGetContGenServiceAddress (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) contGenServiceAddressKey with
+        | Some s -> ServiceAddress s |> Some
+        | None -> None
+
+
+    let trySetContGenServiceAddress (logger : Logger) v c (ServiceAddress a) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) contGenServiceAddressKey a
+        | None -> None
+
+
+    let tryGetContGenServicePort (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) contGenServicePortKey with
+        | Some s ->
+            match Int32.TryParse s with
+            | true, v -> ServicePort v |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetContGenServicePort (logger : Logger) v c (ServicePort p) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) contGenServicePortKey (p.ToString())
         | None -> None

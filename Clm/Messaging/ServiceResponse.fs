@@ -1,7 +1,6 @@
 ﻿namespace Messaging
 
 open System
-open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 
@@ -19,6 +18,3 @@ module ServiceResponse =
                 | exn ->
                     printfn "Exception occurred: %s." exn.Message
                     None
-
-
-    //type ClmMsgResponseHandler = MsgResponseHandler<ClmMesage>

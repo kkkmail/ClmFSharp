@@ -31,7 +31,7 @@ module Service =
         | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
 
-        /// For debugging.
+        /// For debugging & monitoring.
         | GetState of AsyncReplyChannel<MessagingServiceState>
 
 
@@ -75,6 +75,11 @@ module Service =
             s
 
 
+        let onGetState s (r : AsyncReplyChannel<MessagingServiceState>) =
+            r.Reply s
+            s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -85,7 +90,7 @@ module Service =
                             | SendMessage m -> return! onSendMessage s m |> loop
                             | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
-                            | GetState _ -> failwith ""
+                            | GetState r -> return! onGetState s r |> loop
                         }
 
                 onStart (MessagingServiceState.defaultValue d) |> loop

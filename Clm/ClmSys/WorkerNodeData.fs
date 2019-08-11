@@ -5,11 +5,23 @@ open MessagingData
 
 module WorkerNodeData =
 
+    type WorkerNodeInfo =
+        {
+            workerNodeMsgClientId : MessagingClientId
+            noOfCores : int
+        }
+
+
     type WorkerNodeServiceAccessInfo =
         {
-            wrkMsgClientId : MessagingClientId
-            prtMsgClientId : MessagingClientId
+            msgCliAccessInfo : MessagingClientAccessInfo
             noOfCores : int
-            msgSvcAccessInfo : ServiceAccessInfo
+            prtMsgClientId : MessagingClientId
             wrkSvcAccessInfo : ServiceAccessInfo
         }
+
+        member w.workerNodeInfo =
+            {
+                workerNodeMsgClientId = w.msgCliAccessInfo.msgClientId
+                noOfCores = w.noOfCores
+            }

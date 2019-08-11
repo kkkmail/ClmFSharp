@@ -1,5 +1,7 @@
 ﻿namespace WorkerNodeServiceInfo
 
+open ClmSys.WorkerNodeData
+
 module ServiceInfo =
 
     [<Literal>]

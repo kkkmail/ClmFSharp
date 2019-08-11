@@ -16,12 +16,6 @@ module FileSystemTypes =
     let chartTblName = "Chart"
 
 
-    type ChartInfo =
-        {
-            chartFileNames : string[]
-        }
-
-
     let getFileName<'A> tableName (objectId : 'A) =
         let folder = fileStorageFolder + "\\" + tableName
         Directory.CreateDirectory(folder) |> ignore

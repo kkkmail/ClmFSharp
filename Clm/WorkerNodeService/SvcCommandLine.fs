@@ -178,15 +178,19 @@ module SvcCommandLine =
         | None -> ignore()
 
         {
-            wrkMsgClientId = clientId
-            prtMsgClientId = partitioner
-            noOfCores = noOfCores
-
-            msgSvcAccessInfo =
+            msgCliAccessInfo =
                 {
-                    serviceAddress = address
-                    servicePort = port
+                    msgClientId = clientId
+
+                    msgSvcAccessInfo =
+                        {
+                            serviceAddress = address
+                            servicePort = port
+                        }
                 }
+
+            noOfCores = noOfCores
+            prtMsgClientId = partitioner
 
             wrkSvcAccessInfo =
                 {

@@ -3,6 +3,7 @@
 open System
 open ClmSys.GeneralData
 open ClmSys.MessagingData
+open ClmSys.WorkerNodeData
 
 module ServiceInfo =
 
@@ -29,9 +30,15 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
+    type WorkerNodeMessage =
+        | RegisterWorkerNode of WorkerNodeInfo
+
+
+    /// The decision was that we want strongly typed messages rather than untyped messages.
+    /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
     type MessageData =
         | TextData of string
-        | BinaryData of byte[]
+        | WorkerNodeMsg of WorkerNodeMessage
 
 
     type MessageInfo =

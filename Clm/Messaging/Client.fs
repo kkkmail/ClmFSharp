@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.MessagingData
+open ClmSys.Logging
 open MessagingServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceProxy
 open Messaging.ServiceResponse
@@ -13,7 +14,7 @@ module Client =
             msgAccessInfo : MessagingClientAccessInfo
             msgResponseHandler : MsgResponseHandler
             msgClientProxy : MessagingClientProxy
-            logger : exn -> unit
+            logger : Logger
         }
 
 
@@ -84,7 +85,7 @@ module Client =
                 Some m
             with
                 | e ->
-                    s.messageClientData.logger e
+                    s.messageClientData.logger.logExn "Failed to send message: " e
                     None
 
 
@@ -93,7 +94,7 @@ module Client =
                 s.messageClientData.msgResponseHandler.messagingService.getMessages s.messageClientData.msgAccessInfo.msgClientId
             with
                 | e ->
-                    s.messageClientData.logger e
+                    s.messageClientData.logger.logExn "Failed to receive message: " e
                     []
 
 

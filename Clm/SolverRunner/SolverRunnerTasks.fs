@@ -60,6 +60,7 @@ module SolverRunnerTasks =
         match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
+
             {
                 contGenServiceAccessInfo =
                     {

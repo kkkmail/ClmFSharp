@@ -7,12 +7,12 @@ open Messaging.Client
 open Messaging.MsgCliCommandLine
 open Messaging.ServiceResponse
 open ClmSys.MessagingData
+open ClmSys.Logging
 open MessagingServiceInfo.ServiceProxy
 
 module MessagingTestClientTask =
 
     let runTestClient i h r =
-        let logger e = printfn "%A" e
 
         let d =
             {

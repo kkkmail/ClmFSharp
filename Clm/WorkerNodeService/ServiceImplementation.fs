@@ -41,12 +41,11 @@ module ServiceImplementation =
         inherit MarshalByRefObject()
 
         let w = createServiceImpl serviceAccessInfo
-
         let initService () = ()
         do initService ()
 
         let notSupported a =
-            let msg = (sprintf "The method %A is not supported." a)
+            let msg = (sprintf "The method %A is not supported by WorkerNodeService." a)
             printfn "%s" msg
             failwith msg
 
@@ -55,6 +54,6 @@ module ServiceImplementation =
             member __.loadQueue() = notSupported "loadQueue"
             member __.startGenerate() = notSupported "startGenerate"
             member __.updateProgress p = w.updateProgress p
-            member __.configureService (p : ContGenConfigParam) = notSupported "configureService"
-            member __.runModel m p = notSupported "runModel"
+            member __.configureService _ = notSupported "configureService"
+            member __.runModel _ _ = notSupported "runModel"
 

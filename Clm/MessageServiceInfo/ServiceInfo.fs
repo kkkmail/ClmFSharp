@@ -4,6 +4,8 @@ open System
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
+open ContGenServiceInfo.ServiceInfo
+open Clm.CalculationData
 
 module ServiceInfo =
 
@@ -31,7 +33,10 @@ module ServiceInfo =
 
 
     type WorkerNodeMessage =
-        | RegisterWorkerNode of WorkerNodeInfo
+        | RegisterWorkerNodeMsg of WorkerNodeInfo
+        | UpdateProgressMsg of ProgressUpdateInfo
+        | SaveModelDataMsg of ModelData
+        | SaveChartsMsg of ChartInfo
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

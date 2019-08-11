@@ -10,6 +10,7 @@ open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
 open MessagingServiceInfo.ServiceProxy
+open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
 open Argu
@@ -60,25 +61,58 @@ module ServiceImplementation =
             }
 
         let messagingClient = MessagingClient d
+        let recipient = i.workerNodeAccessInfo.prtMsgClientId
+        let sendMessage m = messagingClient.sendMessage m
 
         let onStart s =
             s
 
 
         let onRegister s =
-            
+            {
+                recipient = recipient
+                deliveryType = GuaranteedDelivery
+                messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodeMsg |> WorkerNodeMsg
+            }
+            |> sendMessage
+
             s
 
 
-        let onUpdateProgress s p =
+        let onUpdateProgress s (p : ProgressUpdateInfo) =
+            {
+                recipient = recipient
+                deliveryType =
+                    match p.progress with
+                    | NotStarted -> NonGuaranteedDelivery
+                    | InProgress _ -> NonGuaranteedDelivery
+                    | Completed -> GuaranteedDelivery
+                messageData = p |> UpdateProgressMsg |> WorkerNodeMsg
+            }
+            |> sendMessage
+
             s
 
 
-        let onSaveModelData s m =
+        let onSaveModelData s x =
+            {
+                recipient = recipient
+                deliveryType = GuaranteedDelivery
+                messageData = x |> SaveModelDataMsg |> WorkerNodeMsg
+            }
+            |> sendMessage
+
             s
 
 
         let onSaveCharts s c =
+            {
+                recipient = recipient
+                deliveryType = GuaranteedDelivery
+                messageData = c |> SaveChartsMsg |> WorkerNodeMsg
+            }
+            |> sendMessage
+
             s
 
 

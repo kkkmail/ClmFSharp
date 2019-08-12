@@ -32,24 +32,62 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
-    type WorkerNodeOutMessage =
-        | RegisterWorkerNodeMsg of WorkerNodeInfo
-        | UpdateProgressMsg of ProgressUpdateInfo
-        | RunCompleted
-        | SaveModelDataMsg of ModelData
-        | SaveChartsMsg of ChartInfo
+    type PartitionerMessage =
+        | RunCompletedPrtMsg
 
 
-    type WorkerNodeInMessage =
-        | RunModelMsg of ModelData
+    type StorageMessage =
+        | UpdateProgressStrMsg of ProgressUpdateInfo
+        | RunCompletedStrMsg
+        | SaveModelDataStrMsg of ModelData
+        | SaveChartsStrMsg of ChartInfo
+
+
+    type WorkerNodeMessage =
+        | RunModelWrkMsg of ModelData
+
+
+    //module WorkerNodeOutMessage =
+    //    type RegisterWorkerNodeMsg = | RegisterWorkerNodeMsg of WorkerNodeInfo
+    //    type UpdateProgressMsg = | UpdateProgressMsg of ProgressUpdateInfo
+    //    type RunCompleted = | RunCompleted
+    //    type SaveModelDataMsg = | SaveModelDataMsg of ModelData
+    //    type SaveChartsMsg = | SaveChartsMsg of ChartInfo
+
+
+    //type WorkerNodeOutMessage =
+    //    | RegisterWorkerNodeMsg of WorkerNodeInfo
+    //    | UpdateProgressMsg of ProgressUpdateInfo
+    //    | RunCompleted
+    //    | SaveModelDataMsg of ModelData
+    //    | SaveChartsMsg of ChartInfo
+
+
+    //module PartitionerInMsg =
+    //    type RunCompleted = | RunCompleted
+
+
+    //module StorageInMsg =
+    //    type UpdateProgressMsg = | UpdateProgressMsg of ProgressUpdateInfo
+    //    type RunCompleted = | RunCompleted
+    //    type SaveModelDataMsg = | SaveModelDataMsg of ModelData
+    //    type SaveChartsMsg = | SaveChartsMsg of ChartInfo
+
+
+    //module WorkerNodeInMessage =
+    //    type RunModelMsg = | RunModelMsg of ModelData
+
+    //type WorkerNodeInMessage =
+    //    | RunModelMsg of ModelData
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
     /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
     type MessageData =
         | TextData of string
-        | WorkerNodeOutMsg of WorkerNodeOutMessage
-        | WorkerNodeInMsg of WorkerNodeInMessage
+        | PartitionerMsg of PartitionerMessage
+        | StorageMsg of StorageMessage
+        | WorkerNodeMsg of WorkerNodeMessage
 
 
     type MessageInfo =
@@ -58,6 +96,51 @@ module ServiceInfo =
             deliveryType : MessageDeliveryType
             messageData : MessageData
         }
+
+
+    type PartitionerMessageInfo =
+        {
+            partitionerRecipient : PartitionerId
+            deliveryType : MessageDeliveryType
+            messageData : PartitionerMessage
+        }
+
+        member this.messageInfo =
+            {
+                recipient = this.partitionerRecipient.messagingClientId
+                deliveryType = this.deliveryType
+                messageData = this.messageData |> PartitionerMsg
+            }
+
+
+    type StorageMessageInfo =
+        {
+            storageRecipient : StorageId
+            deliveryType : MessageDeliveryType
+            messageData : StorageMessage
+        }
+
+        member this.messageInfo =
+            {
+                recipient = this.storageRecipient.messagingClientId
+                deliveryType = this.deliveryType
+                messageData = this.messageData |> StorageMsg
+            }
+
+
+    type WorkerNodeMessageInfo =
+        {
+            workerNodeRecipient : WorkerNodeId
+            deliveryType : MessageDeliveryType
+            messageData : WorkerNodeMessage
+        }
+
+        member this.messageInfo =
+            {
+                recipient = this.workerNodeRecipient.messagingClientId
+                deliveryType = this.deliveryType
+                messageData = this.messageData |> WorkerNodeMsg
+            }
 
 
     type MessageType =

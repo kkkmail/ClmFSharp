@@ -18,6 +18,24 @@ module MessagingData =
         static member create() = Guid.NewGuid() |> MessagingClientId
 
 
+    type PartitionerId =
+        | PartitionerId of MessagingClientId
+
+        member this.messagingClientId = let (PartitionerId v) = this in v
+
+
+    type StorageId =
+        | StorageId of MessagingClientId
+
+        member this.messagingClientId = let (StorageId v) = this in v
+
+
+    type WorkerNodeId =
+        | WorkerNodeId of MessagingClientId
+
+        member this.messagingClientId = let (WorkerNodeId v) = this in v
+
+
     type MessagingClientAccessInfo =
         {
             msgClientId : MessagingClientId
@@ -29,4 +47,3 @@ module MessagingData =
         {
             messagingServiceAccessInfo : ServiceAccessInfo
         }
-

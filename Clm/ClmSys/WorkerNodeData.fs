@@ -7,7 +7,7 @@ module WorkerNodeData =
 
     type WorkerNodeInfo =
         {
-            workerNodeMsgClientId : MessagingClientId
+            workerNodeId : WorkerNodeId
             noOfCores : int
         }
 
@@ -16,13 +16,13 @@ module WorkerNodeData =
         {
             msgCliAccessInfo : MessagingClientAccessInfo
             noOfCores : int
-            prtMsgClientId : MessagingClientId
-            storageMsgClientId : MessagingClientId
+            prtMsgClientId : PartitionerId
+            storageMsgClientId : StorageId
             wrkSvcAccessInfo : ServiceAccessInfo
         }
 
         member w.workerNodeInfo =
             {
-                workerNodeMsgClientId = w.msgCliAccessInfo.msgClientId
+                workerNodeId = w.msgCliAccessInfo.msgClientId |> WorkerNodeId
                 noOfCores = w.noOfCores
             }

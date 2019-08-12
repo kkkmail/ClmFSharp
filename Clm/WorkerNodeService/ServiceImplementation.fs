@@ -1,11 +1,13 @@
 ﻿namespace WorkerNodeService
 
 open System
+open Argu
+
 open ClmSys.GeneralData
 open ClmSys.Logging
-open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
+open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
@@ -13,8 +15,6 @@ open MessagingServiceInfo.ServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
-open Argu
-open Clm.CalculationData
 
 module ServiceImplementation =
 
@@ -22,15 +22,6 @@ module ServiceImplementation =
         let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
         let results = (parser.Parse [||]).GetAllResults()
         results |> getServiceAccessInfo
-
-
-    type WorkerNodeMessage =
-        | Start
-        | Register
-        | UpdateProgress of ProgressUpdateInfo
-        | SaveModelData of ModelData
-        | SaveCharts of ChartInfo
-        | GetMessages
 
 
     type WorkerNodeRunnerState =
@@ -48,22 +39,33 @@ module ServiceImplementation =
         {
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             msgResponseHandler : MsgResponseHandler
-            messagingClientProxy : MessagingClientProxy
+            msgClientProxy : MessagingClientProxy
             logger : Logger
         }
 
 
-    type WorkerNodeRunner(i : WorkerNodeRunnerData) =
+    type WorkerNodeMessage =
+        | Start
+        | Register
+        | UpdateProgress of ProgressUpdateInfo
+        | SaveModelData of ModelData
+        | SaveCharts of ChartInfo
+        | GetMessages of WorkerNodeRunner
+        | ProcessMessage of Message
+
+
+    and WorkerNodeRunner(i : WorkerNodeRunnerData) =
         let d =
             {
                 msgAccessInfo = i.workerNodeAccessInfo.msgCliAccessInfo
                 msgResponseHandler = i.msgResponseHandler
-                msgClientProxy = i.messagingClientProxy
+                msgClientProxy = i.msgClientProxy
                 logger = logger
             }
 
         let messagingClient = MessagingClient d
         let partitioner = i.workerNodeAccessInfo.prtMsgClientId
+        let storage = failwith ""
         let sendMessage m = messagingClient.sendMessage m
 
         let onStart s =
@@ -74,13 +76,13 @@ module ServiceImplementation =
             {
                 recipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodeMsg |> WorkerNodeMsg
+                messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodeMsg |> WorkerNodeOutMsg
             }
             |> sendMessage
 
             s
 
-
+        /// TODO kk:20190811 - Send messages to both partitioner and storage when needed.
         let onUpdateProgress s (p : ProgressUpdateInfo) =
             {
                 recipient = partitioner
@@ -89,7 +91,7 @@ module ServiceImplementation =
                     | NotStarted -> NonGuaranteedDelivery
                     | InProgress _ -> NonGuaranteedDelivery
                     | Completed -> GuaranteedDelivery
-                messageData = p |> UpdateProgressMsg |> WorkerNodeMsg
+                messageData = p |> UpdateProgressMsg |> WorkerNodeOutMsg
             }
             |> sendMessage
 
@@ -100,7 +102,7 @@ module ServiceImplementation =
             {
                 recipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = x |> SaveModelDataMsg |> WorkerNodeMsg
+                messageData = x |> SaveModelDataMsg |> WorkerNodeOutMsg
             }
             |> sendMessage
 
@@ -111,9 +113,43 @@ module ServiceImplementation =
             {
                 recipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsMsg |> WorkerNodeMsg
+                messageData = c |> SaveChartsMsg |> WorkerNodeOutMsg
             }
             |> sendMessage
+
+            s
+
+
+        let onGetMessages s (w : WorkerNodeRunner) =
+            let messages = messagingClient.getMessages()
+
+            messages
+            |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+            |> List.map (fun e -> i.msgClientProxy.saveMessage IncomingMessage e)
+            |> ignore
+
+            messages
+            |> List.map (fun e -> w.processMessage e)
+            |> ignore
+
+            s
+
+
+        let onRunModelMsg (m : ModelData) =
+            failwith ""
+
+
+        let onProcessMessage s (m : Message) =
+            match m.messageInfo.messageData with
+            | WorkerNodeInMsg x ->
+                match x with
+                | RunModelMsg m -> onRunModelMsg m
+            | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+
+            // Do all the work BEFORE this.
+            match m.messageInfo.deliveryType with
+            | GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
+            | NonGuaranteedDelivery -> ignore()
 
             s
 
@@ -129,18 +165,20 @@ module ServiceImplementation =
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
                             | SaveModelData m -> return! onSaveModelData s m |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
-                            | GetMessages -> return! s |> loop
+                            | GetMessages w -> return! onGetMessages s w |> loop
+                            | ProcessMessage m -> return! onProcessMessage s m |> loop
                         }
 
                 onStart (WorkerNodeRunnerState.defaultValue) |> loop
                 )
 
-        member this.start() = Start |> messageLoop.Post
-        member this.register() = Register |> messageLoop.Post
-        member this.updateProgress p = UpdateProgress p |> messageLoop.Post
-        member this.saveModelData m = SaveModelData m |> messageLoop.Post
-        member this.saveCharts c = SaveCharts c |> messageLoop.Post
-        member this.getMessages() = GetMessages |> messageLoop.Post
+        member __.start() = Start |> messageLoop.Post
+        member __.register() = Register |> messageLoop.Post
+        member __.updateProgress p = UpdateProgress p |> messageLoop.Post
+        member __.saveModelData m = SaveModelData m |> messageLoop.Post
+        member __.saveCharts c = SaveCharts c |> messageLoop.Post
+        member this.getMessages() = GetMessages this |> messageLoop.Post
+        member private __.processMessage m = ProcessMessage m |> messageLoop.Post
 
 
     let createServiceImpl i =
@@ -159,7 +197,7 @@ module ServiceImplementation =
                 {
                     workerNodeAccessInfo = serviceAccessInfo
                     msgResponseHandler = h
-                    messagingClientProxy = MessagingClientProxy.defaultValue
+                    msgClientProxy = MessagingClientProxy.defaultValue
                     logger = logger
                 }
                 |> WorkerNodeRunner

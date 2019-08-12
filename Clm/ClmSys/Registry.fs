@@ -16,6 +16,7 @@ module Registry =
     let private numberOfCoresKey = "NumberOfCores"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
+    let private storageMessagingClientIdKey = "StorageId"
 
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
     let partitionerServiceName ="PartitionerService" |> MessagingClientName
@@ -237,4 +238,20 @@ module Registry =
     let trySetContGenServicePort (logger : Logger) v c (ServicePort p) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) contGenServicePortKey (p.ToString())
+        | None -> None
+
+
+    // Storage - Messaging Client Id
+    let tryGetStorageMessagingClientId (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey with
+        | Some s ->
+            match Guid.TryParse s with
+            | true, v -> MessagingClientId v |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetStorageMessagingClientId (logger : Logger) v c (MessagingClientId i) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey (i.ToString())
         | None -> None

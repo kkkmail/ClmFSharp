@@ -32,18 +32,23 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
-    type WorkerNodeMessage =
+    type WorkerNodeOutMessage =
         | RegisterWorkerNodeMsg of WorkerNodeInfo
         | UpdateProgressMsg of ProgressUpdateInfo
         | SaveModelDataMsg of ModelData
         | SaveChartsMsg of ChartInfo
 
 
+    type WorkerNodeInMessage =
+        | RunModelMsg of ModelData
+
+
     /// The decision was that we want strongly typed messages rather than untyped messages.
     /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
     type MessageData =
         | TextData of string
-        | WorkerNodeMsg of WorkerNodeMessage
+        | WorkerNodeOutMsg of WorkerNodeOutMessage
+        | WorkerNodeInMsg of WorkerNodeInMessage
 
 
     type MessageInfo =

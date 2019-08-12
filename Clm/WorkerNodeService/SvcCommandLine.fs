@@ -24,6 +24,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
         | [<Unique>] [<AltCommandLine("-workerAddress")>] WrkSvcAddress of string
         | [<Unique>] [<AltCommandLine("-workerPort")>] WrkSvcPort of int
+        | [<Unique>] [<AltCommandLine("-s")>] WrkStorage of Guid
 
     with
         interface IArgParserTemplate with
@@ -38,6 +39,7 @@ module SvcCommandLine =
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
                 | WrkSvcAddress _ -> "worker node service ip address / name."
                 | WrkSvcPort _ -> "worker node service port."
+                | WrkStorage _ -> "messaging client id of a storage service."
 
 
     type WorkerNodeServiceArgs = SvcArguments<WorkerNodeServiceRunArgs>
@@ -83,6 +85,7 @@ module SvcCommandLine =
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | WrkStorage p -> p |> MessagingClientId |> Some | _ -> None)
 
 
     let getMsgServerAddress logger version name p =
@@ -110,6 +113,15 @@ module SvcCommandLine =
             match tryGetPartitionerMessagingClientId logger version name with
             | Some x -> x
             | None -> defaultPartitionerMessagingClientId
+
+
+    let getStorage logger version name p =
+        match tryGetPartitioner p with
+        | Some x -> x
+        | None ->
+            match tryGetStorageMessagingClientId logger version name with
+            | Some x -> x
+            | None -> defaultStorageMessagingClientId
 
 
     let getNoOfCores logger version name p =
@@ -165,6 +177,7 @@ module SvcCommandLine =
         let wrkAddress = getServerAddress logger version name p
         let wrkPort = getServerPort logger version name p
         let clientId = getClientId logger version name p
+        let storage = getStorage logger version name p
 
         match tryGetSaveSettings p with
         | Some _ ->
@@ -175,6 +188,7 @@ module SvcCommandLine =
             trySetContGenServiceAddress logger versionNumberValue name wrkAddress |> ignore
             trySetContGenServicePort logger versionNumberValue name wrkPort |> ignore
             trySetMessagingClientId logger versionNumberValue name clientId |> ignore
+            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
         | None -> ignore()
 
         {
@@ -191,6 +205,7 @@ module SvcCommandLine =
 
             noOfCores = noOfCores
             prtMsgClientId = partitioner
+            storageMsgClientId = storage
 
             wrkSvcAccessInfo =
                 {

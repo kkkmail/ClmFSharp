@@ -17,6 +17,7 @@ module WorkerNodeData =
             msgCliAccessInfo : MessagingClientAccessInfo
             noOfCores : int
             prtMsgClientId : MessagingClientId
+            storageMsgClientId : MessagingClientId
             wrkSvcAccessInfo : ServiceAccessInfo
         }
 

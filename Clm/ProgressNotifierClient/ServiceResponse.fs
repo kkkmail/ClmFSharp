@@ -25,7 +25,7 @@ module ServiceResponse =
             | ContGenNotifier s -> s.updateProgress p
             | WorkerNodeNotifier w -> w.updateProgress p
 
-        member this.updateProgress p = updateProgressImpl p
+        member __.updateProgress p = updateProgressImpl p
 
         static member tryCreate i =
             try

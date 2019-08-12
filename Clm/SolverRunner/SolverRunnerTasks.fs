@@ -28,7 +28,7 @@ module SolverRunnerTasks =
         let notify() =
             try
                 printfn "Notifying of progress: %A." p
-                r.progressNotifierService.updateProgress p
+                r.updateProgress p
                 printfn "...completed."
             with
                 | e ->
@@ -56,28 +56,42 @@ module SolverRunnerTasks =
             }
 
 
+    let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
+        match results.TryGetResult Remote with
+        | None -> SolverRunnerProxyInfo.defaultValue
+        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
+
+
     let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
 
-            {
-                contGenServiceAccessInfo =
-                    {
-                        serviceAddress = ServiceAddress address
-                        servicePort = ServicePort port
-                    }
+            match results.TryGetResult Remote with
+            | None ->
+                {
+                    contGenServiceAccessInfo =
+                        {
+                            serviceAddress = ServiceAddress address
+                            servicePort = ServicePort port
+                        }
 
-                minUsefulEe = ee
-            }
+                    minUsefulEe = ee
+                }
+                |> ContGenSvcAccessInfo
+            | Some _ ->
+                {
+                    workerNodeServiceAccessInfo =
+                        {
+                            serviceAddress = ServiceAddress address
+                            servicePort = ServicePort port
+                        }
+
+                    minUsefulEe = ee
+                }
+                |> WorkerNodeSvcAccessInfo
             |> Some
         | _ -> None
-
-
-    let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
-        match results.TryGetResult Remote with
-        | None -> SolverRunnerProxyInfo.defaultValue
-        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
 
 
     let getResponseHandler i = ResponseHandler.tryCreate i
@@ -195,7 +209,7 @@ module SolverRunnerTasks =
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            serviceAccessInfo : ContGenServiceAccessInfo
+            serviceAccessInfo : SolverRunnerAccessInfo
             resultDataWithId : ResultDataWithId
             chartData : ChartData
             sovlerRunnerProxy : SolverRunnerProxy

@@ -1,6 +1,7 @@
 ﻿namespace WorkerNodeServiceInfo
 
 open ClmSys.WorkerNodeData
+open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
 
@@ -9,3 +10,7 @@ module ServiceInfo =
 
     [<Literal>]
     let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
+
+
+    type IWorkerNodeService =
+        abstract updateProgress : ProgressUpdateInfo -> unit

@@ -88,6 +88,33 @@ module GeneralData =
         }
 
 
+    type WorkerNodeServiceAccessInfo =
+        {
+            workerNodeServiceAccessInfo : ServiceAccessInfo
+            minUsefulEe : MinUsefulEe
+        }
+
+
+    type SolverRunnerAccessInfo =
+        | ContGenSvcAccessInfo of ContGenServiceAccessInfo
+        | WorkerNodeSvcAccessInfo of WorkerNodeServiceAccessInfo
+
+        member this.minUsefulEe =
+            match this with
+            | ContGenSvcAccessInfo c -> c.minUsefulEe
+            | WorkerNodeSvcAccessInfo w -> w.minUsefulEe
+
+        member this.serviceAddress =
+            match this with
+            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
+            | WorkerNodeSvcAccessInfo w -> w.workerNodeServiceAccessInfo.serviceAddress
+
+        member this.servicePort =
+            match this with
+            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
+            | WorkerNodeSvcAccessInfo w -> w.workerNodeServiceAccessInfo.servicePort
+
+
     let toVariableName (s : string) =
         match s.Length with
         | 0 -> s

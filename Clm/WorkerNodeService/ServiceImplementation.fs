@@ -30,6 +30,7 @@ module ServiceImplementation =
         | UpdateProgress of ProgressUpdateInfo
         | SaveModelData of ModelData
         | SaveCharts of ChartInfo
+        | GetMessages
 
 
     type WorkerNodeRunnerState =
@@ -48,6 +49,7 @@ module ServiceImplementation =
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             msgResponseHandler : MsgResponseHandler
             messagingClientProxy : MessagingClientProxy
+            logger : Logger
         }
 
 
@@ -61,7 +63,7 @@ module ServiceImplementation =
             }
 
         let messagingClient = MessagingClient d
-        let recipient = i.workerNodeAccessInfo.prtMsgClientId
+        let partitioner = i.workerNodeAccessInfo.prtMsgClientId
         let sendMessage m = messagingClient.sendMessage m
 
         let onStart s =
@@ -70,7 +72,7 @@ module ServiceImplementation =
 
         let onRegister s =
             {
-                recipient = recipient
+                recipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodeMsg |> WorkerNodeMsg
             }
@@ -81,7 +83,7 @@ module ServiceImplementation =
 
         let onUpdateProgress s (p : ProgressUpdateInfo) =
             {
-                recipient = recipient
+                recipient = partitioner
                 deliveryType =
                     match p.progress with
                     | NotStarted -> NonGuaranteedDelivery
@@ -96,7 +98,7 @@ module ServiceImplementation =
 
         let onSaveModelData s x =
             {
-                recipient = recipient
+                recipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = x |> SaveModelDataMsg |> WorkerNodeMsg
             }
@@ -107,7 +109,7 @@ module ServiceImplementation =
 
         let onSaveCharts s c =
             {
-                recipient = recipient
+                recipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = c |> SaveChartsMsg |> WorkerNodeMsg
             }
@@ -127,6 +129,7 @@ module ServiceImplementation =
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
                             | SaveModelData m -> return! onSaveModelData s m |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
+                            | GetMessages -> return! s |> loop
                         }
 
                 onStart (WorkerNodeRunnerState.defaultValue) |> loop
@@ -137,17 +140,12 @@ module ServiceImplementation =
         member this.updateProgress p = UpdateProgress p |> messageLoop.Post
         member this.saveModelData m = SaveModelData m |> messageLoop.Post
         member this.saveCharts c = SaveCharts c |> messageLoop.Post
-
-
-    type WorkerNodeServiceImpl(i : WorkerNodeServiceAccessInfo) =
-
-        member this.onTimer() = ignore()
-        member this.updateProgress (p: ProgressUpdateInfo) : unit = failwith ""
+        member this.getMessages() = GetMessages |> messageLoop.Post
 
 
     let createServiceImpl i =
-        let w = WorkerNodeServiceImpl i
-        let h = new EventHandler(EventHandlerInfo.defaultValue w.onTimer)
+        let w = WorkerNodeRunner i
+        let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
         do h.start()
         w
 
@@ -155,20 +153,26 @@ module ServiceImplementation =
     type WorkerNodeService () =
         inherit MarshalByRefObject()
 
-        let w = createServiceImpl serviceAccessInfo
+        let w =
+            match MsgResponseHandler.tryCreate serviceAccessInfo.msgCliAccessInfo with
+            | Some h ->
+                {
+                    workerNodeAccessInfo = serviceAccessInfo
+                    msgResponseHandler = h
+                    messagingClientProxy = MessagingClientProxy.defaultValue
+                    logger = logger
+                }
+                |> WorkerNodeRunner
+                |> Some
+            | None -> None
+
         let initService () = ()
         do initService ()
 
-        let notSupported a =
-            let msg = (sprintf "The method %A is not supported by WorkerNodeService." a)
-            printfn "%s" msg
-            failwith msg
+        let updateProgressImpl p =
+            match w with
+            | Some r -> r.updateProgress p
+            | None -> logger.logErr (sprintf "Failed to update progress: %A" p)
 
-        interface IContGenService with
-            member __.getState() = notSupported "getState"
-            member __.loadQueue() = notSupported "loadQueue"
-            member __.startGenerate() = notSupported "startGenerate"
-            member __.updateProgress p = w.updateProgress p
-            member __.configureService _ = notSupported "configureService"
-            member __.runModel _ _ = notSupported "runModel"
-
+        interface IWorkerNodeService with
+            member __.updateProgress p = updateProgressImpl p

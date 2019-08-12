@@ -54,7 +54,7 @@ module ServiceImplementation =
     type ContGenService () =
         inherit MarshalByRefObject()
 
-        let a = createServiceImpl serviceAccessInfo
+        let a = serviceAccessInfo |> ContGenSvcAccessInfo |> createServiceImpl
 
         let initService () = ()
         do initService ()

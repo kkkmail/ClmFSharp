@@ -17,7 +17,7 @@ module Runner =
         {
             exeName : string
             saveModelCode : bool
-            serviceAccessInfo : ContGenServiceAccessInfo
+            serviceAccessInfo : SolverRunnerAccessInfo
             runnerProxy : RunnerProxy
         }
 
@@ -120,7 +120,7 @@ module Runner =
                     []
 
 
-        let generateAll (i : ContGenServiceAccessInfo) () =
+        let generateAll i () =
             match p.runnerProxy.loadIncompleteClmTasks i with
             | Some c -> c |> List.map generateImpl |> List.concat
             | None -> []

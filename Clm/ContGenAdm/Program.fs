@@ -3,6 +3,7 @@ open ContGenAdm.ContGenServiceResponse
 open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
+open ClmSys.GeneralData
 
 
 [<EntryPoint>]
@@ -14,7 +15,7 @@ let main argv =
         let service = new ContGenResponseHandler(i)
 
         match results |> ContGenAdmTask.tryCreate service.contGenService with
-        | Some task -> task.run i
+        | Some task -> i |> ContGenSvcAccessInfo |> task.run
         | None ->
             printfn "%s" (parser.PrintUsage())
             InvalidCommandLineArgs

@@ -17,7 +17,7 @@ module CommandLine =
         | [<Unique>] [<AltCommandLine("n")>]  NotifyAddress of string
         | [<Unique>] [<AltCommandLine("p")>]  NotifyPort of int
         | [<Unique>] [<AltCommandLine("ee")>] MinimumUsefulEe of double
-        | [<Unique>] [<AltCommandLine("r")>] Remote
+        | [<Unique>] [<AltCommandLine("r")>]  Remote of bool
 
 
     with

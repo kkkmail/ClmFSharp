@@ -82,18 +82,30 @@ module ServiceImplementation =
 
             s
 
-        /// TODO kk:20190811 - Send messages to both partitioner and storage when needed.
+
         let onUpdateProgress s (p : ProgressUpdateInfo) =
-            {
-                recipient = partitioner
-                deliveryType =
-                    match p.progress with
-                    | NotStarted -> NonGuaranteedDelivery
-                    | InProgress _ -> NonGuaranteedDelivery
-                    | Completed -> GuaranteedDelivery
-                messageData = p |> UpdateProgressMsg |> WorkerNodeOutMsg
-            }
-            |> sendMessage
+            let notifyPartitioner() =
+                {
+                    recipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = RunCompleted |> WorkerNodeOutMsg
+                }
+                |> sendMessage
+
+            let notifyStorage t =
+                {
+                    recipient = storage
+                    deliveryType = t
+                    messageData = p |> UpdateProgressMsg |> WorkerNodeOutMsg
+                }
+                |> sendMessage
+
+            match p.progress with
+            | NotStarted -> notifyStorage NonGuaranteedDelivery
+            | InProgress _ -> notifyStorage NonGuaranteedDelivery
+            | Completed ->
+                notifyPartitioner()
+                notifyStorage GuaranteedDelivery
 
             s
 
@@ -146,7 +158,6 @@ module ServiceImplementation =
                 | RunModelMsg m -> onRunModelMsg m
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
-            // Do all the work BEFORE this.
             match m.messageInfo.deliveryType with
             | GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
             | NonGuaranteedDelivery -> ignore()

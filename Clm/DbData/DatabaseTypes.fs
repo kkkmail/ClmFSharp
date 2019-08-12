@@ -120,9 +120,13 @@ module DatabaseTypes =
 
         static member create i (r : CommandLineParamTableRow) =
             {
-                y0 = r.y0
-                tEnd = r.tEnd
-                useAbundant = r.useAbundant
+                taskParam =
+                    {
+                        y0 = r.y0
+                        tEnd = r.tEnd
+                        useAbundant = r.useAbundant
+                    }
+
                 serviceAccessInfo = i
             }
 
@@ -132,9 +136,9 @@ module DatabaseTypes =
                 t.NewRow(
                         commandLineParamId = Guid.NewGuid(),
                         clmTaskId = clmTaskId,
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant
+                        y0 = r.taskParam.y0,
+                        tEnd = r.taskParam.tEnd,
+                        useAbundant = r.taskParam.useAbundant
                         )
 
             t.Rows.Add newRow
@@ -265,9 +269,13 @@ module DatabaseTypes =
 
                         modelCommandLineParam =
                             {
-                                y0 = r.y0
-                                tEnd = r.tEnd
-                                useAbundant = r.useAbundant
+                                taskParam =
+                                    {
+                                        y0 = r.y0
+                                        tEnd = r.tEnd
+                                        useAbundant = r.useAbundant
+                                    }
+
                                 serviceAccessInfo = i
                             }
                     }
@@ -279,9 +287,9 @@ module DatabaseTypes =
                 t.NewRow(
                         runQueueId = r.runQueueId.value,
                         modelDataId = r.info.modelDataId.value,
-                        y0 = r.modelCommandLineParam.y0,
-                        tEnd = r.modelCommandLineParam.tEnd,
-                        useAbundant = r.modelCommandLineParam.useAbundant
+                        y0 = r.modelCommandLineParam.taskParam.y0,
+                        tEnd = r.modelCommandLineParam.taskParam.tEnd,
+                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant
                         )
 
             newRow.statusId <- 0

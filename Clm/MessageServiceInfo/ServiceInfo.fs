@@ -35,6 +35,7 @@ module ServiceInfo =
     type WorkerNodeOutMessage =
         | RegisterWorkerNodeMsg of WorkerNodeInfo
         | UpdateProgressMsg of ProgressUpdateInfo
+        | RunCompleted
         | SaveModelDataMsg of ModelData
         | SaveChartsMsg of ChartInfo
 

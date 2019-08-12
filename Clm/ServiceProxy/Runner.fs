@@ -66,6 +66,7 @@ module Runner =
                     {
                         modelDataId = p.callBack.calledBackModelId
                         minUsefulEe = p.minUsefulEe
+                        remote = false
                     }
 
                 let commandLineParams = p.commandLineParam.toCommandLine data

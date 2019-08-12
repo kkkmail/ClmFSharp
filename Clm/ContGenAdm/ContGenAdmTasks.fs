@@ -76,9 +76,13 @@ module ContGenAdmTasks =
         | Some m, Some y, Some t ->
             let c =
                 {
-                    tEnd = t
-                    y0 = y
-                    useAbundant = false
+                    taskParam =
+                        {
+                            tEnd = t
+                            y0 = y
+                            useAbundant = false
+                        }
+
                     serviceAccessInfo = i
                 }
 

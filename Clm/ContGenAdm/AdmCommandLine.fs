@@ -175,9 +175,12 @@ module AdmCommandLine =
                 List.zip tl yl
                 |> List.map (fun (tEnd, y0) ->
                                 {
-                                    tEnd = tEnd
-                                    y0 = y0
-                                    useAbundant = false
+                                    taskParam =
+                                        {
+                                            tEnd = tEnd
+                                            y0 = y0
+                                            useAbundant = false
+                                        }
                                     serviceAccessInfo = i
                                 }
                             )

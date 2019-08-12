@@ -113,6 +113,7 @@ module SvcCommandLine =
             match tryGetPartitionerMessagingClientId logger version name with
             | Some x -> x
             | None -> defaultPartitionerMessagingClientId
+        |> PartitionerId
 
 
     let getStorage logger version name p =
@@ -122,6 +123,7 @@ module SvcCommandLine =
             match tryGetStorageMessagingClientId logger version name with
             | Some x -> x
             | None -> defaultStorageMessagingClientId
+        |> StorageId
 
 
     let getNoOfCores logger version name p =
@@ -183,12 +185,12 @@ module SvcCommandLine =
         | Some _ ->
             trySetMessagingClientAddress logger versionNumberValue name address |> ignore
             trySetMessagingClientPort logger versionNumberValue name port |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner.messagingClientId |> ignore
             trySetNumberOfCores logger versionNumberValue name noOfCores |> ignore
             trySetContGenServiceAddress logger versionNumberValue name wrkAddress |> ignore
             trySetContGenServicePort logger versionNumberValue name wrkPort |> ignore
             trySetMessagingClientId logger versionNumberValue name clientId |> ignore
-            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
+            trySetStorageMessagingClientId logger versionNumberValue name storage.messagingClientId |> ignore
         | None -> ignore()
 
         {
@@ -204,8 +206,8 @@ module SvcCommandLine =
                 }
 
             noOfCores = noOfCores
-            prtMsgClientId = partitioner
-            storageMsgClientId = storage
+            partitionerId = partitioner
+            storageId = storage
 
             wrkSvcAccessInfo =
                 {

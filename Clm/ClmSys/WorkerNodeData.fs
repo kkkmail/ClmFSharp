@@ -16,8 +16,8 @@ module WorkerNodeData =
         {
             msgCliAccessInfo : MessagingClientAccessInfo
             noOfCores : int
-            prtMsgClientId : PartitionerId
-            storageMsgClientId : StorageId
+            partitionerId : PartitionerId
+            storageId : StorageId
             wrkSvcAccessInfo : ServiceAccessInfo
         }
 

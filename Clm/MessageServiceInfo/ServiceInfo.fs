@@ -34,6 +34,7 @@ module ServiceInfo =
 
     type PartitionerMessage =
         | RunCompletedPrtMsg
+        | RegisterWorkerNodePrtMsg of WorkerNodeInfo
 
 
     type StorageMessage =
@@ -45,40 +46,6 @@ module ServiceInfo =
 
     type WorkerNodeMessage =
         | RunModelWrkMsg of ModelData
-
-
-    //module WorkerNodeOutMessage =
-    //    type RegisterWorkerNodeMsg = | RegisterWorkerNodeMsg of WorkerNodeInfo
-    //    type UpdateProgressMsg = | UpdateProgressMsg of ProgressUpdateInfo
-    //    type RunCompleted = | RunCompleted
-    //    type SaveModelDataMsg = | SaveModelDataMsg of ModelData
-    //    type SaveChartsMsg = | SaveChartsMsg of ChartInfo
-
-
-    //type WorkerNodeOutMessage =
-    //    | RegisterWorkerNodeMsg of WorkerNodeInfo
-    //    | UpdateProgressMsg of ProgressUpdateInfo
-    //    | RunCompleted
-    //    | SaveModelDataMsg of ModelData
-    //    | SaveChartsMsg of ChartInfo
-
-
-    //module PartitionerInMsg =
-    //    type RunCompleted = | RunCompleted
-
-
-    //module StorageInMsg =
-    //    type UpdateProgressMsg = | UpdateProgressMsg of ProgressUpdateInfo
-    //    type RunCompleted = | RunCompleted
-    //    type SaveModelDataMsg = | SaveModelDataMsg of ModelData
-    //    type SaveChartsMsg = | SaveChartsMsg of ChartInfo
-
-
-    //module WorkerNodeInMessage =
-    //    type RunModelMsg = | RunModelMsg of ModelData
-
-    //type WorkerNodeInMessage =
-    //    | RunModelMsg of ModelData
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

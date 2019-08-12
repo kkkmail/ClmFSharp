@@ -64,8 +64,8 @@ module ServiceImplementation =
             }
 
         let messagingClient = MessagingClient d
-        let partitioner = i.workerNodeAccessInfo.prtMsgClientId
-        let storage = failwith ""
+        let partitioner = i.workerNodeAccessInfo.partitionerId
+        let storage = i.workerNodeAccessInfo.storageId
         let sendMessage m = messagingClient.sendMessage m
 
         let onStart s =
@@ -74,10 +74,10 @@ module ServiceImplementation =
 
         let onRegister s =
             {
-                recipient = partitioner
+                partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodeMsg |> WorkerNodeOutMsg
-            }
+                messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodePrtMsg
+            }.messageInfo
             |> sendMessage
 
             s
@@ -86,18 +86,18 @@ module ServiceImplementation =
         let onUpdateProgress s (p : ProgressUpdateInfo) =
             let notifyPartitioner() =
                 {
-                    recipient = partitioner
+                    partitionerRecipient = partitioner
                     deliveryType = GuaranteedDelivery
-                    messageData = RunCompleted |> WorkerNodeOutMsg
-                }
+                    messageData = RunCompletedPrtMsg
+                }.messageInfo
                 |> sendMessage
 
             let notifyStorage t =
                 {
-                    recipient = storage
+                    storageRecipient = storage
                     deliveryType = t
-                    messageData = p |> UpdateProgressMsg |> WorkerNodeOutMsg
-                }
+                    messageData = p |> UpdateProgressStrMsg
+                }.messageInfo
                 |> sendMessage
 
             match p.progress with
@@ -112,10 +112,10 @@ module ServiceImplementation =
 
         let onSaveModelData s x =
             {
-                recipient = partitioner
+                storageRecipient = storage
                 deliveryType = GuaranteedDelivery
-                messageData = x |> SaveModelDataMsg |> WorkerNodeOutMsg
-            }
+                messageData = x |> SaveModelDataStrMsg
+            }.messageInfo
             |> sendMessage
 
             s
@@ -123,10 +123,10 @@ module ServiceImplementation =
 
         let onSaveCharts s c =
             {
-                recipient = partitioner
+                storageRecipient = storage
                 deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsMsg |> WorkerNodeOutMsg
-            }
+                messageData = c |> SaveChartsStrMsg
+            }.messageInfo
             |> sendMessage
 
             s
@@ -153,9 +153,9 @@ module ServiceImplementation =
 
         let onProcessMessage s (m : Message) =
             match m.messageInfo.messageData with
-            | WorkerNodeInMsg x ->
+            | WorkerNodeMsg x ->
                 match x with
-                | RunModelMsg m -> onRunModelMsg m
+                | RunModelWrkMsg m -> onRunModelMsg m
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
             match m.messageInfo.deliveryType with

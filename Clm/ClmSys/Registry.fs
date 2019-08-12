@@ -6,6 +6,7 @@ open GeneralData
 open MessagingData
 open Fake.Windows
 open ClmSys.Logging
+open ClmSys.PartitionerData
 
 module Registry =
 
@@ -18,9 +19,10 @@ module Registry =
     let private contGenServicePortKey = "ContGenServicePort"
     let private storageMessagingClientIdKey = "StorageId"
 
+    let contGenServiceName ="ContGenService" |> MessagingClientName
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
     let partitionerServiceName ="PartitionerService" |> MessagingClientName
-    let SolverRunnerName ="SolverRunner" |> MessagingClientName
+    let solverRunnerName ="SolverRunner" |> MessagingClientName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)
@@ -255,3 +257,42 @@ module Registry =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey (i.ToString())
         | None -> None
+
+
+    // Getters OR defaults
+    let getMsgServerAddressImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetMessagingClientAddress logger version name with
+            | Some a -> a
+            | None -> ServiceAddress.defaultMessagingServerValue
+
+
+    let getMsgServerPortImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetMessagingClientPort logger version name with
+            | Some a -> a
+            | None -> ServicePort.defaultMessagingServerValue
+
+
+    let getPartitionerImpl getter logger version name p =
+        match getter p with
+        | Some x -> x
+        | None ->
+            match tryGetPartitionerMessagingClientId logger version name with
+            | Some x -> x
+            | None -> defaultPartitionerMessagingClientId
+        |> PartitionerId
+
+
+    let getStorageImpl getter logger version name p =
+        match getter p with
+        | Some x -> x
+        | None ->
+            match tryGetStorageMessagingClientId logger version name with
+            | Some x -> x
+            | None -> defaultStorageMessagingClientId
+        |> StorageId

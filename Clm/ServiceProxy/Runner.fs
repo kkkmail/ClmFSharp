@@ -26,6 +26,12 @@ module Runner =
             runModel : RunModelParam -> ProcessStartInfo
         }
 
+        static member defaultValue r =
+            {
+                connectionString = clmConnectionString
+                runModel = r
+            }
+
 
     type RunnerProxyInfo =
         | LocalRunner of LocalRunnerConfig

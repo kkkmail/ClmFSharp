@@ -189,12 +189,12 @@ module Registry =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey with
         | Some s ->
             match Guid.TryParse s with
-            | true, v -> MessagingClientId v |> Some
+            | true, v -> v |> MessagingClientId |> PartitionerId |> Some
             | false, _ -> None
         | None -> None
 
 
-    let trySetPartitionerMessagingClientId (logger : Logger) v c (MessagingClientId i) =
+    let trySetPartitionerMessagingClientId (logger : Logger) v c (PartitionerId (MessagingClientId i)) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey (i.ToString())
         | None -> None
@@ -248,12 +248,12 @@ module Registry =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey with
         | Some s ->
             match Guid.TryParse s with
-            | true, v -> MessagingClientId v |> Some
+            | true, v -> v |> MessagingClientId |> StorageId |> Some
             | false, _ -> None
         | None -> None
 
 
-    let trySetStorageMessagingClientId (logger : Logger) v c (MessagingClientId i) =
+    let trySetStorageMessagingClientId (logger : Logger) v c (StorageId (MessagingClientId i)) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey (i.ToString())
         | None -> None
@@ -284,8 +284,7 @@ module Registry =
         | None ->
             match tryGetPartitionerMessagingClientId logger version name with
             | Some x -> x
-            | None -> defaultPartitionerMessagingClientId
-        |> PartitionerId
+            | None -> defaultPartitionerId
 
 
     let getStorageImpl getter logger version name p =
@@ -294,5 +293,4 @@ module Registry =
         | None ->
             match tryGetStorageMessagingClientId logger version name with
             | Some x -> x
-            | None -> defaultStorageMessagingClientId
-        |> StorageId
+            | None -> defaultStorageId

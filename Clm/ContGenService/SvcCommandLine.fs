@@ -97,8 +97,8 @@ module SvcCommandLine =
     let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
 
-    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> Some | _ -> None)
-    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | Storage p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | Storage p -> p |> MessagingClientId |> StorageId |> Some | _ -> None)
 
 
     let getServerAddress logger version name p =
@@ -155,8 +155,8 @@ module SvcCommandLine =
 
             trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner.messagingClientId |> ignore
-            trySetStorageMessagingClientId logger versionNumberValue name storage.messagingClientId |> ignore
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
         | None -> ignore()
 
         {

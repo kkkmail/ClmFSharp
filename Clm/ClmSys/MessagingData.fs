@@ -36,14 +36,35 @@ module MessagingData =
         member this.messagingClientId = let (WorkerNodeId v) = this in v
 
 
-    type MessagingClientAccessInfo =
+    type PartitionerMsgAccessInfo =
         {
-            msgClientId : MessagingClientId
+            partitionerId : PartitionerId
             msgSvcAccessInfo : ServiceAccessInfo
         }
 
 
-    type MessagingServiceAccessInfo =
+    type StorageMsgAccessInfo =
         {
-            messagingServiceAccessInfo : ServiceAccessInfo
+            storageId : StorageId
+            msgSvcAccessInfo : ServiceAccessInfo
         }
+
+
+    type WorkNodeMsgAccessInfo =
+        {
+            workerNodeId : WorkerNodeId
+            msgSvcAccessInfo : ServiceAccessInfo
+        }
+
+
+    //type MessagingClientAccessInfo =
+    //    {
+    //        msgClientId : MessagingClientId
+    //        msgSvcAccessInfo : ServiceAccessInfo
+    //    }
+
+
+    //type MessagingServiceAccessInfo =
+    //    {
+    //        messagingServiceAccessInfo : ServiceAccessInfo
+    //    }

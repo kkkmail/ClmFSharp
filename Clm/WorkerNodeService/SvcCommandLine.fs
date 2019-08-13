@@ -92,9 +92,9 @@ module SvcCommandLine =
     let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
 
-    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> Some | _ -> None)
-    let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
-    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | WrkStorage p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> WorkerNodeId |> Some | _ -> None)
+    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | WrkStorage p -> p |> MessagingClientId |> StorageId |> Some | _ -> None)
 
 
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
@@ -137,8 +137,8 @@ module SvcCommandLine =
         | Some a -> a
         | None ->
             match tryGetMessagingClientId logger version name with
-            | Some a -> a
-            | None -> Guid.NewGuid() |> MessagingClientId
+            | Some a -> a |> WorkerNodeId
+            | None -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
     let getServiceAccessInfo p =
@@ -167,9 +167,9 @@ module SvcCommandLine =
 
             trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner.messagingClientId |> ignore
-            trySetMessagingClientId logger versionNumberValue name clientId |> ignore
-            trySetStorageMessagingClientId logger versionNumberValue name storage.messagingClientId |> ignore
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+            trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
+            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
         | None -> ignore()
 
         {

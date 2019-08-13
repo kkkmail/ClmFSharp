@@ -9,14 +9,13 @@ open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open System
-//open ClmSys.WorkerNodeData
 
 module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type PartitionerServiceRunArgs =
-        | [<Unique>] [<AltCommandLine("-address")>] PartSvcAddress of string
-        | [<Unique>] [<AltCommandLine("-port")>] PartSvcPort of int
+        | [<Unique>] [<AltCommandLine("-msgAddress")>] PartMsgSvcAddress of string
+        | [<Unique>] [<AltCommandLine("-msgPort")>] PartMsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] PartSaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] PartVersion of string
         | [<Unique>] [<AltCommandLine("-id")>] PartMsgId of Guid
@@ -25,8 +24,8 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | PartSvcAddress _ -> "messaging server ip address / name."
-                | PartSvcPort _ -> "messaging server port."
+                | PartMsgSvcAddress _ -> "messaging server ip address / name."
+                | PartMsgSvcPort _ -> "messaging server port."
                 | PartSaveSettings -> "saves settings to the Registry."
                 | PartVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
                 | PartMsgId _ -> "messaging client id of a partitioner service."
@@ -66,8 +65,8 @@ module SvcCommandLine =
         | Save -> PartitionerServiceArgs.Save
 
 
-    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | PartSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | PartSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | PartMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | PartMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | PartSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | PartVersion p -> p |> VersionNumber |> Some | _ -> None)
     let tryGetClientId p = p |> List.tryPick (fun e -> match e with | PartMsgId p -> p |> MessagingClientId |> Some | _ -> None)
@@ -110,8 +109,8 @@ module SvcCommandLine =
             | Some a -> a
             | None ->
                 match tryGetMessagingClientId logger version name with
-                | Some a -> a
-                | None -> defaultPartitionerMessagingClientId
+                | Some a -> a |> PartitionerId
+                | None -> defaultPartitionerId
 
         trySaveSettings c
 

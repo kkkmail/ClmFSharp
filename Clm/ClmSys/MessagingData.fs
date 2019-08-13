@@ -18,6 +18,19 @@ module MessagingData =
         static member create() = Guid.NewGuid() |> MessagingClientId
 
 
+    type MessagingClientAccessInfo =
+        {
+            msgClientId : MessagingClientId
+            msgSvcAccessInfo : ServiceAccessInfo
+        }
+
+
+    type MessagingServiceAccessInfo =
+        {
+            messagingServiceAccessInfo : ServiceAccessInfo
+        }
+
+
     type PartitionerId =
         | PartitionerId of MessagingClientId
 
@@ -36,35 +49,43 @@ module MessagingData =
         member this.messagingClientId = let (WorkerNodeId v) = this in v
 
 
+    /// Partitioner MessagingClientId + Messaging Server acces info.
     type PartitionerMsgAccessInfo =
         {
             partitionerId : PartitionerId
             msgSvcAccessInfo : ServiceAccessInfo
         }
 
+        member this.messagingClientAccessInfo =
+            {
+                msgClientId = this.partitionerId.messagingClientId
+                msgSvcAccessInfo = this.msgSvcAccessInfo
+            }
 
+
+    /// Storage MessagingClientId + Messaging Server acces info.
     type StorageMsgAccessInfo =
         {
             storageId : StorageId
             msgSvcAccessInfo : ServiceAccessInfo
         }
 
+        member this.messagingClientAccessInfo =
+            {
+                msgClientId = this.storageId.messagingClientId
+                msgSvcAccessInfo = this.msgSvcAccessInfo
+            }
 
+
+    /// Worker Node MessagingClientId + Messaging Server acces info.
     type WorkNodeMsgAccessInfo =
         {
             workerNodeId : WorkerNodeId
             msgSvcAccessInfo : ServiceAccessInfo
         }
 
-
-    //type MessagingClientAccessInfo =
-    //    {
-    //        msgClientId : MessagingClientId
-    //        msgSvcAccessInfo : ServiceAccessInfo
-    //    }
-
-
-    //type MessagingServiceAccessInfo =
-    //    {
-    //        messagingServiceAccessInfo : ServiceAccessInfo
-    //    }
+        member this.messagingClientAccessInfo =
+            {
+                msgClientId = this.workerNodeId.messagingClientId
+                msgSvcAccessInfo = this.msgSvcAccessInfo
+            }

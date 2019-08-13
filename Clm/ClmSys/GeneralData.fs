@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.IO.Compression
 open System.Text
+open ClmSys.VersionInfo
 
 module GeneralData =
 
@@ -49,11 +50,17 @@ module GeneralData =
     let DefaultMinEe = 0.000_1
 
 
+    let getVersionImpl getter p =
+        match getter p with
+        | Some x -> x
+        | None -> versionNumberValue
+
+
     type ServiceAddress =
         | ServiceAddress of string
 
         member this.value = let (ServiceAddress v) = this in v
-        static member defaultValue = ServiceAddress DefaultContGenServiceAddress
+        static member defaultContGenServiceValue = ServiceAddress DefaultContGenServiceAddress
         static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
         static member defaultWorkerNodeServiceValue = ServiceAddress DefaultWorkerNodeServiceAddress
 
@@ -62,7 +69,7 @@ module GeneralData =
         | ServicePort of int
 
         member this.value = let (ServicePort v) = this in v
-        static member defaultValue = ServicePort DefaultContGenServicePort
+        static member defaultContGenServiceValue = ServicePort DefaultContGenServicePort
         static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
         static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
@@ -310,12 +317,6 @@ module GeneralData =
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
         x + @"\" + exeName
-
-
-    type PartitionerAccessInfo =
-        {
-             partitionerAccessInfo : ServiceAccessInfo
-        }
 
 
     let getServiceUrlImpl serviceAddress (servicePort : int) serviceName =

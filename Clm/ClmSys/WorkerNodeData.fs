@@ -1,7 +1,7 @@
 ﻿namespace ClmSys
 
 open ClmSys.GeneralData
-open MessagingData
+open ClmSys.MessagingData
 
 module WorkerNodeData =
 
@@ -14,15 +14,15 @@ module WorkerNodeData =
 
     type WorkerNodeServiceAccessInfo =
         {
-            msgCliAccessInfo : MessagingClientAccessInfo
+            wrkSvcAccessInfo : ServiceAccessInfo
             noOfCores : int
+            msgCliAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
             storageId : StorageId
-            wrkSvcAccessInfo : ServiceAccessInfo
         }
 
         member w.workerNodeInfo =
             {
-                workerNodeId = w.msgCliAccessInfo.msgClientId |> WorkerNodeId
+                workerNodeId = w.msgCliAccessInfo.workerNodeId
                 noOfCores = w.noOfCores
             }

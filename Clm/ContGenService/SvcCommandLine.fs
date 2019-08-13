@@ -107,7 +107,7 @@ module SvcCommandLine =
         | None ->
             match tryGetContGenServiceAddress logger version name with
             | Some a -> a
-            | None -> ServiceAddress.defaultValue
+            | None -> ServiceAddress.defaultContGenServiceValue
 
 
     let getServerPort logger version name p =
@@ -116,7 +116,7 @@ module SvcCommandLine =
         | None ->
             match tryGetContGenServicePort logger version name with
             | Some a -> a
-            | None -> ServicePort.defaultValue
+            | None -> ServicePort.defaultContGenServiceValue
 
 
     let geMinUsefulEe logger version name p =
@@ -125,6 +125,7 @@ module SvcCommandLine =
         | None -> MinUsefulEe DefaultMinEe
 
 
+    let getVersion = getVersionImpl tryGetVersion
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
@@ -132,13 +133,9 @@ module SvcCommandLine =
 
 
     let getServiceAccessInfo p =
-        let version =
-            match tryGetVersion p with
-            | Some x -> x
-            | None -> versionNumberValue
-
         let name = contGenServiceName
 
+        let version = getVersion p
         let address = getServerAddress logger version name p
         let port = getServerPort logger version name p
         let ee = geMinUsefulEe logger version name p

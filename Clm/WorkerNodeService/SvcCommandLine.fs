@@ -97,6 +97,7 @@ module SvcCommandLine =
     let tryGetStorage p = p |> List.tryPick (fun e -> match e with | WrkStorage p -> p |> MessagingClientId |> StorageId |> Some | _ -> None)
 
 
+    let getVersion = getVersionImpl tryGetVersion
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
@@ -142,13 +143,9 @@ module SvcCommandLine =
 
 
     let getServiceAccessInfo p =
-        let version =
-            match tryGetVersion p with
-            | Some x -> x
-            | None -> versionNumberValue
-
         let name = workerNodeServiceName
 
+        let version = getVersion p
         let address = getServerAddress logger version name p
         let port = getServerPort logger version name p
         let noOfCores = getNoOfCores logger version name p
@@ -175,7 +172,7 @@ module SvcCommandLine =
         {
             msgCliAccessInfo =
                 {
-                    msgClientId = clientId
+                    workerNodeId = clientId
 
                     msgSvcAccessInfo =
                         {

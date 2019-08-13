@@ -18,7 +18,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-msgPort")>] PartMsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] PartSaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] PartVersion of string
-        | [<Unique>] [<AltCommandLine("-id")>] PartMsgId of Guid
+        | [<Unique>] [<AltCommandLine("-id")>] PartPartitioner of Guid
 
     with
         interface IArgParserTemplate with
@@ -28,7 +28,7 @@ module SvcCommandLine =
                 | PartMsgSvcPort _ -> "messaging server port."
                 | PartSaveSettings -> "saves settings to the Registry."
                 | PartVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
-                | PartMsgId _ -> "messaging client id of a partitioner service."
+                | PartPartitioner _ -> "messaging client id of a partitioner service (own id)."
 
 
     type PartitionerServiceArgs = SvcArguments<PartitionerServiceRunArgs>
@@ -65,62 +65,41 @@ module SvcCommandLine =
         | Save -> PartitionerServiceArgs.Save
 
 
-    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | PartMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | PartMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | PartMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | PartMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | PartSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | PartVersion p -> p |> VersionNumber |> Some | _ -> None)
-    let tryGetClientId p = p |> List.tryPick (fun e -> match e with | PartMsgId p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | PartPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+
+
+    let getVersion = getVersionImpl tryGetVersion
+    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
+    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
+    let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
     let getServiceAccessInfo p =
-        let version =
-            match tryGetVersion p with
-            | Some x -> x
-            | None -> versionNumberValue
-
         let name = partitionerServiceName
 
-        let address =
-            match tryGetServerAddress p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingClientAddress logger version name with
-                | Some a -> a
-                | None -> ServiceAddress.defaultMessagingServerValue
+        let version = getVersion p
+        let msgAddress = getMsgServerAddress logger version name p
+        let msgPort = getMsgServerPort logger version name p
+        let partitioner = getPartitioner logger version name p
 
-        let port =
-            match tryGetServerPort p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingClientPort logger version name with
-                | Some a -> a
-                | None -> ServicePort.defaultMessagingServerValue
+        match tryGetSaveSettings p with
+        | Some _ ->
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
 
-        let trySaveSettings c =
-            match tryGetSaveSettings p with
-            | Some _ ->
-                trySetMessagingClientAddress logger versionNumberValue name address |> ignore
-                trySetMessagingClientPort logger versionNumberValue name port |> ignore
-                trySetMessagingClientId logger versionNumberValue name c |> ignore
-            | None -> ignore()
-
-        let c =
-            match tryGetClientId p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingClientId logger version name with
-                | Some a -> a |> PartitionerId
-                | None -> defaultPartitionerId
-
-        trySaveSettings c
-
+            trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
+            trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
+        | None -> ignore()
 
         {
-            partitionerMsgClientId = c
+            partitionerId  = partitioner
 
             msgSvcAccessInfo =
                 {
-                    serviceAddress = address
-                    servicePort = port
+                    serviceAddress = msgAddress
+                    servicePort = msgPort
                 }
         }

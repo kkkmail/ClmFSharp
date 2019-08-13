@@ -11,8 +11,8 @@ module ServiceInfo =
     let PartitionerServiceProgramName = "PartitionerService.exe"
 
 
-    let getServiceUrl (i : PartitionerAccessInfo) =
-        getServiceUrlImpl i.partitionerAccessInfo.serviceAddress.value i.partitionerAccessInfo.servicePort.value PartitionerServiceName
+    //let getServiceUrl (i : PartitionerAccessInfo) =
+    //    getServiceUrlImpl i.partitionerAccessInfo.serviceAddress.value i.partitionerAccessInfo.servicePort.value PartitionerServiceName
 
 
     type RegisterContGenServiceData =

@@ -12,6 +12,6 @@ module PartitionerData =
 
     type PartitionerServiceAccessInfo =
         {
-            partitionerMsgClientId : MessagingClientId
+            partitionerId : PartitionerId
             msgSvcAccessInfo : ServiceAccessInfo
         }

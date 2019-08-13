@@ -61,48 +61,28 @@ module SvcCommandLine =
         | Save -> MsgSvcArgs.Save
 
 
-    let tryGetServerAddress p =
-         p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
+    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
 
 
-    let tryGetServerPort p =
-        p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
-
-
-    let tryGetSaveSettings p =
-        p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
-
-
-    let tryGetVersion p =
-        p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
+    let getVersion = getVersionImpl tryGetVersion
+    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
+    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
 
 
     let getServiceAccessInfo p =
-        let version =
-            match tryGetVersion p with
-            | Some x -> x
-            | None -> versionNumberValue
+        let name = messagingServiceName
 
-        let address =
-            match tryGetServerAddress p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingServerAddress logger version with
-                | Some a -> a
-                | None -> ServiceAddress.defaultMessagingServerValue
-
-        let port =
-            match tryGetServerPort p with
-            | Some a -> a
-            | None ->
-                match tryGetMessagingServerPort logger version with
-                | Some a -> a
-                | None -> ServicePort.defaultMessagingServerValue
+        let version = getVersion p
+        let address = getMsgServerAddress logger version name p
+        let port = getMsgServerPort logger version name p
 
         match tryGetSaveSettings p with
         | Some _ ->
-            trySetMessagingServerAddress logger versionNumberValue address |> ignore
-            trySetMessagingServerPort logger versionNumberValue port |> ignore
+            trySetMessagingClientAddress logger versionNumberValue name address |> ignore
+            trySetMessagingClientPort logger versionNumberValue name port |> ignore
         | None -> ignore()
 
         {

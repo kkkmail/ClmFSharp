@@ -7,7 +7,6 @@ open System
 open ClmSys.VersionInfo
 open ClmSys.Registry
 open ClmSys.Logging
-open ClmSys.WorkerNodeData
 open ClmSys.MessagingData
 
 module SvcCommandLine =

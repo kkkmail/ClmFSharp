@@ -140,12 +140,12 @@ module AdmCommandLine =
         let address =
             match tryGetServerAddress p with
             | Some a -> a
-            | None -> ServiceAddress.defaultValue
+            | None -> ServiceAddress.defaultContGenServiceValue
 
         let port =
             match tryGetServerPort p with
             | Some a -> a
-            | None -> ServicePort.defaultValue
+            | None -> ServicePort.defaultContGenServiceValue
 
         let ee =
             match tryGetServerMinUsefulEe p with

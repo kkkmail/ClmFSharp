@@ -1,12 +1,14 @@
 ﻿namespace ContGenService
 
 open System
+open Argu
 open ClmSys.GeneralData
 open ClmSys.TimerEvents
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
+open SvcCommandLine
 
 module ServiceImplementation =
 
@@ -33,15 +35,9 @@ module ServiceImplementation =
 
 
     let mutable serviceAccessInfo =
-        {
-            contGenServiceAccessInfo =
-                {
-                    serviceAddress = ServiceAddress DefaultContGenServiceAddress
-                    servicePort = ServicePort DefaultContGenServicePort
-                }
-
-            minUsefulEe = MinUsefulEe DefaultMinEe
-        }
+        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
+        let results = (parser.Parse [||]).GetAllResults()
+        results |> getServiceAccessInfo
 
 
     type ContGenService () =

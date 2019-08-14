@@ -73,6 +73,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Partitioner.fs" />
     <Compile Include="AsyncRun.fs" />
     <Compile Include="Runner.fs" />
     <None Include="App.config" />

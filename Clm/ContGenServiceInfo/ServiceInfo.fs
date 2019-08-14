@@ -13,7 +13,7 @@ module ServiceInfo =
     let ContGenServiceName = "ContGenService"
 
     [<Literal>]
-    let ProgramName = "ContGenService.exe"
+    let ContGenServiceProgramName = "ContGenService.exe"
 
 
     let getServiceUrl (i : ServiceAccessInfo) =

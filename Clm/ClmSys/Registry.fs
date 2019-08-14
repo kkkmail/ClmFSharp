@@ -17,7 +17,6 @@ module Registry =
     let private numberOfCoresKey = "NumberOfCores"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
-    let private storageMessagingClientIdKey = "StorageId"
 
     let contGenServiceName ="ContGenService" |> MessagingClientName
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
@@ -229,22 +228,6 @@ module Registry =
         | None -> None
 
 
-    // Storage - Messaging Client Id
-    let tryGetStorageMessagingClientId (logger : Logger) v c =
-        match tryGetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey with
-        | Some s ->
-            match Guid.TryParse s with
-            | true, v -> v |> MessagingClientId |> StorageId |> Some
-            | false, _ -> None
-        | None -> None
-
-
-    let trySetStorageMessagingClientId (logger : Logger) v c (StorageId (MessagingClientId i)) =
-        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
-        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) storageMessagingClientIdKey (i.ToString())
-        | None -> None
-
-
     // Getters OR defaults
     let getMsgServerAddressImpl getter logger version name p =
         match getter p with
@@ -271,12 +254,3 @@ module Registry =
             match tryGetPartitionerMessagingClientId logger version name with
             | Some x -> x
             | None -> defaultPartitionerId
-
-
-    let getStorageImpl getter logger version name p =
-        match getter p with
-        | Some x -> x
-        | None ->
-            match tryGetStorageMessagingClientId logger version name with
-            | Some x -> x
-            | None -> defaultStorageId

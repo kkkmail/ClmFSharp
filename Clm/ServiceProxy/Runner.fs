@@ -82,7 +82,7 @@ module Runner =
             | RemoteRunner c -> c.runModel p
 
 
-        new() = RunnerProxy(RunnerProxyInfo.defaultValue)
+        //new() = RunnerProxy(RunnerProxyInfo.defaultValue)
 
         member __.tryLoadClmDefaultValue d = tryLoadClmDefaultValueImpl d
         member __.tryUpdateModelData m = tryUpdateModelDataImpl m

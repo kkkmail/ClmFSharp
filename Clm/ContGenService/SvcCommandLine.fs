@@ -27,8 +27,6 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
 
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
-        | [<Unique>] [<AltCommandLine("-s")>] Storage of Guid
-
 
     with
         interface IArgParserTemplate with
@@ -48,7 +46,6 @@ module SvcCommandLine =
                 | MsgSvcPort _ -> "messaging server port."
 
                 | Partitioner _ -> "messaging client id of a partitioner service."
-                | Storage _ -> "messaging client id of a storage service (this service)."
 
 
     and
@@ -97,7 +94,6 @@ module SvcCommandLine =
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
-    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | Storage p -> p |> MessagingClientId |> StorageId |> Some | _ -> None)
 
 
     let getServerAddress logger version name p =
@@ -128,7 +124,6 @@ module SvcCommandLine =
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
-    let getStorage = getStorageImpl tryGetStorage
 
 
     let getServiceAccessInfo p =
@@ -142,7 +137,6 @@ module SvcCommandLine =
         let msgAddress = getMsgServerAddress logger version name p
         let msgPort = getMsgServerPort logger version name p
         let partitioner = getPartitioner logger version name p
-        let storage = getStorage logger version name p
 
         match tryGetSaveSettings p with
         | Some _ ->
@@ -152,7 +146,6 @@ module SvcCommandLine =
             trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
-            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
         | None -> ignore()
 
         {

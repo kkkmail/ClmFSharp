@@ -42,29 +42,30 @@ module ServiceImplementation =
             logger : Logger
         }
 
+        member this.messagingClientData =
+            {
+                msgAccessInfo = this.workerNodeAccessInfo.msgCliAccessInfo.messagingClientAccessInfo
+                msgResponseHandler = this.msgResponseHandler
+                msgClientProxy = this.msgClientProxy
+                logger = this.logger
+            }
+
 
     type WorkerNodeMessage =
         | Start
         | Register
         | UpdateProgress of ProgressUpdateInfo
         | SaveModelData of ModelData
+        | SaveResult of unit
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
-        | ProcessMessage of Message
+        | ProcessMessage of WorkerNodeRunner * Message
+        | RunModel of WorkerNodeRunner * ModelData
 
 
     and WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        let d =
-            {
-                msgAccessInfo = i.workerNodeAccessInfo.msgCliAccessInfo.messagingClientAccessInfo
-                msgResponseHandler = i.msgResponseHandler
-                msgClientProxy = i.msgClientProxy
-                logger = logger
-            }
-
-        let messagingClient = MessagingClient d
+        let messagingClient = MessagingClient i.messagingClientData
         let partitioner = i.workerNodeAccessInfo.partitionerId
-        let storage = i.workerNodeAccessInfo.storageId
         let sendMessage m = messagingClient.sendMessage m
 
         let onStart s =
@@ -83,55 +84,50 @@ module ServiceImplementation =
 
 
         let onUpdateProgress s (p : ProgressUpdateInfo) =
-            let notifyPartitioner() =
+            let notifyPartitioner t =
                 {
                     partitionerRecipient = partitioner
-                    deliveryType = GuaranteedDelivery
-                    messageData = RunCompletedPrtMsg
-                }.messageInfo
-                |> sendMessage
-
-            let notifyStorage t =
-                {
-                    storageRecipient = storage
                     deliveryType = t
-                    messageData = p |> UpdateProgressStrMsg
+                    messageData = UpdateProgressPrtMsg p
                 }.messageInfo
                 |> sendMessage
 
             match p.progress with
-            | NotStarted -> notifyStorage NonGuaranteedDelivery
-            | InProgress _ -> notifyStorage NonGuaranteedDelivery
-            | Completed ->
-                notifyPartitioner()
-                notifyStorage GuaranteedDelivery
+            | NotStarted -> NonGuaranteedDelivery
+            | InProgress _ -> NonGuaranteedDelivery
+            | Completed -> GuaranteedDelivery
+            |> notifyPartitioner
 
             s
 
 
         let onSaveModelData s x =
             {
-                storageRecipient = storage
+                partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = x |> SaveModelDataStrMsg
+                messageData = x |> SaveModelDataPrtMsg
             }.messageInfo
             |> sendMessage
 
+            s
+
+
+        let onSaveResult s r =
             s
 
 
         let onSaveCharts s c =
             {
-                storageRecipient = storage
+                partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsStrMsg
+                messageData = c |> SaveChartsPrtMsg
             }.messageInfo
             |> sendMessage
 
             s
 
 
-        let onGetMessages s (w : WorkerNodeRunner) =
+        let onGetMessages s (r : WorkerNodeRunner) =
             let messages = messagingClient.getMessages()
 
             messages
@@ -140,21 +136,21 @@ module ServiceImplementation =
             |> ignore
 
             messages
-            |> List.map (fun e -> w.processMessage e)
+            |> List.map (fun e -> r.processMessage e)
             |> ignore
 
             s
 
 
-        let onRunModelMsg (m : ModelData) =
-            failwith ""
+        let onRunModel s (r : WorkerNodeRunner) (m : ModelData) =
+            s
 
 
-        let onProcessMessage s (m : Message) =
+        let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
             match m.messageInfo.messageData with
             | WorkerNodeMsg x ->
                 match x with
-                | RunModelWrkMsg m -> onRunModelMsg m
+                | RunModelWrkMsg m -> w.runModel m
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
             match m.messageInfo.deliveryType with
@@ -175,8 +171,9 @@ module ServiceImplementation =
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
                             | SaveModelData m -> return! onSaveModelData s m |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
-                            | GetMessages w -> return! onGetMessages s w |> loop
-                            | ProcessMessage m -> return! onProcessMessage s m |> loop
+                            | GetMessages r -> return! onGetMessages s r |> loop
+                            | ProcessMessage (r, m) -> return! onProcessMessage s r m |> loop
+                            | RunModel (r, m) -> return! onRunModel s r m |> loop
                         }
 
                 onStart (WorkerNodeRunnerState.defaultValue) |> loop
@@ -188,7 +185,8 @@ module ServiceImplementation =
         member __.saveModelData m = SaveModelData m |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
-        member private __.processMessage m = ProcessMessage m |> messageLoop.Post
+        member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
+        member private this.runModel m = RunModel (this, m) |> messageLoop.Post
 
 
     let createServiceImpl i =

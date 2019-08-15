@@ -33,15 +33,11 @@ module ServiceInfo =
 
 
     type PartitionerMessage =
-        | RunCompletedPrtMsg
+        | UpdateProgressPrtMsg of ProgressUpdateInfo
+        | SaveModelDataPrtMsg of ModelData
+        | SaveResultPrtMsg of ModelData
+        | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
-
-
-    type StorageMessage =
-        | UpdateProgressStrMsg of ProgressUpdateInfo
-        | RunCompletedStrMsg
-        | SaveModelDataStrMsg of ModelData
-        | SaveChartsStrMsg of ChartInfo
 
 
     type WorkerNodeMessage =
@@ -53,7 +49,6 @@ module ServiceInfo =
     type MessageData =
         | TextData of string
         | PartitionerMsg of PartitionerMessage
-        | StorageMsg of StorageMessage
         | WorkerNodeMsg of WorkerNodeMessage
 
 
@@ -77,21 +72,6 @@ module ServiceInfo =
                 recipient = this.partitionerRecipient.messagingClientId
                 deliveryType = this.deliveryType
                 messageData = this.messageData |> PartitionerMsg
-            }
-
-
-    type StorageMessageInfo =
-        {
-            storageRecipient : StorageId
-            deliveryType : MessageDeliveryType
-            messageData : StorageMessage
-        }
-
-        member this.messageInfo =
-            {
-                recipient = this.storageRecipient.messagingClientId
-                deliveryType = this.deliveryType
-                messageData = this.messageData |> StorageMsg
             }
 
 

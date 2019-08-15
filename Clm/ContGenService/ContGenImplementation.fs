@@ -52,6 +52,6 @@ module ServiceImplementation =
             member __.getState() = a.getState().runnerState
             member __.loadQueue() = a.startQueue()
             member __.startGenerate() = a.startGenerate()
-            member __.updateProgress p = a.updateProgress (a, p)
+            member __.updateProgress p = a.updateProgress p
             member __.configureService (p : ContGenConfigParam) = a.configureService p
             member __.runModel m p = a.runModel (m, p)

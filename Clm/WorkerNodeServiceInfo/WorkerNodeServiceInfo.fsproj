@@ -70,7 +70,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ServiceInfo.fs" />
+    <Compile Include="WorkerNodeServiceInfo.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

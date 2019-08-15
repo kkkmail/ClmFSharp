@@ -81,12 +81,12 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="SvcCommandLine.fs" />
-    <Compile Include="ServiceImplementation.fs" />
-    <Compile Include="WindowsService.fs" />
-    <Compile Include="Installer.fs" />
+    <Compile Include="ContGenCommandLine.fs" />
+    <Compile Include="ContGenImplementation.fs" />
+    <Compile Include="ContGenWindowsService.fs" />
+    <Compile Include="ContGenInstaller.fs" />
     <Compile Include="ContGenServiceTasks.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="ContGenProgram.fs" />
     <Content Include="db.config" />
     <Content Include="App.config" />
     <Content Include="packages.config" />

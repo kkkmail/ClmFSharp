@@ -65,7 +65,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ServiceResponse.fs" />
+    <Compile Include="ProgrNotServiceResponse.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

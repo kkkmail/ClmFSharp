@@ -75,7 +75,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="SolverRunnerTasks.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="SolverRunnerProgram.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <None Include="References.fsx" />

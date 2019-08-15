@@ -27,7 +27,6 @@ module SvcCommandLine =
 
         | [<Unique>] [<AltCommandLine("-id")>] WrkMsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-p")>] WrkPartitioner of Guid
-        | [<Unique>] [<AltCommandLine("-s")>] WrkStorage of Guid
 
     with
         interface IArgParserTemplate with
@@ -45,7 +44,6 @@ module SvcCommandLine =
 
                 | WrkMsgCliId _ -> "messaging client id of current worker node service."
                 | WrkPartitioner _ -> "messaging client id of a partitioner service."
-                | WrkStorage _ -> "messaging client id of a storage service."
 
 
     type WorkerNodeServiceArgs = SvcArguments<WorkerNodeServiceRunArgs>
@@ -94,14 +92,12 @@ module SvcCommandLine =
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> WorkerNodeId |> Some | _ -> None)
-    let tryGetStorage p = p |> List.tryPick (fun e -> match e with | WrkStorage p -> p |> MessagingClientId |> StorageId |> Some | _ -> None)
 
 
     let getVersion = getVersionImpl tryGetVersion
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
-    let getStorage = getStorageImpl tryGetStorage
 
 
     let getNoOfCores logger version name p =
@@ -154,7 +150,6 @@ module SvcCommandLine =
         let msgPort = getMsgServerPort logger version name p
         let partitioner = getPartitioner logger version name p
         let clientId = getClientId logger version name p
-        let storage = getStorage logger version name p
 
         match tryGetSaveSettings p with
         | Some _ ->
@@ -166,7 +161,6 @@ module SvcCommandLine =
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
             trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
-            trySetStorageMessagingClientId logger versionNumberValue name storage |> ignore
         | None -> ignore()
 
         {
@@ -183,7 +177,6 @@ module SvcCommandLine =
 
             noOfCores = noOfCores
             partitionerId = partitioner
-            storageId = storage
 
             wrkSvcAccessInfo =
                 {

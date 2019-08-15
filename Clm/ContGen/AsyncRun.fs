@@ -260,8 +260,7 @@ module AsyncRun =
             try
                 match i with
                 | LocalProcess a -> (Process.GetProcessById a).Kill()
-                | RemoteProcess (b, c) ->
-                    printfn "Cannot yet cancel remove process: %A - %A." b c
+                | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
                 true
             with
                 | e -> false
@@ -323,7 +322,7 @@ module AsyncRun =
 
         member this.startQueue () : unit = StartQueue this |> messageLoop.Post
         member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
-        member this.updateProgress p = UpdateProgress p |> messageLoop.Post
+        member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
         member this.getState () = messageLoop.PostAndReply GetState
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService

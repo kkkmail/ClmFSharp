@@ -18,7 +18,6 @@ module WorkerNodeData =
             noOfCores : int
             msgCliAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
-            storageId : StorageId
         }
 
         member w.workerNodeInfo =

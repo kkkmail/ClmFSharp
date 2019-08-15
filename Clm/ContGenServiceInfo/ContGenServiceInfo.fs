@@ -46,7 +46,7 @@ module ServiceInfo =
 
     type ProcessId =
         | LocalProcess of int
-        | RemoteProcess of MessagingClientId * int
+        | RemoteProcess of Guid
 
 
     type ProgressUpdateInfo =

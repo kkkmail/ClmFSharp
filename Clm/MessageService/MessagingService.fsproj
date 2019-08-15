@@ -68,12 +68,12 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="SvcCommandLine.fs" />
-    <Compile Include="ServiceImplementation.fs" />
-    <Compile Include="WindowsService.fs" />
-    <Compile Include="Installer.fs" />
-    <Compile Include="ServiceTasks.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="MsgSvcCommandLine.fs" />
+    <Compile Include="MsgImplementation.fs" />
+    <Compile Include="MsgWindowsService.fs" />
+    <Compile Include="MsgInstaller.fs" />
+    <Compile Include="MsgServiceTasks.fs" />
+    <Compile Include="MsgProgram.fs" />
     <Content Include="db.config" />
     <Content Include="App.config" />
     <Content Include="packages.config" />

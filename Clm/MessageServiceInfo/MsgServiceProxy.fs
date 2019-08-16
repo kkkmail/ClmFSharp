@@ -4,6 +4,9 @@ open MessagingServiceInfo.ServiceInfo
 
 module ServiceProxy =
 
+    /// Provides IO proxy for messaging client.
+    /// A messaging client may or may NOT have SQL server at its disposal.
+    /// This proxy encapsulates that.
     type MessagingClientProxy =
         {
             loadMessages : unit -> List<MessageType * Message>

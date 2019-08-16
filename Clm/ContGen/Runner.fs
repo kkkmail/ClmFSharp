@@ -13,10 +13,21 @@ open ServiceProxy.Runner
 
 module Runner =
 
+    //type ModelRunnerParam =
+    //    {
+    //        connectionString : ConnectionString
+    //        rootBuildFolder : string
+    //        buildTarget : string
+    //        exeName : string
+    //        saveModelCode : bool
+    //        serviceAccessInfo : ServiceAccessInfo
+    //    }
+
     type ModelRunnerParam =
         {
             exeName : string
             saveModelCode : bool
+            minUsefulEe : MinUsefulEe
             serviceAccessInfo : SolverRunnerAccessInfo
             runnerProxy : RunnerProxy
         }
@@ -26,6 +37,7 @@ module Runner =
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
+                minUsefulEe = MinUsefulEe.defaultValue
                 runnerProxy = p
             }
 
@@ -39,7 +51,7 @@ module Runner =
                 exeName = p.exeName
                 commandLineParam = e
                 callBack = c
-                minUsefulEe = p.serviceAccessInfo.minUsefulEe
+                minUsefulEe = p.minUsefulEe
             }
             |> p.runnerProxy.runModel
 

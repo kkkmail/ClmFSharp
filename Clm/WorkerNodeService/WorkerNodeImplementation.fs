@@ -56,7 +56,7 @@ module ServiceImplementation =
         | Register
         | UpdateProgress of ProgressUpdateInfo
         | SaveModelData of ModelData
-        | SaveResult of unit
+        //| SaveResult of unit
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message

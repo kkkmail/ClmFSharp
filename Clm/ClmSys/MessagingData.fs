@@ -11,24 +11,24 @@ module MessagingData =
         member this.value = let (MessagingClientName v) = this in v
 
 
-    type MessagingClientId =
-        | MessagingClientId of Guid
+    //type MessagingClientId =
+    //    | MessagingClientId of Guid
 
-        member this.value = let (MessagingClientId v) = this in v
-        static member create() = Guid.NewGuid() |> MessagingClientId
-
-
-    type MessagingClientAccessInfo =
-        {
-            msgClientId : MessagingClientId
-            msgSvcAccessInfo : ServiceAccessInfo
-        }
+    //    member this.value = let (MessagingClientId v) = this in v
+    //    static member create() = Guid.NewGuid() |> MessagingClientId
 
 
-    type MessagingServiceAccessInfo =
-        {
-            messagingServiceAccessInfo : ServiceAccessInfo
-        }
+    //type MessagingClientAccessInfo =
+    //    {
+    //        msgClientId : MessagingClientId
+    //        msgSvcAccessInfo : ServiceAccessInfo
+    //    }
+
+
+    //type MessagingServiceAccessInfo =
+    //    {
+    //        messagingServiceAccessInfo : ServiceAccessInfo
+    //    }
 
 
     type PartitionerId =
@@ -37,19 +37,13 @@ module MessagingData =
         member this.messagingClientId = let (PartitionerId v) = this in v
 
 
-    type StorageId =
-        | StorageId of MessagingClientId
-
-        member this.messagingClientId = let (StorageId v) = this in v
-
-
     type WorkerNodeId =
         | WorkerNodeId of MessagingClientId
 
         member this.messagingClientId = let (WorkerNodeId v) = this in v
 
 
-    /// Partitioner MessagingClientId + Messaging Server acces info.
+    /// Partitioner MessagingClientId + Messaging Service acces info.
     type PartitionerMsgAccessInfo =
         {
             partitionerId : PartitionerId
@@ -59,20 +53,6 @@ module MessagingData =
         member this.messagingClientAccessInfo =
             {
                 msgClientId = this.partitionerId.messagingClientId
-                msgSvcAccessInfo = this.msgSvcAccessInfo
-            }
-
-
-    /// Storage MessagingClientId + Messaging Server acces info.
-    type StorageMsgAccessInfo =
-        {
-            storageId : StorageId
-            msgSvcAccessInfo : ServiceAccessInfo
-        }
-
-        member this.messagingClientAccessInfo =
-            {
-                msgClientId = this.storageId.messagingClientId
                 msgSvcAccessInfo = this.msgSvcAccessInfo
             }
 

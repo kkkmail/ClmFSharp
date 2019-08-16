@@ -19,13 +19,6 @@ open Messaging.ServiceResponse
 
 module Partitioner =
 
-// type RemoteRunnerConfig =
-    //{
-    //    connectionString : ConnectionString
-    //    runModel : RunModelParam -> ProcessStartInfo
-    //}
-
-
     let runModelImpl (p : RunModelParam) : ProcessStartInfo =
         failwith ""
 

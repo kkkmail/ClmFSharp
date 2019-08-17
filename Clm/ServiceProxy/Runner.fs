@@ -20,7 +20,7 @@ module Runner =
             }
 
 
-    type RemoteRunnerConfig =
+    type PartitionerRunnerConfig =
         {
             connectionString : ConnectionString
             runModel : RunModelParam -> ProcessStartInfo
@@ -34,10 +34,10 @@ module Runner =
 
 
     type RunnerProxyInfo =
-        | LocalRunner of LocalRunnerConfig
-        | RemoteRunner of RemoteRunnerConfig
+        | LocalRunnerProxy of LocalRunnerConfig
+        | PartitionerRunnerProxy of PartitionerRunnerConfig
 
-        static member defaultValue = LocalRunner LocalRunnerConfig.defaultValue
+        static member defaultValue = LocalRunnerProxy LocalRunnerConfig.defaultValue
 
 
     type RunnerProxy(i : RunnerProxyInfo) =
@@ -47,8 +47,8 @@ module Runner =
 
         let connectionString =
             match i with
-            | LocalRunner c -> c.connectionString
-            | RemoteRunner c -> c.connectionString
+            | LocalRunnerProxy c -> c.connectionString
+            | PartitionerRunnerProxy c -> c.connectionString
 
 
         let tryLoadClmDefaultValueImpl d = tryDbFun connectionString (tryLoadClmDefaultValue d) |> Option.bind id
@@ -65,7 +65,7 @@ module Runner =
 
         let runModelImpl (p : RunModelParam) =
             match i with
-            | LocalRunner _ ->
+            | LocalRunnerProxy _ ->
                 let fullExeName = getExeName p.exeName
 
                 let data =
@@ -79,7 +79,7 @@ module Runner =
                 printfn "runModel::commandLineParams = %A\n" commandLineParams
                 runProc p.callBack fullExeName commandLineParams None
 
-            | RemoteRunner c -> c.runModel p
+            | PartitionerRunnerProxy c -> c.runModel p
 
 
         //new() = RunnerProxy(RunnerProxyInfo.defaultValue)

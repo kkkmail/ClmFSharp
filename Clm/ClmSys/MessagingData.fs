@@ -11,24 +11,24 @@ module MessagingData =
         member this.value = let (MessagingClientName v) = this in v
 
 
-    //type MessagingClientId =
-    //    | MessagingClientId of Guid
+    type MessagingClientId =
+        | MessagingClientId of Guid
 
-    //    member this.value = let (MessagingClientId v) = this in v
-    //    static member create() = Guid.NewGuid() |> MessagingClientId
-
-
-    //type MessagingClientAccessInfo =
-    //    {
-    //        msgClientId : MessagingClientId
-    //        msgSvcAccessInfo : ServiceAccessInfo
-    //    }
+        member this.value = let (MessagingClientId v) = this in v
+        static member create() = Guid.NewGuid() |> MessagingClientId
 
 
-    //type MessagingServiceAccessInfo =
-    //    {
-    //        messagingServiceAccessInfo : ServiceAccessInfo
-    //    }
+    type MessagingClientAccessInfo =
+        {
+            msgClientId : MessagingClientId
+            msgSvcAccessInfo : ServiceAccessInfo
+        }
+
+
+    type MessagingServiceAccessInfo =
+        {
+            messagingServiceAccessInfo : ServiceAccessInfo
+        }
 
 
     type PartitionerId =

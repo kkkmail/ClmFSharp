@@ -8,6 +8,8 @@ open ClmSys.VersionInfo
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.MessagingData
+open ServiceProxy.Runner
+open ContGen.Partitioner
 
 module SvcCommandLine =
 
@@ -27,6 +29,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
 
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
+        | [<Unique>] [<AltCommandLine("-u")>] UsePartitioner of bool
 
     with
         interface IArgParserTemplate with
@@ -46,6 +49,7 @@ module SvcCommandLine =
                 | MsgSvcPort _ -> "messaging server port."
 
                 | Partitioner _ -> "messaging client id of a partitioner service."
+                | UsePartitioner _ -> "if true, then use partitioner, otherwise don't use it (default)."
 
 
     and
@@ -94,6 +98,7 @@ module SvcCommandLine =
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetUsePartitioner p = p |> List.tryPick (fun e -> match e with | UsePartitioner p -> Some p | _ -> None)
 
 
     let getServerAddress logger version name p =
@@ -124,8 +129,10 @@ module SvcCommandLine =
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
+    let getUsePartitioner = getUsePartitionerImpl tryGetUsePartitioner
 
 
+    /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
     let getServiceAccessInfo p =
         let name = contGenServiceName
 
@@ -136,7 +143,6 @@ module SvcCommandLine =
 
         let msgAddress = getMsgServerAddress logger version name p
         let msgPort = getMsgServerPort logger version name p
-        let partitioner = getPartitioner logger version name p
 
         match tryGetSaveSettings p with
         | Some _ ->
@@ -145,7 +151,6 @@ module SvcCommandLine =
 
             trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
         | None -> ignore()
 
         {
@@ -157,3 +162,26 @@ module SvcCommandLine =
 
             minUsefulEe = ee
         }
+
+
+    /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
+    let getServiceProxy p =
+        let name = contGenServiceName
+
+        let version = getVersion p
+
+        let partitioner = getPartitioner logger version name p
+        let usePartitioner = getUsePartitioner logger version name p
+
+        match tryGetSaveSettings p with
+        | Some _ ->
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+            trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
+        | None -> ignore()
+
+        match usePartitioner with
+        | false -> LocalRunnerConfig.defaultValue |> LocalRunnerProxy
+        | true ->
+            let x = PartitionerRunner (failwith "")
+            PartitionerRunnerConfig.defaultValue x.runModel |> PartitionerRunnerProxy
+        |> RunnerProxy

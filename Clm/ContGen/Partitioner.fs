@@ -177,3 +177,5 @@ module Partitioner =
 
         member __.start() = Start |> messageLoop.Post
         member this.remoteRunner = remoteRunnerImpl
+        member this.runModel (p: RunModelParam) : ProcessStartInfo =
+            failwith ""

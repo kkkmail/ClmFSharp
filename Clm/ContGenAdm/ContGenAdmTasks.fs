@@ -58,7 +58,12 @@ module ContGenAdmTasks =
                         printfn "Cannot get service address and/or port."
                         ignore()
                     | h :: _ ->
-                        let g = createOneTimeGenerator { ModelRunnerParam.defaultValue h.serviceAccessInfo (RunnerProxy()) with saveModelCode = true }
+                        let g =
+                            createOneTimeGenerator
+                                {
+                                    ModelRunnerParam.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy)
+                                    with saveModelCode = true
+                                }
                         g nt |> ignore
                 | false -> ignore()
 

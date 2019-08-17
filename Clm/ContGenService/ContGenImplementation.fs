@@ -12,8 +12,8 @@ open SvcCommandLine
 
 module ServiceImplementation =
 
-    let createServiceImpl i =
-        let a = createRunner (ModelRunnerParam.defaultValue i (RunnerProxy()))
+    let createServiceImpl i p =
+        let a = createRunner (ModelRunnerParam.defaultValue i p)
         let h = new EventHandler(EventHandlerInfo.defaultValue a.startGenerate)
         do h.start()
         a
@@ -40,10 +40,16 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
+    let mutable serviceProxy : RunnerProxy =
+        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
+        let results = (parser.Parse [||]).GetAllResults()
+        results |> getServiceProxy
+
+
     type ContGenService () =
         inherit MarshalByRefObject()
 
-        let a = serviceAccessInfo |> ContGenSvcAccessInfo |> createServiceImpl
+        let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy
 
         let initService () = ()
         do initService ()

@@ -14,6 +14,7 @@ module Registry =
     let private servicePortKey = "ServicePort"
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
+    let private usePartitionerKey = "UsePartitioner"
     let private numberOfCoresKey = "NumberOfCores"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
@@ -169,7 +170,7 @@ module Registry =
         | None -> None
 
 
-    // Partitioner - Messaging Client Id
+    /// Partitioner - Messaging Client Id
     let tryGetPartitionerMessagingClientId (logger : Logger) v c =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey with
         | Some s ->
@@ -182,6 +183,21 @@ module Registry =
     let trySetPartitionerMessagingClientId (logger : Logger) v c (PartitionerId (MessagingClientId i)) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) partitionerMessagingClientIdKey (i.ToString())
+        | None -> None
+
+
+    let tryGetUsePartitioner (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) usePartitionerKey with
+        | Some s ->
+            match Boolean.TryParse s with
+            | true, v -> Some v
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetUsePartitioner (logger : Logger) v c (u : bool) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) usePartitionerKey (u.ToString())
         | None -> None
 
 
@@ -254,3 +270,12 @@ module Registry =
             match tryGetPartitionerMessagingClientId logger version name with
             | Some x -> x
             | None -> defaultPartitionerId
+
+
+    let getUsePartitionerImpl getter logger version name p =
+        match getter p with
+        | Some x -> x
+        | None ->
+            match tryGetUsePartitioner logger version name with
+            | Some x -> x
+            | None -> false

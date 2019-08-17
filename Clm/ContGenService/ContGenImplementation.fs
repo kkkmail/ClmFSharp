@@ -9,6 +9,7 @@ open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open SvcCommandLine
+open ContGen.Partitioner
 
 module ServiceImplementation =
 
@@ -33,27 +34,27 @@ module ServiceImplementation =
                 minUsefulEe = s.minUsefulEe
             }
 
-
-    let mutable serviceAccessInfo =
+    let parserResults =
         let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
-        let results = (parser.Parse [||]).GetAllResults()
-        results |> getServiceAccessInfo
+        (parser.Parse [||]).GetAllResults()
+
+
+    let mutable serviceAccessInfo = getServiceAccessInfo parserResults
 
 
     type ContGenService () =
         inherit MarshalByRefObject()
 
-        let serviceProxy, r =
-            let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
-            let results = (parser.Parse [||]).GetAllResults()
-            results |> getServiceProxy
-
+        let serviceProxy, r = getServiceProxy parserResults
         let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy
 
         let initService () =
             match r with
             | Some p ->
-                p.start a.updateProgress
+                {
+                    onUpdateProgress = a.updateProgress
+                }
+                |> p.start
             | None -> ignore()
 
         do initService ()

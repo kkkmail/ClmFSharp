@@ -18,6 +18,7 @@ module Registry =
     let private numberOfCoresKey = "NumberOfCores"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
+    let private contGenMinUsefulEeKey = "ContGenMinUsefulEe"
 
     let contGenServiceName ="ContGenService" |> MessagingClientName
     let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
@@ -241,6 +242,21 @@ module Registry =
     let trySetContGenServicePort (logger : Logger) v c (ServicePort p) =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) contGenServicePortKey (p.ToString())
+        | None -> None
+
+
+    let tryGetContGenMinUsefulEe (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) contGenMinUsefulEeKey with
+        | Some s ->
+            match Double.TryParse s with
+            | true, v -> v |> MinUsefulEe |> Some
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetContGenMinUsefulEe (logger : Logger) v c (MinUsefulEe p) =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) contGenMinUsefulEeKey (p.ToString())
         | None -> None
 
 

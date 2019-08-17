@@ -20,6 +20,17 @@ open Messaging.ServiceResponse
 module Partitioner =
 
 
+    type PartitionerCallBackInfo =
+        {
+            onUpdateProgress : ProgressUpdateInfo -> unit
+        }
+
+        static member defaultValue =
+            {
+                onUpdateProgress = fun _ -> ignore()
+            }
+
+
     type PartitionerRunnerParam =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
@@ -41,17 +52,20 @@ module Partitioner =
 
     type PartitionerRunnerState =
         {
-            onUpdateProgress : ProgressUpdateInfo -> unit
+            callBackInfo : PartitionerCallBackInfo
         }
 
         static member defaultValue =
             {
-                onUpdateProgress = fun _ -> ignore()
+                callBackInfo =
+                    {
+                        onUpdateProgress = fun _ -> ignore()
+                    }
             }
 
 
     type PartitionerMessage =
-        | Start of (ProgressUpdateInfo -> unit)
+        | Start of PartitionerCallBackInfo
         //| Register of int
         | UpdateProgress of ProgressUpdateInfo
         | RunModel of RunModelParam * RemoteProcessId
@@ -75,7 +89,7 @@ module Partitioner =
 
 
         let onStart s q =
-            { s with onUpdateProgress = q }
+            {s with callBackInfo = q }
 
 
         //let onRegister s =
@@ -95,7 +109,7 @@ module Partitioner =
             | InProgress _ -> ignore()
             | Completed -> failwith "Start new model if it exists..."
 
-            s.onUpdateProgress i
+            s.callBackInfo.onUpdateProgress i
             s
 
 
@@ -173,7 +187,7 @@ module Partitioner =
                             //| ProcessMessage m -> return! onProcessMessage s m |> loop
                         }
 
-                onStart (PartitionerRunnerState.defaultValue) (fun _ -> ignore()) |> loop
+                onStart PartitionerRunnerState.defaultValue PartitionerCallBackInfo.defaultValue |> loop
                 )
 
 

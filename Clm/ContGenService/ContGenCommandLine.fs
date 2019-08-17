@@ -122,7 +122,10 @@ module SvcCommandLine =
     let geMinUsefulEe logger version name p =
         match tryGeMinUsefulEe p with
         | Some e -> e
-        | None -> MinUsefulEe DefaultMinEe
+        | None ->
+            match tryGetContGenMinUsefulEe logger version name with
+            | Some e -> e
+            | None -> MinUsefulEe DefaultMinEe
 
 
     let getVersion = getVersionImpl tryGetVersion

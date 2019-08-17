@@ -44,9 +44,13 @@ module ServiceInfo =
         | ShuttingDown
 
 
+    type RemoteProcessId =
+        | RemoteProcessId of Guid
+
+
     type ProcessId =
         | LocalProcess of int
-        | RemoteProcess of Guid
+        | RemoteProcess of RemoteProcessId
 
 
     type ProgressUpdateInfo =

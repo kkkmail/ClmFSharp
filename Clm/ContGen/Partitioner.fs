@@ -19,9 +19,6 @@ open Messaging.ServiceResponse
 
 module Partitioner =
 
-    //let runModelImpl (p : RunModelParam) : ProcessStartInfo =
-    //    failwith ""
-
 
     type PartitionerRunnerParam =
         {
@@ -57,6 +54,7 @@ module Partitioner =
         | Start of (ProgressUpdateInfo -> unit)
         //| Register of int
         | UpdateProgress of ProgressUpdateInfo
+        | RunModel of RunModelParam * RemoteProcessId
         //| SaveModelData of ModelData
         //| SaveCharts of ChartInfo
         //| GetMessages of PartitionerRunner
@@ -155,6 +153,9 @@ module Partitioner =
 
         //    s
 
+        let onRunModel s (p: RunModelParam) (q : RemoteProcessId) =
+            s
+
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -165,6 +166,7 @@ module Partitioner =
                             | Start q -> return! onStart s q |> loop
                             //| Register -> return! onRegister s |> loop
                             | UpdateProgress i -> return! onUpdateProgress s i |> loop
+                            | RunModel (p, q) -> return! onRunModel s p q |> loop
                             //| SaveModelData m -> return! onSaveModelData s m |> loop
                             //| SaveCharts c -> return! onSaveCharts s c |> loop
                             //| GetMessages w -> return! onGetMessages s w |> loop
@@ -174,7 +176,17 @@ module Partitioner =
                 onStart (PartitionerRunnerState.defaultValue) (fun _ -> ignore()) |> loop
                 )
 
+
+        let runModelImpl (p: RunModelParam) : ProcessStartInfo =
+            let q = Guid.NewGuid() |> RemoteProcessId
+            (p, q) |> RunModel |> messageLoop.Post
+
+            {
+                processId = q |> RemoteProcess
+                modelDataId = p.callBack.calledBackModelId
+                runQueueId = p.callBack.runQueueId
+            }
+
+
         member __.start q = q |> Start |> messageLoop.Post
-        //member this.remoteRunner = remoteRunnerImpl
-        member this.runModel (p: RunModelParam) : ProcessStartInfo =
-            failwith ""
+        member this.runModel p = runModelImpl p

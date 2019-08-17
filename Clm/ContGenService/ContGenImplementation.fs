@@ -40,18 +40,22 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
-    let mutable serviceProxy : RunnerProxy =
-        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
-        let results = (parser.Parse [||]).GetAllResults()
-        results |> getServiceProxy
-
-
     type ContGenService () =
         inherit MarshalByRefObject()
 
+        let serviceProxy, r =
+            let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
+            let results = (parser.Parse [||]).GetAllResults()
+            results |> getServiceProxy
+
         let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy
 
-        let initService () = ()
+        let initService () =
+            match r with
+            | Some p ->
+                p.start a.updateProgress
+            | None -> ignore()
+
         do initService ()
 
         interface IContGenService with

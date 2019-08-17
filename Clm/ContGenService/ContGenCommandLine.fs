@@ -170,6 +170,8 @@ module SvcCommandLine =
 
         let version = getVersion p
 
+        let msgAddress = getMsgServerAddress logger version name p
+        let msgPort = getMsgServerPort logger version name p
         let partitioner = getPartitioner logger version name p
         let usePartitioner = getUsePartitioner logger version name p
 
@@ -180,8 +182,20 @@ module SvcCommandLine =
         | None -> ignore()
 
         match usePartitioner with
-        | false -> LocalRunnerConfig.defaultValue |> LocalRunnerProxy
+        | false -> LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy, None
         | true ->
-            let x = PartitionerRunner (failwith "")
-            PartitionerRunnerConfig.defaultValue x.runModel |> PartitionerRunnerProxy
-        |> RunnerProxy
+            let q =
+                {
+                    partitionerMsgAccessInfo =
+                        {
+                            partitionerId = partitioner
+                            msgSvcAccessInfo=
+                                {
+                                    serviceAddress = msgAddress
+                                    servicePort = msgPort
+                                }
+                        }
+                    logger = logger
+                }
+            let r = PartitionerRunner q
+            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r

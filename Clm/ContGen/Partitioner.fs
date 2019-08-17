@@ -19,43 +19,42 @@ open Messaging.ServiceResponse
 
 module Partitioner =
 
-    let runModelImpl (p : RunModelParam) : ProcessStartInfo =
-        failwith ""
+    //let runModelImpl (p : RunModelParam) : ProcessStartInfo =
+    //    failwith ""
 
 
     type PartitionerRunnerParam =
         {
-            partitionerId : PartitionerId
-            msgSvcAccessInfo : ServiceAccessInfo
-            msgResponseHandler : MsgResponseHandler
-            msgClientProxy : MessagingClientProxy
+            partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             logger : Logger
+            //onUpdateProgress : ProgressUpdateInfo -> unit
 
-            onUpdateProgress : ProgressUpdateInfo -> unit
+            //msgResponseHandler : MsgResponseHandler
+            //msgClientProxy : MessagingClientProxy
         }
 
-        member this.messagingClientData =
-            {
-                msgAccessInfo = failwith ""
-                msgResponseHandler = this.msgResponseHandler
-                msgClientProxy = this.msgClientProxy
-                logger = this.logger
-            }
+        //member this.messagingClientData =
+        //    {
+        //        msgAccessInfo = failwith ""
+        //        msgResponseHandler = this.msgResponseHandler
+        //        msgClientProxy = this.msgClientProxy
+        //        logger = this.logger
+        //    }
 
 
     type PartitionerRunnerState =
         {
-            dummy : int
+            onUpdateProgress : ProgressUpdateInfo -> unit
         }
 
         static member defaultValue =
             {
-                dummy = 0
+                onUpdateProgress = fun _ -> ignore()
             }
 
 
     type PartitionerMessage =
-        | Start
+        | Start of (ProgressUpdateInfo -> unit)
         //| Register of int
         | UpdateProgress of ProgressUpdateInfo
         //| SaveModelData of ModelData
@@ -65,20 +64,20 @@ module Partitioner =
 
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
-        let messagingClient = MessagingClient p.messagingClientData
-        let partitioner = p.partitionerId
-        let sendMessage m = messagingClient.sendMessage m
+        //let messagingClient = MessagingClient p.messagingClientData
+        //let partitioner = p.partitionerId
+        //let sendMessage m = messagingClient.sendMessage m
 
 
-        let remoteRunnerImpl =
-            {
-                connectionString = clmConnectionString
-                runModel = runModelImpl
-            }
+        //let remoteRunnerImpl =
+        //    {
+        //        connectionString = clmConnectionString
+        //        runModel = runModelImpl
+        //    }
 
 
-        let onStart s =
-            s
+        let onStart s q =
+            { s with onUpdateProgress = q }
 
 
         //let onRegister s =
@@ -98,7 +97,7 @@ module Partitioner =
             | InProgress _ -> ignore()
             | Completed -> failwith "Start new model if it exists..."
 
-            p.onUpdateProgress i
+            s.onUpdateProgress i
             s
 
 
@@ -163,7 +162,7 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
+                            | Start q -> return! onStart s q |> loop
                             //| Register -> return! onRegister s |> loop
                             | UpdateProgress i -> return! onUpdateProgress s i |> loop
                             //| SaveModelData m -> return! onSaveModelData s m |> loop
@@ -172,10 +171,10 @@ module Partitioner =
                             //| ProcessMessage m -> return! onProcessMessage s m |> loop
                         }
 
-                onStart (PartitionerRunnerState.defaultValue) |> loop
+                onStart (PartitionerRunnerState.defaultValue) (fun _ -> ignore()) |> loop
                 )
 
-        member __.start() = Start |> messageLoop.Post
-        member this.remoteRunner = remoteRunnerImpl
+        member __.start q = q |> Start |> messageLoop.Post
+        //member this.remoteRunner = remoteRunnerImpl
         member this.runModel (p: RunModelParam) : ProcessStartInfo =
             failwith ""

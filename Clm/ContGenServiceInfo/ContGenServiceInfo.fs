@@ -62,6 +62,21 @@ module ServiceInfo =
         }
 
 
+    type RemoteProgressUpdateInfo =
+        {
+            updatedRemoteProcessId : RemoteProcessId
+            updateModelId : ModelDataId
+            progress : TaskProgress
+        }
+
+        member this.progressUpdateInfo =
+            {
+                updatedProcessId = this.updatedRemoteProcessId |> RemoteProcess
+                updateModelId = this.updateModelId
+                progress = this.progress
+            }
+
+
     type RunningProcessInfo =
         {
             started : DateTime

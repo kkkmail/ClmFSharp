@@ -88,7 +88,7 @@ module Partitioner =
     type PartitionerMessage =
         | Start of PartitionerCallBackInfo
         //| Register of int
-        | UpdateProgress of ProgressUpdateInfo
+        | UpdateProgress of RemoteProgressUpdateInfo
         | RunModel of RunModelParam * RemoteProcessId
         //| SaveModelData of ModelData
         //| SaveCharts of ChartInfo
@@ -117,14 +117,24 @@ module Partitioner =
 
         //    s
 
+        let tryFindRunningNode s r =
+            s.workerNodes
+            |> Map.toList
+            |> List.tryPick (fun (a, b) -> if List.contains r b.running then Some a else None)
 
-        let onUpdateProgress s (i : ProgressUpdateInfo) =
+
+        let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
+            //let notify() =
+            //    match s.workerNodes.TryFind
+
             match i.progress with
             | NotStarted -> ignore()
             | InProgress _ -> ignore()
-            | Completed -> failwith "Start new model if it exists..."
+            | Completed ->
+                //match tryFindRunningNode s i.runningProcessInfo.runningProcessId
+                failwith "Start new model if it exists..."
 
-            s.callBackInfo.onUpdateProgress i
+            s.callBackInfo.onUpdateProgress i.progressUpdateInfo
             s
 
 

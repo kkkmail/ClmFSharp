@@ -164,7 +164,7 @@ module SvcCommandLine =
         | None -> ignore()
 
         {
-            msgCliAccessInfo =
+            workNodeMsgAccessInfo =
                 {
                     workerNodeId = clientId
 
@@ -179,7 +179,7 @@ module SvcCommandLine =
             nodePriority = WorkerNodePriority.defaultValue
             partitionerId = partitioner
 
-            wrkSvcAccessInfo =
+            workerNodeServiceAccessInfo =
                 {
                     serviceAddress = address
                     servicePort = port

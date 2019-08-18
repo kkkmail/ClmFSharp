@@ -255,5 +255,4 @@ module ServiceInfo =
             commandLineParam : ModelCommandLineParam
             callBack : ProcessStartedCallBack
             minUsefulEe : MinUsefulEe
-            //modelData : ModelData
         }

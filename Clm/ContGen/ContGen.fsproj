@@ -159,6 +159,11 @@
       <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\NoSql\NoSql.fsproj">
+      <Name>NoSql</Name>
+      <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
       <Name>ServiceProxy</Name>
       <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>

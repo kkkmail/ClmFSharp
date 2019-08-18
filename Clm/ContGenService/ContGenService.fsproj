@@ -97,6 +97,16 @@
       <Project>{740464f5-6e8c-4038-ab98-51dfa5a09ec1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
+      <Name>MessagingServiceInfo</Name>
+      <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Messaging\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
       <Name>ServiceProxy</Name>
       <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>

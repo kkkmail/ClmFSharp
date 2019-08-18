@@ -44,7 +44,7 @@ module ServiceImplementation =
 
         member this.messagingClientData =
             {
-                msgAccessInfo = this.workerNodeAccessInfo.msgCliAccessInfo.messagingClientAccessInfo
+                msgAccessInfo = this.workerNodeAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
                 msgResponseHandler = this.msgResponseHandler
                 msgClientProxy = this.msgClientProxy
                 logger = this.logger
@@ -200,7 +200,7 @@ module ServiceImplementation =
         inherit MarshalByRefObject()
 
         let w =
-            match MsgResponseHandler.tryCreate serviceAccessInfo.msgCliAccessInfo.messagingClientAccessInfo with
+            match MsgResponseHandler.tryCreate serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo with
             | Some h ->
                 {
                     workerNodeAccessInfo = serviceAccessInfo

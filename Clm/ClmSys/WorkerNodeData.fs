@@ -21,16 +21,16 @@ module WorkerNodeData =
 
     type WorkerNodeServiceAccessInfo =
         {
-            wrkSvcAccessInfo : ServiceAccessInfo
+            workerNodeServiceAccessInfo : ServiceAccessInfo
             noOfCores : int
-            msgCliAccessInfo : WorkNodeMsgAccessInfo
+            workNodeMsgAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
             nodePriority : WorkerNodePriority
         }
 
         member w.workerNodeInfo =
             {
-                workerNodeId = w.msgCliAccessInfo.workerNodeId
+                workerNodeId = w.workNodeMsgAccessInfo.workerNodeId
                 noOfCores = w.noOfCores
                 nodePriority = w.nodePriority
             }

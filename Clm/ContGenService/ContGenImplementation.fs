@@ -54,7 +54,6 @@ module ServiceImplementation =
             | Some p ->
                 {
                     onUpdateProgress = a.updateProgress
-                    logger = logger
                 }
                 |> p.start
             | None -> ignore()

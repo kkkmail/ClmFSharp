@@ -10,6 +10,9 @@ open ClmSys.Logging
 open ClmSys.MessagingData
 open ServiceProxy.Runner
 open ContGen.Partitioner
+open ServiceProxy.PartitionerProxy
+open Messaging.ServiceResponse
+open MessagingServiceInfo.ServiceProxy
 
 module SvcCommandLine =
 
@@ -184,20 +187,34 @@ module SvcCommandLine =
             trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
         | None -> ignore()
 
+        let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy, None
+
         match usePartitioner with
-        | false -> LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy, None
+        | false -> localRunner()
         | true ->
-            let q =
+            let w =
                 {
-                    partitionerMsgAccessInfo =
+                    partitionerId = partitioner
+                    msgSvcAccessInfo =
                         {
-                            partitionerId = partitioner
-                            msgSvcAccessInfo=
-                                {
-                                    serviceAddress = msgAddress
-                                    servicePort = msgPort
-                                }
+                            serviceAddress = msgAddress
+                            servicePort = msgPort
                         }
                 }
-            let r = PartitionerRunner q
-            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
+
+            match MsgResponseHandler.tryCreate w.messagingClientAccessInfo with
+            | Some m ->
+                let q =
+                    {
+                        partitionerMsgAccessInfo = w
+                        partitionerProxy = PartitionerProxy PartitionerProxyInfo.defaultValue
+                        msgResponseHandler = m
+                        msgClientProxy = MessagingClientProxy.defaultValue
+                        logger = logger
+                    }
+
+                let r = PartitionerRunner q
+                PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
+            | None ->
+                printfn "Unable to create MsgResponseHandler."
+                localRunner()

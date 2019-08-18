@@ -17,7 +17,9 @@ open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
+open ClmSys.PartitionerData
 open ServiceProxy.PartitionerProxy
+open NoSql.FileSystemTypes
 
 module Partitioner =
 
@@ -189,7 +191,9 @@ module Partitioner =
 
 
         let saveQueueElement q =
-            failwith ""
+            printfn "saveQueueElement is not implemented yet."
+            ignore()
+
 
         let onRunModel s (p: RunModelParam) (q : RemoteProcessId) =
             let onCannotRun() =

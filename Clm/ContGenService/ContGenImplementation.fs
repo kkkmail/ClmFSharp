@@ -10,6 +10,7 @@ open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open SvcCommandLine
 open ContGen.Partitioner
+open ClmSys.Logging
 
 module ServiceImplementation =
 
@@ -53,6 +54,7 @@ module ServiceImplementation =
             | Some p ->
                 {
                     onUpdateProgress = a.updateProgress
+                    logger = logger
                 }
                 |> p.start
             | None -> ignore()

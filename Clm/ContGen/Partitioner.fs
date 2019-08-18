@@ -16,17 +16,27 @@ open MessagingServiceInfo.ServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
+open ClmSys.WorkerNodeData
 
 module Partitioner =
 
 
+    type WorkerNodeState =
+        {
+            workerNodeInfo : WorkerNodeInfo
+            running : list<RemoteProcessId>
+        }
+
+
     type PartitionerCallBackInfo =
         {
+            logger : Logger
             onUpdateProgress : ProgressUpdateInfo -> unit
         }
 
         static member defaultValue =
             {
+                logger = logger
                 onUpdateProgress = fun _ -> ignore()
             }
 
@@ -34,8 +44,6 @@ module Partitioner =
     type PartitionerRunnerParam =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
-            logger : Logger
-            //onUpdateProgress : ProgressUpdateInfo -> unit
 
             //msgResponseHandler : MsgResponseHandler
             //msgClientProxy : MessagingClientProxy
@@ -50,9 +58,18 @@ module Partitioner =
         //    }
 
 
+    type PartitionerQueueElement =
+        {
+            remoteProcessId : RemoteProcessId
+            runModelParam : RunModelParam
+        }
+
+
     type PartitionerRunnerState =
         {
             callBackInfo : PartitionerCallBackInfo
+            workerNodes : Map<WorkerNodeId, WorkerNodeState>
+            queue : list<PartitionerQueueElement>
         }
 
         static member defaultValue =
@@ -60,7 +77,11 @@ module Partitioner =
                 callBackInfo =
                     {
                         onUpdateProgress = fun _ -> ignore()
+                        logger = logger
                     }
+
+                workerNodes = Map.empty
+                queue = []
             }
 
 
@@ -89,7 +110,7 @@ module Partitioner =
 
 
         let onStart s q =
-            {s with callBackInfo = q }
+            { s with callBackInfo = q }
 
 
         //let onRegister s =
@@ -167,8 +188,28 @@ module Partitioner =
 
         //    s
 
+        let tryGetNode s =
+            s.workerNodes
+            |> Map.toList
+            |> List.map (fun (_, v) -> v)
+            |> List.sortBy (fun e -> (e.workerNodeInfo.nodePriority, (decimal e.running.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))))
+            |> List.tryPick (fun e -> if e.running.Length < e.workerNodeInfo.noOfCores then Some e else None)
+
+
         let onRunModel s (p: RunModelParam) (q : RemoteProcessId) =
-            s
+            match tryGetNode s with
+            | Some n ->
+                failwith ""
+            | None ->
+                {
+                    s
+                        with
+                        queue =
+                            {
+                                remoteProcessId = q
+                                runModelParam = p
+                            } :: s.queue
+                }
 
 
         let messageLoop =

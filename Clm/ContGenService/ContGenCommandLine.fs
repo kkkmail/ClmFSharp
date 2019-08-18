@@ -198,7 +198,6 @@ module SvcCommandLine =
                                     servicePort = msgPort
                                 }
                         }
-                    logger = logger
                 }
             let r = PartitionerRunner q
             PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r

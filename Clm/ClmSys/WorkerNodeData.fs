@@ -5,10 +5,17 @@ open ClmSys.MessagingData
 
 module WorkerNodeData =
 
+    type WorkerNodePriority =
+        | WorkerNodePriority of int
+
+        static member defaultValue = WorkerNodePriority 0
+
+
     type WorkerNodeInfo =
         {
             workerNodeId : WorkerNodeId
             noOfCores : int
+            nodePriority : WorkerNodePriority
         }
 
 
@@ -18,10 +25,12 @@ module WorkerNodeData =
             noOfCores : int
             msgCliAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
+            nodePriority : WorkerNodePriority
         }
 
         member w.workerNodeInfo =
             {
                 workerNodeId = w.msgCliAccessInfo.workerNodeId
                 noOfCores = w.noOfCores
+                nodePriority = w.nodePriority
             }

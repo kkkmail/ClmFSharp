@@ -176,6 +176,7 @@ module SvcCommandLine =
                 }
 
             noOfCores = noOfCores
+            nodePriority = WorkerNodePriority.defaultValue
             partitionerId = partitioner
 
             wrkSvcAccessInfo =

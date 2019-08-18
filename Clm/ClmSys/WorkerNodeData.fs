@@ -8,7 +8,7 @@ module WorkerNodeData =
     type WorkerNodePriority =
         | WorkerNodePriority of int
 
-        static member defaultValue = WorkerNodePriority 0
+        static member defaultValue = WorkerNodePriority 100
 
 
     type WorkerNodeInfo =

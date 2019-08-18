@@ -81,24 +81,14 @@ module Runner =
         let saveModel getModelData = getModelData() |> saveModelData
         let updateTask (c : ClmTask) = p.runnerProxy.tryUpdateClmTask c |> ignore
         let tryAddClmTask c = p.runnerProxy.addClmTask c
+        let tryLoadClmTask i t = p.runnerProxy.tryLoadClmTask i t
+        let tryLoadModelData i m = p.runnerProxy.tryLoadModelData i m
 
 
         let getQueueId (c : ModelCommandLineParam) modelId =
              match p.runnerProxy.saveRunQueueEntry modelId c with
              | Some q -> q
              | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
-
-
-        let tryLoadClmTask i t =
-            match p.runnerProxy.tryLoadClmTask i t with
-            | Some (Some c) -> Some c
-            | _ -> None
-
-
-        let tryLoadModelData i m =
-            match p.runnerProxy.tryLoadModelData i m with
-            | Some (Some c) -> Some c
-            | _ -> None
 
 
         let generateImpl (c : ClmTask) =

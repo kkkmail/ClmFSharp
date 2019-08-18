@@ -17,8 +17,15 @@ open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
+open ServiceProxy.PartitionerProxy
 
 module Partitioner =
+
+    type PartitionerQueueElement =
+        {
+            remoteProcessId : RemoteProcessId
+            runModelParam : RunModelParam
+        }
 
 
     type WorkerNodeState =
@@ -30,13 +37,11 @@ module Partitioner =
 
     type PartitionerCallBackInfo =
         {
-            logger : Logger
             onUpdateProgress : ProgressUpdateInfo -> unit
         }
 
         static member defaultValue =
             {
-                logger = logger
                 onUpdateProgress = fun _ -> ignore()
             }
 
@@ -44,32 +49,26 @@ module Partitioner =
     type PartitionerRunnerParam =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
-
-            //msgResponseHandler : MsgResponseHandler
-            //msgClientProxy : MessagingClientProxy
+            partitionerProxy : PartitionerProxy
+            msgResponseHandler : MsgResponseHandler
+            msgClientProxy : MessagingClientProxy
+            logger : Logger
         }
 
-        //member this.messagingClientData =
-        //    {
-        //        msgAccessInfo = failwith ""
-        //        msgResponseHandler = this.msgResponseHandler
-        //        msgClientProxy = this.msgClientProxy
-        //        logger = this.logger
-        //    }
-
-
-    type PartitionerQueueElement =
-        {
-            remoteProcessId : RemoteProcessId
-            runModelParam : RunModelParam
-        }
+        member this.messagingClientData =
+            {
+                msgAccessInfo = this.partitionerMsgAccessInfo.messagingClientAccessInfo
+                msgResponseHandler = this.msgResponseHandler
+                msgClientProxy = this.msgClientProxy
+                logger = this.logger
+            }
 
 
     type PartitionerRunnerState =
         {
             callBackInfo : PartitionerCallBackInfo
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
-            queue : list<PartitionerQueueElement>
+            partitionerQueue : list<PartitionerQueueElement>
         }
 
         static member defaultValue =
@@ -77,11 +76,10 @@ module Partitioner =
                 callBackInfo =
                     {
                         onUpdateProgress = fun _ -> ignore()
-                        logger = logger
                     }
 
                 workerNodes = Map.empty
-                queue = []
+                partitionerQueue = []
             }
 
 
@@ -97,16 +95,10 @@ module Partitioner =
 
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
-        //let messagingClient = MessagingClient p.messagingClientData
-        //let partitioner = p.partitionerId
-        //let sendMessage m = messagingClient.sendMessage m
-
-
-        //let remoteRunnerImpl =
-        //    {
-        //        connectionString = clmConnectionString
-        //        runModel = runModelImpl
-        //    }
+        let messagingClient = MessagingClient p.messagingClientData
+        let sendMessage m = messagingClient.sendMessage m
+        let tryLoadModelData = p.partitionerProxy.tryLoadModelData
+        let logger = p.logger
 
 
         let onStart s q =
@@ -196,20 +188,44 @@ module Partitioner =
             |> List.tryPick (fun e -> if e.running.Length < e.workerNodeInfo.noOfCores then Some e else None)
 
 
+        let saveQueueElement q =
+            failwith ""
+
         let onRunModel s (p: RunModelParam) (q : RemoteProcessId) =
+            let onCannotRun() =
+                let e =
+                    {
+                        remoteProcessId = q
+                        runModelParam = p
+                    }
+
+                saveQueueElement e
+                { s with partitionerQueue = e :: s.partitionerQueue }
+
+
             match tryGetNode s with
             | Some n ->
-                failwith ""
-            | None ->
-                {
-                    s
-                        with
-                        queue =
-                            {
-                                remoteProcessId = q
-                                runModelParam = p
-                            } :: s.queue
-                }
+                match tryLoadModelData p.commandLineParam.serviceAccessInfo p.callBack.calledBackModelId with
+                | Some m ->
+                    {
+                        workerNodeRecipient = n.workerNodeInfo.workerNodeId
+                        deliveryType = GuaranteedDelivery
+                        messageData = m |> RunModelWrkMsg
+                    }.messageInfo
+                    |> sendMessage
+
+                    {
+                        processId = RemoteProcess q
+                        modelDataId = p.callBack.calledBackModelId
+                        runQueueId = p.callBack.runQueueId
+                    }
+                    |> p.callBack.notifyOnStarted
+
+                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
+                | None ->
+                    logger.logErr (sprintf "Unable to load model with id: %A" p.callBack.calledBackModelId)
+                    onCannotRun()
+            | None -> onCannotRun()
 
 
         let messageLoop =

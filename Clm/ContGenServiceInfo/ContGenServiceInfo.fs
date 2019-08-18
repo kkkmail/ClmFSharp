@@ -6,6 +6,7 @@ open ClmSys.GeneralData
 open ClmSys.MessagingData
 open System.Threading
 open Clm.ModelParams
+open Clm.CalculationData
 
 module ServiceInfo =
 
@@ -254,4 +255,5 @@ module ServiceInfo =
             commandLineParam : ModelCommandLineParam
             callBack : ProcessStartedCallBack
             minUsefulEe : MinUsefulEe
+            //modelData : ModelData
         }

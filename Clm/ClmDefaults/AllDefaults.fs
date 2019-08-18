@@ -136,6 +136,9 @@ module AllDefaults =
         updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 20, catSynthSim = 0.20, vary wasteRecyclingRate)."
             (Defaults_014.nw |> List.map Defaults_014.getGefaultValue)
         @
+        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both sim param = 0.20, vary both scarcity param), wasteRecyclingRate upped to 10.0."
+            (Defaults_015.nsd |> List.map Defaults_015.getGefaultValue)
+        @
         updateDescription "Tests."
             [
                 Defaults_999_000.defaultValue

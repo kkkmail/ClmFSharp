@@ -92,8 +92,8 @@ module Partitioner =
         | RunModel of RunModelParam * RemoteProcessId
         //| SaveModelData of ModelData
         //| SaveCharts of ChartInfo
-        //| GetMessages of PartitionerRunner
-        //| ProcessMessage of Message
+        | GetMessages of PartitionerRunner
+        | ProcessMessage of PartitionerRunner * Message
 
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
@@ -160,37 +160,37 @@ module Partitioner =
         //    s
 
 
-        //let onGetMessages s (w : WorkerNodeRunner) =
-        //    let messages = messagingClient.getMessages()
+        let onGetMessages s (w : PartitionerRunner) =
+            //let messages = messagingClient.getMessages()
 
-        //    messages
-        //    |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-        //    |> List.map (fun e -> i.msgClientProxy.saveMessage IncomingMessage e)
-        //    |> ignore
+            //messages
+            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+            //|> List.map (fun e -> i.msgClientProxy.saveMessage IncomingMessage e)
+            //|> ignore
 
-        //    messages
-        //    |> List.map (fun e -> w.processMessage e)
-        //    |> ignore
+            //messages
+            //|> List.map (fun e -> w.processMessage e)
+            //|> ignore
 
-        //    s
+            s
 
 
         //let onRunModelMsg (m : ModelData) =
         //    failwith ""
 
 
-        //let onProcessMessage s (m : Message) =
-        //    match m.messageInfo.messageData with
-        //    | WorkerNodeMsg x ->
-        //        match x with
-        //        | RunModelWrkMsg m -> onRunModelMsg m
-        //    | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+        let onProcessMessage s  (w : PartitionerRunner) (m : Message) =
+            //match m.messageInfo.messageData with
+            //| WorkerNodeMsg x ->
+            //    match x with
+            //    | RunModelWrkMsg m -> onRunModelMsg m
+            //| _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
-        //    match m.messageInfo.deliveryType with
-        //    | GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
-        //    | NonGuaranteedDelivery -> ignore()
+            //match m.messageInfo.deliveryType with
+            //| GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
+            //| NonGuaranteedDelivery -> ignore()
 
-        //    s
+            s
 
         let tryGetNode s =
             s.workerNodes
@@ -254,8 +254,8 @@ module Partitioner =
                             | RunModel (p, q) -> return! onRunModel s p q |> loop
                             //| SaveModelData m -> return! onSaveModelData s m |> loop
                             //| SaveCharts c -> return! onSaveCharts s c |> loop
-                            //| GetMessages w -> return! onGetMessages s w |> loop
-                            //| ProcessMessage m -> return! onProcessMessage s m |> loop
+                            | GetMessages w -> return! onGetMessages s w |> loop
+                            | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                         }
 
                 onStart PartitionerRunnerState.defaultValue PartitionerCallBackInfo.defaultValue |> loop
@@ -275,3 +275,4 @@ module Partitioner =
 
         member __.start q = q |> Start |> messageLoop.Post
         member this.runModel p = runModelImpl p
+        member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post

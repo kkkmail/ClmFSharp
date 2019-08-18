@@ -14,6 +14,7 @@ open MessagingServiceInfo.ServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
+open Clm.ModelParams
 
 module ServiceImplementation =
 
@@ -56,7 +57,7 @@ module ServiceImplementation =
         | Register
         | UpdateProgress of ProgressUpdateInfo
         | SaveModelData of ModelData
-        //| SaveResult of unit
+        | SaveResult of ResultDataWithId
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message
@@ -170,10 +171,11 @@ module ServiceImplementation =
                             | Register -> return! onRegister s |> loop
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
                             | SaveModelData m -> return! onSaveModelData s m |> loop
+                            | SaveResult r -> return! s |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
-                            | GetMessages r -> return! onGetMessages s r |> loop
-                            | ProcessMessage (r, m) -> return! onProcessMessage s r m |> loop
-                            | RunModel (r, m) -> return! onRunModel s r m |> loop
+                            | GetMessages w -> return! onGetMessages s w |> loop
+                            | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
+                            | RunModel (w, m) -> return! onRunModel s w m |> loop
                         }
 
                 onStart (WorkerNodeRunnerState.defaultValue) |> loop

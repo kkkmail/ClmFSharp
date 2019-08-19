@@ -20,12 +20,12 @@ module ServiceResponse =
             | WorkerNodeSvcAccessInfo w ->
                 Activator.GetObject (typeof<IWorkerNodeService>, getServiceUrl w.workerNodeServiceAccessInfo) :?> IWorkerNodeService |> WorkerNodeNotifier
 
-        let updateProgressImpl p =
+        let updateLocalProgressImpl p =
             match service with
-            | ContGenNotifier s -> s.updateProgress p
-            | WorkerNodeNotifier w -> w.updateProgress p
+            | ContGenNotifier s -> s.updateLocalProgress p
+            | WorkerNodeNotifier w -> w.updateLocalProgress p
 
-        member __.updateProgress p = updateProgressImpl p
+        member __.updateLocalProgress p = updateLocalProgressImpl p
 
         static member tryCreate i =
             try

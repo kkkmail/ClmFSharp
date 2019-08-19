@@ -24,11 +24,11 @@ module SolverRunnerTasks =
     let logError e = printfn "Error: %A." e
 
 
-    let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
+    let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
         let notify() =
             try
                 printfn "Notifying of progress: %A." p
-                r.updateProgress p
+                r.updateLocalProgress p
                 printfn "...completed."
             with
                 | e ->
@@ -50,7 +50,7 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedProcessId = Process.GetCurrentProcess().Id |> LocalProcess
+                updatedLocalProcessId = Process.GetCurrentProcess().Id
                 updateModelId = m
                 progress = t
             }

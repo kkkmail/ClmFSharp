@@ -62,6 +62,21 @@ module ServiceInfo =
         }
 
 
+    type LocalProgressUpdateInfo =
+        {
+            updatedLocalProcessId : int
+            updateModelId : ModelDataId
+            progress : TaskProgress
+        }
+
+        member this.progressUpdateInfo =
+            {
+                updatedProcessId = this.updatedLocalProcessId |> LocalProcess
+                updateModelId = this.updateModelId
+                progress = this.progress
+            }
+
+
     type RemoteProgressUpdateInfo =
         {
             updatedRemoteProcessId : RemoteProcessId
@@ -190,7 +205,8 @@ module ServiceInfo =
         abstract getState : unit -> ContGenRunnerState
         abstract loadQueue : unit -> unit
         abstract startGenerate : unit -> unit
-        abstract updateProgress : ProgressUpdateInfo -> unit
+        abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
+        abstract updateRemoteProgress : RemoteProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
 

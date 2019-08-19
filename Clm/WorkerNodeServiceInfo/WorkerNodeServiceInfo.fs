@@ -13,4 +13,4 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        abstract updateProgress : ProgressUpdateInfo -> unit
+        abstract updateLocalProgress : LocalProgressUpdateInfo -> unit

@@ -60,7 +60,7 @@ module ServiceImplementation =
     type WorkerNodeMessage =
         | Start
         | Register
-        | UpdateProgress of ProgressUpdateInfo
+        | UpdateProgress of LocalProgressUpdateInfo
         | SaveModelData of ModelData
         | SaveResult of ResultDataWithId
         | SaveCharts of ChartInfo
@@ -99,7 +99,7 @@ module ServiceImplementation =
             s
 
         /// TODO
-        let onUpdateProgress s (p : ProgressUpdateInfo) =
+        let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             //let notifyPartitioner t =
             //    let q =
             //        match p.updatedProcessId with
@@ -246,10 +246,10 @@ module ServiceImplementation =
         let initService () = ()
         do initService ()
 
-        let updateProgressImpl p =
+        let updateLocalProgressImpl p =
             match w with
             | Some r -> r.updateProgress p
             | None -> logger.logErr (sprintf "Failed to update progress: %A" p)
 
         interface IWorkerNodeService with
-            member __.updateProgress p = updateProgressImpl p
+            member __.updateLocalProgress p = updateLocalProgressImpl p

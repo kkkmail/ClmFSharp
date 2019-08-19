@@ -39,11 +39,13 @@ module Partitioner =
     type PartitionerCallBackInfo =
         {
             onUpdateProgress : ProgressUpdateInfo -> unit
+            onStarted : ProcessStartInfo -> unit
         }
 
         static member defaultValue =
             {
                 onUpdateProgress = fun _ -> ignore()
+                onStarted = fun _ -> ignore()
             }
 
 
@@ -67,16 +69,17 @@ module Partitioner =
 
     type PartitionerRunnerState =
         {
-            callBackInfo : PartitionerCallBackInfo
+            partitionerCallBackInfo : PartitionerCallBackInfo
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
             partitionerQueue : list<PartitionerQueueElement>
         }
 
         static member defaultValue =
             {
-                callBackInfo =
+                partitionerCallBackInfo =
                     {
                         onUpdateProgress = fun _ -> ignore()
+                        onStarted = fun _ -> ignore()
                     }
 
                 workerNodes = Map.empty
@@ -103,7 +106,7 @@ module Partitioner =
 
 
         let onStart s q =
-            { s with callBackInfo = q }
+            { s with partitionerCallBackInfo = q }
 
 
         let onRegister s (r : WorkerNodeInfo) =
@@ -122,7 +125,7 @@ module Partitioner =
 
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
-            s.callBackInfo.onUpdateProgress i.progressUpdateInfo
+            s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
 
             match i.progress with
             | NotStarted -> s
@@ -227,7 +230,6 @@ module Partitioner =
                     logger.logErr (sprintf "Unable to load model with id: %A" p.callBack.calledBackModelId)
                     onCannotRun()
             | None -> onCannotRun()
-
 
 
         let messageLoop =

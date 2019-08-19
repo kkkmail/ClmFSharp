@@ -54,6 +54,7 @@ module ServiceImplementation =
             | Some p ->
                 {
                     onUpdateProgress = a.updateProgress
+                    onStarted = a.started
                 }
                 |> p.start
             | None -> ignore()
@@ -64,6 +65,7 @@ module ServiceImplementation =
             member __.getState() = a.getState().runnerState
             member __.loadQueue() = a.startQueue()
             member __.startGenerate() = a.startGenerate()
-            member __.updateProgress p = a.updateProgress p
+            member __.updateLocalProgress p = a.updateProgress p.progressUpdateInfo
+            member __.updateRemoteProgress p = a.updateProgress p.progressUpdateInfo
             member __.configureService (p : ContGenConfigParam) = a.configureService p
             member __.runModel m p = a.runModel (m, p)

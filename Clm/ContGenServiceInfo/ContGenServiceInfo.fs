@@ -152,17 +152,31 @@ module ServiceInfo =
         }
 
 
-    type ProcessStartedCallBack =
+    type ProcessStartedInfo =
         {
-            notifyOnStarted : ProcessStartInfo -> unit
             calledBackModelId : ModelDataId
             runQueueId : RunQueueId
         }
 
 
+    type ProcessStartedCallBack =
+        {
+            notifyOnStarted : ProcessStartInfo -> unit
+            //calledBackModelId : ModelDataId
+            //runQueueId : RunQueueId
+        }
+
+
+    type ProcessStartedInfoWithCallBack =
+        {
+            processStartedInfo : ProcessStartedInfo
+            callBack : ProcessStartedCallBack
+        }
+
+
     type RunInfo =
         {
-            run : ProcessStartedCallBack -> ProcessStartInfo
+            run : ProcessStartedInfoWithCallBack -> ProcessStartInfo
             modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
@@ -243,7 +257,7 @@ module ServiceInfo =
     //    let args = a.commandLineArgs
     //    let startDir = a.startDir
     //    let notifyOnStarted = a.notifyOnStarted
-    let runProc (c : ProcessStartedCallBack) filename args startDir =
+    let runProc (c : ProcessStartedInfoWithCallBack) filename args startDir =
         let procStartInfo =
             ProcessStartInfo(
                 RedirectStandardOutput = true,
@@ -278,8 +292,8 @@ module ServiceInfo =
 
             {
                 processId = LocalProcess -1
-                modelDataId = c.calledBackModelId
-                runQueueId = c.runQueueId
+                modelDataId = c.processStartedInfo.calledBackModelId
+                runQueueId = c.processStartedInfo.runQueueId
             }
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
@@ -287,12 +301,12 @@ module ServiceInfo =
             let processId = LocalProcess p.Id
 
             printfn "Started %s with pid %A" p.ProcessName processId
-            c.notifyOnStarted { processId = processId; modelDataId = c.calledBackModelId; runQueueId = c.runQueueId }
+            c.callBack.notifyOnStarted { processId = processId; modelDataId = c.processStartedInfo.calledBackModelId; runQueueId = c.processStartedInfo.runQueueId }
 
             {
                 processId = processId
-                modelDataId = c.calledBackModelId
-                runQueueId = c.runQueueId
+                modelDataId = c.processStartedInfo.calledBackModelId
+                runQueueId = c.processStartedInfo.runQueueId
             }
 
 
@@ -307,5 +321,5 @@ module ServiceInfo =
     type RunModelParamWithCallBack =
         {
             runModelParam : RunModelParam
-            callBack : ProcessStartedCallBack
+            callBackInfo : ProcessStartedInfoWithCallBack
         }

@@ -253,7 +253,21 @@ module AsyncRun =
 
         let startModelImpl (a : AsyncRunner) e =
             printfn "Starting modelId: %A..." e.modelDataId
-            toAsync (fun () -> { notifyOnStarted = a.started; calledBackModelId = e.modelDataId; runQueueId = e.runQueueId } |> e.run |> a.completeRun)
+
+
+            toAsync (fun () ->
+                            {
+                                processStartedInfo =
+                                    {
+                                        calledBackModelId = e.modelDataId
+                                        runQueueId = e.runQueueId
+                                    }
+
+                                callBack =
+                                    {
+                                        notifyOnStarted = a.started
+                                    }
+                            } |> e.run |> a.completeRun)
             |> Async.Start
 
         let cancelProcessImpl i =

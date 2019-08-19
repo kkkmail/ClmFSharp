@@ -203,7 +203,7 @@ module Partitioner =
 
             match tryGetNode s with
             | Some n ->
-                match tryLoadModelData a.runModelParam.commandLineParam.serviceAccessInfo a.callBack.calledBackModelId with
+                match tryLoadModelData a.runModelParam.commandLineParam.serviceAccessInfo a.callBackInfo.processStartedInfo.calledBackModelId with
                 | Some m ->
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
@@ -214,8 +214,8 @@ module Partitioner =
 
                     {
                         processId = RemoteProcess q
-                        modelDataId = a.callBack.calledBackModelId
-                        runQueueId = a.callBack.runQueueId
+                        modelDataId = a.callBackInfo.processStartedInfo.calledBackModelId
+                        runQueueId = a.callBackInfo.processStartedInfo.runQueueId
                     }
                     // Note - these two calls are supposed to be the same!
                     //|> a.callBack.notifyOnStarted
@@ -223,7 +223,7 @@ module Partitioner =
 
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
                 | None ->
-                    logger.logErr (sprintf "Unable to load model with id: %A" a.callBack.calledBackModelId)
+                    logger.logErr (sprintf "Unable to load model with id: %A" a.callBackInfo.processStartedInfo.calledBackModelId)
                     onCannotRun()
             | None -> onCannotRun()
 
@@ -254,8 +254,8 @@ module Partitioner =
 
             {
                 processId = q |> RemoteProcess
-                modelDataId = p.callBack.calledBackModelId
-                runQueueId = p.callBack.runQueueId
+                modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
+                runQueueId = p.callBackInfo.processStartedInfo.runQueueId
             }
 
 

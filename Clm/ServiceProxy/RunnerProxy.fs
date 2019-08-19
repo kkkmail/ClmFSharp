@@ -70,30 +70,17 @@ module Runner =
 
                 let data =
                     {
-                        modelDataId = p.callBack.calledBackModelId
+                        modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
                         minUsefulEe = p.runModelParam.minUsefulEe
                         remote = false
                     }
 
                 let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
                 printfn "runModel::commandLineParams = %A\n" commandLineParams
-
-                //let runArgs =
-                //    {
-                //        callBackInfo = p.callBack
-                //        notifyOnStarted = n
-                //        fileName = fullExeName
-                //        commandLineArgs = commandLineParams
-                //        startDir = None
-                //    }
-
-                runProc p.callBack fullExeName commandLineParams None
-                //runProc runArgs
+                runProc p.callBackInfo fullExeName commandLineParams None
 
             | PartitionerRunnerProxy c -> c.runModel p
 
-
-        //new() = RunnerProxy(RunnerProxyInfo.defaultValue)
 
         member __.tryLoadClmDefaultValue d = tryLoadClmDefaultValueImpl d
         member __.tryUpdateModelData m = tryUpdateModelDataImpl m

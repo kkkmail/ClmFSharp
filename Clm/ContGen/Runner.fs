@@ -36,6 +36,12 @@ module Runner =
         let logError e = printfn "Error: %A" e
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
 
+//{
+//    runModelParam : RunModelParam
+//    callBackInfo : ProcessStartedInfoWithCallBack
+//}
+
+
         let runModel e c =
             {
                 runModelParam =
@@ -45,7 +51,7 @@ module Runner =
                         minUsefulEe = p.minUsefulEe
                     }
 
-                callBack = c
+                callBackInfo = c
             }
             |> p.runnerProxy.runModel
 

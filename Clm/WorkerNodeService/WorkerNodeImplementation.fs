@@ -74,6 +74,7 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
 
+
         let runModel e c =
             {
                 runModelParam =
@@ -83,7 +84,7 @@ module ServiceImplementation =
                         minUsefulEe = i.minUsefulEe
                     }
 
-                callBack = c
+                callBackInfo = c
             }
             |> i.workerNodeProxy.runModel
 
@@ -102,7 +103,6 @@ module ServiceImplementation =
 
             s
 
-        /// TODO
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             //let notifyPartitioner t =
             //    let q =
@@ -173,6 +173,19 @@ module ServiceImplementation =
 
 
         let onRunModel s (r : WorkerNodeRunner) (m : ModelData) =
+            //let a =
+            //    {
+            //        runModelParam =
+            //            {
+            //                exeName = i.exeName
+            //                commandLineParam = failwith "" // : ModelCommandLineParam
+            //                minUsefulEe = i.minUsefulEe
+            //            }
+
+            //        callBack = failwith "" //: ProcessStartedCallBack
+            //    }
+
+            //let x = i.workerNodeProxy.runModel
             s
 
 

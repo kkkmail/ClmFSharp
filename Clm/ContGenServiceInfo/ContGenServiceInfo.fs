@@ -211,6 +211,22 @@ module ServiceInfo =
         Interlocked.Decrement(&callCount) |> ignore
 
 
+    type RunProcArgs =
+        {
+            callBackInfo : ProcessStartedCallBack
+            notifyOnStarted : ProcessStartInfo -> unit
+            fileName : string
+            commandLineArgs : string
+            startDir : string option
+        }
+
+
+    //let runProc (a : RunProcArgs) =
+    //    let c = a.callBackInfo
+    //    let filename = a.fileName
+    //    let args = a.commandLineArgs
+    //    let startDir = a.startDir
+    //    let notifyOnStarted = a.notifyOnStarted
     let runProc (c : ProcessStartedCallBack) filename args startDir =
         let procStartInfo =
             ProcessStartInfo(

@@ -19,7 +19,6 @@ open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
 open ServiceProxy.PartitionerProxy
-open NoSql.FileSystemTypes
 
 module Partitioner =
 
@@ -87,11 +86,11 @@ module Partitioner =
 
     type PartitionerMessage =
         | Start of PartitionerCallBackInfo
-        //| Register of int
+        | Register of WorkerNodeInfo
         | UpdateProgress of RemoteProgressUpdateInfo
         | RunModel of RunModelParam * RemoteProcessId
-        //| SaveModelData of ModelData
-        //| SaveCharts of ChartInfo
+        | SaveCharts of ChartInfo
+        | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
         | ProcessMessage of PartitionerRunner * Message
 
@@ -107,15 +106,14 @@ module Partitioner =
             { s with callBackInfo = q }
 
 
-        //let onRegister s =
-        //    {
-        //        partitionerRecipient = partitioner
-        //        deliveryType = GuaranteedDelivery
-        //        messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodePrtMsg
-        //    }.messageInfo
-        //    |> sendMessage
+        let onRegister s (r : WorkerNodeInfo) =
+            let updated q = { s with workerNodes = s.workerNodes.Add (r.workerNodeId, { workerNodeInfo = r; running = q }) }
 
-        //    s
+            match s.workerNodes.TryFind r.workerNodeId with
+            | Some n -> n.running
+            | None -> []
+            |> updated
+
 
         let tryFindRunningNode s r =
             s.workerNodes
@@ -124,71 +122,60 @@ module Partitioner =
 
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
-            //let notify() =
-            //    match s.workerNodes.TryFind
+            s.callBackInfo.onUpdateProgress i.progressUpdateInfo
 
             match i.progress with
-            | NotStarted -> ignore()
-            | InProgress _ -> ignore()
+            | NotStarted -> s
+            | InProgress _ -> s
             | Completed ->
-                //match tryFindRunningNode s i.runningProcessInfo.runningProcessId
-                failwith "Start new model if it exists..."
+                match tryFindRunningNode s i.updatedRemoteProcessId with
+                | Some x ->
+                    match s.workerNodes.TryFind x with
+                    | Some w ->
+                        { s with workerNodes = s.workerNodes.Add (x, { w with running = w.running |> List.filter (fun e -> e <> i.updatedRemoteProcessId) }) }
+                    | None -> s
+                | None -> s
 
-            s.callBackInfo.onUpdateProgress i.progressUpdateInfo
+
+        let onSaveResult s r =
+            p.partitionerProxy.saveResultData r
             s
 
 
-        //let onSaveModelData s x =
-        //    {
-        //        partitionerRecipient = partitioner
-        //        deliveryType = GuaranteedDelivery
-        //        messageData = x |> SaveModelDataPrtMsg
-        //    }.messageInfo
-        //    |> sendMessage
+        let onSaveCharts s c =
 
-        //    s
-
-
-        //let onSaveCharts s c =
-        //    {
-        //        partitionerRecipient = partitioner
-        //        deliveryType = GuaranteedDelivery
-        //        messageData = c |> SaveChartsPrtMsg
-        //    }.messageInfo
-        //    |> sendMessage
-
-        //    s
+            s
 
 
         let onGetMessages s (w : PartitionerRunner) =
-            //let messages = messagingClient.getMessages()
+            let messages = messagingClient.getMessages()
 
-            //messages
-            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            //|> List.map (fun e -> i.msgClientProxy.saveMessage IncomingMessage e)
-            //|> ignore
+            messages
+            |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+            |> List.map (fun e -> p.msgClientProxy.saveMessage IncomingMessage e)
+            |> ignore
 
-            //messages
-            //|> List.map (fun e -> w.processMessage e)
-            //|> ignore
+            messages
+            |> List.map (fun e -> w.processMessage e)
+            |> ignore
 
             s
 
 
-        //let onRunModelMsg (m : ModelData) =
-        //    failwith ""
-
-
         let onProcessMessage s  (w : PartitionerRunner) (m : Message) =
-            //match m.messageInfo.messageData with
-            //| WorkerNodeMsg x ->
-            //    match x with
-            //    | RunModelWrkMsg m -> onRunModelMsg m
-            //| _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+            match m.messageInfo.messageData with
+            | PartitionerMsg x ->
+                match x with
+                | UpdateProgressPrtMsg i -> w.updateProgress i
+                | SaveResultPrtMsg r -> failwith ""
+                | SaveChartsPrtMsg c -> failwith ""
+                | RegisterWorkerNodePrtMsg w -> failwith ""
 
-            //match m.messageInfo.deliveryType with
-            //| GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
-            //| NonGuaranteedDelivery -> ignore()
+            | _ -> p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+
+            match m.messageInfo.deliveryType with
+            | GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
+            | NonGuaranteedDelivery -> ignore()
 
             s
 
@@ -242,6 +229,7 @@ module Partitioner =
             | None -> onCannotRun()
 
 
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -249,11 +237,11 @@ module Partitioner =
                         {
                             match! u.Receive() with
                             | Start q -> return! onStart s q |> loop
-                            //| Register -> return! onRegister s |> loop
+                            | Register r -> return! onRegister s r |> loop
                             | UpdateProgress i -> return! onUpdateProgress s i |> loop
                             | RunModel (p, q) -> return! onRunModel s p q |> loop
-                            //| SaveModelData m -> return! onSaveModelData s m |> loop
-                            //| SaveCharts c -> return! onSaveCharts s c |> loop
+                            | SaveResult r -> return! onSaveResult s r |> loop
+                            | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                         }
@@ -275,4 +263,19 @@ module Partitioner =
 
         member __.start q = q |> Start |> messageLoop.Post
         member this.runModel p = runModelImpl p
+        member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
+
+    //| UpdateProgressPrtMsg p -> failwith ""
+    //| SaveResultPrtMsg r -> failwith ""
+    //| SaveChartsPrtMsg c -> failwith ""
+    //| RegisterWorkerNodePrtMsg w -> failwith ""
+
+    //| Start q -> return! onStart s q |> loop
+    //| Register r -> return! onRegister s r |> loop
+    //| UpdateProgress i -> return! onUpdateProgress s i |> loop
+    //| RunModel (p, q) -> return! onRunModel s p q |> loop
+    //| SaveResult r -> return! onSaveResult s r |> loop
+    //| SaveCharts c -> return! onSaveCharts s c |> loop
+    //| GetMessages w -> return! onGetMessages s w |> loop
+    //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop

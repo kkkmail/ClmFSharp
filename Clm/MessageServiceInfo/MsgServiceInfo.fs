@@ -6,6 +6,7 @@ open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
+open Clm.ModelParams
 
 module ServiceInfo =
 
@@ -33,9 +34,8 @@ module ServiceInfo =
 
 
     type PartitionerMessage =
-        | UpdateProgressPrtMsg of ProgressUpdateInfo
-        | SaveModelDataPrtMsg of ModelData
-        | SaveResultPrtMsg of ModelData
+        | UpdateProgressPrtMsg of RemoteProgressUpdateInfo
+        | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
 

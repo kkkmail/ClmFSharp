@@ -128,6 +128,16 @@
       <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj">
+      <Name>SolverRunner</Name>
+      <Project>{f0d4b13d-57ab-4ebf-ae90-4f758cf5741b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj">
       <Name>WorkerNodeServiceInfo</Name>
       <Project>{d9222f72-d01c-4db6-bc76-2c9ccf9b1f31}</Project>

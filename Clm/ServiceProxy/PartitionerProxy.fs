@@ -25,5 +25,7 @@ module PartitionerProxy =
         let tryDbFun c f = tryDbFun logError c f
         let connectionString = i.partitionerConnectionString
         let tryLoadModelDataImpl a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
+        let saveResultDataImpl r = tryDbFun connectionString (saveResultData r) |> ignore
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m
+        member __.saveResultData (r : ResultDataWithId) = saveResultDataImpl r

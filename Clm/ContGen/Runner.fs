@@ -13,16 +13,6 @@ open ServiceProxy.Runner
 
 module Runner =
 
-    //type ModelRunnerParam =
-    //    {
-    //        connectionString : ConnectionString
-    //        rootBuildFolder : string
-    //        buildTarget : string
-    //        exeName : string
-    //        saveModelCode : bool
-    //        serviceAccessInfo : ServiceAccessInfo
-    //    }
-
     type ModelRunnerParam =
         {
             exeName : string

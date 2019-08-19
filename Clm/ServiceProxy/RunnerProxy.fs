@@ -77,7 +77,18 @@ module Runner =
 
                 let commandLineParams = p.commandLineParam.toCommandLine data
                 printfn "runModel::commandLineParams = %A\n" commandLineParams
+
+                //let runArgs =
+                //    {
+                //        callBackInfo = p.callBack
+                //        notifyOnStarted = n
+                //        fileName = fullExeName
+                //        commandLineArgs = commandLineParams
+                //        startDir = None
+                //    }
+
                 runProc p.callBack fullExeName commandLineParams None
+                //runProc runArgs
 
             | PartitionerRunnerProxy c -> c.runModel p
 

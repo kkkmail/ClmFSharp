@@ -15,6 +15,8 @@ open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
 open Clm.ModelParams
+open ServiceProxy.WorkerNodeProxy
+open Clm.CommandLine
 
 module ServiceImplementation =
 
@@ -40,7 +42,10 @@ module ServiceImplementation =
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             msgResponseHandler : MsgResponseHandler
             msgClientProxy : MessagingClientProxy
+            workerNodeProxy : WorkerNodeProxy
             logger : Logger
+            exeName : string
+            minUsefulEe : MinUsefulEe
         }
 
         member this.messagingClientData =
@@ -69,6 +74,16 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
 
+        let runModel e c =
+            {
+                exeName = i.exeName
+                commandLineParam = e
+                callBack = c
+                minUsefulEe = i.minUsefulEe
+            }
+            |> i.workerNodeProxy.runModel
+
+
         let onStart s =
             s
 
@@ -83,37 +98,47 @@ module ServiceImplementation =
 
             s
 
-
+        /// TODO
         let onUpdateProgress s (p : ProgressUpdateInfo) =
-            let notifyPartitioner t =
-                {
-                    partitionerRecipient = partitioner
-                    deliveryType = t
-                    messageData = UpdateProgressPrtMsg p
-                }.messageInfo
-                |> sendMessage
+            //let notifyPartitioner t =
+            //    let q =
+            //        match p.updatedProcessId with
+            //        | LocalProcess x -> failwith ""
+            //        | RemoteProcess r ->
+            //            {
+            //                updatedRemoteProcessId = r
+            //                updateModelId = p.updateModelId
+            //                progress = p.progress
+            //            }
+            //    {
+            //        partitionerRecipient = partitioner
+            //        deliveryType = t
+            //        messageData = UpdateProgressPrtMsg p
+            //    }.messageInfo
+            //    |> sendMessage
 
-            match p.progress with
-            | NotStarted -> NonGuaranteedDelivery
-            | InProgress _ -> NonGuaranteedDelivery
-            | Completed -> GuaranteedDelivery
-            |> notifyPartitioner
+            //match p.progress with
+            //| NotStarted -> NonGuaranteedDelivery
+            //| InProgress _ -> NonGuaranteedDelivery
+            //| Completed -> GuaranteedDelivery
+            //|> notifyPartitioner
 
             s
 
 
         let onSaveModelData s x =
-            {
-                partitionerRecipient = partitioner
-                deliveryType = GuaranteedDelivery
-                messageData = x |> SaveModelDataPrtMsg
-            }.messageInfo
-            |> sendMessage
-
+            i.workerNodeProxy.saveModelData x
             s
 
 
         let onSaveResult s r =
+            {
+                partitionerRecipient = partitioner
+                deliveryType = GuaranteedDelivery
+                messageData = r |> SaveResultPrtMsg
+            }.messageInfo
+            |> sendMessage
+
             s
 
 
@@ -171,7 +196,7 @@ module ServiceImplementation =
                             | Register -> return! onRegister s |> loop
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
                             | SaveModelData m -> return! onSaveModelData s m |> loop
-                            | SaveResult r -> return! s |> loop
+                            | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
@@ -208,7 +233,11 @@ module ServiceImplementation =
                     workerNodeAccessInfo = serviceAccessInfo
                     msgResponseHandler = h
                     msgClientProxy = MessagingClientProxy.defaultValue
+                    workerNodeProxy = WorkerNodeProxy WorkerNodeProxyInfo.defaultValue
                     logger = logger
+                    exeName = SolverRunnerName
+                    minUsefulEe = MinUsefulEe.defaultValue
+
                 }
                 |> WorkerNodeRunner
                 |> Some

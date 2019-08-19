@@ -68,7 +68,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ServiceInfo.fs" />
+    <Compile Include="PartitionerServiceInfo.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -87,6 +87,11 @@
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

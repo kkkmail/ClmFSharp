@@ -19,15 +19,9 @@ open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
 open ServiceProxy.PartitionerProxy
+open PartitionerServiceInfo.ServiceInfo
 
 module Partitioner =
-
-    type PartitionerQueueElement =
-        {
-            remoteProcessId : RemoteProcessId
-            runModelParam : RunModelParam
-        }
-
 
     type WorkerNodeState =
         {

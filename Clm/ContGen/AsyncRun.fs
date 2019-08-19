@@ -317,9 +317,9 @@ module AsyncRun =
         member private this.completeGenerate (r : list<RunInfo>) : unit = CompleteGenerate (this, r) |> messageLoop.Post
         member private this.startRun () = StartRun this |> messageLoop.Post
         member private this.queueObtained (r : list<RunInfo>) = CompleteQueue (this, r) |> messageLoop.Post
-        member private this.started p = Started p |> messageLoop.Post
         member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
 
+        member this.started p = Started p |> messageLoop.Post
         member this.startQueue () : unit = StartQueue this |> messageLoop.Post
         member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
         member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post

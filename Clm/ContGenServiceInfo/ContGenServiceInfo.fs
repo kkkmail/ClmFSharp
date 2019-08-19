@@ -300,6 +300,12 @@ module ServiceInfo =
         {
             exeName : string
             commandLineParam : ModelCommandLineParam
-            callBack : ProcessStartedCallBack
             minUsefulEe : MinUsefulEe
+        }
+
+
+    type RunModelParamWithCallBack =
+        {
+            runModelParam : RunModelParam
+            callBack : ProcessStartedCallBack
         }

@@ -38,10 +38,14 @@ module Runner =
 
         let runModel e c =
             {
-                exeName = p.exeName
-                commandLineParam = e
+                runModelParam =
+                    {
+                        exeName = p.exeName
+                        commandLineParam = e
+                        minUsefulEe = p.minUsefulEe
+                    }
+
                 callBack = c
-                minUsefulEe = p.minUsefulEe
             }
             |> p.runnerProxy.runModel
 

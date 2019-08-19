@@ -76,10 +76,14 @@ module ServiceImplementation =
 
         let runModel e c =
             {
-                exeName = i.exeName
-                commandLineParam = e
+                runModelParam =
+                    {
+                        exeName = i.exeName
+                        commandLineParam = e
+                        minUsefulEe = i.minUsefulEe
+                    }
+
                 callBack = c
-                minUsefulEe = i.minUsefulEe
             }
             |> i.workerNodeProxy.runModel
 

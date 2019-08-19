@@ -25,7 +25,7 @@ module WorkerNodeProxy =
 
         let saveResultDataImpl m = tryFun (fun _ -> saveModelDataFs m) |> ignore
 
-        let runModelImpl (p : RunModelParam) =
+        let runModelImpl (p : RunModelParamWithCallBack) =
             failwith ""
 
         member __.saveModelData m = saveResultDataImpl m

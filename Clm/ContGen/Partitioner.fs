@@ -91,7 +91,7 @@ module Partitioner =
         | Start of PartitionerCallBackInfo
         | Register of WorkerNodeInfo
         | UpdateProgress of RemoteProgressUpdateInfo
-        | RunModel of RunModelParam * RemoteProcessId
+        | RunModel of RunModelParamWithCallBack * RemoteProcessId
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
@@ -195,12 +195,12 @@ module Partitioner =
             ignore()
 
 
-        let onRunModel s (p: RunModelParam) (q : RemoteProcessId) =
+        let onRunModel s (a: RunModelParamWithCallBack) (q : RemoteProcessId) =
             let onCannotRun() =
                 let e =
                     {
                         remoteProcessId = q
-                        runModelParam = p
+                        runModelParam = a.runModelParam
                     }
 
                 saveQueueElement e
@@ -209,7 +209,7 @@ module Partitioner =
 
             match tryGetNode s with
             | Some n ->
-                match tryLoadModelData p.commandLineParam.serviceAccessInfo p.callBack.calledBackModelId with
+                match tryLoadModelData a.runModelParam.commandLineParam.serviceAccessInfo a.callBack.calledBackModelId with
                 | Some m ->
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
@@ -220,14 +220,16 @@ module Partitioner =
 
                     {
                         processId = RemoteProcess q
-                        modelDataId = p.callBack.calledBackModelId
-                        runQueueId = p.callBack.runQueueId
+                        modelDataId = a.callBack.calledBackModelId
+                        runQueueId = a.callBack.runQueueId
                     }
-                    |> p.callBack.notifyOnStarted
+                    // Note - these two calls are supposed to be the same!
+                    //|> a.callBack.notifyOnStarted
+                    |> s.partitionerCallBackInfo.onStarted
 
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
                 | None ->
-                    logger.logErr (sprintf "Unable to load model with id: %A" p.callBack.calledBackModelId)
+                    logger.logErr (sprintf "Unable to load model with id: %A" a.callBack.calledBackModelId)
                     onCannotRun()
             | None -> onCannotRun()
 
@@ -252,7 +254,7 @@ module Partitioner =
                 )
 
 
-        let runModelImpl (p: RunModelParam) : ProcessStartInfo =
+        let runModelImpl p =
             let q = Guid.NewGuid() |> RemoteProcessId
             (p, q) |> RunModel |> messageLoop.Post
 

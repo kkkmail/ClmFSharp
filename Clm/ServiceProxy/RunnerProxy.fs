@@ -23,7 +23,7 @@ module Runner =
     type PartitionerRunnerConfig =
         {
             connectionString : ConnectionString
-            runModel : RunModelParam -> ProcessStartInfo
+            runModel : RunModelParamWithCallBack -> ProcessStartInfo
         }
 
         static member defaultValue r =
@@ -63,19 +63,19 @@ module Runner =
         let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
 
 
-        let runModelImpl (p : RunModelParam) =
+        let runModelImpl (p : RunModelParamWithCallBack) =
             match i with
             | LocalRunnerProxy _ ->
-                let fullExeName = getExeName p.exeName
+                let fullExeName = getExeName p.runModelParam.exeName
 
                 let data =
                     {
                         modelDataId = p.callBack.calledBackModelId
-                        minUsefulEe = p.minUsefulEe
+                        minUsefulEe = p.runModelParam.minUsefulEe
                         remote = false
                     }
 
-                let commandLineParams = p.commandLineParam.toCommandLine data
+                let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
                 printfn "runModel::commandLineParams = %A\n" commandLineParams
 
                 //let runArgs =

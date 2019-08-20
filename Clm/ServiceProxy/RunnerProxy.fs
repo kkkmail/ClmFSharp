@@ -9,6 +9,21 @@ open ContGenServiceInfo.ServiceInfo
 
 module Runner =
 
+    let runLocalModel (p : RunModelParamWithCallBack) r =
+        let fullExeName = getExeName p.runModelParam.exeName
+
+        let data =
+            {
+                modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
+                minUsefulEe = p.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                remote = r
+            }
+
+        let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
+        printfn "runModel::commandLineParams = %A\n" commandLineParams
+        runProc p.callBackInfo fullExeName commandLineParams None
+
+
     type LocalRunnerConfig =
         {
             connectionString : ConnectionString
@@ -65,20 +80,7 @@ module Runner =
 
         let runModelImpl (p : RunModelParamWithCallBack) =
             match i with
-            | LocalRunnerProxy _ ->
-                let fullExeName = getExeName p.runModelParam.exeName
-
-                let data =
-                    {
-                        modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
-                        minUsefulEe = p.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
-                        remote = false
-                    }
-
-                let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
-                printfn "runModel::commandLineParams = %A\n" commandLineParams
-                (runProc p.callBackInfo fullExeName commandLineParams None).processStartInfo
-
+            | LocalRunnerProxy _ -> (runLocalModel p false).processStartInfo
             | PartitionerRunnerProxy c -> c.runModel p
 
 

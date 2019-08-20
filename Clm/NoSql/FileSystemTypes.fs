@@ -6,6 +6,8 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
+open MessagingServiceInfo.ServiceInfo
+open ContGenServiceInfo.ServiceInfo
 
 module FileSystemTypes =
 
@@ -14,12 +16,18 @@ module FileSystemTypes =
     let modelDataTblName = "ModelData"
     let resultDataTblName = "ResultData"
     let chartTblName = "Chart"
+    let workerNodeRunModelDataTblName = "WorkerNodeRunModelData"
+
+    let storageExt = "json"
+
+
+    let getFolderName tableName = fileStorageFolder + "\\" + tableName
 
 
     let getFileName<'A> tableName (objectId : 'A) =
-        let folder = fileStorageFolder + "\\" + tableName
+        let folder = getFolderName tableName
         Directory.CreateDirectory(folder) |> ignore
-        Path.Combine(folder, objectId.ToString() + ".json")
+        Path.Combine(folder, objectId.ToString() + "." + storageExt)
 
 
     let tryLoadData<'T, 'A> tableName (objectId : 'A) =
@@ -37,12 +45,35 @@ module FileSystemTypes =
         true
 
 
+    let tryDeleteData<'T, 'A> tableName (objectId : 'A) =
+        let f = getFileName tableName objectId
+
+        if File.Exists f then File.Delete f
+
+
+    let tryGetX<'A> tableName (creator : string -> 'A) =
+        let folder = getFolderName tableName
+        Directory.GetFiles(folder, "*." + storageExt)
+        |> Array.map (fun e -> Path.GetFileName e)
+        |> Array.map creator
+
+
     let saveModelDataFs (m : ModelData) = saveData<ModelData, Guid> modelDataTblName m.modelDataId.value m
     let tryLoadModelDataFs (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> modelDataTblName modelDataId
+    let tryDeleteModelDataFs (ModelDataId modelDataId) = tryDeleteData<ModelData, Guid> modelDataTblName modelDataId
+
+    let saveWorkerNodeRunModelDataFs (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName m.remoteProcessId.value m
+    let tryLoadWorkerNodeRunModelDataFs (RemoteProcessId processId) = tryLoadData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName processId
+    let tryDeleteWorkerNodeRunModelDataFs (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName processId
+
     let saveResultDataFs (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> resultDataTblName r.resultDataId.value r
     let tryLoadResultDataFs (ResultDataId resultDataId) = tryLoadData<ResultDataWithId, Guid> resultDataTblName resultDataId
+
     let saveChartsFs (ResultDataId resultDataId) (p : list<string>) = saveData<ChartInfo, Guid> chartTblName resultDataId { chartFileNames = p |> Array.ofList }
 
     let tryLoadCharts (ResultDataId resultDataId) =
         tryLoadData<ChartInfo, Guid> chartTblName resultDataId
         |> Option.bind (fun e -> e.chartFileNames |> List.ofArray |> Some)
+
+    let tryDeleteCharts (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> chartTblName resultDataId
+

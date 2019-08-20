@@ -3,30 +3,45 @@
 open ClmSys.Retry
 open ContGenServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
+open ServiceProxy.Runner
+open ClmSys.GeneralData
 
 module WorkerNodeProxy =
 
+    type StorageType =
+        | LocalStorage of ConnectionString
+        | RemoteStorage
+
+
     type WorkerNodeProxyInfo =
         {
-            //workerNodeConnectionString : ConnectionString
+            //storageType : StorageType
             dummy : int
         }
 
         static member defaultValue =
             {
-                //workerNodeConnectionString = clmConnectionString
+                //storageType = RemoteStorage
                 dummy = 0
             }
+
+    //type WorkerNodeProxyInfo =
+    //    {
+    //        dummy : int
+    //    }
+
+    //    static member defaultValue =
+    //        {
+    //            //workerNodeConnectionString = clmConnectionString
+    //            dummy = 0
+    //        }
 
 
     type WorkerNodeProxy(i : WorkerNodeProxyInfo) =
         let logError e = printfn "Error: %A" e
         let tryFun f = tryFun logError f
 
-        let saveResultDataImpl m = tryFun (fun _ -> saveModelDataFs m) |> ignore
-
-        let runModelImpl (p : RunModelParamWithCallBack) : LocalProcessStartInfo =
-            failwith ""
-
-        member __.saveModelData m = saveResultDataImpl m
-        member __.runModel p = runModelImpl p
+        member __.saveWorkerNodeRunModelData m = tryFun (fun _ -> saveWorkerNodeRunModelDataFs m) |> ignore
+        member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs m) |> Option.bind id
+        member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs m)
+        member __.runModel p = runLocalModel p true

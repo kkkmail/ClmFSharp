@@ -61,7 +61,6 @@ module ServiceImplementation =
         | Start
         | Register
         | UpdateProgress of LocalProgressUpdateInfo
-        | SaveModelData of ModelData
         | SaveResult of ResultDataWithId
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
@@ -84,20 +83,6 @@ module ServiceImplementation =
             |> WorkerNodeSvcAccessInfo
 
 
-        //let runModel e c =
-        //    {
-        //        runModelParam =
-        //            {
-        //                exeName = i.exeName
-        //                commandLineParam = e
-        //                minUsefulEe = i.minUsefulEe
-        //            }
-        //
-        //        callBackInfo = c
-        //    }
-        //    |> i.workerNodeProxy.runModel
-
-
         /// TODO kk:20190819 - Load:
         ///     1. Messages
         ///     2. What to run.
@@ -118,7 +103,7 @@ module ServiceImplementation =
 
 
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
-            let notifyPartitioner t =
+            let updateProgress t c =
                 match s.running.TryFind p.updatedLocalProcessId with
                 | Some r ->
                     let q =
@@ -133,24 +118,22 @@ module ServiceImplementation =
                         messageData = UpdateProgressPrtMsg q
                     }.messageInfo
                     |> sendMessage
+
+                    i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
 
-            let (t, completed) =
+                if c
+                then { s with running = s.running.tryRemove p.updatedLocalProcessId }
+                else s
+
+
+            let (t, c) =
                 match p.progress with
                 | NotStarted -> (NonGuaranteedDelivery, false)
                 | InProgress _ -> (NonGuaranteedDelivery, false)
                 | Completed -> (GuaranteedDelivery, true)
 
-            notifyPartitioner t
-
-            if completed
-            then { s with running = s.running.tryRemove p.updatedLocalProcessId }
-            else s
-
-
-        let onSaveModelData s x =
-            i.workerNodeProxy.saveModelData x
-            s
+            updateProgress t c
 
 
         let onSaveResult s r =
@@ -190,55 +173,9 @@ module ServiceImplementation =
             s
 
 
-//type ProcessStartedInfo =
-//    {
-//        calledBackModelId : ModelDataId
-//        runQueueId : RunQueueId
-//    }
-
-
-//type ProcessStartedCallBack =
-//    {
-//        notifyOnStarted : ProcessStartInfo -> unit
-//    }
-
-
-//type ProcessStartedInfoWithCallBack =
-//    {
-//        processStartedInfo : ProcessStartedInfo
-//        callBack : ProcessStartedCallBack
-//    }
-
-//type RunModelParam =
-//    {
-//        exeName : string
-//        commandLineParam : ModelCommandLineParam
-//    }
-
-
-//type RunModelParamWithCallBack =
-//    {
-//        runModelParam : RunModelParam
-//        callBackInfo : ProcessStartedInfoWithCallBack
-//    }
-
-
-//type ModelCommandLineTaskParam =
-//    {
-//        tEnd : decimal
-//        y0 : decimal
-//        useAbundant : bool
-//    }
-
-
-//type ModelCommandLineParam =
-//    {
-//        taskParam : ModelCommandLineTaskParam
-//        serviceAccessInfo : SolverRunnerAccessInfo
-//    }
-
-
         let onRunModel (s : WorkerNodeRunnerState) (r : WorkerNodeRunner) (m : WorkerNodeRunModelData) =
+            i.workerNodeProxy.saveWorkerNodeRunModelData m
+
             let a =
                 {
                     runModelParam =
@@ -266,9 +203,8 @@ module ServiceImplementation =
                         }
                 }
 
-            let x = i.workerNodeProxy.runModel a
-            let b = x.localProcessId
-            { s with running = s.running.Add(b, m.remoteProcessId) }
+            let result = i.workerNodeProxy.runModel a
+            { s with running = s.running.Add(result.localProcessId, m.remoteProcessId) }
 
 
         let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
@@ -294,7 +230,7 @@ module ServiceImplementation =
                             | Start -> return! onStart s |> loop
                             | Register -> return! onRegister s |> loop
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
-                            | SaveModelData m -> return! onSaveModelData s m |> loop
+                            //| SaveModelData m -> return! onSaveModelData s m |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
@@ -308,12 +244,12 @@ module ServiceImplementation =
         member __.start() = Start |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
         member __.updateProgress p = UpdateProgress p |> messageLoop.Post
-        member __.saveModelData m = SaveModelData m |> messageLoop.Post
+        //member __.saveModelData m = SaveModelData m |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private this.runModel m = RunModel (this, m) |> messageLoop.Post
-        member this.onStarted (p : ProcessStartInfo) = failwith ""
+        member this.onStarted (p : ProcessStartInfo) = ignore()
 
 
     let createServiceImpl i =

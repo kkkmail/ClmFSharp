@@ -48,9 +48,13 @@ module ServiceInfo =
     type LocalProcessId =
         | LocalProcessId of int
 
+        member this.value = let (LocalProcessId v) = this in v
+
 
     type RemoteProcessId =
         | RemoteProcessId of Guid
+
+        member this.value = let (RemoteProcessId v) = this in v
 
 
     type ProcessId =

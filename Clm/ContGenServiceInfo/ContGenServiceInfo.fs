@@ -45,12 +45,16 @@ module ServiceInfo =
         | ShuttingDown
 
 
+    type LocalProcessId =
+        | LocalProcessId of int
+
+
     type RemoteProcessId =
         | RemoteProcessId of Guid
 
 
     type ProcessId =
-        | LocalProcess of int
+        | LocalProcess of LocalProcessId
         | RemoteProcess of RemoteProcessId
 
 
@@ -64,7 +68,7 @@ module ServiceInfo =
 
     type LocalProgressUpdateInfo =
         {
-            updatedLocalProcessId : int
+            updatedLocalProcessId : LocalProcessId
             updateModelId : ModelDataId
             progress : TaskProgress
         }
@@ -89,6 +93,22 @@ module ServiceInfo =
                 updatedProcessId = this.updatedRemoteProcessId |> RemoteProcess
                 updateModelId = this.updateModelId
                 progress = this.progress
+            }
+
+
+    let fromLocalProgress (p : LocalProgressUpdateInfo) r =
+            {
+                updatedRemoteProcessId = r
+                updateModelId = p.updateModelId
+                progress = p.progress
+            }
+
+
+    let fromRemoteProgress (p : LocalProgressUpdateInfo) l =
+            {
+                updatedLocalProcessId = l
+                updateModelId = p.updateModelId
+                progress = p.progress
             }
 
 
@@ -162,8 +182,6 @@ module ServiceInfo =
     type ProcessStartedCallBack =
         {
             notifyOnStarted : ProcessStartInfo -> unit
-            //calledBackModelId : ModelDataId
-            //runQueueId : RunQueueId
         }
 
 
@@ -251,12 +269,6 @@ module ServiceInfo =
         }
 
 
-    //let runProc (a : RunProcArgs) =
-    //    let c = a.callBackInfo
-    //    let filename = a.fileName
-    //    let args = a.commandLineArgs
-    //    let startDir = a.startDir
-    //    let notifyOnStarted = a.notifyOnStarted
     let runProc (c : ProcessStartedInfoWithCallBack) filename args startDir =
         let procStartInfo =
             ProcessStartInfo(
@@ -291,14 +303,14 @@ module ServiceInfo =
             printfn "Failed to start process %s" filename
 
             {
-                processId = LocalProcess -1
+                processId = -1 |> LocalProcessId |> LocalProcess
                 modelDataId = c.processStartedInfo.calledBackModelId
                 runQueueId = c.processStartedInfo.runQueueId
             }
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
 
-            let processId = LocalProcess p.Id
+            let processId = p.Id |> LocalProcessId |> LocalProcess
 
             printfn "Started %s with pid %A" p.ProcessName processId
             c.callBack.notifyOnStarted { processId = processId; modelDataId = c.processStartedInfo.calledBackModelId; runQueueId = c.processStartedInfo.runQueueId }

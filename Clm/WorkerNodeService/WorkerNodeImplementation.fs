@@ -28,12 +28,12 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState =
         {
-            dummy : int
+            running : Map<int, RemoteProcessId>
         }
 
         static member defaultValue =
             {
-                dummy = 0
+                running = Map.empty
             }
 
 
@@ -73,6 +73,7 @@ module ServiceImplementation =
         let messagingClient = MessagingClient i.messagingClientData
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
+        let logErr = i.logger.logErr
 
 
         let runModel e c =
@@ -103,31 +104,36 @@ module ServiceImplementation =
 
             s
 
+
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
-            //let notifyPartitioner t =
-            //    let q =
-            //        match p.updatedProcessId with
-            //        | LocalProcess x -> failwith ""
-            //        | RemoteProcess r ->
-            //            {
-            //                updatedRemoteProcessId = r
-            //                updateModelId = p.updateModelId
-            //                progress = p.progress
-            //            }
-            //    {
-            //        partitionerRecipient = partitioner
-            //        deliveryType = t
-            //        messageData = UpdateProgressPrtMsg p
-            //    }.messageInfo
-            //    |> sendMessage
+            let notifyPartitioner t =
+                match s.running.TryFind p.updatedLocalProcessId with
+                | Some r ->
+                    let q =
+                        {
+                            updatedRemoteProcessId = r
+                            updateModelId = p.updateModelId
+                            progress = p.progress
+                        }
+                    {
+                        partitionerRecipient = partitioner
+                        deliveryType = t
+                        messageData = UpdateProgressPrtMsg q
+                    }.messageInfo
+                    |> sendMessage
+                | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
 
-            //match p.progress with
-            //| NotStarted -> NonGuaranteedDelivery
-            //| InProgress _ -> NonGuaranteedDelivery
-            //| Completed -> GuaranteedDelivery
-            //|> notifyPartitioner
+            let (t, completed) =
+                match p.progress with
+                | NotStarted -> (NonGuaranteedDelivery, false)
+                | InProgress _ -> (NonGuaranteedDelivery, false)
+                | Completed -> (GuaranteedDelivery, true)
 
-            s
+            notifyPartitioner t
+
+            if completed
+            then { s with running = s.running.tryRemove p.updatedLocalProcessId }
+            else s
 
 
         let onSaveModelData s x =
@@ -172,20 +178,66 @@ module ServiceImplementation =
             s
 
 
+//type ProcessStartedInfo =
+//    {
+//        calledBackModelId : ModelDataId
+//        runQueueId : RunQueueId
+//    }
+
+
+//type ProcessStartedCallBack =
+//    {
+//        notifyOnStarted : ProcessStartInfo -> unit
+//    }
+
+
+//type ProcessStartedInfoWithCallBack =
+//    {
+//        processStartedInfo : ProcessStartedInfo
+//        callBack : ProcessStartedCallBack
+//    }
+
+//type RunModelParam =
+//    {
+//        exeName : string
+//        commandLineParam : ModelCommandLineParam
+//        minUsefulEe : MinUsefulEe
+//    }
+
+
+//type RunModelParamWithCallBack =
+//    {
+//        runModelParam : RunModelParam
+//        callBackInfo : ProcessStartedInfoWithCallBack
+//    }
+
         let onRunModel s (r : WorkerNodeRunner) (m : ModelData) =
-            //let a =
-            //    {
-            //        runModelParam =
-            //            {
-            //                exeName = i.exeName
-            //                commandLineParam = failwith "" // : ModelCommandLineParam
-            //                minUsefulEe = i.minUsefulEe
-            //            }
+            let a =
+                {
+                    runModelParam =
+                        {
+                            exeName = i.exeName
+                            commandLineParam = failwith ""
+                            minUsefulEe = i.minUsefulEe
+                        }
 
-            //        callBack = failwith "" //: ProcessStartedCallBack
-            //    }
+                    callBackInfo =
+                        {
+                            processStartedInfo =
+                                {
+                                    calledBackModelId = failwith ""
+                                    runQueueId = failwith ""
+                                }
 
-            //let x = i.workerNodeProxy.runModel
+                            callBack =
+                                {
+                                    notifyOnStarted = failwith ""
+                                }
+                        }
+
+                }
+
+            let x = i.workerNodeProxy.runModel a
             s
 
 

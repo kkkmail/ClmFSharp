@@ -293,6 +293,9 @@ module GeneralData =
         (a |> List.map snd, b |> List.map snd)
 
 
+    /// Tries to remove a given key from the map.
+    /// If found, then returns a new map with the key removed.
+    /// If not found, then returns the orignial map.
     type Map<'k, 'v when 'k : comparison>
         with
 

@@ -13,6 +13,7 @@ module FileSystemTypes =
 
     let fileStorageFolder = DefaultFileStorageFolder
 
+    let messageTblName = "Message"
     let modelDataTblName = "ModelData"
     let resultDataTblName = "ResultData"
     let chartTblName = "Chart"
@@ -58,6 +59,11 @@ module FileSystemTypes =
         |> Array.map creator
         |> List.ofArray
 
+
+    let saveMessageFs (m : Message) = saveData<Message, Guid> messageTblName m.messageId.value m
+    let tryLoadMessageFs (MessageId messageId) = tryLoadData<ModelData, Guid> messageTblName messageId
+    let tryDeleteMessageFs (MessageId messageId) = tryDeleteData<ModelData, Guid> messageTblName messageId
+    let getMessageIdsFs () = getObjectIds<Guid> messageTblName Guid.Parse |> List.map MessageId
 
     let saveModelDataFs (m : ModelData) = saveData<ModelData, Guid> modelDataTblName m.modelDataId.value m
     let tryLoadModelDataFs (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> modelDataTblName modelDataId

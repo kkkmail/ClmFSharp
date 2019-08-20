@@ -273,7 +273,7 @@ module AsyncRun =
         let cancelProcessImpl i =
             try
                 match i with
-                | LocalProcess a -> (Process.GetProcessById a).Kill()
+                | LocalProcess (LocalProcessId a) -> (Process.GetProcessById a).Kill()
                 | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
                 true
             with

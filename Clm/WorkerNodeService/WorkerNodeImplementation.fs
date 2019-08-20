@@ -28,7 +28,7 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState =
         {
-            running : Map<int, RemoteProcessId>
+            running : Map<LocalProcessId, RemoteProcessId>
         }
 
         static member defaultValue =
@@ -76,20 +76,24 @@ module ServiceImplementation =
         let logErr = i.logger.logErr
 
 
-        let runModel e c =
-            {
-                runModelParam =
-                    {
-                        exeName = i.exeName
-                        commandLineParam = e
-                        minUsefulEe = i.minUsefulEe
-                    }
+        //let runModel e c =
+        //    {
+        //        runModelParam =
+        //            {
+        //                exeName = i.exeName
+        //                commandLineParam = e
+        //                minUsefulEe = i.minUsefulEe
+        //            }
+        //
+        //        callBackInfo = c
+        //    }
+        //    |> i.workerNodeProxy.runModel
 
-                callBackInfo = c
-            }
-            |> i.workerNodeProxy.runModel
 
-
+        /// TODO kk:20190819 - Load:
+        ///     1. Messages
+        ///     2. What to run.
+        ///     3. Etc...
         let onStart s =
             s
 

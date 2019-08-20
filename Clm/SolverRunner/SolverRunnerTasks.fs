@@ -50,7 +50,7 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedLocalProcessId = Process.GetCurrentProcess().Id
+                updatedLocalProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
                 updateModelId = m
                 progress = t
             }

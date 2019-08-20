@@ -162,6 +162,21 @@ module ServiceInfo =
             }
 
 
+    type LocalProcessStartInfo =
+        {
+            localProcessId : LocalProcessId
+            modelDataId : ModelDataId
+            runQueueId : RunQueueId
+        }
+
+        member this.processStartInfo =
+            {
+                processId = this.localProcessId |> LocalProcess
+                modelDataId = this.modelDataId
+                runQueueId = this.runQueueId
+            }
+
+
     type ProcessResult =
         {
             startInfo : ProcessStartInfo
@@ -303,20 +318,20 @@ module ServiceInfo =
             printfn "Failed to start process %s" filename
 
             {
-                processId = -1 |> LocalProcessId |> LocalProcess
+                localProcessId = -1 |> LocalProcessId
                 modelDataId = c.processStartedInfo.calledBackModelId
                 runQueueId = c.processStartedInfo.runQueueId
             }
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
 
-            let processId = p.Id |> LocalProcessId |> LocalProcess
+            let processId = p.Id |> LocalProcessId
 
             printfn "Started %s with pid %A" p.ProcessName processId
-            c.callBack.notifyOnStarted { processId = processId; modelDataId = c.processStartedInfo.calledBackModelId; runQueueId = c.processStartedInfo.runQueueId }
+            c.callBack.notifyOnStarted { processId = processId |> LocalProcess; modelDataId = c.processStartedInfo.calledBackModelId; runQueueId = c.processStartedInfo.runQueueId }
 
             {
-                processId = processId
+                localProcessId = processId
                 modelDataId = c.processStartedInfo.calledBackModelId
                 runQueueId = c.processStartedInfo.runQueueId
             }
@@ -326,7 +341,6 @@ module ServiceInfo =
         {
             exeName : string
             commandLineParam : ModelCommandLineParam
-            minUsefulEe : MinUsefulEe
         }
 
 

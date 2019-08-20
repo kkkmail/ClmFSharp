@@ -95,16 +95,16 @@ module GeneralData =
         }
 
 
-    type WorkerNodeServiceAccessInfo =
+    type WrkNodeServiceAccessInfo =
         {
-            workerNodeServiceAccessInfo : ServiceAccessInfo
+            wrkNodeServiceAccessInfo : ServiceAccessInfo
             minUsefulEe : MinUsefulEe
         }
 
 
     type SolverRunnerAccessInfo =
         | ContGenSvcAccessInfo of ContGenServiceAccessInfo
-        | WorkerNodeSvcAccessInfo of WorkerNodeServiceAccessInfo
+        | WorkerNodeSvcAccessInfo of WrkNodeServiceAccessInfo
 
         member this.minUsefulEe =
             match this with
@@ -114,12 +114,12 @@ module GeneralData =
         member this.serviceAddress =
             match this with
             | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
-            | WorkerNodeSvcAccessInfo w -> w.workerNodeServiceAccessInfo.serviceAddress
+            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.serviceAddress
 
         member this.servicePort =
             match this with
             | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
-            | WorkerNodeSvcAccessInfo w -> w.workerNodeServiceAccessInfo.servicePort
+            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.servicePort
 
 
     let toVariableName (s : string) =

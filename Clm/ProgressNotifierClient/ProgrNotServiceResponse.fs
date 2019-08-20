@@ -18,7 +18,7 @@ module ServiceResponse =
             | ContGenSvcAccessInfo c ->
                 Activator.GetObject (typeof<IContGenService>, getServiceUrl c.contGenServiceAccessInfo) :?> IContGenService |> ContGenNotifier
             | WorkerNodeSvcAccessInfo w ->
-                Activator.GetObject (typeof<IWorkerNodeService>, getServiceUrl w.workerNodeServiceAccessInfo) :?> IWorkerNodeService |> WorkerNodeNotifier
+                Activator.GetObject (typeof<IWorkerNodeService>, getServiceUrl w.wrkNodeServiceAccessInfo) :?> IWorkerNodeService |> WorkerNodeNotifier
 
         let updateLocalProgressImpl p =
             match service with

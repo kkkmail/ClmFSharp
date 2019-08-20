@@ -48,7 +48,6 @@ module Runner =
                     {
                         exeName = p.exeName
                         commandLineParam = e
-                        minUsefulEe = p.minUsefulEe
                     }
 
                 callBackInfo = c

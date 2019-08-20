@@ -71,13 +71,13 @@ module Runner =
                 let data =
                     {
                         modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
-                        minUsefulEe = p.runModelParam.minUsefulEe
+                        minUsefulEe = p.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                         remote = false
                     }
 
                 let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
                 printfn "runModel::commandLineParams = %A\n" commandLineParams
-                runProc p.callBackInfo fullExeName commandLineParams None
+                (runProc p.callBackInfo fullExeName commandLineParams None).processStartInfo
 
             | PartitionerRunnerProxy c -> c.runModel p
 

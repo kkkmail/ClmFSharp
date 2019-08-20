@@ -66,7 +66,7 @@ module ServiceImplementation =
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message
-        | RunModel of WorkerNodeRunner * ModelData
+        | RunModel of WorkerNodeRunner * WorkerNodeRunModelData
 
 
     and WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -74,6 +74,14 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
         let logErr = i.logger.logErr
+
+
+        let getSolverRunnerAccessInfo ee =
+            {
+                wrkNodeServiceAccessInfo = i.workerNodeAccessInfo.workerNodeServiceAccessInfo
+                minUsefulEe = ee
+            }
+            |> WorkerNodeSvcAccessInfo
 
 
         //let runModel e c =
@@ -205,7 +213,6 @@ module ServiceImplementation =
 //    {
 //        exeName : string
 //        commandLineParam : ModelCommandLineParam
-//        minUsefulEe : MinUsefulEe
 //    }
 
 
@@ -215,34 +222,53 @@ module ServiceImplementation =
 //        callBackInfo : ProcessStartedInfoWithCallBack
 //    }
 
-        let onRunModel s (r : WorkerNodeRunner) (m : ModelData) =
+
+//type ModelCommandLineTaskParam =
+//    {
+//        tEnd : decimal
+//        y0 : decimal
+//        useAbundant : bool
+//    }
+
+
+//type ModelCommandLineParam =
+//    {
+//        taskParam : ModelCommandLineTaskParam
+//        serviceAccessInfo : SolverRunnerAccessInfo
+//    }
+
+
+        let onRunModel (s : WorkerNodeRunnerState) (r : WorkerNodeRunner) (m : WorkerNodeRunModelData) =
             let a =
                 {
                     runModelParam =
                         {
                             exeName = i.exeName
-                            commandLineParam = failwith ""
-                            minUsefulEe = i.minUsefulEe
+                            commandLineParam =
+                                {
+                                    taskParam = m.taskParam
+                                    serviceAccessInfo = getSolverRunnerAccessInfo m.minUsefulEe
+                                }
                         }
 
                     callBackInfo =
                         {
                             processStartedInfo =
                                 {
-                                    calledBackModelId = failwith ""
-                                    runQueueId = failwith ""
+                                    calledBackModelId = m.wrkModelData.modelDataId
+                                    runQueueId = m.runQueueId
                                 }
 
                             callBack =
                                 {
-                                    notifyOnStarted = failwith ""
+                                    notifyOnStarted = r.onStarted
                                 }
                         }
-
                 }
 
             let x = i.workerNodeProxy.runModel a
-            s
+            let b = x.localProcessId
+            { s with running = s.running.Add(b, m.remoteProcessId) }
 
 
         let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
@@ -287,6 +313,7 @@ module ServiceImplementation =
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private this.runModel m = RunModel (this, m) |> messageLoop.Post
+        member this.onStarted (p : ProcessStartInfo) = failwith ""
 
 
     let createServiceImpl i =

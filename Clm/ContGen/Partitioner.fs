@@ -208,7 +208,15 @@ module Partitioner =
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
                         deliveryType = GuaranteedDelivery
-                        messageData = m |> RunModelWrkMsg
+                        messageData =
+                            {
+                                wrkModelData = m
+                                taskParam = a.runModelParam.commandLineParam.taskParam
+                                runQueueId = a.callBackInfo.processStartedInfo.runQueueId
+                                minUsefulEe = a.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                                remoteProcessId = q
+                            }
+                            |> RunModelWrkMsg
                     }.messageInfo
                     |> sendMessage
 

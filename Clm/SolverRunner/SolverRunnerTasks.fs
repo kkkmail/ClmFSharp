@@ -81,7 +81,7 @@ module SolverRunnerTasks =
                 |> ContGenSvcAccessInfo
             | Some _ ->
                 {
-                    workerNodeServiceAccessInfo =
+                    wrkNodeServiceAccessInfo =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port

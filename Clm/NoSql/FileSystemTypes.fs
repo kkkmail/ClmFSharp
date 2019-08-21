@@ -8,90 +8,95 @@ open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.MessagingData
 
 module FileSystemTypes =
 
     let fileStorageFolder = DefaultFileStorageFolder
 
-    let messageTblName = "Message"
-    let messageWithTypeTblName = "MessageWithType"
-    let modelDataTblName = "ModelData"
-    let resultDataTblName = "ResultData"
-    let chartTblName = "Chart"
-    let workerNodeRunModelDataTblName = "WorkerNodeRunModelData"
+    type TableName =
+        | TableName of string
+
+
+    let messageTblName = TableName "Message"
+    let messageWithTypeTblName = TableName "MessageWithType"
+    let modelDataTblName = TableName "ModelData"
+    let resultDataTblName = TableName "ResultData"
+    let chartTblName = TableName "Chart"
+    let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
 
     let storageExt = "json"
 
 
-    let getFolderName tableName = fileStorageFolder + "\\" + tableName
+    let getFolderName (MessagingClientName serviceName) (TableName tableName) = fileStorageFolder + "\\" + serviceName + "\\" + tableName
 
 
-    let getFileName<'A> tableName (objectId : 'A) =
-        let folder = getFolderName tableName
+    let getFileName<'A> serviceName tableName (objectId : 'A) =
+        let folder = getFolderName serviceName tableName
         Directory.CreateDirectory(folder) |> ignore
         Path.Combine(folder, objectId.ToString() + "." + storageExt)
 
 
-    let tryLoadData<'T, 'A> tableName (objectId : 'A) =
-        let f = getFileName tableName objectId
+    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) =
+        let f = getFileName serviceName tableName objectId
 
         if File.Exists f
         then File.ReadAllText(f) |> JsonConvert.DeserializeObject<'T> |> Some
         else None
 
 
-    let saveData<'T, 'A> tableName (objectId : 'A) (t : 'T) =
-        let f = getFileName tableName objectId
+    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        let f = getFileName serviceName tableName objectId
         let d = t |> JsonConvert.SerializeObject
         File.WriteAllText(f, d)
         true
 
 
-    let tryDeleteData<'T, 'A> tableName (objectId : 'A) =
-        let f = getFileName tableName objectId
+    let tryDeleteData<'T, 'A> serviceName tableName (objectId : 'A) =
+        let f = getFileName serviceName tableName objectId
 
         if File.Exists f then File.Delete f
 
 
-    let getObjectIds<'A> tableName (creator : string -> 'A) =
-        let folder = getFolderName tableName
+    let getObjectIds<'A> serviceName tableName (creator : string -> 'A) =
+        let folder = getFolderName serviceName tableName
         Directory.GetFiles(folder, "*." + storageExt)
         |> Array.map (fun e -> Path.GetFileNameWithoutExtension e)
         |> Array.map creator
         |> List.ofArray
 
 
-    let saveMessageFs (m : Message) = saveData<Message, Guid> messageTblName m.messageId.value m
-    let tryLoadMessageFs (MessageId messageId) = tryLoadData<Message, Guid> messageTblName messageId
-    let tryDeleteMessageFs (MessageId messageId) = tryDeleteData<Message, Guid> messageTblName messageId
-    let getMessageIdsFs () = getObjectIds<Guid> messageTblName Guid.Parse |> List.map MessageId
+    let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageId.value m
+    let tryLoadMessageFs serviceName (MessageId messageId) = tryLoadData<Message, Guid> serviceName messageTblName messageId
+    let tryDeleteMessageFs serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
+    let getMessageIdsFs serviceName () = getObjectIds<Guid> serviceName messageTblName Guid.Parse |> List.map MessageId
 
-    let saveMessageWithTypeFs (m : MessageWithType) = saveData<MessageWithType, Guid> messageWithTypeTblName m.message.messageId.value m
-    let tryLoadMessageWithTypeFs (MessageId messageId) = tryLoadData<MessageWithType, Guid> messageWithTypeTblName messageId
-    let tryDeleteMessageWithTypeFs (MessageId messageId) = tryDeleteData<MessageWithType, Guid> messageWithTypeTblName messageId
-    let getMessageWithTypeIdsFs () = getObjectIds<Guid> messageWithTypeTblName Guid.Parse |> List.map MessageId
+    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageId.value m
+    let tryLoadMessageWithTypeFs serviceName (MessageId messageId) = tryLoadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+    let getMessageWithTypeIdsFs serviceName () = getObjectIds<Guid> serviceName messageWithTypeTblName Guid.Parse |> List.map MessageId
 
-    let saveModelDataFs (m : ModelData) = saveData<ModelData, Guid> modelDataTblName m.modelDataId.value m
-    let tryLoadModelDataFs (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> modelDataTblName modelDataId
-    let tryDeleteModelDataFs (ModelDataId modelDataId) = tryDeleteData<ModelData, Guid> modelDataTblName modelDataId
-    let getModelDataIdsFs () = getObjectIds<Guid> modelDataTblName Guid.Parse |> List.map ModelDataId
+    let saveModelDataFs serviceName (m : ModelData) = saveData<ModelData, Guid> serviceName modelDataTblName m.modelDataId.value m
+    let tryLoadModelDataFs serviceName (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> serviceName modelDataTblName modelDataId
+    let tryDeleteModelDataFs serviceName (ModelDataId modelDataId) = tryDeleteData<ModelData, Guid> serviceName modelDataTblName modelDataId
+    let getModelDataIdsFs serviceName () = getObjectIds<Guid> serviceName modelDataTblName Guid.Parse |> List.map ModelDataId
 
-    let saveWorkerNodeRunModelDataFs (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName m.remoteProcessId.value m
-    let tryLoadWorkerNodeRunModelDataFs (RemoteProcessId processId) = tryLoadData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName processId
-    let tryDeleteWorkerNodeRunModelDataFs (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> workerNodeRunModelDataTblName processId
-    let getWorkerNodeRunModelDataIdsFs () = getObjectIds<Guid> workerNodeRunModelDataTblName Guid.Parse |> List.map RemoteProcessId
+    let saveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.remoteProcessId.value m
+    let tryLoadWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryLoadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
+    let tryDeleteWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
+    let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeRunModelDataTblName Guid.Parse |> List.map RemoteProcessId
 
-    let saveResultDataFs (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> resultDataTblName r.resultDataId.value r
-    let tryLoadResultDataFs (ResultDataId resultDataId) = tryLoadData<ResultDataWithId, Guid> resultDataTblName resultDataId
-    let tryDeleteResultDataFs (ResultDataId resultDataId) = tryDeleteData<WorkerNodeRunModelData, Guid> resultDataTblName resultDataId
-    let getResultDataIdsFs () = getObjectIds<Guid> resultDataTblName Guid.Parse |> List.map ResultDataId
+    let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
+    let tryLoadResultDataFs serviceName (ResultDataId resultDataId) = tryLoadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
+    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName resultDataTblName resultDataId
+    let getResultDataIdsFs serviceName () = getObjectIds<Guid> serviceName resultDataTblName Guid.Parse |> List.map ResultDataId
 
-    let saveChartsFs (ResultDataId resultDataId) (p : list<string>) = saveData<ChartInfo, Guid> chartTblName resultDataId { chartFileNames = p |> Array.ofList }
+    let saveChartsFs serviceName (ResultDataId resultDataId) (p : list<string>) = saveData<ChartInfo, Guid> serviceName chartTblName resultDataId { chartFileNames = p |> Array.ofList }
 
-    let tryLoadCharts (ResultDataId resultDataId) =
-        tryLoadData<ChartInfo, Guid> chartTblName resultDataId
+    let tryLoadCharts serviceName (ResultDataId resultDataId) =
+        tryLoadData<ChartInfo, Guid> serviceName chartTblName resultDataId
         |> Option.bind (fun e -> e.chartFileNames |> List.ofArray |> Some)
 
-    let tryDeleteChartsFs (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> chartTblName resultDataId
-    let getChartsIdsFs () = getObjectIds<Guid> chartTblName Guid.Parse |> List.map ResultDataId
+    let tryDeleteChartsFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartTblName resultDataId
+    let getChartsIdsFs serviceName () = getObjectIds<Guid> serviceName chartTblName Guid.Parse |> List.map ResultDataId
 

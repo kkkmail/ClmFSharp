@@ -31,8 +31,7 @@ module Registry =
     let private formatSubKeyKey subKey key = (sprintf "subKey: '%s', key = '%s'." subKey key)
 
     let private getTopSubKey (VersionNumber v) = "SOFTWARE" + "\\" + SystemName + "\\" + v
-    let private getMessagingServerSubKey v = (getTopSubKey v) + "\\" + "Messaging" + "\\" + "Server"
-    let private getMessagingClientSubKey v (MessagingClientName c) = (getTopSubKey v) + "\\" + "Messaging" + "\\" + "Client" + "\\" + c
+    let private getMessagingClientSubKey v (MessagingClientName c) = (getTopSubKey v) + "\\" + c
 
 
     let private tryCreateRegistrySubKey (logger : Logger) subKey =
@@ -98,34 +97,6 @@ module Registry =
             | e ->
                 logger.logExn (formatSubKey subKey) e
                 None
-
-
-    //// Messaging Server
-    //let tryGetMessagingServerAddress (logger : Logger) v =
-    //    match tryGetRegistryValue logger (getMessagingServerSubKey v) serviceAddressKey with
-    //    | Some s -> ServiceAddress s |> Some
-    //    | None -> None
-
-
-    //let trySetMessagingServerAddress (logger : Logger) v (ServiceAddress a) =
-    //    match tryCreateRegistrySubKey logger (getMessagingServerSubKey v) with
-    //    | Some _ -> trySetRegistryValue logger (getMessagingServerSubKey v) serviceAddressKey a
-    //    | None -> None
-
-
-    //let tryGetMessagingServerPort (logger : Logger) v =
-    //    match tryGetRegistryValue logger (getMessagingServerSubKey v) servicePortKey with
-    //    | Some s ->
-    //        match Int32.TryParse s with
-    //        | true, v -> ServicePort v |> Some
-    //        | false, _ -> None
-    //    | None -> None
-
-
-    //let trySetMessagingServerPort (logger : Logger) v (ServicePort p) =
-    //    match tryCreateRegistrySubKey logger (getMessagingServerSubKey v) with
-    //    | Some _ -> trySetRegistryValue logger (getMessagingServerSubKey v) servicePortKey (p.ToString())
-    //    | None -> None
 
 
     // Messaging Client

@@ -78,6 +78,7 @@ module SvcCommandLine =
         let version = getVersion p
         let address = getMsgServerAddress logger version name p
         let port = getMsgServerPort logger version name p
+        printfn "address: %A, port: %A" address port
 
         let saveSettings() =
             trySetMessagingClientAddress logger versionNumberValue name address |> ignore

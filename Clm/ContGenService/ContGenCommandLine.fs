@@ -163,6 +163,8 @@ module SvcCommandLine =
             trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
             trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
 
+            trySetContGenMinUsefulEe logger versionNumberValue name ee |> ignore
+
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()
         | _, true -> saveSettings()
@@ -212,7 +214,7 @@ module SvcCommandLine =
                         partitionerMsgAccessInfo = w
                         partitionerProxy = PartitionerProxy PartitionerProxyInfo.defaultValue
                         msgResponseHandler = m
-                        msgClientProxy = MessagingClientProxy.defaultValue
+                        msgClientProxy = MessagingClientProxy { messagingClientName = contGenServiceName }
                         logger = logger
                     }
 

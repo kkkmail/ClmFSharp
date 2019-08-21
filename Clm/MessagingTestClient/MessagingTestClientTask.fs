@@ -18,7 +18,7 @@ module MessagingTestClientTask =
             {
                 msgAccessInfo = i
                 msgResponseHandler = h
-                msgClientProxy = MessagingClientProxy.defaultValue
+                msgClientProxy = MessagingClientProxy { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
                 logger = logger
             }
 

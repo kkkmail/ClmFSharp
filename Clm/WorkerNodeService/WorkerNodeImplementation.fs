@@ -7,6 +7,7 @@ open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
 open ClmSys.Retry
+open ClmSys.Registry
 open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
@@ -277,7 +278,7 @@ module ServiceImplementation =
                 {
                     workerNodeAccessInfo = serviceAccessInfo
                     msgResponseHandler = h
-                    msgClientProxy = MessagingClientProxy.defaultValue
+                    msgClientProxy = MessagingClientProxy { messagingClientName = workerNodeServiceName }
                     workerNodeProxy = WorkerNodeProxy WorkerNodeProxyInfo.defaultValue
                     logger = logger
                     exeName = SolverRunnerName

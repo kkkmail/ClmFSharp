@@ -5,6 +5,7 @@ open ContGenServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
 open ServiceProxy.Runner
 open ClmSys.GeneralData
+open ClmSys.Registry
 
 module WorkerNodeProxy =
 
@@ -42,16 +43,16 @@ module WorkerNodeProxy =
         let tryFun f = tryFun logError f
 
         let loadAllWorkerNodeRunModelDataImpl () =
-            match tryFun getWorkerNodeRunModelDataIdsFs with
+            match tryFun (getWorkerNodeRunModelDataIdsFs workerNodeServiceName) with
             | Some i ->
                 i
-                |> List.map (fun e -> tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs e) |> Option.bind id)
+                |> List.map (fun e -> tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs workerNodeServiceName e) |> Option.bind id)
                 |> List.choose id
             | None -> []
 
 
-        member __.saveWorkerNodeRunModelData m = tryFun (fun _ -> saveWorkerNodeRunModelDataFs m) |> ignore
-        member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs m) |> Option.bind id
-        member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs m)
+        member __.saveWorkerNodeRunModelData m = tryFun (fun _ -> saveWorkerNodeRunModelDataFs workerNodeServiceName m) |> ignore
+        member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs workerNodeServiceName m) |> Option.bind id
+        member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs workerNodeServiceName m)
         member __.runModel p = runLocalModel p true
         member __.loadAllWorkerNodeRunModelData() = loadAllWorkerNodeRunModelDataImpl()

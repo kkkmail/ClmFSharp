@@ -43,11 +43,13 @@ module Service =
 
 
         let onStart s =
+            printfn "MessagingService.onStart"
             s.messageServiceData.messagingServiceProxy.loadMessages()
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
         let onSendMessage s m =
+            printfn "MessagingService.onSendMessage: m = %A." m
             match m.messageInfo.deliveryType with
             | GuaranteedDelivery -> s.messageServiceData.messagingServiceProxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
@@ -56,6 +58,7 @@ module Service =
 
 
         let onGetMessages s (n, r : AsyncReplyChannel<List<Message>>) =
+            printfn "MessagingService.onGetMessages"
             match s.messages.TryFind n with
             | Some v ->
                 r.Reply v

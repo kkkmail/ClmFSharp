@@ -85,6 +85,7 @@ module ServiceImplementation =
 
 
         let onStart s (r : WorkerNodeRunner) =
+            printfn "WorkerNodeRunner.onStart"
             i.workerNodeProxy.loadAllWorkerNodeRunModelData()
             |> List.map (fun e -> r.runModel e)
             |> ignore
@@ -93,6 +94,7 @@ module ServiceImplementation =
 
 
         let onRegister s =
+            printfn "WorkerNodeRunner.onRegister"
             {
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
@@ -104,6 +106,7 @@ module ServiceImplementation =
 
 
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
+            printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
             let updateProgress t c =
                 match s.running.TryFind p.updatedLocalProcessId with
                 | Some r ->
@@ -138,6 +141,7 @@ module ServiceImplementation =
 
 
         let onSaveResult s r =
+            printfn "WorkerNodeRunner.onSaveResult: r = %A." r
             {
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
@@ -149,6 +153,7 @@ module ServiceImplementation =
 
 
         let onSaveCharts s c =
+            printfn "WorkerNodeRunner.onSaveCharts: c = %A." c
             {
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
@@ -160,6 +165,7 @@ module ServiceImplementation =
 
 
         let onGetMessages s (r : WorkerNodeRunner) =
+            printfn "WorkerNodeRunner.onGetMessages"
             let messages = messagingClient.getMessages()
 
             //messages
@@ -175,6 +181,7 @@ module ServiceImplementation =
 
 
         let onRunModel (s : WorkerNodeRunnerState) (r : WorkerNodeRunner) (m : WorkerNodeRunModelData) =
+            printfn "WorkerNodeRunner.onRunModel: m = %A." m
             i.workerNodeProxy.saveWorkerNodeRunModelData m
 
             let a =
@@ -209,6 +216,7 @@ module ServiceImplementation =
 
 
         let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
+            printfn "WorkerNodeRunner.onProcessMessage: m = %A." m
             match m.messageInfo.messageData with
             | WorkerNodeMsg x ->
                 match x with

@@ -93,10 +93,12 @@ module Partitioner =
 
 
         let onStart s q =
+            printfn "PartitionerRunner.onStart"
             { s with partitionerCallBackInfo = q }
 
 
         let onRegister s (r : WorkerNodeInfo) =
+            printfn "PartitionerRunner.onRegister: r = %A." r
             let updated q = { s with workerNodes = s.workerNodes.Add (r.workerNodeId, { workerNodeInfo = r; running = q }) }
 
             match s.workerNodes.TryFind r.workerNodeId with
@@ -112,6 +114,7 @@ module Partitioner =
 
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
+            printfn "PartitionerRunner.onUpdateProgress: i = %A." i
             s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
 
             match i.progress with
@@ -128,17 +131,19 @@ module Partitioner =
 
 
         let onSaveResult s r =
+            printfn "PartitionerRunner.onSaveResult: r = %A." r
             p.partitionerProxy.saveResultData r
             s
 
 
         /// TODO kk:20190820 - Implement.
         let onSaveCharts s c =
-
+            printfn "PartitionerRunner.onSaveCharts: c = %A." c
             s
 
 
         let onGetMessages s (w : PartitionerRunner) =
+            printfn "PartitionerRunner.onGetMessages"
             let messages = messagingClient.getMessages()
 
             messages
@@ -154,6 +159,7 @@ module Partitioner =
 
 
         let onProcessMessage (s : PartitionerRunnerState) (w : PartitionerRunner) (m : Message) =
+            printfn "PartitionerRunner.onProcessMessage: m = %A." m
             match m.messageInfo.messageData with
             | PartitionerMsg x ->
                 match x with
@@ -188,6 +194,7 @@ module Partitioner =
 
 
         let onRunModel s (a: RunModelParamWithCallBack) (q : RemoteProcessId) =
+            printfn "PartitionerRunner.onRunModel: q = %A." q
             let onCannotRun() =
                 let e =
                     {
@@ -266,6 +273,6 @@ module Partitioner =
 
 
         member __.start q = q |> Start |> messageLoop.Post
-        member this.runModel p = runModelImpl p
+        member __.runModel p = runModelImpl p
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post

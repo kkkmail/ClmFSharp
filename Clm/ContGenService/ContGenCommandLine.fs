@@ -218,7 +218,7 @@ module SvcCommandLine =
                         logger = logger
                     }
 
-                let r = PartitionerRunner q
+                let r = createServiceImpl q
                 PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
             | None ->
                 printfn "Unable to create MsgResponseHandler."

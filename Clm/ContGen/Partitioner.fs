@@ -13,6 +13,7 @@ open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
 open ServiceProxy.PartitionerProxy
 open PartitionerServiceInfo.ServiceInfo
+open ClmSys.TimerEvents
 
 module Partitioner =
 
@@ -276,3 +277,14 @@ module Partitioner =
         member __.runModel p = runModelImpl p
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
+        member this.getMessages() = GetMessages this |> messageLoop.Post
+
+
+    let createServiceImpl i =
+        printfn "createServiceImpl: Creating PartitionerRunner..."
+        let w = PartitionerRunner i
+        //do w.register()
+        //do w.start()
+        let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
+        do h.start()
+        w

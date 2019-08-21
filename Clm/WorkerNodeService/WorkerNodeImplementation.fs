@@ -261,6 +261,7 @@ module ServiceImplementation =
 
 
     let createServiceImpl i =
+        printfn "createServiceImpl: Creating WorkerNodeRunner..."
         let w = WorkerNodeRunner i
         do w.register()
         do w.start()
@@ -275,6 +276,7 @@ module ServiceImplementation =
         let w =
             match MsgResponseHandler.tryCreate serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo with
             | Some h ->
+                printfn "WorkerNodeService: Created MsgResponseHandler: %A" h
                 {
                     workerNodeAccessInfo = serviceAccessInfo
                     msgResponseHandler = h
@@ -285,9 +287,11 @@ module ServiceImplementation =
                     minUsefulEe = MinUsefulEe.defaultValue
 
                 }
-                |> WorkerNodeRunner
+                |> createServiceImpl
                 |> Some
-            | None -> None
+            | None ->
+                printfn "WorkerNodeService: Cannot create MsgResponseHandler."
+                None
 
         let initService () = ()
         do initService ()

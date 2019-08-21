@@ -58,7 +58,7 @@ module Service =
 
 
         let onGetMessages s (n, r : AsyncReplyChannel<List<Message>>) =
-            printfn "MessagingService.onGetMessages"
+            printfn "MessagingService.onGetMessages: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
                 r.Reply v

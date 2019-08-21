@@ -28,13 +28,19 @@ module FileSystemTypes =
     let storageExt = "json"
 
 
-    let getFolderName (MessagingClientName serviceName) (TableName tableName) = fileStorageFolder + "\\" + serviceName + "\\" + tableName
+    let getFolderName (MessagingClientName serviceName) (TableName tableName) =
+        let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
+        printfn "getFolderName: Attempting to create folder: %A" folder
+        Directory.CreateDirectory(folder) |> ignore
+        printfn "    ... created."
+        folder
 
 
     let getFileName<'A> serviceName tableName (objectId : 'A) =
         let folder = getFolderName serviceName tableName
-        Directory.CreateDirectory(folder) |> ignore
-        Path.Combine(folder, objectId.ToString() + "." + storageExt)
+        let file = Path.Combine(folder, objectId.ToString() + "." + storageExt)
+        printfn "getFileName: Using file: %A" file
+        file
 
 
     let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) =

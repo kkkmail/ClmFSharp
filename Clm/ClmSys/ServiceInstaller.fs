@@ -23,6 +23,7 @@ module ServiceInstaller =
         {
             serviceName : ServiceName
             runService : Logger -> 'R -> unit
+            //saveSettings : unit -> unit
             timeoutMilliseconds : int option
             logger : Logger
         }
@@ -43,7 +44,7 @@ module ServiceInstaller =
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<'A>
-        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<'A>
 
         static member fromArgu c a : list<SvcArguments<'A>> = a |> List.map (fun e -> c e)
 
@@ -124,13 +125,18 @@ module ServiceInstaller =
         true
 
 
+    //let private saveSettings (i : ServiceInfo<'R>) =
+    //    i.saveSettings()
+    //    true
+
+
     type ServiceTask<'T, 'R, 'A when 'A :> IArgParserTemplate> =
         | InstallServiceTask
         | UninstallServiceTask
         | StartServiceTask
         | StopServiceTask
         | RunServiceTask of 'R
-        | SaveSettingsTask of (unit -> bool)
+        | SaveSettingsTask of (unit -> unit)
 
         member task.run (i : ServiceInfo<'R>) =
             match task with
@@ -144,7 +150,9 @@ module ServiceInstaller =
             | StartServiceTask -> startService i
             | StopServiceTask -> stopService i
             | RunServiceTask r -> runService i r
-            | SaveSettingsTask saveSettings -> saveSettings()
+            | SaveSettingsTask s ->
+                s()
+                true
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
@@ -162,9 +170,9 @@ module ServiceInstaller =
             p |> List.tryPick (fun e -> match e with | Run p -> r p |> RunServiceTask |> Some | _ -> None)
 
         static member private tryCreateSaveSettingsTask s (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
-            p |> List.tryPick (fun e -> match e with | Save -> SaveSettingsTask s |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | Save p -> s p |> SaveSettingsTask |> Some | _ -> None)
 
-        static member tryCreate r p s : ServiceTask<'T, 'R, 'A> option =
+        static member tryCreate r s p : ServiceTask<'T, 'R, 'A> option =
             [
                 ServiceTask.tryCreateUninstallServiceTask
                 ServiceTask.tryCreateInstallServiceTask

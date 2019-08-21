@@ -13,15 +13,10 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let saveSettings() =
-                let p = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
-                let r = (p.Parse argv).GetAllResults()
-                saveSettings r
-
             let parser = ArgumentParser.Create<ContGenSvcArguArgs>(programName = ContGenServiceProgramName)
             let results = (parser.Parse argv).GetAllResults() |> ContGenSvcArgs.fromArgu convertArgs
 
-            match ContGenServiceTask.tryCreate getParams results saveSettings with
+            match ContGenServiceTask.tryCreate getParams getSaveSettings results with
             | Some task -> task.run serviceInfo |> ignore
             | None -> ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
             CompletedSuccessfully

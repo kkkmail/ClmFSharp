@@ -37,7 +37,7 @@ module SvcCommandLine =
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
-        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<MessagingServiceRunArgs>
 
     with
         interface IArgParserTemplate with
@@ -48,7 +48,7 @@ module SvcCommandLine =
                 | Start _ -> "start messaging service."
                 | Stop -> "stop messaging service."
                 | Run _ -> "run messaging service from command line without installing."
-                | Save -> "save parameters into the registry."
+                | Save _ -> "save parameters into the registry."
 
 
     let convertArgs s =
@@ -58,7 +58,7 @@ module SvcCommandLine =
         | Start -> MsgSvcArgs.Start
         | Stop -> MsgSvcArgs.Stop
         | Run a -> MsgSvcArgs.Run a
-        | Save -> MsgSvcArgs.Save
+        | Save a -> MsgSvcArgs.Save a
 
 
     let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
@@ -102,4 +102,3 @@ module SvcCommandLine =
 
     let saveSettings p =
         getServiceAccessInfoImpl true p |> ignore
-        true

@@ -13,16 +13,10 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let saveSettings() =
-                let p = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
-                let r = (p.Parse argv).GetAllResults()
-                saveSettings r
-
-
             let parser = ArgumentParser.Create<WorkerNodeServiceArguArgs>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse argv).GetAllResults() |> WorkerNodeServiceArgs.fromArgu convertArgs
 
-            match WorkerNodeServiceTask.tryCreate getParams results saveSettings with
+            match WorkerNodeServiceTask.tryCreate getParams getSaveSettings results with
             | Some task -> task.run serviceInfo |> ignore
             | None -> ServiceBase.Run [| new WorkerNodeWindowsService() :> ServiceBase |]
 

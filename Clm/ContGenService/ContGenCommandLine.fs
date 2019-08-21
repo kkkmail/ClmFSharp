@@ -26,7 +26,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
 
         | [<Unique>] [<AltCommandLine("-save")>] SaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] Version of string
+        | [<Unique>] [<AltCommandLine("-version")>] ContGenVersion of string
 
         | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
@@ -46,7 +46,7 @@ module SvcCommandLine =
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
 
                 | SaveSettings -> "saves settings to the Registry."
-                | Version _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
+                | ContGenVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
@@ -63,7 +63,7 @@ module SvcCommandLine =
         | [<Unique>] [<First>] Start
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<ContGenRunArgs>
-        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save
+        | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<ContGenRunArgs>
 
     with
         interface IArgParserTemplate with
@@ -74,7 +74,7 @@ module SvcCommandLine =
                 | Start -> "start ContGen service."
                 | Stop -> "stop ContGen service."
                 | Run _ -> "run ContGen service from command line without installing."
-                | Save -> "save parameters into the registry."
+                | Save _ -> "save parameters into the registry."
 
 
     type ContGenSvcArgs = SvcArguments<ContGenRunArgs>
@@ -87,7 +87,7 @@ module SvcCommandLine =
         | Start -> ContGenSvcArgs.Start
         | Stop -> ContGenSvcArgs.Stop
         | Run a -> ContGenSvcArgs.Run a
-        | Save -> ContGenSvcArgs.Save
+        | Save a -> ContGenSvcArgs.Save a
 
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
@@ -95,7 +95,7 @@ module SvcCommandLine =
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | Version p -> p |> VersionNumber |> Some | _ -> None)
+    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | ContGenVersion p -> p |> VersionNumber |> Some | _ -> None)
 
     let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
@@ -224,8 +224,4 @@ module SvcCommandLine =
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false
-
-
-    let saveSettings p =
-        getServiceAccessInfoImpl true p |> ignore
-        true
+    let saveSettings p = getServiceAccessInfoImpl true p |> ignore

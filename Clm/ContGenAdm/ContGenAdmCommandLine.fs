@@ -3,17 +3,10 @@ open Argu
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
 open Clm.Substances
-open DbData.Configuration
-open DbData.DatabaseTypes
-open ContGen
-open ClmSys.Retry
 open Clm.ModelParams
 open System
 
 module AdmCommandLine =
-
-    let x = 0
-
 
     [<Literal>]
     let ContGenAdmAppName = "ContGenAdm.exe"

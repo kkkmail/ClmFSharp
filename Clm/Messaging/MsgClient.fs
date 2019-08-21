@@ -81,10 +81,14 @@ module Client =
         let sendMessageImpl s m =
             try
                 s.messageClientData.msgResponseHandler.messagingService.sendMessage m
+
+                match m.messageInfo.deliveryType with
+                | GuaranteedDelivery -> s.messageClientData.msgClientProxy.deleteMessage m.messageId
+                | NonGuaranteedDelivery -> ignore()
                 Some m
             with
                 | e ->
-                    s.messageClientData.logger.logExn "Failed to send message: " e
+                    s.messageClientData.logger.logExn (sprintf "Failed to send message: %A" m.messageId) e
                     None
 
 
@@ -93,7 +97,7 @@ module Client =
                 s.messageClientData.msgResponseHandler.messagingService.getMessages s.messageClientData.msgAccessInfo.msgClientId
             with
                 | e ->
-                    s.messageClientData.logger.logExn "Failed to receive message: " e
+                    s.messageClientData.logger.logExn "Failed to receive messages: " e
                     []
 
 

@@ -8,6 +8,7 @@ open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open ContGenAdm.ContGenServiceResponse
+open ClmSys.TimerEvents
 
 module ContGenServiceTasks =
 
@@ -27,12 +28,14 @@ module ContGenServiceTasks =
         let service = (new ContGenResponseHandler(i)).contGenService
         p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()
-        let eventHandler _ = getServiceState service
+        let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
+        do h.start()
+        //let eventHandler _ = getServiceState service
 
-        let timer = new System.Timers.Timer(30_000.0)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
-        do timer.Start()
+        //let timer = new System.Timers.Timer(30_000.0)
+        //do timer.AutoReset <- true
+        //do timer.Elapsed.Add eventHandler
+        //do timer.Start()
 
 
     let serviceInfo =

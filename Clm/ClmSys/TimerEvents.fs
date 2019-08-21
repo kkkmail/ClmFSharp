@@ -6,7 +6,7 @@ open System.Threading
 module TimerEvents =
 
     [<Literal>]
-    let RefreshInterval = 60_000
+    let RefreshInterval = 30_000
 
 
     type EventHandlerInfo =

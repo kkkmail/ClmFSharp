@@ -58,6 +58,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
     <PlatformTarget>x64</PlatformTarget>
+    <StartArguments>r</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>
@@ -126,6 +127,11 @@
     <ProjectReference Include="..\Messaging\Messaging.fsproj">
       <Name>Messaging</Name>
       <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
+      <Name>ProgressNotifierClient</Name>
+      <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">

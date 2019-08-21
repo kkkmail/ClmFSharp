@@ -18,6 +18,7 @@ open System.Diagnostics
 open Clm.Distributions
 open Clm.CalculationData
 open ServiceProxy.SolverRunner
+open WorkerNodeServiceInfo.ServiceInfo
 
 module SolverRunnerTasks =
 
@@ -74,6 +75,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
+                            serviceName = ContGenServiceName
                         }
 
                     minUsefulEe = ee
@@ -85,6 +87,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
+                            serviceName = WorkerNodeServiceName
                         }
 
                     minUsefulEe = ee

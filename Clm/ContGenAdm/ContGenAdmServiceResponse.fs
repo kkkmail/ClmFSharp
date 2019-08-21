@@ -8,6 +8,6 @@ module ContGenServiceResponse =
 
     type ContGenResponseHandler (i : ContGenServiceAccessInfo) =
         let service : IContGenService =
-            Activator.GetObject (typeof<IContGenService>, getServiceUrl i.contGenServiceAccessInfo) :?> IContGenService
+            Activator.GetObject (typeof<IContGenService>, i.contGenServiceAccessInfo.serviceUrl) :?> IContGenService
 
-        member this.contGenService = service
+        member __.contGenService = service

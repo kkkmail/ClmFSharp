@@ -7,7 +7,7 @@ open MessagingServiceInfo.ServiceInfo
 module ServiceResponse =
 
     type MsgResponseHandler (i : MessagingClientAccessInfo) =
-        let service = Activator.GetObject (typeof<IMessagingService>, getServiceUrl i.msgSvcAccessInfo) :?> IMessagingService
+        let service = Activator.GetObject (typeof<IMessagingService>, i.msgSvcAccessInfo.serviceUrl) :?> IMessagingService
 
         member __.messagingService = service
 

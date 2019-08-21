@@ -8,6 +8,7 @@ open ClmSys.Registry
 open ClmSys.MessagingData
 open ClmSys.Logging
 open Messaging.ServiceResponse
+open MessagingServiceInfo.ServiceInfo
 
 module MsgCliCommandLine =
 
@@ -119,6 +120,7 @@ module MsgCliCommandLine =
                         {
                             serviceAddress = address
                             servicePort = port
+                            serviceName = MessagingServiceName
                         }
                 }
                 |> Some

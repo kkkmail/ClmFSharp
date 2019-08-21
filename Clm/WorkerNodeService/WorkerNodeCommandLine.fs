@@ -10,6 +10,8 @@ open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open System
 open ClmSys.WorkerNodeData
+open MessagingServiceInfo.ServiceInfo
+open WorkerNodeServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
@@ -175,6 +177,7 @@ module SvcCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
+                            serviceName = MessagingServiceName
                         }
                 }
 
@@ -186,6 +189,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
+                    serviceName = WorkerNodeServiceName
                 }
         }
 

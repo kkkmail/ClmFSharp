@@ -303,3 +303,4 @@ module ServiceImplementation =
 
         interface IWorkerNodeService with
             member __.updateLocalProgress p = updateLocalProgressImpl p
+            member __.ping() = ignore()

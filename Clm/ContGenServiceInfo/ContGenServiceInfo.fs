@@ -3,10 +3,8 @@
 open System
 open System.Diagnostics
 open ClmSys.GeneralData
-open ClmSys.MessagingData
 open System.Threading
 open Clm.ModelParams
-open Clm.CalculationData
 
 module ServiceInfo =
 
@@ -15,10 +13,6 @@ module ServiceInfo =
 
     [<Literal>]
     let ContGenServiceProgramName = "ContGenService.exe"
-
-
-    let getServiceUrl (i : ServiceAccessInfo) =
-        getServiceUrlImpl i.serviceAddress.value i.servicePort.value ContGenServiceName
 
 
     type TaskProgress =

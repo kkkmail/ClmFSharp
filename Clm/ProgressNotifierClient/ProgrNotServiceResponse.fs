@@ -4,8 +4,17 @@ open System
 open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
+open ClmSys.WorkerNodeData
 
 module ServiceResponse =
+
+    type WorkerNodeResponseHandler (w : WorkerNodeServiceAccessInfo) =
+        do printfn "WorkerNodeResponseHandler: workerNodeServiceAccessInfo: %A" w.workerNodeServiceAccessInfo
+        let service =
+            Activator.GetObject (typeof<IWorkerNodeService>, w.workerNodeServiceAccessInfo.serviceUrl) :?> IWorkerNodeService
+
+        member __.workerNodeService = service
+
 
     type SolverRunnerProgressNotifier =
         | ContGenNotifier of IContGenService
@@ -16,9 +25,9 @@ module ServiceResponse =
         let service =
             match i with
             | ContGenSvcAccessInfo c ->
-                Activator.GetObject (typeof<IContGenService>, getServiceUrl c.contGenServiceAccessInfo) :?> IContGenService |> ContGenNotifier
+                Activator.GetObject (typeof<IContGenService>, c.contGenServiceAccessInfo.serviceUrl) :?> IContGenService |> ContGenNotifier
             | WorkerNodeSvcAccessInfo w ->
-                Activator.GetObject (typeof<IWorkerNodeService>, getServiceUrl w.wrkNodeServiceAccessInfo) :?> IWorkerNodeService |> WorkerNodeNotifier
+                Activator.GetObject (typeof<IWorkerNodeService>, w.wrkNodeServiceAccessInfo.serviceUrl) :?> IWorkerNodeService |> WorkerNodeNotifier
 
         let updateLocalProgressImpl p =
             match service with

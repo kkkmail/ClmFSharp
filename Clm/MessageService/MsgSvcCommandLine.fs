@@ -7,6 +7,7 @@ open ClmSys.MessagingData
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
+open MessagingServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
@@ -94,6 +95,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
+                    serviceName = MessagingServiceName
                 }
         }
 

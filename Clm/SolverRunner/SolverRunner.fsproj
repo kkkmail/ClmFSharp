@@ -153,6 +153,11 @@
       <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj">
+      <Name>WorkerNodeServiceInfo</Name>
+      <Project>{d9222f72-d01c-4db6-bc76-2c9ccf9b1f31}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

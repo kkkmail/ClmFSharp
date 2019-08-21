@@ -13,6 +13,8 @@ open ContGen.Partitioner
 open ServiceProxy.PartitionerProxy
 open Messaging.ServiceResponse
 open ServiceProxy.MsgServiceProxy
+open ContGenServiceInfo.ServiceInfo
+open MessagingServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
@@ -175,6 +177,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
+                    serviceName = ContGenServiceName
                 }
 
             minUsefulEe = ee
@@ -204,6 +207,7 @@ module SvcCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
+                            serviceName = MessagingServiceName
                         }
                 }
 

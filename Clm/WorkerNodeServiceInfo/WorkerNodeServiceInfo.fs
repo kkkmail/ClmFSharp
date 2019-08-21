@@ -14,3 +14,6 @@ module ServiceInfo =
 
     type IWorkerNodeService =
         abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
+
+        /// To check if service is working.
+        abstract ping : unit -> unit

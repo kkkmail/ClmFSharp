@@ -125,11 +125,6 @@ module ServiceInstaller =
         true
 
 
-    //let private saveSettings (i : ServiceInfo<'R>) =
-    //    i.saveSettings()
-    //    true
-
-
     type ServiceTask<'T, 'R, 'A when 'A :> IArgParserTemplate> =
         | InstallServiceTask
         | UninstallServiceTask

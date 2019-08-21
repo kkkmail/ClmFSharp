@@ -17,10 +17,6 @@ module ServiceInfo =
     let MessagingProgramName = "MessagingService.exe"
 
 
-    let getServiceUrl (i : ServiceAccessInfo) =
-        getServiceUrlImpl i.serviceAddress.value i.servicePort.value MessagingServiceName
-
-
     type MessageId =
         | MessageId of Guid
 

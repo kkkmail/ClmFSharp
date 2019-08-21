@@ -74,11 +74,19 @@ module GeneralData =
         static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
+    let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+
+
     type ServiceAccessInfo =
         {
             serviceAddress : ServiceAddress
             servicePort : ServicePort
+            serviceName : string
         }
+
+        member s.serviceUrl =
+            getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
 
 
     type MinUsefulEe =
@@ -320,10 +328,6 @@ module GeneralData =
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
         x + @"\" + exeName
-
-
-    let getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
-        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
     type ChartInfo =

@@ -15,8 +15,10 @@ module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
         try
+            printfn "startServiceRun: registering WorkerNodeService..."
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
+            printfn "startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType

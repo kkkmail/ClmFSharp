@@ -139,7 +139,7 @@ module SvcCommandLine =
 
 
     /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
-    let getServiceAccessInfo p =
+    let getServiceAccessInfoImpl b p =
         let name = contGenServiceName
 
         let version = getVersion p
@@ -150,14 +150,23 @@ module SvcCommandLine =
         let msgAddress = getMsgServerAddress logger version name p
         let msgPort = getMsgServerPort logger version name p
 
-        match tryGetSaveSettings p with
-        | Some _ ->
+        let partitioner = getPartitioner logger version name p
+        let usePartitioner = getUsePartitioner logger version name p
+
+        let saveSettings() =
             trySetContGenServiceAddress logger versionNumberValue name address |> ignore
             trySetContGenServicePort logger versionNumberValue name port |> ignore
 
             trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-        | None -> ignore()
+
+            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
+            trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
+
+        match tryGetSaveSettings p, b with
+        | Some _, _ -> saveSettings()
+        | _, true -> saveSettings()
+        | _ -> ignore()
 
         {
             contGenServiceAccessInfo =
@@ -180,12 +189,6 @@ module SvcCommandLine =
         let msgPort = getMsgServerPort logger version name p
         let partitioner = getPartitioner logger version name p
         let usePartitioner = getUsePartitioner logger version name p
-
-        match tryGetSaveSettings p with
-        | Some _ ->
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
-            trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
-        | None -> ignore()
 
         let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy, None
 
@@ -218,3 +221,11 @@ module SvcCommandLine =
             | None ->
                 printfn "Unable to create MsgResponseHandler."
                 localRunner()
+
+
+    let getServiceAccessInfo = getServiceAccessInfoImpl false
+
+
+    let saveSettings p =
+        getServiceAccessInfoImpl true p |> ignore
+        true

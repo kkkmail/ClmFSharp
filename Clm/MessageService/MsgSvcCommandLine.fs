@@ -72,18 +72,21 @@ module SvcCommandLine =
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
 
 
-    let getServiceAccessInfo p =
+    let getServiceAccessInfoImpl b p =
         let name = messagingServiceName
 
         let version = getVersion p
         let address = getMsgServerAddress logger version name p
         let port = getMsgServerPort logger version name p
 
-        match tryGetSaveSettings p with
-        | Some _ ->
+        let saveSettings() =
             trySetMessagingClientAddress logger versionNumberValue name address |> ignore
             trySetMessagingClientPort logger versionNumberValue name port |> ignore
-        | None -> ignore()
+
+        match tryGetSaveSettings p, b with
+        | Some _, _ -> saveSettings()
+        | _, true -> saveSettings()
+        | _ -> ignore()
 
         {
             messagingServiceAccessInfo =
@@ -92,3 +95,11 @@ module SvcCommandLine =
                     servicePort = port
                 }
         }
+
+
+    let getServiceAccessInfo = getServiceAccessInfoImpl false
+
+
+    let saveSettings p =
+        getServiceAccessInfoImpl true p |> ignore
+        true

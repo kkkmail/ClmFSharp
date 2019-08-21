@@ -130,6 +130,7 @@ module ServiceInstaller =
         | StartServiceTask
         | StopServiceTask
         | RunServiceTask of 'R
+        | SaveSettingsTask of (unit -> bool)
 
         member task.run (i : ServiceInfo<'R>) =
             match task with
@@ -143,6 +144,7 @@ module ServiceInstaller =
             | StartServiceTask -> startService i
             | StopServiceTask -> stopService i
             | RunServiceTask r -> runService i r
+            | SaveSettingsTask saveSettings -> saveSettings()
 
         static member private tryCreateInstallServiceTask (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Install -> InstallServiceTask |> Some | _ -> None)
@@ -159,12 +161,16 @@ module ServiceInstaller =
         static member private tryCreateRunServiceTask r (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
             p |> List.tryPick (fun e -> match e with | Run p -> r p |> RunServiceTask |> Some | _ -> None)
 
-        static member tryCreate r p : ServiceTask<'T, 'R, 'A> option =
+        static member private tryCreateSaveSettingsTask s (p : list<SvcArguments<'A>>) : ServiceTask<'T, 'R, 'A> option =
+            p |> List.tryPick (fun e -> match e with | Save -> SaveSettingsTask s |> Some | _ -> None)
+
+        static member tryCreate r p s : ServiceTask<'T, 'R, 'A> option =
             [
                 ServiceTask.tryCreateUninstallServiceTask
                 ServiceTask.tryCreateInstallServiceTask
                 ServiceTask.tryCreateStopServiceTask
                 ServiceTask.tryCreateStartServiceTask
                 ServiceTask.tryCreateRunServiceTask r
+                ServiceTask.tryCreateSaveSettingsTask s
             ]
             |> List.tryPick (fun e -> e p)

@@ -138,7 +138,7 @@ module SvcCommandLine =
             | None -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
-    let getServiceAccessInfo p =
+    let getServiceAccessInfoImpl b p =
         let name = workerNodeServiceName
 
         let version = getVersion p
@@ -151,8 +151,7 @@ module SvcCommandLine =
         let partitioner = getPartitioner logger version name p
         let clientId = getClientId logger version name p
 
-        match tryGetSaveSettings p with
-        | Some _ ->
+        let saveSettings() =
             trySetContGenServiceAddress logger versionNumberValue name address |> ignore
             trySetContGenServicePort logger versionNumberValue name port |> ignore
             trySetNumberOfCores logger versionNumberValue name noOfCores |> ignore
@@ -161,7 +160,11 @@ module SvcCommandLine =
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
             trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
-        | None -> ignore()
+
+        match tryGetSaveSettings p, b with
+        | Some _, _ -> saveSettings()
+        | _, true -> saveSettings()
+        | _ -> ignore()
 
         {
             workNodeMsgAccessInfo =
@@ -185,3 +188,11 @@ module SvcCommandLine =
                     servicePort = port
                 }
         }
+
+
+    let getServiceAccessInfo = getServiceAccessInfoImpl false
+
+
+    let saveSettings p =
+        getServiceAccessInfoImpl true p |> ignore
+        true

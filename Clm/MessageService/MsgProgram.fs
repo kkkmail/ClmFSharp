@@ -13,10 +13,15 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
+            let saveSettings() =
+                let p = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
+                let r = (p.Parse argv).GetAllResults()
+                saveSettings r
+
             let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = MessagingProgramName)
             let results = (parser.Parse argv).GetAllResults() |> MsgSvcArgs.fromArgu convertArgs
 
-            match MessagingServiceTask.tryCreate getParams results with
+            match MessagingServiceTask.tryCreate getParams results saveSettings with
             | Some task -> task.run serviceInfo |> ignore
             | None -> ServiceBase.Run [| new MessagingWindowsService() :> ServiceBase |]
 

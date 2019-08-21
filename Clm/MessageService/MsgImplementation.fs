@@ -5,7 +5,7 @@ open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 
 module ServiceImplementation =
 

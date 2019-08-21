@@ -10,7 +10,7 @@ open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
@@ -163,7 +163,7 @@ module ServiceImplementation =
 
             messages
             |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> i.msgClientProxy.saveMessage IncomingMessage e)
+            |> List.map (fun e -> i.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
             |> ignore
 
             messages

@@ -114,6 +114,13 @@ module ServiceInfo =
         }
 
 
+    type MessageWithType =
+        {
+            message : Message
+            messageType : MessageType
+        }
+
+
     type MessagingConfigParam =
         | DummyConfig
 

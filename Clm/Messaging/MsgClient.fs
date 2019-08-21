@@ -4,7 +4,7 @@ open System
 open ClmSys.MessagingData
 open ClmSys.Logging
 open MessagingServiceInfo.ServiceInfo
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 open Messaging.ServiceResponse
 
 module Client =
@@ -46,9 +46,8 @@ module Client =
     type MessagingClient(d : MessagingClientData) =
         let onStart s =
             let messages = s.messageClientData.msgClientProxy.loadMessages()
-            let (i, o) = messages |> List.partition (fun e -> match fst e with | IncomingMessage -> true | OutgoingMessage -> false)
-            let incoming = i |> List.map snd
-            let outgoing = o |> List.map snd
+            let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
+            let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
             { s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
 
 
@@ -62,7 +61,7 @@ module Client =
                 }
 
             match m.deliveryType with
-            | GuaranteedDelivery -> s.messageClientData.msgClientProxy.saveMessage OutgoingMessage message
+            | GuaranteedDelivery -> s.messageClientData.msgClientProxy.saveMessage { messageType = OutgoingMessage; message = message }
             | NonGuaranteedDelivery -> ignore()
 
             { s with outgoingMessages = message :: s.outgoingMessages }

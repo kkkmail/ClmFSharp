@@ -12,7 +12,7 @@ open ServiceProxy.Runner
 open ContGen.Partitioner
 open ServiceProxy.PartitionerProxy
 open Messaging.ServiceResponse
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 
 module SvcCommandLine =
 

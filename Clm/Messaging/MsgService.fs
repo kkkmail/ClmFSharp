@@ -2,7 +2,7 @@
 
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 
 module Service =
 

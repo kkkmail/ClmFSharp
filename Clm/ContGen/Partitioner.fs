@@ -12,7 +12,7 @@ open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open DbData.Configuration
 open ClmSys.MessagingData
-open MessagingServiceInfo.ServiceProxy
+open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
@@ -149,7 +149,7 @@ module Partitioner =
 
             messages
             |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> p.msgClientProxy.saveMessage IncomingMessage e)
+            |> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
             |> ignore
 
             messages

@@ -69,7 +69,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="MsgServiceInfo.fs" />
-    <Compile Include="MsgServiceProxy.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

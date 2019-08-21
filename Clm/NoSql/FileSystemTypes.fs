@@ -14,6 +14,7 @@ module FileSystemTypes =
     let fileStorageFolder = DefaultFileStorageFolder
 
     let messageTblName = "Message"
+    let messageWithTypeTblName = "MessageWithType"
     let modelDataTblName = "ModelData"
     let resultDataTblName = "ResultData"
     let chartTblName = "Chart"
@@ -61,9 +62,14 @@ module FileSystemTypes =
 
 
     let saveMessageFs (m : Message) = saveData<Message, Guid> messageTblName m.messageId.value m
-    let tryLoadMessageFs (MessageId messageId) = tryLoadData<ModelData, Guid> messageTblName messageId
-    let tryDeleteMessageFs (MessageId messageId) = tryDeleteData<ModelData, Guid> messageTblName messageId
+    let tryLoadMessageFs (MessageId messageId) = tryLoadData<Message, Guid> messageTblName messageId
+    let tryDeleteMessageFs (MessageId messageId) = tryDeleteData<Message, Guid> messageTblName messageId
     let getMessageIdsFs () = getObjectIds<Guid> messageTblName Guid.Parse |> List.map MessageId
+
+    let saveMessageWithTypeFs (m : MessageWithType) = saveData<MessageWithType, Guid> messageWithTypeTblName m.message.messageId.value m
+    let tryLoadMessageWithTypeFs (MessageId messageId) = tryLoadData<MessageWithType, Guid> messageWithTypeTblName messageId
+    let tryDeleteMessageWithTypeFs (MessageId messageId) = tryDeleteData<MessageWithType, Guid> messageWithTypeTblName messageId
+    let getMessageWithTypeIdsFs () = getObjectIds<Guid> messageWithTypeTblName Guid.Parse |> List.map MessageId
 
     let saveModelDataFs (m : ModelData) = saveData<ModelData, Guid> modelDataTblName m.modelDataId.value m
     let tryLoadModelDataFs (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> modelDataTblName modelDataId

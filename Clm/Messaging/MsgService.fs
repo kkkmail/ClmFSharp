@@ -71,6 +71,7 @@ module Service =
                 s
 
 
+        /// TODO kk:20190820 - Implement.
         let onConfigure s x =
             s
 

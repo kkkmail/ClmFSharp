@@ -3,21 +3,14 @@
 open System
 open ClmSys.GeneralData
 open Clm.ModelParams
-open Clm.Generator.ClmModelData
-open Clm.Generator.ClmModel
-open Clm.CommandLine
-open Clm.CalculationData
 open ClmSys.Logging
 open ContGenServiceInfo.ServiceInfo
-open ServiceProxy.Runner
-open DbData.Configuration
 open ClmSys.MessagingData
 open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.ServiceResponse
 open ClmSys.WorkerNodeData
-open ClmSys.PartitionerData
 open ServiceProxy.PartitionerProxy
 open PartitionerServiceInfo.ServiceInfo
 
@@ -139,6 +132,7 @@ module Partitioner =
             s
 
 
+        /// TODO kk:20190820 - Implement.
         let onSaveCharts s c =
 
             s
@@ -159,22 +153,26 @@ module Partitioner =
             s
 
 
-        let onProcessMessage s  (w : PartitionerRunner) (m : Message) =
+        let onProcessMessage (s : PartitionerRunnerState) (w : PartitionerRunner) (m : Message) =
             match m.messageInfo.messageData with
             | PartitionerMsg x ->
                 match x with
-                | UpdateProgressPrtMsg i -> w.updateProgress i
-                | SaveResultPrtMsg r -> failwith ""
-                | SaveChartsPrtMsg c -> failwith ""
-                | RegisterWorkerNodePrtMsg w -> failwith ""
+                | UpdateProgressPrtMsg i ->
+                    w.updateProgress i
+                    s
+                | SaveResultPrtMsg r -> onSaveResult s r
+                | SaveChartsPrtMsg c -> onSaveCharts s c
+                | RegisterWorkerNodePrtMsg w -> onRegister s w
 
-            | _ -> p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+            | _ ->
+                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+                s
 
-            match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
-            | NonGuaranteedDelivery -> ignore()
+            //match m.messageInfo.deliveryType with
+            //| GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
+            //| NonGuaranteedDelivery -> ignore()
 
-            s
+            //s
 
         let tryGetNode s =
             s.workerNodes
@@ -271,17 +269,3 @@ module Partitioner =
         member this.runModel p = runModelImpl p
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
-
-    //| UpdateProgressPrtMsg p -> failwith ""
-    //| SaveResultPrtMsg r -> failwith ""
-    //| SaveChartsPrtMsg c -> failwith ""
-    //| RegisterWorkerNodePrtMsg w -> failwith ""
-
-    //| Start q -> return! onStart s q |> loop
-    //| Register r -> return! onRegister s r |> loop
-    //| UpdateProgress i -> return! onUpdateProgress s i |> loop
-    //| RunModel (p, q) -> return! onRunModel s p q |> loop
-    //| SaveResult r -> return! onSaveResult s r |> loop
-    //| SaveCharts c -> return! onSaveCharts s c |> loop
-    //| GetMessages w -> return! onGetMessages s w |> loop
-    //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop

@@ -6,6 +6,7 @@ open ClmSys.GeneralData
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
+open ClmSys.Retry
 open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
@@ -58,7 +59,7 @@ module ServiceImplementation =
 
 
     type WorkerNodeMessage =
-        | Start
+        | Start of WorkerNodeRunner
         | Register
         | UpdateProgress of LocalProgressUpdateInfo
         | SaveResult of ResultDataWithId
@@ -83,11 +84,11 @@ module ServiceImplementation =
             |> WorkerNodeSvcAccessInfo
 
 
-        /// TODO kk:20190819 - Load:
-        ///     1. Messages
-        ///     2. What to run.
-        ///     3. Etc...
-        let onStart s =
+        let onStart s (r : WorkerNodeRunner) =
+            i.workerNodeProxy.loadAllWorkerNodeRunModelData()
+            |> List.map (fun e -> r.runModel e)
+            |> ignore
+
             s
 
 
@@ -161,10 +162,10 @@ module ServiceImplementation =
         let onGetMessages s (r : WorkerNodeRunner) =
             let messages = messagingClient.getMessages()
 
-            messages
-            |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> i.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
-            |> ignore
+            //messages
+            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+            //|> List.map (fun e -> i.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
+            //|> ignore
 
             messages
             |> List.map (fun e -> r.processMessage e)
@@ -214,9 +215,9 @@ module ServiceImplementation =
                 | RunModelWrkMsg m -> w.runModel m
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
-            match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
-            | NonGuaranteedDelivery -> ignore()
+            //match m.messageInfo.deliveryType with
+            //| GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
+            //| NonGuaranteedDelivery -> ignore()
 
             s
 
@@ -227,10 +228,9 @@ module ServiceImplementation =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
+                            | Start w -> return! onStart s w |> loop
                             | Register -> return! onRegister s |> loop
                             | UpdateProgress p -> return! onUpdateProgress s p |> loop
-                            //| SaveModelData m -> return! onSaveModelData s m |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
@@ -238,22 +238,23 @@ module ServiceImplementation =
                             | RunModel (w, m) -> return! onRunModel s w m |> loop
                         }
 
-                onStart (WorkerNodeRunnerState.defaultValue) |> loop
+                WorkerNodeRunnerState.defaultValue |> loop
                 )
 
-        member __.start() = Start |> messageLoop.Post
+        member this.start() = Start this |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
         member __.updateProgress p = UpdateProgress p |> messageLoop.Post
-        //member __.saveModelData m = SaveModelData m |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private this.runModel m = RunModel (this, m) |> messageLoop.Post
-        member this.onStarted (p : ProcessStartInfo) = ignore()
+        member __.onStarted (p : ProcessStartInfo) = ignore()
 
 
     let createServiceImpl i =
         let w = WorkerNodeRunner i
+        do w.register()
+        do w.start()
         let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
         do h.start()
         w

@@ -67,7 +67,8 @@ module ServiceImplementation =
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message
-        | RunModel of WorkerNodeRunner * WorkerNodeRunModelData
+        | RunModel of WorkerNodeRunModelData
+        | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
 
 
     and WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -167,6 +168,7 @@ module ServiceImplementation =
 
         let onGetMessages s (r : WorkerNodeRunner) =
             printfn "WorkerNodeRunner.onGetMessages"
+            printfn "WorkerNodeRunnerState: %A" s
             let messages = messagingClient.getMessages()
 
             //messages
@@ -181,7 +183,7 @@ module ServiceImplementation =
             s
 
 
-        let onRunModel (s : WorkerNodeRunnerState) (r : WorkerNodeRunner) (m : WorkerNodeRunModelData) =
+        let onRunModel (s : WorkerNodeRunnerState) (m : WorkerNodeRunModelData) =
             printfn "WorkerNodeRunner.onRunModel: m = %A." m
             i.workerNodeProxy.saveWorkerNodeRunModelData m
 
@@ -194,16 +196,8 @@ module ServiceImplementation =
                             serviceAccessInfo = getSolverRunnerAccessInfo m.minUsefulEe
                         }
 
-//type ProcessStartInfo =
-//    {
-//        processId : ProcessId
-//        modelDataId : ModelDataId
-//        runQueueId : RunQueueId
-//    }
-
                     callBackInfo =
                         {
-                            //processId = 0
                             modelDataId = m.wrkModelData.modelDataId
                             runQueueId = m.runQueueId
                         }
@@ -241,7 +235,8 @@ module ServiceImplementation =
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
-                            | RunModel (w, m) -> return! onRunModel s w m |> loop
+                            | RunModel m -> return! onRunModel s m |> loop
+                            | GetState w -> w.Reply s
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -253,7 +248,8 @@ module ServiceImplementation =
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
-        member private this.runModel m = RunModel (this, m) |> messageLoop.Post
+        member private __.runModel m = RunModel m |> messageLoop.Post
+        member __.getState () = messageLoop.PostAndReply GetState
 
 
     let createServiceImpl i =

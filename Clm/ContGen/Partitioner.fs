@@ -283,7 +283,7 @@ module Partitioner =
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
-        member this.getState () = messageLoop.PostAndReply GetState
+        member __.getState () = messageLoop.PostAndReply GetState
 
 
     let createServiceImpl i =

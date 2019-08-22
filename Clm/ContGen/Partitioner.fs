@@ -100,6 +100,7 @@ module Partitioner =
 
         let onRegister s (r : WorkerNodeInfo) =
             printfn "PartitionerRunner.onRegister: r = %A." r
+            p.partitionerProxy.saveWorkerNodeInfo r
             let updated q = { s with workerNodes = s.workerNodes.Add (r.workerNodeId, { workerNodeInfo = r; running = q }) }
 
             match s.workerNodes.TryFind r.workerNodeId with
@@ -147,10 +148,10 @@ module Partitioner =
             printfn "PartitionerRunner.onGetMessages"
             let messages = messagingClient.getMessages()
 
-            messages
-            |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
-            |> ignore
+            //messages
+            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+            //|> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
+            //|> ignore
 
             messages
             |> List.map (fun e -> w.processMessage e)
@@ -283,8 +284,6 @@ module Partitioner =
     let createServiceImpl i =
         printfn "createServiceImpl: Creating PartitionerRunner..."
         let w = PartitionerRunner i
-        //do w.register()
-        //do w.start()
         let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
         do h.start()
         w

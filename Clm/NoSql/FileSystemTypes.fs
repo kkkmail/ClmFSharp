@@ -9,6 +9,7 @@ open System.IO
 open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.MessagingData
+open ClmSys.WorkerNodeData
 
 module FileSystemTypes =
 
@@ -24,6 +25,7 @@ module FileSystemTypes =
     let resultDataTblName = TableName "ResultData"
     let chartTblName = TableName "Chart"
     let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
+    let workerNodeInfoTblName = TableName "WorkerNodeInfo"
 
     let storageExt = "json"
 
@@ -94,7 +96,7 @@ module FileSystemTypes =
 
     let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
     let tryLoadResultDataFs serviceName (ResultDataId resultDataId) = tryLoadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
-    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName resultDataTblName resultDataId
+    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
     let getResultDataIdsFs serviceName () = getObjectIds<Guid> serviceName resultDataTblName Guid.Parse |> List.map ResultDataId
 
     let saveChartsFs serviceName (ResultDataId resultDataId) (p : list<string>) = saveData<ChartInfo, Guid> serviceName chartTblName resultDataId { chartFileNames = p |> Array.ofList }
@@ -106,3 +108,7 @@ module FileSystemTypes =
     let tryDeleteChartsFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartTblName resultDataId
     let getChartsIdsFs serviceName () = getObjectIds<Guid> serviceName chartTblName Guid.Parse |> List.map ResultDataId
 
+    let saveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = saveData<WorkerNodeInfo, Guid> serviceName resultDataTblName r.workerNodeId.value.value r
+    let tryLoadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryLoadData<WorkerNodeInfo, Guid> serviceName resultDataTblName workerNodeId
+    let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName resultDataTblName workerNodeId
+    let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<Guid> serviceName resultDataTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)

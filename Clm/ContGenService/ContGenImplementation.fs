@@ -54,7 +54,7 @@ module ServiceImplementation =
             | Some p ->
                 {
                     onUpdateProgress = a.updateProgress
-                    onStarted = a.started
+                    //onStarted = a.started
                 }
                 |> p.start
             | None -> ignore()

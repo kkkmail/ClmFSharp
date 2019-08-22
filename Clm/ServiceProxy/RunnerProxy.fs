@@ -9,17 +9,17 @@ open ContGenServiceInfo.ServiceInfo
 
 module Runner =
 
-    let runLocalModel (p : RunModelParamWithCallBack) r =
-        let fullExeName = getExeName p.runModelParam.exeName
+    let runLocalModel (p : RunModelParam) r =
+        let fullExeName = getExeName p.exeName
 
         let data =
             {
-                modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
-                minUsefulEe = p.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                modelDataId = p.callBackInfo.modelDataId
+                minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
                 remote = r
             }
 
-        let commandLineParams = p.runModelParam.commandLineParam.toCommandLine data
+        let commandLineParams = p.commandLineParam.toCommandLine data
         printfn "runModel::commandLineParams = %A\n" commandLineParams
         runProc p.callBackInfo fullExeName commandLineParams None
 
@@ -38,7 +38,7 @@ module Runner =
     type PartitionerRunnerConfig =
         {
             connectionString : ConnectionString
-            runModel : RunModelParamWithCallBack -> ProcessStartInfo
+            runModel : RunModelParam -> ProcessStartedInfo
         }
 
         static member defaultValue r =
@@ -78,9 +78,9 @@ module Runner =
         let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
 
 
-        let runModelImpl (p : RunModelParamWithCallBack) =
+        let runModelImpl (p : RunModelParam) =
             match i with
-            | LocalRunnerProxy _ -> (runLocalModel p false).processStartInfo
+            | LocalRunnerProxy _ -> (runLocalModel p false).processStartedInfo
             | PartitionerRunnerProxy c -> c.runModel p
 
 

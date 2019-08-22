@@ -128,7 +128,7 @@ module AsyncRun =
             let x = s.runningQueue
             { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.runQueueId) |> List.filter (fun e -> x.Contains e.runQueueId |> not) }
 
-        member s.onProcessStarted h (x : ProcessStartInfo) =
+        member s.onProcessStarted h (x : ProcessStartedInfo) =
             let w() =
                 h.releaseStartingModel()
                 h.startRun()
@@ -209,9 +209,9 @@ module AsyncRun =
         | StartGenerate of AsyncRunner
         | CompleteGenerate of AsyncRunner * list<RunInfo>
         | StartRun of AsyncRunner
-        | Started of ProcessStartInfo
+        | Started of ProcessStartedInfo
         | UpdateProgress of AsyncRunner * ProgressUpdateInfo
-        | CompleteRun of AsyncRunner * ProcessStartInfo
+        | CompleteRun of AsyncRunner * ProcessStartedInfo
         | GetState of AsyncReplyChannel<AsyncRunnerState>
         | ConfigureService of AsyncRunner * ContGenConfigParam
         | RunModel of AsyncRunner * ModelDataId * ModelCommandLineParam
@@ -251,24 +251,17 @@ module AsyncRun =
         let getQueueImpl (a : AsyncRunner) () = (fun () -> generatorInfo.getQueue() |> a.queueObtained) |> toAsync |> Async.Start
         let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
 
-        let startModelImpl (a : AsyncRunner) e =
+        let startModelImpl (a : AsyncRunner) (e : RunInfo) =
             printfn "Starting modelId: %A..." e.modelDataId
 
+            let x =
+                {
+                    modelDataId = e.modelDataId
+                    runQueueId = e.runQueueId
+                } |> e.run
 
-            toAsync (fun () ->
-                            {
-                                processStartedInfo =
-                                    {
-                                        calledBackModelId = e.modelDataId
-                                        runQueueId = e.runQueueId
-                                    }
-
-                                callBack =
-                                    {
-                                        notifyOnStarted = a.started
-                                    }
-                            } |> e.run |> a.completeRun)
-            |> Async.Start
+            a.started { processId = x.runningProcessInfo.runningProcessId; processToStartInfo = x.processToStartInfo }
+            a.completeRun x
 
         let cancelProcessImpl i =
             try

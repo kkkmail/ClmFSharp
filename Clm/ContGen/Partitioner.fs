@@ -27,13 +27,13 @@ module Partitioner =
     type PartitionerCallBackInfo =
         {
             onUpdateProgress : ProgressUpdateInfo -> unit
-            onStarted : ProcessStartInfo -> unit
+            //onStarted : ProcessStartInfo -> unit
         }
 
         static member defaultValue =
             {
                 onUpdateProgress = fun _ -> ignore()
-                onStarted = fun _ -> ignore()
+                //onStarted = fun _ -> ignore()
             }
 
 
@@ -67,7 +67,7 @@ module Partitioner =
                 partitionerCallBackInfo =
                     {
                         onUpdateProgress = fun _ -> ignore()
-                        onStarted = fun _ -> ignore()
+                        //onStarted = fun _ -> ignore()
                     }
 
                 workerNodes = Map.empty
@@ -79,7 +79,7 @@ module Partitioner =
         | Start of PartitionerCallBackInfo
         | Register of WorkerNodeInfo
         | UpdateProgress of RemoteProgressUpdateInfo
-        | RunModel of RunModelParamWithCallBack * RemoteProcessId
+        | RunModel of RunModelParam * RemoteProcessId
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
@@ -195,13 +195,13 @@ module Partitioner =
             ignore()
 
 
-        let onRunModel s (a: RunModelParamWithCallBack) (q : RemoteProcessId) =
+        let onRunModel s (a: RunModelParam) (q : RemoteProcessId) =
             printfn "PartitionerRunner.onRunModel: q = %A." q
             let onCannotRun() =
                 let e =
                     {
                         remoteProcessId = q
-                        runModelParam = a.runModelParam
+                        runModelParam = a
                     }
 
                 saveQueueElement e
@@ -210,7 +210,7 @@ module Partitioner =
 
             match tryGetNode s with
             | Some n ->
-                match tryLoadModelData a.runModelParam.commandLineParam.serviceAccessInfo a.callBackInfo.processStartedInfo.calledBackModelId with
+                match tryLoadModelData a.commandLineParam.serviceAccessInfo a.callBackInfo.modelDataId with
                 | Some m ->
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
@@ -218,27 +218,18 @@ module Partitioner =
                         messageData =
                             {
                                 wrkModelData = m
-                                taskParam = a.runModelParam.commandLineParam.taskParam
-                                runQueueId = a.callBackInfo.processStartedInfo.runQueueId
-                                minUsefulEe = a.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                                taskParam = a.commandLineParam.taskParam
+                                runQueueId = a.callBackInfo.runQueueId
+                                minUsefulEe = a.commandLineParam.serviceAccessInfo.minUsefulEe
                                 remoteProcessId = q
                             }
                             |> RunModelWrkMsg
                     }.messageInfo
                     |> sendMessage
 
-                    {
-                        processId = RemoteProcess q
-                        modelDataId = a.callBackInfo.processStartedInfo.calledBackModelId
-                        runQueueId = a.callBackInfo.processStartedInfo.runQueueId
-                    }
-                    // Note - these two calls are supposed to be the same!
-                    //|> a.callBack.notifyOnStarted
-                    |> s.partitionerCallBackInfo.onStarted
-
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
                 | None ->
-                    logger.logErr (sprintf "Unable to load model with id: %A" a.callBackInfo.processStartedInfo.calledBackModelId)
+                    logger.logErr (sprintf "Unable to load model with id: %A" a.callBackInfo.modelDataId)
                     onCannotRun()
             | None -> onCannotRun()
 
@@ -269,8 +260,11 @@ module Partitioner =
 
             {
                 processId = q |> RemoteProcess
-                modelDataId = p.callBackInfo.processStartedInfo.calledBackModelId
-                runQueueId = p.callBackInfo.processStartedInfo.runQueueId
+                processToStartInfo =
+                    {
+                        modelDataId = p.callBackInfo.modelDataId
+                        runQueueId = p.callBackInfo.runQueueId
+                    }
             }
 
 

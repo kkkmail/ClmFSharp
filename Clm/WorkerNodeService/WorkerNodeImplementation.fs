@@ -187,28 +187,25 @@ module ServiceImplementation =
 
             let a =
                 {
-                    runModelParam =
+                    exeName = i.exeName
+                    commandLineParam =
                         {
-                            exeName = i.exeName
-                            commandLineParam =
-                                {
-                                    taskParam = m.taskParam
-                                    serviceAccessInfo = getSolverRunnerAccessInfo m.minUsefulEe
-                                }
+                            taskParam = m.taskParam
+                            serviceAccessInfo = getSolverRunnerAccessInfo m.minUsefulEe
                         }
+
+//type ProcessStartInfo =
+//    {
+//        processId : ProcessId
+//        modelDataId : ModelDataId
+//        runQueueId : RunQueueId
+//    }
 
                     callBackInfo =
                         {
-                            processStartedInfo =
-                                {
-                                    calledBackModelId = m.wrkModelData.modelDataId
-                                    runQueueId = m.runQueueId
-                                }
-
-                            callBack =
-                                {
-                                    notifyOnStarted = r.onStarted
-                                }
+                            //processId = 0
+                            modelDataId = m.wrkModelData.modelDataId
+                            runQueueId = m.runQueueId
                         }
                 }
 
@@ -257,7 +254,6 @@ module ServiceImplementation =
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private this.runModel m = RunModel (this, m) |> messageLoop.Post
-        member __.onStarted (p : ProcessStartInfo) = ignore()
 
 
     let createServiceImpl i =

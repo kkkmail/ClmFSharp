@@ -143,41 +143,51 @@ module ServiceInfo =
             }
 
 
-    type ProcessStartInfo =
+    type ProcessToStartInfo =
         {
-            processId : ProcessId
             modelDataId : ModelDataId
             runQueueId : RunQueueId
+        }
+
+
+    type ProcessStartedInfo =
+        {
+            processId : ProcessId
+            processToStartInfo : ProcessToStartInfo
         }
 
         member this.runningProcessInfo =
             {
                 started = DateTime.Now
                 runningProcessId = this.processId
-                runningModelId = this.modelDataId
-                runningQueueId = Some this.runQueueId
+                runningModelId = this.processToStartInfo.modelDataId
+                runningQueueId = Some this.processToStartInfo.runQueueId
                 progress = TaskProgress.NotStarted
             }
 
 
-    type LocalProcessStartInfo =
+    type LocalProcessStartedInfo =
         {
             localProcessId : LocalProcessId
             modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
 
-        member this.processStartInfo =
+        member this.processStartedInfo =
             {
                 processId = this.localProcessId |> LocalProcess
-                modelDataId = this.modelDataId
-                runQueueId = this.runQueueId
+
+                processToStartInfo =
+                    {
+                        modelDataId = this.modelDataId
+                        runQueueId = this.runQueueId
+                    }
             }
 
 
     type ProcessResult =
         {
-            startInfo : ProcessStartInfo
+            startInfo : ProcessStartedInfo
             exitCode : int
             runTime : int64
             outputs : seq<string>
@@ -185,29 +195,9 @@ module ServiceInfo =
         }
 
 
-    type ProcessStartedInfo =
-        {
-            calledBackModelId : ModelDataId
-            runQueueId : RunQueueId
-        }
-
-
-    type ProcessStartedCallBack =
-        {
-            notifyOnStarted : ProcessStartInfo -> unit
-        }
-
-
-    type ProcessStartedInfoWithCallBack =
-        {
-            processStartedInfo : ProcessStartedInfo
-            callBack : ProcessStartedCallBack
-        }
-
-
     type RunInfo =
         {
-            run : ProcessStartedInfoWithCallBack -> ProcessStartInfo
+            run : ProcessToStartInfo -> ProcessStartedInfo
             modelDataId : ModelDataId
             runQueueId : RunQueueId
         }
@@ -274,15 +264,13 @@ module ServiceInfo =
 
     type RunProcArgs =
         {
-            callBackInfo : ProcessStartedCallBack
-            notifyOnStarted : ProcessStartInfo -> unit
             fileName : string
             commandLineArgs : string
             startDir : string option
         }
 
 
-    let runProc (c : ProcessStartedInfoWithCallBack) filename args startDir =
+    let runProc (c : ProcessToStartInfo) filename args startDir =
         let procStartInfo =
             ProcessStartInfo(
                 RedirectStandardOutput = true,
@@ -306,8 +294,6 @@ module ServiceInfo =
                 p.Start()
             with
                 | ex ->
-                    // TODO kk:20190203 Here we need to notify AsyncRunner that starting the process has failed.
-                    // Otherwise runningCount is not decreased.
                     ex.Data.Add("filename", filename)
                     false
 
@@ -317,8 +303,8 @@ module ServiceInfo =
 
             {
                 localProcessId = -1 |> LocalProcessId
-                modelDataId = c.processStartedInfo.calledBackModelId
-                runQueueId = c.processStartedInfo.runQueueId
+                modelDataId = c.modelDataId
+                runQueueId = c.runQueueId
             }
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
@@ -326,12 +312,11 @@ module ServiceInfo =
             let processId = p.Id |> LocalProcessId
 
             printfn "Started %s with pid %A" p.ProcessName processId
-            c.callBack.notifyOnStarted { processId = processId |> LocalProcess; modelDataId = c.processStartedInfo.calledBackModelId; runQueueId = c.processStartedInfo.runQueueId }
 
             {
                 localProcessId = processId
-                modelDataId = c.processStartedInfo.calledBackModelId
-                runQueueId = c.processStartedInfo.runQueueId
+                modelDataId = c.modelDataId
+                runQueueId = c.runQueueId
             }
 
 
@@ -339,11 +324,12 @@ module ServiceInfo =
         {
             exeName : string
             commandLineParam : ModelCommandLineParam
+            callBackInfo : ProcessToStartInfo
         }
 
 
-    type RunModelParamWithCallBack =
-        {
-            runModelParam : RunModelParam
-            callBackInfo : ProcessStartedInfoWithCallBack
-        }
+    //type RunModelParamWithCallBack =
+    //    {
+    //        runModelParam : RunModelParam
+    //        callBackInfo : ProcessStartedInfoWithCallBack
+    //    }

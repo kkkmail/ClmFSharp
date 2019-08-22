@@ -14,8 +14,8 @@ open ClmSys.Logging
 
 module ServiceImplementation =
 
-    let createServiceImpl i p =
-        let a = createRunner (ModelRunnerParam.defaultValue i p)
+    let createServiceImpl i p u =
+        let a = createRunner (ModelRunnerParam.defaultValue i p) u
         let h = new EventHandler(EventHandlerInfo.defaultValue a.startGenerate)
         do h.start()
         a
@@ -47,14 +47,15 @@ module ServiceImplementation =
         inherit MarshalByRefObject()
 
         let serviceProxy, r = getServiceProxy parserResults
-        let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy
+        let u = match r with | Some _ -> true | None -> false
+        let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy u
 
         let initService () =
             match r with
             | Some p ->
                 {
                     onUpdateProgress = a.updateProgress
-                    //onStarted = a.started
+                    setRunLimit = fun c -> c |> SetRunLimit |> a.configureService
                 }
                 |> p.start
             | None -> ignore()

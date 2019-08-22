@@ -27,13 +27,13 @@ module Partitioner =
     type PartitionerCallBackInfo =
         {
             onUpdateProgress : ProgressUpdateInfo -> unit
-            //onStarted : ProcessStartInfo -> unit
+            setRunLimit : int -> unit
         }
 
         static member defaultValue =
             {
                 onUpdateProgress = fun _ -> ignore()
-                //onStarted = fun _ -> ignore()
+                setRunLimit = fun _ -> ignore()
             }
 
 
@@ -57,19 +57,14 @@ module Partitioner =
 
     type PartitionerRunnerState =
         {
-            partitionerCallBackInfo : PartitionerCallBackInfo
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
             partitionerQueue : list<PartitionerQueueElement>
+            partitionerCallBackInfo : PartitionerCallBackInfo
         }
 
         static member defaultValue =
             {
-                partitionerCallBackInfo =
-                    {
-                        onUpdateProgress = fun _ -> ignore()
-                        //onStarted = fun _ -> ignore()
-                    }
-
+                partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
                 workerNodes = Map.empty
                 partitionerQueue = []
             }
@@ -84,6 +79,7 @@ module Partitioner =
         | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
         | ProcessMessage of PartitionerRunner * Message
+        | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
@@ -92,10 +88,15 @@ module Partitioner =
         let tryLoadModelData = p.partitionerProxy.tryLoadModelData
         let logger = p.logger
 
+        let setRunLimit x =
+            let c =
+                x.workerNodes
+                |> Map.toList
+                |> List.map snd
+                |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
 
-        let onStart s q =
-            printfn "PartitionerRunner.onStart"
-            { s with partitionerCallBackInfo = q }
+            x.partitionerCallBackInfo.setRunLimit c
+            x
 
 
         let onRegister s (r : WorkerNodeInfo) =
@@ -107,6 +108,13 @@ module Partitioner =
             | Some n -> n.running
             | None -> []
             |> updated
+            |> setRunLimit
+
+
+        let onStart s q =
+            printfn "PartitionerRunner.onStart"
+            let workers = p.partitionerProxy.loadAllWorkerNodeInfo()
+            workers |> List.fold (fun acc r -> onRegister acc r) { s with partitionerCallBackInfo = q }
 
 
         let tryFindRunningNode s r =
@@ -146,6 +154,7 @@ module Partitioner =
 
         let onGetMessages s (w : PartitionerRunner) =
             printfn "PartitionerRunner.onGetMessages"
+            printfn "PartitionerRunnerState: %A" s
             let messages = messagingClient.getMessages()
 
             //messages
@@ -248,6 +257,7 @@ module Partitioner =
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
+                            | GetState w -> w.Reply s
                         }
 
                 onStart PartitionerRunnerState.defaultValue PartitionerCallBackInfo.defaultValue |> loop
@@ -273,6 +283,7 @@ module Partitioner =
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
+        member this.getState () = messageLoop.PostAndReply GetState
 
 
     let createServiceImpl i =

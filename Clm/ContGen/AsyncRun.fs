@@ -16,6 +16,7 @@ module AsyncRun =
             removeFromQueue : RunQueueId -> unit
             maxQueueLength : int
             runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
+            usePartitioner : bool
         }
 
 
@@ -45,6 +46,7 @@ module AsyncRun =
             workState : WorkState
             messageCount : int64
             minUsefulEe : MinUsefulEe
+            usePartitioner : bool
         }
 
         member state.runningCount = state.running.Count
@@ -52,15 +54,16 @@ module AsyncRun =
         member state.runningQueue =
             state.running |> Map.toList |> List.map (fun (_, v) -> v.runningQueueId) |> List.choose id |> Set.ofList
 
-        static member defaultValue =
+        static member defaultValue u =
             {
                 running = Map.empty
                 queue = []
-                runLimit = Environment.ProcessorCount
+                runLimit = if u then 0 else Environment.ProcessorCount
                 maxQueueLength = 4
                 workState = CanGenerate
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe
+                usePartitioner = u
             }
 
         override s.ToString() =
@@ -185,7 +188,10 @@ module AsyncRun =
                         |> List.fold (fun (acc : AsyncRunnerState) (i, _) -> acc.configureService h (CancelTask i)) s
                     { s1 with workState = ShuttingDown; queue = [] }
                 | true -> { s with workState = ShuttingDown }
-            | SetRunLimit v -> { s with runLimit = max 1 (min v Environment.ProcessorCount)}
+            | SetRunLimit v ->
+                match s.usePartitioner with
+                | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
+                | true -> { s with runLimit = max 0 v }
             | CancelTask i ->
                 match h.cancelProcess i with
                 | true -> { s with running = s.running.tryRemove i }
@@ -318,7 +324,7 @@ module AsyncRun =
                             | RunModel (a, m, p) -> return! loop (s.runModel (h a) m p)
                         }
 
-                loop AsyncRunnerState.defaultValue
+                AsyncRunnerState.defaultValue generatorInfo.usePartitioner |> loop
                 )
 
         member private this.completeGenerate (r : list<RunInfo>) : unit = CompleteGenerate (this, r) |> messageLoop.Post

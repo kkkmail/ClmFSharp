@@ -188,13 +188,14 @@ module Runner =
             | None -> None
 
 
-        let createGeneratorImpl() =
+        let createGeneratorImpl u =
             {
                 generate = generateAll p.serviceAccessInfo
                 getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
                 maxQueueLength = 4
                 runModel = runModel p.serviceAccessInfo
+                usePartitioner = u
             }
 
 
@@ -202,9 +203,9 @@ module Runner =
         member __.generate = generateImpl
 
 
-    let createRunner p =
+    let createRunner p u =
         let r = ModelRunner p
-        let a = r.createGenerator() |> AsyncRunner
+        let a = r.createGenerator u |> AsyncRunner
         a.startQueue()
         a
 

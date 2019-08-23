@@ -88,7 +88,7 @@ module Partitioner =
         let logger = p.logger
 
         let sendMessage m =
-            printfn "PartitionerRunner.sendMessage: %A" m
+            printfn "PartitionerRunner.sendMessage: recipient: %A" m.recipient
             messagingClient.sendMessage m
 
 

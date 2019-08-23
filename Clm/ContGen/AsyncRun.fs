@@ -86,6 +86,7 @@ module AsyncRun =
             | ShuttingDown -> s
 
         member s.onProgressUpdated h (p : ProgressUpdateInfo) =
+            printfn "AsyncRunnerState.onProgressUpdated: %A" p
             match s.running.TryFind p.updatedProcessId with
             | Some e ->
                 match p.progress with
@@ -97,8 +98,10 @@ module AsyncRun =
                     | None -> ignore()
 
                     h.startRun ()
+                    printfn "AsyncRunnerState.onProgressUpdated: trying to remove: p.updatedProcessId = %A" p.updatedProcessId
                     { s with running =  s.running.Remove p.updatedProcessId }
             | None ->
+                printfn "AsyncRunnerState.onProgressUpdated: unable to find: p.updatedProcessId = %A" p.updatedProcessId
                 match p.progress with
                 | NotStarted | InProgress _ ->
                     { s with running = s.running.Add(p.updatedProcessId, p.runningProcessInfo) }

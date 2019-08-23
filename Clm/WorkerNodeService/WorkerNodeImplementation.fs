@@ -6,9 +6,7 @@ open ClmSys.GeneralData
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
-open ClmSys.Retry
 open ClmSys.Registry
-open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
@@ -212,7 +210,7 @@ module ServiceImplementation =
 
 
         let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
-            printfn "WorkerNodeRunner.onProcessMessage: m = %A." m
+            printfn "WorkerNodeRunner.onProcessMessage: m.messageId = %A." m.messageId
             match m.messageInfo.messageData with
             | WorkerNodeMsg x ->
                 match x with

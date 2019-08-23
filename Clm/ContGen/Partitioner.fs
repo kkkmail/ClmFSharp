@@ -230,7 +230,7 @@ module Partitioner =
                 printfn "PartitionerRunner.onRunModel: Using Node: %A." n
                 match tryLoadModelData a.commandLineParam.serviceAccessInfo a.callBackInfo.modelDataId with
                 | Some m ->
-                    printfn "PartitionerRunner.onRunModel: using Model: %A." m
+                    printfn "PartitionerRunner.onRunModel: using modelDataId: %A." m.modelDataId
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
                         deliveryType = GuaranteedDelivery

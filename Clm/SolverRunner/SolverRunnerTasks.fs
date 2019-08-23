@@ -233,7 +233,9 @@ module SolverRunnerTasks =
                     plotter.plotEnantiomericExcess show
                 ]
 
-            i.sovlerRunnerProxy.saveCharts i.resultDataWithId.resultDataId plots
+            match ChartInfo.tryCreate i.resultDataWithId.resultDataId plots with
+            | Some c -> i.sovlerRunnerProxy.saveChartInfo c
+            | None -> printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A" i.resultDataWithId.resultDataId plots
 
         if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then

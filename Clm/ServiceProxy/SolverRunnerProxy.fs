@@ -55,14 +55,14 @@ module SolverRunner =
                 tryFun (fun () -> saveResultDataFs solverRunnerName r) |> ignore
 
 
-        let saveChartsImpl r p =
+        let saveChartInfoImpl r =
             match i with
             | LocalSolverRunner _ -> ignore()
             | RemoteSolverRunner _ ->
-                printfn "SolverRunnerProxy.saveChartsImpl - saving charts..."
-                tryFun (fun () -> saveChartsFs solverRunnerName r p) |> ignore
+                printfn "SolverRunnerProxy.saveChartsImpl - saving charts: %A" r
+                tryFun (fun () -> saveChartInfoFs solverRunnerName r) |> ignore
 
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m
         member __.saveResultData r = saveResultDataImpl r
-        member __.saveCharts (r : ResultDataId) (p : List<string>) = saveChartsImpl r p
+        member __.saveChartInfo c = saveChartInfoImpl c

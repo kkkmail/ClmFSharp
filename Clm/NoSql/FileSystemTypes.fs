@@ -23,7 +23,7 @@ module FileSystemTypes =
     let messageWithTypeTblName = TableName "MessageWithType"
     let modelDataTblName = TableName "ModelData"
     let resultDataTblName = TableName "ResultData"
-    let chartTblName = TableName "Chart"
+    let chartInfoTblName = TableName "ChartInfo"
     let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
     let workerNodeInfoTblName = TableName "WorkerNodeInfo"
 
@@ -118,14 +118,10 @@ module FileSystemTypes =
     let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
     let getResultDataIdsFs serviceName () = getObjectIds<Guid> serviceName resultDataTblName Guid.Parse |> List.map ResultDataId
 
-    let saveChartsFs serviceName (ResultDataId resultDataId) (p : list<string>) = saveData<ChartInfo, Guid> serviceName chartTblName resultDataId { chartFileNames = p |> Array.ofList }
-
-    let tryLoadCharts serviceName (ResultDataId resultDataId) =
-        tryLoadData<ChartInfo, Guid> serviceName chartTblName resultDataId
-        |> Option.bind (fun e -> e.chartFileNames |> List.ofArray |> Some)
-
-    let tryDeleteChartsFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartTblName resultDataId
-    let getChartsIdsFs serviceName () = getObjectIds<Guid> serviceName chartTblName Guid.Parse |> List.map ResultDataId
+    let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.resultDataId.value c
+    let tryLoadChartInfoFs serviceName (ResultDataId resultDataId) = tryLoadData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
+    let tryDeleteChartInfoFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
+    let getChartInfoIdsFs serviceName () = getObjectIds<Guid> serviceName chartInfoTblName Guid.Parse |> List.map ResultDataId
 
     let saveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = saveData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName r.workerNodeId.value.value r
     let tryLoadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryLoadData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId

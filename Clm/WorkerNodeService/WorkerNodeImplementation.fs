@@ -62,7 +62,7 @@ module ServiceImplementation =
         | Register
         | UpdateProgress of WorkerNodeRunner * LocalProgressUpdateInfo
         | SaveResult of ResultDataId
-        | SaveCharts of ChartInfo
+        | SaveCharts of ResultDataId
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message
         | RunModel of WorkerNodeRunModelData
@@ -163,19 +163,24 @@ module ServiceImplementation =
                 |> sendMessage
 
                 i.workerNodeProxy.tryDeleteResultData d |> ignore
-            | None -> logErr (sprintf "Unable to find result with id: %A" d)
+            | None -> logErr (sprintf "Unable to find result with resultDataId: %A" d)
 
             s
 
 
-        let onSaveCharts s c =
-            printfn "WorkerNodeRunner.onSaveCharts: c = %A." c
-            {
-                partitionerRecipient = partitioner
-                deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsPrtMsg
-            }.messageInfo
-            |> sendMessage
+        let onSaveCharts s (d : ResultDataId) =
+            printfn "WorkerNodeRunner.onSaveCharts: d = %A." d
+            match i.workerNodeProxy.tryLoadChartInfo d with
+            | Some c ->
+                {
+                    partitionerRecipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = c |> SaveChartsPrtMsg
+                }.messageInfo
+                |> sendMessage
+
+                i.workerNodeProxy.tryDeleteChartInfo d |> ignore
+            | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)
 
             s
 

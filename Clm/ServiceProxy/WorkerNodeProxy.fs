@@ -64,3 +64,6 @@ module WorkerNodeProxy =
 
         member __.tryLoadResultData r = tryFun (fun _ -> tryLoadResultDataFs solverRunnerName r) |> Option.bind id
         member __.tryDeleteResultData r = tryFun (fun _ -> tryDeleteResultDataFs solverRunnerName r)
+
+        member __.tryLoadChartInfo r = tryFun (fun _ -> tryLoadChartInfoFs solverRunnerName r) |> Option.bind id
+        member __.tryDeleteChartInfo r = tryFun (fun _ -> tryDeleteChartInfoFs solverRunnerName r)

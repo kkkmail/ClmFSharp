@@ -330,11 +330,30 @@ module GeneralData =
         x + @"\" + exeName
 
 
-    type ChartInfo =
+    type SingleChartInfo =
         {
-            chartFileNames : string[]
+            chartName : string
+            chartContent : string
         }
 
+
+    type ChartInfo =
+        {
+            resultDataId : ResultDataId
+            charts : list<SingleChartInfo>
+        }
+
+        static member tryCreate r c =
+            try
+                {
+                    resultDataId = r
+                    charts = c |> List.map (fun e -> { chartName = Path.GetFileNameWithoutExtension e; chartContent = File.ReadAllText e })
+                }
+                |> Some
+            with
+                | ex ->
+                    printfn "Exception: %A" ex
+                    None
 
     type Queue<'A> =
         | Queue of 'A list * 'A list

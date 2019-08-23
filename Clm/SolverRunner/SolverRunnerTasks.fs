@@ -241,7 +241,7 @@ module SolverRunnerTasks =
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
-    let runSolver (results : ParseResults<SolverRunnerArguments>) usage d =
+    let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
@@ -249,6 +249,12 @@ module SolverRunnerTasks =
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
+
+                let d =
+                    match results.TryGetResult ResultId with
+                    | Some v -> v |> ResultDataId
+                    | None -> Guid.NewGuid() |> ResultDataId
+
                 let runSolverData = RunSolverData.create md i a y0 tEnd d
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)

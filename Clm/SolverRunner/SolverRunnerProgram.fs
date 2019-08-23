@@ -13,8 +13,7 @@ let main argv =
         let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
         let results = parser.Parse argv
         let usage = parser.PrintUsage()
-        let d = Guid.NewGuid() |> ResultDataId
-        runSolver results usage d
+        runSolver results usage
     with
         | exn ->
             printfn "%s" exn.Message

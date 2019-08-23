@@ -60,8 +60,8 @@ module ServiceImplementation =
     type WorkerNodeMessage =
         | Start of WorkerNodeRunner
         | Register
-        | UpdateProgress of LocalProgressUpdateInfo
-        | SaveResult of ResultDataWithId
+        | UpdateProgress of WorkerNodeRunner * LocalProgressUpdateInfo
+        | SaveResult of ResultDataId
         | SaveCharts of ChartInfo
         | GetMessages of WorkerNodeRunner
         | ProcessMessage of WorkerNodeRunner * Message
@@ -109,7 +109,7 @@ module ServiceImplementation =
             ignore()
 
 
-        let onUpdateProgress s (p : LocalProgressUpdateInfo) =
+        let onUpdateProgress s (w : WorkerNodeRunner) (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
             let updateProgress t c =
                 match s.running.TryFind p.updatedLocalProcessId with
@@ -134,6 +134,7 @@ module ServiceImplementation =
                         //onCompleted
                         i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
                         i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
+                        w.saveResult p.resultDataId
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
 
                 if c
@@ -150,14 +151,19 @@ module ServiceImplementation =
             updateProgress t c
 
 
-        let onSaveResult s r =
-            printfn "WorkerNodeRunner.onSaveResult: r = %A." r
-            {
-                partitionerRecipient = partitioner
-                deliveryType = GuaranteedDelivery
-                messageData = r |> SaveResultPrtMsg
-            }.messageInfo
-            |> sendMessage
+        let onSaveResult s (d : ResultDataId) =
+            printfn "WorkerNodeRunner.onSaveResult: d = %A." d
+            match i.workerNodeProxy.tryLoadResultData d with
+            | Some r ->
+                {
+                    partitionerRecipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = r |> SaveResultPrtMsg
+                }.messageInfo
+                |> sendMessage
+
+                i.workerNodeProxy.tryDeleteResultData d |> ignore
+            | None -> logErr (sprintf "Unable to find result with id: %A" d)
 
             s
 
@@ -240,7 +246,7 @@ module ServiceImplementation =
                             match! u.Receive() with
                             | Start w -> return! onStart s w |> loop
                             | Register -> return! onRegister s |> loop
-                            | UpdateProgress p -> return! onUpdateProgress s p |> loop
+                            | UpdateProgress (w, p) -> return! onUpdateProgress s w p |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
@@ -254,7 +260,8 @@ module ServiceImplementation =
 
         member this.start() = Start this |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
-        member __.updateProgress p = UpdateProgress p |> messageLoop.Post
+        member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
+        member __.saveResult r = SaveResult r |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post

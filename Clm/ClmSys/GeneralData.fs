@@ -334,3 +334,24 @@ module GeneralData =
         {
             chartFileNames : string[]
         }
+
+
+    type Queue<'A> =
+        | Queue of 'A list * 'A list
+
+
+    let emptyQueue = Queue([], [])
+
+
+    let enqueue q e =
+        match q with
+        | Queue(fs, bs) -> Queue(e :: fs, bs)
+
+
+    let tryDequeue q =
+        match q with
+        | Queue([], []) -> None, q
+        | Queue(fs, b :: bs) -> Some b, Queue(fs, bs)
+        | Queue(fs, []) -> 
+            let bs = List.rev fs
+            Some bs.Head, Queue([], bs.Tail)

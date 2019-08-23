@@ -35,7 +35,8 @@ module SolverRunnerTasks =
                 | e ->
                     printfn "Exception occurred: %A, progress: %A." e.Message p
 
-        notify |> toAsync |> Async.Start
+        //notify |> toAsync |> Async.Start
+        notify()
 
 
     type RunProgress =

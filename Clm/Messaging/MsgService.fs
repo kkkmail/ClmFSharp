@@ -1,5 +1,6 @@
 ﻿namespace Messaging
 
+open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
@@ -40,6 +41,8 @@ module Service =
             match s.messages.TryFind m.messageInfo.recipient with
             | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
             | None -> { s with messages = s.messages.Add (m.messageInfo.recipient, [ m ]) }
+            //| Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, enqueue r m) }
+            //| None -> { s with messages = s.messages.Add (m.messageInfo.recipient, enqueue emptyQueue m) }
 
 
         let onStart s =
@@ -61,7 +64,7 @@ module Service =
             printfn "MessagingService.onGetMessages: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
-                r.Reply v
+                r.Reply (List.rev v)
 
                 v
                 |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)

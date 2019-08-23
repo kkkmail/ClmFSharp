@@ -104,6 +104,10 @@ module ServiceImplementation =
 
             s
 
+        let onCompleted x =
+
+            ignore()
+
 
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
@@ -115,6 +119,7 @@ module ServiceImplementation =
                             updatedRemoteProcessId = r
                             updateModelId = p.updateModelId
                             progress = p.progress
+                            resultDataId = p.resultDataId
                         }
                     {
                         partitionerRecipient = partitioner
@@ -126,6 +131,7 @@ module ServiceImplementation =
                     if c
                     then
                         printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
+                        //onCompleted
                         i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
                         i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)

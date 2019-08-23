@@ -43,20 +43,24 @@ module SolverRunner =
         let tryLoadModelDataImpl a m =
             match i with
             | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
-            | RemoteSolverRunner c -> tryFun (fun _ -> tryLoadModelDataFs solverRunnerName m)
+            | RemoteSolverRunner _ -> tryFun (fun _ -> tryLoadModelDataFs solverRunnerName m)
             |> Option.bind id
 
 
         let saveResultDataImpl r =
             match i with
             | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r) |> ignore
-            | RemoteSolverRunner _ -> tryFun (fun _ -> saveResultDataFs solverRunnerName r) |> ignore
+            | RemoteSolverRunner _ ->
+                printfn "SolverRunnerProxy.saveResultDataImpl - saving results..."
+                tryFun (fun () -> saveResultDataFs solverRunnerName r) |> ignore
 
 
         let saveChartsImpl r p =
             match i with
             | LocalSolverRunner _ -> ignore()
-            | RemoteSolverRunner _ -> saveChartsFs solverRunnerName r p |> ignore
+            | RemoteSolverRunner _ ->
+                printfn "SolverRunnerProxy.saveChartsImpl - saving charts..."
+                tryFun (fun () -> saveChartsFs solverRunnerName r p) |> ignore
 
 
         member __.tryLoadModelData i m = tryLoadModelDataImpl i m

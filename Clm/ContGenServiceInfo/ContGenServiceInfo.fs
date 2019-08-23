@@ -61,6 +61,7 @@ module ServiceInfo =
             updatedProcessId : ProcessId
             updateModelId : ModelDataId
             progress : TaskProgress
+            resultDataId : ResultDataId
         }
 
 
@@ -69,6 +70,7 @@ module ServiceInfo =
             updatedLocalProcessId : LocalProcessId
             updateModelId : ModelDataId
             progress : TaskProgress
+            resultDataId : ResultDataId
         }
 
         member this.progressUpdateInfo =
@@ -76,6 +78,7 @@ module ServiceInfo =
                 updatedProcessId = this.updatedLocalProcessId |> LocalProcess
                 updateModelId = this.updateModelId
                 progress = this.progress
+                resultDataId = this.resultDataId
             }
 
 
@@ -84,6 +87,7 @@ module ServiceInfo =
             updatedRemoteProcessId : RemoteProcessId
             updateModelId : ModelDataId
             progress : TaskProgress
+            resultDataId : ResultDataId
         }
 
         member this.progressUpdateInfo =
@@ -91,6 +95,7 @@ module ServiceInfo =
                 updatedProcessId = this.updatedRemoteProcessId |> RemoteProcess
                 updateModelId = this.updateModelId
                 progress = this.progress
+                resultDataId = this.resultDataId
             }
 
 
@@ -99,6 +104,7 @@ module ServiceInfo =
                 updatedRemoteProcessId = r
                 updateModelId = p.updateModelId
                 progress = p.progress
+                resultDataId = p.resultDataId
             }
 
 
@@ -107,6 +113,7 @@ module ServiceInfo =
                 updatedLocalProcessId = l
                 updateModelId = p.updateModelId
                 progress = p.progress
+                resultDataId = p.resultDataId
             }
 
 

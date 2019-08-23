@@ -3,6 +3,8 @@ open Clm.CommandLine
 open ClmSys
 open Argu
 open SolverRunner.SolverRunnerTasks
+open System
+open ClmSys.GeneralData
 
 
 [<EntryPoint>]
@@ -11,7 +13,8 @@ let main argv =
         let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
         let results = parser.Parse argv
         let usage = parser.PrintUsage()
-        runSolver results usage
+        let d = Guid.NewGuid() |> ResultDataId
+        runSolver results usage d
     with
         | exn ->
             printfn "%s" exn.Message

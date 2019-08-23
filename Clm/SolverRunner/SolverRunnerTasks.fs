@@ -43,7 +43,7 @@ module SolverRunnerTasks =
         | Completed
 
 
-    let notify m svc p =
+    let notify m svc p r =
         let t =
             match p with
             | Running d -> TaskProgress.create d
@@ -54,6 +54,7 @@ module SolverRunnerTasks =
                 updatedLocalProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
                 updateModelId = m
                 progress = t
+                resultDataId = r
             }
 
 
@@ -122,7 +123,7 @@ module SolverRunnerTasks =
             updateChart : double -> double[] -> unit
         }
 
-        static member create (md : ModelData) i a y0 tEnd =
+        static member create (md : ModelData) i a y0 tEnd d =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -151,13 +152,13 @@ module SolverRunnerTasks =
 
                 onCompleted =
                     match n with
-                    | Some svc -> fun () -> notify modelDataId svc Completed
+                    | Some svc -> fun () -> notify modelDataId svc Completed d
                     | None -> ignore
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r) d) |> Some)
             }
 
 
@@ -185,12 +186,12 @@ module SolverRunnerTasks =
         }
 
 
-    let getResultAndChartData (d : RunSolverData) =
+    let getResultAndChartData rdi (d : RunSolverData) =
         let chartData = d.chartDataUpdater.getContent()
 
         let r =
             {
-                resultDataId = Guid.NewGuid() |> ResultDataId
+                resultDataId = rdi
                 resultData =
                     {
                         modelDataId = d.modelDataId
@@ -240,7 +241,7 @@ module SolverRunnerTasks =
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
-    let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
+    let runSolver (results : ParseResults<SolverRunnerArguments>) usage d =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
@@ -248,13 +249,13 @@ module SolverRunnerTasks =
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
-                let runSolverData = RunSolverData.create md i a y0 tEnd
+                let runSolverData = RunSolverData.create md i a y0 tEnd d
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
                 let result = nSolve data
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData runSolverData
+                let (r, chartData) = getResultAndChartData d runSolverData
                 r |> p.saveResultData |> ignore
 
                 {

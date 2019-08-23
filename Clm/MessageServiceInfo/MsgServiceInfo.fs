@@ -38,16 +38,16 @@ module ServiceInfo =
 
     type WorkerNodeRunModelData =
         {
-            wrkModelData : ModelData
+            remoteProcessId : RemoteProcessId
+            modelDataId : ModelDataId
             taskParam : ModelCommandLineTaskParam
             runQueueId : RunQueueId
             minUsefulEe : MinUsefulEe
-            remoteProcessId : RemoteProcessId
         }
 
 
     type WorkerNodeMessage =
-        | RunModelWrkMsg of WorkerNodeRunModelData
+        | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

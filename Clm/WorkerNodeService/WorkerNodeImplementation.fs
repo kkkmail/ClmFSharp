@@ -125,7 +125,11 @@ module ServiceImplementation =
                     }.messageInfo
                     |> sendMessage
 
-                    i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
+                    if c
+                    then
+                        printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
+                        i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
+                        i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
 
                 if c
@@ -183,28 +187,28 @@ module ServiceImplementation =
             s
 
 
-        let onRunModel (s : WorkerNodeRunnerState) (m : WorkerNodeRunModelData) =
-            printfn "WorkerNodeRunner.onRunModel: m = %A." m
-            i.workerNodeProxy.saveWorkerNodeRunModelData m
+        let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
+            printfn "WorkerNodeRunner.onRunModel: d = %A." d
+            i.workerNodeProxy.saveWorkerNodeRunModelData d
 
             let a =
                 {
                     exeName = i.exeName
                     commandLineParam =
                         {
-                            taskParam = m.taskParam
-                            serviceAccessInfo = getSolverRunnerAccessInfo m.minUsefulEe
+                            taskParam = d.taskParam
+                            serviceAccessInfo = getSolverRunnerAccessInfo d.minUsefulEe
                         }
 
                     callBackInfo =
                         {
-                            modelDataId = m.wrkModelData.modelDataId
-                            runQueueId = m.runQueueId
+                            modelDataId = d.modelDataId
+                            runQueueId = d.runQueueId
                         }
                 }
 
             let result = i.workerNodeProxy.runModel a
-            { s with running = s.running.Add(result.localProcessId, m.remoteProcessId) }
+            { s with running = s.running.Add(result.localProcessId, d.remoteProcessId) }
 
 
         let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
@@ -212,7 +216,9 @@ module ServiceImplementation =
             match m.messageInfo.messageData with
             | WorkerNodeMsg x ->
                 match x with
-                | RunModelWrkMsg m -> w.runModel m
+                | RunModelWrkMsg (d, m) ->
+                    i.workerNodeProxy.saveModelData m
+                    w.runModel d
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
             //match m.messageInfo.deliveryType with
@@ -235,7 +241,7 @@ module ServiceImplementation =
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
-                            | RunModel m -> return! onRunModel s m |> loop
+                            | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
                         }
 
@@ -248,7 +254,7 @@ module ServiceImplementation =
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
-        member private __.runModel m = RunModel m |> messageLoop.Post
+        member private __.runModel d = RunModel d |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 
 

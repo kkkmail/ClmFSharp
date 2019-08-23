@@ -30,12 +30,6 @@ module ContGenServiceTasks =
         service.loadQueue()
         let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
         do h.start()
-        //let eventHandler _ = getServiceState service
-
-        //let timer = new System.Timers.Timer(30_000.0)
-        //do timer.AutoReset <- true
-        //do timer.Elapsed.Add eventHandler
-        //do timer.Start()
 
 
     let serviceInfo =

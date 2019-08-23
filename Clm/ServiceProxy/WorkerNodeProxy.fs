@@ -56,3 +56,7 @@ module WorkerNodeProxy =
         member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs name m)
         member __.runModel p = runLocalModel p true
         member __.loadAllWorkerNodeRunModelData() = loadAllWorkerNodeRunModelDataImpl()
+
+        // These ones are needed for SolverRunner.
+        member __.saveModelData m = tryFun (fun _ -> saveModelDataFs solverRunnerName m) |> ignore
+        member __.tryDeleteModelData m = tryFun (fun _ -> tryDeleteModelDataFs solverRunnerName m)

@@ -270,7 +270,9 @@ module SolverRunnerTasks =
                 runSolverData.onCompleted()
 
                 CompletedSuccessfully
-            | _ -> UnknownException
+            | _ ->
+                printfn "Unable to load model with id: %A" modelDataId
+                UnknownException
         | _ ->
             printfn "%s" usage
             InvalidCommandLineArgs

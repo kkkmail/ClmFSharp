@@ -84,9 +84,13 @@ module Partitioner =
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
         let messagingClient = MessagingClient p.messagingClientData
-        let sendMessage m = messagingClient.sendMessage m
         let tryLoadModelData = p.partitionerProxy.tryLoadModelData
         let logger = p.logger
+
+        let sendMessage m =
+            printfn "PartitionerRunner.sendMessage: %A" m
+            messagingClient.sendMessage m
+
 
         let setRunLimit x =
             let c =
@@ -192,12 +196,16 @@ module Partitioner =
             //s
 
         let tryGetNode s =
-            s.workerNodes
-            |> Map.toList
-            |> List.map (fun (_, v) -> v)
-            |> List.sortBy (fun e -> (e.workerNodeInfo.nodePriority, (decimal e.running.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))))
-            |> List.tryPick (fun e -> if e.running.Length < e.workerNodeInfo.noOfCores then Some e else None)
+            printfn "PartitionerRunner.tryGetNode."
 
+            let x =
+                s.workerNodes
+                    |> Map.toList
+                    |> List.map (fun (_, v) -> v)
+                    |> List.sortBy (fun e -> (e.workerNodeInfo.nodePriority, (decimal e.running.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))))
+                    |> List.tryPick (fun e -> if e.running.Length < e.workerNodeInfo.noOfCores then Some e else None)
+            printfn "PartitionerRunner.tryGetNode: retVal = %A" x
+            x
 
         let saveQueueElement q =
             printfn "saveQueueElement is not implemented yet."
@@ -219,28 +227,36 @@ module Partitioner =
 
             match tryGetNode s with
             | Some n ->
+                printfn "PartitionerRunner.onRunModel: Using Node: %A." n
                 match tryLoadModelData a.commandLineParam.serviceAccessInfo a.callBackInfo.modelDataId with
                 | Some m ->
+                    printfn "PartitionerRunner.onRunModel: using Model: %A." m
                     {
                         workerNodeRecipient = n.workerNodeInfo.workerNodeId
                         deliveryType = GuaranteedDelivery
                         messageData =
-                            {
-                                wrkModelData = m
-                                taskParam = a.commandLineParam.taskParam
-                                runQueueId = a.callBackInfo.runQueueId
-                                minUsefulEe = a.commandLineParam.serviceAccessInfo.minUsefulEe
-                                remoteProcessId = q
-                            }
+                            (
+                                {
+                                    remoteProcessId = q
+                                    modelDataId = m.modelDataId
+                                    taskParam = a.commandLineParam.taskParam
+                                    runQueueId = a.callBackInfo.runQueueId
+                                    minUsefulEe = a.commandLineParam.serviceAccessInfo.minUsefulEe
+                                },
+                                m
+                            )
                             |> RunModelWrkMsg
                     }.messageInfo
                     |> sendMessage
 
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
                 | None ->
+                    printfn "PartitionerRunner.onRunModel - cannot find model."
                     logger.logErr (sprintf "Unable to load model with id: %A" a.callBackInfo.modelDataId)
                     onCannotRun()
-            | None -> onCannotRun()
+            | None ->
+                printfn "PartitionerRunner.onRunModel - cannot find node to run."
+                onCannotRun()
 
 
         let messageLoop =
@@ -266,6 +282,7 @@ module Partitioner =
 
         let runModelImpl p =
             let q = Guid.NewGuid() |> RemoteProcessId
+            printfn "PartitionerRunner.runModelImpl: q = %A, p = %A." q p
             (p, q) |> RunModel |> messageLoop.Post
 
             {

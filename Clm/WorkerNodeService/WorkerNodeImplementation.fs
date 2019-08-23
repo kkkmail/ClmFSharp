@@ -17,6 +17,7 @@ open Messaging.ServiceResponse
 open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
 open Clm.CommandLine
+open System.IO
 
 module ServiceImplementation =
 
@@ -176,8 +177,19 @@ module ServiceImplementation =
                     partitionerRecipient = partitioner
                     deliveryType = GuaranteedDelivery
                     messageData = c |> SaveChartsPrtMsg
+                        //{
+                        //    c with charts = c.charts |> List.map (fun e -> { e with chartName = Path.GetFileNameWithoutExtension e.chartName })
+                        //} |> SaveChartsPrtMsg
                 }.messageInfo
                 |> sendMessage
+
+                try
+                    c.charts
+                    |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
+                    |> ignore
+                with
+                    | ex ->
+                        i.logger.logExn "onSaveCharts - Exception occurred:" ex
 
                 i.workerNodeProxy.tryDeleteChartInfo d |> ignore
             | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)

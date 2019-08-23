@@ -347,7 +347,7 @@ module GeneralData =
             try
                 {
                     resultDataId = r
-                    charts = c |> List.map (fun e -> { chartName = Path.GetFileNameWithoutExtension e; chartContent = File.ReadAllText e })
+                    charts = c |> List.map (fun e -> { chartName = e; chartContent = File.ReadAllText e })
                 }
                 |> Some
             with

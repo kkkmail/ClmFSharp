@@ -31,9 +31,10 @@ module Service =
         | SendMessage of Message
         | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
-
-        /// For debugging & monitoring.
         | GetState of AsyncReplyChannel<MessagingServiceState>
+        | TryPeekMessage of MessagingClientId * AsyncReplyChannel<Message option>
+        | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<bool>
+
 
 
     type MessagingService(d : MessagingServiceData) =
@@ -60,7 +61,7 @@ module Service =
             updateMessages s m
 
 
-        let onGetMessages s (n, r : AsyncReplyChannel<List<Message>>) =
+        let onGetMessages s n (r : AsyncReplyChannel<List<Message>>) =
             printfn "MessagingService.onGetMessages: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
@@ -87,6 +88,27 @@ module Service =
             s
 
 
+        let onTryPeekMessage s n (r : AsyncReplyChannel<Message option>) =
+            match s.messages.TryFind n with
+            | Some v ->
+                match List.rev v with
+                | [] -> r.Reply None
+                | h :: _ -> r.Reply (Some h)
+            | None -> r.Reply None
+            s
+
+
+        let onTryTryDeleteFromServer s n m (r : AsyncReplyChannel<bool>) =
+            match s.messages.TryFind n with
+            | Some v ->
+                let x = removeFirst (fun e -> e.messageId = m) v
+                r.Reply (x.Length <> v.Length)
+                { s with messages = s.messages.Add(n, x) }
+            | None ->
+                r.Reply false
+                s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -95,9 +117,12 @@ module Service =
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
-                            | GetMessages (n, r) -> return! onGetMessages s (n, r) |> loop
+                            | GetMessages (n, r) -> return! onGetMessages s n r |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
                             | GetState r -> return! onGetState s r |> loop
+                            | TryPeekMessage (n, r) -> return! onTryPeekMessage s n r |> loop
+                            | TryDeleteFromServer (n, m, r) -> return! onTryTryDeleteFromServer s n m r |> loop
+
                         }
 
                 onStart (MessagingServiceState.defaultValue d) |> loop
@@ -107,3 +132,5 @@ module Service =
         member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply
+        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
+        member __.tryDeleteFromServer n m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))

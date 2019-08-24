@@ -25,6 +25,10 @@ module Client =
             outgoingMessages : List<Message>
         }
 
+        member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
+        member s.service = s.messageClientData.msgResponseHandler.messagingService
+        member s.proxy = s.messageClientData.msgClientProxy
+
         /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
         /// "This code is not sufficiently generic. The type variable 'T could not be generalized because it would escape its scope.". WTF!!!
         static member defaultValue d =
@@ -41,6 +45,8 @@ module Client =
         | GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
         | ConfigureClient of MessagingClientConfigParam
+        | TryPeekMessage of AsyncReplyChannel<Message option>
+        | TryDeleteFromServer of MessageId * AsyncReplyChannel<bool>
 
 
     type MessagingClient(d : MessagingClientData) =
@@ -51,7 +57,7 @@ module Client =
             { s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
 
 
-        let onSendMessage s m =
+        let onSendMessage (s : MessagingClientState) m =
             let message =
                 {
                     messageId = MessageId.create()
@@ -61,7 +67,7 @@ module Client =
                 }
 
             match m.deliveryType with
-            | GuaranteedDelivery -> s.messageClientData.msgClientProxy.saveMessage { messageType = OutgoingMessage; message = message }
+            | GuaranteedDelivery -> s.proxy.saveMessage { messageType = OutgoingMessage; message = message }
             | NonGuaranteedDelivery -> ignore()
 
             { s with outgoingMessages = message :: s.outgoingMessages }
@@ -72,18 +78,18 @@ module Client =
 
             s.incomingMessages
             |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> s.messageClientData.msgClientProxy.deleteMessage e.messageId)
+            |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
             |> ignore
 
             { s with incomingMessages = [] }
 
 
-        let sendMessageImpl s m =
+        let sendMessageImpl (s : MessagingClientState) m =
             try
-                s.messageClientData.msgResponseHandler.messagingService.sendMessage m
+                s.service.sendMessage m
 
                 match m.messageInfo.deliveryType with
-                | GuaranteedDelivery -> s.messageClientData.msgClientProxy.deleteMessage m.messageId
+                | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
                 | NonGuaranteedDelivery -> ignore()
                 Some m
             with
@@ -92,9 +98,9 @@ module Client =
                     None
 
 
-        let receiveMessagesImpl s =
+        let receiveMessagesImpl (s : MessagingClientState) =
             try
-                s.messageClientData.msgResponseHandler.messagingService.getMessages s.messageClientData.msgAccessInfo.msgClientId
+                s.service.getMessages s.msgClientId
             with
                 | e ->
                     s.messageClientData.logger.logExn "Failed to receive messages: " e
@@ -120,6 +126,29 @@ module Client =
             s
 
 
+        let onTryPeekMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
+            s.service.tryPeekMessage s.msgClientId |> r.Reply
+            s
+
+
+        let onTryTryDeleteFromServer (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
+            s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
+            s
+
+
+        let tryProcessMessageImpl (w : MessagingClient) f =
+            match w.tryPeekMessage() with
+            | Some m ->
+                try
+                    f m
+                    Some true
+                with
+                | ex ->
+                    w.logger.logExn "tryProcessMessageImpl" ex
+                    Some false
+            | None -> None
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -131,6 +160,8 @@ module Client =
                             | GetMessages r -> return! onGetMessages s r |> loop
                             | TransmitMessages -> return! onTransmitMessages s |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
+                            | TryPeekMessage r -> return! onTryPeekMessage s r |> loop
+                            | TryDeleteFromServer (m, r) -> return! onTryTryDeleteFromServer s m r |> loop
                         }
 
                 onStart (MessagingClientState.defaultValue d) |> loop
@@ -151,3 +182,7 @@ module Client =
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
         member __.transmitMessages() = TransmitMessages |> messageLoop.Post
+        member __.tryPeekMessage() = messageLoop.PostAndReply (fun reply -> TryPeekMessage reply)
+        member __.tryDeleteFromServer m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (m, reply))
+        member this.tryProcessMessage f = tryProcessMessageImpl this f
+        member private __.logger = d.logger

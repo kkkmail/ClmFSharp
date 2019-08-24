@@ -33,3 +33,5 @@ module ServiceImplementation =
             member __.sendMessage m = a.sendMessage m
             member __.getMessages n = a.getMessages n
             member __.configureService x = a.configureService x
+            member __.tryPeekMessage n = a.tryPeekMessage n
+            member __.tryDeleteFromServer n m = a.tryDeleteFromServer n m

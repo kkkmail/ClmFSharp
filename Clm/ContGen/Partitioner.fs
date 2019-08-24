@@ -60,6 +60,7 @@ module Partitioner =
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
             partitionerQueue : list<PartitionerQueueElement>
             partitionerCallBackInfo : PartitionerCallBackInfo
+            maxMessages : list<unit> // maximum number of messages to process in one go.
         }
 
         static member defaultValue =
@@ -67,6 +68,7 @@ module Partitioner =
                 partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
                 workerNodes = Map.empty
                 partitionerQueue = []
+                maxMessages = [ for _ in 1..1000 -> () ]
             }
 
 
@@ -159,15 +161,25 @@ module Partitioner =
         let onGetMessages s (w : PartitionerRunner) =
             printfn "PartitionerRunner.onGetMessages"
             printfn "PartitionerRunnerState: %A" s
-            let messages = messagingClient.getMessages()
+            //let messages = messagingClient.getMessages()
 
             //messages
             //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
             //|> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
             //|> ignore
 
-            messages
-            |> List.map (fun e -> w.processMessage e)
+            //messages
+            //|> List.map (fun e -> w.processMessage e)
+            //|> ignore
+
+            let tryProcessMessage() =
+                match messagingClient.tryProcessMessage w.processMessage with
+                | Some true -> None
+                | Some false -> Some ()
+                | None -> Some ()
+
+            s.maxMessages
+            |> List.tryPick tryProcessMessage
             |> ignore
 
             s

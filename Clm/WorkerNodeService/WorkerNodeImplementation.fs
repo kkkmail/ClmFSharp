@@ -30,11 +30,13 @@ module ServiceImplementation =
     type WorkerNodeRunnerState =
         {
             running : Map<LocalProcessId, RemoteProcessId>
+            maxMessages : list<unit> // maximum number of messages to process in one go.
         }
 
         static member defaultValue =
             {
                 running = Map.empty
+                maxMessages = [ for _ in 1..1000 -> () ]
             }
 
 
@@ -197,19 +199,24 @@ module ServiceImplementation =
             s
 
 
-        let onGetMessages s (r : WorkerNodeRunner) =
+        let onGetMessages s (w : WorkerNodeRunner) =
             printfn "WorkerNodeRunner.onGetMessages"
             printfn "WorkerNodeRunnerState: %A" s
-            let messages = messagingClient.getMessages()
+            //let messages = messagingClient.getMessages()
+
+            let tryProcessMessage() =
+                match messagingClient.tryProcessMessage w.processMessage with
+                | Some true -> None
+                | Some false -> Some ()
+                | None -> Some ()
+
+            s.maxMessages
+            |> List.tryPick tryProcessMessage
+            |> ignore
 
             //messages
-            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            //|> List.map (fun e -> i.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
+            //|> List.map (fun e -> w.processMessage e)
             //|> ignore
-
-            messages
-            |> List.map (fun e -> r.processMessage e)
-            |> ignore
 
             s
 
@@ -247,10 +254,6 @@ module ServiceImplementation =
                     i.workerNodeProxy.saveModelData m
                     w.runModel d
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-
-            //match m.messageInfo.deliveryType with
-            //| GuaranteedDelivery -> i.msgClientProxy.deleteMessage m.messageId
-            //| NonGuaranteedDelivery -> ignore()
 
             s
 

@@ -316,9 +316,9 @@ module GeneralData =
     //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
     let rec removeFirst pred lst =
         match lst with
-        | h::t when pred h -> t
-        | h::t -> h::removeFirst pred t
-        | _ -> []
+        | [] -> []
+        | h :: t when pred h -> t
+        | h :: t -> h :: removeFirst pred t
 
 
     let getExeName exeName =

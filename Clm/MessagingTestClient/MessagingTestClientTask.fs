@@ -37,9 +37,9 @@ module MessagingTestClientTask =
             a.sendMessage m
 
             printfn "Receiving messages."
-            let x = a.getMessages()
-            printfn "Received %A messages." (x.Length)
-            x |> List.map (fun e -> printfn "message: %A" e) |> ignore
+            //let x = a.getMessages()
+            //printfn "Received %A messages." (x.Length)
+            //x |> List.map (fun e -> printfn "message: %A" e) |> ignore
 
             Thread.Sleep 30_000
 

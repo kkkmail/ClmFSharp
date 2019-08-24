@@ -10,6 +10,9 @@ open Messaging.ServiceResponse
 
 module Client =
 
+    /// Maximum number of messages to process in one go.
+    let maxNumberOfMessages = 10
+
     type MessagingClientData =
         {
             msgAccessInfo : MessagingClientAccessInfo
@@ -29,7 +32,7 @@ module Client =
         member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
         member s.service = s.messageClientData.msgResponseHandler.messagingService
         member s.proxy = s.messageClientData.msgClientProxy
-        static member maxMessages = [ for _ in 1..1000 -> () ]
+        static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
 
         /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
@@ -122,8 +125,12 @@ module Client =
                 | NonGuaranteedDelivery -> ignore()
 
                 match s.service.tryDeleteFromServer s.msgClientId m.messageId with
-                | true -> ignore()
-                | false -> logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
+                | true ->
+                    printfn "MessagingClient.tryReceiveSingleMessage: Deleted message from server. Message id: %A" m.messageId
+                    ignore()
+                | false ->
+                    printfn "MessagingClient.tryReceiveSingleMessage: Cannot delete message from server. Message id: %A" m.messageId
+                    logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
                 Some m
             | None ->
                 printfn "MessagingClient.tryReceiveSingleMessage: Did not receive a message."
@@ -193,13 +200,15 @@ module Client =
             match w.tryPeekReceivedMessage() with
             | Some m ->
                 try
+                    printfn "MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A" m.messageId
                     f m
+                    printfn "MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A" m.messageId
                     w.tryRemoveReceivedMessage m.messageId |> ignore
-                    Some true
+                    Some m
                 with
                 | ex ->
                     w.logger.logExn "tryProcessMessageImpl" ex
-                    Some false
+                    None
             | None -> None
 
 
@@ -236,7 +245,7 @@ module Client =
 
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
-        member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
+        //member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
         member __.transmitMessages() = TransmitMessages |> messageLoop.Post
         //member __.tryPeekMessage() = messageLoop.PostAndReply (fun reply -> TryPeekMessage reply)

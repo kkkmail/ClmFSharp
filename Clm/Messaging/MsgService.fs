@@ -19,6 +19,8 @@ module Service =
             messages : Map<MessagingClientId, List<Message>>
         }
 
+        member s.proxy = s.messageServiceData.messagingServiceProxy
+
         static member defaultValue d =
             {
                 messageServiceData = d
@@ -46,22 +48,22 @@ module Service =
             //| None -> { s with messages = s.messages.Add (m.messageInfo.recipient, enqueue emptyQueue m) }
 
 
-        let onStart s =
+        let onStart (s : MessagingServiceState) =
             printfn "MessagingService.onStart"
-            s.messageServiceData.messagingServiceProxy.loadMessages()
+            s.proxy.loadMessages()
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
-        let onSendMessage s m =
+        let onSendMessage (s : MessagingServiceState) m =
             printfn "MessagingService.onSendMessage: m = %A." m
             match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> s.messageServiceData.messagingServiceProxy.saveMessage m
+            | GuaranteedDelivery -> s.proxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
 
             updateMessages s m
 
 
-        let onGetMessages s n (r : AsyncReplyChannel<List<Message>>) =
+        let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
             printfn "MessagingService.onGetMessages: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
@@ -69,7 +71,7 @@ module Service =
 
                 v
                 |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-                |> List.map (fun e -> s.messageServiceData.messagingServiceProxy.deleteMessage e.messageId)
+                |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
                 |> ignore
 
                 { s with messages = s.messages.Add(n, []) }
@@ -103,10 +105,14 @@ module Service =
             printfn "MessagingService.onTryTryDeleteFromServer: ClientId: %A, MessageId: %A" n m
             match s.messages.TryFind n with
             | Some v ->
+                printfn "    MessagingService.onTryTryDeleteFromServer: Found: %A" v
                 let x = removeFirst (fun e -> e.messageId = m) v
+                printfn "    MessagingService.onTryTryDeleteFromServer: Found: %A" x
                 r.Reply (x.Length <> v.Length)
+                s.proxy.deleteMessage m
                 { s with messages = s.messages.Add(n, x) }
             | None ->
+                printfn "    MessagingService.onTryTryDeleteFromServer: Cannot find client."
                 r.Reply false
                 s
 

@@ -4,6 +4,7 @@ open System
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ClmSys.Logging
+open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ServiceProxy.MsgServiceProxy
@@ -62,8 +63,7 @@ module Partitioner =
             partitionerCallBackInfo : PartitionerCallBackInfo
         }
 
-        /// maximum number of messages to process in one go.
-        static member maxMessages = [ for _ in 1..1000 -> () ]
+        static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
@@ -168,26 +168,30 @@ module Partitioner =
             //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
             //|> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
             //|> ignore
-
+            //
             //messages
             //|> List.map (fun e -> w.processMessage e)
             //|> ignore
 
-            let tryProcessMessage() =
-                printfn "PartitionerRunner.onGetMessages.tryProcessMessage ..."
-                match messagingClient.tryProcessMessage w.processMessage with
-                | Some true ->
-                    printfn "    ... got Some true -> None."
-                    None
-                | Some false ->
-                    printfn "    ... got Some false -> Some ()."
-                    Some ()
-                | None ->
-                    printfn "    ... got None -> Some ()."
-                    Some ()
+            //let tryProcessMessage() =
+            //    printfn "PartitionerRunner.onGetMessages.tryProcessMessage ..."
+            //    match messagingClient.tryProcessMessage w.processMessage with
+            //    | Some true ->
+            //        printfn "    ... got Some true -> None."
+            //        None
+            //    | Some false ->
+            //        printfn "    ... got Some false -> Some ()."
+            //        Some ()
+            //    | None ->
+            //        printfn "    ... got None -> Some ()."
+            //        Some ()
+            //
+            //PartitionerRunnerState.maxMessages
+            //|> List.tryPick tryProcessMessage
+            //|> ignore
 
             PartitionerRunnerState.maxMessages
-            |> List.tryPick tryProcessMessage
+            |> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
             |> ignore
 
             s

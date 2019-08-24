@@ -32,8 +32,7 @@ module ServiceImplementation =
             running : Map<LocalProcessId, RemoteProcessId>
         }
 
-        /// maximum number of messages to process in one go.
-        static member maxMessages = [ for _ in 1..1000 -> () ]
+        static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
@@ -205,26 +204,30 @@ module ServiceImplementation =
             printfn "WorkerNodeRunnerState: %A" s
             //let messages = messagingClient.getMessages()
 
-            let tryProcessMessage() =
-                printfn "WorkerNodeRunner.onGetMessages.tryProcessMessage ..."
-                match messagingClient.tryProcessMessage w.processMessage with
-                | Some true ->
-                    printfn "    ... got Some true -> None."
-                    None
-                | Some false ->
-                    printfn "    ... got Some false -> Some ()."
-                    Some ()
-                | None ->
-                    printfn "    ... got None -> Some ()."
-                    Some ()
-
-            WorkerNodeRunnerState.maxMessages
-            |> List.tryPick tryProcessMessage
-            |> ignore
+            //let tryProcessMessage() =
+            //    printfn "WorkerNodeRunner.onGetMessages.tryProcessMessage ..."
+            //    match messagingClient.tryProcessMessage w.processMessage with
+            //    | Some true ->
+            //        printfn "    ... got Some true -> None."
+            //        None
+            //    | Some false ->
+            //        printfn "    ... got Some false -> Some ()."
+            //        Some ()
+            //    | None ->
+            //        printfn "    ... got None -> Some ()."
+            //        Some ()
+            //
+            //WorkerNodeRunnerState.maxMessages
+            //|> List.tryPick tryProcessMessage
+            //|> ignore
 
             //messages
             //|> List.map (fun e -> w.processMessage e)
             //|> ignore
+
+            WorkerNodeRunnerState.maxMessages
+            |> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
+            |> ignore
 
             s
 

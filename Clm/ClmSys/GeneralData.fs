@@ -374,3 +374,18 @@ module GeneralData =
         | Queue(fs, []) -> 
             let bs = List.rev fs
             Some bs.Head, Queue([], bs.Tail)
+
+
+    type List<'T>
+        with
+        static member mapWhileSome mapper tList =
+            let rec doMap x acc =
+                match x with
+                | [] -> acc
+                | h :: t ->
+                    match mapper h with
+                    | Some u -> doMap t (u :: acc)
+                    | None -> acc
+
+            doMap tList []
+            |> List.rev

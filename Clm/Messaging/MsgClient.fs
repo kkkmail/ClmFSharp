@@ -3,6 +3,7 @@
 open System
 open ClmSys.MessagingData
 open ClmSys.Logging
+open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open Messaging.ServiceResponse
@@ -28,6 +29,8 @@ module Client =
         member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
         member s.service = s.messageClientData.msgResponseHandler.messagingService
         member s.proxy = s.messageClientData.msgClientProxy
+        static member maxMessages = [ for _ in 1..1000 -> () ]
+
 
         /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
         /// "This code is not sufficiently generic. The type variable 'T could not be generalized because it would escape its scope.". WTF!!!
@@ -45,9 +48,10 @@ module Client =
         | GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
         | ConfigureClient of MessagingClientConfigParam
-        | TryPeekMessage of AsyncReplyChannel<Message option>
-        | TryDeleteFromServer of MessageId * AsyncReplyChannel<bool>
-
+        //| TryPeekMessage of AsyncReplyChannel<Message option>
+        //| TryDeleteFromServer of MessageId * AsyncReplyChannel<bool>
+        | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
+        | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<bool>
 
     type MessagingClient(d : MessagingClientData) =
         let logErr = d.logger.logErr
@@ -107,6 +111,7 @@ module Client =
             printfn "MessagingClient.tryReceiveSingleMessage..."
             match s.service.tryPeekMessage s.msgClientId with
             | Some m ->
+                printfn "MessagingClient.tryReceiveSingleMessage: Received message with id: %A" m.messageId
                 match m.messageInfo.deliveryType with
                 | GuaranteedDelivery ->
                     {
@@ -120,13 +125,18 @@ module Client =
                 | true -> ignore()
                 | false -> logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
                 Some m
-            | None -> None
+            | None ->
+                printfn "MessagingClient.tryReceiveSingleMessage: Did not receive a message."
+                None
 
 
         let receiveMessagesImpl (s : MessagingClientState) =
             printfn "MessagingClient.receiveMessagesImpl..."
             try
-                s.service.getMessages s.msgClientId
+                //s.service.getMessages s.msgClientId
+
+                MessagingClientState.maxMessages
+                |> List.mapWhileSome (fun _ -> tryReceiveSingleMessage s)
             with
                 | e ->
                     s.messageClientData.logger.logExn "Failed to receive messages: " e
@@ -154,24 +164,37 @@ module Client =
             s
 
 
-        let onTryPeekMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
-            printfn "MessagingClient.onTryPeekMessage..."
-            s.service.tryPeekMessage s.msgClientId |> r.Reply
+        //let onTryPeekMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
+        //    printfn "MessagingClient.onTryPeekMessage..."
+        //    s.service.tryPeekMessage s.msgClientId |> r.Reply
+        //    s
+
+
+        //let onTryTryDeleteFromServer (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
+        //    printfn "MessagingClient.onTryTryDeleteFromServer..."
+        //    s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
+        //    s
+
+
+        let onTryPeekReceivedMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
+            printfn "MessagingClient.onTryPeekReceivedMessage..."
+            s.incomingMessages |> List.tryHead |> r.Reply
             s
 
 
-        let onTryTryDeleteFromServer (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
-            printfn "MessagingClient.onTryTryDeleteFromServer..."
+        let onTryRemoveReceivedMessage (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
+            printfn "MessagingClient.onTryRemoveReceivedMessage..."
             s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
             s
 
 
         let tryProcessMessageImpl (w : MessagingClient) f =
             printfn "MessagingClient.tryProcessMessageImpl..."
-            match w.tryPeekMessage() with
+            match w.tryPeekReceivedMessage() with
             | Some m ->
                 try
                     f m
+                    w.tryRemoveReceivedMessage m.messageId |> ignore
                     Some true
                 with
                 | ex ->
@@ -191,8 +214,11 @@ module Client =
                             | GetMessages r -> return! onGetMessages s r |> loop
                             | TransmitMessages -> return! onTransmitMessages s |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
-                            | TryPeekMessage r -> return! onTryPeekMessage s r |> loop
-                            | TryDeleteFromServer (m, r) -> return! onTryTryDeleteFromServer s m r |> loop
+                            //| TryPeekMessage r -> return! onTryPeekMessage s r |> loop
+                            //| TryDeleteFromServer (m, r) -> return! onTryTryDeleteFromServer s m r |> loop
+                            | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
+                            | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage s m r |> loop
+
                         }
 
                 onStart (MessagingClientState.defaultValue d) |> loop
@@ -213,7 +239,9 @@ module Client =
         member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
         member __.transmitMessages() = TransmitMessages |> messageLoop.Post
-        member __.tryPeekMessage() = messageLoop.PostAndReply (fun reply -> TryPeekMessage reply)
-        member __.tryDeleteFromServer m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (m, reply))
+        //member __.tryPeekMessage() = messageLoop.PostAndReply (fun reply -> TryPeekMessage reply)
+        //member __.tryDeleteFromServer m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (m, reply))
+        member __.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
+        member __.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member this.tryProcessMessage f = tryProcessMessageImpl this f
         member private __.logger = d.logger

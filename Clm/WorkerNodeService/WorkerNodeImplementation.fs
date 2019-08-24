@@ -67,7 +67,7 @@ module ServiceImplementation =
         | SaveResult of ResultDataId
         | SaveCharts of ResultDataId
         | GetMessages of WorkerNodeRunner
-        | ProcessMessage of WorkerNodeRunner * Message
+        //| ProcessMessage of WorkerNodeRunner * Message
         | RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
 
@@ -198,6 +198,21 @@ module ServiceImplementation =
 
             s
 
+        let onProcessMessage (w : WorkerNodeRunner) s (m : Message) =
+            printfn "WorkerNodeRunner.onProcessMessage: m.messageId = %A." m.messageId
+            match m.messageInfo.messageData with
+            | WorkerNodeMsg x ->
+                match x with
+                | RunModelWrkMsg (d, m) ->
+                    i.workerNodeProxy.saveModelData m
+                    w.runModel d
+            | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+
+            s
+
+
+
+
 
         let onGetMessages s (w : WorkerNodeRunner) =
             printfn "WorkerNodeRunner.onGetMessages"
@@ -225,11 +240,12 @@ module ServiceImplementation =
             //|> List.map (fun e -> w.processMessage e)
             //|> ignore
 
-            WorkerNodeRunnerState.maxMessages
-            |> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
-            |> ignore
+            //WorkerNodeRunnerState.maxMessages
+            //|> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
+            //|> ignore
 
-            s
+            //s
+            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) WorkerNodeRunnerState.maxMessages s
 
 
         let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
@@ -256,19 +272,6 @@ module ServiceImplementation =
             { s with running = s.running.Add(result.localProcessId, d.remoteProcessId) }
 
 
-        let onProcessMessage s (w : WorkerNodeRunner) (m : Message) =
-            printfn "WorkerNodeRunner.onProcessMessage: m.messageId = %A." m.messageId
-            match m.messageInfo.messageData with
-            | WorkerNodeMsg x ->
-                match x with
-                | RunModelWrkMsg (d, m) ->
-                    i.workerNodeProxy.saveModelData m
-                    w.runModel d
-            | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-
-            s
-
-
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -281,7 +284,7 @@ module ServiceImplementation =
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
-                            | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
+                            //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                             | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
                         }
@@ -295,7 +298,7 @@ module ServiceImplementation =
         member __.saveResult r = SaveResult r |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
-        member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
+        //member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private __.runModel d = RunModel d |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 

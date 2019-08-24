@@ -94,10 +94,17 @@ module Service =
             printfn "MessagingService.onTryPeekMessage: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
+                printfn "    MessagingService.onTryPeekMessage: v: %A" v
                 match List.rev v with
-                | [] -> r.Reply None
-                | h :: _ -> r.Reply (Some h)
-            | None -> r.Reply None
+                | [] ->
+                    printfn "MessagingService.onTryPeekMessage: No messages."
+                    r.Reply None
+                | h :: _ ->
+                    printfn "MessagingService.onTryPeekMessage: Found message with id %A." h.messageId
+                    r.Reply (Some h)
+            | None ->
+                printfn "MessagingService.onTryPeekMessage: No client."
+                r.Reply None
             s
 
 
@@ -105,9 +112,9 @@ module Service =
             printfn "MessagingService.onTryTryDeleteFromServer: ClientId: %A, MessageId: %A" n m
             match s.messages.TryFind n with
             | Some v ->
-                printfn "    MessagingService.onTryTryDeleteFromServer: Found: %A" v
+                printfn "    MessagingService.onTryTryDeleteFromServer: v: %A" v
                 let x = removeFirst (fun e -> e.messageId = m) v
-                printfn "    MessagingService.onTryTryDeleteFromServer: Found: %A" x
+                printfn "    MessagingService.onTryTryDeleteFromServer: x: %A" x
                 r.Reply (x.Length <> v.Length)
                 s.proxy.deleteMessage m
                 { s with messages = s.messages.Add(n, x) }

@@ -81,7 +81,7 @@ module Partitioner =
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
-        | ProcessMessage of PartitionerRunner * Message
+        //| ProcessMessage of PartitionerRunner * Message
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
@@ -159,6 +159,45 @@ module Partitioner =
             s
 
 
+        //let onProcessMessage (s : PartitionerRunnerState) (w : PartitionerRunner) (m : Message) =
+        //    printfn "PartitionerRunner.onProcessMessage: m = %A." m
+        //    match m.messageInfo.messageData with
+        //    | PartitionerMsg x ->
+        //        match x with
+        //        | UpdateProgressPrtMsg i ->
+        //            w.updateProgress i
+        //            s
+        //        | SaveResultPrtMsg r -> onSaveResult s r
+        //        | SaveChartsPrtMsg c -> onSaveCharts s c
+        //        | RegisterWorkerNodePrtMsg w -> onRegister s w
+        //
+        //    | _ ->
+        //        p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+        //        s
+        //
+        //    //match m.messageInfo.deliveryType with
+        //    //| GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
+        //    //| NonGuaranteedDelivery -> ignore()
+        //
+        //    //s
+
+        let onProcessMessage (w : PartitionerRunner) (s : PartitionerRunnerState) (m : Message) =
+            printfn "PartitionerRunner.onProcessMessage: m = %A." m
+            match m.messageInfo.messageData with
+            | PartitionerMsg x ->
+                match x with
+                | UpdateProgressPrtMsg i ->
+                    w.updateProgress i
+                    s
+                | SaveResultPrtMsg r -> onSaveResult s r
+                | SaveChartsPrtMsg c -> onSaveCharts s c
+                | RegisterWorkerNodePrtMsg r -> onRegister s r
+
+            | _ ->
+                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+                s
+
+
         let onGetMessages s (w : PartitionerRunner) =
             printfn "PartitionerRunner.onGetMessages"
             printfn "PartitionerRunnerState: %A" s
@@ -190,34 +229,13 @@ module Partitioner =
             //|> List.tryPick tryProcessMessage
             //|> ignore
 
-            PartitionerRunnerState.maxMessages
-            |> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
-            |> ignore
+            //PartitionerRunnerState.maxMessages
+            ////|> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
+            //|> List.foldWhileSome (fun _ x -> messagingClient.tryProcessMessage x (onProcessMessage w)) s
+            //|> ignore
 
-            s
+            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) PartitionerRunnerState.maxMessages s
 
-
-        let onProcessMessage (s : PartitionerRunnerState) (w : PartitionerRunner) (m : Message) =
-            printfn "PartitionerRunner.onProcessMessage: m = %A." m
-            match m.messageInfo.messageData with
-            | PartitionerMsg x ->
-                match x with
-                | UpdateProgressPrtMsg i ->
-                    w.updateProgress i
-                    s
-                | SaveResultPrtMsg r -> onSaveResult s r
-                | SaveChartsPrtMsg c -> onSaveCharts s c
-                | RegisterWorkerNodePrtMsg w -> onRegister s w
-
-            | _ ->
-                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-                s
-
-            //match m.messageInfo.deliveryType with
-            //| GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
-            //| NonGuaranteedDelivery -> ignore()
-
-            //s
 
         let tryGetNode s =
             printfn "PartitionerRunner.tryGetNode."
@@ -296,7 +314,7 @@ module Partitioner =
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
-                            | ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
+                            //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                             | GetState w -> w.Reply s
                         }
 
@@ -322,7 +340,9 @@ module Partitioner =
         member __.start q = q |> Start |> messageLoop.Post
         member __.runModel p = runModelImpl p
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
-        member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
+        //member private this.processMessage m =
+        //    printfn "PartitionerRunner.processMessage is called with message: %A" m
+        //    ProcessMessage (this, m) |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 

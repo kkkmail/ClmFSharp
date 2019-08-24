@@ -389,3 +389,15 @@ module GeneralData =
 
             doMap tList []
             |> List.rev
+
+
+        static member foldWhileSome mapper tList seed =
+            let rec doFold x acc =
+                match x with
+                | [] -> acc
+                | h :: t ->
+                    match mapper acc h with
+                    | Some u -> doFold t u
+                    | None -> acc
+
+            doFold tList seed

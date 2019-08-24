@@ -193,7 +193,10 @@ module Partitioner =
                     s
                 | SaveResultPrtMsg r -> onSaveResult s r
                 | SaveChartsPrtMsg c -> onSaveCharts s c
-                | RegisterWorkerNodePrtMsg r -> onRegister s r
+                | RegisterWorkerNodePrtMsg r ->
+                    let x = onRegister s r
+                    printfn "PartitionerRunner.onProcessMessage.RegisterWorkerNodePrtMsg completed, state = %A." x
+                    x
 
             | _ ->
                 p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)

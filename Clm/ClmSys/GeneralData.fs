@@ -392,7 +392,10 @@ module GeneralData =
 
 
         static member foldWhileSome mapper tList seed =
+            printfn "foldWhileSome: seed = %A" seed
+
             let rec doFold x acc =
+                printfn "    foldWhileSome: acc = %A" acc
                 match x with
                 | [] -> acc
                 | h :: t ->
@@ -400,4 +403,6 @@ module GeneralData =
                     | Some u -> doFold t u
                     | None -> acc
 
-            doFold tList seed
+            let y = doFold tList seed
+            printfn "    foldWhileSome - completed: y = %A" y
+            y

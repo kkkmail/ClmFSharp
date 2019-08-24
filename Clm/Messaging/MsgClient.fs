@@ -50,6 +50,8 @@ module Client =
 
 
     type MessagingClient(d : MessagingClientData) =
+        let logErr = d.logger.logErr
+
         let onStart s =
             let messages = s.messageClientData.msgClientProxy.loadMessages()
             let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
@@ -58,6 +60,7 @@ module Client =
 
 
         let onSendMessage (s : MessagingClientState) m =
+            printfn "MessagingClient.onSendMessage..."
             let message =
                 {
                     messageId = MessageId.create()
@@ -74,6 +77,7 @@ module Client =
 
 
         let onGetMessages s (r : AsyncReplyChannel<List<Message>>) =
+            printfn "MessagingClient.onGetMessages..."
             r.Reply s.incomingMessages
 
             s.incomingMessages
@@ -85,6 +89,7 @@ module Client =
 
 
         let sendMessageImpl (s : MessagingClientState) m =
+            printfn "MessagingClient.sendMessageImpl..."
             try
                 s.service.sendMessage m
 
@@ -98,7 +103,28 @@ module Client =
                     None
 
 
+        let tryReceiveSingleMessage (s : MessagingClientState) =
+            printfn "MessagingClient.tryReceiveSingleMessage..."
+            match s.service.tryPeekMessage s.msgClientId with
+            | Some m ->
+                match m.messageInfo.deliveryType with
+                | GuaranteedDelivery ->
+                    {
+                        message = m
+                        messageType = IncomingMessage
+                    }
+                    |> d.msgClientProxy.saveMessage
+                | NonGuaranteedDelivery -> ignore()
+
+                match s.service.tryDeleteFromServer s.msgClientId m.messageId with
+                | true -> ignore()
+                | false -> logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
+                Some m
+            | None -> None
+
+
         let receiveMessagesImpl (s : MessagingClientState) =
+            printfn "MessagingClient.receiveMessagesImpl..."
             try
                 s.service.getMessages s.msgClientId
             with
@@ -108,6 +134,7 @@ module Client =
 
 
         let onTransmitMessages s =
+            printfn "MessagingClient.onTransmitMessages..."
             let result =
                 s.outgoingMessages
                 |> List.rev
@@ -123,20 +150,24 @@ module Client =
 
 
         let onConfigureClient s x =
+            printfn "MessagingClient.onConfigureClient..."
             s
 
 
         let onTryPeekMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
+            printfn "MessagingClient.onTryPeekMessage..."
             s.service.tryPeekMessage s.msgClientId |> r.Reply
             s
 
 
         let onTryTryDeleteFromServer (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
+            printfn "MessagingClient.onTryTryDeleteFromServer..."
             s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
             s
 
 
         let tryProcessMessageImpl (w : MessagingClient) f =
+            printfn "MessagingClient.tryProcessMessageImpl..."
             match w.tryPeekMessage() with
             | Some m ->
                 try
@@ -169,7 +200,7 @@ module Client =
 
 
         let eventHandler _ =
-            printfn "Transmitting messages..."
+            printfn "MessagingClient: Transmitting messages..."
             TransmitMessages |> messageLoop.Post
 
         let timer = new System.Timers.Timer(30_000.0)

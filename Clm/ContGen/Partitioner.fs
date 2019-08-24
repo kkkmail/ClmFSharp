@@ -174,10 +174,17 @@ module Partitioner =
             //|> ignore
 
             let tryProcessMessage() =
+                printfn "PartitionerRunner.onGetMessages.tryProcessMessage ..."
                 match messagingClient.tryProcessMessage w.processMessage with
-                | Some true -> None
-                | Some false -> Some ()
-                | None -> Some ()
+                | Some true ->
+                    printfn "    ... got Some true -> None."
+                    None
+                | Some false ->
+                    printfn "    ... got Some false -> Some ()."
+                    Some ()
+                | None ->
+                    printfn "    ... got None -> Some ()."
+                    Some ()
 
             PartitionerRunnerState.maxMessages
             |> List.tryPick tryProcessMessage

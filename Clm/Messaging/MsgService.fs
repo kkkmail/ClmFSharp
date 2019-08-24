@@ -131,7 +131,7 @@ module Service =
                 )
 
         member __.sendMessage m = SendMessage m |> messageLoop.Post
-        member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
+        //member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply
         member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))

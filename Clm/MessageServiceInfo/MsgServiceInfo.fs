@@ -127,7 +127,7 @@ module ServiceInfo =
 
     type IMessagingService =
         abstract sendMessage : Message -> unit
-        abstract getMessages : MessagingClientId -> List<Message>
+        //abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit
         abstract tryPeekMessage : MessagingClientId -> Message option
         abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool

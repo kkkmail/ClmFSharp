@@ -56,7 +56,8 @@ module Client =
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
         | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<bool>
 
-    type MessagingClient(d : MessagingClientData) =
+
+    and MessagingClient(d : MessagingClientData) =
         let logErr = d.logger.logErr
 
         let onStart s =
@@ -196,18 +197,20 @@ module Client =
             //s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
             //s
             s.proxy.deleteMessage m
+            r.Reply true
             { s with incomingMessages = removeFirst (fun e -> e.messageId = m) s.incomingMessages }
 
 
-        let tryProcessMessageImpl (w : MessagingClient) x f =
-            printfn "MessagingClient.tryProcessMessageImpl..."
+        let onTryProcessMessage (w : MessagingClient) x f =
+            printfn "MessagingClient.tryProcessMessageImpl - starting..."
             match w.tryPeekReceivedMessage() with
             | Some m ->
                 try
-                    printfn "MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A" m.messageId
+                    printfn "    MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A" m.messageId
                     let r = f x m
-                    printfn "MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A" m.messageId
+                    printfn "    MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A" m.messageId
                     w.tryRemoveReceivedMessage m.messageId |> ignore
+                    printfn "    MessagingClient.tryProcessMessageImpl - completed."
                     Some r
                 with
                 | ex ->
@@ -231,6 +234,7 @@ module Client =
                             //| TryDeleteFromServer (m, r) -> return! onTryTryDeleteFromServer s m r |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage s m r |> loop
+                            //| TryProcessMessage x -> failwith ""
 
                         }
 
@@ -256,5 +260,5 @@ module Client =
         //member __.tryDeleteFromServer m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (m, reply))
         member __.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
         member __.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (m, reply))
-        member this.tryProcessMessage s f = tryProcessMessageImpl this s f
+        member this.tryProcessMessage s f = onTryProcessMessage this s f
         member private __.logger = d.logger

@@ -30,13 +30,14 @@ module ServiceImplementation =
     type WorkerNodeRunnerState =
         {
             running : Map<LocalProcessId, RemoteProcessId>
-            maxMessages : list<unit> // maximum number of messages to process in one go.
         }
+
+        /// maximum number of messages to process in one go.
+        static member maxMessages = [ for _ in 1..1000 -> () ]
 
         static member defaultValue =
             {
                 running = Map.empty
-                maxMessages = [ for _ in 1..1000 -> () ]
             }
 
 
@@ -210,7 +211,7 @@ module ServiceImplementation =
                 | Some false -> Some ()
                 | None -> Some ()
 
-            s.maxMessages
+            WorkerNodeRunnerState.maxMessages
             |> List.tryPick tryProcessMessage
             |> ignore
 

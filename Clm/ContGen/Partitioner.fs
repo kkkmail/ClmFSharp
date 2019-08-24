@@ -60,15 +60,16 @@ module Partitioner =
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
             partitionerQueue : list<PartitionerQueueElement>
             partitionerCallBackInfo : PartitionerCallBackInfo
-            maxMessages : list<unit> // maximum number of messages to process in one go.
         }
+
+        /// maximum number of messages to process in one go.
+        static member maxMessages = [ for _ in 1..1000 -> () ]
 
         static member defaultValue =
             {
                 partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
                 workerNodes = Map.empty
                 partitionerQueue = []
-                maxMessages = [ for _ in 1..1000 -> () ]
             }
 
 
@@ -178,7 +179,7 @@ module Partitioner =
                 | Some false -> Some ()
                 | None -> Some ()
 
-            s.maxMessages
+            PartitionerRunnerState.maxMessages
             |> List.tryPick tryProcessMessage
             |> ignore
 

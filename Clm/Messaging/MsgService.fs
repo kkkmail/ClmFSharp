@@ -89,6 +89,7 @@ module Service =
 
 
         let onTryPeekMessage s n (r : AsyncReplyChannel<Message option>) =
+            printfn "MessagingService.onTryPeekMessage: ClientId: %A" n
             match s.messages.TryFind n with
             | Some v ->
                 match List.rev v with
@@ -99,6 +100,7 @@ module Service =
 
 
         let onTryTryDeleteFromServer s n m (r : AsyncReplyChannel<bool>) =
+            printfn "MessagingService.onTryTryDeleteFromServer: ClientId: %A, MessageId: %A" n m
             match s.messages.TryFind n with
             | Some v ->
                 let x = removeFirst (fun e -> e.messageId = m) v

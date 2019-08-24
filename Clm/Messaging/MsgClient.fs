@@ -163,7 +163,9 @@ module Client =
             let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
             let failed = Set.difference outgoing transmitted
             let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId)
-            { s with outgoingMessages = remaining; incomingMessages = received @ s.incomingMessages }
+            let x = { s with outgoingMessages = remaining; incomingMessages = received @ s.incomingMessages }
+            printfn "MessagingClient.onTransmitMessages: output state = %A" x
+            x
 
 
         let onConfigureClient s x =
@@ -197,13 +199,13 @@ module Client =
             { s with incomingMessages = removeFirst (fun e -> e.messageId = m) s.incomingMessages }
 
 
-        let tryProcessMessageImpl (w : MessagingClient) s f =
+        let tryProcessMessageImpl (w : MessagingClient) x f =
             printfn "MessagingClient.tryProcessMessageImpl..."
             match w.tryPeekReceivedMessage() with
             | Some m ->
                 try
                     printfn "MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A" m.messageId
-                    let r = f s m
+                    let r = f x m
                     printfn "MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A" m.messageId
                     w.tryRemoveReceivedMessage m.messageId |> ignore
                     Some r

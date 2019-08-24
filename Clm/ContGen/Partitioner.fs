@@ -96,6 +96,7 @@ module Partitioner =
 
 
         let setRunLimit x =
+            printfn "PartitionerRunner.setRunLimit: x: %A" x
             let c =
                 x.workerNodes
                 |> Map.toList
@@ -103,6 +104,7 @@ module Partitioner =
                 |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
 
             x.partitionerCallBackInfo.setRunLimit c
+            printfn "PartitionerRunner.setRunLimit completed."
             x
 
 
@@ -234,7 +236,9 @@ module Partitioner =
             //|> List.foldWhileSome (fun _ x -> messagingClient.tryProcessMessage x (onProcessMessage w)) s
             //|> ignore
 
-            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) PartitionerRunnerState.maxMessages s
+            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) PartitionerRunnerState.maxMessages s
+            printfn "PartitionerRunner.onGetMessages completed, y = %A" y
+            y
 
 
         let tryGetNode s =
@@ -343,7 +347,9 @@ module Partitioner =
         //member private this.processMessage m =
         //    printfn "PartitionerRunner.processMessage is called with message: %A" m
         //    ProcessMessage (this, m) |> messageLoop.Post
-        member this.getMessages() = GetMessages this |> messageLoop.Post
+        member this.getMessages() =
+            printfn "PartitionerRunner.getMessages is called."
+            GetMessages this |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 
 

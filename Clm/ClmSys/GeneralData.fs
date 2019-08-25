@@ -363,8 +363,13 @@ module GeneralData =
                     | Some f -> Path.Combine(f, Path.GetFileName name)
                     | None -> name
 
+                let trySaveChart f c =
+                    let folder = Path.GetDirectoryName f
+                    Directory.CreateDirectory(folder) |> ignore
+                    File.WriteAllText(f, c)
+
                 i.charts
-                |> List.map (fun e -> File.WriteAllText(getFileName e.chartName, e.chartContent))
+                |> List.map (fun e -> trySaveChart (getFileName e.chartName) e.chartContent)
                 |> ignore
                 Some ()
             with

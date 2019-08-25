@@ -63,11 +63,11 @@ module ServiceImplementation =
     type WorkerNodeMessage =
         | Start of WorkerNodeRunner
         | Register
+        | Unregister
         | UpdateProgress of WorkerNodeRunner * LocalProgressUpdateInfo
         | SaveResult of ResultDataId
         | SaveCharts of ResultDataId
         | GetMessages of WorkerNodeRunner
-        //| ProcessMessage of WorkerNodeRunner * Message
         | RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
 
@@ -102,6 +102,18 @@ module ServiceImplementation =
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodePrtMsg
+            }.messageInfo
+            |> sendMessage
+
+            s
+
+
+        let onUnregister s =
+            printfn "WorkerNodeRunner.onUnregister"
+            {
+                partitionerRecipient = partitioner
+                deliveryType = GuaranteedDelivery
+                messageData = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId |> UnregisterWorkerNodePrtMsg
             }.messageInfo
             |> sendMessage
 
@@ -195,6 +207,7 @@ module ServiceImplementation =
 
             s
 
+
         let onProcessMessage (w : WorkerNodeRunner) s (m : Message) =
             printfn "WorkerNodeRunner.onProcessMessage: m.messageId = %A." m.messageId
             match m.messageInfo.messageData with
@@ -246,11 +259,11 @@ module ServiceImplementation =
                             match! u.Receive() with
                             | Start w -> return! onStart s w |> loop
                             | Register -> return! onRegister s |> loop
+                            | Unregister -> return! onUnregister s |> loop
                             | UpdateProgress (w, p) -> return! onUpdateProgress s w p |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
-                            //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                             | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
                         }
@@ -260,11 +273,11 @@ module ServiceImplementation =
 
         member this.start() = Start this |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
+        member __.unregister() = Unregister |> messageLoop.Post
         member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
         member __.saveResult r = SaveResult r |> messageLoop.Post
         member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
-        //member private this.processMessage m = ProcessMessage (this, m) |> messageLoop.Post
         member private __.runModel d = RunModel d |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 

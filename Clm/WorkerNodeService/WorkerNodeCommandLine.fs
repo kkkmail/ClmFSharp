@@ -59,6 +59,7 @@ module SvcCommandLine =
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
         | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<WorkerNodeServiceRunArgs>
+        | [<Unique>] [<First>] [<AltCommandLine("x")>] Unregister of ParseResults<WorkerNodeServiceRunArgs>
 
     with
         interface IArgParserTemplate with
@@ -70,6 +71,7 @@ module SvcCommandLine =
                 | Stop -> "stop worker node service."
                 | Run _ -> "run worker node service from command line without installing."
                 | Save _ -> "save parameters into the registry."
+                | Unregister _ -> "unregisters node."
 
 
     let convertArgs s =
@@ -80,6 +82,8 @@ module SvcCommandLine =
         | Stop -> WorkerNodeServiceArgs.Stop
         | Run a -> WorkerNodeServiceArgs.Run a
         | Save a -> WorkerNodeServiceArgs.Save a
+        | Unregister a ->
+            WorkerNodeServiceArgs.Uninstall
 
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)

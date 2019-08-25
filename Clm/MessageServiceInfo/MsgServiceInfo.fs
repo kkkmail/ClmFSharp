@@ -34,6 +34,7 @@ module ServiceInfo =
         | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
+        | UnregisterWorkerNodePrtMsg of WorkerNodeId
 
 
     type WorkerNodeRunModelData =

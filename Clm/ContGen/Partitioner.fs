@@ -75,6 +75,7 @@ module Partitioner =
     type PartitionerMessage =
         | Start of PartitionerRunner * PartitionerCallBackInfo
         | Register of WorkerNodeInfo
+        | Unregister of WorkerNodeId
         | UpdateProgress of PartitionerRunner * RemoteProgressUpdateInfo
         | RunModel of RunModelParam * RemoteProcessId
         | SaveCharts of ChartInfo
@@ -117,6 +118,12 @@ module Partitioner =
             | None -> []
             |> updated
             |> setRunLimit
+
+
+        let onUnregister s (r : WorkerNodeId) =
+            printfn "PartitionerRunner.onUnregister: r = %A." r
+            proxy.tryDeleteWorkerNodeInfo r |> ignore
+            { s with workerNodes = s.workerNodes.tryRemove r } |> setRunLimit
 
 
         /// TODO kk:20190825 - Refactor to make it better.
@@ -183,7 +190,7 @@ module Partitioner =
                     let x = onRegister s r
                     printfn "PartitionerRunner.onProcessMessage.RegisterWorkerNodePrtMsg completed, state = %A." x
                     x
-
+                | UnregisterWorkerNodePrtMsg r -> onUnregister s r
             | _ ->
                 p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
                 s
@@ -266,6 +273,7 @@ module Partitioner =
                             match! u.Receive() with
                             | Start (w, q) -> return! onStart s w q |> loop
                             | Register r -> return! onRegister s r |> loop
+                            | Unregister r -> return! onUnregister s r |> loop
                             | UpdateProgress (w, i) -> return! onUpdateProgress s w i |> loop
                             | RunModel (p, q) -> return! onRunModel s p q |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop

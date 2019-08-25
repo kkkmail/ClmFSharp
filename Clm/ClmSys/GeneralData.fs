@@ -5,6 +5,7 @@ open System.IO
 open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
+open ClmSys.Logging
 
 module GeneralData =
 
@@ -354,6 +355,23 @@ module GeneralData =
                 | ex ->
                     printfn "Exception: %A" ex
                     None
+
+        member i.trySave (logger : Logger) d =
+            try
+                let getFileName name =
+                    match d with
+                    | Some f -> Path.Combine(f, Path.GetFileName name)
+                    | None -> name
+
+                i.charts
+                |> List.map (fun e -> File.WriteAllText(getFileName e.chartName, e.chartContent))
+                |> ignore
+                Some ()
+            with
+            | ex ->
+                logger.logExn (sprintf "ChartInfo: Exception saving chart with resultDataId: %A" i.resultDataId) ex
+                None
+
 
     type Queue<'A> =
         | Queue of 'A list * 'A list

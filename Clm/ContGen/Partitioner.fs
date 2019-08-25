@@ -81,7 +81,6 @@ module Partitioner =
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
         | GetMessages of PartitionerRunner
-        //| ProcessMessage of PartitionerRunner * Message
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
@@ -89,6 +88,7 @@ module Partitioner =
         let messagingClient = MessagingClient p.messagingClientData
         let tryLoadModelData = p.partitionerProxy.tryLoadModelData
         let logger = p.logger
+        let proxy = p.partitionerProxy
 
         let sendMessage m =
             printfn "PartitionerRunner.sendMessage: recipient: %A" m.recipient
@@ -110,7 +110,7 @@ module Partitioner =
 
         let onRegister s (r : WorkerNodeInfo) =
             printfn "PartitionerRunner.onRegister: r = %A." r
-            p.partitionerProxy.saveWorkerNodeInfo r
+            proxy.saveWorkerNodeInfo r
             let updated q = { s with workerNodes = s.workerNodes.Add (r.workerNodeId, { workerNodeInfo = r; running = q }) }
 
             match s.workerNodes.TryFind r.workerNodeId with
@@ -122,7 +122,7 @@ module Partitioner =
 
         let onStart s q =
             printfn "PartitionerRunner.onStart"
-            let workers = p.partitionerProxy.loadAllWorkerNodeInfo()
+            let workers = proxy.loadAllWorkerNodeInfo()
             workers |> List.fold (fun acc r -> onRegister acc r) { s with partitionerCallBackInfo = q }
 
 
@@ -151,37 +151,15 @@ module Partitioner =
 
         let onSaveResult s r =
             printfn "PartitionerRunner.onSaveResult: r = %A." r
-            p.partitionerProxy.saveResultData r
+            proxy.saveResultData r
             s
 
 
-        /// TODO kk:20190820 - Implement.
-        let onSaveCharts s c =
-            printfn "PartitionerRunner.onSaveCharts: c = %A." c
+        let onSaveCharts s (c : ChartInfo) =
+            printfn "PartitionerRunner.onSaveCharts: resultDataId = %A." c.resultDataId
+            proxy.saveCharts c
             s
 
-
-        //let onProcessMessage (s : PartitionerRunnerState) (w : PartitionerRunner) (m : Message) =
-        //    printfn "PartitionerRunner.onProcessMessage: m = %A." m
-        //    match m.messageInfo.messageData with
-        //    | PartitionerMsg x ->
-        //        match x with
-        //        | UpdateProgressPrtMsg i ->
-        //            w.updateProgress i
-        //            s
-        //        | SaveResultPrtMsg r -> onSaveResult s r
-        //        | SaveChartsPrtMsg c -> onSaveCharts s c
-        //        | RegisterWorkerNodePrtMsg w -> onRegister s w
-        //
-        //    | _ ->
-        //        p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-        //        s
-        //
-        //    //match m.messageInfo.deliveryType with
-        //    //| GuaranteedDelivery -> p.msgClientProxy.deleteMessage m.messageId
-        //    //| NonGuaranteedDelivery -> ignore()
-        //
-        //    //s
 
         let onProcessMessage (w : PartitionerRunner) (s : PartitionerRunnerState) (m : Message) =
             printfn "PartitionerRunner.onProcessMessage: m = %A." m
@@ -206,39 +184,6 @@ module Partitioner =
         let onGetMessages s (w : PartitionerRunner) =
             printfn "PartitionerRunner.onGetMessages"
             printfn "PartitionerRunnerState: %A" s
-            //let messages = messagingClient.getMessages()
-
-            //messages
-            //|> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            //|> List.map (fun e -> p.msgClientProxy.saveMessage { messageType = IncomingMessage; message = e })
-            //|> ignore
-            //
-            //messages
-            //|> List.map (fun e -> w.processMessage e)
-            //|> ignore
-
-            //let tryProcessMessage() =
-            //    printfn "PartitionerRunner.onGetMessages.tryProcessMessage ..."
-            //    match messagingClient.tryProcessMessage w.processMessage with
-            //    | Some true ->
-            //        printfn "    ... got Some true -> None."
-            //        None
-            //    | Some false ->
-            //        printfn "    ... got Some false -> Some ()."
-            //        Some ()
-            //    | None ->
-            //        printfn "    ... got None -> Some ()."
-            //        Some ()
-            //
-            //PartitionerRunnerState.maxMessages
-            //|> List.tryPick tryProcessMessage
-            //|> ignore
-
-            //PartitionerRunnerState.maxMessages
-            ////|> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
-            //|> List.foldWhileSome (fun _ x -> messagingClient.tryProcessMessage x (onProcessMessage w)) s
-            //|> ignore
-
             let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) PartitionerRunnerState.maxMessages s
             printfn "PartitionerRunner.onGetMessages completed, y = %A" y
             y
@@ -257,7 +202,8 @@ module Partitioner =
             x
 
         let saveQueueElement q =
-            printfn "saveQueueElement is not implemented yet."
+            printfn "PartitionerRunner.saveQueueElement: q = %A." q
+            proxy.savePartitionerQueueElement q
             ignore()
 
 
@@ -347,12 +293,7 @@ module Partitioner =
         member __.start q = q |> Start |> messageLoop.Post
         member __.runModel p = runModelImpl p
         member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
-        //member private this.processMessage m =
-        //    printfn "PartitionerRunner.processMessage is called with message: %A" m
-        //    ProcessMessage (this, m) |> messageLoop.Post
-        member this.getMessages() =
-            printfn "PartitionerRunner.getMessages is called."
-            GetMessages this |> messageLoop.Post
+        member this.getMessages() = GetMessages this |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 
 

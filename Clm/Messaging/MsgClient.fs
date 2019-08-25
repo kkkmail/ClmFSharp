@@ -194,8 +194,6 @@ module Client =
 
         let onTryRemoveReceivedMessage (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
             printfn "MessagingClient.onTryRemoveReceivedMessage..."
-            //s.service.tryDeleteFromServer s.msgClientId m |> r.Reply
-            //s
             s.proxy.deleteMessage m
             r.Reply true
             { s with incomingMessages = removeFirst (fun e -> e.messageId = m) s.incomingMessages }

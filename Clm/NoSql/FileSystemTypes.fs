@@ -8,8 +8,10 @@ open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
+open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
+open ClmSys.ServiceInstaller
 
 module FileSystemTypes =
 
@@ -26,6 +28,7 @@ module FileSystemTypes =
     let chartInfoTblName = TableName "ChartInfo"
     let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
     let workerNodeInfoTblName = TableName "WorkerNodeInfo"
+    let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
 
     let storageExt = "json"
 
@@ -73,8 +76,17 @@ module FileSystemTypes =
         |> Array.map creator
         |> List.ofArray
 
+    // TODO kk:20190824 - That does not seem to go in the proper direction. Delete after 90 days or make it work.
+    //let loadAllWorkerNodeInfoImpl (tryFun : (unit -> 'C) -> 'C option) (getIds : ServiceName -> unit -> list<'A>) (tryLoad : ServiceName -> 'A -> 'B option) name =
+    //    match tryFun (getIds name) with
+    //    | Some i ->
+    //        i
+    //        |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
+    //        |> List.choose id
+    //    | None -> []
 
-    // TODO kk:20190822 - Possibley refactor to use service name only once.
+
+    // TODO kk:20190822 - Possibley refactor to use service name only once. Delete after 90 days or make it work.
     //type TableActions<'T, 'A> =
     //    {
     //        saveMessage : MessagingClientName -> 'T -> bool
@@ -127,3 +139,8 @@ module FileSystemTypes =
     let tryLoadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryLoadData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeInfoTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)
+
+    let savePartitionerQueueElementFs serviceName (r : PartitionerQueueElement) = saveData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName r.remoteProcessId.value r
+    let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
+    let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
+    let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)

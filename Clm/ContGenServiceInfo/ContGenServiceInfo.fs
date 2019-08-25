@@ -333,10 +333,3 @@ module ServiceInfo =
             commandLineParam : ModelCommandLineParam
             callBackInfo : ProcessToStartInfo
         }
-
-
-    //type RunModelParamWithCallBack =
-    //    {
-    //        runModelParam : RunModelParam
-    //        callBackInfo : ProcessStartedInfoWithCallBack
-    //    }

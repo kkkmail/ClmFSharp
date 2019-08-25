@@ -107,10 +107,6 @@ module ServiceImplementation =
 
             s
 
-        let onCompleted x =
-
-            ignore()
-
 
         let onUpdateProgress s (w : WorkerNodeRunner) (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
@@ -217,34 +213,6 @@ module ServiceImplementation =
         let onGetMessages s (w : WorkerNodeRunner) =
             printfn "WorkerNodeRunner.onGetMessages"
             printfn "WorkerNodeRunnerState: %A" s
-            //let messages = messagingClient.getMessages()
-
-            //let tryProcessMessage() =
-            //    printfn "WorkerNodeRunner.onGetMessages.tryProcessMessage ..."
-            //    match messagingClient.tryProcessMessage w.processMessage with
-            //    | Some true ->
-            //        printfn "    ... got Some true -> None."
-            //        None
-            //    | Some false ->
-            //        printfn "    ... got Some false -> Some ()."
-            //        Some ()
-            //    | None ->
-            //        printfn "    ... got None -> Some ()."
-            //        Some ()
-            //
-            //WorkerNodeRunnerState.maxMessages
-            //|> List.tryPick tryProcessMessage
-            //|> ignore
-
-            //messages
-            //|> List.map (fun e -> w.processMessage e)
-            //|> ignore
-
-            //WorkerNodeRunnerState.maxMessages
-            //|> List.mapWhileSome (fun _ -> messagingClient.tryProcessMessage w.processMessage)
-            //|> ignore
-
-            //s
             List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) WorkerNodeRunnerState.maxMessages s
 
 

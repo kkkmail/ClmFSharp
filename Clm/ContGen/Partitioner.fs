@@ -4,7 +4,6 @@ open System
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ClmSys.Logging
-open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ServiceProxy.MsgServiceProxy
@@ -74,9 +73,9 @@ module Partitioner =
 
 
     type PartitionerMessage =
-        | Start of PartitionerCallBackInfo
+        | Start of PartitionerRunner * PartitionerCallBackInfo
         | Register of WorkerNodeInfo
-        | UpdateProgress of RemoteProgressUpdateInfo
+        | UpdateProgress of PartitionerRunner * RemoteProgressUpdateInfo
         | RunModel of RunModelParam * RemoteProcessId
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
@@ -120,8 +119,16 @@ module Partitioner =
             |> setRunLimit
 
 
-        let onStart s q =
+        /// TODO kk:20190825 - Refactor to make it better.
+        let loadQueue (w : PartitionerRunner) =
+            let queue = proxy.loadAllPartitionerQueueElement()
+            queue |> List.map (fun e -> w.runModel(e.runModelParam, e.remoteProcessId)) |> ignore
+            queue |> List.map (fun e -> proxy.tryDeletePartitionerQueueElement e.remoteProcessId) |> ignore
+
+
+        let onStart s w q =
             printfn "PartitionerRunner.onStart"
+            loadQueue w
             let workers = proxy.loadAllWorkerNodeInfo()
             workers |> List.fold (fun acc r -> onRegister acc r) { s with partitionerCallBackInfo = q }
 
@@ -132,7 +139,7 @@ module Partitioner =
             |> List.tryPick (fun (a, b) -> if List.contains r b.running then Some a else None)
 
 
-        let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
+        let onUpdateProgress s w (i : RemoteProgressUpdateInfo) =
             printfn "PartitionerRunner.onUpdateProgress: i = %A." i
             s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
 
@@ -142,9 +149,10 @@ module Partitioner =
             | Completed ->
                 match tryFindRunningNode s i.updatedRemoteProcessId with
                 | Some x ->
+                    loadQueue w
                     match s.workerNodes.TryFind x with
-                    | Some w ->
-                        { s with workerNodes = s.workerNodes.Add (x, { w with running = w.running |> List.filter (fun e -> e <> i.updatedRemoteProcessId) }) }
+                    | Some n ->
+                        { s with workerNodes = s.workerNodes.Add (x, { n with running = n.running |> List.filter (fun e -> e <> i.updatedRemoteProcessId) }) }
                     | None -> s
                 | None -> s
 
@@ -162,7 +170,7 @@ module Partitioner =
 
 
         let onProcessMessage (w : PartitionerRunner) (s : PartitionerRunnerState) (m : Message) =
-            printfn "PartitionerRunner.onProcessMessage: m = %A." m
+            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageId
             match m.messageInfo.messageData with
             | PartitionerMsg x ->
                 match x with
@@ -201,22 +209,18 @@ module Partitioner =
             printfn "PartitionerRunner.tryGetNode: retVal = %A" x
             x
 
-        let saveQueueElement q =
-            printfn "PartitionerRunner.saveQueueElement: q = %A." q
-            proxy.savePartitionerQueueElement q
-            ignore()
-
-
         let onRunModel s (a: RunModelParam) (q : RemoteProcessId) =
             printfn "PartitionerRunner.onRunModel: q = %A." q
+
             let onCannotRun() =
+                printfn "PartitionerRunner.onCannotRun"
                 let e =
                     {
                         remoteProcessId = q
                         runModelParam = a
                     }
 
-                saveQueueElement e
+                proxy.savePartitionerQueueElement e
                 { s with partitionerQueue = e :: s.partitionerQueue }
 
 
@@ -260,18 +264,17 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start q -> return! onStart s q |> loop
+                            | Start (w, q) -> return! onStart s w q |> loop
                             | Register r -> return! onRegister s r |> loop
-                            | UpdateProgress i -> return! onUpdateProgress s i |> loop
+                            | UpdateProgress (w, i) -> return! onUpdateProgress s w i |> loop
                             | RunModel (p, q) -> return! onRunModel s p q |> loop
                             | SaveResult r -> return! onSaveResult s r |> loop
                             | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
-                            //| ProcessMessage (w, m) -> return! onProcessMessage s w m |> loop
                             | GetState w -> w.Reply s
                         }
 
-                onStart PartitionerRunnerState.defaultValue PartitionerCallBackInfo.defaultValue |> loop
+                PartitionerRunnerState.defaultValue |> loop
                 )
 
 
@@ -290,9 +293,10 @@ module Partitioner =
             }
 
 
-        member __.start q = q |> Start |> messageLoop.Post
+        member this.start q = (this, q) |> Start |> messageLoop.Post
         member __.runModel p = runModelImpl p
-        member private __.updateProgress i = UpdateProgress i |> messageLoop.Post
+        member private __.runModel(p, q) = (p, q) |> RunModel |> messageLoop.Post
+        member private this.updateProgress i = (this, i) |> UpdateProgress |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 

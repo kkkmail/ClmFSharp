@@ -134,6 +134,7 @@ module ServiceImplementation =
                         i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
                         i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
                         w.saveResult p.resultDataId
+                        w.saveCharts p.resultDataId
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
 
                 if c
@@ -205,9 +206,6 @@ module ServiceImplementation =
             | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
 
             s
-
-
-
 
 
         let onGetMessages s (w : WorkerNodeRunner) =

@@ -31,7 +31,7 @@ module Service =
     type MessagingServiceMessage =
         | Start
         | SendMessage of Message
-        | GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
+        //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
         | GetState of AsyncReplyChannel<MessagingServiceState>
         | TryPeekMessage of MessagingClientId * AsyncReplyChannel<Message option>
@@ -63,21 +63,21 @@ module Service =
             updateMessages s m
 
 
-        let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
-            printfn "MessagingService.onGetMessages: ClientId: %A" n
-            match s.messages.TryFind n with
-            | Some v ->
-                r.Reply (List.rev v)
+        //let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
+        //    printfn "MessagingService.onGetMessages: ClientId: %A" n
+        //    match s.messages.TryFind n with
+        //    | Some v ->
+        //        r.Reply (List.rev v)
 
-                v
-                |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-                |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
-                |> ignore
+        //        v
+        //        |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+        //        |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
+        //        |> ignore
 
-                { s with messages = s.messages.Add(n, []) }
-            | None ->
-                r.Reply []
-                s
+        //        { s with messages = s.messages.Add(n, []) }
+        //    | None ->
+        //        r.Reply []
+        //        s
 
 
         /// TODO kk:20190820 - Implement.
@@ -92,34 +92,39 @@ module Service =
 
         let onTryPeekMessage s n (r : AsyncReplyChannel<Message option>) =
             printfn "MessagingService.onTryPeekMessage: ClientId: %A" n
-            match s.messages.TryFind n with
-            | Some v ->
-                printfn "    MessagingService.onTryPeekMessage: v: %A" v
-                match List.rev v with
-                | [] ->
-                    printfn "MessagingService.onTryPeekMessage: No messages."
-                    r.Reply None
-                | h :: _ ->
-                    printfn "MessagingService.onTryPeekMessage: Found message with id %A." h.messageId
-                    r.Reply (Some h)
-            | None ->
-                printfn "MessagingService.onTryPeekMessage: No client."
-                r.Reply None
+
+            let reply =
+                match s.messages.TryFind n with
+                | Some v ->
+                    printfn "    MessagingService.onTryPeekMessage: v: %A" v
+                    match List.rev v with
+                    | [] ->
+                        printfn "MessagingService.onTryPeekMessage: No messages."
+                        None
+                    | h :: _ ->
+                        printfn "MessagingService.onTryPeekMessage: Found message with id %A." h.messageId
+                        Some h
+                | None ->
+                    printfn "MessagingService.onTryPeekMessage: No client for ClientId %A." n
+                    None
+
+            r.Reply reply
             s
 
 
         let onTryTryDeleteFromServer s n m (r : AsyncReplyChannel<bool>) =
             printfn "MessagingService.onTryTryDeleteFromServer: ClientId: %A, MessageId: %A" n m
+
             match s.messages.TryFind n with
             | Some v ->
-                printfn "    MessagingService.onTryTryDeleteFromServer: v: %A" v
+                printfn "    MessagingService.onTryTryDeleteFromServer: v.Length: %A" v.Length
                 let x = removeFirst (fun e -> e.messageId = m) v
-                printfn "    MessagingService.onTryTryDeleteFromServer: x: %A" x
+                printfn "    MessagingService.onTryTryDeleteFromServer: x.Length: %A" x.Length
                 r.Reply (x.Length <> v.Length)
                 s.proxy.deleteMessage m
                 { s with messages = s.messages.Add(n, x) }
             | None ->
-                printfn "    MessagingService.onTryTryDeleteFromServer: Cannot find client."
+                printfn "    MessagingService.onTryTryDeleteFromServer: Cannot find client for ClientId %A." n
                 r.Reply false
                 s
 
@@ -132,7 +137,7 @@ module Service =
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
-                            | GetMessages (n, r) -> return! onGetMessages s n r |> loop
+                            //| GetMessages (n, r) -> return! onGetMessages s n r |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
                             | GetState r -> return! onGetState s r |> loop
                             | TryPeekMessage (n, r) -> return! onTryPeekMessage s n r |> loop

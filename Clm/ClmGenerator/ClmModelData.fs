@@ -13,6 +13,7 @@ open Clm.CalculationData
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
+open ClmSys.GeneralData
 
 module ClmModelData =
 

@@ -4,6 +4,7 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
+open ClmSys.GeneralData
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
@@ -19,6 +20,7 @@ open Clm.Distributions
 open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
+open System.IO
 
 module SolverRunnerTasks =
 
@@ -104,7 +106,7 @@ module SolverRunnerTasks =
 
     let getPlotDataInfo (ClmDefaultValueId df) =
         let d = PlotDataInfo.defaultValue
-        { d with resultInfo = { d.resultInfo with resultLocation = d.resultInfo.resultLocation + @"\" + df.ToString().PadLeft(6, '0') } }
+        { d with resultInfo = { d.resultInfo with resultLocation = Path.Combine(d.resultInfo.resultLocation, df.ToString()) } }
 
 
     type AsyncChartDataUpdater = AsyncUpdater<ChartInitData, ChartSliceData, ChartData>
@@ -233,7 +235,7 @@ module SolverRunnerTasks =
                     plotter.plotEnantiomericExcess show
                 ]
 
-            match ChartInfo.tryCreate i.resultDataWithId.resultDataId plots with
+            match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
             | Some c -> i.sovlerRunnerProxy.saveChartInfo c
             | None -> printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A" i.resultDataWithId.resultDataId plots
 

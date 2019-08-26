@@ -54,7 +54,7 @@ module PartitionerProxy =
         member __.loadAllWorkerNodeInfo () = loadAll getWorkerNodeInfoIdsFs tryLoadWorkerNodeInfoFs name
         member __.tryDeleteWorkerNodeInfo m = tryFun (fun _ -> tryDeleteWorkerNodeInfoFs name m)
 
-        member __.saveCharts (c : ChartInfo) = c.trySave logger (Some i.resultLocation) |> ignore
+        member __.saveCharts (c : ChartInfo) = c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
 
         member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
         member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name

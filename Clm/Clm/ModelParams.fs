@@ -27,12 +27,6 @@ module ModelParams =
     let toModelName (n : Guid) = n.ToString()
 
 
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member this.value = let (ClmDefaultValueId v) = this in v
-
-
     type ModelInfo =
         {
             fileStructureVersion : decimal

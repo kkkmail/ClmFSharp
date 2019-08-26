@@ -51,6 +51,13 @@ module GeneralData =
     let DefaultMinEe = 0.000_1
 
 
+    type ClmDefaultValueId =
+        | ClmDefaultValueId of int64
+
+        member df.value = let (ClmDefaultValueId v) = df in v
+        override df.ToString() = df.value.ToString().PadLeft(6, '0')
+
+
     let getVersionImpl getter p =
         match getter p with
         | Some x -> x
@@ -341,13 +348,15 @@ module GeneralData =
     type ChartInfo =
         {
             resultDataId : ResultDataId
+            defaultValueId : ClmDefaultValueId
             charts : list<SingleChartInfo>
         }
 
-        static member tryCreate r c =
+        static member tryCreate r d c =
             try
                 {
                     resultDataId = r
+                    defaultValueId = d
                     charts = c |> List.map (fun e -> { chartName = e; chartContent = File.ReadAllText e })
                 }
                 |> Some
@@ -360,7 +369,7 @@ module GeneralData =
             try
                 let getFileName name =
                     match d with
-                    | Some f -> Path.Combine(f, Path.GetFileName name)
+                    | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
                     | None -> name
 
                 let trySaveChart f c =

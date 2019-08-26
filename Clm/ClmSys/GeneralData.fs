@@ -374,6 +374,7 @@ module GeneralData =
 
                 let trySaveChart f c =
                     let folder = Path.GetDirectoryName f
+                    printfn "ChartInfo.trySave: folder = %A" folder
                     Directory.CreateDirectory(folder) |> ignore
                     File.WriteAllText(f, c)
 

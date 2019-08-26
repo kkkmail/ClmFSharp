@@ -141,8 +141,6 @@ module Client =
         let receiveMessagesImpl (s : MessagingClientState) =
             printfn "MessagingClient.receiveMessagesImpl..."
             try
-                //s.service.getMessages s.msgClientId
-
                 MessagingClientState.maxMessages
                 |> List.mapWhileSome (fun _ -> tryReceiveSingleMessage s)
             with
@@ -165,7 +163,7 @@ module Client =
             let failed = Set.difference outgoing transmitted
             let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId)
             let x = { s with outgoingMessages = remaining; incomingMessages = received @ s.incomingMessages }
-            printfn "MessagingClient.onTransmitMessages: output state = %A" x
+            printfn "MessagingClient.onTransmitMessages: incomingMessages.Length = %A, outgoingMessages.Length = %A" x.incomingMessages.Length x.outgoingMessages.Length
             x
 
 

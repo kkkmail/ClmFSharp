@@ -285,11 +285,20 @@ module ServiceImplementation =
     let createServiceImpl i =
         printfn "createServiceImpl: Creating WorkerNodeRunner..."
         let w = WorkerNodeRunner i
-        do w.register()
-        do w.start()
-        let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
-        do h.start()
-        w
+
+        match i.workerNodeAccessInfo.isInactive with
+        | false ->
+            printfn "createServiceImpl: Registering..."
+            do w.register()
+            do w.start()
+            let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
+            do h.start()
+            Some w
+        | true ->
+            printfn "createServiceImpl: Unregistering..."
+            do w.unregister()
+            do w.getState() |> ignore
+            None
 
 
     type WorkerNodeService () =
@@ -310,7 +319,6 @@ module ServiceImplementation =
 
                 }
                 |> createServiceImpl
-                |> Some
             | None ->
                 printfn "WorkerNodeService: Cannot create MsgResponseHandler."
                 None

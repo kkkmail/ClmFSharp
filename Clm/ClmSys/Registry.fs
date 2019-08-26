@@ -16,6 +16,7 @@ module Registry =
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let private usePartitionerKey = "UsePartitioner"
     let private numberOfCoresKey = "NumberOfCores"
+    let private wrkInactiveKey = "NodeInactive"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
     let private contGenMinUsefulEeKey = "ContGenMinUsefulEe"
@@ -173,7 +174,6 @@ module Registry =
         | None -> None
 
 
-    // Number Of Cores
     let tryGetNumberOfCores (logger : Logger) v c =
         match tryGetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey with
         | Some s ->
@@ -186,6 +186,21 @@ module Registry =
     let trySetNumberOfCores (logger : Logger) v c n =
         match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
         | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) numberOfCoresKey (n.ToString())
+        | None -> None
+
+
+    let tryGetWrkInactive (logger : Logger) v c =
+        match tryGetRegistryValue logger (getMessagingClientSubKey v c) wrkInactiveKey with
+        | Some s ->
+            match Boolean.TryParse s with
+            | true, v -> Some v
+            | false, _ -> None
+        | None -> None
+
+
+    let trySetWrkInactive (logger : Logger) v c n =
+        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
+        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) wrkInactiveKey (n.ToString())
         | None -> None
 
 

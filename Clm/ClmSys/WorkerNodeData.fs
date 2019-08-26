@@ -23,6 +23,7 @@ module WorkerNodeData =
         {
             workerNodeServiceAccessInfo : ServiceAccessInfo
             noOfCores : int
+            isInactive : bool
             workNodeMsgAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
             nodePriority : WorkerNodePriority

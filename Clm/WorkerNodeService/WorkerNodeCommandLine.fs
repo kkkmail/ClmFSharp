@@ -29,6 +29,7 @@ module SvcCommandLine =
 
         | [<Unique>] [<AltCommandLine("-id")>] WrkMsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-p")>] WrkPartitioner of Guid
+        | [<Unique>] [<AltCommandLine("-i")>] WrkInactive of bool
 
     with
         interface IArgParserTemplate with
@@ -46,6 +47,7 @@ module SvcCommandLine =
 
                 | WrkMsgCliId _ -> "messaging client id of current worker node service."
                 | WrkPartitioner _ -> "messaging client id of a partitioner service."
+                | WrkInactive _ -> "if true then worker node is inactive and it will unregister itself from the cluster."
 
 
     type WorkerNodeServiceArgs = SvcArguments<WorkerNodeServiceRunArgs>
@@ -59,7 +61,6 @@ module SvcCommandLine =
         | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<WorkerNodeServiceRunArgs>
         | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<WorkerNodeServiceRunArgs>
-        | [<Unique>] [<First>] [<AltCommandLine("x")>] Unregister of ParseResults<WorkerNodeServiceRunArgs>
 
     with
         interface IArgParserTemplate with
@@ -71,7 +72,6 @@ module SvcCommandLine =
                 | Stop -> "stop worker node service."
                 | Run _ -> "run worker node service from command line without installing."
                 | Save _ -> "save parameters into the registry."
-                | Unregister _ -> "unregisters node."
 
 
     let convertArgs s =
@@ -82,8 +82,6 @@ module SvcCommandLine =
         | Stop -> WorkerNodeServiceArgs.Stop
         | Run a -> WorkerNodeServiceArgs.Run a
         | Save a -> WorkerNodeServiceArgs.Save a
-        | Unregister a ->
-            WorkerNodeServiceArgs.Uninstall
 
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
@@ -98,6 +96,7 @@ module SvcCommandLine =
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> WorkerNodeId |> Some | _ -> None)
+    let tryGetInactive p = p |> List.tryPick (fun e -> match e with | WrkInactive p -> Some p | _ -> None)
 
 
     let getVersion = getVersionImpl tryGetVersion
@@ -144,6 +143,15 @@ module SvcCommandLine =
             | None -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
+    let getInactive logger version name p =
+        match tryGetInactive p with
+        | Some a -> a
+        | None ->
+            match tryGetWrkInactive logger version name with
+            | Some a -> a
+            | None -> false
+
+
     let getServiceAccessInfoImpl b p =
         let name = workerNodeServiceName
 
@@ -156,6 +164,7 @@ module SvcCommandLine =
         let msgPort = getMsgServerPort logger version name p
         let partitioner = getPartitioner logger version name p
         let clientId = getClientId logger version name p
+        let inactive = getInactive logger version name p
 
         let saveSettings() =
             trySetContGenServiceAddress logger versionNumberValue name address |> ignore
@@ -166,6 +175,7 @@ module SvcCommandLine =
             trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
             trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
+            trySetWrkInactive logger versionNumberValue name inactive |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()
@@ -186,6 +196,7 @@ module SvcCommandLine =
                 }
 
             noOfCores = noOfCores
+            isInactive = inactive
             nodePriority = WorkerNodePriority.defaultValue
             partitionerId = partitioner
 

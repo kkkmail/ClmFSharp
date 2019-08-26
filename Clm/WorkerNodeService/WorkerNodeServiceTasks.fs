@@ -17,8 +17,13 @@ module ServiceTasks =
         printfn "runService: Trying to create WorkerNodeResponseHandler..."
         startServiceRun l i
         let service = (new WorkerNodeResponseHandler(i)).workerNodeService
-        printfn "runService: Calling: service.ping()..."
-        service.ping()
+
+        try
+            printfn "runService: Calling: service.ping()..."
+            service.ping()
+        with
+        | ex -> printfn "Exception occurred: %A" ex
+
         let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
         do h.start()
 

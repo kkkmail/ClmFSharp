@@ -28,3 +28,13 @@ module VersionInfo =
 
 
     let versionNumberValue = VersionNumber VersionNumberValue
+
+
+    type CommunicationDataVersion =
+        | CommunicationDataVersion of int
+
+        member this.value = let (CommunicationDataVersion v) = this in v
+
+    /// Increment when internal communication structures change and
+    /// messages can no longer be successfully transferred among components.
+    let communicationDataVersion = CommunicationDataVersion 1

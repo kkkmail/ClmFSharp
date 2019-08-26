@@ -1,17 +1,19 @@
 ﻿namespace Messaging
 
 open System
+open ClmSys.VersionInfo
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open Messaging.ServiceResponse
+open ClmSys.TimerEvents
 
 module Client =
 
     /// Maximum number of messages to process in one go.
-    let maxNumberOfMessages = 10
+    let maxNumberOfMessages = 1000
 
     type MessagingClientData =
         {
@@ -47,8 +49,9 @@ module Client =
 
     type MessagingClientMessage =
         | Start
+        | GetVersion of AsyncReplyChannel<CommunicationDataVersion>
         | SendMessage of MessageInfo
-        | GetMessages of AsyncReplyChannel<List<Message>>
+        //| GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
         | ConfigureClient of MessagingClientConfigParam
         //| TryPeekMessage of AsyncReplyChannel<Message option>
@@ -65,6 +68,12 @@ module Client =
             let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
             let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
             { s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
+
+
+        let onGetVersion s (r : AsyncReplyChannel<CommunicationDataVersion>) =
+            printfn "MessagingService.onGetVersion"
+            r.Reply communicationDataVersion
+            s
 
 
         let onSendMessage (s : MessagingClientState) m =
@@ -84,16 +93,16 @@ module Client =
             { s with outgoingMessages = message :: s.outgoingMessages }
 
 
-        let onGetMessages s (r : AsyncReplyChannel<List<Message>>) =
-            printfn "MessagingClient.onGetMessages..."
-            r.Reply s.incomingMessages
-
-            s.incomingMessages
-            |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-            |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
-            |> ignore
-
-            { s with incomingMessages = [] }
+        //let onGetMessages s (r : AsyncReplyChannel<List<Message>>) =
+        //    printfn "MessagingClient.onGetMessages..."
+        //    r.Reply s.incomingMessages
+        //
+        //    s.incomingMessages
+        //    |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
+        //    |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
+        //    |> ignore
+        //
+        //    { s with incomingMessages = [] }
 
 
         let sendMessageImpl (s : MessagingClientState) m =
@@ -222,16 +231,15 @@ module Client =
                         {
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
+                            | GetVersion r -> return! onGetVersion s r |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
-                            | GetMessages r -> return! onGetMessages s r |> loop
+                            //| GetMessages r -> return! onGetMessages s r |> loop
                             | TransmitMessages -> return! onTransmitMessages s |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                             //| TryPeekMessage r -> return! onTryPeekMessage s r |> loop
                             //| TryDeleteFromServer (m, r) -> return! onTryTryDeleteFromServer s m r |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage s m r |> loop
-                            //| TryProcessMessage x -> failwith ""
-
                         }
 
                 onStart (MessagingClientState.defaultValue d) |> loop
@@ -242,12 +250,11 @@ module Client =
             printfn "MessagingClient: Transmitting messages..."
             TransmitMessages |> messageLoop.Post
 
-        let timer = new System.Timers.Timer(30_000.0)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
-        do timer.Start()
 
+        let h = new EventHandler(EventHandlerInfo.defaultValue eventHandler)
+        do h.start()
 
+        member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         //member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post

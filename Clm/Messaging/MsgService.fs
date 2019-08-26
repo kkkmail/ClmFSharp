@@ -1,5 +1,6 @@
 ﻿namespace Messaging
 
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
@@ -30,6 +31,7 @@ module Service =
 
     type MessagingServiceMessage =
         | Start
+        | GetVersion of AsyncReplyChannel<CommunicationDataVersion>
         | SendMessage of Message
         //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
@@ -54,8 +56,14 @@ module Service =
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
+        let onGetVersion s (r : AsyncReplyChannel<CommunicationDataVersion>) =
+            printfn "MessagingService.onGetVersion"
+            r.Reply communicationDataVersion
+            s
+
+
         let onSendMessage (s : MessagingServiceState) m =
-            printfn "MessagingService.onSendMessage: m = %A." m
+            printfn "MessagingService.onSendMessage: messageId = %A." m.messageId
             match m.messageInfo.deliveryType with
             | GuaranteedDelivery -> s.proxy.saveMessage m
             | NonGuaranteedDelivery -> ignore()
@@ -136,6 +144,7 @@ module Service =
                         {
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
+                            | GetVersion r -> return! onGetVersion s r |> loop
                             | SendMessage m -> return! onSendMessage s m |> loop
                             //| GetMessages (n, r) -> return! onGetMessages s n r |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
@@ -148,6 +157,7 @@ module Service =
                 onStart (MessagingServiceState.defaultValue d) |> loop
                 )
 
+        member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = SendMessage m |> messageLoop.Post
         //member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post

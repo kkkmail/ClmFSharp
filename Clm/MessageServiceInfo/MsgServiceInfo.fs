@@ -1,6 +1,7 @@
 ﻿namespace MessagingServiceInfo
 
 open System
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
@@ -127,6 +128,7 @@ module ServiceInfo =
 
 
     type IMessagingService =
+        abstract getVersion : unit -> CommunicationDataVersion
         abstract sendMessage : Message -> unit
         //abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit

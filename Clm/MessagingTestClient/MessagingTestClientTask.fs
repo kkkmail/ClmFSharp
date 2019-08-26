@@ -35,11 +35,18 @@ module MessagingTestClientTask =
                 }
 
             a.sendMessage m
+            printfn "Checking messages."
 
-            printfn "Receiving messages."
-            //let x = a.getMessages()
-            //printfn "Received %A messages." (x.Length)
-            //x |> List.map (fun e -> printfn "message: %A" e) |> ignore
+            let checkMessage() =
+                match a.tryPeekReceivedMessage() with
+                | Some m ->
+                    printfn "    Received message: %A" m
+                    a.tryRemoveReceivedMessage m.messageId |> ignore
+                | None -> ignore()
+
+            [for _ in 1..20 -> ()]
+            |> List.map checkMessage
+            |> ignore
 
             Thread.Sleep 30_000
 

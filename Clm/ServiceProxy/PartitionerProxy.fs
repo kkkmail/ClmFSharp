@@ -5,13 +5,9 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open ContGenServiceInfo.ServiceInfo
-open ClmSys.WorkerNodeData
 open NoSql.FileSystemTypes
 open ClmSys.Registry
 open ClmSys.Logging
-open PartitionerServiceInfo.ServiceInfo
-open ClmSys.ServiceInstaller
 
 module PartitionerProxy =
 

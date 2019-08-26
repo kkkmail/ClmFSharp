@@ -104,7 +104,7 @@ module SolverRunnerTasks =
     let getResponseHandler i = ResponseHandler.tryCreate i
 
 
-    let getPlotDataInfo (ClmDefaultValueId df) =
+    let getPlotDataInfo (df : ClmDefaultValueId) =
         let d = PlotDataInfo.defaultValue
         { d with resultInfo = { d.resultInfo with resultLocation = Path.Combine(d.resultInfo.resultLocation, df.ToString()) } }
 
@@ -263,7 +263,7 @@ module SolverRunnerTasks =
                 let runSolverData = RunSolverData.create md i a y0 tEnd d
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
-                let result = nSolve data
+                nSolve data |> ignore
 
                 printfn "Saving."
                 let (r, chartData) = getResultAndChartData d runSolverData

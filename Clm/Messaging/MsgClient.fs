@@ -150,11 +150,18 @@ module Client =
         let receiveMessagesImpl (s : MessagingClientState) =
             printfn "MessagingClient.receiveMessagesImpl..."
             try
-                MessagingClientState.maxMessages
-                |> List.mapWhileSome (fun _ -> tryReceiveSingleMessage s)
+                let serverVersion = s.service.getVersion()
+
+                match serverVersion = communicationDataVersion with
+                | true ->
+                    MessagingClientState.maxMessages
+                    |> List.mapWhileSome (fun _ -> tryReceiveSingleMessage s)
+                | false ->
+                    s.messageClientData.logger.logErr (sprintf "MessagingClient.receiveMessagesImpl - different data versions - client: %A, server: %A" communicationDataVersion.value serverVersion.value)
+                    []
             with
                 | e ->
-                    s.messageClientData.logger.logExn "Failed to receive messages: " e
+                    s.messageClientData.logger.logExn "MessagingClient.receiveMessagesImpl: Failed to receive messages: " e
                     []
 
 

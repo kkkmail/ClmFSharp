@@ -4,6 +4,9 @@ open Argu
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
+open ClmSys.VersionInfo
+open ClmSys.Registry
+open ClmSys.Logging
 
 module AdmCommandLine =
 
@@ -47,6 +50,7 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureMsgService of ParseResults<ConfigureMsgServiceArgs>
             | [<Unique>] [<AltCommandLine("server")>] MsgServerAddress of string
             | [<Unique>] [<AltCommandLine("port")>]   MsgServerPort of int
+            | [<Unique>] [<AltCommandLine("-version")>] MsgVersion of string
 
         with
             interface IArgParserTemplate with
@@ -56,23 +60,26 @@ module AdmCommandLine =
                     | ConfigureMsgService _ -> "reconfigures service."
                     | MsgServerAddress _ -> "server address / name."
                     | MsgServerPort _ -> "server port."
+                    | MsgVersion _ -> "tries to load data from specfied version instead of current version."
 
 
     let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgServerPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
+
+
+    let getVersion = getVersionImpl tryGetVersion
+    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
+    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
 
 
     let getServiceAccessInfo p =
-        let address =
-            match tryGetMsgServerAddress p with
-            | Some a -> a
-            | None -> ServiceAddress.defaultMessagingServerValue
+        let name = messagingServiceName
 
-        let port =
-            match tryGetMsgServerPort p with
-            | Some a -> a
-            | None -> ServicePort.defaultMessagingServerValue
-
+        let version = getVersion p
+        let address = getMsgServerAddress logger version name p
+        let port = getMsgServerPort logger version name p
+        printfn "address: %A, port: %A" address port
 
         {
             messagingServiceAccessInfo =

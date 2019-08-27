@@ -16,6 +16,7 @@ module Service =
 
     type MessagingServiceState =
         {
+            workState : MsgWorkState
             messageServiceData : MessagingServiceData
             messages : Map<MessagingClientId, List<Message>>
         }
@@ -24,6 +25,7 @@ module Service =
 
         static member defaultValue d =
             {
+                workState = CanTransmitMessages
                 messageServiceData = d
                 messages = Map.empty
             }

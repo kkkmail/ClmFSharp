@@ -55,6 +55,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NoSql", "NoSql\NoSql.fsproj
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PartitionerServiceInfo", "PartitionerServiceInfo\PartitionerServiceInfo.fsproj", "{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingAdm", "MessagingAdm\MessagingAdm.fsproj", "{B5EE2966-7390-44F3-B028-74BFE6D73D17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -377,6 +379,18 @@ Global
 		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|x64.Build.0 = Release|x64
 		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|x86.ActiveCfg = Release|Any CPU
 		{0A5FF8D1-CC98-4EAC-A1E7-2EE689C9C507}.Release|x86.Build.0 = Release|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|x64.ActiveCfg = Debug|x64
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|x64.Build.0 = Debug|x64
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Debug|x86.Build.0 = Debug|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|x64.ActiveCfg = Release|x64
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|x64.Build.0 = Release|x64
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|x86.ActiveCfg = Release|Any CPU
+		{B5EE2966-7390-44F3-B028-74BFE6D73D17}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

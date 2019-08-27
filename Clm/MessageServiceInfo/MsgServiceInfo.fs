@@ -18,6 +18,11 @@ module ServiceInfo =
     let MessagingProgramName = "MessagingService.exe"
 
 
+    type MsgWorkState =
+        | CanTransmitMessages
+        | ShuttingDown
+
+
     type MessageId =
         | MessageId of Guid
 

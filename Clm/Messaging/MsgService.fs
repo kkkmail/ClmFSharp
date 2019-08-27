@@ -17,12 +17,18 @@ module Service =
 
     type MessagingServiceState =
         {
-            workState : MsgWorkState
+            workState : MessagingWorkState
             messageServiceData : MessagingServiceData
             messages : Map<MessagingClientId, List<Message>>
         }
 
         member s.proxy = s.messageServiceData.messagingServiceProxy
+
+        member s.state =
+            {
+                msgWorkState = s.workState
+                msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageId))
+            }
 
         static member defaultValue d =
             {
@@ -38,10 +44,9 @@ module Service =
         | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
         //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
-        | GetState of AsyncReplyChannel<MessagingServiceState>
+        | GetState of AsyncReplyChannel<MsgServiceState>
         | TryPeekMessage of MessagingClientId * AsyncReplyChannel<Message option>
         | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<bool>
-
 
 
     type MessagingService(d : MessagingServiceData) =
@@ -95,13 +100,13 @@ module Service =
         //        s
 
 
-        /// TODO kk:20190820 - Implement.
         let onConfigure s x =
-            s
+            match x with
+            | MsgWorkState w -> { s with workState = w }
 
 
-        let onGetState s (r : AsyncReplyChannel<MessagingServiceState>) =
-            r.Reply s
+        let onGetState (s : MessagingServiceState) (r : AsyncReplyChannel<MsgServiceState>) =
+            r.Reply s.state
             s
 
 

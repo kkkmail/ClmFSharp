@@ -19,7 +19,7 @@ module ServiceInfo =
     let MessagingProgramName = "MessagingService.exe"
 
 
-    type MsgWorkState =
+    type MessagingWorkState =
         | CanTransmitMessages
         | ShuttingDown
 
@@ -126,7 +126,7 @@ module ServiceInfo =
 
 
     type MessagingConfigParam =
-        | DummyConfig
+        | MsgWorkState of MessagingWorkState
 
 
     type MessagingClientConfigParam =
@@ -136,6 +136,13 @@ module ServiceInfo =
     type MessageDeliveryResult = Result<unit, string>
 
 
+    type MsgServiceState =
+        {
+            msgWorkState : MessagingWorkState
+            msgInfo : list<(MessagingClientId * list<MessageId>)>
+        }
+
+
     type IMessagingService =
         abstract getVersion : unit -> CommunicationDataVersion
         abstract sendMessage : Message -> MessageDeliveryResult
@@ -143,3 +150,4 @@ module ServiceInfo =
         abstract configureService : MessagingConfigParam -> unit
         abstract tryPeekMessage : MessagingClientId -> Message option
         abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+        abstract getState : unit -> MsgServiceState

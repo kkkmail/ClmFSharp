@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.VersionInfo
+open ClmSys.Rop
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
@@ -132,9 +133,12 @@ module ServiceInfo =
         | DummyConfig
 
 
+    type MessageDeliveryResult = Result<unit, string>
+
+
     type IMessagingService =
         abstract getVersion : unit -> CommunicationDataVersion
-        abstract sendMessage : Message -> unit
+        abstract sendMessage : Message -> MessageDeliveryResult
         //abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit
         abstract tryPeekMessage : MessagingClientId -> Message option

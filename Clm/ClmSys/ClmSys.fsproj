@@ -67,6 +67,7 @@
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Logging.fs" />
+    <Compile Include="Rop.fs" />
     <Compile Include="GeneralData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="MessagingData.fs" />

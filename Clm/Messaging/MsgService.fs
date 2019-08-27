@@ -1,6 +1,7 @@
 ﻿namespace Messaging
 
 open ClmSys.VersionInfo
+open ClmSys.Rop
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
@@ -34,7 +35,7 @@ module Service =
     type MessagingServiceMessage =
         | Start
         | GetVersion of AsyncReplyChannel<CommunicationDataVersion>
-        | SendMessage of Message
+        | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
         //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
         | GetState of AsyncReplyChannel<MessagingServiceState>
@@ -48,8 +49,6 @@ module Service =
             match s.messages.TryFind m.messageInfo.recipient with
             | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
             | None -> { s with messages = s.messages.Add (m.messageInfo.recipient, [ m ]) }
-            //| Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, enqueue r m) }
-            //| None -> { s with messages = s.messages.Add (m.messageInfo.recipient, enqueue emptyQueue m) }
 
 
         let onStart (s : MessagingServiceState) =
@@ -64,13 +63,19 @@ module Service =
             s
 
 
-        let onSendMessage (s : MessagingServiceState) m =
+        let onSendMessage (s : MessagingServiceState) m (r : AsyncReplyChannel<MessageDeliveryResult>) =
             printfn "MessagingService.onSendMessage: messageId = %A." m.messageId
-            match m.messageInfo.deliveryType with
-            | GuaranteedDelivery -> s.proxy.saveMessage m
-            | NonGuaranteedDelivery -> ignore()
+            match s.workState with
+            | CanTransmitMessages ->
+                match m.messageInfo.deliveryType with
+                | GuaranteedDelivery -> s.proxy.saveMessage m
+                | NonGuaranteedDelivery -> ignore()
 
-            updateMessages s m
+                r.Reply (Success())
+                updateMessages s m
+            | ShuttingDown ->
+                r.Reply (Failure "Messaging server is shutting down. Please, retry later.")
+                s
 
 
         //let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
@@ -147,7 +152,7 @@ module Service =
                             match! u.Receive() with
                             | Start -> return! onStart s |> loop
                             | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage m -> return! onSendMessage s m |> loop
+                            | SendMessage (m, r) -> return! onSendMessage s m r |> loop
                             //| GetMessages (n, r) -> return! onGetMessages s n r |> loop
                             | ConfigureService x -> return! onConfigure s x |> loop
                             | GetState r -> return! onGetState s r |> loop
@@ -160,7 +165,7 @@ module Service =
                 )
 
         member __.getVersion() = GetVersion |> messageLoop.PostAndReply
-        member __.sendMessage m = SendMessage m |> messageLoop.Post
+        member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
         //member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply

@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.VersionInfo
+open ClmSys.Rop
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.GeneralData
@@ -108,12 +109,15 @@ module Client =
         let sendMessageImpl (s : MessagingClientState) m =
             printfn "MessagingClient.sendMessageImpl..."
             try
-                s.service.sendMessage m
-
-                match m.messageInfo.deliveryType with
-                | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
-                | NonGuaranteedDelivery -> ignore()
-                Some m
+                match s.service.sendMessage m with
+                | Success _ ->
+                    match m.messageInfo.deliveryType with
+                    | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
+                    | NonGuaranteedDelivery -> ignore()
+                    Some m
+                | Failure e ->
+                    logErr e
+                    None
             with
                 | e ->
                     s.messageClientData.logger.logExn (sprintf "Failed to send message: %A" m.messageId) e

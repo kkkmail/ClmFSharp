@@ -45,7 +45,7 @@ module MsgAdmTasks =
             p |> List.tryPick (fun e -> match e with | StopMsgService -> s |> StopMsgServiceTask |> Some | _ -> None)
 
         static member private tryCreatStartServiceTask s p =
-            p |> List.tryPick (fun e -> match e with | StartMsgService -> s |> StopMsgServiceTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | StartMsgService -> s |> StartMsgServiceTask |> Some | _ -> None)
 
         static member createTask s p =
             let tt =

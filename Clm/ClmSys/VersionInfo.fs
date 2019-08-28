@@ -37,4 +37,4 @@ module VersionInfo =
 
     /// Increment when internal messaging structures change and
     /// messages can no longer be successfully transferred among components.
-    let messagingDataVersion = MessagingDataVersion 1
+    let messagingDataVersion = MessagingDataVersion 2

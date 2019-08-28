@@ -11,7 +11,6 @@ open ContGenServiceInfo.ServiceInfo
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
-open ClmSys.ServiceInstaller
 
 module FileSystemTypes =
 
@@ -29,6 +28,7 @@ module FileSystemTypes =
     let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
     let workerNodeInfoTblName = TableName "WorkerNodeInfo"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
+    let workerNodeStateTblName = TableName "WorkerNodeState"
 
     let storageExt = "json"
 
@@ -144,3 +144,8 @@ module FileSystemTypes =
     let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
     let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
     let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)
+
+    let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
+    let tryLoadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryLoadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
+    let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
+    let getWorkerNodeStateIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeStateTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)

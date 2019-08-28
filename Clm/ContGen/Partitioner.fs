@@ -17,13 +17,6 @@ open ClmSys.TimerEvents
 
 module Partitioner =
 
-    type WorkerNodeState =
-        {
-            workerNodeInfo : WorkerNodeInfo
-            running : list<RemoteProcessId>
-        }
-
-
     type PartitionerCallBackInfo =
         {
             onUpdateProgress : ProgressUpdateInfo -> unit
@@ -110,8 +103,12 @@ module Partitioner =
 
         let onRegister s (r : WorkerNodeInfo) =
             printfn "PartitionerRunner.onRegister: r = %A." r
-            proxy.saveWorkerNodeInfo r
-            let updated q = { s with workerNodes = s.workerNodes.Add (r.workerNodeId, { workerNodeInfo = r; running = q }) }
+            //proxy.saveWorkerNodeInfo r
+
+            let updated q =
+                let newState = { workerNodeInfo = r; running = q }
+                proxy.saveWorkerNodeState newState |> ignore
+                { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }
 
             match s.workerNodes.TryFind r.workerNodeId with
             | Some n -> n.running
@@ -120,9 +117,14 @@ module Partitioner =
             |> setRunLimit
 
 
+        /// TODO kk:20190828 - When the node is unregistered we need to [somehow] take care of what's running there.
+        /// Currently this is not done and it is hard to test even when it is done :(
+        /// Current "clean" ways is to set the number of cores of a worker node to 0 and then wait
+        /// until it finishes already scheduled work. Then the node can be safely removed.
         let onUnregister s (r : WorkerNodeId) =
             printfn "PartitionerRunner.onUnregister: r = %A." r
-            proxy.tryDeleteWorkerNodeInfo r |> ignore
+            //proxy.tryDeleteWorkerNodeInfo r |> ignore
+            proxy.tryDeleteWorkerNodeState r |> ignore
             { s with workerNodes = s.workerNodes.tryRemove r } |> setRunLimit
 
 
@@ -136,8 +138,8 @@ module Partitioner =
         let onStart s w q =
             printfn "PartitionerRunner.onStart"
             loadQueue w
-            let workers = proxy.loadAllWorkerNodeInfo()
-            workers |> List.fold (fun acc r -> onRegister acc r) { s with partitionerCallBackInfo = q }
+            let workers = proxy.loadAllWorkerNodeState()
+            workers |> List.fold (fun acc r -> onRegister acc r.workerNodeInfo) { s with partitionerCallBackInfo = q }
 
 
         let tryFindRunningNode s r =
@@ -159,7 +161,9 @@ module Partitioner =
                     loadQueue w
                     match s.workerNodes.TryFind x with
                     | Some n ->
-                        { s with workerNodes = s.workerNodes.Add (x, { n with running = n.running |> List.filter (fun e -> e <> i.updatedRemoteProcessId) }) }
+                        let newNodeState = { n with running = n.running |> List.filter (fun e -> e <> i.updatedRemoteProcessId) }
+                        proxy.saveWorkerNodeState newNodeState |> ignore
+                        { s with workerNodes = s.workerNodes.Add (x, newNodeState) }
                     | None -> s
                 | None -> s
 
@@ -216,6 +220,7 @@ module Partitioner =
             printfn "PartitionerRunner.tryGetNode: retVal = %A" x
             x
 
+
         let onRunModel s (a: RunModelParam) (q : RemoteProcessId) =
             printfn "PartitionerRunner.onRunModel: q = %A." q
 
@@ -255,7 +260,9 @@ module Partitioner =
                     }.messageInfo
                     |> sendMessage
 
-                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, { n with running = q :: n.running }) }
+                    let newNodeState = { n with running = q :: n.running }
+                    proxy.saveWorkerNodeState newNodeState |> ignore
+                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }
                 | None ->
                     printfn "PartitionerRunner.onRunModel - cannot find model."
                     logger.logErr (sprintf "Unable to load model with id: %A" a.callBackInfo.modelDataId)

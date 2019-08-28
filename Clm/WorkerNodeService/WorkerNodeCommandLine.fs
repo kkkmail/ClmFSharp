@@ -113,7 +113,7 @@ module SvcCommandLine =
                 match tryGetNumberOfCores logger version name with
                 | Some x -> x
                 | None -> Environment.ProcessorCount / 2
-        max 1 (min n Environment.ProcessorCount)
+        max 0 (min n Environment.ProcessorCount)
 
 
     let getServerAddress logger version name p =

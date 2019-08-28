@@ -1,4 +1,6 @@
 ﻿namespace PartitionerServiceInfo
+
+open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
@@ -7,4 +9,11 @@ module ServiceInfo =
         {
             remoteProcessId : RemoteProcessId
             runModelParam : RunModelParam
+        }
+
+
+    type WorkerNodeState =
+        {
+            workerNodeInfo : WorkerNodeInfo
+            running : list<RemoteProcessId>
         }

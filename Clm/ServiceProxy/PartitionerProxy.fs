@@ -46,12 +46,16 @@ module PartitionerProxy =
         member __.tryLoadModelData a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
         member __.saveResultData r = tryDbFun connectionString (saveResultData r) |> ignore
 
-        member __.saveWorkerNodeInfo w = tryFun (fun () -> saveWorkerNodeInfoFs name w) |> ignore
-        member __.loadAllWorkerNodeInfo () = loadAll getWorkerNodeInfoIdsFs tryLoadWorkerNodeInfoFs name
-        member __.tryDeleteWorkerNodeInfo m = tryFun (fun _ -> tryDeleteWorkerNodeInfoFs name m)
+        //member __.saveWorkerNodeInfo w = tryFun (fun () -> saveWorkerNodeInfoFs name w) |> ignore
+        //member __.loadAllWorkerNodeInfo () = loadAll getWorkerNodeInfoIdsFs tryLoadWorkerNodeInfoFs name
+        //member __.tryDeleteWorkerNodeInfo m = tryFun (fun _ -> tryDeleteWorkerNodeInfoFs name m)
 
         member __.saveCharts (c : ChartInfo) = c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
 
         member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
         member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name
         member __.tryDeletePartitionerQueueElement m = tryFun (fun _ -> tryDeletePartitionerQueueElementFs name m)
+
+        member __.saveWorkerNodeState s = tryFun (fun _ -> saveWorkerNodeStateFs name s)
+        member __.loadAllWorkerNodeState () = loadAll getWorkerNodeStateIdsFs tryLoadWorkerNodeStateFs name
+        member __.tryDeleteWorkerNodeState s = tryFun (fun _ -> tryDeleteWorkerNodeStateFs name s)

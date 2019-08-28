@@ -7,9 +7,20 @@ module ServiceInfo =
 
     type PartitionerQueueElement =
         {
+            queuedRemoteProcessId : RemoteProcessId
+        }
+
+
+    type RunModelParamWithRemoteId =
+        {
             remoteProcessId : RemoteProcessId
             runModelParam : RunModelParam
         }
+
+        member this.queueElement =
+            {
+                queuedRemoteProcessId = this.remoteProcessId
+            }
 
 
     type WorkerNodeState =

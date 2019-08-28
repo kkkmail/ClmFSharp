@@ -52,10 +52,16 @@ module PartitionerProxy =
 
         member __.saveCharts (c : ChartInfo) = c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
 
-        member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
-        member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name
-        member __.tryDeletePartitionerQueueElement m = tryFun (fun _ -> tryDeletePartitionerQueueElementFs name m)
+        member __.saveRunModelParamWithRemoteId q = tryFun (fun () -> saveRunModelParamWithRemoteIdFs name q) |> ignore
+        member __.tryLoadRunModelParamWithRemoteId q = tryFun (fun () -> tryLoadRunModelParamWithRemoteIdFs name q) |> Option.bind id
+        member __.loadAllRunModelParamWithRemoteId () = loadAll getRunModelParamWithRemoteIdsFs tryLoadRunModelParamWithRemoteIdFs name
+        member __.tryDeleteRunModelParamWithRemoteId m = tryFun (fun _ -> tryDeleteRunModelParamWithRemoteIdFs name m)
 
         member __.saveWorkerNodeState s = tryFun (fun _ -> saveWorkerNodeStateFs name s)
         member __.loadAllWorkerNodeState () = loadAll getWorkerNodeStateIdsFs tryLoadWorkerNodeStateFs name
         member __.tryDeleteWorkerNodeState s = tryFun (fun _ -> tryDeleteWorkerNodeStateFs name s)
+
+        member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
+        member __.tryLoadPartitionerQueueElement q = tryFun (fun () -> tryLoadPartitionerQueueElementFs name q) |> Option.bind id
+        member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name
+        member __.tryDeletePartitionerQueueElement m = tryFun (fun _ -> tryDeletePartitionerQueueElementFs name m)

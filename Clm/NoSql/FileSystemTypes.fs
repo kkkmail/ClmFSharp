@@ -27,8 +27,9 @@ module FileSystemTypes =
     let chartInfoTblName = TableName "ChartInfo"
     let workerNodeRunModelDataTblName = TableName "WorkerNodeRunModelData"
     let workerNodeInfoTblName = TableName "WorkerNodeInfo"
-    let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
+    let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
+    let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
 
     let storageExt = "json"
 
@@ -140,12 +141,17 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeInfoTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)
 
-    let savePartitionerQueueElementFs serviceName (r : PartitionerQueueElement) = saveData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName r.remoteProcessId.value r
-    let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
-    let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
-    let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)
+    let saveRunModelParamWithRemoteIdFs serviceName (r : RunModelParamWithRemoteId) = saveData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName r.remoteProcessId.value r
+    let tryLoadRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryLoadData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
+    let tryDeleteRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryDeleteData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
+    let getRunModelParamWithRemoteIdsFs serviceName () = getObjectIds<Guid> serviceName runModelParamWithRemoteIdTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)
 
     let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
     let tryLoadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryLoadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
     let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
     let getWorkerNodeStateIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeStateTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)
+
+    let savePartitionerQueueElementFs serviceName (r : PartitionerQueueElement) = saveData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName r.queuedRemoteProcessId.value r
+    let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
+    let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
+    let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)

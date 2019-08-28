@@ -8,6 +8,7 @@ module WorkerNodeData =
     type WorkerNodePriority =
         | WorkerNodePriority of int
 
+        member this.value = let (WorkerNodePriority v) = this in v
         static member defaultValue = WorkerNodePriority 100
 
 

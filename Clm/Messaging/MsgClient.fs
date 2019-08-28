@@ -50,7 +50,7 @@ module Client =
 
     type MessagingClientMessage =
         | Start
-        | GetVersion of AsyncReplyChannel<CommunicationDataVersion>
+        | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of MessageInfo
         //| GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
@@ -71,9 +71,9 @@ module Client =
             { s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
 
 
-        let onGetVersion s (r : AsyncReplyChannel<CommunicationDataVersion>) =
+        let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
             printfn "MessagingService.onGetVersion"
-            r.Reply communicationDataVersion
+            r.Reply messagingDataVersion
             s
 
 
@@ -156,12 +156,12 @@ module Client =
             try
                 let serverVersion = s.service.getVersion()
 
-                match serverVersion = communicationDataVersion with
+                match serverVersion = messagingDataVersion with
                 | true ->
                     MessagingClientState.maxMessages
                     |> List.mapWhileSome (fun _ -> tryReceiveSingleMessage s)
                 | false ->
-                    s.messageClientData.logger.logErr (sprintf "MessagingClient.receiveMessagesImpl - different data versions - client: %A, server: %A" communicationDataVersion.value serverVersion.value)
+                    s.messageClientData.logger.logErr (sprintf "MessagingClient.receiveMessagesImpl - different data versions - client: %A, server: %A" messagingDataVersion.value serverVersion.value)
                     []
             with
                 | e ->

@@ -3,56 +3,59 @@
 open System.Threading
 open MessagingServiceInfo.ServiceInfo
 open MessagingAdm.AdmCommandLine
+open System
 
 module MsgAdmTasks =
 
-    let monitor (service : IMessagingService) p =
-        let i =
-            match p |> List.tryPick (fun e -> match e with | RefreshInterval i -> Some i) with
-            | Some i -> i * 1_000
-            | None -> 30_000
+    let monitorService (service : IMessagingService) =
+        let i = 30_000
 
         while true do
             try
+                printfn "Getting messaging service state..."
                 let state = service.getState()
-                ignore()
+                printfn "State at %A is: %A\n" DateTime.Now state
             with
                 | e -> printfn "Exception: %A\n" e.Message
 
             Thread.Sleep(i)
-        0
+
+        ignore()
 
 
-    let configureService (service : IMessagingService) (p :list<ConfigureMsgServiceArgs>) =
-        try
-            p
-            |> List.map (fun e -> e.configParam |> service.configureService)
-            |> ignore
-            0
-        with
-            | e ->
-                printfn "Exception: %A\n" e.Message
-                -1
+    let stopService (service : IMessagingService) = service.configureService (MsgWorkState ShuttingDown)
+    let startService (service : IMessagingService) = service.configureService (MsgWorkState CanTransmitMessages)
 
 
     type MsgAdmTask =
-        | MonitorTask of service : IMessagingService * arguments : list<MsgMonitorArgs>
-        | ConfigureServiceTask of service : IMessagingService * arguments : list<ConfigureMsgServiceArgs>
+        | MonitorMsgServiceTask of IMessagingService
+        | StartMsgServiceTask of IMessagingService
+        | StopMsgServiceTask of IMessagingService
 
         member task.run () =
             match task with
-            | MonitorTask (s, p) -> monitor s p
-            | ConfigureServiceTask (s, p) -> configureService s p
+            | MonitorMsgServiceTask s -> monitorService s
+            | StartMsgServiceTask s -> startService s
+            | StopMsgServiceTask s -> stopService s
 
         static member private tryCreateMonitorTask s p =
-            p |> List.tryPick (fun e -> match e with | MonitorMsgService q -> (s, q.GetAllResults()) |> MonitorTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | MonitorMsgService -> s |> MonitorMsgServiceTask |> Some | _ -> None)
 
-        static member private tryCreatConfigureServiceTask s p =
-            p |> List.tryPick (fun e -> match e with | ConfigureMsgService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
+        static member private tryCreatStopServiceTask s p =
+            p |> List.tryPick (fun e -> match e with | StopMsgService -> s |> StopMsgServiceTask |> Some | _ -> None)
 
-        static member tryCreate s p =
-            [
-                MsgAdmTask.tryCreatConfigureServiceTask
-                MsgAdmTask.tryCreateMonitorTask
-            ]
-            |> List.tryPick (fun e -> e s p)
+        static member private tryCreatStartServiceTask s p =
+            p |> List.tryPick (fun e -> match e with | StartMsgService -> s |> StopMsgServiceTask |> Some | _ -> None)
+
+        static member createTask s p =
+            let tt =
+                [
+                    MsgAdmTask.tryCreatStopServiceTask
+                    MsgAdmTask.tryCreatStartServiceTask
+                    MsgAdmTask.tryCreateMonitorTask
+                ]
+                |> List.tryPick (fun e -> e s p)
+
+            match tt with
+            | Some t -> t
+            | None -> MonitorMsgServiceTask s

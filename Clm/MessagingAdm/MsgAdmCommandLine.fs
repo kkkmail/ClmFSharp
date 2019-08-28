@@ -13,58 +13,32 @@ module AdmCommandLine =
     [<Literal>]
     let MsgAdmAppName = "MessagingAdm.exe"
 
-    type
-        [<CliPrefix(CliPrefix.Dash)>]
-        ConfigureMsgServiceArgs =
-            | [<Unique>] Start
-            | [<Unique>] [<AltCommandLine("-s")>] ShutDown
+    [<CliPrefix(CliPrefix.None)>]
+    type MsgAdmRunArgs =
+        | [<Unique>] [<First>] [<AltCommandLine("m")>] MonitorMsgService
+        | [<Unique>] [<First>] [<AltCommandLine("start")>] StartMsgService
+        | [<Unique>] [<First>] [<AltCommandLine("stop")>] StopMsgService
+        | [<Unique>] [<AltCommandLine("-address")>] MsgSvcAddress of string
+        | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
+        | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
+        | [<Unique>] [<AltCommandLine("-version")>] MsgVersion of string
 
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | Start -> "starts messaging server."
-                    | ShutDown _ -> "start shut down process - the server will stop accepting new messages."
-
-            member this.configParam =
+    with
+        interface IArgParserTemplate with
+            member this.Usage =
                 match this with
-                | Start -> MsgWorkState CanTransmitMessages
-                | ShutDown -> MsgWorkState ShuttingDown
+                | MonitorMsgService _ -> "monitors messaging service."
+                | StartMsgService _ -> "start messaging service."
+                | StopMsgService _ -> "stop messaging service."
+                | MsgSvcAddress _ -> "messaging server ip address / name."
+                | MsgSvcPort _ -> "messaging server port."
+                | MsgSaveSettings -> "saves settings to the Registry."
+                | MsgVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
 
-    and
-        [<CliPrefix(CliPrefix.Dash)>]
-        MsgMonitorArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] RefreshInterval of int
-
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | RefreshInterval _ -> "refresh inteval in seconds."
-
-    and
-        [<CliPrefix(CliPrefix.None)>]
-        MsgAdmArguments =
-            | [<Unique>] [<AltCommandLine("m")>]      MonitorMsgService of ParseResults<MsgMonitorArgs>
-            | [<Unique>] [<AltCommandLine("c")>]      ConfigureMsgService of ParseResults<ConfigureMsgServiceArgs>
-            | [<Unique>] [<AltCommandLine("server")>] MsgServerAddress of string
-            | [<Unique>] [<AltCommandLine("port")>]   MsgServerPort of int
-            | [<Unique>] [<AltCommandLine("-version")>] MsgVersion of string
-
-        with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | MonitorMsgService _ -> "starts monitor."
-                    | ConfigureMsgService _ -> "reconfigures service."
-                    | MsgServerAddress _ -> "server address / name."
-                    | MsgServerPort _ -> "server port."
-                    | MsgVersion _ -> "tries to load data from specfied version instead of current version."
-
-
-    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgServerPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
 
 
@@ -73,13 +47,22 @@ module AdmCommandLine =
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
 
 
-    let getServiceAccessInfo p =
-        let name = messagingServiceName
+    let getServiceAccessInfoImpl b p =
+        let name = messagingAdmName
 
         let version = getVersion p
         let address = getMsgServerAddress logger version name p
         let port = getMsgServerPort logger version name p
         printfn "address: %A, port: %A" address port
+
+        let saveSettings() =
+            trySetMessagingClientAddress logger versionNumberValue name address |> ignore
+            trySetMessagingClientPort logger versionNumberValue name port |> ignore
+
+        match tryGetSaveSettings p, b with
+        | Some _, _ -> saveSettings()
+        | _, true -> saveSettings()
+        | _ -> ignore()
 
         {
             messagingServiceAccessInfo =
@@ -89,3 +72,5 @@ module AdmCommandLine =
                     serviceName = MessagingServiceName
                 }
         }
+
+    let getServiceAccessInfo = getServiceAccessInfoImpl false

@@ -26,6 +26,7 @@ module Registry =
     let partitionerServiceName ="PartitionerService" |> MessagingClientName
     let solverRunnerName ="SolverRunner" |> MessagingClientName
     let messagingServiceName ="MessagingService" |> MessagingClientName
+    let messagingAdmName ="MessagingAdm" |> MessagingClientName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)

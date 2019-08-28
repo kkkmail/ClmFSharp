@@ -138,13 +138,14 @@ module ServiceInfo =
 
     type MsgServiceState =
         {
+            msgVersion : MessagingDataVersion
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
         }
 
 
     type IMessagingService =
-        abstract getVersion : unit -> CommunicationDataVersion
+        abstract getVersion : unit -> MessagingDataVersion
         abstract sendMessage : Message -> MessageDeliveryResult
         //abstract getMessages : MessagingClientId -> List<Message>
         abstract configureService : MessagingConfigParam -> unit

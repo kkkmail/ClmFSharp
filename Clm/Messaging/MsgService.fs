@@ -26,6 +26,7 @@ module Service =
 
         member s.state =
             {
+                msgVersion = messagingDataVersion
                 msgWorkState = s.workState
                 msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageId))
             }
@@ -40,7 +41,7 @@ module Service =
 
     type MessagingServiceMessage =
         | Start
-        | GetVersion of AsyncReplyChannel<CommunicationDataVersion>
+        | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
         //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
@@ -62,9 +63,9 @@ module Service =
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
-        let onGetVersion s (r : AsyncReplyChannel<CommunicationDataVersion>) =
+        let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
             printfn "MessagingService.onGetVersion"
-            r.Reply communicationDataVersion
+            r.Reply messagingDataVersion
             s
 
 

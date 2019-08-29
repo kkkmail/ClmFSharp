@@ -2,6 +2,7 @@
 
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -23,8 +24,21 @@ module ServiceInfo =
             }
 
 
+    type RunningProcessInfo =
+        {
+            remoteProcessId : RemoteProcessId
+            runQueueId : RunQueueId
+        }
+
+
     type WorkerNodeState =
         {
             workerNodeInfo : WorkerNodeInfo
-            running : list<RemoteProcessId>
+            runningProcesses : list<RunningProcessInfo>
         }
+
+        member e.priority =
+            (
+                e.workerNodeInfo.nodePriority.value,
+                (decimal e.runningProcesses.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
+            )

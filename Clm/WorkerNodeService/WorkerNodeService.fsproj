@@ -82,7 +82,7 @@
     <Compile Include="WorkerNodeServiceTasks.fs" />
     <Compile Include="WorkerNodeProgram.fs" />
     <None Include="App.config" />
-    <Content Include="log4.config">
+    <Content Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />

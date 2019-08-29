@@ -38,7 +38,13 @@ module FileSystemTypes =
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
         let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
         logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
-        Directory.CreateDirectory(folder) |> ignore
+
+        try
+            Directory.CreateDirectory(folder) |> ignore
+        with
+        | e ->
+            logger.logExn "getFolderName - exception" e
+
         logger.logInfo "    ... created."
         folder
 

@@ -10,20 +10,30 @@ open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
+open ContGenAdm.ContGenServiceResponse
+open ClmSys.TimerEvents
 
 module WindowsService =
 
-    let startServiceRun (l : Logger) (i : ContGenServiceAccessInfo) =
+    let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) =
         try
+            logger.logInfo ("startServiceRun: registering ContGenService...")
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
                 ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
+
+            let service = (new ContGenResponseHandler(i)).contGenService
+            //p |> List.map (fun e -> service.configureService e) |> ignore
+            service.loadQueue()
+            let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
+            do h.start()
+
         with
             | e ->
-                l.logExn "Starting service" e
+                logger.logExn "Starting service" e
                 ignore()
 
 

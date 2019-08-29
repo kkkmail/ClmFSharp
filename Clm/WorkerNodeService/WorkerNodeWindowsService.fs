@@ -10,19 +10,33 @@ open ClmSys.WorkerNodeData
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.ServiceImplementation
 open WorkerNodeService.SvcCommandLine
+open ProgressNotifierClient.ServiceResponse
+open ClmSys.TimerEvents
 
 module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
         try
-            printfn "startServiceRun: registering WorkerNodeService..."
+            logger.logInfo ("startServiceRun: registering WorkerNodeService...")
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
-            printfn "startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort
+            logger.logInfo (sprintf "startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
                 ( typeof<WorkerNodeService>, WorkerNodeServiceName, WellKnownObjectMode.Singleton )
+
+            let service = (new WorkerNodeResponseHandler(i)).workerNodeService
+
+            try
+                logger.logInfo "runService: Calling: service.ping()..."
+                service.ping()
+            with
+            | ex -> logger.logExn "Exception occurred" ex
+
+            let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
+            do h.start()
+
         with
             | e ->
                 logger.logExn "Error occurred" e

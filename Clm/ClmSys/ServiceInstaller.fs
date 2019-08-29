@@ -72,7 +72,7 @@ module ServiceInstaller =
                 false
 
 
-    let private uninstallService<'T>  (l : Logger) (ServiceName serviceName) =
+    let private uninstallService<'T> (l : Logger) (ServiceName serviceName) =
         try
             l.logInfo (sprintf "Attempting to uninstall service %s ..." serviceName)
             let i = getInstaller<'T> ()

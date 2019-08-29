@@ -89,6 +89,9 @@
     <Compile Include="ContGenProgram.fs" />
     <Content Include="db.config" />
     <Content Include="App.config" />
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

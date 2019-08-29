@@ -21,6 +21,7 @@ module Logging =
 
     /// https://codereview.stackexchange.com/questions/202745/f-idiomatic-log4net-wrapper
     /// https://stackoverflow.com/questions/9805281/writing-logs-to-file
+    /// https://codeshare.co.uk/blog/how-to-set-up-and-configure-error-logging-in-net-with-log4net/
     type LogInfo =
         {
             Message : string

@@ -2,6 +2,7 @@
 
 open Newtonsoft.Json
 open System
+open ClmSys.Logging
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
@@ -36,9 +37,9 @@ module FileSystemTypes =
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
         let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
-        printfn "getFolderName: Attempting to create folder: %A" folder
+        logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
         Directory.CreateDirectory(folder) |> ignore
-        printfn "    ... created."
+        logger.logInfo "    ... created."
         folder
 
 

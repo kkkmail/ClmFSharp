@@ -132,12 +132,12 @@ module Logging =
                         |> logAgent.Post
             }
 
-        static member ignored =
-            {
-                logInfo = fun _ -> ignore()
-                logErr = fun _ -> ignore()
-                logExn = fun _ _ -> ignore()
-            }
+        static member ignored = Logger.defaultValue
+            //{
+            //    logInfo = fun _ -> ignore()
+            //    logErr = fun _ -> ignore()
+            //    logExn = fun _ _ -> ignore()
+            //}
 
 
     let logger = Logger.defaultValue

@@ -80,6 +80,9 @@
     <Reference Include="FsUnit.Xunit">
       <HintPath>..\packages\FsUnit.xUnit.3.4.1\lib\net46\FsUnit.Xunit.dll</HintPath>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="NHamcrest">
       <HintPath>..\packages\NHamcrest.2.0.1\lib\net451\NHamcrest.dll</HintPath>

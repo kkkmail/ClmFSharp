@@ -150,10 +150,14 @@ module Partitioner =
 
         let onStart s w q =
             printfn "PartitionerRunner.onStart"
+            let onStartRun s r = { s with workerNodes = s.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
             loadQueue w
             let workers = proxy.loadAllWorkerNodeState()
-            workers |> List.fold (fun acc r -> onRegister acc r.workerNodeInfo) { s with partitionerCallBackInfo = q }
+            printfn "PartitionerRunner.onStart: workers = %A" workers
 
+            workers
+            |> List.fold (fun acc r -> onStartRun acc r) { s with partitionerCallBackInfo = q }
+            |> setRunLimit
 
         let tryFindRunningNode s r =
             s.workerNodes
@@ -286,11 +290,14 @@ module Partitioner =
 
 
         let tryGetRunner s q =
-            s.workerNodes
-                |> Map.toList
-                |> List.map (fun (_, v) -> v.runningProcesses)
-                |> List.concat
-                |> List.tryFind (fun e -> e.runQueueId = q)
+            let x =
+                s.workerNodes
+                    |> Map.toList
+                    |> List.map (fun (_, v) -> v.runningProcesses)
+                    |> List.concat
+            printfn "tryGetRunner: q = %A, x = %A" q x
+            x
+            |> List.tryFind (fun e -> e.runQueueId = q)
 
 
         let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedInfo>) =

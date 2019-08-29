@@ -259,13 +259,17 @@ module ServiceInfo =
     let getServiceState (service : IContGenService) =
         if Interlocked.Increment(&callCount) = 0
         then
-            printfn "Getting state at %A ..." DateTime.Now
-            let state = service.getState()
-            printfn "...state at %A =\n%s\n\n" DateTime.Now (state.ToString())
-            if state.queue.Length = 0 then service.startGenerate()
+            try
+                printfn "Getting state at %A ..." DateTime.Now
+                let state = service.getState()
+                printfn "...state at %A =\n%s\n\n" DateTime.Now (state.ToString())
+                if state.queue.Length = 0 then service.startGenerate()
+            with
+            | e -> printfn "Exception occurred: %A" e
         else
             printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
             ignore()
+
         Interlocked.Decrement(&callCount) |> ignore
 
 

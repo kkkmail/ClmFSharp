@@ -296,7 +296,7 @@ module Partitioner =
                     |> Map.toList
                     |> List.map (fun (_, v) -> v.runningProcesses)
                     |> List.concat
-            printfn "tryGetRunner: q = %A, x = %A" q x
+            printfn "PartitionerRunner.tryGetRunner: q = %A, x = %A" q x
             x
             |> List.tryFind (fun e -> e.runQueueId = q)
 
@@ -317,11 +317,14 @@ module Partitioner =
                 |> r.Reply
 
             let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
+
             match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
             | Some w, None ->
+                printfn "PartitionerRunner.onRunModel - | Some %A, None" w
                 reply w.remoteProcessId
                 s
             | None, None ->
+                printfn "PartitionerRunner.onRunModel - | None, None"
                 let q = Guid.NewGuid() |> RemoteProcessId
 
                 let e =
@@ -333,16 +336,18 @@ module Partitioner =
                 proxy.saveRunModelParamWithRemoteId e
                 reply q
                 onRunModelWithRemoteId s e
-            | None, Some _ ->
+            | None, Some d ->
                 // This can happen when there are serveral unprocessed messages in different mailbox processors.
                 // Since we already have the result, we don't start the remote calculation again.
+                printfn "PartitionerRunner.onRunModel - | None, Some %A" d.resultDataId
                 r.Reply None
                 s
             | Some w, Some d ->
-                // This should not happen because since we have the result,
+                // This should not happen because we have the result and that means that
                 // the relevant message was processed and it shoud've been removed the runner from the list.
                 // Nevertless, we just let the duplicate calculation run.
                 printfn "PartitionerRunner.onRunModel: Error - found running model: %A and result: %A." w.runQueueId d.resultDataId
+                printfn "PartitionerRunner.onRunModel - | Some %A, Some %A" w d.resultDataId
                 reply w.remoteProcessId
                 s
 

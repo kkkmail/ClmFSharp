@@ -145,11 +145,12 @@ module AsyncRun =
             | CanGenerate ->
                 h.startGenerate()
                 w()
-            | ShuttingDown -> 
+            | ShuttingDown ->
                 h.releaseStartingModel()
                 s
 
         member s.onRunStarting h =
+            printfn "AsyncRunnerState.onRunStarting: s = %A" s
             let w() =
                 if s.runningCount < s.runLimit
                 then
@@ -158,6 +159,7 @@ module AsyncRun =
                     | p :: t ->
                         match h.tryAcquireStartingModel() with
                         | true ->
+                            printfn "AsyncRunnerState.onRunStarting - calling h.startModel %A" p
                             h.startModel p
                             { s with queue = t }
                         | false -> s
@@ -192,9 +194,13 @@ module AsyncRun =
                     { s1 with workState = ShuttingDown; queue = [] }
                 | true -> { s with workState = ShuttingDown }
             | SetRunLimit v ->
-                match s.usePartitioner with
-                | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
-                | true -> { s with runLimit = max 0 v }
+                let newState =
+                    match s.usePartitioner with
+                    | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
+                    | true -> { s with runLimit = max 0 v }
+
+                h.startRun()
+                newState
             | CancelTask i ->
                 match h.cancelProcess i with
                 | true -> { s with running = s.running.tryRemove i }
@@ -261,7 +267,7 @@ module AsyncRun =
         let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
 
         let startModelImpl (a : AsyncRunner) (e : RunInfo) =
-            printfn "Starting modelId: %A..." e.modelDataId
+            printfn "AsyncRunner.startModelImpl: Starting modelId: %A..." e.modelDataId
 
             let x =
                 {
@@ -286,6 +292,7 @@ module AsyncRun =
                 | e -> false
 
         let runModelImpl (a : AsyncRunner) i p =
+            printfn "runModelImpl: p = %A" p
             match generatorInfo.runModel i p with
             | Some r -> [ r ] |> a.completeGenerate
             | None -> ignore()
@@ -312,10 +319,10 @@ module AsyncRun =
                 let rec loop (s : AsyncRunnerState) =
                     async
                         {
-                            //printfn "s = %s" (s.ToString())
+                            printfn "AsyncRunner.s = %s" (s.ToString())
                             let! m = u.Receive()
                             Interlocked.Increment(&msgCount) |> ignore
-                            //printfn "m = %s" (m.ToString())
+                            printfn "AsyncRunner.m = %s" (m.ToString())
 
                             match m with
                             | StartQueue a -> return! loop (s.onQueueStarting (h a))

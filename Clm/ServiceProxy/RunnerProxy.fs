@@ -80,6 +80,7 @@ module Runner =
 
 
         let runModelImpl (p : RunModelParam) =
+            printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
             match i with
             | LocalRunnerProxy _ -> (runLocalModel p false) |> Option.bind (fun e -> Some e.processStartedInfo)
             | PartitionerRunnerProxy c -> c.runModel p

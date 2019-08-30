@@ -58,34 +58,27 @@ module DatabaseTypes =
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
     type CommandLineParamTableRow = CommandLineParamTable.Row
 
+
     type CommandLineParamData = SqlCommandProvider<"
         select *
         from dbo.CommandLineParam
-        where clmTaskId = @clmTaskId
+        where modelDataId = @modelDataId
         order by commandLineParamId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
 
+
     type ModelDataTableData = SqlCommandProvider<"
-        select
-            m.modelDataId,
-            m.clmTaskId,
-            m.parentModelDataId,
-            isnull(p.fileStructureVersion, m.fileStructureVersion) as fileStructureVersion,
-            isnull(p.seedValue, m.seedValue) as seedValue,
-            isnull(p.modelDataParams, m.modelDataParams) as modelDataParams,
-            isnull(p.modelBinaryData, m.modelBinaryData) as modelBinaryData,
-            m.createdOn 
-        from
-            dbo.ModelData m
-            left outer join dbo.ModelData p on m.parentModelDataId = p.modelDataId
+        select *
+        from dbo.ModelData m
         where m.modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
     type ResultDataTableRow = ResultDataTable.Row
+
 
     type ResultDataTableData = SqlCommandProvider<"
         select *
@@ -96,10 +89,12 @@ module DatabaseTypes =
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
 
+
     type RunQueueTableData = SqlCommandProvider<"
         select r.*
         from dbo.RunQueue r
-        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.CommandLineParam c on r.commandLineParamId = c.commandLineParamId
+        inner join dbo.ModelData m on c.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.statusId = 0 and t.statusId = 0
         order by runQueueId", ClmConnectionStringValue, ResultType.DataReader>
@@ -122,6 +117,7 @@ module DatabaseTypes =
             {
                 taskParam =
                     {
+                        commandLineParamId = r.commandLineParamId |> CommandLineParamId
                         y0 = r.y0
                         tEnd = r.tEnd
                         useAbundant = r.useAbundant
@@ -130,12 +126,11 @@ module DatabaseTypes =
                 serviceAccessInfo = i
             }
 
-        /// TODO kk:20190531 - Perhaps it is worth assigning commandLineParamId on the client OR by database.
-        member r.addRow (ClmTaskId clmTaskId) (t : CommandLineParamTable) =
+        member r.addRow (ModelDataId modelDataId) (t : CommandLineParamTable) =
             let newRow =
                 t.NewRow(
-                        commandLineParamId = Guid.NewGuid(),
-                        clmTaskId = clmTaskId,
+                        commandLineParamId = r.taskParam.commandLineParamId.value,
+                        modelDataId = modelDataId,
                         y0 = r.taskParam.y0,
                         tEnd = r.taskParam.tEnd,
                         useAbundant = r.taskParam.useAbundant
@@ -223,12 +218,10 @@ module DatabaseTypes =
 
                     resultData =
                     {
-                        modelDataId = r.modelDataId |> ModelDataId
-
-
-                        y0 = r.y0
-                        tEnd = r.tEnd
-                        useAbundant = r.useAbundant
+                        //modelDataId = r.modelDataId |> ModelDataId
+                        //y0 = r.y0
+                        //tEnd = r.tEnd
+                        //useAbundant = r.useAbundant
 
                         maxEe = r.maxEe
                         maxAverageEe = r.maxAverageEe
@@ -241,17 +234,15 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         resultDataId = r.resultDataId.value,
-                        y0 = r.resultData.y0,
-                        tEnd = r.resultData.tEnd,
-                        useAbundant = r.resultData.useAbundant,
-
+                        //y0 = r.resultData.y0,
+                        //tEnd = r.resultData.tEnd,
+                        //useAbundant = r.resultData.useAbundant,
                         maxEe = r.resultData.maxEe,
                         maxAverageEe = r.resultData.maxAverageEe,
                         maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe,
                         maxLastEe = r.resultData.maxLastEe
                         )
-
-            newRow.modelDataId <- r.resultData.modelDataId.value
+            //newRow.modelDataId <- r.resultData.modelDataId.value
 
             t.Rows.Add newRow
             newRow
@@ -263,6 +254,37 @@ module DatabaseTypes =
         static member create i (r : RunQueueTableRow) =
             {
                 runQueueId = RunQueueId r.runQueueId
+
+//type RunQueueInfo =
+//    {
+//        modelDataId : ModelDataId
+//        modelCommandLineParam : ModelCommandLineParam
+//    }
+
+//type ModelCommandLineTaskParam =
+//    {
+//        commandLineParamId : CommandLineParamId
+//        tEnd : decimal
+//        y0 : decimal
+//        useAbundant : bool
+//    }
+
+
+//type ModelCommandLineTaskParam =
+//    {
+//        commandLineParamId : CommandLineParamId
+//        tEnd : decimal
+//        y0 : decimal
+//        useAbundant : bool
+//    }
+
+
+//type ModelCommandLineParam =
+//    {
+//        taskParam : ModelCommandLineTaskParam
+//        serviceAccessInfo : SolverRunnerAccessInfo
+//    }
+
                 info =
                     {
                         modelDataId = ModelDataId r.modelDataId

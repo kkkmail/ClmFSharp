@@ -4,7 +4,7 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	CREATE TABLE [dbo].[ModelData](
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[parentModelDataId] [uniqueidentifier] NULL,
+		--[parentModelDataId] [uniqueidentifier] NULL,
 		[fileStructureVersion] money NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
@@ -21,10 +21,10 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 
 	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ClmTask]
 
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
-	REFERENCES [dbo].[ModelData] ([modelDataId])
+	--ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
+	--REFERENCES [dbo].[ModelData] ([modelDataId])
 
-	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
+	--ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
 end else begin
 	print 'Table [dbo].[ModelData] already exists ...'
 end

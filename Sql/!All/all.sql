@@ -41,40 +41,13 @@ go
 
 
 
-IF OBJECT_ID('[dbo].[CommandLineParam]') IS NULL begin
-	print 'Creating table [dbo].[CommandLineParam] ...'
-
-	CREATE TABLE [dbo].[CommandLineParam](
-		commandLineParamId [uniqueidentifier] NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[y0] [money] NOT NULL,
-		[tEnd] [money] NOT NULL,
-		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[createdOn] datetime not null default ((getdate())),
-	 CONSTRAINT [PK_TCommandLineParam] PRIMARY KEY CLUSTERED 
-	(
-		commandLineParamId ASC
-	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
-
-	ALTER TABLE [dbo].[CommandLineParam]  WITH CHECK ADD  CONSTRAINT [FK_CommandLineParam_ClmTask] FOREIGN KEY([clmTaskId])
-	REFERENCES [dbo].ClmTask ([clmTaskId])
-
-	ALTER TABLE [dbo].[CommandLineParam] CHECK CONSTRAINT [FK_CommandLineParam_ClmTask]
-end else begin
-	print 'Table [dbo].[CommandLineParam] already exists ...'
-end
-go
-
-
-
 IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 	print 'Creating table [dbo].[ModelData] ...'
 
 	CREATE TABLE [dbo].[ModelData](
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[parentModelDataId] [uniqueidentifier] NULL,
+		--[parentModelDataId] [uniqueidentifier] NULL,
 		[fileStructureVersion] money NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
@@ -91,10 +64,10 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 
 	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ClmTask]
 
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
-	REFERENCES [dbo].[ModelData] ([modelDataId])
+	--ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
+	--REFERENCES [dbo].[ModelData] ([modelDataId])
 
-	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
+	--ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
 end else begin
 	print 'Table [dbo].[ModelData] already exists ...'
 end
@@ -103,30 +76,51 @@ go
 
 
 
-IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
-	print 'Creating table [dbo].[ResultData] ...'
+IF OBJECT_ID('[dbo].[CommandLineParam]') IS NULL begin
+	print 'Creating table [dbo].[CommandLineParam] ...'
 
-	CREATE TABLE [dbo].[ResultData](
-		[resultDataId] [uniqueidentifier] NOT NULL,
+	CREATE TABLE [dbo].[CommandLineParam](
+		[commandLineParamId] [uniqueidentifier] NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
+		[createdOn] datetime not null default ((getdate())),
+	 CONSTRAINT [PK_TCommandLineParam] PRIMARY KEY CLUSTERED 
+	(
+		commandLineParamId ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[CommandLineParam]  WITH CHECK ADD  CONSTRAINT [FK_CommandLineParam_ModelData] FOREIGN KEY([modelDataId])
+	REFERENCES [dbo].ModelData ([modelDataId])
+
+	ALTER TABLE [dbo].[CommandLineParam] CHECK CONSTRAINT [FK_CommandLineParam_ModelData]
+end else begin
+	print 'Table [dbo].[CommandLineParam] already exists ...'
+end
+go
+
+
+
+IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
+	print 'Creating table [dbo].[ResultData] ...'
+
+	-- This is an "extension" table to CommandLineParam: resultDataId IS commandLineParamId.
+	CREATE TABLE [dbo].[ResultData](
+		[resultDataId] [uniqueidentifier] NOT NULL,
 		[maxEe] [float] NOT NULL DEFAULT ((0)),
 		[maxAverageEe] [float] NOT NULL DEFAULT ((0)),
 		[maxWeightedAverageAbsEe] [float] NOT NULL DEFAULT ((0)),
 		[maxLastEe] [float] NOT NULL DEFAULT ((0)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
-	 CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
-	(
-		[resultDataId] ASC
-	)
+	 CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED ([resultDataId] ASC)
 	)
 
-	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_ResultData] FOREIGN KEY([modelDataId])
-	REFERENCES [dbo].[ModelData] ([modelDataId])
+	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD CONSTRAINT [FK_ResultData_CommandLineParam] FOREIGN KEY([resultDataId])
+	REFERENCES [dbo].[CommandLineParam] ([commandLineParamId])
 
-	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultData_ResultData]
+	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultData_CommandLineParam]
 end else begin
 	print 'Table [dbo].[ResultData] already exists ...'
 end
@@ -140,10 +134,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	CREATE TABLE [dbo].[RunQueue](
 		[runQueueId] [uniqueidentifier] NOT NULL,
-		[modelDataId] [uniqueidentifier] NOT NULL,
-		[y0] [money] NOT NULL,
-		[tEnd] [money] NOT NULL,
-		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
+		[commandLineParamId] [uniqueidentifier] NOT NULL,
 		[statusId] [int] NOT NULL DEFAULT ((0)),
 		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
@@ -151,6 +142,11 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[runQueueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[RunQueue] WITH CHECK ADD CONSTRAINT [FK_RunQueue_CommandLineParam] FOREIGN KEY([commandLineParamId])
+	REFERENCES [dbo].[CommandLineParam] ([commandLineParamId])
+
+	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_CommandLineParam]
 end else begin
 	print 'Table [dbo].[RunQueue] already exists ...'
 end

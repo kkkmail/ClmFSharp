@@ -49,11 +49,11 @@ module ModelParams =
 
     type ResultData =
         {
-            modelDataId : ModelDataId
-
-            y0 : decimal
-            tEnd : decimal
-            useAbundant : bool
+            //modelDataId : ModelDataId
+            //
+            //y0 : decimal
+            //tEnd : decimal
+            //useAbundant : bool
 
             // All are using abs. Averaging is perfomred first, then abs is applied.
             maxEe : double // max ee over all data points and all pairs of chiral substances.
@@ -167,6 +167,7 @@ module ModelParams =
     /// Parameters, which come from ClmTask & related data.
     type ModelCommandLineTaskParam =
         {
+            commandLineParamId : CommandLineParamId
             tEnd : decimal
             y0 : decimal
             useAbundant : bool
@@ -191,6 +192,7 @@ module ModelParams =
                 NotifyPort this.serviceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
                 Remote d.remote
+                ResultId (this.taskParam.commandLineParamId.toResultDataId()).value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

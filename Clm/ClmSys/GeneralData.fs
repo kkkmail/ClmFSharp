@@ -187,10 +187,26 @@ module GeneralData =
         member this.value = let (ModelDataId v) = this in v
 
 
+    type CommandLineParamId =
+        | CommandLineParamId of Guid
+
+        member this.value = let (CommandLineParamId v) = this in v
+
+
     type ResultDataId =
         | ResultDataId of Guid
 
         member this.value = let (ResultDataId v) = this in v
+        member this.toCommandLineParamId() = this.value |> CommandLineParamId
+
+
+    type CommandLineParamId
+        with
+
+        /// CommandLineParamId IS ResultDataId in the database because of FK constraint.
+        /// It makes no sense to have a separate ID for this object.
+        /// Cannot have it as a property as otherwise that will create an infinite loop during JSON serialization.
+        member this.toResultDataId() = this.value |> ResultDataId
 
 
     type RunQueueId =

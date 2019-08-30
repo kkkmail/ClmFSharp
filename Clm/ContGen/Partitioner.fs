@@ -82,6 +82,7 @@ module Partitioner =
         let messagingClient = MessagingClient p.messagingClientData
         let tryLoadModelData = p.partitionerProxy.tryLoadModelData
         let logger = p.logger
+        let logErr = logger.logErr
         let proxy = p.partitionerProxy
 
 
@@ -315,12 +316,12 @@ module Partitioner =
                 |> Some
                 |> r.Reply
 
-            let x = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
-            match tryGetRunner s a.callBackInfo.runQueueId with
-            | Some w ->
+            let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
+            match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
+            | Some w, None ->
                 reply w.remoteProcessId
                 s
-            | None ->
+            | None, None ->
                 let q = Guid.NewGuid() |> RemoteProcessId
 
                 let e =
@@ -332,6 +333,18 @@ module Partitioner =
                 proxy.saveRunModelParamWithRemoteId e
                 reply q
                 onRunModelWithRemoteId s e
+            | None, Some _ ->
+                // This can happen when there are serveral unprocessed messages in different mailbox processors.
+                // Since we already have the result, we don't start the remote calculation again.
+                r.Reply None
+                s
+            | Some w, Some d ->
+                // This should not happen because since we have the result,
+                // the relevant message was processed and it shoud've been removed the runner from the list.
+                // Nevertless, we just let the duplicate calculation run.
+                printfn "PartitionerRunner.onRunModel: Error - found running model: %A and result: %A." w.runQueueId d.resultDataId
+                reply w.remoteProcessId
+                s
 
 
         let messageLoop =

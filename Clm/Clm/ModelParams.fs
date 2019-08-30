@@ -159,6 +159,7 @@ module ModelParams =
     type ModelCommandLineData =
         {
             modelDataId : ModelDataId
+            resultDataId : ResultDataId
             minUsefulEe : MinUsefulEe
             remote : bool
         }
@@ -191,6 +192,7 @@ module ModelParams =
                 NotifyPort this.serviceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
                 Remote d.remote
+                ResultId d.resultDataId.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

@@ -96,12 +96,14 @@ module Runner =
                     | Some true ->
                         updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
 
-                        a.modelCommandLineParams |> List.map (fun e ->
-                                                    {
-                                                        run = runModel e
-                                                        modelDataId = modelDataId
-                                                        runQueueId = getQueueId e modelDataId
-                                                    })
+                        a.modelCommandLineParams
+                        |> List.map (fun e ->
+                            {
+                                run = runModel e
+                                modelDataId = modelDataId
+                                resultDataId = Guid.NewGuid() |> ResultDataId
+                                runQueueId = getQueueId e modelDataId
+                            })
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
                         []
@@ -129,6 +131,7 @@ module Runner =
                                         {
                                             run = e.modelCommandLineParam |> runModel
                                             modelDataId = e.info.modelDataId
+                                            resultDataId = e.info.resultDataId
                                             runQueueId = e.runQueueId
                                         })
             | None -> []

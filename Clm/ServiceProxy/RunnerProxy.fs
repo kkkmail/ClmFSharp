@@ -15,6 +15,7 @@ module Runner =
         let data =
             {
                 modelDataId = p.callBackInfo.modelDataId
+                resultDataId = p.callBackInfo.resultDataId
                 minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
                 remote = r
             }
@@ -38,7 +39,7 @@ module Runner =
     type PartitionerRunnerConfig =
         {
             connectionString : ConnectionString
-            runModel : RunModelParam -> ProcessStartedInfo
+            runModel : RunModelParam -> ProcessStartedInfo option
         }
 
         static member defaultValue r =
@@ -80,7 +81,7 @@ module Runner =
 
         let runModelImpl (p : RunModelParam) =
             match i with
-            | LocalRunnerProxy _ -> (runLocalModel p false).processStartedInfo
+            | LocalRunnerProxy _ -> (runLocalModel p false) |> Option.bind (fun e -> Some e.processStartedInfo)
             | PartitionerRunnerProxy c -> c.runModel p
 
 

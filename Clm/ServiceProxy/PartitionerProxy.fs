@@ -44,11 +44,9 @@ module PartitionerProxy =
 
 
         member __.tryLoadModelData a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
-        member __.saveResultData r = tryDbFun connectionString (saveResultData r) |> ignore
 
-        //member __.saveWorkerNodeInfo w = tryFun (fun () -> saveWorkerNodeInfoFs name w) |> ignore
-        //member __.loadAllWorkerNodeInfo () = loadAll getWorkerNodeInfoIdsFs tryLoadWorkerNodeInfoFs name
-        //member __.tryDeleteWorkerNodeInfo m = tryFun (fun _ -> tryDeleteWorkerNodeInfoFs name m)
+        member __.saveResultData r = tryDbFun connectionString (saveResultData r) |> ignore
+        member __.tryLoadResultData r = tryDbFun connectionString (tryLoadResultData r) |> Option.bind id
 
         member __.saveCharts (c : ChartInfo) = c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
 

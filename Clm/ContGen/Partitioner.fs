@@ -70,7 +70,7 @@ module Partitioner =
         | Register of WorkerNodeInfo
         | Unregister of PartitionerRunner * WorkerNodeId
         | UpdateProgress of PartitionerRunner * RemoteProgressUpdateInfo
-        | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedInfo>
+        | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedInfo option>
         | RunModelWithRemoteId of RunModelParamWithRemoteId
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
@@ -261,6 +261,7 @@ module Partitioner =
                                 {
                                     remoteProcessId = e.remoteProcessId
                                     modelDataId = m.modelDataId
+                                    resultDataId = e.runModelParam.callBackInfo.resultDataId
                                     taskParam = e.runModelParam.commandLineParam.taskParam
                                     runQueueId = e.runModelParam.callBackInfo.runQueueId
                                     minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
@@ -300,7 +301,7 @@ module Partitioner =
             |> List.tryFind (fun e -> e.runQueueId = q)
 
 
-        let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedInfo>) =
+        let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedInfo option>) =
             printfn "PartitionerRunner.onRunModel"
 
             let reply q =
@@ -309,11 +310,14 @@ module Partitioner =
                     processToStartInfo =
                         {
                             modelDataId = a.callBackInfo.modelDataId
+                            resultDataId = a.callBackInfo.resultDataId
                             runQueueId = a.callBackInfo.runQueueId
                         }
                 }
+                |> Some
                 |> r.Reply
 
+            let x = proxy.tryLoadResultData a.callBackInfo.resultDataId
             match tryGetRunner s a.callBackInfo.runQueueId with
             | Some w ->
                 reply w.remoteProcessId

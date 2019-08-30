@@ -266,11 +266,16 @@ module AsyncRun =
             let x =
                 {
                     modelDataId = e.modelDataId
+                    resultDataId = e.resultDataId
                     runQueueId = e.runQueueId
                 } |> e.run
 
-            a.started { processId = x.runningProcessInfo.runningProcessId; processToStartInfo = x.processToStartInfo }
-            a.completeRun x
+            match x with
+            | Some r ->
+                a.started { processId = r.runningProcessInfo.runningProcessId; processToStartInfo = r.processToStartInfo }
+                a.completeRun r
+            | None -> ignore()
+
 
         let cancelProcessImpl i =
             try

@@ -48,6 +48,7 @@ module ServiceInfo =
         {
             remoteProcessId : RemoteProcessId
             modelDataId : ModelDataId
+            resultDataId : ResultDataId
             taskParam : ModelCommandLineTaskParam
             runQueueId : RunQueueId
             minUsefulEe : MinUsefulEe

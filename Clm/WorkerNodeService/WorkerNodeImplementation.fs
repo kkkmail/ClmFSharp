@@ -243,12 +243,14 @@ module ServiceImplementation =
                     callBackInfo =
                         {
                             modelDataId = d.modelDataId
+                            resultDataId = d.resultDataId
                             runQueueId = d.runQueueId
                         }
                 }
 
-            let result = i.workerNodeProxy.runModel a
-            { s with running = s.running.Add(result.localProcessId, d.remoteProcessId) }
+            match i.workerNodeProxy.runModel a with
+            | Some result -> { s with running = s.running.Add(result.localProcessId, d.remoteProcessId) }
+            | None -> s
 
 
         let messageLoop =

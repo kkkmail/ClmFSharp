@@ -243,7 +243,6 @@ module ServiceImplementation =
                     callBackInfo =
                         {
                             modelDataId = d.modelDataId
-                            resultDataId = d.resultDataId
                             runQueueId = d.runQueueId
                         }
                 }

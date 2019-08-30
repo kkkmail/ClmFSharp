@@ -266,7 +266,6 @@ module AsyncRun =
             let x =
                 {
                     modelDataId = e.modelDataId
-                    resultDataId = e.resultDataId
                     runQueueId = e.runQueueId
                 } |> e.run
 

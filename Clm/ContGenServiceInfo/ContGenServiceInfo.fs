@@ -153,7 +153,6 @@ module ServiceInfo =
     type ProcessToStartInfo =
         {
             modelDataId : ModelDataId
-            resultDataId : ResultDataId
             runQueueId : RunQueueId
         }
 
@@ -178,7 +177,6 @@ module ServiceInfo =
         {
             localProcessId : LocalProcessId
             modelDataId : ModelDataId
-            resultDataId : ResultDataId
             runQueueId : RunQueueId
         }
 
@@ -189,7 +187,6 @@ module ServiceInfo =
                 processToStartInfo =
                     {
                         modelDataId = this.modelDataId
-                        resultDataId = this.resultDataId
                         runQueueId = this.runQueueId
                     }
             }
@@ -209,7 +206,6 @@ module ServiceInfo =
         {
             run : ProcessToStartInfo -> ProcessStartedInfo option
             modelDataId : ModelDataId
-            resultDataId : ResultDataId
             runQueueId : RunQueueId
         }
 
@@ -316,13 +312,6 @@ module ServiceInfo =
         then
             printfn "Failed to start process %s" filename
             None
-
-            //{
-            //    localProcessId = -1 |> LocalProcessId
-            //    resultDataId = c.resultDataId
-            //    modelDataId = c.modelDataId
-            //    runQueueId = c.runQueueId
-            //}
         else
             p.PriorityClass <- ProcessPriorityClass.Idle
 
@@ -333,7 +322,6 @@ module ServiceInfo =
             {
                 localProcessId = processId
                 modelDataId = c.modelDataId
-                resultDataId = c.resultDataId
                 runQueueId = c.runQueueId
             }
             |> Some

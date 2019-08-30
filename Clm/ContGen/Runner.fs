@@ -101,7 +101,6 @@ module Runner =
                             {
                                 run = runModel e
                                 modelDataId = modelDataId
-                                resultDataId = Guid.NewGuid() |> ResultDataId
                                 runQueueId = getQueueId e modelDataId
                             })
                     | Some false ->
@@ -131,7 +130,6 @@ module Runner =
                                         {
                                             run = e.modelCommandLineParam |> runModel
                                             modelDataId = e.info.modelDataId
-                                            resultDataId = e.info.resultDataId
                                             runQueueId = e.runQueueId
                                         })
             | None -> []

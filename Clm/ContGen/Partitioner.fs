@@ -261,7 +261,6 @@ module Partitioner =
                                 {
                                     remoteProcessId = e.remoteProcessId
                                     modelDataId = m.modelDataId
-                                    resultDataId = e.runModelParam.callBackInfo.resultDataId
                                     taskParam = e.runModelParam.commandLineParam.taskParam
                                     runQueueId = e.runModelParam.callBackInfo.runQueueId
                                     minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
@@ -310,14 +309,13 @@ module Partitioner =
                     processToStartInfo =
                         {
                             modelDataId = a.callBackInfo.modelDataId
-                            resultDataId = a.callBackInfo.resultDataId
                             runQueueId = a.callBackInfo.runQueueId
                         }
                 }
                 |> Some
                 |> r.Reply
 
-            let x = proxy.tryLoadResultData a.callBackInfo.resultDataId
+            let x = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
             match tryGetRunner s a.callBackInfo.runQueueId with
             | Some w ->
                 reply w.remoteProcessId

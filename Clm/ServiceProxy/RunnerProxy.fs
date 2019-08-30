@@ -15,7 +15,7 @@ module Runner =
         let data =
             {
                 modelDataId = p.callBackInfo.modelDataId
-                resultDataId = p.callBackInfo.resultDataId
+                resultDataId = p.callBackInfo.runQueueId.toResultDataId()
                 minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
                 remote = r
             }

@@ -197,6 +197,7 @@ module GeneralData =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
+        member this.toResultDataId() = this.value |> ResultDataId
 
 
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting

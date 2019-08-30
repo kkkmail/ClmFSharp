@@ -9,7 +9,7 @@ open ContGenServiceInfo.ServiceInfo
 
 module Runner =
 
-    let runLocalModel (p : RunModelParam) r d =
+    let runLocalModel (p : RunModelParam) r =
         let fullExeName = getExeName p.exeName
 
         let data =
@@ -17,7 +17,6 @@ module Runner =
                 modelDataId = p.callBackInfo.modelDataId
                 minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
                 remote = r
-                resultDataId = d
             }
 
         let commandLineParams = p.commandLineParam.toCommandLine data
@@ -79,9 +78,9 @@ module Runner =
         let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
 
 
-        let runModelImpl (p : RunModelParam) d =
+        let runModelImpl (p : RunModelParam) =
             match i with
-            | LocalRunnerProxy _ -> (runLocalModel p false d).processStartedInfo
+            | LocalRunnerProxy _ -> (runLocalModel p false).processStartedInfo
             | PartitionerRunnerProxy c -> c.runModel p
 
 
@@ -95,4 +94,4 @@ module Runner =
         member __.loadIncompleteClmTasks i = loadIncompleteClmTasksImpl i
         member __.loadRunQueue i = loadRunQueueImpl i
         member __.deleteRunQueueEntry runQueueId = deleteRunQueueEntryImpl runQueueId
-        member __.runModel p d = runModelImpl p d
+        member __.runModel p = runModelImpl p

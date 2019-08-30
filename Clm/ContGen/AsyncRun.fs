@@ -335,11 +335,11 @@ module AsyncRun =
         member private this.queueObtained (r : list<RunInfo>) = CompleteQueue (this, r) |> messageLoop.Post
         member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
 
-        member __.started p = Started p |> messageLoop.Post
+        member this.started p = Started p |> messageLoop.Post
         member this.startQueue () : unit = StartQueue this |> messageLoop.Post
         member this.startGenerate () : unit = StartGenerate this |> messageLoop.Post
         member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
-        member __.getState () = messageLoop.PostAndReply GetState
+        member this.getState () = messageLoop.PostAndReply GetState
         member this.configureService (p : ContGenConfigParam) = ConfigureService (this, p) |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService
         member this.stop() = SetToIdle |> this.configureService

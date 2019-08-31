@@ -14,28 +14,9 @@ module AsyncRun =
             generate : unit -> list<RunInfo>
             getQueue : unit -> list<RunInfo>
             removeFromQueue : RunQueueId -> unit
-            //maxQueueLength : int
             runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
-            //runModel : ModelDataId -> ModelCommandLineParam -> ProcessStartedResult
             usePartitioner : bool
         }
-
-
-    //type AsyncRunnerHelper =
-    //    {
-    //        cancelProcess : ProcessId -> bool
-    //        generate : unit -> unit
-    //        tryAcquireGenerating : unit -> bool
-    //        releaseGenerating : unit -> unit
-    //        startGenerate : unit -> unit
-    //        startRun : unit -> unit // Requests to run model(s).
-    //        tryAcquireStartingModel : unit -> bool
-    //        releaseStartingModel : unit -> unit
-    //        startModel : RunInfo -> unit // Schedules a model run.
-    //        getQueue : unit -> unit
-    //        removeFromQueue : RunQueueId -> unit
-    //        runModel : ModelDataId -> ModelCommandLineParam -> unit
-    //    }
 
 
     type AsyncRunnerState =
@@ -60,7 +41,6 @@ module AsyncRun =
                 running = Map.empty
                 queue = []
                 runLimit = if u then 0 else Environment.ProcessorCount
-                //maxQueueLength = 4
                 workState = CanGenerate
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe
@@ -80,25 +60,6 @@ module AsyncRun =
             | Idle | CanGenerate -> false
             | ShuttingDown -> true
 
-        //member s.onProcessStarted h (x : ProcessStartedInfo) =
-        //    let w() =
-        //        h.releaseStartingModel()
-        //        h.startRun()
-        //        { s with running = s.running.Add(x.processId, x.runningProcessInfo) }
-
-        //    match s.workState with
-        //    | Idle -> w()
-        //    | CanGenerate ->
-        //        h.startGenerate()
-        //        w()
-        //    | ShuttingDown ->
-        //        h.releaseStartingModel()
-        //        s
-
-        //member s.runModel h i p =
-        //    h.runModel i p
-        //    s
-
 
     type RunnerMessage =
         | QueueStarting of AsyncRunner
@@ -110,9 +71,6 @@ module AsyncRun =
         | GenerationCompleted of AsyncRunner * list<RunInfo>
         | RunModel of AsyncRunner * ModelDataId * ModelCommandLineParam
         | StartRun of AsyncRunner
-
-        //| Started of ProcessStartedInfo
-        //| CompleteRun of AsyncRunner * ProcessStartedInfo
 
         override m.ToString() =
             let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.processToStartInfo.modelDataId.ToString()) |> String.concat ", ") + "]"
@@ -127,9 +85,6 @@ module AsyncRun =
             | GenerationCompleted (_, r) -> "GenerationCompleted: " + (toStr r)
             | RunModel _ -> "RunModel"
             | StartRun _ -> "StartRun"
-
-            //| Started p -> "Started: " + (p.ToString())
-            //| CompleteRun (_, r) -> "CompleteRun: " + (r.ToString())
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
@@ -224,7 +179,8 @@ module AsyncRun =
             match s.workState with
             | Idle -> s
             | CanGenerate ->
-                generatorInfo.generate() |> a.generationCompleted
+                let generate() = generatorInfo.generate() |> a.generationCompleted
+                generate |> toAsync |> Async.Start
                 s
             | ShuttingDown -> s
 
@@ -252,72 +208,31 @@ module AsyncRun =
 
         let onStartRun (s : AsyncRunnerState) (a : AsyncRunner) =
             printfn "AsyncRunner.onStartRun: s = %A" s
+            let updateQueue t (s : AsyncRunnerState) = { s with queue = t }
+
+            let start (s : AsyncRunnerState) e =
+                let x = e.run e.processToStartInfo
+                printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
+
+                match x with
+                | StartedSuccessfully r ->
+                    { s with running = s.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
+                | FailedToStart -> s
+                | AlreadyCompleted ->
+                    generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
+                    s
 
             let w() =
-                if s.runningCount < s.runLimit
-                then
-                    match s.queue with
-                    | [] -> s
-                    | e :: t ->
-                        let x = e.run e.processToStartInfo
-                        printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
-                        let updateQueue (s : AsyncRunnerState) = { s with queue = t }
+                let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
 
-                        match x with
-                        | StartedSuccessfully r ->
-                            { s with running = s.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
-                        | FailedToStart -> s
-                        | AlreadyCompleted ->
-                            generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
-                            s
-                        |> updateQueue
-                else s
+                run
+                |> List.fold (fun acc e -> start acc e) s
+                |> updateQueue queue
 
             match s.workState with
             | Idle -> w()
             | CanGenerate -> w()
             | ShuttingDown -> s
-
-
-        //let generateImpl (a : AsyncRunner) () = (fun() -> generatorInfo.generate () |> a.completeGenerate) |> toAsync |> Async.Start
-        //let startGenerateImpl(a : AsyncRunner) () = a.startGenerate |> toAsync |> Async.Start
-        //let startRunImpl (a : AsyncRunner) () = a.startRun |> toAsync |> Async.Start
-        //let getQueueImpl (a : AsyncRunner) () = (fun () -> generatorInfo.getQueue() |> a.queueObtained) |> toAsync |> Async.Start
-        //let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
-
-
-
-//type ProcessStartedResult =
-//    | StartedSuccessfully of ProcessStartedInfo
-//    | AlreadyCompleted
-//    | FailedToStart
-
-//type ProgressUpdateInfo =
-//    {
-//        updatedProcessId : ProcessId
-//        updateModelId : ModelDataId
-//        progress : TaskProgress
-//        resultDataId : ResultDataId
-//    }
-
-
-
-
-        //let h (a : AsyncRunner) =
-        //    {
-        //        cancelProcess = cancelProcessImpl
-        //        generate = generateImpl a
-        //        startGenerate = startGenerateImpl a
-        //        startRun = startRunImpl a
-        //        tryAcquireStartingModel = tryAcquireStartingModelImpl
-        //        releaseStartingModel = releaseStartingModelImpl
-        //        startModel = startModelImpl removeFromQueueImpl a
-        //        getQueue = getQueueImpl a
-        //        removeFromQueue = removeFromQueueImpl
-        //        tryAcquireGenerating = tryAcquireGeneratingImpl
-        //        releaseGenerating = releaseGeneratingImpl
-        //        runModel = runModelImpl a
-        //    }
 
 
         let messageLoop =
@@ -339,9 +254,6 @@ module AsyncRun =
                             | GenerationCompleted (a, r) -> return! onGenerationCompleted s a r |> loop
                             | RunModel (a, m, p) -> return! onRunModel s a m p |> loop
                             | StartRun a -> return! onStartRun s a |> loop
-
-                            //| Started p -> return! loop (s.onStarted p)
-                            //| CompleteRun (a, x) -> return! loop (s.onProcessStarted (h a) x)
                         }
 
                 AsyncRunnerState.defaultValue generatorInfo.usePartitioner |> loop
@@ -355,10 +267,6 @@ module AsyncRun =
         member this.generationStarted () : unit = GenerationStarted this |> messageLoop.Post
         member private this.generationCompleted (r : list<RunInfo>) : unit = GenerationCompleted (this, r) |> messageLoop.Post
         member this.runModel(m, p) = RunModel (this, m, p) |> messageLoop.Post
-
         member private this.startRun () = StartRun this |> messageLoop.Post
-        //member private this.completeRun n = CompleteRun (this, n) |> messageLoop.Post
-
-        //member this.started p = Started p |> messageLoop.Post
         member this.start() = SetToCanGenerate |> this.configureService
         member this.stop() = SetToIdle |> this.configureService

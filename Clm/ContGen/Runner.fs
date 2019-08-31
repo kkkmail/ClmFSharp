@@ -170,7 +170,7 @@ module Runner =
 //    | FailedToStart
 
 
-        let runRunnerModel j (m : ModelDataId) p : RunInfo option =
+        let runRunnerModel j (m : ModelDataId) p = //: ProcessStartedResult =
             match tryLoadModelData j m with
             | Some parent ->
                 match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with

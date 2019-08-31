@@ -16,6 +16,7 @@ module AsyncRun =
             removeFromQueue : RunQueueId -> unit
             //maxQueueLength : int
             runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
+            //runModel : ModelDataId -> ModelCommandLineParam -> ProcessStartedResult
             usePartitioner : bool
         }
 
@@ -94,10 +95,6 @@ module AsyncRun =
         //        h.releaseStartingModel()
         //        s
 
-        //member s.onStarted p =
-        //    printfn "Started: %A" p
-        //    { s with running = s.running.Add(p.processId, p.runningProcessInfo)}
-
         //member s.runModel h i p =
         //    h.runModel i p
         //    s
@@ -136,11 +133,6 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
-        //let mutable generating = 0
-        //let mutable msgCount = 0L
-        //let mutable runningModel = 0
-
-
         let onQueueStarting s (a : AsyncRunner) =
             let w() =
                 generatorInfo.getQueue() |> a.queueObtained
@@ -158,37 +150,46 @@ module AsyncRun =
             { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
 
 
+        let cancelProcessImpl i =
+            try
+                match i with
+                | LocalProcess (LocalProcessId a) -> (Process.GetProcessById a).Kill()
+                | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
+                true
+            with
+                | e -> false
+
+
         let onConfigureService (s : AsyncRunnerState) (a : AsyncRunner) (p : ContGenConfigParam) =
-            //match p with
-            //| SetToIdle -> { s with workState = Idle }
-            //| SetToCanGenerate ->
-            //    h.startGenerate()
-            //    { s with workState = CanGenerate }
-            //| RequestShutDown b ->
-            //    match b with
-            //    | false ->
-            //        let s1 =
-            //            s.running
-            //            |> Map.toList
-            //            |> List.fold (fun (acc : AsyncRunnerState) (i, _) -> acc.configureService h (CancelTask i)) s
-            //        { s1 with workState = ShuttingDown; queue = [] }
-            //    | true -> { s with workState = ShuttingDown }
-            //| SetRunLimit v ->
-            //    let newState =
-            //        match s.usePartitioner with
-            //        | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
-            //        | true -> { s with runLimit = max 0 v }
-            //
-            //    printfn "AsyncRunnerState.configureService: Calling h.startRun()..."
-            //    h.startRun()
-            //    newState
-            //| CancelTask i ->
-            //    match h.cancelProcess i with
-            //    | true -> { s with running = s.running.tryRemove i }
-            //    | false -> s
-            //| SetMinUsefulEe ee ->
-            //    { s with minUsefulEe = MinUsefulEe ee }
-            failwith ""
+            match p with
+            | SetToIdle -> { s with workState = Idle }
+            | SetToCanGenerate ->
+                a.generationStarted()
+                { s with workState = CanGenerate }
+            | RequestShutDown b ->
+                match b with
+                | false ->
+                    s.running
+                    |> Map.toList
+                    |> List.map (fun (i, _) -> a.configureService (CancelTask i))
+                    |> ignore
+                    { s with workState = ShuttingDown; queue = [] }
+                | true -> { s with workState = ShuttingDown }
+            | SetRunLimit v ->
+                let newState =
+                    match s.usePartitioner with
+                    | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
+                    | true -> { s with runLimit = max 0 v }
+            
+                printfn "AsyncRunner.configureService: Calling startRun()..."
+                a.startRun()
+                newState
+            | CancelTask i ->
+                match cancelProcessImpl i with
+                | true -> { s with running = s.running.tryRemove i }
+                | false -> s
+            | SetMinUsefulEe ee ->
+                { s with minUsefulEe = MinUsefulEe ee }
 
 
         let  onProgressUpdated (s : AsyncRunnerState) (a : AsyncRunner) (p : ProgressUpdateInfo) =
@@ -240,37 +241,13 @@ module AsyncRun =
             | ShuttingDown -> s
 
 
-        let onRunModel s (a : AsyncRunner) (i : ModelDataId) p =
-            let x = generatorInfo.runModel i p
-            s
-
-
-        //let runModelImpl (a : AsyncRunner) i p =
-        //    printfn "runModelImpl: p = %A" p
-        //    match generatorInfo.runModel i p with
-        //    | Some r -> [ r ] |> a.completeGenerate
-        //    | None -> ignore()
-
-
-        let startModelImpl s (a : AsyncRunner) (e : RunInfo) : AsyncRunnerState =
-        
-            let x =
-                {
-                    modelDataId = e.processToStartInfo.modelDataId
-                    runQueueId = e.processToStartInfo.runQueueId
-                } |> e.run
-        
-            printfn "AsyncRunner.startModelImpl: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
-        
-            match x with
-            | StartedSuccessfully r ->
-                //a.started { processId = r.runningProcessInfo.runningProcessId; processToStartInfo = r.processToStartInfo }
-                //a.completeRun r
-                failwith ""
-            | FailedToStart -> s
-            | AlreadyCompleted ->
-                generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
-                failwith ""
+        let onRunModel (s : AsyncRunnerState) (a : AsyncRunner) (i : ModelDataId) p =
+            match generatorInfo.runModel i p with
+            | Some r ->
+                let x = s.runningQueue
+                let filter e = x.Contains e.processToStartInfo.runQueueId |> not
+                { s with queue = s.queue @ [ r ] |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter filter }
+            | None -> s
 
 
         let onStartRun (s : AsyncRunnerState) (a : AsyncRunner) =
@@ -281,17 +258,19 @@ module AsyncRun =
                 then
                     match s.queue with
                     | [] -> s
-                    | p :: t ->
+                    | e :: t ->
+                        let x = e.run e.processToStartInfo
+                        printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
+                        let updateQueue (s : AsyncRunnerState) = { s with queue = t }
 
-                        a.runModel(p.processToStartInfo.modelDataId, failwith "")
-                        { s with queue = t }
-
-                        //match h.tryAcquireStartingModel() with
-                        //| true ->
-                        //    printfn "AsyncRunnerState.onRunStarting - calling h.startModel %A" p
-                        //    h.startModel p
-                        //    { s with queue = t }
-                        //| false -> s
+                        match x with
+                        | StartedSuccessfully r ->
+                            { s with running = s.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
+                        | FailedToStart -> s
+                        | AlreadyCompleted ->
+                            generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
+                            s
+                        |> updateQueue
                 else s
 
             match s.workState with
@@ -299,13 +278,6 @@ module AsyncRun =
             | CanGenerate -> w()
             | ShuttingDown -> s
 
-
-        //// Returns true if successfully acquired generating flag.
-        //let tryAcquireGeneratingImpl() = Interlocked.CompareExchange(&generating, 1, 0) = 0
-        //let releaseGeneratingImpl() = Interlocked.Exchange(&generating, 0) |> ignore
-
-        //let tryAcquireStartingModelImpl() = Interlocked.CompareExchange(&runningModel, 1, 0) = 0
-        //let releaseStartingModelImpl() = Interlocked.Exchange(&runningModel, 0) |> ignore
 
         //let generateImpl (a : AsyncRunner) () = (fun() -> generatorInfo.generate () |> a.completeGenerate) |> toAsync |> Async.Start
         //let startGenerateImpl(a : AsyncRunner) () = a.startGenerate |> toAsync |> Async.Start
@@ -329,14 +301,6 @@ module AsyncRun =
 //    }
 
 
-        //let cancelProcessImpl i =
-        //    try
-        //        match i with
-        //        | LocalProcess (LocalProcessId a) -> (Process.GetProcessById a).Kill()
-        //        | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
-        //        true
-        //    with
-        //        | e -> false
 
 
         //let h (a : AsyncRunner) =

@@ -100,8 +100,12 @@ module Runner =
                         |> List.map (fun e ->
                             {
                                 run = runModel e
-                                modelDataId = modelDataId
-                                runQueueId = getQueueId e modelDataId
+
+                                processToStartInfo =
+                                    {
+                                        modelDataId = modelDataId
+                                        runQueueId = getQueueId e modelDataId
+                                    }
                             })
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
@@ -129,8 +133,12 @@ module Runner =
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = e.modelCommandLineParam |> runModel
-                                            modelDataId = e.info.modelDataId
-                                            runQueueId = e.runQueueId
+
+                                            processToStartInfo =
+                                                {
+                                                    modelDataId = e.info.modelDataId
+                                                    runQueueId = e.runQueueId
+                                                }
                                         })
             | None -> []
 
@@ -143,7 +151,26 @@ module Runner =
                 ignore()
 
 
-        let runModel j m p =
+
+//type ProcessToStartInfo =
+//    {
+//        modelDataId : ModelDataId
+//        runQueueId : RunQueueId
+//    }
+//
+//type ProcessStartedInfo =
+//    {
+//        processId : ProcessId
+//        processToStartInfo : ProcessToStartInfo
+//    }
+//
+//type ProcessStartedResult =
+//    | StartedSuccessfully of ProcessStartedInfo
+//    | AlreadyCompleted
+//    | FailedToStart
+
+
+        let runRunnerModel j (m : ModelDataId) p : RunInfo option =
             match tryLoadModelData j m with
             | Some parent ->
                 match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
@@ -179,8 +206,12 @@ module Runner =
                             let r =
                                 {
                                     run = runModel p
-                                    modelDataId = modelDataId
-                                    runQueueId = getQueueId p modelDataId
+
+                                    processToStartInfo =
+                                        {
+                                            modelDataId = modelDataId
+                                            runQueueId = getQueueId p modelDataId
+                                        }
                                 }
                             Some r
                         | _ -> None
@@ -194,8 +225,8 @@ module Runner =
                 generate = generateAll p.serviceAccessInfo
                 getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
-                maxQueueLength = 4
-                runModel = runModel p.serviceAccessInfo
+                //maxQueueLength = 4
+                runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u
             }
 
@@ -207,7 +238,7 @@ module Runner =
     let createRunner p u =
         let r = ModelRunner p
         let a = r.createGenerator u |> AsyncRunner
-        a.startQueue()
+        a.queueStarting()
         a
 
 

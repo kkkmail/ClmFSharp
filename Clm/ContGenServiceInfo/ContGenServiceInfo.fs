@@ -211,15 +211,14 @@ module ServiceInfo =
     type RunInfo =
         {
             run : ProcessToStartInfo -> ProcessStartedResult
-            modelDataId : ModelDataId
-            runQueueId : RunQueueId
+            processToStartInfo : ProcessToStartInfo
         }
 
 
     type ContGenRunnerState =
         {
             runLimit : int
-            maxQueueLength : int
+            //maxQueueLength : int
             running : RunningProcessInfo[]
             queue : ModelDataId[]
             runningCount : int

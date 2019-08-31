@@ -76,6 +76,15 @@ module ContGenAdmTasks =
             InvalidCommandLineArgs
 
 
+///// Additional information needed to produce command line params for solver runner.
+//type ModelCommandLineData =
+//    {
+//        modelDataId : ModelDataId
+//        resultDataId : ResultDataId
+//        minUsefulEe : MinUsefulEe
+//        remote : bool
+//    }
+
     let runModel (service : IContGenService) i (p :list<RunModelArgs>) =
         match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
         | Some m, Some y, Some t ->

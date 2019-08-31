@@ -16,7 +16,7 @@ module ServiceImplementation =
 
     let createServiceImpl i p u =
         let a = createRunner (ModelRunnerParam.defaultValue i p) u
-        let h = new EventHandler(EventHandlerInfo.defaultValue a.startGenerate)
+        let h = new EventHandler(EventHandlerInfo.defaultValue a.generationStarted)
         do h.start()
         a
 
@@ -26,10 +26,10 @@ module ServiceImplementation =
         member s.runnerState =
             {
                 runLimit = s.runLimit
-                maxQueueLength = s.maxQueueLength
+                //maxQueueLength = s.maxQueueLength
                 runningCount = s.runningCount
                 running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-                queue = s.queue |> List.map (fun e -> e.modelDataId) |> Array.ofList
+                queue = s.queue |> List.map (fun e -> e.processToStartInfo.modelDataId) |> Array.ofList
                 workState = s.workState
                 messageCount = s.messageCount
                 minUsefulEe = s.minUsefulEe
@@ -54,7 +54,7 @@ module ServiceImplementation =
             match r with
             | Some p ->
                 {
-                    onUpdateProgress = a.updateProgress
+                    onUpdateProgress = a.progressUpdated
                     setRunLimit = fun c -> c |> SetRunLimit |> a.configureService
                 }
                 |> p.start
@@ -64,9 +64,9 @@ module ServiceImplementation =
 
         interface IContGenService with
             member __.getState() = a.getState().runnerState
-            member __.loadQueue() = a.startQueue()
-            member __.startGenerate() = a.startGenerate()
-            member __.updateLocalProgress p = a.updateProgress p.progressUpdateInfo
-            member __.updateRemoteProgress p = a.updateProgress p.progressUpdateInfo
+            member __.loadQueue() = a.queueStarting()
+            member __.startGenerate() = a.generationStarted()
+            member __.updateLocalProgress p = a.progressUpdated p.progressUpdateInfo
+            member __.updateRemoteProgress p = a.progressUpdated p.progressUpdateInfo
             member __.configureService (p : ContGenConfigParam) = a.configureService p
             member __.runModel m p = a.runModel (m, p)

@@ -199,6 +199,7 @@ module AsyncRun =
                     | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
                     | true -> { s with runLimit = max 0 v }
 
+                printfn "AsyncRunnerState.configureService: Calling h.startRun()..."
                 h.startRun()
                 newState
             | CancelTask i ->
@@ -266,8 +267,23 @@ module AsyncRun =
         let getQueueImpl (a : AsyncRunner) () = (fun () -> generatorInfo.getQueue() |> a.queueObtained) |> toAsync |> Async.Start
         let removeFromQueueImpl i = (fun () -> generatorInfo.removeFromQueue i) |> toAsync |> Async.Start
 
-        let startModelImpl (a : AsyncRunner) (e : RunInfo) =
-            printfn "AsyncRunner.startModelImpl: Starting modelId: %A..." e.modelDataId
+
+
+//type ProcessStartedResult =
+//    | StartedSuccessfully of ProcessStartedInfo
+//    | AlreadyCompleted
+//    | FailedToStart
+
+//type ProgressUpdateInfo =
+//    {
+//        updatedProcessId : ProcessId
+//        updateModelId : ModelDataId
+//        progress : TaskProgress
+//        resultDataId : ResultDataId
+//    }
+
+
+        let startModelImpl removeFromQueue (a : AsyncRunner) (e : RunInfo) =
 
             let x =
                 {
@@ -275,11 +291,14 @@ module AsyncRun =
                     runQueueId = e.runQueueId
                 } |> e.run
 
+            printfn "AsyncRunner.startModelImpl: Starting modelId: %A - result: %A." e.modelDataId x
+
             match x with
-            | Some r ->
+            | StartedSuccessfully r ->
                 a.started { processId = r.runningProcessInfo.runningProcessId; processToStartInfo = r.processToStartInfo }
                 a.completeRun r
-            | None -> ignore()
+            | FailedToStart -> ignore()
+            | AlreadyCompleted -> removeFromQueue e.runQueueId
 
 
         let cancelProcessImpl i =
@@ -290,6 +309,7 @@ module AsyncRun =
                 true
             with
                 | e -> false
+
 
         let runModelImpl (a : AsyncRunner) i p =
             printfn "runModelImpl: p = %A" p
@@ -306,13 +326,14 @@ module AsyncRun =
                 startRun = startRunImpl a
                 tryAcquireStartingModel = tryAcquireStartingModelImpl
                 releaseStartingModel = releaseStartingModelImpl
-                startModel = startModelImpl a
+                startModel = startModelImpl removeFromQueueImpl a
                 getQueue = getQueueImpl a
                 removeFromQueue = removeFromQueueImpl
                 tryAcquireGenerating = tryAcquireGeneratingImpl
                 releaseGenerating = releaseGeneratingImpl
                 runModel = runModelImpl a
             }
+
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->

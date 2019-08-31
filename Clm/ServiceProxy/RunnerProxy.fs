@@ -39,7 +39,7 @@ module Runner =
     type PartitionerRunnerConfig =
         {
             connectionString : ConnectionString
-            runModel : RunModelParam -> ProcessStartedInfo option
+            runModel : RunModelParam -> ProcessStartedResult
         }
 
         static member defaultValue r =
@@ -79,10 +79,13 @@ module Runner =
         let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
 
 
-        let runModelImpl (p : RunModelParam) =
+        let runModelImpl (p : RunModelParam) : ProcessStartedResult =
             printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
             match i with
-            | LocalRunnerProxy _ -> (runLocalModel p false) |> Option.bind (fun e -> Some e.processStartedInfo)
+            | LocalRunnerProxy _ ->
+                match runLocalModel p false with
+                | Some e -> StartedSuccessfully e.processStartedInfo
+                | None -> FailedToStart
             | PartitionerRunnerProxy c -> c.runModel p
 
 

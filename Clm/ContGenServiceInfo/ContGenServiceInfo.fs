@@ -192,6 +192,12 @@ module ServiceInfo =
             }
 
 
+    type ProcessStartedResult =
+        | StartedSuccessfully of ProcessStartedInfo
+        | AlreadyCompleted
+        | FailedToStart
+
+
     type ProcessResult =
         {
             startInfo : ProcessStartedInfo
@@ -204,7 +210,7 @@ module ServiceInfo =
 
     type RunInfo =
         {
-            run : ProcessToStartInfo -> ProcessStartedInfo option
+            run : ProcessToStartInfo -> ProcessStartedResult
             modelDataId : ModelDataId
             runQueueId : RunQueueId
         }

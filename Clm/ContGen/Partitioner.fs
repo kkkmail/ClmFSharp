@@ -70,7 +70,7 @@ module Partitioner =
         | Register of WorkerNodeInfo
         | Unregister of PartitionerRunner * WorkerNodeId
         | UpdateProgress of PartitionerRunner * RemoteProgressUpdateInfo
-        | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedInfo option>
+        | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedResult>
         | RunModelWithRemoteId of RunModelParamWithRemoteId
         | SaveCharts of ChartInfo
         | SaveResult of ResultDataWithId
@@ -301,7 +301,7 @@ module Partitioner =
             |> List.tryFind (fun e -> e.runQueueId = q)
 
 
-        let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedInfo option>) =
+        let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedResult>) =
             printfn "PartitionerRunner.onRunModel"
 
             let reply q =
@@ -313,7 +313,7 @@ module Partitioner =
                             runQueueId = a.callBackInfo.runQueueId
                         }
                 }
-                |> Some
+                |> StartedSuccessfully
                 |> r.Reply
 
             let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
@@ -340,7 +340,7 @@ module Partitioner =
                 // This can happen when there are serveral unprocessed messages in different mailbox processors.
                 // Since we already have the result, we don't start the remote calculation again.
                 printfn "PartitionerRunner.onRunModel - | None, Some %A" d.resultDataId
-                r.Reply None
+                r.Reply AlreadyCompleted
                 s
             | Some w, Some d ->
                 // This should not happen because we have the result and that means that

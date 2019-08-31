@@ -180,7 +180,11 @@ module AsyncRun =
             | Idle -> s
             | CanGenerate ->
                 let generate() = generatorInfo.generate() |> a.generationCompleted
-                generate |> toAsync |> Async.Start
+
+                // TODO - kk:20190831 - Async seems to overcount. Figure out how to make it work.
+                // See https://github.com/kkkmail/ClmFSharp/issues/39
+                //generate |> toAsync |> Async.Start
+                generate()
                 s
             | ShuttingDown -> s
 

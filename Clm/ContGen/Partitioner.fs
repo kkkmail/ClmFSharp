@@ -146,7 +146,7 @@ module Partitioner =
             |> List.map w.runModelWithRemoteId
             |> ignore
 
-            queue |> List.map (fun e -> proxy.tryDeleteRunModelParamWithRemoteId e.queuedRemoteProcessId) |> ignore
+            queue |> List.map (fun e -> proxy.tryDeletePartitionerQueueElement e.queuedRemoteProcessId) |> ignore
 
 
         let onStart s w q =

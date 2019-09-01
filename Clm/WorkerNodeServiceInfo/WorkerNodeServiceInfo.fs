@@ -12,8 +12,13 @@ module ServiceInfo =
     let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
 
 
+    type WorkerNodeConfigParam =
+        | WorkerNumberOfSores of int
+
+
     type IWorkerNodeService =
         abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
+        abstract configure : WorkerNodeConfigParam -> unit
 
         /// To check if service is working.
         abstract ping : unit -> unit

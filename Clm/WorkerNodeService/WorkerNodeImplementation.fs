@@ -70,6 +70,7 @@ module ServiceImplementation =
         | GetMessages of WorkerNodeRunner
         | RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
+        | ConfigureWorker of WorkerNodeConfigParam
 
 
     and WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -252,6 +253,21 @@ module ServiceImplementation =
             | None -> s
 
 
+        let onConfigureWorker s d =
+            match d with
+            | WorkerNumberOfSores c ->
+                printfn "WorkerNodeRunner.onConfigureWorkers"
+                let cores = max 0 (min c Environment.ProcessorCount)
+                {
+                    partitionerRecipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = { i.workerNodeAccessInfo.workerNodeInfo with noOfCores = cores} |> RegisterWorkerNodePrtMsg
+                }.messageInfo
+                |> sendMessage
+
+            s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -267,6 +283,7 @@ module ServiceImplementation =
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
+                            | ConfigureWorker d -> return! onConfigureWorker s d |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -281,6 +298,7 @@ module ServiceImplementation =
         member this.getMessages() = GetMessages this |> messageLoop.Post
         member private __.runModel d = RunModel d |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
+        member __.configure d = d |> ConfigureWorker |> messageLoop.Post
 
 
     let createServiceImpl i =
@@ -327,11 +345,20 @@ module ServiceImplementation =
         let initService () = ()
         do initService ()
 
+
         let updateLocalProgressImpl p =
             match w with
             | Some r -> r.updateProgress p
             | None -> logger.logErr (sprintf "Failed to update progress: %A" p)
 
+
+        let configureImpl d =
+            match w with
+            | Some r -> r.configure d
+            | None -> logger.logErr (sprintf "Failed to configure service: %A" d)
+
+
         interface IWorkerNodeService with
             member __.updateLocalProgress p = updateLocalProgressImpl p
             member __.ping() = ignore()
+            member __.configure d = configureImpl d

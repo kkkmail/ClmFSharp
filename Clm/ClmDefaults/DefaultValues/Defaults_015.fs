@@ -17,7 +17,7 @@ module Defaults_015 =
             ( 5L,   5,  20)
             ( 6L,  20,  10)
             ( 7L,  20,   5)
-            ( 8L,  20,  20)
+            ( 8L,  20,  20) // used - clmCommands_014.bat
             ( 9L,  10,   2)
             (10L,  10,  50)
             (11L,  10, 100)
@@ -25,8 +25,8 @@ module Defaults_015 =
             (13L,   5,  50)
             (14L,   5, 100)
             (15L,  20,   2)
-            (16L,  20,  50)
-            (17L,  20, 100)
+            (16L,  20,  50) // used - clmCommands_014.bat
+            (17L,  20, 100) // used - clmCommands_014.bat
             (18L,   2,   2)
             (19L,   2,   5)
             (20L,   2,  10)
@@ -36,15 +36,15 @@ module Defaults_015 =
             (24L,  50,   2)
             (25L,  50,   5)
             (26L,  50,  10)
-            (27L,  50,  20)
-            (28L,  50,  50)
-            (29L,  50, 100)
+            (27L,  50,  20) // used - clmCommands_014.bat
+            (28L,  50,  50) // used - clmCommands_014.bat
+            (29L,  50, 100) // used - clmCommands_014.bat
             (30L, 100,   2)
             (31L, 100,   5)
             (32L, 100,  10)
-            (33L, 100,  20)
-            (34L, 100,  50)
-            (35L, 100, 100)
+            (33L, 100,  20) // used - clmCommands_014.bat
+            (34L, 100,  50) // used - clmCommands_014.bat
+            (35L, 100, 100) // used - clmCommands_014.bat
             (36L, 200,   2)
             (37L, 200,   5)
             (38L, 200,  10)

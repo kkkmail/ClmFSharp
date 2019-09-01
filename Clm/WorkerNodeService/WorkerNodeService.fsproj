@@ -155,6 +155,11 @@
       <Project>{d9222f72-d01c-4db6-bc76-2c9ccf9b1f31}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\WorkNodeAdm\WorkNodeAdm.fsproj">
+      <Name>WorkNodeAdm</Name>
+      <Project>{706d24fa-b61a-4577-a975-2580ac6fcd14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -12,7 +12,7 @@ module VersionInfo =
     let VersionNumberValue = "4.0.0.0"
 
 
-    /// This is the name of the system used, for example, to access the Registry.
+    /// This is the name of the system. It is used, for example, to access Windows Registry.
     [<Literal>]
     let SystemName = "CLM"
 
@@ -37,4 +37,4 @@ module VersionInfo =
 
     /// Increment when internal messaging structures change and
     /// messages can no longer be successfully transferred among components.
-    let messagingDataVersion = MessagingDataVersion 3
+    let messagingDataVersion = MessagingDataVersion 4

@@ -29,14 +29,14 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState =
         {
-            running : Map<LocalProcessId, RemoteProcessId>
+            runningWorkers : Map<LocalProcessId, RemoteProcessId>
         }
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
-                running = Map.empty
+                runningWorkers = Map.empty
             }
 
 
@@ -61,12 +61,10 @@ module ServiceImplementation =
 
 
     type WorkerNodeMessage =
-        | Start of WorkerNodeRunner
+        | Start
         | Register
         | Unregister
         | UpdateProgress of WorkerNodeRunner * LocalProgressUpdateInfo
-        | SaveResult of ResultDataId
-        | SaveCharts of ResultDataId
         | GetMessages of WorkerNodeRunner
         | RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
@@ -88,13 +86,35 @@ module ServiceImplementation =
             |> WorkerNodeSvcAccessInfo
 
 
-        let onStart s (r : WorkerNodeRunner) =
+        let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
+            printfn "WorkerNodeRunner.onRunModel: d = %A." d
+            i.workerNodeProxy.saveWorkerNodeRunModelData d
+
+            let a =
+                {
+                    exeName = i.exeName
+                    commandLineParam =
+                        {
+                            taskParam = d.taskParam
+                            serviceAccessInfo = getSolverRunnerAccessInfo d.minUsefulEe
+                        }
+
+                    callBackInfo =
+                        {
+                            modelDataId = d.modelDataId
+                            runQueueId = d.runQueueId
+                        }
+                }
+
+            match i.workerNodeProxy.runModel a with
+            | Some result -> { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, d.remoteProcessId) }
+            | None -> s
+
+
+        let onStart s =
             printfn "WorkerNodeRunner.onStart"
             i.workerNodeProxy.loadAllWorkerNodeRunModelData()
-            |> List.map (fun e -> r.runModel e)
-            |> ignore
-
-            s
+            |> List.fold (fun acc e -> onRunModel acc e) s
 
 
         let onRegister s =
@@ -121,50 +141,7 @@ module ServiceImplementation =
             s
 
 
-        let onUpdateProgress s (w : WorkerNodeRunner) (p : LocalProgressUpdateInfo) =
-            printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
-            let updateProgress t c =
-                match s.running.TryFind p.updatedLocalProcessId with
-                | Some r ->
-                    let q =
-                        {
-                            updatedRemoteProcessId = r
-                            updateModelId = p.updateModelId
-                            progress = p.progress
-                            resultDataId = p.resultDataId
-                        }
-                    {
-                        partitionerRecipient = partitioner
-                        deliveryType = t
-                        messageData = UpdateProgressPrtMsg q
-                    }.messageInfo
-                    |> sendMessage
-
-                    if c
-                    then
-                        printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
-                        //onCompleted
-                        i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
-                        i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
-                        w.saveResult p.resultDataId
-                        w.saveCharts p.resultDataId
-                | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
-
-                if c
-                then { s with running = s.running.tryRemove p.updatedLocalProcessId }
-                else s
-
-
-            let (t, c) =
-                match p.progress with
-                | NotStarted -> (NonGuaranteedDelivery, false)
-                | InProgress _ -> (NonGuaranteedDelivery, false)
-                | Completed -> (GuaranteedDelivery, true)
-
-            updateProgress t c
-
-
-        let onSaveResult s (d : ResultDataId) =
+        let onSaveResult (d : ResultDataId) =
             printfn "WorkerNodeRunner.onSaveResult: d = %A." d
             match i.workerNodeProxy.tryLoadResultData d with
             | Some r ->
@@ -178,10 +155,8 @@ module ServiceImplementation =
                 i.workerNodeProxy.tryDeleteResultData d |> ignore
             | None -> logErr (sprintf "Unable to find result with resultDataId: %A" d)
 
-            s
 
-
-        let onSaveCharts s (d : ResultDataId) =
+        let onSaveCharts (d : ResultDataId) =
             printfn "WorkerNodeRunner.onSaveCharts: d = %A." d
             match i.workerNodeProxy.tryLoadChartInfo d with
             | Some c ->
@@ -206,51 +181,78 @@ module ServiceImplementation =
                 i.workerNodeProxy.tryDeleteChartInfo d |> ignore
             | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)
 
-            s
+
+        let onUpdateProgress s (w : WorkerNodeRunner) (p : LocalProgressUpdateInfo) =
+            printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
+            let updateProgress t c =
+                match s.runningWorkers.TryFind p.updatedLocalProcessId with
+                | Some r ->
+                    let q =
+                        {
+                            updatedRemoteProcessId = r
+                            updateModelId = p.updateModelId
+                            progress = p.progress
+                            resultDataId = p.resultDataId
+                        }
+                    {
+                        partitionerRecipient = partitioner
+                        deliveryType = t
+                        messageData = UpdateProgressPrtMsg q
+                    }.messageInfo
+                    |> sendMessage
+
+                    if c
+                    then
+                        printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
+                        i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
+                        i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
+                        onSaveResult p.resultDataId
+                        onSaveCharts p.resultDataId
+                | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
+
+                if c
+                then { s with runningWorkers = s.runningWorkers.tryRemove p.updatedLocalProcessId }
+                else s
 
 
-        let onProcessMessage (w : WorkerNodeRunner) s (m : Message) =
+            let (t, c) =
+                match p.progress with
+                | NotStarted -> (NonGuaranteedDelivery, false)
+                | InProgress _ -> (NonGuaranteedDelivery, false)
+                | Completed -> (GuaranteedDelivery, true)
+
+            updateProgress t c
+
+
+        let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
+            s.runningWorkers
+            |> Map.toList
+            |> List.map (fun (_, v) -> v)
+            |> List.tryFind (fun e -> e = d.remoteProcessId)
+
+
+        let onProcessMessage s (m : Message) =
             printfn "WorkerNodeRunner.onProcessMessage: m.messageId = %A." m.messageId
             match m.messageInfo.messageData with
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg (d, m) ->
                     i.workerNodeProxy.saveModelData m
-                    w.runModel d
-            | _ -> i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-
-            s
+                    match tryFindRunningModel s d with
+                    | None ->
+                        onRunModel s d
+                    | Some r ->
+                        printfn "WorkerNodeRunner.onProcessMessage: !!! ERROR !!! - found running model for remoteProcessId = %A" r.value
+                        s
+            | _ ->
+                i.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+                s
 
 
         let onGetMessages s (w : WorkerNodeRunner) =
             printfn "WorkerNodeRunner.onGetMessages"
             printfn "WorkerNodeRunnerState: %A" s
-            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) WorkerNodeRunnerState.maxMessages s
-
-
-        let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-            printfn "WorkerNodeRunner.onRunModel: d = %A." d
-            i.workerNodeProxy.saveWorkerNodeRunModelData d
-
-            let a =
-                {
-                    exeName = i.exeName
-                    commandLineParam =
-                        {
-                            taskParam = d.taskParam
-                            serviceAccessInfo = getSolverRunnerAccessInfo d.minUsefulEe
-                        }
-
-                    callBackInfo =
-                        {
-                            modelDataId = d.modelDataId
-                            runQueueId = d.runQueueId
-                        }
-                }
-
-            match i.workerNodeProxy.runModel a with
-            | Some result -> { s with running = s.running.Add(result.localProcessId, d.remoteProcessId) }
-            | None -> s
+            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
 
 
         let onConfigureWorker s d =
@@ -274,12 +276,10 @@ module ServiceImplementation =
                     async
                         {
                             match! u.Receive() with
-                            | Start w -> return! onStart s w |> loop
+                            | Start -> return! onStart s |> loop
                             | Register -> return! onRegister s |> loop
                             | Unregister -> return! onUnregister s |> loop
                             | UpdateProgress (w, p) -> return! onUpdateProgress s w p |> loop
-                            | SaveResult r -> return! onSaveResult s r |> loop
-                            | SaveCharts c -> return! onSaveCharts s c |> loop
                             | GetMessages w -> return! onGetMessages s w |> loop
                             | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
@@ -289,14 +289,11 @@ module ServiceImplementation =
                 WorkerNodeRunnerState.defaultValue |> loop
                 )
 
-        member this.start() = Start this |> messageLoop.Post
+        member __.start() = Start |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
         member __.unregister() = Unregister |> messageLoop.Post
         member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
-        member __.saveResult r = SaveResult r |> messageLoop.Post
-        member __.saveCharts c = SaveCharts c |> messageLoop.Post
         member this.getMessages() = GetMessages this |> messageLoop.Post
-        member private __.runModel d = RunModel d |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
         member __.configure d = d |> ConfigureWorker |> messageLoop.Post
 

@@ -344,7 +344,7 @@ module Partitioner =
                 s
             | Some w, Some d ->
                 // This should not happen because we have the result and that means that
-                // the relevant message was processed and it shoud've been removed the runner from the list.
+                // the relevant message was processed and that that shoud've removed the runner from the list.
                 // Nevertless, we just let the duplicate calculation run.
                 printfn "PartitionerRunner.onRunModel: Error - found running model: %A and result: %A." w.runQueueId d.resultDataId
                 printfn "PartitionerRunner.onRunModel - | Some %A, Some %A" w d.resultDataId

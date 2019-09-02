@@ -66,15 +66,9 @@ module Partitioner =
 
 
     type PartitionerMessage =
-        | Start of PartitionerRunner * PartitionerCallBackInfo
-        | Register of WorkerNodeInfo
-        | Unregister of PartitionerRunner * WorkerNodeId
-        | UpdateProgress of PartitionerRunner * RemoteProgressUpdateInfo
+        | Start of PartitionerCallBackInfo
         | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedResult>
-        | RunModelWithRemoteId of RunModelParamWithRemoteId
-        | SaveCharts of ChartInfo
-        | SaveResult of ResultDataWithId
-        | GetMessages of PartitionerRunner
+        | GetMessages
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
@@ -117,115 +111,6 @@ module Partitioner =
             | None -> []
             |> updated
             |> setRunLimit
-
-
-        let onUnregister s (w : PartitionerRunner) (r : WorkerNodeId) =
-            printfn "PartitionerRunner.onUnregister: r = %A." r
-
-            match s.workerNodes.TryFind r with
-            | Some n ->
-                n.runningProcesses
-                |> List.map (fun e -> e.remoteProcessId)
-                |> List.map proxy.tryLoadRunModelParamWithRemoteId
-                |> List.choose id
-                |> List.map w.runModelWithRemoteId
-                |> ignore
-            | None -> ignore()
-
-            proxy.tryDeleteWorkerNodeState r |> ignore
-            { s with workerNodes = s.workerNodes.tryRemove r } |> setRunLimit
-
-
-        /// TODO kk:20190825 - Refactor to make it better.
-        let loadQueue (w : PartitionerRunner) =
-            let queue = proxy.loadAllPartitionerQueueElement()
-            
-            queue
-            |> List.map (fun e -> proxy.tryLoadRunModelParamWithRemoteId e.queuedRemoteProcessId)
-            |> List.choose id
-            |> List.map w.runModelWithRemoteId
-            |> ignore
-
-            queue |> List.map (fun e -> proxy.tryDeletePartitionerQueueElement e.queuedRemoteProcessId) |> ignore
-
-
-        let onStart s w q =
-            printfn "PartitionerRunner.onStart"
-            let onStartRun s r = { s with workerNodes = s.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
-            loadQueue w
-            let workers = proxy.loadAllWorkerNodeState()
-            printfn "PartitionerRunner.onStart: workers = %A" workers
-
-            workers
-            |> List.fold (fun acc r -> onStartRun acc r) { s with partitionerCallBackInfo = q }
-            |> setRunLimit
-
-        let tryFindRunningNode s r =
-            s.workerNodes
-            |> Map.toList
-            |> List.tryPick (fun (a, b) -> if List.contains r (b.runningProcesses |> List.map (fun e -> e.remoteProcessId)) then Some a else None)
-
-
-        let onUpdateProgress s w (i : RemoteProgressUpdateInfo) =
-            printfn "PartitionerRunner.onUpdateProgress: i = %A." i
-            s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
-
-            match i.progress with
-            | NotStarted -> s
-            | InProgress _ -> s
-            | Completed ->
-                proxy.tryDeleteRunModelParamWithRemoteId i.updatedRemoteProcessId |> ignore
-
-                match tryFindRunningNode s i.updatedRemoteProcessId with
-                | Some x ->
-                    loadQueue w
-                    match s.workerNodes.TryFind x with
-                    | Some n ->
-                        let newNodeState = { n with runningProcesses = n.runningProcesses |> List.filter (fun e -> e.remoteProcessId <> i.updatedRemoteProcessId) }
-                        proxy.saveWorkerNodeState newNodeState |> ignore
-                        { s with workerNodes = s.workerNodes.Add (x, newNodeState) }
-                    | None -> s
-                | None -> s
-
-
-        let onSaveResult s r =
-            printfn "PartitionerRunner.onSaveResult: r = %A." r
-            proxy.saveResultData r
-            s
-
-
-        let onSaveCharts s (c : ChartInfo) =
-            printfn "PartitionerRunner.onSaveCharts: resultDataId = %A." c.resultDataId
-            proxy.saveCharts c
-            s
-
-
-        let onProcessMessage (w : PartitionerRunner) (s : PartitionerRunnerState) (m : Message) =
-            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageId
-            match m.messageInfo.messageData with
-            | PartitionerMsg x ->
-                match x with
-                | UpdateProgressPrtMsg i ->
-                    w.updateProgress i
-                    s
-                | SaveResultPrtMsg r -> onSaveResult s r
-                | SaveChartsPrtMsg c -> onSaveCharts s c
-                | RegisterWorkerNodePrtMsg r ->
-                    let x = onRegister s r
-                    printfn "PartitionerRunner.onProcessMessage.RegisterWorkerNodePrtMsg completed, state = %A." x
-                    x
-                | UnregisterWorkerNodePrtMsg r -> onUnregister s w r
-            | _ ->
-                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
-                s
-
-
-        let onGetMessages s (w : PartitionerRunner) =
-            printfn "PartitionerRunner.onGetMessages, state: %A" s
-            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x (onProcessMessage w)) PartitionerRunnerState.maxMessages s
-            printfn "PartitionerRunner.onGetMessages completed, y = %A" y
-            y
-
 
         let tryGetNode s =
             printfn "PartitionerRunner.tryGetNode."
@@ -288,6 +173,115 @@ module Partitioner =
             | None ->
                 printfn "PartitionerRunner.onRunModelWithRemoteId - cannot find node to run."
                 onCannotRun()
+
+
+        let onUnregister s (r : WorkerNodeId) =
+            printfn "PartitionerRunner.onUnregister: r = %A." r
+
+            let removeNode g =
+                proxy.tryDeleteWorkerNodeState r |> ignore
+                { g with workerNodes = g.workerNodes.tryRemove r } |> setRunLimit
+
+            match s.workerNodes.TryFind r with
+            | Some n ->
+                n.runningProcesses
+                |> List.map (fun e -> e.remoteProcessId)
+                |> List.map proxy.tryLoadRunModelParamWithRemoteId
+                |> List.choose id
+                |> List.fold (fun acc e ->  onRunModelWithRemoteId acc e) s
+            | None -> s
+            |> removeNode
+
+
+        /// TODO kk:20190825 - Refactor to make it better.
+        let loadQueue s =
+            let queue = proxy.loadAllPartitionerQueueElement()
+
+            let g =
+                queue
+                |> List.map (fun e -> proxy.tryLoadRunModelParamWithRemoteId e.queuedRemoteProcessId)
+                |> List.choose id
+                |> List.fold (fun acc e ->  onRunModelWithRemoteId acc e) s
+
+            queue |> List.map (fun e -> proxy.tryDeletePartitionerQueueElement e.queuedRemoteProcessId) |> ignore
+            g
+
+
+        let onStart s q =
+            printfn "PartitionerRunner.onStart"
+            let onStartRun g r = { g with workerNodes = g.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
+            let g = loadQueue { s with partitionerCallBackInfo = q }
+            let workers = proxy.loadAllWorkerNodeState()
+            printfn "PartitionerRunner.onStart: workers = %A" workers
+
+            workers
+            |> List.fold (fun acc r -> onStartRun acc r) g
+            |> setRunLimit
+
+        let tryFindRunningNode s r =
+            s.workerNodes
+            |> Map.toList
+            |> List.tryPick (fun (a, b) -> if List.contains r (b.runningProcesses |> List.map (fun e -> e.remoteProcessId)) then Some a else None)
+
+
+        let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
+            printfn "PartitionerRunner.onUpdateProgress: i = %A." i
+            s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
+
+            match i.progress with
+            | NotStarted -> s
+            | InProgress _ -> s
+            | Completed ->
+                proxy.tryDeleteRunModelParamWithRemoteId i.updatedRemoteProcessId |> ignore
+
+                match tryFindRunningNode s i.updatedRemoteProcessId with
+                | Some x ->
+                    let g = loadQueue s
+                    match g.workerNodes.TryFind x with
+                    | Some n ->
+                        let newNodeState = { n with runningProcesses = n.runningProcesses |> List.filter (fun e -> e.remoteProcessId <> i.updatedRemoteProcessId) }
+                        proxy.saveWorkerNodeState newNodeState |> ignore
+                        { g with workerNodes = g.workerNodes.Add (x, newNodeState) }
+                    | None -> g
+                | None -> s
+
+
+        let onSaveResult s r =
+            printfn "PartitionerRunner.onSaveResult: r = %A." r
+            proxy.saveResultData r
+            s
+
+
+        let onSaveCharts s (c : ChartInfo) =
+            printfn "PartitionerRunner.onSaveCharts: resultDataId = %A." c.resultDataId
+            proxy.saveCharts c
+            s
+
+
+        let onProcessMessage (s : PartitionerRunnerState) (m : Message) =
+            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageId
+            match m.messageInfo.messageData with
+            | PartitionerMsg x ->
+                match x with
+                | UpdateProgressPrtMsg i ->
+                    onUpdateProgress s i
+                | SaveResultPrtMsg r -> onSaveResult s r
+                | SaveChartsPrtMsg c -> onSaveCharts s c
+                | RegisterWorkerNodePrtMsg r ->
+                    let x = onRegister s r
+                    printfn "PartitionerRunner.onProcessMessage.RegisterWorkerNodePrtMsg completed, state = %A." x
+                    x
+                | UnregisterWorkerNodePrtMsg r -> onUnregister s r
+            | _ ->
+                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+                s
+
+
+        let onGetMessages s =
+            printfn "PartitionerRunner.onGetMessages, state: %A" s
+            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
+            printfn "PartitionerRunner.onGetMessages completed, y = %A" y
+            y
 
 
         let tryGetRunner s q =
@@ -358,15 +352,9 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start (w, q) -> return! onStart s w q |> loop
-                            | Register r -> return! onRegister s r |> loop
-                            | Unregister (w, r) -> return! onUnregister s w r |> loop
-                            | UpdateProgress (w, i) -> return! onUpdateProgress s w i |> loop
+                            | Start q -> return! onStart s q |> loop
                             | RunModel (p, r) -> return! onRunModel s p r |> loop
-                            | RunModelWithRemoteId e -> return! onRunModelWithRemoteId s e |> loop
-                            | SaveResult r -> return! onSaveResult s r |> loop
-                            | SaveCharts c -> return! onSaveCharts s c |> loop
-                            | GetMessages w -> return! onGetMessages s w |> loop
+                            | GetMessages -> return! onGetMessages s |> loop
                             | GetState r -> r.Reply s
                         }
 
@@ -374,11 +362,9 @@ module Partitioner =
                 )
 
 
-        member this.start q = (this, q) |> Start |> messageLoop.Post
+        member __.start q = Start q |> messageLoop.Post
         member __.runModel p = messageLoop.PostAndReply (fun reply -> RunModel (p, reply))
-        member private __.runModelWithRemoteId e = e |> RunModelWithRemoteId |> messageLoop.Post
-        member private this.updateProgress i = (this, i) |> UpdateProgress |> messageLoop.Post
-        member this.getMessages() = GetMessages this |> messageLoop.Post
+        member __.getMessages() = GetMessages |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 
 

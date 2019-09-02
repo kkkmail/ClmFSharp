@@ -64,8 +64,8 @@ module ServiceImplementation =
         | Start
         | Register
         | Unregister
-        | UpdateProgress of WorkerNodeRunner * LocalProgressUpdateInfo
-        | GetMessages of WorkerNodeRunner
+        | UpdateProgress of LocalProgressUpdateInfo
+        | GetMessages
         | RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
         | ConfigureWorker of WorkerNodeConfigParam
@@ -182,7 +182,7 @@ module ServiceImplementation =
             | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)
 
 
-        let onUpdateProgress s (w : WorkerNodeRunner) (p : LocalProgressUpdateInfo) =
+        let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
             let updateProgress t c =
                 match s.runningWorkers.TryFind p.updatedLocalProcessId with
@@ -249,7 +249,7 @@ module ServiceImplementation =
                 s
 
 
-        let onGetMessages s (w : WorkerNodeRunner) =
+        let onGetMessages s =
             printfn "WorkerNodeRunner.onGetMessages"
             printfn "WorkerNodeRunnerState: %A" s
             List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
@@ -279,8 +279,8 @@ module ServiceImplementation =
                             | Start -> return! onStart s |> loop
                             | Register -> return! onRegister s |> loop
                             | Unregister -> return! onUnregister s |> loop
-                            | UpdateProgress (w, p) -> return! onUpdateProgress s w p |> loop
-                            | GetMessages w -> return! onGetMessages s w |> loop
+                            | UpdateProgress p -> return! onUpdateProgress s p |> loop
+                            | GetMessages -> return! onGetMessages s |> loop
                             | RunModel d -> return! onRunModel s d |> loop
                             | GetState w -> w.Reply s
                             | ConfigureWorker d -> return! onConfigureWorker s d |> loop
@@ -292,8 +292,8 @@ module ServiceImplementation =
         member __.start() = Start |> messageLoop.Post
         member __.register() = Register |> messageLoop.Post
         member __.unregister() = Unregister |> messageLoop.Post
-        member this.updateProgress p = UpdateProgress (this, p) |> messageLoop.Post
-        member this.getMessages() = GetMessages this |> messageLoop.Post
+        member __.updateProgress p = UpdateProgress p |> messageLoop.Post
+        member __.getMessages() = GetMessages |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
         member __.configure d = d |> ConfigureWorker |> messageLoop.Post
 

@@ -5,6 +5,7 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -37,18 +38,6 @@ module ServiceInfo =
         | Idle
         | CanGenerate
         | ShuttingDown
-
-
-    type LocalProcessId =
-        | LocalProcessId of int
-
-        member this.value = let (LocalProcessId v) = this in v
-
-
-    type RemoteProcessId =
-        | RemoteProcessId of Guid
-
-        member this.value = let (RemoteProcessId v) = this in v
 
 
     type ProcessId =

@@ -24,7 +24,7 @@ module AsyncRun =
             running : Map<ProcessId, RunningProcessInfo>
             queue : list<RunInfo>
             runLimit : int
-            //maxQueueLength : int
+            maxQueueLength : int
             workState : WorkState
             messageCount : int64
             minUsefulEe : MinUsefulEe
@@ -32,15 +32,14 @@ module AsyncRun =
         }
 
         member state.runningCount = state.running.Count
-
-        member state.runningQueue =
-            state.running |> Map.toList |> List.map (fun (_, v) -> v.runningQueueId) |> List.choose id |> Set.ofList
+        member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.runningQueueId) |> List.choose id |> Set.ofList
 
         static member defaultValue u =
             {
                 running = Map.empty
                 queue = []
                 runLimit = if u then 0 else Environment.ProcessorCount
+                maxQueueLength = 4
                 workState = CanGenerate
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe
@@ -88,6 +87,13 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
+        let mutable generating = 0
+
+        // Returns true if successfully acquired generating flag.
+        let tryAcquireGenerating() = Interlocked.CompareExchange(&generating, 1, 0) = 0
+        let releaseGenerating() = Interlocked.Exchange(&generating, 0) |> ignore
+
+
         let onQueueStarting s (a : AsyncRunner) =
             let w() =
                 generatorInfo.getQueue() |> a.queueObtained
@@ -181,16 +187,17 @@ module AsyncRun =
             | CanGenerate ->
                 let generate() = generatorInfo.generate() |> a.generationCompleted
 
-                // TODO - kk:20190831 - Async seems to overcount. Figure out how to make it work.
-                // See https://github.com/kkkmail/ClmFSharp/issues/39
-                //generate |> toAsync |> Async.Start
-                generate()
+                if s.queue.Length <= s.maxQueueLength
+                then
+                    printfn "AsyncRunner.onGenerationStarted - s.queue.Length = %A. Starting generating..." s.queue.Length
+                    if tryAcquireGenerating() then generate |> toAsync |> Async.Start
                 s
             | ShuttingDown -> s
 
 
         let onGenerationCompleted (s : AsyncRunnerState) (a : AsyncRunner) r =
             let w() =
+                releaseGenerating()
                 a.startRun()
                 let x = s.runningQueue
                 { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
@@ -198,7 +205,9 @@ module AsyncRun =
             match s.workState with
             | Idle -> w()
             | CanGenerate -> w()
-            | ShuttingDown -> s
+            | ShuttingDown ->
+                releaseGenerating()
+                s
 
 
         let onRunModel (s : AsyncRunnerState) (a : AsyncRunner) (i : ModelDataId) p =
@@ -212,26 +221,29 @@ module AsyncRun =
 
         let onStartRun (s : AsyncRunnerState) (a : AsyncRunner) =
             printfn "AsyncRunner.onStartRun: s = %A" s
-            let updateQueue t (s : AsyncRunnerState) = { s with queue = t }
+            let updateQueue t (g : AsyncRunnerState) = { g with queue = t }
 
-            let start (s : AsyncRunnerState) e =
+            let start (g : AsyncRunnerState) e =
                 let x = e.run e.processToStartInfo
                 printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
 
                 match x with
                 | StartedSuccessfully r ->
-                    { s with running = s.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
-                | FailedToStart -> s
+                    { g with running = g.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
+                | FailedToStart -> g
                 | AlreadyCompleted ->
                     generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
-                    s
+                    g
 
             let w() =
-                let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
+                if s.runningCount < s.runLimit
+                then
+                    let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
 
-                run
-                |> List.fold (fun acc e -> start acc e) s
-                |> updateQueue queue
+                    run
+                    |> List.fold (fun acc e -> start acc e) s
+                    |> updateQueue queue
+                else s
 
             match s.workState with
             | Idle -> w()

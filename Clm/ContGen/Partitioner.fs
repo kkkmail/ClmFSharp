@@ -325,7 +325,7 @@ module Partitioner =
                 s
             | None, None ->
                 printfn "PartitionerRunner.onRunModel - | None, None"
-                let q = Guid.NewGuid() |> RemoteProcessId
+                let q = a.callBackInfo.runQueueId.toRemoteProcessId()
 
                 let e =
                     {

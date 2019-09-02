@@ -193,11 +193,24 @@ module GeneralData =
         member this.value = let (ResultDataId v) = this in v
 
 
+    type LocalProcessId =
+        | LocalProcessId of int
+
+        member this.value = let (LocalProcessId v) = this in v
+
+
+    type RemoteProcessId =
+        | RemoteProcessId of Guid
+
+        member this.value = let (RemoteProcessId v) = this in v
+
+
     type RunQueueId =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
         member this.toResultDataId() = this.value |> ResultDataId
+        member this.toRemoteProcessId() = this.value |> RemoteProcessId
 
 
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting

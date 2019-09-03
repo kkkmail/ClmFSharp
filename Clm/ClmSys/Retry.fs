@@ -53,6 +53,7 @@ module Retry =
         member this.Delay(f : unit -> RetryMonad<'a>) = f ()
 
 
+    /// Builds a retry workflow using computation expression syntax.
     let retry = RetryBuilder()
 
 

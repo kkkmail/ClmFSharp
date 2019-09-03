@@ -170,10 +170,10 @@ module Service =
                 onStart (MessagingServiceState.defaultValue d) |> loop
                 )
 
-        member __.getVersion() = GetVersion |> messageLoop.PostAndReply
-        member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+        member __.getVersion() = GetVersion |> messageLoop.PostAndAsyncReply
+        member __.sendMessage m = messageLoop.PostAndAsyncReply (fun reply -> SendMessage (m, reply))
         //member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
-        member __.getState() = GetState |> messageLoop.PostAndReply
-        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
-        member __.tryDeleteFromServer n m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+        member __.getState() = GetState |> messageLoop.PostAndAsyncReply
+        member __.tryPeekMessage n = messageLoop.PostAndAsyncReply (fun reply -> TryPeekMessage (n, reply))
+        member __.tryDeleteFromServer n m = messageLoop.PostAndAsyncReply (fun reply -> TryDeleteFromServer (n, m, reply))

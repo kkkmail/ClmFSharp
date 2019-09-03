@@ -44,6 +44,11 @@ module ServiceInfo =
         | LocalProcess of LocalProcessId
         | RemoteProcess of RemoteProcessId
 
+        override this.ToString() =
+            match this with
+            | LocalProcess p -> p.value.ToString()
+            | RemoteProcess p -> p.value.ToString()
+
 
     type ProgressUpdateInfo =
         {
@@ -124,7 +129,7 @@ module ServiceInfo =
                 | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ";"
                 | None -> EmptyString
 
-            sprintf "{ running = %s;%s modelDataId = %A; PID = %A; %A }" s estCompl modelDataId r.runningProcessId r.progress
+            sprintf "{ running = %s;%s modelDataId = %A; PID = %s; %A }" s estCompl modelDataId (r.runningProcessId.ToString()) r.progress
 
 
     type ProgressUpdateInfo

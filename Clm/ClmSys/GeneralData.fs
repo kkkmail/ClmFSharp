@@ -438,6 +438,40 @@ module GeneralData =
             |> List.rev
 
 
+        static member mapWhileSomeAsync mapper tList =
+            async {
+                let rec doMap x acc =
+                    async {
+                        match x with
+                        | [] -> return acc
+                        | h :: t ->
+                            match! mapper h with
+                            | Some u -> return! doMap t (u :: acc)
+                            | None -> return acc
+                    }
+
+                let! lst = doMap tList []
+                return lst |> List.rev
+            }
+
+
+        static member mapAsync mapper tList =
+            async {
+                let x = tList |> List.map (fun e -> async { return! mapper e} )
+                let rec doMap x acc =
+                    async {
+                        match x with
+                        | [] -> return acc
+                        | h :: t ->
+                            let! u = mapper h
+                            return! doMap t (u :: acc)
+                    }
+
+                let! lst = doMap tList []
+                return lst |> List.rev
+            }
+
+
         static member foldWhileSome mapper tList seed =
             //printfn "foldWhileSome: seed = %A" seed
 
@@ -453,3 +487,24 @@ module GeneralData =
             let y = doFold tList seed
             //printfn "    foldWhileSome - completed: y = %A" y
             y
+
+
+        static member foldWhileSomeAsync mapper tList seed =
+            async {
+                //printfn "foldAsyncWhileSome: seed = %A" seed
+
+                let rec doFold x acc =
+                    async {
+                        //printfn "    foldAsyncWhileSome: acc = %A" acc
+                        match x with
+                        | [] -> return acc
+                        | h :: t ->
+                            match! mapper acc h with
+                            | Some u -> return! doFold t u
+                            | None -> return acc
+                    }
+
+                let! y = doFold tList seed
+                //printfn "    foldAsyncWhileSome - completed: y = %A" y
+                return y
+            }

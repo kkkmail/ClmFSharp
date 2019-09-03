@@ -9,6 +9,7 @@ open Messaging.ServiceResponse
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ServiceProxy.MsgServiceProxy
+open ClmSys.GeneralData
 
 module MessagingTestClientTask =
 
@@ -38,16 +39,15 @@ module MessagingTestClientTask =
             printfn "Checking messages."
 
             let checkMessage() =
-                match a.tryPeekReceivedMessage() with
-                | Some m ->
-                    printfn "    Received message: %A" m
-                    a.tryRemoveReceivedMessage m.messageId |> ignore
-                | None -> ignore()
+                async {
+                    match! a.tryProcessMessage () (fun _ m -> m) with
+                    | Some m ->
+                        printfn "    Received message: %A" m
+                    | None -> ignore()
+                }
 
-            [for _ in 1..20 -> ()]
-            |> List.map checkMessage
-            |> ignore
-
+            let t = [for _ in 1..20 -> ()] |> List.mapAsync checkMessage
+            t |> Async.RunSynchronously |> ignore
             Thread.Sleep 30_000
 
 

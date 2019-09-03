@@ -145,10 +145,9 @@ module ServiceInfo =
 
 
     type IMessagingService =
-        abstract getVersion : unit -> MessagingDataVersion
-        abstract sendMessage : Message -> MessageDeliveryResult
-        //abstract getMessages : MessagingClientId -> List<Message>
+        abstract getVersion : unit -> Async<MessagingDataVersion>
+        abstract sendMessage : Message -> Async<MessageDeliveryResult>
         abstract configureService : MessagingConfigParam -> unit
-        abstract tryPeekMessage : MessagingClientId -> Message option
-        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
-        abstract getState : unit -> MsgServiceState
+        abstract tryPeekMessage : MessagingClientId -> Async<Message option>
+        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> Async<bool>
+        abstract getState : unit -> Async<MsgServiceState>

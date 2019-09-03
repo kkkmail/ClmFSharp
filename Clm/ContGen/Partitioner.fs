@@ -278,10 +278,12 @@ module Partitioner =
 
 
         let onGetMessages s =
-            printfn "PartitionerRunner.onGetMessages, state: %A" s
-            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
-            printfn "PartitionerRunner.onGetMessages completed, y = %A" y
-            y
+            async {
+                printfn "PartitionerRunner.onGetMessages, state: %A" s
+                let! y = List.foldWhileSomeAsync (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
+                printfn "PartitionerRunner.onGetMessages completed, y = %A" y
+                return y
+            }
 
 
         let tryGetRunner s q =
@@ -354,7 +356,9 @@ module Partitioner =
                             match! u.Receive() with
                             | Start q -> return! onStart s q |> loop
                             | RunModel (p, r) -> return! onRunModel s p r |> loop
-                            | GetMessages -> return! onGetMessages s |> loop
+                            | GetMessages ->
+                                let! ns =onGetMessages s 
+                                return! ns |> loop
                             | GetState r -> r.Reply s
                         }
 

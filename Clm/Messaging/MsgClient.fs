@@ -242,16 +242,16 @@ module Client =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
-                            | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage m -> return! onSendMessage s m |> loop
-                            //| GetMessages r -> return! onGetMessages s r |> loop
+                            | Start -> return! timed "MessagingClient.onStart" onStart s |> loop
+                            | GetVersion r -> return! timed2 "MessagingClient.onGetVersion" onGetVersion s r |> loop
+                            | SendMessage m -> return! timed2 "MessagingClient.onSendMessage" onSendMessage s m |> loop
+                            //| GetMessages r -> return! timed "MessagingClient.onGetMessages" onGetMessages s r |> loop
                             | TransmitMessages ->
-                                let! ns = onTransmitMessages s
+                                let! ns = timed "MessagingClient.onTransmitMessages" onTransmitMessages s
                                 return! ns |> loop
-                            | ConfigureClient x -> return! onConfigureClient s x |> loop
-                            | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
-                            | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage s m r |> loop
+                            | ConfigureClient x -> return! timed2 "MessagingClient.onConfigureClient" onConfigureClient s x |> loop
+                            | TryPeekReceivedMessage r -> return! timed2 "MessagingClient.onTryPeekReceivedMessage" onTryPeekReceivedMessage s r |> loop
+                            | TryRemoveReceivedMessage (m, r) -> return! timed "MessagingClient.onTryRemoveReceivedMessage (using timed)" onTryRemoveReceivedMessage s m r |> loop
                         }
 
                 onStart (MessagingClientState.defaultValue d) |> loop

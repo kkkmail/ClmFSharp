@@ -277,16 +277,16 @@ module ServiceImplementation =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
-                            | Register -> return! onRegister s |> loop
-                            | Unregister -> return! onUnregister s |> loop
-                            | UpdateProgress p -> return! onUpdateProgress s p |> loop
+                            | Start -> return! timed "WorkerNodeRunner.onStart" onStart s |> loop
+                            | Register -> return! timed "WorkerNodeRunner.onRegister" onRegister s |> loop
+                            | Unregister -> return! timed "WorkerNodeRunner.onUnregister" onUnregister s |> loop
+                            | UpdateProgress p -> return! timed "WorkerNodeRunner.onUpdateProgress" onUpdateProgress s p |> loop
                             | GetMessages ->
                                 let! ns = onGetMessages s
                                 return! ns |> loop
-                            | RunModel d -> return! onRunModel s d |> loop
+                            | RunModel d -> return! timed "WorkerNodeRunner.onRunModel" onRunModel s d |> loop
                             | GetState w -> w.Reply s
-                            | ConfigureWorker d -> return! onConfigureWorker s d |> loop
+                            | ConfigureWorker d -> return! timed "WorkerNodeRunner.onConfigureWorker" onConfigureWorker s d |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop

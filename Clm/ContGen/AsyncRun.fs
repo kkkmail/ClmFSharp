@@ -250,13 +250,13 @@ module AsyncRun =
                             printfn "AsyncRunner.s = %s, m = %A." (s.ToString()) (m.ToString())
 
                             match m with
-                            | QueueStarting -> return! onQueueStarting s |> loop
-                            | ConfigureService (a, p) -> return! onConfigureService s a p |> loop
-                            | ProgressUpdated p -> return! onProgressUpdated s p |> loop
-                            | GetState r -> return! onGetState s r |> loop
-                            | GenerationStarted a -> return! onGenerationStarted s a |> loop
-                            | GenerationCompleted r -> return! onGenerationCompleted s r |> loop
-                            | RunModel (m, p) -> return! onRunModel s m p |> loop
+                            | QueueStarting -> return! timed "AsyncRunner.onQueueStarting" onQueueStarting s |> loop
+                            | ConfigureService (a, p) -> return! timed3 "AsyncRunner.onConfigureService" onConfigureService s a p |> loop
+                            | ProgressUpdated p -> return! timed2 "AsyncRunner.onProgressUpdated" onProgressUpdated s p |> loop
+                            | GetState r -> return! timed2 "AsyncRunner.onGetState" onGetState s r |> loop
+                            | GenerationStarted a -> return! timed2 "AsyncRunner.onGenerationStarted" onGenerationStarted s a |> loop
+                            | GenerationCompleted r -> return! timed2 "AsyncRunner.onGenerationCompleted" onGenerationCompleted s r |> loop
+                            | RunModel (m, p) -> return! timed3 "AsyncRunner.onRunModel" onRunModel s m p |> loop
                         }
 
                 AsyncRunnerState.defaultValue generatorInfo.usePartitioner |> loop

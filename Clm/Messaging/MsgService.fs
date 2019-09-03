@@ -156,14 +156,14 @@ module Service =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
-                            | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage (m, r) -> return! onSendMessage s m r |> loop
-                            //| GetMessages (n, r) -> return! onGetMessages s n r |> loop
-                            | ConfigureService x -> return! onConfigure s x |> loop
-                            | GetState r -> return! onGetState s r |> loop
-                            | TryPeekMessage (n, r) -> return! onTryPeekMessage s n r |> loop
-                            | TryDeleteFromServer (n, m, r) -> return! onTryTryDeleteFromServer s n m r |> loop
+                            | Start -> return! timed "MessagingService.onStart" onStart s |> loop
+                            | GetVersion r -> return! timed "MessagingService.onGetVersion" onGetVersion s r |> loop
+                            | SendMessage (m, r) -> return! timed "MessagingService.onSendMessage" onSendMessage s m r |> loop
+                            //| GetMessages (n, r) -> return! timed "MessagingService.onGetMessages" onGetMessages s n r |> loop
+                            | ConfigureService x -> return! timed "MessagingService.onConfigure" onConfigure s x |> loop
+                            | GetState r -> return! timed "MessagingService.onGetState" onGetState s r |> loop
+                            | TryPeekMessage (n, r) -> return! timed "MessagingService.onTryPeekMessage" onTryPeekMessage s n r |> loop
+                            | TryDeleteFromServer (n, m, r) -> return! timed "MessagingService.onTryTryDeleteFromServer" onTryTryDeleteFromServer s n m r |> loop
 
                         }
 

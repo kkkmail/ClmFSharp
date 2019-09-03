@@ -136,6 +136,7 @@ module Partitioner =
             match tryGetNode s with
             | Some n ->
                 printfn "PartitionerRunner.onRunModelWithRemoteId: Using Node: %A." n
+
                 match tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
                 | Some m ->
                     printfn "PartitionerRunner.onRunModelWithRemoteId: using modelDataId: %A." m.modelDataId
@@ -163,7 +164,16 @@ module Partitioner =
                             runQueueId = e.runModelParam.callBackInfo.runQueueId
                         }
 
+                    match proxy.tryDeletePartitionerQueueElement e.remoteProcessId with
+                    | Some _ ->
+                        printfn "PartitionerRunner.onRunModelWithRemoteId: Successfully deleted queue element with remoteProcessId : %A" e.remoteProcessId
+                        ignore()
+                    | None ->
+                        printfn "PartitionerRunner.onRunModelWithRemoteId: !!! ERROR !!! Cannot delete queue element with remoteProcessId : %A" e.remoteProcessId
+                        ignore()
+
                     let newNodeState = { n with runningProcesses = i :: n.runningProcesses }
+                    printfn "PartitionerRunner.onRunModelWithRemoteId: newNodeState = %A" newNodeState
                     proxy.saveWorkerNodeState newNodeState |> ignore
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }
                 | None ->
@@ -201,7 +211,7 @@ module Partitioner =
                 queue
                 |> List.map (fun e -> proxy.tryLoadRunModelParamWithRemoteId e.queuedRemoteProcessId)
                 |> List.choose id
-                |> List.fold (fun acc e ->  onRunModelWithRemoteId acc e) s
+                |> List.fold (fun acc e -> onRunModelWithRemoteId acc e) s
 
             queue |> List.map (fun e -> proxy.tryDeletePartitionerQueueElement e.queuedRemoteProcessId) |> ignore
             g
@@ -217,6 +227,7 @@ module Partitioner =
             workers
             |> List.fold (fun acc r -> onStartRun acc r) g
             |> setRunLimit
+
 
         let tryFindRunningNode s r =
             s.workerNodes

@@ -112,6 +112,7 @@ module ServiceInfo =
     type Message =
         {
             messageId : MessageId
+            dataVersion : MessagingDataVersion
             sender : MessagingClientId
             messageInfo : MessageInfo
             createdOn : DateTime
@@ -145,9 +146,9 @@ module ServiceInfo =
 
 
     type IMessagingService =
-        abstract getVersion : unit -> Async<MessagingDataVersion>
-        abstract sendMessage : Message -> Async<MessageDeliveryResult>
+        abstract getVersion : unit -> MessagingDataVersion
+        abstract sendMessage : Message -> MessageDeliveryResult
         abstract configureService : MessagingConfigParam -> unit
-        abstract tryPeekMessage : MessagingClientId -> Async<Message option>
-        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> Async<bool>
-        abstract getState : unit -> Async<MsgServiceState>
+        abstract tryPeekMessage : MessagingClientId -> Message option
+        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+        abstract getState : unit -> MsgServiceState

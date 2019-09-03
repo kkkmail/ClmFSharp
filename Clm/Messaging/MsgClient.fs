@@ -62,6 +62,7 @@ module Client =
     and MessagingClient(d : MessagingClientData) =
         let logger = d.logger
         let logErr = d.logger.logErr
+        let logExn = d.logger.logExn
 
         let onStart s =
             let messages = s.messageClientData.msgClientProxy.loadMessages()
@@ -71,7 +72,7 @@ module Client =
 
 
         let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
-            printfn "MessagingService.onGetVersion"
+            printfn "MessagingClient.onGetVersion"
             r.Reply messagingDataVersion
             s
 
@@ -81,6 +82,7 @@ module Client =
             let message =
                 {
                     messageId = MessageId.create()
+                    dataVersion = messagingDataVersion
                     sender = d.msgAccessInfo.msgClientId
                     messageInfo = m
                     createdOn = DateTime.Now
@@ -107,20 +109,20 @@ module Client =
 
         let sendMessageImpl (s : MessagingClientState) m =
             async {
-                printfn "MessagingClient.sendMessageImpl..."
+                printfn "MessagingClient.sendMessageImpl, messageId = %A" m.messageId.value
                 try
-                    match! s.service.sendMessage m with
+                    match s.service.sendMessage m with
                     | Success _ ->
                         match m.messageInfo.deliveryType with
                         | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
                         | NonGuaranteedDelivery -> ignore()
                         return Some m
                     | Failure e ->
-                        logErr e
+                        logErr (sprintf "MessagingClient.sendMessageImpl: messageId = %A, failure - %s." m.messageId.value e)
                         return None
                 with
                     | e ->
-                        s.messageClientData.logger.logExn (sprintf "Failed to send message: %A" m.messageId) e
+                        s.messageClientData.logger.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
                         return None
             }
 
@@ -128,7 +130,7 @@ module Client =
             async {
                 printfn "MessagingClient.tryReceiveSingleMessage..."
 
-                match! s.service.tryPeekMessage s.msgClientId with
+                match s.service.tryPeekMessage s.msgClientId with
                 | Some m ->
                     printfn "MessagingClient.tryReceiveSingleMessage: Received message with id: %A" m.messageId
                     match m.messageInfo.deliveryType with
@@ -140,7 +142,7 @@ module Client =
                         |> d.msgClientProxy.saveMessage
                     | NonGuaranteedDelivery -> ignore()
 
-                    match! s.service.tryDeleteFromServer s.msgClientId m.messageId with
+                    match s.service.tryDeleteFromServer s.msgClientId m.messageId with
                     | true ->
                         printfn "MessagingClient.tryReceiveSingleMessage: Deleted message from server. Message id: %A" m.messageId
                         ignore()
@@ -158,7 +160,7 @@ module Client =
             async {
                 printfn "MessagingClient.receiveMessagesImpl..."
                 try
-                    let! serverVersion = s.service.getVersion()
+                    let serverVersion = s.service.getVersion()
 
                     match serverVersion = messagingDataVersion with
                     | true ->
@@ -229,7 +231,7 @@ module Client =
                         return Some r
                     with
                     | ex ->
-                        logger.logExn "tryProcessMessageImpl" ex
+                        logger.logExn "MessagingClient.tryProcessMessageImpl" ex
                         return None
                 | None -> return None
             }

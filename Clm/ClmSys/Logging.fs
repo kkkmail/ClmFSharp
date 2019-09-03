@@ -101,35 +101,36 @@ module Logging =
 
         static member defaultValue =
             {
-                //logInfo = fun s -> printfn "%s" s
-                //logErr = fun s -> printfn "%s" s
-                //logExn = fun s e -> printfn "%s, exception: %A." s e
+                logInfo = fun s -> printfn "%s" s
+                logErr = fun s -> printfn "%s" s
+                logExn = fun s e -> printfn "%s, exception: %A." s e
 
-                logInfo =
-                    fun s ->
-                        {
-                            Message = s
-                            Date = DateTime.Now
-                        }
-                        |> Info
-                        |> logAgent.Post
-                logErr =
-                    fun s ->
-                        {
-                            Message = s
-                            Date = DateTime.Now
-                        }
-                        |> Info
-                        |> logAgent.Post
+                //logInfo =
+                //    fun s ->
+                //        {
+                //            Message = s
+                //            Date = DateTime.Now
+                //        }
+                //        |> Info
+                //        |> logAgent.Post
 
-                logExn =
-                    fun s e ->
-                        {
-                            Message = s + ", exception: " + e.ToString()
-                            Date = DateTime.Now
-                        }
-                        |> Info
-                        |> logAgent.Post
+                //logErr =
+                //    fun s ->
+                //        {
+                //            Message = s
+                //            Date = DateTime.Now
+                //        }
+                //        |> Info
+                //        |> logAgent.Post
+
+                //logExn =
+                //    fun s e ->
+                //        {
+                //            Message = s + ", exception: " + e.ToString()
+                //            Date = DateTime.Now
+                //        }
+                //        |> Info
+                //        |> logAgent.Post
             }
 
         static member ignored = Logger.defaultValue

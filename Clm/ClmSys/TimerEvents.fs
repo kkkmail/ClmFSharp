@@ -41,7 +41,7 @@ module TimerEvents =
                 if Interlocked.Increment(&counter) = 0
                 then
                     try
-                        printfn "EventHandler: %A starting..." handlerId
+                        //printfn "EventHandler: %A starting..." handlerId
                         i.eventHandler()
                     with
                         | e -> i.logger.logExn "Error occurred." e
@@ -50,7 +50,7 @@ module TimerEvents =
                     ignore()
             finally
                 Interlocked.Decrement(&counter) |> ignore
-                printfn " ...EventHandler: %A completed." handlerId
+                //printfn " ...EventHandler: %A completed." handlerId
 
         let timer = new System.Timers.Timer(refreshInterfal)
         do timer.AutoReset <- true

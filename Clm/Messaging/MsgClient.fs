@@ -243,14 +243,14 @@ module Client =
                         {
                             match! u.Receive() with
                             | Start -> return! timed "MessagingClient.onStart" onStart s |> loop
-                            | GetVersion r -> return! timed2 "MessagingClient.onGetVersion" onGetVersion s r |> loop
-                            | SendMessage m -> return! timed2 "MessagingClient.onSendMessage" onSendMessage s m |> loop
+                            | GetVersion r -> return! timed "MessagingClient.onGetVersion" onGetVersion s r |> loop
+                            | SendMessage m -> return! timed "MessagingClient.onSendMessage" onSendMessage s m |> loop
                             //| GetMessages r -> return! timed "MessagingClient.onGetMessages" onGetMessages s r |> loop
                             | TransmitMessages ->
                                 let! ns = timed "MessagingClient.onTransmitMessages" onTransmitMessages s
                                 return! ns |> loop
-                            | ConfigureClient x -> return! timed2 "MessagingClient.onConfigureClient" onConfigureClient s x |> loop
-                            | TryPeekReceivedMessage r -> return! timed2 "MessagingClient.onTryPeekReceivedMessage" onTryPeekReceivedMessage s r |> loop
+                            | ConfigureClient x -> return! timed "MessagingClient.onConfigureClient" onConfigureClient s x |> loop
+                            | TryPeekReceivedMessage r -> return! timed "MessagingClient.onTryPeekReceivedMessage" onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! timed "MessagingClient.onTryRemoveReceivedMessage (using timed)" onTryRemoveReceivedMessage s m r |> loop
                         }
 

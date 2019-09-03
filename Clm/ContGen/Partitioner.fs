@@ -354,8 +354,8 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start q -> return! timed2 "PartitionerRunner.onStart" onStart s q |> loop
-                            | RunModel (p, r) -> return! timed3 "PartitionerRunner.onRunModel" onRunModel s p r |> loop
+                            | Start q -> return! timed "PartitionerRunner.onStart" onStart s q |> loop
+                            | RunModel (p, r) -> return! timed "PartitionerRunner.onRunModel" onRunModel s p r |> loop
                             | GetMessages ->
                                 let! ns = timed "PartitionerRunner.onGetMessages" onGetMessages s
                                 return! ns |> loop

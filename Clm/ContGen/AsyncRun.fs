@@ -110,6 +110,7 @@ module AsyncRun =
                 if s.runningCount < s.runLimit
                 then
                     let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
+                    printfn "AsyncRunner.onStartRun: run = %A, queue = %A" run queue
 
                     run
                     |> List.fold (fun acc e -> start acc e) s
@@ -122,10 +123,9 @@ module AsyncRun =
             | ShuttingDown -> s
 
 
-        let onQueueObtained (g : AsyncRunnerState) p =
-            let s = onStartRun g
-            let x = s.runningQueue
-            { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
+        let onQueueObtained (s : AsyncRunnerState) p =
+            { s with queue = s.queue @ p |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) }
+            |> onStartRun
 
 
         let onQueueStarting s =
@@ -160,16 +160,14 @@ module AsyncRun =
                     |> Map.toList
                     |> List.map (fun (i, _) -> a.configureService (CancelTask i))
                     |> ignore
+
                     { s with workState = ShuttingDown; queue = [] }
                 | true -> { s with workState = ShuttingDown }
             | SetRunLimit v ->
-                let newState =
-                    match s.usePartitioner with
-                    | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
-                    | true -> { s with runLimit = max 0 v }
-            
-                printfn "AsyncRunner.configureService: Calling startRun()..."
-                onStartRun newState
+                match s.usePartitioner with
+                | false -> { s with runLimit = max 1 (min v Environment.ProcessorCount) }
+                | true -> { s with runLimit = max 0 v }
+                |> onStartRun
             | CancelTask i ->
                 match cancelProcessImpl i with
                 | true -> { s with running = s.running.tryRemove i }
@@ -251,12 +249,12 @@ module AsyncRun =
 
                             match m with
                             | QueueStarting -> return! timed "AsyncRunner.onQueueStarting" onQueueStarting s |> loop
-                            | ConfigureService (a, p) -> return! timed3 "AsyncRunner.onConfigureService" onConfigureService s a p |> loop
-                            | ProgressUpdated p -> return! timed2 "AsyncRunner.onProgressUpdated" onProgressUpdated s p |> loop
-                            | GetState r -> return! timed2 "AsyncRunner.onGetState" onGetState s r |> loop
-                            | GenerationStarted a -> return! timed2 "AsyncRunner.onGenerationStarted" onGenerationStarted s a |> loop
-                            | GenerationCompleted r -> return! timed2 "AsyncRunner.onGenerationCompleted" onGenerationCompleted s r |> loop
-                            | RunModel (m, p) -> return! timed3 "AsyncRunner.onRunModel" onRunModel s m p |> loop
+                            | ConfigureService (a, p) -> return! timed "AsyncRunner.onConfigureService" onConfigureService s a p |> loop
+                            | ProgressUpdated p -> return! timed "AsyncRunner.onProgressUpdated" onProgressUpdated s p |> loop
+                            | GetState r -> return! timed "AsyncRunner.onGetState" onGetState s r |> loop
+                            | GenerationStarted a -> return! timed "AsyncRunner.onGenerationStarted" onGenerationStarted s a |> loop
+                            | GenerationCompleted r -> return! timed "AsyncRunner.onGenerationCompleted" onGenerationCompleted s r |> loop
+                            | RunModel (m, p) -> return! timed "AsyncRunner.onRunModel" onRunModel s m p |> loop
                         }
 
                 AsyncRunnerState.defaultValue generatorInfo.usePartitioner |> loop

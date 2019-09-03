@@ -511,36 +511,10 @@ module GeneralData =
 
     /// http://www.fssnip.net/iW/title/Oneliner-generic-timing-function
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
-    let time2 f a b = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a b, sw.Elapsed))
-    let time3 f a b c = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a b c, sw.Elapsed))
 
-    let private timed0 (l : Logger) name f =
+    let private timedImpl (l : Logger) name f =
         let (r, t) = time f ()
         l.logInfo (sprintf "%s: Execution time: %A" name t)
         r
 
-    let timed name f a = timed0 logger name (fun () -> f a)
-    let timed2 name f a b = timed0 logger name (fun () -> f a b)
-    let timed3 name f a b c = timed0 logger name (fun () -> f a b c)
-
-
-    //let timeAsync f a =
-    //    async {
-    //        System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (return! f a, sw.Elapsed))
-    //    }
-
-
-    //let private timedAsync0 (l : Logger) name f =
-    //    async {
-    //        let! (r, t) = time f ()
-    //        l.logInfo (sprintf "%s: Execution time: %A" name t)
-    //        return r
-    //    }
-
-    let timedAsync name f =
-        async {
-            let sw = System.Diagnostics.Stopwatch.StartNew()
-            let! r = f
-            logger.logInfo (sprintf "%s: Execution time: %A" name sw.Elapsed)
-            r
-        }
+    let timed name f a = timedImpl logger name (fun () -> f a)

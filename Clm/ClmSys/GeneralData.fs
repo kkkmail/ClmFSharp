@@ -515,7 +515,11 @@ module GeneralData =
 
     let private timedImpl (l : Logger) name f =
         let (r, t) = time f ()
-        l.logInfo (sprintf "%s: Execution time: %A" name t)
+
+        if t.TotalSeconds <= 5.0
+        then l.logInfo (sprintf "%s: Execution time: %A" name t)
+        else l.logInfo (sprintf "%s: !!! LARGE Execution time: %A" name t)
+
         r
 
     let timed name f a = timedImpl logger name (fun () -> f a)

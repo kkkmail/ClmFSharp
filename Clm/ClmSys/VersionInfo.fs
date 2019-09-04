@@ -7,9 +7,10 @@ module VersionInfo =
 
         member this.value = let (MessagingDataVersion v) = this in v
 
-    /// Increment when internal messaging structures change and
-    /// messages can no longer be successfully transferred among components.
-    let messagingDataVersion = MessagingDataVersion 13
+    /// Increment when:
+    ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
+    ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
+    let messagingDataVersion = MessagingDataVersion 14
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

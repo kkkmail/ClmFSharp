@@ -71,7 +71,7 @@ module ServiceImplementation =
         | ConfigureWorker of WorkerNodeConfigParam
 
 
-    and WorkerNodeRunner(i : WorkerNodeRunnerData) =
+    type WorkerNodeRunner(i : WorkerNodeRunnerData) =
         let messagingClient = MessagingClient i.messagingClientData
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
@@ -107,7 +107,9 @@ module ServiceImplementation =
                 }
 
             match i.workerNodeProxy.runModel a with
-            | Some result -> { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, d.remoteProcessId) }
+            | Some result ->
+                printfn "WorkerNodeRunner.onRunModel: Number of running models = %A." (s.runningWorkers.Count + 1)
+                { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, d.remoteProcessId) }
             | None -> s
 
 

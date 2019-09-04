@@ -71,18 +71,23 @@ module Service =
 
         let onSendMessage (s : MessagingServiceState) m (r : AsyncReplyChannel<MessageDeliveryResult>) =
             printfn "MessagingService.onSendMessage: messageId = %A." m.messageId
-            match s.workState with
-            | CanTransmitMessages ->
-                match m.messageInfo.deliveryType with
-                | GuaranteedDelivery -> s.proxy.saveMessage m
-                | NonGuaranteedDelivery -> ignore()
 
-                r.Reply (Success())
-                updateMessages s m
-            | ShuttingDown ->
-                r.Reply (Failure "Messaging server is shutting down. Please, retry later.")
+            match m.dataVersion = messagingDataVersion with
+            | true ->
+                match s.workState with
+                | CanTransmitMessages ->
+                    match m.messageInfo.deliveryType with
+                    | GuaranteedDelivery -> s.proxy.saveMessage m
+                    | NonGuaranteedDelivery -> ignore()
+
+                    r.Reply DeliveredSuccessfully
+                    updateMessages s m
+                | ShuttingDown ->
+                    r.Reply ServerIsShuttingDown
+                    s
+            | false ->
+                r.Reply (DataVersionMismatch messagingDataVersion)
                 s
-
 
         //let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
         //    printfn "MessagingService.onGetMessages: ClientId: %A" n

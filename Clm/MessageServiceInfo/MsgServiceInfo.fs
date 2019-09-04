@@ -134,7 +134,11 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type MessageDeliveryResult = Result<unit, string>
+    type MessageDeliveryResult =
+        | DeliveredSuccessfully
+        | DataVersionMismatch of MessagingDataVersion
+        | ExceptionOccurred of exn
+        | ServerIsShuttingDown
 
 
     type MsgServiceState =

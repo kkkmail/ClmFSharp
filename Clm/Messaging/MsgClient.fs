@@ -62,6 +62,7 @@ module Client =
     and MessagingClient(d : MessagingClientData) =
         let logger = d.logger
         let logErr = d.logger.logErr
+        let logInfo = d.logger.logInfo
         let logExn = d.logger.logExn
 
         let onStart s =
@@ -112,13 +113,19 @@ module Client =
                 printfn "MessagingClient.sendMessageImpl, messageId = %A" m.messageId.value
                 try
                     match s.service.sendMessage m with
-                    | Success _ ->
+                    | DeliveredSuccessfully _ ->
                         match m.messageInfo.deliveryType with
                         | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
                         | NonGuaranteedDelivery -> ignore()
                         return Some m
-                    | Failure e ->
-                        logErr (sprintf "MessagingClient.sendMessageImpl: messageId = %A, failure - %s." m.messageId.value e)
+                    | DataVersionMismatch v ->
+                        logErr (sprintf "MessagingClient.sendMessageImpl: messageId = %A, data version mismatch server has: %A but client has: %A." m.messageId.value v messagingDataVersion)
+                        return None
+                    | ServerIsShuttingDown ->
+                        logInfo (sprintf "MessagingClient.sendMessageImpl: messageId = %A - server is shutting down." m.messageId.value)
+                        return None
+                    | ExceptionOccurred e ->
+                        logExn (sprintf "MessagingClient.sendMessageImpl: messageId = %A - exception occurred." m.messageId.value) e
                         return None
                 with
                     | e ->

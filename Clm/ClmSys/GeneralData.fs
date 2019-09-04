@@ -335,7 +335,8 @@ module GeneralData =
             | false -> m
 
 
-    //http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list
+    /// http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list.
+    /// Removes first occurrence from the list when the element matches a given predicate.
     let rec removeFirst pred lst =
         match lst with
         | [] -> []

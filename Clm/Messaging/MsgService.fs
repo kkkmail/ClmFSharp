@@ -43,13 +43,15 @@ module Service =
         | Start
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
-        //| GetMessages of MessagingClientId * AsyncReplyChannel<List<Message>>
         | ConfigureService of MessagingConfigParam
         | GetState of AsyncReplyChannel<MsgServiceState>
         | TryPeekMessage of MessagingClientId * AsyncReplyChannel<Message option>
         | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<bool>
 
 
+    /// TODO kk:20190904 - The messages are added to the beginning of the list.
+    /// Therefore when we need to process them, we have to apply List.rev
+    /// Proper way is to introduce a two list based queue to make it more efficient.
     type MessagingService(d : MessagingServiceData) =
         let updateMessages s m =
             match s.messages.TryFind m.messageInfo.recipient with
@@ -60,6 +62,7 @@ module Service =
         let onStart (s : MessagingServiceState) =
             printfn "MessagingService.onStart"
             s.proxy.loadMessages()
+            |> List.sortByDescending (fun e -> e.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
             |> List.fold (fun acc e -> updateMessages acc e) s
 
 
@@ -89,23 +92,6 @@ module Service =
                 r.Reply (DataVersionMismatch messagingDataVersion)
                 s
 
-        //let onGetMessages (s : MessagingServiceState) n (r : AsyncReplyChannel<List<Message>>) =
-        //    printfn "MessagingService.onGetMessages: ClientId: %A" n
-        //    match s.messages.TryFind n with
-        //    | Some v ->
-        //        r.Reply (List.rev v)
-
-        //        v
-        //        |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-        //        |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
-        //        |> ignore
-
-        //        { s with messages = s.messages.Add(n, []) }
-        //    | None ->
-        //        r.Reply []
-        //        s
-
-
         let onConfigure s x =
             match x with
             | MsgWorkState w -> { s with workState = w }
@@ -122,6 +108,7 @@ module Service =
             let reply =
                 match s.messages.TryFind n with
                 | Some v ->
+                    // Note that we need to apply List.rev to get to the first message.
                     printfn "    MessagingService.onTryPeekMessage: v: %A" v
                     match List.rev v with
                     | [] ->
@@ -164,7 +151,6 @@ module Service =
                             | Start -> return! timed "MessagingService.onStart" onStart s |> loop
                             | GetVersion r -> return! timed "MessagingService.onGetVersion" onGetVersion s r |> loop
                             | SendMessage (m, r) -> return! timed "MessagingService.onSendMessage" onSendMessage s m r |> loop
-                            //| GetMessages (n, r) -> return! timed "MessagingService.onGetMessages" onGetMessages s n r |> loop
                             | ConfigureService x -> return! timed "MessagingService.onConfigure" onConfigure s x |> loop
                             | GetState r -> return! timed "MessagingService.onGetState" onGetState s r |> loop
                             | TryPeekMessage (n, r) -> return! timed "MessagingService.onTryPeekMessage" onTryPeekMessage s n r |> loop
@@ -177,7 +163,6 @@ module Service =
 
         member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
-        //member __.getMessages n = messageLoop.PostAndReply (fun reply -> GetMessages (n, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply
         member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))

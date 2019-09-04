@@ -2,7 +2,6 @@
 
 open System
 open ClmSys.VersionInfo
-open ClmSys.Rop
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.GeneralData
@@ -52,7 +51,6 @@ module Client =
         | Start
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of MessageInfo
-        //| GetMessages of AsyncReplyChannel<List<Message>>
         | TransmitMessages
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
@@ -65,11 +63,28 @@ module Client =
         let logInfo = d.logger.logInfo
         let logExn = d.logger.logExn
 
+
+        /// Outgoing messages are stored with the newest at the head.
+        let sortOutgoing m = m |> List.sortByDescending (fun e -> e.createdOn)
+
+
+        /// Incoming messages are stored with the oldest at the head.
+        let sortIncoming m = m |> List.sortBy (fun e -> e.createdOn)
+
+
         let onStart s =
-            let messages = s.messageClientData.msgClientProxy.loadMessages()
+            let messages =
+                s.messageClientData.msgClientProxy.loadMessages()
+                //|> List.map (fun e -> { e with message = { e.message with dataVersion = messagingDataVersion }} )
+
             let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
             let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
-            { s with outgoingMessages = s.outgoingMessages @ outgoing; incomingMessages = s.incomingMessages @ incoming }
+            {
+                s
+                with
+                    outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
+                    incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
+            }
 
 
         let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
@@ -93,19 +108,7 @@ module Client =
             | GuaranteedDelivery -> s.proxy.saveMessage { messageType = OutgoingMessage; message = message }
             | NonGuaranteedDelivery -> ignore()
 
-            { s with outgoingMessages = message :: s.outgoingMessages }
-
-
-        //let onGetMessages s (r : AsyncReplyChannel<List<Message>>) =
-        //    printfn "MessagingClient.onGetMessages..."
-        //    r.Reply s.incomingMessages
-        //
-        //    s.incomingMessages
-        //    |> List.filter (fun e -> match e.messageInfo.deliveryType with | GuaranteedDelivery -> true | NonGuaranteedDelivery -> false)
-        //    |> List.map (fun e -> s.proxy.deleteMessage e.messageId)
-        //    |> ignore
-        //
-        //    { s with incomingMessages = [] }
+            { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }
 
 
         let sendMessageImpl (s : MessagingClientState) m =
@@ -132,6 +135,7 @@ module Client =
                         s.messageClientData.logger.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
                         return None
             }
+
 
         let tryReceiveSingleMessage (s : MessagingClientState) =
             async {
@@ -186,6 +190,7 @@ module Client =
             async {
                 printfn "MessagingClient.onTransmitMessages..."
                 let! r =
+                    // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
                     s.outgoingMessages
                     |> List.rev
                     |> List.mapAsync (sendMessageImpl s)
@@ -195,8 +200,8 @@ module Client =
                 let! received = receiveMessagesImpl s
                 let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
                 let failed = Set.difference outgoing transmitted
-                let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId)
-                let x = { s with outgoingMessages = remaining; incomingMessages = received @ s.incomingMessages }
+                let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId) |> sortOutgoing
+                let x = { s with outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
                 printfn "MessagingClient.onTransmitMessages: incomingMessages.Length = %A, outgoingMessages.Length = %A" x.incomingMessages.Length x.outgoingMessages.Length
                 return x
             }
@@ -217,7 +222,7 @@ module Client =
             printfn "MessagingClient.onTryRemoveReceivedMessage..."
             s.proxy.deleteMessage m
             r.Reply true
-            { s with incomingMessages = removeFirst (fun e -> e.messageId = m) s.incomingMessages }
+            { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageId <> m) |> sortIncoming }
 
 
         let onTryProcessMessage (w : MessagingClient) x f =
@@ -226,13 +231,13 @@ module Client =
                 match! w.tryPeekReceivedMessage() with
                 | Some m ->
                     try
-                        printfn "    MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A" m.messageId
+                        printfn "    MessagingClient.tryProcessMessageImpl: calling f m, messageId: %A, createdOn: %A" m.messageId m.createdOn
                         let r = f x m
-                        printfn "    MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A" m.messageId
+                        printfn "    MessagingClient.tryProcessMessageImpl: calling tryRemoveReceivedMessage, messageId: %A, createdOn: %A" m.messageId m.createdOn
 
                         match! w.tryRemoveReceivedMessage m.messageId with
-                        | true -> printfn "    MessagingClient.tryProcessMessageImpl: Successfully removed message with id: %A" m.messageId
-                        | false -> printfn "    MessagingClient.tryProcessMessageImpl: !!! ERROR !!! removing message with id: %A" m.messageId
+                        | true -> printfn "    MessagingClient.tryProcessMessageImpl: Successfully removed messageId: %A, createdOn: %A" m.messageId m.createdOn
+                        | false -> printfn "    MessagingClient.tryProcessMessageImpl: !!! ERROR !!! removing messageId: %A, createdOn: %A" m.messageId m.createdOn
 
                         printfn "    MessagingClient.tryProcessMessageImpl - completed."
                         return Some r

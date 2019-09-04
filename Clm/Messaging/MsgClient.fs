@@ -113,7 +113,7 @@ module Client =
 
         let sendMessageImpl (s : MessagingClientState) m =
             async {
-                printfn "MessagingClient.sendMessageImpl, messageId = %A" m.messageId.value
+                printfn "MessagingClient.sendMessageImpl, messageId = %A, createdOn = %A" m.messageId.value m.createdOn
                 try
                     match s.service.sendMessage m with
                     | DeliveredSuccessfully _ ->

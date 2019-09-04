@@ -35,8 +35,10 @@ module ServiceInfo =
 
 
     type WorkState =
+        | NotInitialized
         | Idle
         | CanGenerate
+        | Generating
         | ShuttingDown
 
 

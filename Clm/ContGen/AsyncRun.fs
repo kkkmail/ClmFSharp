@@ -5,7 +5,6 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
-open System.Threading
 
 module AsyncRun =
 
@@ -40,7 +39,7 @@ module AsyncRun =
                 queue = []
                 runLimit = if u then 0 else Environment.ProcessorCount
                 maxQueueLength = 4
-                workState = CanGenerate
+                workState = NotInitialized
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe
                 usePartitioner = u
@@ -56,7 +55,7 @@ module AsyncRun =
 
         member s.isShuttingDown =
             match s.workState with
-            | Idle | CanGenerate -> false
+            | NotInitialized | Idle | CanGenerate | Generating -> false
             | ShuttingDown -> true
 
 
@@ -83,12 +82,6 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
-        let mutable generating = 0
-
-        // Returns true if successfully acquired generating flag.
-        let tryAcquireGenerating() = Interlocked.CompareExchange(&generating, 1, 0) = 0
-        let releaseGenerating() = Interlocked.Exchange(&generating, 0) |> ignore
-
 
         let onStartRun (s : AsyncRunnerState) =
             printfn "AsyncRunner.onStartRun: s = %A" s
@@ -118,8 +111,10 @@ module AsyncRun =
                 else s
 
             match s.workState with
+            | NotInitialized -> s
             | Idle -> w()
             | CanGenerate -> w()
+            | Generating -> w()
             | ShuttingDown -> s
 
 
@@ -129,11 +124,11 @@ module AsyncRun =
 
 
         let onQueueStarting s =
-            let w() = generatorInfo.getQueue() |> onQueueObtained s
+            let w t = generatorInfo.getQueue() |> onQueueObtained { s with workState = t }
 
             match s.workState with
-            | Idle -> w()
-            | CanGenerate -> w()
+            | NotInitialized -> w CanGenerate
+            | Idle | CanGenerate | Generating -> w s.workState
             | ShuttingDown -> s
 
 
@@ -202,31 +197,28 @@ module AsyncRun =
 
         let onGenerationStarted (s : AsyncRunnerState) (a : AsyncRunner) =
             match s.workState with
-            | Idle -> s
+            | NotInitialized | Idle | Generating | ShuttingDown -> s
             | CanGenerate ->
                 let generate() = generatorInfo.generate() |> a.generationCompleted
 
                 if s.queue.Length <= s.maxQueueLength
                 then
                     printfn "AsyncRunner.onGenerationStarted - s.queue.Length = %A. Starting generating..." s.queue.Length
-                    if tryAcquireGenerating() then generate |> toAsync |> Async.Start
-                s
-            | ShuttingDown -> s
+                    generate |> toAsync |> Async.Start
+                    { s with workState = Generating }
+                else s
 
 
         let onGenerationCompleted (s : AsyncRunnerState) r =
-            let w() =
-                releaseGenerating()
+            let w t =
                 let x = s.runningQueue
-                { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
+                { s with workState = t; queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
                 |> timed "AsyncRunner.onGenerationCompleted.onStartRun" onStartRun
 
             match s.workState with
-            | Idle -> w()
-            | CanGenerate -> w()
-            | ShuttingDown ->
-                releaseGenerating()
-                s
+            | Idle | CanGenerate -> w s.workState
+            | Generating -> w CanGenerate
+            | NotInitialized | ShuttingDown -> s
 
 
         let onRunModel (s : AsyncRunnerState) (i : ModelDataId) p =

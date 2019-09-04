@@ -95,7 +95,7 @@ module AsyncRun =
             let updateQueue t (g : AsyncRunnerState) = { g with queue = t }
 
             let start (g : AsyncRunnerState) e =
-                let x = e.run e.processToStartInfo
+                let x = timed "AsyncRunner.onStartRun.start: e.run" e.run e.processToStartInfo
                 printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
 
                 match x with
@@ -113,7 +113,7 @@ module AsyncRun =
                     printfn "AsyncRunner.onStartRun: run = %A, queue = %A" run queue
 
                     run
-                    |> List.fold (fun acc e -> start acc e) s
+                    |> List.fold (fun acc e -> timed "AsyncRunner.onStartRun.start" start acc e) s
                     |> updateQueue queue
                 else s
 
@@ -219,7 +219,7 @@ module AsyncRun =
                 releaseGenerating()
                 let x = s.runningQueue
                 { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
-                |> onStartRun
+                |> timed "AsyncRunner.onGenerationCompleted.onStartRun" onStartRun
 
             match s.workState with
             | Idle -> w()

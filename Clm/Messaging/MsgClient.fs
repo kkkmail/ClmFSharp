@@ -178,7 +178,7 @@ module Client =
         let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
         let notSent = Set.difference outgoing (sent |> Set.ofList)
         let remaining = s.outgoingMessages |> List.filter (fun e -> notSent.Contains e.messageId) |> sortOutgoing
-        let x = { s with outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
+        let x = { s with messagingClientState = MsgCliIdle; outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
         printfn "MessagingClient.onFinishTransmitting: incomingMessages.Length = %A, outgoingMessages.Length = %A" x.incomingMessages.Length x.outgoingMessages.Length
         x
 

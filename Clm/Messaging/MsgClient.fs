@@ -31,6 +31,13 @@ module Client =
         | MsgCliTransmitting
 
 
+    type TransmissionData =
+        {
+            receivedMessages : List<Message>
+            sentMessages : List<Message>
+        }
+
+
     type MessagingClientStateData =
         {
             messagingClientState : MessagingClientState
@@ -49,9 +56,6 @@ module Client =
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
-
-        /// kk:20190726 - Removing d makes F# compiler fail on type MessagingClient<'T> with:
-        /// "This code is not sufficiently generic. The type variable 'T could not be generalized because it would escape its scope.". WTF!!!
         static member defaultValue d =
             {
                 messagingClientState = MsgCliNotStarted
@@ -61,99 +65,12 @@ module Client =
             }
 
 
-    //type MsgCliNotStartedData =
-    //    {
-    //        notStartedStateData : MessagingClientStateData
-    //    }
-
-    //    //member s.proxy = s.notStartedStateData.proxy
-    //    //member s.incomingMessages = s.notStartedStateData.incomingMessages
-    //    //member s.outgoingMessages = s.notStartedStateData.outgoingMessages
-
-
-    //type MsgCliIdleData =
-    //    {
-    //        idleStateData : MessagingClientStateData
-    //    }
-
-    //    //member s.proxy = s.idleStateData.proxy
-    //    //member s.incomingMessages = s.idleStateData.incomingMessages
-    //    //member s.outgoingMessages = s.idleStateData.outgoingMessages
-
-    //    //member s.setIncomingMessages i = { s with idleStateData = { s.idleStateData with incomingMessages = i } }
-
-
-
-    //type MsgCliTransmittingData =
-    //    {
-    //        transmittingStateData : MessagingClientStateData
-    //    }
-
-    //    //member s.proxy = s.transmittingStateData.proxy
-    //    //member s.incomingMessages = s.transmittingStateData.incomingMessages
-    //    //member s.outgoingMessages = s.transmittingStateData.outgoingMessages
-
-
-    //type MsgCliNotStartedData
-    //    with
-    //    member s.toIdleState() =
-    //        {
-    //            idleStateData = s.notStartedStateData
-    //        }
-
-
-    //type MsgCliIdleData
-    //    with
-    //    member s.toTransmittingState() =
-    //        {
-    //            transmittingStateData = s.idleStateData
-    //        }
-
-
-    //type MsgCliTransmittingData
-    //    with
-    //    member s.toIdleState() =
-    //        {
-    //            idleStateData = s.transmittingStateData
-    //        }
-
-
-    //type MessagingClientState =
-    //    | MsgCliNotStarted of MsgCliNotStartedData
-    //    | MsgCliIdle of MsgCliIdleData
-    //    | MsgCliTransmitting of MsgCliTransmittingData
-
-    //    //member s.proxy =
-    //    //    match s with
-    //    //    | MsgCliNotStarted s -> s.proxy
-    //    //    | MsgCliIdle s -> s.proxy
-    //    //    | MsgCliTransmitting s -> s.proxy
-
-
-    //type MsgCliStateTransition =
-    //    | StartMsgCli of (MsgCliNotStartedData -> MsgCliIdleData)
-    //    | StartTransmission of (MsgCliIdleData -> MsgCliTransmittingData)
-    //    | FinishTransmission of (MsgCliTransmittingData -> MsgCliIdleData)
-
-
     /// Outgoing messages are stored with the newest at the head.
     let sortOutgoing m = m |> List.sortByDescending (fun e -> e.createdOn)
 
 
     /// Incoming messages are stored with the oldest at the head.
     let sortIncoming m = m |> List.sortBy (fun e -> e.createdOn)
-
-
-    let onStart s =
-        let messages = s.messageClientData.msgClientProxy.loadMessages()
-        let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
-        let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
-        {
-            s
-            with
-                outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
-                incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
-        }
 
 
     let onSendMessage (s : MessagingClientStateData) m =
@@ -181,29 +98,27 @@ module Client =
 
 
     let sendMessageImpl (s : MessagingClientStateData) m =
-        async {
-            printfn "MessagingClient.sendMessageImpl, messageId = %A, createdOn = %A" m.messageId.value m.createdOn
-            try
-                match s.service.sendMessage m with
-                | DeliveredSuccessfully _ ->
-                    match m.messageInfo.deliveryType with
-                    | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
-                    | NonGuaranteedDelivery -> ignore()
-                    return Some m
-                | DataVersionMismatch v ->
-                    s.logErr (sprintf "MessagingClient.sendMessageImpl: messageId = %A, data version mismatch server has: %A but client has: %A." m.messageId.value v messagingDataVersion)
-                    return None
-                | ServerIsShuttingDown ->
-                    s.logInfo (sprintf "MessagingClient.sendMessageImpl: messageId = %A - server is shutting down." m.messageId.value)
-                    return None
-                | ExceptionOccurred e ->
-                    s.logExn (sprintf "MessagingClient.sendMessageImpl: messageId = %A - exception occurred." m.messageId.value) e
-                    return None
-            with
-                | e ->
-                    s.messageClientData.logger.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
-                    return None
-        }
+        printfn "MessagingClient.sendMessageImpl, messageId = %A, createdOn = %A" m.messageId.value m.createdOn
+        try
+            match s.service.sendMessage m with
+            | DeliveredSuccessfully _ ->
+                match m.messageInfo.deliveryType with
+                | GuaranteedDelivery -> s.proxy.deleteMessage m.messageId
+                | NonGuaranteedDelivery -> ignore()
+                Some m
+            | DataVersionMismatch v ->
+                s.logErr (sprintf "MessagingClient.sendMessageImpl: messageId = %A, data version mismatch server has: %A but client has: %A." m.messageId.value v messagingDataVersion)
+                None
+            | ServerIsShuttingDown ->
+                s.logInfo (sprintf "MessagingClient.sendMessageImpl: messageId = %A - server is shutting down." m.messageId.value)
+                None
+            | ExceptionOccurred e ->
+                s.logExn (sprintf "MessagingClient.sendMessageImpl: messageId = %A - exception occurred." m.messageId.value) e
+                None
+        with
+            | e ->
+                s.messageClientData.logger.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
+                None
 
 
     let tryReceiveSingleMessage (s : MessagingClientStateData) =
@@ -246,65 +161,106 @@ module Client =
                 | true ->
                     return! MessagingClientStateData.maxMessages |> List.mapWhileSomeAsync (fun _ -> tryReceiveSingleMessage s)
                 | false ->
-                    s.messageClientData.logger.logErr (sprintf "MessagingClient.receiveMessagesImpl - different data versions - client: %A, server: %A" messagingDataVersion.value serverVersion.value)
+                    s.logErr (sprintf "MessagingClient.receiveMessagesImpl - different data versions - client: %A, server: %A" messagingDataVersion.value serverVersion.value)
                     return []
             with
                 | e ->
-                    s.messageClientData.logger.logExn "MessagingClient.receiveMessagesImpl: Failed to receive messages: " e
+                    s.logExn "MessagingClient.receiveMessagesImpl: Failed to receive messages: " e
                     return []
             }
 
 
+    let onFinishTransmitting (s : MessagingClientStateData) (t : TransmissionData) =
+        printfn "MessagingClient.onFinishTransmitting..."
+        let received = t.receivedMessages
+        let sent = t.sentMessages |> List.map (fun e -> e.messageId)
+
+        let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
+        let notSent = Set.difference outgoing (sent |> Set.ofList)
+        let remaining = s.outgoingMessages |> List.filter (fun e -> notSent.Contains e.messageId) |> sortOutgoing
+        let x = { s with outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
+        printfn "MessagingClient.onFinishTransmitting: incomingMessages.Length = %A, outgoingMessages.Length = %A" x.incomingMessages.Length x.outgoingMessages.Length
+        x
+
+
+    let onConfigureClient s x =
+        printfn "MessagingClient.onConfigureClient..."
+        s
+
+
+    let onTryPeekReceivedMessage (s : MessagingClientStateData) (r : AsyncReplyChannel<Message option>) =
+        printfn "MessagingClient.onTryPeekReceivedMessage..."
+        s.incomingMessages |> List.tryHead |> r.Reply
+        s
+
+
+    let onTryRemoveReceivedMessage (s : MessagingClientStateData) m (r : AsyncReplyChannel<bool>) =
+        printfn "MessagingClient.onTryRemoveReceivedMessage..."
+        s.proxy.deleteMessage m
+        r.Reply true
+        { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageId <> m) |> sortIncoming }
+
 
     type MessagingClientMessage =
-        | Start
+        | Start of MessagingClient
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of MessageInfo
-        | StartTransmitting
-        | FinishTransmitting
+        | StartTransmitting of MessagingClient
+        | FinishTransmitting of TransmissionData
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
         | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<bool>
 
 
     and MessagingClient(d : MessagingClientData) =
-        let onTransmitMessages s =
-            async {
-                printfn "MessagingClient.onTransmitMessages..."
-                let! r =
-                    // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
-                    s.outgoingMessages
-                    |> List.rev
-                    |> List.mapAsync (sendMessageImpl s)
+        let onStart (s : MessagingClientStateData) (w : MessagingClient) =
+            match s.messagingClientState with
+            | MsgCliNotStarted ->
+                let messages = s.proxy.loadMessages()
+                let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
+                let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
 
-                let result = r |> List.choose id
-                let transmitted = result |> List.map (fun e -> e.messageId) |> Set.ofList
-                let! received = receiveMessagesImpl s
-                let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageId) |> Set.ofList
-                let failed = Set.difference outgoing transmitted
-                let remaining = s.outgoingMessages |> List.filter (fun e -> failed.Contains e.messageId) |> sortOutgoing
-                let x = { s with outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
-                printfn "MessagingClient.onTransmitMessages: incomingMessages.Length = %A, outgoingMessages.Length = %A" x.incomingMessages.Length x.outgoingMessages.Length
-                return x
-            }
+                let eventHandler _ =
+                    printfn "MessagingClient: Transmitting messages..."
+                    w.startTransmitting()
 
+                let h = new EventHandler(EventHandlerInfo.defaultValue eventHandler)
+                do h.start()
 
-        let onConfigureClient s x =
-            printfn "MessagingClient.onConfigureClient..."
-            s
+                {
+                    s
+                    with
+                        messagingClientState = MsgCliIdle
+                        outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
+                        incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
+                }
+            | MsgCliIdle | MsgCliTransmitting-> s
 
 
-        let onTryPeekReceivedMessage (s : MessagingClientState) (r : AsyncReplyChannel<Message option>) =
-            printfn "MessagingClient.onTryPeekReceivedMessage..."
-            s.incomingMessages |> List.tryHead |> r.Reply
-            s
+        let onStartTransmitting s (w : MessagingClient) =
+            match s.messagingClientState with
+            | MsgCliNotStarted -> s
+            | MsgCliIdle ->
+                async {
+                    printfn "MessagingClient.onStartTransmitting..."
+                    let sentMessages =
+                        // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
+                        s.outgoingMessages
+                        |> List.rev
+                        |> List.map (sendMessageImpl s)
+                        |> List.choose id
+                    let! received = receiveMessagesImpl s
 
+                    {
+                        receivedMessages = received
+                        sentMessages = sentMessages
+                    }
+                    |> w.finishTransmitting
+                }
+                |> Async.Start
 
-        let onTryRemoveReceivedMessage (s : MessagingClientState) m (r : AsyncReplyChannel<bool>) =
-            printfn "MessagingClient.onTryRemoveReceivedMessage..."
-            s.proxy.deleteMessage m
-            r.Reply true
-            { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageId <> m) |> sortIncoming }
+                { s with messagingClientState = MsgCliTransmitting }
+            | MsgCliTransmitting -> s
 
 
         let onTryProcessMessage (w : MessagingClient) x f =
@@ -330,42 +286,33 @@ module Client =
                 | None -> return None
             }
 
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! timed "MessagingClient.onStart" onStart s |> loop
+                            | Start w -> return! timed "MessagingClient.onStart" onStart s w |> loop
                             | GetVersion r -> return! timed "MessagingClient.onGetVersion" onGetVersion s r |> loop
                             | SendMessage m -> return! timed "MessagingClient.onSendMessage" onSendMessage s m |> loop
-                            //| GetMessages r -> return! timed "MessagingClient.onGetMessages" onGetMessages s r |> loop
-                            | TransmitMessages ->
-                                let! ns = timed "MessagingClient.onTransmitMessages" onTransmitMessages s
-                                return! ns |> loop
+                            | StartTransmitting w -> return! timed "MessagingClient.onTransmitMessages" onStartTransmitting s w |> loop
+                            | FinishTransmitting d -> return! onFinishTransmitting s d |> loop
                             | ConfigureClient x -> return! timed "MessagingClient.onConfigureClient" onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! timed "MessagingClient.onTryPeekReceivedMessage" onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! timed "MessagingClient.onTryRemoveReceivedMessage (using timed)" onTryRemoveReceivedMessage s m r |> loop
                         }
 
-                onStart (MessagingClientStateData.defaultValue d) |> loop
+                MessagingClientStateData.defaultValue d |> loop
                 )
 
 
-        let eventHandler _ =
-            printfn "MessagingClient: Transmitting messages..."
-            StartTransmitting |> messageLoop.Post
-
-
-        let h = new EventHandler(EventHandlerInfo.defaultValue eventHandler)
-        do h.start()
-
-
+        member this.start() = Start this |> messageLoop.Post
         member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = SendMessage m |> messageLoop.Post
-        //member __.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages reply)
         member __.configureClient x = ConfigureClient x |> messageLoop.Post
-        member __.transmitMessages() = TransmitMessages |> messageLoop.Post
+        member this.startTransmitting() = StartTransmitting this |> messageLoop.Post
+        member __.finishTransmitting d = FinishTransmitting d |> messageLoop.Post
         member private __.tryPeekReceivedMessage() = messageLoop.PostAndAsyncReply (fun reply -> TryPeekReceivedMessage reply)
         member private __.tryRemoveReceivedMessage m = messageLoop.PostAndAsyncReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member this.tryProcessMessage s f = onTryProcessMessage this s f

@@ -73,6 +73,8 @@ module ServiceImplementation =
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
         let messagingClient = MessagingClient i.messagingClientData
+        do messagingClient.start()
+
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
         let logErr = i.logger.logErr

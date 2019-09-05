@@ -75,6 +75,8 @@ module Partitioner =
 
     and PartitionerRunner(p : PartitionerRunnerParam) =
         let messagingClient = MessagingClient p.messagingClientData
+        do messagingClient.start()
+
         let tryLoadModelData = p.partitionerProxy.tryLoadModelData
         let logger = p.logger
         let logErr = logger.logErr

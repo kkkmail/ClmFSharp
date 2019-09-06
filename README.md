@@ -1,5 +1,5 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 3.2.0.x.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 4.0.0.x.
 
 ### Complexity
 The main difficulty in modeling organic chemical systems is a very large number of possible reagents and reactions. For example, the number of peptide chains grows as: `(2 * M) * ((2 * M) ^ (N + 1) – 1) / ((2 * M) - 1)` where `M` is the number of considered amino acids and `N` is the maximum considered peptide length. That value for 20 amino acids and maximum peptide length of 3 gives 65,640 possible peptide chains. If some of the reactions can be catalyzed by some of these peptide chains, then, in theory, we must consider that *all* peptide chains can catalyze *all* such reactions, though most of the coefficients are exact zeros. This requires considering huge sparse matrices of coefficients of various reactions. Subsequently, it is not possible to use such matrices directly and all exact zeros must be removed from all equations. 
@@ -20,7 +20,7 @@ The system uses MS SQL as a database to store various parameters and generates H
 
 ## Build order
 The system uses F# type providers, which means that the database must be created first. The compile time connection string (as well as the run time connection string) are loaded from `App.config`. See `DbData.DatabaseTypes` fro details. Because the database is primitive (it contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not seem justified. So, the procedure is as follows:
-1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm3200`) / adjust it as necessary.
+1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm4000`) / adjust it as necessary.
 2.	Create MSSQL database with the name from step #1.
 3.	Run `-build.bat` file from `SQL` folder. It will produce a file `all.sql` in the folder `!All`. If no changes to tables were made, then the file will come out the same as in repository.
 4.	Load that file (`all.sql`) and run it in the database created on step #2. The script is fully reentrable, which means that it can be run many times without any side effects.
@@ -40,8 +40,14 @@ Folder `Commands` contain batch files, which allow creating some groups of tasks
 ## Executables and Command Line Parameters
 The project `ContGenService` is the primary one and it contains all executables needed for the operation of the system. The system uses `Argu` as a command line parser, so running any of the executables (except `ClmDefaults.exe`, which currently does not have any command line parameters) with `help` command will provide up to date command line structure.
 
-There are currently four executables:
+The following main executables are used by the system:
 1.	`ClmDefaults.exe` stores / updates current default sets into the database. If any of the default sets are modified or new ones are added in F# code, then this command must be run first. Currently, there are no command line parameters for this command.
 2.	`ContGenService.exe`. This is the primary service. It can be run as a Windows service or as a regular executable. There are some different benefits running it as a Windows service or as a simple executable. Running it as an executable shows the progress of running models on the screen. This is very convenient when testing models and/or adjusting parameters. However, terminating `ContGenService.exe` process also terminates all child processes and sometimes this is not desirable. Running it as a Windows service allows stopping / uninstalling the service without terminating any of the spawned model solvers (`SolverRunner.exe`). This allows replacing some of the system components without restarting the running models. Once the updated core is started, all running models will reattach to it if IP address / port of the service has not changed. However, if progress report is needed, then a separate monitor is required. This is provided by `ContGenAdm.exe`.
 3.	When `ContGenService.exe` is running we need the functionality to control and/or monitor it. This is performed by `ContGenAdm.exe`. It can be used in both running modes of `ContGenService.exe` (Windows service / standard executable). It is also used to add tasks / generate mode code for tests / run specific model “by hands”.
-4.	Finally, `SolverRunner.exe` is the ultimate low-lever F# wrapper around ALGLIB vector ODE solver. It solves a given model with given parameters (`y0` and `tEnd`), This is the process that is spawned by `ContGenService.exe` / `ContGen.exe` when a model needs to be run. Running `SolverRunner.exe` “by hands” gives a little bit extra control and allows running a specific model directly. This becomes important when we want to re-run a specific model with some new values of `y0` / `tEnd`, which have not been covered in the relevant `ClmTask`. Such manually run models will attach to `ContGenService.exe` and notify it of the progress.
+4.	`SolverRunner.exe` is a low-lever F# wrapper around ALGLIB vector ODE solver. It solves a given model with given parameters (`y0` and `tEnd`), This is the process that is spawned by `ContGenService.exe` / `ContGen.exe` when a model needs to be run. Running `SolverRunner.exe` “by hands” gives a little bit extra control and allows running a specific model directly. This becomes important when we want to re-run a specific model with some new values of `y0` / `tEnd`, which have not been covered in the relevant `ClmTask`. Such manually run models will attach to `ContGenService.exe` and notify it of the progress.
+
+Starting from version 4.0.0.0 the system supports running models on a distributed computing cluster. The following additional executable are used in a cluster mode of operation:
+1.	MessagingService.exe
+2.	MessagingAdm.exe
+3.	WorkerNodeService.exe
+4.	WorkerNodeAdm.exe

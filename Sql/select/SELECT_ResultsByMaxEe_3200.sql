@@ -76,6 +76,6 @@ select
 	isnull(cast(dbo.getCatSynthScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
 	isnull(cast(dbo.getCatDestrSim(d.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
 	isnull(cast(dbo.getCatDestrScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity,
-	d.remainingRepetitions * d.runTime as remainingRunTime
+	cast(d.remainingRepetitions * d.runTime as decimal(10, 2)) as remainingRunTime
 from d left outer join b on d.defaultSetIndex = b.defaultSetIndex
 order by d.numberOfAminoAcids, d.defaultSetIndex

@@ -16,10 +16,11 @@ set @maxLastEe = 0.0001
 
 ; with
 w as
-	(
+(
 	select 
 		r.modelDataId, 
 		t.numberOfAminoAcids,
+		case when statusId = 0 then t.remainingRepetitions else 0 end as remainingRepetitions,
 		(select top 1 t.clmDefaultValueId from ClmTask t inner join ModelData on t.clmTaskId = m.clmTaskId where m.modelDataId = r.modelDataId) as defaultSetIndex,
 		case 
 			--when r.maxEe > @maxEe and r.maxAverageEe > @maxAverageEe then 1 
@@ -36,9 +37,10 @@ u as
 		numberOfAminoAcids,
 		defaultSetIndex,
 		max(isSymmetryBroken) as isSymmetryBroken,
-		avg(runTime) as runTime
+		avg(runTime) as runTime,
+		remainingRepetitions
 	from w
-	group by modelDataId, numberOfAminoAcids, defaultSetIndex
+	group by modelDataId, numberOfAminoAcids, defaultSetIndex, remainingRepetitions
 ),
 d as
 (
@@ -46,19 +48,21 @@ d as
 		numberOfAminoAcids,
 		defaultSetIndex,
 		count(*) as modelCount,
-		avg(runTime) as runTime
+		avg(runTime) as runTime,
+		remainingRepetitions
 	from u
-	group by numberOfAminoAcids, defaultSetIndex
+	group by numberOfAminoAcids, defaultSetIndex, remainingRepetitions
 ),
 b as
 (
 	select 
 		numberOfAminoAcids,
 		defaultSetIndex,
-		count(*) as symmBrokenCount
+		count(*) as symmBrokenCount,
+		remainingRepetitions
 	from u
 	where isSymmetryBroken = 1
-	group by numberOfAminoAcids, defaultSetIndex
+	group by numberOfAminoAcids, defaultSetIndex, remainingRepetitions
 )
 select 
 	d.numberOfAminoAcids,
@@ -71,8 +75,7 @@ select
 	isnull(cast(dbo.getCatSynthSim(d.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
 	isnull(cast(dbo.getCatSynthScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
 	isnull(cast(dbo.getCatDestrSim(d.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
-	isnull(cast(dbo.getCatDestrScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity
-
+	isnull(cast(dbo.getCatDestrScarcity(d.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity,
+	d.remainingRepetitions * d.runTime as remainingRunTime
 from d left outer join b on d.defaultSetIndex = b.defaultSetIndex
 order by d.numberOfAminoAcids, d.defaultSetIndex
-

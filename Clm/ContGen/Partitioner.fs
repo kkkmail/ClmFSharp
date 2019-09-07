@@ -73,7 +73,7 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
-    and PartitionerRunner(p : PartitionerRunnerParam) =
+    type PartitionerRunner(p : PartitionerRunnerParam) =
         let messagingClient = MessagingClient p.messagingClientData
         do messagingClient.start()
 

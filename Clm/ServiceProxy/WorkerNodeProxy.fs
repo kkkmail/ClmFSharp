@@ -1,7 +1,6 @@
 ﻿namespace ServiceProxy
 
 open ClmSys.Retry
-open ContGenServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
 open ServiceProxy.Runner
 open ClmSys.GeneralData
@@ -25,17 +24,6 @@ module WorkerNodeProxy =
                 //storageType = RemoteStorage
                 dummy = 0
             }
-
-    //type WorkerNodeProxyInfo =
-    //    {
-    //        dummy : int
-    //    }
-
-    //    static member defaultValue =
-    //        {
-    //            //workerNodeConnectionString = clmConnectionString
-    //            dummy = 0
-    //        }
 
 
     type WorkerNodeProxy(i : WorkerNodeProxyInfo) =

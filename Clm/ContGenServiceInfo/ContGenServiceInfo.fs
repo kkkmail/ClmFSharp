@@ -124,11 +124,11 @@ module ServiceInfo =
 
         override r.ToString() =
             let (ModelDataId modelDataId) = r.runningModelId
-            let s = formatTimeSpan (DateTime.Now - r.started)
+            let s = (DateTime.Now - r.started).ToString("d, hh:mm")
 
             let estCompl =
                 match r.progress.estimateEndTime r.started with
-                | Some e -> " ETC: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ";"
+                | Some e -> " ETC: " + e.ToString("yyyy-MM-dd, HH:mm") + ";"
                 | None -> EmptyString
 
             sprintf "{ T: %s;%s MDID: %A; PID: %s; %A }" s estCompl modelDataId (r.runningProcessId.ToString()) r.progress

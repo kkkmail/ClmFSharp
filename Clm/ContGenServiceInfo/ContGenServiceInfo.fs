@@ -124,7 +124,7 @@ module ServiceInfo =
 
         override r.ToString() =
             let (ModelDataId modelDataId) = r.runningModelId
-            let s = (DateTime.Now - r.started).ToString("d, hh:mm")
+            let s = (DateTime.Now - r.started).ToString("d\,\ hh\:mm")
 
             let estCompl =
                 match r.progress.estimateEndTime r.started with
@@ -261,9 +261,9 @@ module ServiceInfo =
         if Interlocked.Increment(&callCount) = 0
         then
             try
-                printfn "Getting state at %A ..." DateTime.Now
+                printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd, HH:mm:ss"))
                 let state = service.getState()
-                printfn "...state at %A =\n%s\n\n" DateTime.Now (state.ToString())
+                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd, HH:mm:ss")) (state.ToString())
                 if state.queue.Length = 0 then service.startGenerate()
             with
             | e -> printfn "Exception occurred: %A" e

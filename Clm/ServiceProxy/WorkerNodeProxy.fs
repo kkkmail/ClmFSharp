@@ -39,6 +39,14 @@ module WorkerNodeProxy =
                 |> List.choose id
             | None -> []
 
+        let loadAllResultDataImpl () =
+            match tryFun (getResultDataIdsFs name) with
+            | Some i ->
+                i
+                |> List.map (fun e -> tryFun (fun _ -> tryLoadResultDataFs name e) |> Option.bind id)
+                |> List.choose id
+            | None -> []
+
         member __.saveWorkerNodeRunModelData m = tryFun (fun _ -> saveWorkerNodeRunModelDataFs name m) |> ignore
         member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs name m) |> Option.bind id
         member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs name m)
@@ -52,6 +60,7 @@ module WorkerNodeProxy =
 
         member __.tryLoadResultData r = tryFun (fun _ -> tryLoadResultDataFs solverRunnerName r) |> Option.bind id
         member __.tryDeleteResultData r = tryFun (fun _ -> tryDeleteResultDataFs solverRunnerName r)
+        member __.loadAllResultData() = loadAllResultDataImpl()
 
         member __.tryLoadChartInfo r = tryFun (fun _ -> tryLoadChartInfoFs solverRunnerName r) |> Option.bind id
         member __.tryDeleteChartInfo r = tryFun (fun _ -> tryDeleteChartInfoFs solverRunnerName r)

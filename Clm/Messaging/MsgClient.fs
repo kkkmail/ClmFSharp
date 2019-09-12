@@ -117,7 +117,7 @@ module Client =
                 None
         with
             | e ->
-                s.messageClientData.logger.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
+                s.logExn (sprintf "MessagingClient.sendMessageImpl:Failed to send message: %A" m.messageId) e
                 None
 
 
@@ -125,28 +125,34 @@ module Client =
         async {
             printfn "MessagingClient.tryReceiveSingleMessage..."
 
-            match s.service.tryPeekMessage s.msgClientId with
-            | Some m ->
-                printfn "MessagingClient.tryReceiveSingleMessage: Received message with id: %A" m.messageId
-                match m.messageInfo.deliveryType with
-                | GuaranteedDelivery ->
-                    {
-                        message = m
-                        messageType = IncomingMessage
-                    }
-                    |> s.proxy.saveMessage
-                | NonGuaranteedDelivery -> ignore()
+            try
+                match s.service.tryPeekMessage s.msgClientId with
+                | Some m ->
+                    printfn "MessagingClient.tryReceiveSingleMessage: Received message with id: %A" m.messageId
+                    match m.messageInfo.deliveryType with
+                    | GuaranteedDelivery ->
+                        {
+                            message = m
+                            messageType = IncomingMessage
+                        }
+                        |> s.proxy.saveMessage
+                    | NonGuaranteedDelivery -> ignore()
 
-                match s.service.tryDeleteFromServer s.msgClientId m.messageId with
-                | true ->
-                    printfn "MessagingClient.tryReceiveSingleMessage: Deleted message from server. Message id: %A" m.messageId
-                    ignore()
-                | false ->
-                    printfn "MessagingClient.tryReceiveSingleMessage: Cannot delete message from server. Message id: %A" m.messageId
-                    s.logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
-                return Some m
-            | None ->
-                printfn "MessagingClient.tryReceiveSingleMessage: Did not receive a message."
+                    match s.service.tryDeleteFromServer s.msgClientId m.messageId with
+                    | true ->
+                        printfn "MessagingClient.tryReceiveSingleMessage: Deleted message from server. Message id: %A" m.messageId
+                        ignore()
+                    | false ->
+                        printfn "MessagingClient.tryReceiveSingleMessage: Cannot delete message from server. Message id: %A" m.messageId
+                        s.logErr (sprintf "tryReceiveSingleMessage: Unable to delete a message from server for client: %A, message id: %A." s.msgClientId m.messageId)
+                    return Some m
+                | None ->
+                    printfn "MessagingClient.tryReceiveSingleMessage: Did not receive a message."
+                    return None
+            with
+            | e ->
+                printfn "MessagingClient.tryReceiveSingleMessage: exception occurred: %A" e
+                s.logExn "MessagingClient.tryReceiveSingleMessage" e
                 return None
         }
 

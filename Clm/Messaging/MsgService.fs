@@ -49,9 +49,6 @@ module Service =
         | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<bool>
 
 
-    /// TODO kk:20190904 - The messages are added to the beginning of the list.
-    /// Therefore when we need to process them, we have to apply List.rev
-    /// Proper way is to introduce a two list based queue to make it more efficient.
     type MessagingService(d : MessagingServiceData) =
         let updateMessages s m =
             match s.messages.TryFind m.messageInfo.recipient with

@@ -6,6 +6,7 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
+open System.Diagnostics
 
 module GeneralData =
 
@@ -203,6 +204,7 @@ module GeneralData =
         | RemoteProcessId of Guid
 
         member this.value = let (RemoteProcessId v) = this in v
+        member this.toResultDataId() = this.value |> ResultDataId
 
 
     type RunQueueId =
@@ -523,3 +525,17 @@ module GeneralData =
         r
 
     let timed name f a = timedImpl logger name (fun () -> f a)
+
+
+    let tryGetProcessById (LocalProcessId v) =
+        try
+            Process.GetProcessById v |> Some
+        with
+        | _ -> None
+
+
+    let tryGetProcessName (p : Process) =
+        try
+            p.ProcessName |> Some
+        with
+        | _ -> None

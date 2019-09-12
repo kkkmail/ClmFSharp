@@ -47,6 +47,7 @@ module ServiceInfo =
     type WorkerNodeRunModelData =
         {
             remoteProcessId : RemoteProcessId
+            localProcessId : LocalProcessId option
             modelDataId : ModelDataId
             taskParam : ModelCommandLineTaskParam
             runQueueId : RunQueueId

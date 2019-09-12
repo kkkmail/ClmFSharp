@@ -181,6 +181,7 @@ module Partitioner =
                         (
                             {
                                 remoteProcessId = e.remoteProcessId
+                                localProcessId = None
                                 modelDataId = m.modelDataId
                                 taskParam = e.runModelParam.commandLineParam.taskParam
                                 runQueueId = e.runModelParam.callBackInfo.runQueueId

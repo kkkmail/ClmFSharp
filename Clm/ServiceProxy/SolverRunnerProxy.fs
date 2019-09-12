@@ -3,10 +3,8 @@
 open ClmSys.Retry
 open ClmSys.GeneralData
 open ClmSys.Registry
-open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
-open Clm.CalculationData
 open NoSql.FileSystemTypes
 
 module SolverRunner =

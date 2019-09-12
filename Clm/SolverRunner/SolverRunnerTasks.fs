@@ -28,17 +28,12 @@ module SolverRunnerTasks =
 
 
     let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
-        let notify() =
-            try
-                printfn "Notifying of progress: %A." p
-                r.updateLocalProgress p
-                printfn "...completed."
-            with
-                | e ->
-                    printfn "Exception occurred: %A, progress: %A." e.Message p
-
-        //notify |> toAsync |> Async.Start
-        notify()
+        try
+            printfn "Notifying of progress: %A." p
+            r.updateLocalProgress p
+            printfn "...completed."
+        with
+        | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
 
 
     type RunProgress =
@@ -267,7 +262,6 @@ module SolverRunnerTasks =
 
                 printfn "Saving."
                 let (r, chartData) = getResultAndChartData d runSolverData
-                r |> p.saveResultData |> ignore
 
                 {
                     runSolverData = runSolverData
@@ -278,6 +272,7 @@ module SolverRunnerTasks =
                 }
                 |> plotAllResults
 
+                r |> p.saveResultData |> ignore
                 printfn "Completed."
                 runSolverData.onCompleted()
 

@@ -78,6 +78,7 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
         let logErr = i.logger.logErr
+        let proxy = i.workerNodeProxy
 
 
         let getSolverRunnerAccessInfo ee =
@@ -90,7 +91,6 @@ module ServiceImplementation =
 
         let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
             printfn "WorkerNodeRunner.onRunModel: d = %A." d
-            i.workerNodeProxy.saveWorkerNodeRunModelData d
 
             let a =
                 {
@@ -108,17 +108,101 @@ module ServiceImplementation =
                         }
                 }
 
-            match i.workerNodeProxy.runModel a with
+            match proxy.runModel a with
             | Some result ->
                 printfn "WorkerNodeRunner.onRunModel: Number of running models = %A." (s.runningWorkers.Count + 1)
+                proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId }
                 { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, d.remoteProcessId) }
-            | None -> s
+            | None ->
+                proxy.saveWorkerNodeRunModelData { d with localProcessId = None }
+                s
+
+
+        let onSaveResult (d : ResultDataId) =
+            printfn "WorkerNodeRunner.onSaveResult: d = %A." d
+            match proxy.tryLoadResultData d with
+            | Some r ->
+                {
+                    partitionerRecipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = r |> SaveResultPrtMsg
+                }.messageInfo
+                |> sendMessage
+
+                proxy.tryDeleteResultData d |> ignore
+            | None -> logErr (sprintf "Unable to find result with resultDataId: %A" d)
+
+
+        let onSaveCharts (d : ResultDataId) =
+            printfn "WorkerNodeRunner.onSaveCharts: d = %A." d
+            match proxy.tryLoadChartInfo d with
+            | Some c ->
+                {
+                    partitionerRecipient = partitioner
+                    deliveryType = GuaranteedDelivery
+                    messageData = c |> SaveChartsPrtMsg
+                        //{
+                        //    c with charts = c.charts |> List.map (fun e -> { e with chartName = Path.GetFileNameWithoutExtension e.chartName })
+                        //} |> SaveChartsPrtMsg
+                }.messageInfo
+                |> sendMessage
+
+                try
+                    c.charts
+                    |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
+                    |> ignore
+                with
+                    | ex ->
+                        i.logger.logExn "onSaveCharts - Exception occurred:" ex
+
+                proxy.tryDeleteChartInfo d |> ignore
+            | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)
 
 
         let onStart s =
             printfn "WorkerNodeRunner.onStart"
-            i.workerNodeProxy.loadAllWorkerNodeRunModelData()
-            |> List.fold (fun acc e -> onRunModel acc e) s
+            let m = proxy.loadAllWorkerNodeRunModelData()
+            let r = proxy.loadAllResultData()
+
+            let runIfNoResult g w =
+                let d = w.remoteProcessId.toResultDataId()
+
+                match r |> List.tryFind (fun e -> e.resultDataId = d) with
+                | Some _ ->
+                    {
+                        partitionerRecipient = partitioner
+                        deliveryType = GuaranteedDelivery
+                        messageData =
+                            {
+                                updatedRemoteProcessId = w.remoteProcessId
+                                updateModelId = w.modelDataId
+                                progress = Completed
+                                resultDataId = d
+                            }
+                            |> UpdateProgressPrtMsg
+                    }.messageInfo
+                    |> sendMessage
+
+                    proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
+                    proxy.tryDeleteModelData w.modelDataId |> ignore
+                    onSaveResult d
+                    onSaveCharts d
+                    g
+                | None -> onRunModel g w
+
+            let tryRunModel g w =
+                match w.localProcessId with
+                | Some v ->
+                    match tryGetProcessById v with
+                    | Some p ->
+                        match tryGetProcessName p with
+                        | Some n when n = SolverRunnerName ->
+                            { g with runningWorkers = s.runningWorkers.Add(v, w.remoteProcessId) }
+                        | _ -> runIfNoResult g w
+                    | None -> runIfNoResult g w
+                | None -> onRunModel g w
+
+            m |> List.fold (fun acc e -> tryRunModel acc e) s
 
 
         let onRegister s =
@@ -145,47 +229,6 @@ module ServiceImplementation =
             s
 
 
-        let onSaveResult (d : ResultDataId) =
-            printfn "WorkerNodeRunner.onSaveResult: d = %A." d
-            match i.workerNodeProxy.tryLoadResultData d with
-            | Some r ->
-                {
-                    partitionerRecipient = partitioner
-                    deliveryType = GuaranteedDelivery
-                    messageData = r |> SaveResultPrtMsg
-                }.messageInfo
-                |> sendMessage
-
-                i.workerNodeProxy.tryDeleteResultData d |> ignore
-            | None -> logErr (sprintf "Unable to find result with resultDataId: %A" d)
-
-
-        let onSaveCharts (d : ResultDataId) =
-            printfn "WorkerNodeRunner.onSaveCharts: d = %A." d
-            match i.workerNodeProxy.tryLoadChartInfo d with
-            | Some c ->
-                {
-                    partitionerRecipient = partitioner
-                    deliveryType = GuaranteedDelivery
-                    messageData = c |> SaveChartsPrtMsg
-                        //{
-                        //    c with charts = c.charts |> List.map (fun e -> { e with chartName = Path.GetFileNameWithoutExtension e.chartName })
-                        //} |> SaveChartsPrtMsg
-                }.messageInfo
-                |> sendMessage
-
-                try
-                    c.charts
-                    |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
-                    |> ignore
-                with
-                    | ex ->
-                        i.logger.logExn "onSaveCharts - Exception occurred:" ex
-
-                i.workerNodeProxy.tryDeleteChartInfo d |> ignore
-            | None -> logErr (sprintf "Unable to find charts with resultDataId: %A" d)
-
-
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
             let updateProgress t c =
@@ -208,8 +251,8 @@ module ServiceImplementation =
                     if c
                     then
                         printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
-                        i.workerNodeProxy.tryDeleteWorkerNodeRunModelData r |> ignore
-                        i.workerNodeProxy.tryDeleteModelData p.updateModelId |> ignore
+                        proxy.tryDeleteWorkerNodeRunModelData r |> ignore
+                        proxy.tryDeleteModelData p.updateModelId |> ignore
                         onSaveResult p.resultDataId
                         onSaveCharts p.resultDataId
                 | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
@@ -241,10 +284,10 @@ module ServiceImplementation =
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg (d, m) ->
-                    i.workerNodeProxy.saveModelData m
+                    proxy.saveModelData m
+
                     match tryFindRunningModel s d with
-                    | None ->
-                        onRunModel s d
+                    | None -> onRunModel s d
                     | Some r ->
                         printfn "WorkerNodeRunner.onProcessMessage: !!! ERROR !!! - found running model for remoteProcessId = %A" r.value
                         s

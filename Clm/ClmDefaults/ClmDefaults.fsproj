@@ -67,79 +67,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="DefaultValuesExt.fs" />
     <Compile Include="DefaultValues\000\Defaults_000_000.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_001.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_002.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_003.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_004.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_005.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_006.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_007.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_008.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_009.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_010.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_011.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_012.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_013.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_014.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_015.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_016.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_017.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_018.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_019.fs" />
-    <Compile Include="DefaultValues\000\Defaults_000_020.fs" />
-    <Compile Include="DefaultValues\001\Defaults_001_000.fs" />
-    <Compile Include="DefaultValues\001\Defaults_001_001.fs" />
-    <Compile Include="DefaultValues\001\Defaults_001_002.fs" />
-    <Compile Include="DefaultValues\001\Defaults_001_003.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_000.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_001.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_002.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_003.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_004.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_005.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_006.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_007.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_008.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_009.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_010.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_011.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_012.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_013.fs" />
-    <Compile Include="DefaultValues\002\Defaults_002_014.fs" />
-    <Compile Include="DefaultValues\003\Defaults_003_000.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_000.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_001.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_002.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_003.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_004.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_005.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_006.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_007.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_008.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_009.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_010.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_011.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_012.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_013.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_014.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_015.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_016.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_017.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_018.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_019.fs" />
-    <Compile Include="DefaultValues\004\Defaults_004_020.fs" />
-    <Compile Include="DefaultValues\005\Defaults_005_000.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_000.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_001.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_002.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_003.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_004.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_005.fs" />
-    <Compile Include="DefaultValues\006\Defaults_006_006.fs" />
-    <Compile Include="DefaultValues\008\Defaults_008_000.fs" />
-    <Compile Include="DefaultValues\008\Defaults_008_001.fs" />
-    <Compile Include="DefaultValues\008\Defaults_008_002.fs" />
-    <Compile Include="DefaultValues\008\Defaults_008_003.fs" />
     <Compile Include="DefaultValues\999\Defaults_999_000.fs" />
     <Compile Include="DefaultValues\Defaults_007.fs" />
     <Compile Include="DefaultValues\Defaults_009.fs" />
@@ -156,13 +83,16 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">
-      <HintPath>..\packages\Argu.5.4.0\lib\net45\Argu.dll</HintPath>
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
-      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

@@ -34,7 +34,7 @@ module Retry =
                     try
                         f retryParams
                     with
-                        | e -> 
+                        | e ->
                             Thread.Sleep(retryParams.waitBetweenRetries)
                             execWithRetry f (i + 1) e
             execWithRetry f 0 (Exception())
@@ -42,7 +42,7 @@ module Retry =
 
 
     type RetryBuilder() =
-        member this.Bind (p : RetryMonad<'a>, f : 'a -> RetryMonad<'b>)  =
+        member this.Bind (p : RetryMonad<'a>, f : 'a -> RetryMonad<'b>) =
             rm (fun retryParams -> 
                 let value = retryFunc p retryParams
                 f value retryParams
@@ -53,10 +53,11 @@ module Retry =
         member this.Delay(f : unit -> RetryMonad<'a>) = f ()
 
 
+    /// Builds a retry workflow using computation expression syntax.
     let retry = RetryBuilder()
 
 
-    let tryDbFun logger connectionString f =
+    let tryFun logger f =
         try
             let p = Process.GetCurrentProcess()
             let c = p.PriorityClass
@@ -66,7 +67,7 @@ module Retry =
                     p.PriorityClass <- ProcessPriorityClass.High
 
                     (retry {
-                        let! b = rm (fun _ -> f connectionString)
+                        let! b = rm (fun _ -> f())
                         return Some b
                     }) defaultRetryParams
                 with
@@ -79,3 +80,6 @@ module Retry =
             | e ->
                 logger e
                 None
+
+
+    let tryDbFun logger connectionString f = tryFun logger (fun () -> f connectionString)

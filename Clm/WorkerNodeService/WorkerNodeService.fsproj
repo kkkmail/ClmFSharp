@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>c43cb3b5-ae9c-46d5-abda-1b85b24ae34c</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WorkerNodeService</RootNamespace>
+    <AssemblyName>WorkerNodeService</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <UseStandardResourceNames>true</UseStandardResourceNames>
+    <WarningsAsErrors>3239;$(WarningsAsErrors)</WarningsAsErrors>
+    <Name>WorkerNodeService</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(FSharpTargetsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets') ">
+    <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+    <StartArguments>r</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <Import Project="$(FSharpTargetsPath)" />
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="WorkerNodeCommandLine.fs" />
+    <Compile Include="WorkerNodeImplementation.fs" />
+    <Compile Include="WorkerNodeWindowsService.fs" />
+    <Compile Include="WorkerNodeInstaller.fs" />
+    <Compile Include="WorkerNodeServiceTasks.fs" />
+    <Compile Include="WorkerNodeProgram.fs" />
+    <None Include="App.config" />
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Core">
+      <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.ValueTuple">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
+      <Name>ClmSys</Name>
+      <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
+      <Name>MessagingServiceInfo</Name>
+      <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Messaging\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
+      <Name>ProgressNotifierClient</Name>
+      <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj">
+      <Name>SolverRunner</Name>
+      <Project>{f0d4b13d-57ab-4ebf-ae90-4f758cf5741b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj">
+      <Name>WorkerNodeServiceInfo</Name>
+      <Project>{d9222f72-d01c-4db6-bc76-2c9ccf9b1f31}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\WorkNodeAdm\WorkNodeAdm.fsproj">
+      <Name>WorkNodeAdm</Name>
+      <Project>{706d24fa-b61a-4577-a975-2580ac6fcd14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

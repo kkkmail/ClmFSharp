@@ -49,6 +49,7 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
     <PlatformTarget>x64</PlatformTarget>
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>
@@ -65,23 +66,45 @@
   <ItemGroup>
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Logging.fs" />
+    <Compile Include="Rop.fs" />
     <Compile Include="GeneralData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
+    <Compile Include="MessagingData.fs" />
+    <Compile Include="WorkerNodeData.fs" />
+    <Compile Include="PartitionerData.fs" />
+    <Compile Include="Fake.fs" />
     <Compile Include="Retry.fs" />
+    <Compile Include="Registry.fs" />
+    <Compile Include="TimerEvents.fs" />
+    <Compile Include="ServiceInstaller.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Argu">
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
+    </Reference>
+    <Reference Include="Fake.Windows.Registry">
+      <HintPath>..\packages\Fake.Windows.Registry.5.16.1\lib\net462\Fake.Windows.Registry.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

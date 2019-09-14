@@ -4,7 +4,7 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
-open ClmSys.Retry
+open ClmSys.GeneralData
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
@@ -13,31 +13,27 @@ open OdeSolver.Solver
 open Analytics.ChartExt
 open Analytics.Visualization
 open Argu
-open DbData.Configuration
-open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open ProgressNotifierClient.ServiceResponse
 open System.Diagnostics
 open Clm.Distributions
 open Clm.CalculationData
+open ServiceProxy.SolverRunner
+open WorkerNodeServiceInfo.ServiceInfo
+open System.IO
 
 module SolverRunnerTasks =
 
     let logError e = printfn "Error: %A." e
-    let tryDbFun f = tryDbFun logError clmConnectionString f
 
 
-    let progressNotifier (r : ResponseHandler) (p : ProgressUpdateInfo) =
-        let notify() =
-            try
-                printfn "Notifying of progress: %A." p
-                r.progressNotifierService.updateProgress p
-                printfn "...completed."
-            with
-                | e ->
-                    printfn "Exception occurred: %A, progress: %A." e.Message p
-
-        notify |> toAsync |> Async.Start
+    let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
+        try
+            printfn "Notifying of progress: %A." p
+            r.updateLocalProgress p
+            printfn "...completed."
+        with
+        | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
 
 
     type RunProgress =
@@ -45,7 +41,7 @@ module SolverRunnerTasks =
         | Completed
 
 
-    let notify m svc p =
+    let notify m svc p r =
         let t =
             match p with
             | Running d -> TaskProgress.create d
@@ -53,26 +49,59 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedProcessId = Process.GetCurrentProcess().Id
+                updatedLocalProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
                 updateModelId = m
                 progress = t
+                resultDataId = r
             }
+
+
+    let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
+        match results.TryGetResult Remote with
+        | None -> SolverRunnerProxyInfo.defaultValue
+        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
 
 
     let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
-            Some { serviceAddress = ServiceAddress address; servicePort = ServicePort port; minUsefulEe = ee }
+
+            match results.TryGetResult Remote with
+            | None ->
+                {
+                    contGenServiceAccessInfo =
+                        {
+                            serviceAddress = ServiceAddress address
+                            servicePort = ServicePort port
+                            serviceName = ContGenServiceName
+                        }
+
+                    minUsefulEe = ee
+                }
+                |> ContGenSvcAccessInfo
+            | Some _ ->
+                {
+                    wrkNodeServiceAccessInfo =
+                        {
+                            serviceAddress = ServiceAddress address
+                            servicePort = ServicePort port
+                            serviceName = WorkerNodeServiceName
+                        }
+
+                    minUsefulEe = ee
+                }
+                |> WorkerNodeSvcAccessInfo
+            |> Some
         | _ -> None
 
 
     let getResponseHandler i = ResponseHandler.tryCreate i
 
 
-    let getPlotDataInfo (ClmDefaultValueId df) =
+    let getPlotDataInfo (df : ClmDefaultValueId) =
         let d = PlotDataInfo.defaultValue
-        { d with resultInfo = { d.resultInfo with resultLocation = d.resultInfo.resultLocation + @"\" + df.ToString().PadLeft(6, '0') } }
+        { d with resultInfo = { d.resultInfo with resultLocation = Path.Combine(d.resultInfo.resultLocation, df.ToString()) } }
 
 
     type AsyncChartDataUpdater = AsyncUpdater<ChartInitData, ChartSliceData, ChartData>
@@ -92,7 +121,7 @@ module SolverRunnerTasks =
             updateChart : double -> double[] -> unit
         }
 
-        static member create (md : ModelData) i a y0 tEnd =
+        static member create (md : ModelData) i a y0 tEnd d =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -121,13 +150,13 @@ module SolverRunnerTasks =
 
                 onCompleted =
                     match n with
-                    | Some svc -> fun () -> notify modelDataId svc Completed
+                    | Some svc -> fun () -> notify modelDataId svc Completed d
                     | None -> ignore
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r)) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r) d) |> Some)
             }
 
 
@@ -155,12 +184,12 @@ module SolverRunnerTasks =
         }
 
 
-    let getResultAndChartData (d : RunSolverData) =
+    let getResultAndChartData rdi (d : RunSolverData) =
         let chartData = d.chartDataUpdater.getContent()
 
         let r =
             {
-                resultDataId = Guid.NewGuid() |> ResultDataId
+                resultDataId = rdi
                 resultData =
                     {
                         modelDataId = d.modelDataId
@@ -179,43 +208,78 @@ module SolverRunnerTasks =
         (r, chartData)
 
 
-    let plotAllResults (d : RunSolverData) (i : ServiceAccessInfo) (r : ResultDataWithId) chartData =
-        let plotAll show =
-            let pdi = getPlotDataInfo d.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
-            let plotter = new Plotter(pdi, chartData)
-            plotter.plotAminoAcids show
-            plotter.plotTotalSubst show
-            plotter.plotEnantiomericExcess show
+    type PlotResultsInfo =
+        {
+            runSolverData : RunSolverData
+            serviceAccessInfo : SolverRunnerAccessInfo
+            resultDataWithId : ResultDataWithId
+            chartData : ChartData
+            sovlerRunnerProxy : SolverRunnerProxy
+        }
 
-        if r.resultData.maxEe >= i.minUsefulEe.value
+
+    let plotAllResults (i : PlotResultsInfo) =
+        let plotAll show =
+            let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
+            let plotter = new Plotter(pdi, i.chartData)
+
+            let plots =
+                [
+                    plotter.plotAminoAcids show
+                    plotter.plotTotalSubst show
+                    plotter.plotEnantiomericExcess show
+                ]
+
+            match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
+            | Some c -> i.sovlerRunnerProxy.saveChartInfo c
+            | None -> printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A" i.resultDataWithId.resultDataId plots
+
+        if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then
             printfn "Generating plots..."
             plotAll false
-        else printfn "Value of maxEe = %A is too small. Not creating plots." r.resultData.maxEe
+        else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
         | Some tEnd, Some y0, Some modelDataId, Some i ->
-            match tryDbFun (tryLoadModelData i (ModelDataId modelDataId)) |> Option.bind id with
+            let p = SolverRunnerProxy(getSolverRunnerProxy results)
+            match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
-                let runSolverData = RunSolverData.create md i a y0 tEnd
+
+                let d =
+                    match results.TryGetResult ResultId with
+                    | Some v -> v |> ResultDataId
+                    | None -> Guid.NewGuid() |> ResultDataId
+
+                let runSolverData = RunSolverData.create md i a y0 tEnd d
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
-                let result = nSolve data
-                runSolverData.onCompleted()
+                nSolve data |> ignore
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData runSolverData
-                r |> saveResultData |> tryDbFun |> ignore
+                let (r, chartData) = getResultAndChartData d runSolverData
 
-                plotAllResults runSolverData i r chartData
+                {
+                    runSolverData = runSolverData
+                    serviceAccessInfo = i
+                    resultDataWithId = r
+                    chartData = chartData
+                    sovlerRunnerProxy = p
+                }
+                |> plotAllResults
+
+                r |> p.saveResultData |> ignore
                 printfn "Completed."
+                runSolverData.onCompleted()
 
                 CompletedSuccessfully
-            | _ -> UnknownException
+            | _ ->
+                printfn "Unable to load model with id: %A" modelDataId
+                UnknownException
         | _ ->
             printfn "%s" usage
             InvalidCommandLineArgs

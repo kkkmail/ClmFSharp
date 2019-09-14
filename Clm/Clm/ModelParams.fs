@@ -18,16 +18,13 @@ module ModelParams =
     let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
 
     [<Literal>]
+    let DefaultFileStorageFolder = DefaultRootFolder + @"FileStorage"
+
+    [<Literal>]
     let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
 
 
     let toModelName (n : Guid) = n.ToString()
-
-
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member this.value = let (ClmDefaultValueId v) = this in v
 
 
     type ModelInfo =
@@ -162,29 +159,40 @@ module ModelParams =
     type ModelCommandLineData =
         {
             modelDataId : ModelDataId
+            resultDataId : ResultDataId
             minUsefulEe : MinUsefulEe
+            remote : bool
+        }
+
+
+    /// Parameters, which come from ClmTask & related data.
+    type ModelCommandLineTaskParam =
+        {
+            tEnd : decimal
+            y0 : decimal
+            useAbundant : bool
         }
 
 
     type ModelCommandLineParam =
         {
-            tEnd : decimal
-            y0 : decimal
-            useAbundant : bool
-            serviceAccessInfo : ServiceAccessInfo
+            taskParam : ModelCommandLineTaskParam
+            serviceAccessInfo : SolverRunnerAccessInfo
         }
 
         member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
 
             [
-                EndTime this.tEnd
-                TotalAmount this.y0
-                UseAbundant this.useAbundant
+                EndTime this.taskParam.tEnd
+                TotalAmount this.taskParam.y0
+                UseAbundant this.taskParam.useAbundant
                 ModelId d.modelDataId.value
                 NotifyAddress this.serviceAccessInfo.serviceAddress.value
                 NotifyPort this.serviceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
+                Remote d.remote
+                ResultId d.resultDataId.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

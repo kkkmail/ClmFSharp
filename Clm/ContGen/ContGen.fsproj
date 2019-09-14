@@ -73,6 +73,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Partitioner.fs" />
     <Compile Include="AsyncRun.fs" />
     <Compile Include="Runner.fs" />
     <None Include="App.config" />
@@ -84,19 +85,19 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">
-      <HintPath>..\packages\Argu.5.4.0\lib\net45\Argu.dll</HintPath>
-    </Reference>
-    <Reference Include="FakeLib">
-      <HintPath>..\packages\FAKE.5.8.4\tools\FakeLib.dll</HintPath>
+      <HintPath>..\packages\Argu.5.5.0\lib\net45\Argu.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data">
       <HintPath>..\packages\FSharp.Data.3.1.1\lib\net45\FSharp.Data.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
-      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.2\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.Types">
       <HintPath>..\packages\Microsoft.SqlServer.Types.14.0.1016.290\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
@@ -149,6 +150,31 @@
     <ProjectReference Include="..\DbData\DbData.fsproj">
       <Name>DbData</Name>
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
+      <Name>MessagingServiceInfo</Name>
+      <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Messaging\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\NoSql\NoSql.fsproj">
+      <Name>NoSql</Name>
+      <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\PartitionerServiceInfo\PartitionerServiceInfo.fsproj">
+      <Name>PartitionerServiceInfo</Name>
+      <Project>{0a5ff8d1-cc98-4eac-a1e7-2ee689c9c507}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
+      <Name>ServiceProxy</Name>
+      <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

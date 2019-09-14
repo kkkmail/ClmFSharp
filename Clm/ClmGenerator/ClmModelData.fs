@@ -13,6 +13,7 @@ open Clm.CalculationData
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
+open ClmSys.GeneralData
 
 module ClmModelData =
 
@@ -50,7 +51,7 @@ module ClmModelData =
                     modelGenerationParams =
                         {
                             fileStructureVersion = FileStructureVersion
-                            versionNumber = VersionNumber
+                            versionNumber = VersionNumberValue
                             numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
                             maxPeptideLength = c.clmTaskInfo.maxPeptideLength
                             reactionRateModelParams = v.defaultRateParams.rateParams

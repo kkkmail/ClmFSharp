@@ -161,9 +161,7 @@ module Distributions =
     type Distribution =
         | Distribution of DistributionParamsWithType
 
-        member d.value =
-            let (Distribution v) = d
-            v
+        member this.value = let (Distribution v) = this in v
 
         member d.isDefined (rnd : RandomValueGetter) =
             match d.value.distributionParams.threshold with

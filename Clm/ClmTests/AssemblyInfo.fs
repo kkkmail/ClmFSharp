@@ -24,8 +24,8 @@ open ClmSys.VersionInfo
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [<assembly: Guid("7f97fe20-6e3c-4e48-b36f-74015830a9f7")>]
 
-[<assembly: AssemblyVersion(VersionNumber)>]
-[<assembly: AssemblyFileVersion(VersionNumber)>]
+[<assembly: AssemblyVersion(VersionNumberValue)>]
+[<assembly: AssemblyFileVersion(VersionNumberValue)>]
 
 do
     ()

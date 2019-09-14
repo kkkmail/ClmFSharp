@@ -2,66 +2,57 @@
 
 open System
 open ClmSys.GeneralData
-open ClmSys.Retry
 open Clm.ModelParams
-open DbData.Configuration
-open DbData.DatabaseTypes
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open Clm.CommandLine
 open Clm.CalculationData
 open AsyncRun
-
-// ! Do not delete !
-open Fake.DotNet
-open Fake.Core
-open Fake.IO
-open Fake.Core.TargetOperators
-//open Fake.IO.Globbing.Operators //enables !! and globbing
+open ContGenServiceInfo.ServiceInfo
+open ServiceProxy.Runner
 
 module Runner =
 
     type ModelRunnerParam =
         {
-            connectionString : ConnectionString
-            rootBuildFolder : string
-            buildTarget : string
             exeName : string
             saveModelCode : bool
-            serviceAccessInfo : ServiceAccessInfo
+            minUsefulEe : MinUsefulEe
+            serviceAccessInfo : SolverRunnerAccessInfo
+            runnerProxy : RunnerProxy
         }
 
-        static member defaultValue i =
+        static member defaultValue i p =
             {
-                connectionString = clmConnectionString
-                rootBuildFolder = DefaultRootFolder + @"bin\"
-                buildTarget = __SOURCE_DIRECTORY__ + @"\..\SolverRunner\SolverRunner.fsproj"
                 exeName = SolverRunnerName
                 saveModelCode = false
                 serviceAccessInfo = i
+                minUsefulEe = MinUsefulEe.defaultValue
+                runnerProxy = p
             }
 
 
     type ModelRunner (p : ModelRunnerParam) =
-
         let logError e = printfn "Error: %A" e
-        let tryDbFun f = tryDbFun logError (p.connectionString) f
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
+
+//{
+//    runModelParam : RunModelParam
+//    callBackInfo : ProcessStartedInfoWithCallBack
+//}
+
 
         let runModel e c =
             {
                 exeName = p.exeName
                 commandLineParam = e
-                callBack = c
-                minUsefulEe = p.serviceAccessInfo.minUsefulEe
+                callBackInfo = c
             }
-            |> runModel
-
-        let getBuildDir (ModelDataId modelId) = p.rootBuildFolder + (toModelName modelId) + @"\"
+            |> p.runnerProxy.runModel
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
-            fun d -> tryDbFun (tryLoadClmDefaultValue d) |> Option.bind id
+            fun d -> p.runnerProxy.tryLoadClmDefaultValue d
             |> AllParams.tryGetDefaultValue c
 
 
@@ -81,66 +72,18 @@ module Runner =
             model.getModelData
 
 
-        let saveModelData modelData = modelData |> tryUpdateModelData |> tryDbFun
+        let saveModelData modelData = p.runnerProxy.tryUpdateModelData modelData
         let saveModel getModelData = getModelData() |> saveModelData
+        let updateTask (c : ClmTask) = p.runnerProxy.tryUpdateClmTask c |> ignore
+        let tryAddClmTask c = p.runnerProxy.addClmTask c
+        let tryLoadClmTask i t = p.runnerProxy.tryLoadClmTask i t
+        let tryLoadModelData i m = p.runnerProxy.tryLoadModelData i m
 
 
-        // kk:20190208 - Do not delete. It was not straightforward to tweak all the parameters.
-        //let compileModel modelId =
-        //    let execContext = Fake.Core.Context.FakeExecutionContext.Create false "build.fsx" []
-        //    Fake.Core.Context.setExecutionContext (Fake.Core.Context.RuntimeContext.Fake execContext)
-        //
-        //    // Properties
-        //    let buildDir = getBuildDir modelId
-        //
-        //    // Targets
-        //    Target.create "Clean" (fun _ ->
-        //      Shell.cleanDir buildDir
-        //    )
-        //
-        //    Target.create "BuildApp" (fun _ ->
-        //      [ p.buildTarget ]
-        //        |> MSBuild.runRelease (fun p -> { p with Properties = [ "platform", "x64" ] } ) buildDir "Build"
-        //        |> Trace.logItems "AppBuild-Output: "
-        //    )
-        //
-        //    Target.create "Default" (fun _ ->
-        //      Trace.trace "Built completed."
-        //    )
-        //
-        //    "Clean"
-        //      ==> "BuildApp"
-        //      ==> "Default"
-        //      |> ignore
-        //
-        //    Target.runOrDefault "Default"
-
-
-        let getQueueId (p : ModelCommandLineParam) modelId =
-             match tryDbFun (saveRunQueueEntry modelId p) with
+        let getQueueId (c : ModelCommandLineParam) modelId =
+             match p.runnerProxy.saveRunQueueEntry modelId c with
              | Some q -> q
              | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
-
-
-        let updateTask (c : ClmTask) =
-            tryDbFun (tryUpdateClmTask c)
-            |> ignore
-
-
-        let tryAddClmTask c =
-            tryDbFun (addClmTask c)
-
-
-        let tryLoadClmTask i t =
-            match tryDbFun (tryLoadClmTask i t) with
-            | Some (Some c) -> Some c
-            | _ -> None
-
-
-        let tryLoadModelData i m =
-            match tryDbFun (tryLoadModelData i m) with
-            | Some (Some c) -> Some c
-            | _ -> None
 
 
         let generateImpl (c : ClmTask) =
@@ -153,12 +96,17 @@ module Runner =
                     | Some true ->
                         updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
 
-                        a.modelCommandLineParams |> List.map (fun e ->
-                                                    {
-                                                        run = runModel e
-                                                        modelDataId = modelDataId
-                                                        runQueueId = getQueueId e modelDataId
-                                                    })
+                        a.modelCommandLineParams
+                        |> List.map (fun e ->
+                            {
+                                run = runModel e
+
+                                processToStartInfo =
+                                    {
+                                        modelDataId = modelDataId
+                                        runQueueId = getQueueId e modelDataId
+                                    }
+                            })
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
                         []
@@ -175,31 +123,54 @@ module Runner =
 
 
         let generateAll i () =
-            match tryDbFun (loadIncompleteClmTasks i) with
+            match p.runnerProxy.loadIncompleteClmTasks i with
             | Some c -> c |> List.map generateImpl |> List.concat
             | None -> []
 
 
         let getQueue i () =
-            match tryDbFun (loadRunQueue i) with
+            match p.runnerProxy.loadRunQueue i with
             | Some q -> q |> List.map (fun e ->
                                         {
                                             run = e.modelCommandLineParam |> runModel
-                                            modelDataId = e.info.modelDataId
-                                            runQueueId = e.runQueueId
+
+                                            processToStartInfo =
+                                                {
+                                                    modelDataId = e.info.modelDataId
+                                                    runQueueId = e.runQueueId
+                                                }
                                         })
             | None -> []
 
 
         let removeFromQueue runQueueId =
-            match tryDbFun (deleteRunQueueEntry runQueueId) with
+            match p.runnerProxy.deleteRunQueueEntry runQueueId with
             | Some _ -> ignore()
             | None ->
                 logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
                 ignore()
 
 
-        let runModel j m p =
+
+//type ProcessToStartInfo =
+//    {
+//        modelDataId : ModelDataId
+//        runQueueId : RunQueueId
+//    }
+//
+//type ProcessStartedInfo =
+//    {
+//        processId : ProcessId
+//        processToStartInfo : ProcessToStartInfo
+//    }
+//
+//type ProcessStartedResult =
+//    | StartedSuccessfully of ProcessStartedInfo
+//    | AlreadyCompleted
+//    | FailedToStart
+
+
+        let runRunnerModel j (m : ModelDataId) p = //: ProcessStartedResult =
             match tryLoadModelData j m with
             | Some parent ->
                 match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
@@ -235,8 +206,12 @@ module Runner =
                             let r =
                                 {
                                     run = runModel p
-                                    modelDataId = modelDataId
-                                    runQueueId = getQueueId p modelDataId
+
+                                    processToStartInfo =
+                                        {
+                                            modelDataId = modelDataId
+                                            runQueueId = getQueueId p modelDataId
+                                        }
                                 }
                             Some r
                         | _ -> None
@@ -245,13 +220,14 @@ module Runner =
             | None -> None
 
 
-        let createGeneratorImpl() =
+        let createGeneratorImpl u =
             {
                 generate = generateAll p.serviceAccessInfo
                 getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
-                maxQueueLength = 4
-                runModel = runModel p.serviceAccessInfo
+                //maxQueueLength = 4
+                runModel = runRunnerModel p.serviceAccessInfo
+                usePartitioner = u
             }
 
 
@@ -259,10 +235,10 @@ module Runner =
         member __.generate = generateImpl
 
 
-    let createRunner p =
+    let createRunner p u =
         let r = ModelRunner p
-        let a = r.createGenerator() |> AsyncRunner
-        a.startQueue()
+        let a = r.createGenerator u |> AsyncRunner
+        a.queueStarting()
         a
 
 

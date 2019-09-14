@@ -44,6 +44,7 @@ module ChartExt =
                 ]
                 |> String.concat i.resultInfo.separator
 
+            printfn "ChartType.getFileNameImpl: Creating folder: %A" i.resultInfo.resultLocation
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 

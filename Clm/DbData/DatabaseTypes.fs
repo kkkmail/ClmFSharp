@@ -47,12 +47,13 @@ module DatabaseTypes =
         select top 1 *
         from dbo.ClmTask
         where clmDefaultValueId = @clmDefaultValueId
-        order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
 
     type ClmTaskAllIncompleteData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
-        where remainingRepetitions > 0 and statusId = 0 order by clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+        where remainingRepetitions > 0 and statusId = 0
+        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
@@ -62,7 +63,7 @@ module DatabaseTypes =
         select *
         from dbo.CommandLineParam
         where clmTaskId = @clmTaskId
-        order by commandLineParamId", ClmConnectionStringValue, ResultType.DataReader>
+        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
@@ -77,7 +78,7 @@ module DatabaseTypes =
             isnull(p.seedValue, m.seedValue) as seedValue,
             isnull(p.modelDataParams, m.modelDataParams) as modelDataParams,
             isnull(p.modelBinaryData, m.modelBinaryData) as modelBinaryData,
-            m.createdOn 
+            m.createdOn
         from
             dbo.ModelData m
             left outer join dbo.ModelData p on m.parentModelDataId = p.modelDataId
@@ -102,7 +103,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.statusId = 0 and t.statusId = 0
-        order by runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ClmDefaultValue
@@ -120,9 +121,13 @@ module DatabaseTypes =
 
         static member create i (r : CommandLineParamTableRow) =
             {
-                y0 = r.y0
-                tEnd = r.tEnd
-                useAbundant = r.useAbundant
+                taskParam =
+                    {
+                        y0 = r.y0
+                        tEnd = r.tEnd
+                        useAbundant = r.useAbundant
+                    }
+
                 serviceAccessInfo = i
             }
 
@@ -132,9 +137,9 @@ module DatabaseTypes =
                 t.NewRow(
                         commandLineParamId = Guid.NewGuid(),
                         clmTaskId = clmTaskId,
-                        y0 = r.y0,
-                        tEnd = r.tEnd,
-                        useAbundant = r.useAbundant
+                        y0 = r.taskParam.y0,
+                        tEnd = r.taskParam.tEnd,
+                        useAbundant = r.taskParam.useAbundant
                         )
 
             t.Rows.Add newRow
@@ -265,9 +270,13 @@ module DatabaseTypes =
 
                         modelCommandLineParam =
                             {
-                                y0 = r.y0
-                                tEnd = r.tEnd
-                                useAbundant = r.useAbundant
+                                taskParam =
+                                    {
+                                        y0 = r.y0
+                                        tEnd = r.tEnd
+                                        useAbundant = r.useAbundant
+                                    }
+
                                 serviceAccessInfo = i
                             }
                     }
@@ -279,9 +288,9 @@ module DatabaseTypes =
                 t.NewRow(
                         runQueueId = r.runQueueId.value,
                         modelDataId = r.info.modelDataId.value,
-                        y0 = r.modelCommandLineParam.y0,
-                        tEnd = r.modelCommandLineParam.tEnd,
-                        useAbundant = r.modelCommandLineParam.useAbundant
+                        y0 = r.modelCommandLineParam.taskParam.y0,
+                        tEnd = r.modelCommandLineParam.taskParam.tEnd,
+                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant
                         )
 
             newRow.statusId <- 0

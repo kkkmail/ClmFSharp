@@ -3,6 +3,7 @@
 open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
+open ClmSys.GeneralData
 
 module Defaults_007 =
 
@@ -15,6 +16,7 @@ module Defaults_007 =
             (4L,   2)
             (5L, 100)
             (6L,  50)
+            (7L, 200)
         ]
 
 

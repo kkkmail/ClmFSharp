@@ -37,16 +37,22 @@ module Visualization =
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
 
+
         let plotAminoAcidsImpl show =
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].aminoAcidsData.[i])
+            let fileName = getFileName PlotAminoAcids
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show (getFileName PlotAminoAcids) description
+            |> showChart show fileName description
+
+            fileName
 
 
         let plotEnantiomericExcessImpl show =
+            let fileName = getFileName PlotEnantiomericExcess
+
             let name (i : int) =
                 let l = AminoAcid.toString i
                 let d = l.ToLower()
@@ -56,12 +62,15 @@ module Visualization =
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show (getFileName PlotEnantiomericExcess) description
+            |> showChart show fileName description
+
+            fileName
 
 
         let plotTotalSubstImpl show =
             let totalData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.totalData)
             let minData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.minData)
+            let fileName = getFileName PlotTotalSubst
 
             let foodData =
                 match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].totalSubst.foodData) |> List.choose id with
@@ -84,7 +93,9 @@ module Visualization =
 
             Chart.Combine(charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show (getFileName PlotTotalSubst) description
+            |> showChart show fileName description
+
+            fileName
 
 
         member __.plotAminoAcids (show : bool) = plotAminoAcidsImpl show

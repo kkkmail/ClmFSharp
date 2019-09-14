@@ -10,7 +10,7 @@ module VersionInfo =
     /// Increment when:
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
-    let messagingDataVersion = MessagingDataVersion 21
+    let messagingDataVersion = MessagingDataVersion 22
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.
@@ -20,7 +20,7 @@ module VersionInfo =
 
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "4.0.0.0"
+    let VersionNumberValue = "4.0.0.1"
 
 
     /// This is the name of the system. It is used, for example, to access Windows Registry.

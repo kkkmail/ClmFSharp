@@ -74,7 +74,6 @@
     <Compile Include="MsgInstaller.fs" />
     <Compile Include="MsgServiceTasks.fs" />
     <Compile Include="MsgProgram.fs" />
-    <Content Include="db.config" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>

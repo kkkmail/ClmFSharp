@@ -183,8 +183,9 @@ module Partitioner =
                                 remoteProcessId = e.remoteProcessId
                                 localProcessId = None
                                 modelDataId = m.modelDataId
-                                taskParam = e.runModelParam.commandLineParam.taskParam
+                                defaultValueId = e.runModelParam.callBackInfo.defaultValueId
                                 runQueueId = e.runModelParam.callBackInfo.runQueueId
+                                taskParam = e.runModelParam.commandLineParam.taskParam
                                 minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                             },
                             m
@@ -330,11 +331,7 @@ module Partitioner =
             let reply q =
                 {
                     processId = q |> RemoteProcess
-                    processToStartInfo =
-                        {
-                            modelDataId = a.callBackInfo.modelDataId
-                            runQueueId = a.callBackInfo.runQueueId
-                        }
+                    processToStartInfo = a.callBackInfo
                 }
                 |> StartedSuccessfully
                 |> r.Reply

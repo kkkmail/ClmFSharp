@@ -1,14 +1,11 @@
 ﻿namespace WorkerNodeServiceInfo
 
-open ClmSys.WorkerNodeData
+open ClmSys.VersionInfo
 open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
 
-    [<Literal>]
-    let WorkerNodeServiceName = "WorkerNodeService"
-
-    [<Literal>]
+    let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value
     let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
 
 

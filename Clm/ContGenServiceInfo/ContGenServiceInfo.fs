@@ -5,14 +5,11 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
-open ClmSys.GeneralData
+open ClmSys.VersionInfo
 
 module ServiceInfo =
 
-    [<Literal>]
-    let ContGenServiceName = "ContGenService"
-
-    [<Literal>]
+    let ContGenServiceName = "ContGenService" + " - " + versionNumberValue.value
     let ContGenServiceProgramName = "ContGenService.exe"
 
 
@@ -56,6 +53,7 @@ module ServiceInfo =
         {
             updatedProcessId : ProcessId
             updateModelId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             progress : TaskProgress
             resultDataId : ResultDataId
         }
@@ -65,6 +63,7 @@ module ServiceInfo =
         {
             updatedLocalProcessId : LocalProcessId
             updateModelId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             progress : TaskProgress
             resultDataId : ResultDataId
         }
@@ -73,6 +72,7 @@ module ServiceInfo =
             {
                 updatedProcessId = this.updatedLocalProcessId |> LocalProcess
                 updateModelId = this.updateModelId
+                defaultValueId = this.defaultValueId
                 progress = this.progress
                 resultDataId = this.resultDataId
             }
@@ -82,6 +82,7 @@ module ServiceInfo =
         {
             updatedRemoteProcessId : RemoteProcessId
             updateModelId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             progress : TaskProgress
             resultDataId : ResultDataId
         }
@@ -90,6 +91,7 @@ module ServiceInfo =
             {
                 updatedProcessId = this.updatedRemoteProcessId |> RemoteProcess
                 updateModelId = this.updateModelId
+                defaultValueId = this.defaultValueId
                 progress = this.progress
                 resultDataId = this.resultDataId
             }
@@ -99,6 +101,7 @@ module ServiceInfo =
             {
                 updatedRemoteProcessId = r
                 updateModelId = p.updateModelId
+                defaultValueId = p.defaultValueId
                 progress = p.progress
                 resultDataId = p.resultDataId
             }
@@ -108,6 +111,7 @@ module ServiceInfo =
             {
                 updatedLocalProcessId = l
                 updateModelId = p.updateModelId
+                defaultValueId = p.defaultValueId
                 progress = p.progress
                 resultDataId = p.resultDataId
             }
@@ -118,20 +122,22 @@ module ServiceInfo =
             started : DateTime
             runningProcessId : ProcessId
             runningModelId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             runningQueueId : RunQueueId option
             progress : TaskProgress
         }
 
         override r.ToString() =
             let (ModelDataId modelDataId) = r.runningModelId
-            let s = (DateTime.Now - r.started).ToString("d\,\ hh\:mm")
+            let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
 
             let estCompl =
                 match r.progress.estimateEndTime r.started with
-                | Some e -> " ETC: " + e.ToString("yyyy-MM-dd, HH:mm") + ";"
+                | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            sprintf "{ T: %s;%s MDID: %A; PID: %s; %A }" s estCompl modelDataId (r.runningProcessId.ToString()) r.progress
+            sprintf "{ T: %s;%s DF: %s; MDID: %A; PID: %s; %A }"
+                s estCompl (r.defaultValueId.ToString()) modelDataId (r.runningProcessId.ToString()) r.progress
 
 
     type ProgressUpdateInfo
@@ -141,6 +147,7 @@ module ServiceInfo =
                 started = DateTime.Now
                 runningProcessId = this.updatedProcessId
                 runningModelId = this.updateModelId
+                defaultValueId = this.defaultValueId
                 runningQueueId = None
                 progress = this.progress
             }
@@ -149,6 +156,7 @@ module ServiceInfo =
     type ProcessToStartInfo =
         {
             modelDataId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
         }
 
@@ -165,6 +173,7 @@ module ServiceInfo =
                 runningProcessId = this.processId
                 runningModelId = this.processToStartInfo.modelDataId
                 runningQueueId = Some this.processToStartInfo.runQueueId
+                defaultValueId = this.processToStartInfo.defaultValueId
                 progress = TaskProgress.NotStarted
             }
 
@@ -173,6 +182,7 @@ module ServiceInfo =
         {
             localProcessId : LocalProcessId
             modelDataId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
         }
 
@@ -183,6 +193,7 @@ module ServiceInfo =
                 processToStartInfo =
                     {
                         modelDataId = this.modelDataId
+                        defaultValueId = this.defaultValueId
                         runQueueId = this.runQueueId
                     }
             }
@@ -323,6 +334,7 @@ module ServiceInfo =
             {
                 localProcessId = processId
                 modelDataId = c.modelDataId
+                defaultValueId = c.defaultValueId
                 runQueueId = c.runQueueId
             }
             |> Some

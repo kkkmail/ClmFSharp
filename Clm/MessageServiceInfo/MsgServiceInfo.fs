@@ -2,7 +2,6 @@
 
 open System
 open ClmSys.VersionInfo
-open ClmSys.Rop
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
@@ -12,10 +11,7 @@ open Clm.ModelParams
 
 module ServiceInfo =
 
-    [<Literal>]
-    let MessagingServiceName = "MessagingService"
-
-    [<Literal>]
+    let MessagingServiceName = "MessagingService" + " - " + versionNumberValue.value
     let MessagingProgramName = "MessagingService.exe"
 
 
@@ -49,8 +45,9 @@ module ServiceInfo =
             remoteProcessId : RemoteProcessId
             localProcessId : LocalProcessId option
             modelDataId : ModelDataId
-            taskParam : ModelCommandLineTaskParam
+            defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
+            taskParam : ModelCommandLineTaskParam
             minUsefulEe : MinUsefulEe
         }
 

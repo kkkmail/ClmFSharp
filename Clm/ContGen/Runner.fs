@@ -80,8 +80,8 @@ module Runner =
         let tryLoadModelData i m = p.runnerProxy.tryLoadModelData i m
 
 
-        let getQueueId (c : ModelCommandLineParam) modelId =
-             match p.runnerProxy.saveRunQueueEntry modelId c with
+        let getQueueId (c : ModelCommandLineParam) modelId d =
+             match p.runnerProxy.saveRunQueueEntry modelId d c with
              | Some q -> q
              | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
 
@@ -104,7 +104,8 @@ module Runner =
                                 processToStartInfo =
                                     {
                                         modelDataId = modelDataId
-                                        runQueueId = getQueueId e modelDataId
+                                        defaultValueId = c.clmTaskInfo.clmDefaultValueId
+                                        runQueueId = getQueueId e modelDataId c.clmTaskInfo.clmDefaultValueId
                                     }
                             })
                     | Some false ->
@@ -137,6 +138,7 @@ module Runner =
                                             processToStartInfo =
                                                 {
                                                     modelDataId = e.info.modelDataId
+                                                    defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
                                                 }
                                         })
@@ -210,7 +212,8 @@ module Runner =
                                     processToStartInfo =
                                         {
                                             modelDataId = modelDataId
-                                            runQueueId = getQueueId p modelDataId
+                                            defaultValueId = t1.clmTaskInfo.clmDefaultValueId
+                                            runQueueId = getQueueId p modelDataId t1.clmTaskInfo.clmDefaultValueId
                                         }
                                 }
                             Some r

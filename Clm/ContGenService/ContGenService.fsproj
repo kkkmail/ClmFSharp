@@ -87,7 +87,6 @@
     <Compile Include="ContGenInstaller.fs" />
     <Compile Include="ContGenServiceTasks.fs" />
     <Compile Include="ContGenProgram.fs" />
-    <Content Include="db.config" />
     <Content Include="App.config" />
     <Content Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

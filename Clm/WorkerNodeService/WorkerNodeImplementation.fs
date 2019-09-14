@@ -104,6 +104,7 @@ module ServiceImplementation =
                     callBackInfo =
                         {
                             modelDataId = d.modelDataId
+                            defaultValueId = d.defaultValueId
                             runQueueId = d.runQueueId
                         }
                 }
@@ -176,6 +177,7 @@ module ServiceImplementation =
                             {
                                 updatedRemoteProcessId = w.remoteProcessId
                                 updateModelId = w.modelDataId
+                                defaultValueId = w.defaultValueId
                                 progress = Completed
                                 resultDataId = d
                             }
@@ -238,6 +240,7 @@ module ServiceImplementation =
                         {
                             updatedRemoteProcessId = r
                             updateModelId = p.updateModelId
+                            defaultValueId = p.defaultValueId
                             progress = p.progress
                             resultDataId = p.resultDataId
                         }

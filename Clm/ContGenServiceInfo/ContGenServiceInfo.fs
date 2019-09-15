@@ -49,153 +49,139 @@ module ServiceInfo =
             | RemoteProcess p -> p.value.ToString()
 
 
+    type RunningProcessData =
+        {
+            modelDataId : ModelDataId
+            defaultValueId : ClmDefaultValueId
+            runQueueId : RunQueueId
+        }
+
+        member this.toResultDataId() = this.runQueueId.toResultDataId()
+        member this.toRemoteProcessId() = this.runQueueId.toRemoteProcessId()
+
+
+    type ProcessStartedInfo =
+        {
+            processId : ProcessId
+            runningProcessData : RunningProcessData
+        }
+
+
     type ProgressUpdateInfo =
         {
-            updatedProcessId : ProcessId
-            updateModelId : ModelDataId
-            defaultValueId : ClmDefaultValueId
+            processStartedInfo : ProcessStartedInfo
             progress : TaskProgress
-            resultDataId : ResultDataId
         }
 
 
     type LocalProgressUpdateInfo =
         {
-            updatedLocalProcessId : LocalProcessId
-            updateModelId : ModelDataId
-            defaultValueId : ClmDefaultValueId
+            localProcessId : LocalProcessId
+            runningProcessData : RunningProcessData
             progress : TaskProgress
-            resultDataId : ResultDataId
         }
 
-        member this.progressUpdateInfo =
+        member this.toProgressUpdateInfo() =
             {
-                updatedProcessId = this.updatedLocalProcessId |> LocalProcess
-                updateModelId = this.updateModelId
-                defaultValueId = this.defaultValueId
+                processStartedInfo =
+                    {
+                        processId = this.localProcessId |> LocalProcess
+                        runningProcessData = this.runningProcessData
+                    }
                 progress = this.progress
-                resultDataId = this.resultDataId
             }
 
 
     type RemoteProgressUpdateInfo =
         {
-            updatedRemoteProcessId : RemoteProcessId
-            updateModelId : ModelDataId
-            defaultValueId : ClmDefaultValueId
+            remoteProcessId : RemoteProcessId
+            runningProcessData : RunningProcessData
             progress : TaskProgress
-            resultDataId : ResultDataId
         }
 
-        member this.progressUpdateInfo =
+        member this.toProgressUpdateInfo() =
             {
-                updatedProcessId = this.updatedRemoteProcessId |> RemoteProcess
-                updateModelId = this.updateModelId
-                defaultValueId = this.defaultValueId
+                processStartedInfo =
+                    {
+                        processId = this.remoteProcessId |> RemoteProcess
+                        runningProcessData = this.runningProcessData
+                    }
                 progress = this.progress
-                resultDataId = this.resultDataId
             }
 
 
-    let fromLocalProgress (p : LocalProgressUpdateInfo) r =
+    let fromLocalProgress (p : LocalProgressUpdateInfo) =
             {
-                updatedRemoteProcessId = r
-                updateModelId = p.updateModelId
-                defaultValueId = p.defaultValueId
+                remoteProcessId = p.runningProcessData.toRemoteProcessId()
+                runningProcessData = p.runningProcessData
                 progress = p.progress
-                resultDataId = p.resultDataId
             }
 
 
     let fromRemoteProgress (p : LocalProgressUpdateInfo) l =
             {
-                updatedLocalProcessId = l
-                updateModelId = p.updateModelId
-                defaultValueId = p.defaultValueId
+                localProcessId = l
+                runningProcessData = p.runningProcessData
                 progress = p.progress
-                resultDataId = p.resultDataId
             }
 
 
     type RunningProcessInfo =
         {
             started : DateTime
-            runningProcessId : ProcessId
-            runningModelId : ModelDataId
-            defaultValueId : ClmDefaultValueId
-            runningQueueId : RunQueueId option
-            progress : TaskProgress
+            progressUpdateInfo : ProgressUpdateInfo
         }
 
         override r.ToString() =
-            let (ModelDataId modelDataId) = r.runningModelId
+            let (ModelDataId modelDataId) = r.progressUpdateInfo.processStartedInfo.runningProcessData.modelDataId
             let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
 
             let estCompl =
-                match r.progress.estimateEndTime r.started with
+                match r.progressUpdateInfo.progress.estimateEndTime r.started with
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
             sprintf "{ T: %s;%s DF: %s; MDID: %A; PID: %s; %A }"
-                s estCompl (r.defaultValueId.ToString()) modelDataId (r.runningProcessId.ToString()) r.progress
+                s estCompl (r.progressUpdateInfo.processStartedInfo.runningProcessData.defaultValueId.ToString()) modelDataId (r.progressUpdateInfo.processStartedInfo.processId.ToString()) r.progressUpdateInfo.progress
 
 
     type ProgressUpdateInfo
         with
-        member this.runningProcessInfo =
+        member this.toRunningProcessInfo() =
             {
                 started = DateTime.Now
-                runningProcessId = this.updatedProcessId
-                runningModelId = this.updateModelId
-                defaultValueId = this.defaultValueId
-                runningQueueId = None
-                progress = this.progress
+                progressUpdateInfo = this
             }
 
 
-    type ProcessToStartInfo =
-        {
-            modelDataId : ModelDataId
-            defaultValueId : ClmDefaultValueId
-            runQueueId : RunQueueId
-        }
+    type ProcessStartedInfo
+        with
 
-
-    type ProcessStartedInfo =
-        {
-            processId : ProcessId
-            processToStartInfo : ProcessToStartInfo
-        }
-
-        member this.runningProcessInfo =
+        member this.toRunningProcessInfo() =
             {
                 started = DateTime.Now
-                runningProcessId = this.processId
-                runningModelId = this.processToStartInfo.modelDataId
-                runningQueueId = Some this.processToStartInfo.runQueueId
-                defaultValueId = this.processToStartInfo.defaultValueId
-                progress = TaskProgress.NotStarted
+                progressUpdateInfo =
+                    {
+                        processStartedInfo =
+                            {
+                                processId = this.processId
+                                runningProcessData = this.runningProcessData
+                            }
+                        progress = TaskProgress.NotStarted
+                    }
             }
 
 
     type LocalProcessStartedInfo =
         {
             localProcessId : LocalProcessId
-            modelDataId : ModelDataId
-            defaultValueId : ClmDefaultValueId
-            runQueueId : RunQueueId
+            runningProcessData : RunningProcessData
         }
 
-        member this.processStartedInfo =
+        member this.toProcessStartedInfo() =
             {
                 processId = this.localProcessId |> LocalProcess
-
-                processToStartInfo =
-                    {
-                        modelDataId = this.modelDataId
-                        defaultValueId = this.defaultValueId
-                        runQueueId = this.runQueueId
-                    }
+                runningProcessData = this.runningProcessData
             }
 
 
@@ -217,8 +203,8 @@ module ServiceInfo =
 
     type RunInfo =
         {
-            run : ProcessToStartInfo -> ProcessStartedResult
-            processToStartInfo : ProcessToStartInfo
+            run : RunningProcessData -> ProcessStartedResult
+            processToStartInfo : RunningProcessData
         }
 
 
@@ -241,9 +227,9 @@ module ServiceInfo =
                 let x = "length: " + (s.queue.Length.ToString()) + ", "
                 if q0 = EmptyString then x + "[]" else x + "[ " + q0 + " ]"
 
-            let r0 = s.running |> Array.map (fun e -> "            " + e.ToString()) |> String.concat Nl
-            let r = if r0 = EmptyString then "[]" else Nl + "        [" + Nl + r0 + Nl + "        ]"
-            sprintf "{\n    running = %s\n    queue = %s\n    runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value
+            let r0 = s.running |> Array.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+            let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
+            sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value
 
 
     type ContGenConfigParam =
@@ -272,9 +258,9 @@ module ServiceInfo =
         if Interlocked.Increment(&callCount) = 0
         then
             try
-                printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd, HH:mm:ss"))
+                printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let state = service.getState()
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd, HH:mm:ss")) (state.ToString())
+                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
                 if state.queue.Length = 0 then service.startGenerate()
             with
             | e -> printfn "Exception occurred: %A" e
@@ -293,7 +279,7 @@ module ServiceInfo =
         }
 
 
-    let runProc (c : ProcessToStartInfo) filename args startDir =
+    let runProc (c : RunningProcessData) filename args startDir =
         let procStartInfo =
             ProcessStartInfo(
                 RedirectStandardOutput = true,
@@ -333,9 +319,7 @@ module ServiceInfo =
 
             {
                 localProcessId = processId
-                modelDataId = c.modelDataId
-                defaultValueId = c.defaultValueId
-                runQueueId = c.runQueueId
+                runningProcessData = c
             }
             |> Some
 
@@ -344,5 +328,5 @@ module ServiceInfo =
         {
             exeName : string
             commandLineParam : ModelCommandLineParam
-            callBackInfo : ProcessToStartInfo
+            callBackInfo : RunningProcessData
         }

@@ -207,6 +207,16 @@ module GeneralData =
         member this.toRemoteProcessId() = this.value |> RemoteProcessId
 
 
+    type ResultDataId
+        with
+        member this.toRunQueueId() = this.value |> RunQueueId
+
+
+    type RemoteProcessId
+        with
+        member this.toRunQueueId() = this.value |> RunQueueId
+
+
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting
     type Part =
         Days of int

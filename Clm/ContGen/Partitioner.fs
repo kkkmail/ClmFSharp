@@ -182,9 +182,7 @@ module Partitioner =
                             {
                                 remoteProcessId = e.remoteProcessId
                                 localProcessId = None
-                                modelDataId = m.modelDataId
-                                defaultValueId = e.runModelParam.callBackInfo.defaultValueId
-                                runQueueId = e.runModelParam.callBackInfo.runQueueId
+                                runningProcessData =  e.runModelParam.callBackInfo
                                 taskParam = e.runModelParam.commandLineParam.taskParam
                                 minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                             },
@@ -266,12 +264,12 @@ module Partitioner =
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
             printfn "PartitionerRunner.onUpdateProgress: i = %A." i
-            s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
+            i.toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
 
             match i.progress with
             | NotStarted -> s
             | InProgress _ -> s
-            | Completed -> onCompleted i.updatedRemoteProcessId loadQueue s
+            | Completed -> onCompleted i.remoteProcessId loadQueue s
 
 
         let onSaveResult s r =
@@ -331,7 +329,7 @@ module Partitioner =
             let reply q =
                 {
                     processId = q |> RemoteProcess
-                    processToStartInfo = a.callBackInfo
+                    runningProcessData = a.callBackInfo
                 }
                 |> StartedSuccessfully
                 |> r.Reply

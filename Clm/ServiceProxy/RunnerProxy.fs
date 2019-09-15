@@ -84,7 +84,7 @@ module Runner =
             match i with
             | LocalRunnerProxy _ ->
                 match runLocalModel p false with
-                | Some e -> StartedSuccessfully e.processStartedInfo
+                | Some e -> e.toProcessStartedInfo() |> StartedSuccessfully
                 | None -> FailedToStart
             | PartitionerRunnerProxy c -> c.runModel p
 

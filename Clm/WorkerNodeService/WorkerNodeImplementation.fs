@@ -101,12 +101,7 @@ module ServiceImplementation =
                             serviceAccessInfo = getSolverRunnerAccessInfo d.minUsefulEe
                         }
 
-                    callBackInfo =
-                        {
-                            modelDataId = d.modelDataId
-                            defaultValueId = d.defaultValueId
-                            runQueueId = d.runQueueId
-                        }
+                    callBackInfo = d.runningProcessData
                 }
 
             match proxy.runModel a with
@@ -175,18 +170,16 @@ module ServiceImplementation =
                         deliveryType = GuaranteedDelivery
                         messageData =
                             {
-                                updatedRemoteProcessId = w.remoteProcessId
-                                updateModelId = w.modelDataId
-                                defaultValueId = w.defaultValueId
+                                remoteProcessId = w.remoteProcessId
+                                runningProcessData = w.runningProcessData
                                 progress = Completed
-                                resultDataId = d
                             }
                             |> UpdateProgressPrtMsg
                     }.messageInfo
                     |> sendMessage
 
                     proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
-                    proxy.tryDeleteModelData w.modelDataId |> ignore
+                    proxy.tryDeleteModelData w.runningProcessData.modelDataId |> ignore
                     onSaveResult d
                     onSaveCharts d
                     g
@@ -234,15 +227,13 @@ module ServiceImplementation =
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             printfn "WorkerNodeRunner.onUpdateProgress: p = %A." p
             let updateProgress t c =
-                match s.runningWorkers.TryFind p.updatedLocalProcessId with
+                match s.runningWorkers.TryFind p.localProcessId with
                 | Some r ->
                     let q =
                         {
-                            updatedRemoteProcessId = r
-                            updateModelId = p.updateModelId
-                            defaultValueId = p.defaultValueId
+                            remoteProcessId = r
+                            runningProcessData = p.runningProcessData
                             progress = p.progress
-                            resultDataId = p.resultDataId
                         }
                     {
                         partitionerRecipient = partitioner
@@ -255,13 +246,13 @@ module ServiceImplementation =
                     then
                         printfn "WorkerNodeRunner.onUpdateProgress: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..."
                         proxy.tryDeleteWorkerNodeRunModelData r |> ignore
-                        proxy.tryDeleteModelData p.updateModelId |> ignore
-                        onSaveResult p.resultDataId
-                        onSaveCharts p.resultDataId
-                | None -> logErr (sprintf "Unable to find mapping from local process %A." p.updatedLocalProcessId)
+                        proxy.tryDeleteModelData p.runningProcessData.modelDataId |> ignore
+                        p.runningProcessData.toResultDataId() |> onSaveResult
+                        p.runningProcessData.toResultDataId() |> onSaveCharts
+                | None -> logErr (sprintf "Unable to find mapping from local process %A." p.localProcessId)
 
                 if c
-                then { s with runningWorkers = s.runningWorkers.tryRemove p.updatedLocalProcessId }
+                then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }
                 else s
 
 

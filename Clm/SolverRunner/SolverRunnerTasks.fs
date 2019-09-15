@@ -49,11 +49,14 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedLocalProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
-                updateModelId = m
-                defaultValueId = d
+                localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
+                runningProcessData =
+                    {
+                        modelDataId = m
+                        defaultValueId = d
+                        runQueueId = r
+                    }
                 progress = t
-                resultDataId = r
             }
 
 
@@ -244,26 +247,20 @@ module SolverRunnerTasks =
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
-        | Some tEnd, Some y0, Some modelDataId, Some i ->
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId with
+        | Some tEnd, Some y0, Some modelDataId, Some i, Some d ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
             match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
-
-                let d =
-                    match results.TryGetResult ResultId with
-                    | Some v -> v |> ResultDataId
-                    | None -> Guid.NewGuid() |> ResultDataId
-
-                let runSolverData = RunSolverData.create md i a y0 tEnd d
+                let runSolverData = RunSolverData.create md i a y0 tEnd (RunQueueId d)
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
                 nSolve data |> ignore
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData d runSolverData
+                let (r, chartData) = getResultAndChartData (ResultDataId d) runSolverData
 
                 {
                     runSolverData = runSolverData

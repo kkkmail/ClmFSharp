@@ -15,7 +15,7 @@ open MessagingService.SvcCommandLine
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) =
+    let startServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgSvcShutDownInfo option =
         try
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
@@ -24,7 +24,10 @@ module WindowsService =
             RemotingConfiguration.RegisterWellKnownServiceType
                 (typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton)
 
-            Some channel
+            {
+                msgSvcTcpChannel = channel
+            }
+            |> Some
         with
         | e ->
             logger.logExn "Error starting service." e
@@ -37,14 +40,14 @@ module WindowsService =
         let initService () = ()
         do initService ()
         let logger = Logger.log4net
-        let mutable channel : TcpChannel option = None
+        let mutable shutDownInfo : MsgSvcShutDownInfo option = None
 
-        let tryUnregisterChannel() =
-            match channel with
-            | Some c ->
+        let tryDispose() =
+            match shutDownInfo with
+            | Some i ->
                 logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
-                ChannelServices.UnregisterChannel(c)
-                channel <- None
+                ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
+                shutDownInfo <- None
             | None -> ignore()
 
         override __.OnStart (args : string[]) =
@@ -52,11 +55,11 @@ module WindowsService =
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            channel <- startServiceRun logger i
+            shutDownInfo <- startServiceRun logger i
 
         override __.OnStop () =
-            tryUnregisterChannel()
+            tryDispose()
             base.OnStop()
 
         interface IDisposable with
-            member __.Dispose() = tryUnregisterChannel()
+            member __.Dispose() = tryDispose()

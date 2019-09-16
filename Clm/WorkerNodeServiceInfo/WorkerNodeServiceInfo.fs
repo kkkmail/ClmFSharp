@@ -2,11 +2,18 @@
 
 open ClmSys.VersionInfo
 open ContGenServiceInfo.ServiceInfo
+open System.Runtime.Remoting.Channels.Tcp
 
 module ServiceInfo =
 
     let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value
     let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
+
+
+    type WrkNodeShutDownInfo =
+        {
+            wrkNodeTcpChannel : TcpChannel
+        }
 
 
     type WorkerNodeConfigParam =

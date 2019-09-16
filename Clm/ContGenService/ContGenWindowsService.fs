@@ -17,7 +17,7 @@ open ClmSys.TimerEvents
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) =
+    let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) : ContGenShutDownInfo option =
         try
             logger.logInfo ("startServiceRun: registering ContGenService...")
             serviceAccessInfo <- i
@@ -32,12 +32,16 @@ module WindowsService =
             service.loadQueue()
             let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
             do h.start()
-            Some channel
+
+            {
+                contGenTcpChannel = channel
+            }
+            |> Some
 
         with
-            | e ->
-                logger.logExn "Starting service" e
-                None
+        | e ->
+            logger.logExn "Starting service" e
+            None
 
 
     type public ContGenWindowsService () =
@@ -46,14 +50,14 @@ module WindowsService =
         let initService () = ()
         do initService ()
         let logger = Logger.ignored
-        let mutable channel : TcpChannel option = None
+        let mutable shutDownInfo : ContGenShutDownInfo option = None
 
-        let tryUnregisterChannel() =
-            match channel with
-            | Some c ->
+        let tryDispose() =
+            match shutDownInfo with
+            | Some i ->
                 logger.logInfo "ContGenWindowsService: Unregistering TCP channel."
-                ChannelServices.UnregisterChannel(c)
-                channel <- None
+                ChannelServices.UnregisterChannel(i.contGenTcpChannel)
+                shutDownInfo <- None
             | None -> ignore()
 
         override __.OnStart (args : string[]) =
@@ -61,11 +65,11 @@ module WindowsService =
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            channel <- startServiceRun logger i
+            shutDownInfo <- startServiceRun logger i
 
         override __.OnStop () =
-            tryUnregisterChannel()
+            tryDispose()
             base.OnStop()
 
         interface IDisposable with
-            member __.Dispose() = tryUnregisterChannel()
+            member __.Dispose() = tryDispose()

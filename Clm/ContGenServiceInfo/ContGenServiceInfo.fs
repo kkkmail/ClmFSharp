@@ -6,6 +6,7 @@ open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
 open ClmSys.VersionInfo
+open System.Runtime.Remoting.Channels.Tcp
 
 module ServiceInfo =
 
@@ -239,6 +240,12 @@ module ServiceInfo =
         | SetRunLimit of numberOfCores : int
         | CancelTask of processId : ProcessId
         | SetMinUsefulEe of ee : double
+
+
+    type ContGenShutDownInfo =
+        {
+            contGenTcpChannel : TcpChannel
+        }
 
 
     type IContGenService =

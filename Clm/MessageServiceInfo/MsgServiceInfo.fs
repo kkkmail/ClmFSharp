@@ -1,6 +1,8 @@
 ﻿namespace MessagingServiceInfo
 
 open System
+open System.Runtime.Remoting.Channels
+open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
@@ -142,6 +144,12 @@ module ServiceInfo =
             msgVersion : MessagingDataVersion
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
+        }
+
+
+    type MsgSvcShutDownInfo =
+        {
+            msgSvcTcpChannel : TcpChannel
         }
 
 

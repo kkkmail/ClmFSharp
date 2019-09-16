@@ -19,11 +19,11 @@ module ServiceInstaller =
         member this.value = let (ServiceName v) = this in v
 
 
-    type ServiceInfo<'R> =
+    type ServiceInfo<'R, 'C> =
         {
             serviceName : ServiceName
-            runService : Logger -> 'R -> unit
-            //saveSettings : unit -> unit
+            runService : Logger -> 'R -> 'C option
+            cleanup : Logger -> 'C -> unit
             timeoutMilliseconds : int option
             logger : Logger
         }
@@ -87,7 +87,7 @@ module ServiceInstaller =
                 false
 
 
-    let private startService (i : ServiceInfo<'R>) =
+    let private startService (i : ServiceInfo<'R, 'C>) =
         try
             i.logger.logInfo (sprintf "Attempting to start service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
@@ -102,7 +102,7 @@ module ServiceInstaller =
                 false
 
 
-    let private stopService (i : ServiceInfo<'R>) =
+    let private stopService (i : ServiceInfo<'R, 'C>) =
         try
             i.logger.logInfo (sprintf "Attempting to stop service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
@@ -117,10 +117,21 @@ module ServiceInstaller =
                 false
 
 
-    let private runService (i : ServiceInfo<'R>) r =
+    let private runService (i : ServiceInfo<'R, 'C>) r =
         i.logger.logInfo "Starting..."
         let waitHandle = new ManualResetEvent(false)
-        i.runService i.logger r
+        let c = i.runService i.logger r
+
+        let cancelHandler() =
+            match c with
+            | Some v ->
+                i.logger.logInfo (sprintf "Performing cleanup for %s ..." i.serviceName.value)
+                i.cleanup i.logger v
+            | None -> i.logger.logInfo (sprintf "NOT performing cleanup for %s beause the service was not created..." i.serviceName.value)
+
+            waitHandle.Set() |> ignore
+
+        Console.CancelKeyPress.Add (fun _ -> cancelHandler())
         waitHandle.WaitOne() |> ignore
         true
 
@@ -133,7 +144,7 @@ module ServiceInstaller =
         | RunServiceTask of 'R
         | SaveSettingsTask of (unit -> unit)
 
-        member task.run (i : ServiceInfo<'R>) =
+        member task.run (i : ServiceInfo<'R, 'C>) =
             match task with
             | InstallServiceTask -> installService<'T> i.logger i.serviceName
             | UninstallServiceTask ->

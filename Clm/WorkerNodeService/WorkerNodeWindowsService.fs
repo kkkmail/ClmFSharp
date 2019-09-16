@@ -17,7 +17,7 @@ open ClmSys.TimerEvents
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) =
+    let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) : WrkNodeShutDownInfo option =
         try
             logger.logInfo ("startServiceRun: registering WorkerNodeService...")
             serviceAccessInfo <- i
@@ -38,7 +38,11 @@ module WindowsService =
 
             let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
             do h.start()
-            Some channel
+
+            {
+                wrkNodeTcpChannel = channel
+            }
+            |> Some
 
         with
         | e ->
@@ -52,14 +56,14 @@ module WindowsService =
         let initService () = ()
         do initService ()
         let logger = Logger.log4net
-        let mutable channel : TcpChannel option = None
+        let mutable shutDownInfo : WrkNodeShutDownInfo option = None
 
-        let tryUnregisterChannel() =
-            match channel with
-            | Some c ->
+        let tryDispose() =
+            match shutDownInfo with
+            | Some i ->
                 logger.logInfo "WorkerNodeWindowsService: Unregistering TCP channel."
-                ChannelServices.UnregisterChannel(c)
-                channel <- None
+                ChannelServices.UnregisterChannel(i.wrkNodeTcpChannel)
+                shutDownInfo <- None
             | None -> ignore()
 
 
@@ -68,11 +72,11 @@ module WindowsService =
             let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            channel <- startServiceRun logger i
+            shutDownInfo <- startServiceRun logger i
 
         override __.OnStop () =
-            tryUnregisterChannel()
+            tryDispose()
             base.OnStop()
 
         interface IDisposable with
-            member __.Dispose() = tryUnregisterChannel()
+            member __.Dispose() = tryDispose()

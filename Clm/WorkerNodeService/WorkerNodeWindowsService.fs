@@ -1,8 +1,10 @@
 ﻿namespace WorkerNodeService
 
+open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
+open System.Runtime.Remoting.Channels.Tcp
 open Argu
 
 open ClmSys.Logging
@@ -32,15 +34,16 @@ module WindowsService =
                 logger.logInfo "runService: Calling: service.ping()..."
                 service.ping()
             with
-            | ex -> logger.logExn "Exception occurred" ex
+            | e -> logger.logExn "Exception occurred" e
 
             let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
             do h.start()
+            Some channel
 
         with
-            | e ->
-                logger.logExn "Error occurred" e
-                ignore()
+        | e ->
+            logger.logExn "Error occurred" e
+            None
 
 
     type public WorkerNodeWindowsService () =
@@ -48,13 +51,28 @@ module WindowsService =
 
         let initService () = ()
         do initService ()
-        let logger = Logger.ignored
+        let logger = Logger.log4net
+        let mutable channel : TcpChannel option = None
+
+        let tryUnregisterChannel() =
+            match channel with
+            | Some c ->
+                logger.logInfo "WorkerNodeWindowsService: Unregistering TCP channel."
+                ChannelServices.UnregisterChannel(c)
+                channel <- None
+            | None -> ignore()
+
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            startServiceRun logger i
+            channel <- startServiceRun logger i
 
-        override __.OnStop () = base.OnStop()
+        override __.OnStop () =
+            tryUnregisterChannel()
+            base.OnStop()
+
+        interface IDisposable with
+            member __.Dispose() = tryUnregisterChannel()

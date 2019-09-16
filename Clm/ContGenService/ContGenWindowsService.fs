@@ -1,8 +1,10 @@
 ﻿namespace ContGenService
 
+open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
+open System.Runtime.Remoting.Channels.Tcp
 open Argu
 
 open ContGenService.ServiceImplementation
@@ -30,11 +32,12 @@ module WindowsService =
             service.loadQueue()
             let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
             do h.start()
+            Some channel
 
         with
             | e ->
                 logger.logExn "Starting service" e
-                ignore()
+                None
 
 
     type public ContGenWindowsService () =
@@ -43,12 +46,26 @@ module WindowsService =
         let initService () = ()
         do initService ()
         let logger = Logger.ignored
+        let mutable channel : TcpChannel option = None
+
+        let tryUnregisterChannel() =
+            match channel with
+            | Some c ->
+                logger.logInfo "ContGenWindowsService: Unregistering TCP channel."
+                ChannelServices.UnregisterChannel(c)
+                channel <- None
+            | None -> ignore()
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            startServiceRun logger i
+            channel <- startServiceRun logger i
 
-        override __.OnStop () = base.OnStop()
+        override __.OnStop () =
+            tryUnregisterChannel()
+            base.OnStop()
+
+        interface IDisposable with
+            member __.Dispose() = tryUnregisterChannel()

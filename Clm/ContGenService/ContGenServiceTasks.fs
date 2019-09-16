@@ -24,7 +24,7 @@ module ContGenServiceTasks =
 
 
     let runService l (p, i) =
-        startServiceRun l i
+        let channel = startServiceRun l i
         let service = (new ContGenResponseHandler(i)).contGenService
         p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()

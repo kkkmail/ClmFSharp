@@ -102,7 +102,7 @@ module Logging =
             {
                 logInfo = fun s -> printfn "%s" s
                 logErr = fun s -> printfn "%s" s
-                logExn = fun s e -> printfn "%s, exception: %A." s e
+                logExn = fun s e -> printfn "%s, exception occurred: %A." s e
             }
 
         static member log4net =

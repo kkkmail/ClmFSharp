@@ -19,7 +19,7 @@ module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) : WrkNodeShutDownInfo option =
         try
-            logger.logInfo ("startServiceRun: registering WorkerNodeService...")
+            logger.logInfo ("WindowsService.startServiceRun: registering WorkerNodeService...")
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
             logger.logInfo (sprintf "startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
@@ -31,10 +31,10 @@ module WindowsService =
             let service = (new WorkerNodeResponseHandler(i)).workerNodeService
 
             try
-                logger.logInfo "runService: Calling: service.ping()..."
+                logger.logInfo "WindowsService.startServiceRun: Calling: service.ping()..."
                 service.ping()
             with
-            | e -> logger.logExn "Exception occurred" e
+            | e -> logger.logExn "WindowsService.startServiceRun" e
 
             let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
             do h.start()
@@ -46,7 +46,7 @@ module WindowsService =
 
         with
         | e ->
-            logger.logExn "Error occurred" e
+            logger.logExn "WindowsService.startServiceRun" e
             None
 
 

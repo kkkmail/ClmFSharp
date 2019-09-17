@@ -3,6 +3,7 @@
 open System
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.Logging
 
 module ServiceResponse =
 
@@ -13,18 +14,18 @@ module ServiceResponse =
         new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.serviceUrl)
         new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.messagingServiceAccessInfo.serviceUrl)
 
-        static member tryCreate(i : MessagingClientAccessInfo) =
+        static member tryCreate(logger : Logger, i : MessagingClientAccessInfo) =
             try
                 MsgResponseHandler(i) |> Some
             with
-                | exn ->
-                    printfn "Exception occurred: %s." exn.Message
-                    None
+            | exn ->
+                logger.logExn "MsgResponseHandler.tryCreate" exn
+                None
 
-        static member tryCreate(i : MessagingServiceAccessInfo) =
+        static member tryCreate(logger : Logger, i : MessagingServiceAccessInfo) =
             try
                 MsgResponseHandler(i) |> Some
             with
-                | exn ->
-                    printfn "Exception occurred: %s." exn.Message
-                    None
+            | exn ->
+                logger.logExn "MsgResponseHandler.tryCreate" exn
+                None

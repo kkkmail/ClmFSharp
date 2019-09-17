@@ -29,7 +29,7 @@ module ContGenServiceTasks =
         let service = (new ContGenResponseHandler(i)).contGenService
         p |> List.map (fun e -> service.configureService e) |> ignore
         service.loadQueue()
-        let h = new EventHandler(EventHandlerInfo.defaultValue (fun () -> getServiceState service))
+        let h = new EventHandler(EventHandlerInfo.defaultValue (l.logExn "ContGenWindowsService") (fun () -> getServiceState service))
         do h.start()
         s
 

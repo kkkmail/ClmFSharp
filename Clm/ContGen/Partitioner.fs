@@ -397,6 +397,6 @@ module Partitioner =
     let createServiceImpl i =
         printfn "createServiceImpl: Creating PartitionerRunner..."
         let w = PartitionerRunner i
-        let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
+        let h = new EventHandler(EventHandlerInfo.defaultValue (i.logger.logExn "PartitionerRunner.createServiceImpl") w.getMessages)
         do h.start()
         w

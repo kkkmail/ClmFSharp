@@ -36,7 +36,7 @@ module WindowsService =
             with
             | e -> logger.logExn "WindowsService.startServiceRun" e
 
-            let h = new EventHandler(EventHandlerInfo.defaultValue service.ping)
+            let h = new EventHandler(EventHandlerInfo.defaultValue (logger.logExn "WorkerNodeService") service.ping)
             do h.start()
 
             {

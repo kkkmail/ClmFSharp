@@ -5,6 +5,7 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.Logging
 
 module AsyncRun =
 
@@ -15,6 +16,7 @@ module AsyncRun =
             removeFromQueue : RunQueueId -> unit
             runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
             usePartitioner : bool
+            logger : Logger
         }
 
 
@@ -82,14 +84,18 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
+        let className = "AsyncRunner"
+        let getMethodName n = className + "." + n
+        let onStartRunName = getMethodName "onStartRun"
+        let cancelProcessImplName = getMethodName "cancelProcessImpl"
 
         let onStartRun (s : AsyncRunnerState) =
-            printfn "AsyncRunner.onStartRun: s = %A" s
+            printfn "%s: s = %A" onStartRunName s
             let updateQueue t (g : AsyncRunnerState) = { g with queue = t }
 
             let start (g : AsyncRunnerState) e =
-                let x = timed "AsyncRunner.onStartRun.start: e.run" e.run e.processToStartInfo
-                printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
+                let x = timed (onStartRunName + ".start: e.run") e.run e.processToStartInfo
+                printfn "%s: Starting modelId: %A - result: %A." onStartRunName e.processToStartInfo.modelDataId x
 
                 match x with
                 | StartedSuccessfully r ->
@@ -103,10 +109,10 @@ module AsyncRun =
                 if s.runningCount < s.runLimit
                 then
                     let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
-                    printfn "AsyncRunner.onStartRun: run = %A, queue = %A" run queue
+                    printfn "%s: run = %A, queue = %A" onStartRunName run queue
 
                     run
-                    |> List.fold (fun acc e -> timed "AsyncRunner.onStartRun.start" start acc e) s
+                    |> List.fold (fun acc e -> timed (onStartRunName + ".start") start acc e) s
                     |> updateQueue queue
                 else s
 
@@ -136,7 +142,7 @@ module AsyncRun =
             try
                 match i with
                 | LocalProcess (LocalProcessId a) -> (Process.GetProcessById a).Kill()
-                | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
+                | RemoteProcess a -> generatorInfo.logger.logErr (sprintf "%s: Cannot yet cancel remote process: %A." cancelProcessImplName a)
                 true
             with
                 | e -> false

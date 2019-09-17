@@ -365,7 +365,7 @@ module ServiceImplementation =
             i.logger.logInfo "createServiceImpl: Registering..."
             do w.register()
             do w.start()
-            let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
+            let h = new EventHandler(EventHandlerInfo.defaultValue (i.logger.logExn "WorkerNodeRunner") w.getMessages)
             do h.start()
             Some w
         | true ->

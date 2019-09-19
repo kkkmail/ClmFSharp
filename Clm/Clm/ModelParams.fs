@@ -200,6 +200,7 @@ module ModelParams =
     type RunQueueInfo =
         {
             modelDataId : ModelDataId
+            defaultValueId : ClmDefaultValueId
             modelCommandLineParam : ModelCommandLineParam
         }
 
@@ -213,13 +214,14 @@ module ModelParams =
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
 
-        static member fromModelCommandLineParam modelDataId p =
+        static member fromModelCommandLineParam modelDataId defaultValueId p =
             {
                 runQueueId = Guid.NewGuid() |> RunQueueId
 
                 info =
                     {
                         modelDataId = modelDataId
+                        defaultValueId = defaultValueId
                         modelCommandLineParam = p
                     }
 

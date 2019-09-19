@@ -69,7 +69,7 @@ module Runner =
 
         let tryLoadClmDefaultValueImpl d = tryDbFun connectionString (tryLoadClmDefaultValue d) |> Option.bind id
         let tryUpdateModelDataImpl m = tryDbFun connectionString (tryUpdateModelData m)
-        let saveRunQueueEntryImpl modelId p = tryDbFun connectionString (saveRunQueueEntry modelId p)
+        let saveRunQueueEntryImpl modelId d p = tryDbFun connectionString (saveRunQueueEntry modelId d p)
         let tryUpdateClmTaskImpl a = tryDbFun connectionString (tryUpdateClmTask a)
         let addClmTaskImpl a = tryDbFun connectionString (addClmTask a)
         let tryLoadClmTaskImpl a t = tryDbFun connectionString (tryLoadClmTask a t) |> Option.bind id
@@ -84,7 +84,7 @@ module Runner =
             match i with
             | LocalRunnerProxy _ ->
                 match runLocalModel p false with
-                | Some e -> StartedSuccessfully e.processStartedInfo
+                | Some e -> e.toProcessStartedInfo() |> StartedSuccessfully
                 | None -> FailedToStart
             | PartitionerRunnerProxy c -> c.runModel p
 

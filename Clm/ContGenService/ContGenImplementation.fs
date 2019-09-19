@@ -7,7 +7,6 @@ open ClmSys.TimerEvents
 open ContGen.AsyncRun
 open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
-open ServiceProxy.Runner
 open SvcCommandLine
 open ContGen.Partitioner
 open ClmSys.Logging
@@ -16,7 +15,7 @@ module ServiceImplementation =
 
     let createServiceImpl i p u =
         let a = createRunner (ModelRunnerParam.defaultValue i p) u
-        let h = new EventHandler(EventHandlerInfo.defaultValue a.generationStarted)
+        let h = new EventHandler(EventHandlerInfo.defaultValue (Logger.log4net.logExn "ContGenService.createServiceImpl") a.generationStarted)
         do h.start()
         a
 
@@ -66,7 +65,7 @@ module ServiceImplementation =
             member __.getState() = a.getState().runnerState
             member __.loadQueue() = a.queueStarting()
             member __.startGenerate() = a.generationStarted()
-            member __.updateLocalProgress p = a.progressUpdated p.progressUpdateInfo
-            member __.updateRemoteProgress p = a.progressUpdated p.progressUpdateInfo
+            member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 
+            member __.updateRemoteProgress p = p.toProgressUpdateInfo() |> a.progressUpdated
             member __.configureService (p : ContGenConfigParam) = a.configureService p
             member __.runModel m p = a.runModel (m, p)

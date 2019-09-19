@@ -10,6 +10,7 @@ open Clm.CalculationData
 open AsyncRun
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
+open ClmSys.Logging
 
 module Runner =
 
@@ -33,13 +34,12 @@ module Runner =
 
 
     type ModelRunner (p : ModelRunnerParam) =
-        let logError e = printfn "Error: %A" e
+        let logger = Logger.log4net
+        let logError e = logger.logErr (sprintf "Error: %A" e)
         let getModelDataId() = Guid.NewGuid() |> ModelDataId
-
-//{
-//    runModelParam : RunModelParam
-//    callBackInfo : ProcessStartedInfoWithCallBack
-//}
+        let className = "ModelRunner"
+        let getMethodName n = className + "." + n
+        let tryGetQueueIdName = getMethodName "tryGetQueueId"
 
 
         let runModel e c =
@@ -80,10 +80,12 @@ module Runner =
         let tryLoadModelData i m = p.runnerProxy.tryLoadModelData i m
 
 
-        let getQueueId (c : ModelCommandLineParam) modelId =
-             match p.runnerProxy.saveRunQueueEntry modelId c with
-             | Some q -> q
-             | None -> failwith "getQueueId - cannot get run queue id..." // TODO kk:20190531 - This is not so good! refactor.
+        let tryGetQueueId (c : ModelCommandLineParam) modelDataId d =
+             match p.runnerProxy.saveRunQueueEntry modelDataId d c with
+             | Some q -> Some q
+             | None ->
+                logger.logErr (sprintf "%s: Unable to get run queue id for modelDataId = %A" tryGetQueueIdName modelDataId)
+                None
 
 
         let generateImpl (c : ClmTask) =
@@ -96,17 +98,25 @@ module Runner =
                     | Some true ->
                         updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
 
-                        a.modelCommandLineParams
-                        |> List.map (fun e ->
-                            {
-                                run = runModel e
+                        let tryCreate e =
+                            match tryGetQueueId e modelDataId c.clmTaskInfo.clmDefaultValueId with
+                            | Some q ->
+                                {
+                                    run = runModel e
 
-                                processToStartInfo =
-                                    {
-                                        modelDataId = modelDataId
-                                        runQueueId = getQueueId e modelDataId
-                                    }
-                            })
+                                    processToStartInfo =
+                                        {
+                                            modelDataId = modelDataId
+                                            defaultValueId = c.clmTaskInfo.clmDefaultValueId
+                                            runQueueId = q
+                                        }
+                                }
+                                |> Some
+                            | None -> None
+
+                        a.modelCommandLineParams
+                        |> List.map tryCreate
+                        |> List.choose id
                     | Some false ->
                         logError (sprintf "Cannot save modelId: %A." modelDataId)
                         []
@@ -137,6 +147,7 @@ module Runner =
                                             processToStartInfo =
                                                 {
                                                     modelDataId = e.info.modelDataId
+                                                    defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
                                                 }
                                         })
@@ -151,26 +162,7 @@ module Runner =
                 ignore()
 
 
-
-//type ProcessToStartInfo =
-//    {
-//        modelDataId : ModelDataId
-//        runQueueId : RunQueueId
-//    }
-//
-//type ProcessStartedInfo =
-//    {
-//        processId : ProcessId
-//        processToStartInfo : ProcessToStartInfo
-//    }
-//
-//type ProcessStartedResult =
-//    | StartedSuccessfully of ProcessStartedInfo
-//    | AlreadyCompleted
-//    | FailedToStart
-
-
-        let runRunnerModel j (m : ModelDataId) p = //: ProcessStartedResult =
+        let runRunnerModel j (m : ModelDataId) p =
             match tryLoadModelData j m with
             | Some parent ->
                 match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
@@ -203,17 +195,20 @@ module Runner =
 
                         match saveModelData m1 with
                         | Some true ->
-                            let r =
+                            match tryGetQueueId p modelDataId t1.clmTaskInfo.clmDefaultValueId with
+                            | Some q ->
                                 {
                                     run = runModel p
 
                                     processToStartInfo =
                                         {
                                             modelDataId = modelDataId
-                                            runQueueId = getQueueId p modelDataId
+                                            defaultValueId = t1.clmTaskInfo.clmDefaultValueId
+                                            runQueueId = q
                                         }
                                 }
-                            Some r
+                                |> Some
+                            |None -> None
                         | _ -> None
                     | None -> None
                 | _ -> None
@@ -228,6 +223,7 @@ module Runner =
                 //maxQueueLength = 4
                 runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u
+                logger = Logger.log4net
             }
 
 

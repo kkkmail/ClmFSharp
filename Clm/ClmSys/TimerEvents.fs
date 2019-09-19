@@ -1,6 +1,5 @@
 ﻿namespace ClmSys
 
-open ClmSys.Logging
 open System.Threading
 open System
 
@@ -14,10 +13,10 @@ module TimerEvents =
         {
             eventHandler : unit -> unit
             refreshInterfal : int option
-            logger : Logger
+            logger : exn -> unit
         }
 
-        static member defaultValue h =
+        static member defaultValue logger h =
             {
                 eventHandler = h
                 refreshInterfal = None
@@ -41,16 +40,15 @@ module TimerEvents =
                 if Interlocked.Increment(&counter) = 0
                 then
                     try
-                        //printfn "EventHandler: %A starting..." handlerId
                         i.eventHandler()
                     with
-                        | e -> i.logger.logExn "Error occurred." e
+                    | e -> i.logger e
                 else
                     printfn "!!! ERROR - EventHandler: %A is still running !!!" handlerId
                     ignore()
             finally
                 Interlocked.Decrement(&counter) |> ignore
-                //printfn " ...EventHandler: %A completed." handlerId
+
 
         let timer = new System.Timers.Timer(refreshInterfal)
         do timer.AutoReset <- true

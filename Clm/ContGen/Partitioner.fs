@@ -182,9 +182,8 @@ module Partitioner =
                             {
                                 remoteProcessId = e.remoteProcessId
                                 localProcessId = None
-                                modelDataId = m.modelDataId
+                                runningProcessData =  e.runModelParam.callBackInfo
                                 taskParam = e.runModelParam.commandLineParam.taskParam
-                                runQueueId = e.runModelParam.callBackInfo.runQueueId
                                 minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                             },
                             m
@@ -265,12 +264,12 @@ module Partitioner =
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
             printfn "PartitionerRunner.onUpdateProgress: i = %A." i
-            s.partitionerCallBackInfo.onUpdateProgress i.progressUpdateInfo
+            i.toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
 
             match i.progress with
             | NotStarted -> s
             | InProgress _ -> s
-            | Completed -> onCompleted i.updatedRemoteProcessId loadQueue s
+            | Completed -> onCompleted i.remoteProcessId loadQueue s
 
 
         let onSaveResult s r =
@@ -330,11 +329,7 @@ module Partitioner =
             let reply q =
                 {
                     processId = q |> RemoteProcess
-                    processToStartInfo =
-                        {
-                            modelDataId = a.callBackInfo.modelDataId
-                            runQueueId = a.callBackInfo.runQueueId
-                        }
+                    runningProcessData = a.callBackInfo
                 }
                 |> StartedSuccessfully
                 |> r.Reply
@@ -402,6 +397,6 @@ module Partitioner =
     let createServiceImpl i =
         printfn "createServiceImpl: Creating PartitionerRunner..."
         let w = PartitionerRunner i
-        let h = new EventHandler(EventHandlerInfo.defaultValue w.getMessages)
+        let h = new EventHandler(EventHandlerInfo.defaultValue (i.logger.logExn "PartitionerRunner.createServiceImpl") w.getMessages)
         do h.start()
         w

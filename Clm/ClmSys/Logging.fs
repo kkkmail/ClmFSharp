@@ -78,13 +78,12 @@ module Logging =
     //        log4netLogger.Log(logEvent)
 
 
-
     let logAgent = MailboxProcessor.Start <| fun inbox ->
         let rec logLoop () = async {
             let! (message : LogMessage) = inbox.Receive()
             printfn "logAgent - logging message: %A" message
             //writeLog message.Level message.LogInfo.Message message.Exception message.LogInfo.Date message.LogInfo.StackTrace
-            let logData = new LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = message.Level, Message = message.LogInfo.Message, TimeStamp = message.LogInfo.Date, LoggerName = logName)
+            let logData = new LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = message.Level, Message = message.LogInfo.Message, TimeStampUtc = message.LogInfo.Date, LoggerName = logName)
             let logEvent = new LoggingEvent(logData)
             log4netLogger.Logger.Log logEvent
             return! logLoop()
@@ -103,42 +102,45 @@ module Logging =
             {
                 logInfo = fun s -> printfn "%s" s
                 logErr = fun s -> printfn "%s" s
-                logExn = fun s e -> printfn "%s, exception: %A." s e
+                logExn = fun s e -> printfn "%s, exception occurred: %A." s e
+            }
 
-                //logInfo =
-                //    fun s ->
-                //        {
-                //            Message = s
-                //            Date = DateTime.Now
-                //        }
-                //        |> Info
-                //        |> logAgent.Post
+        static member log4net =
+            {
+                logInfo =
+                    fun s ->
+                        {
+                            Message = s
+                            Date = DateTime.Now
+                        }
+                        |> Info
+                        |> logAgent.Post
 
-                //logErr =
-                //    fun s ->
-                //        {
-                //            Message = s
-                //            Date = DateTime.Now
-                //        }
-                //        |> Info
-                //        |> logAgent.Post
+                logErr =
+                    fun s ->
+                        {
+                            Message = s
+                            Date = DateTime.Now
+                        }
+                        |> Info
+                        |> logAgent.Post
 
-                //logExn =
-                //    fun s e ->
-                //        {
-                //            Message = s + ", exception: " + e.ToString()
-                //            Date = DateTime.Now
-                //        }
-                //        |> Info
-                //        |> logAgent.Post
+                logExn =
+                    fun s e ->
+                        {
+                            Message = s + ", exception: " + e.ToString()
+                            Date = DateTime.Now
+                        }
+                        |> Info
+                        |> logAgent.Post
             }
 
         static member ignored = Logger.defaultValue
-            //{
-            //    logInfo = fun _ -> ignore()
-            //    logErr = fun _ -> ignore()
-            //    logExn = fun _ _ -> ignore()
-            //}
+        //    {
+        //        logInfo = fun _ -> ignore()
+        //        logErr = fun _ -> ignore()
+        //        logExn = fun _ _ -> ignore()
+        //    }
 
 
     let logger = Logger.defaultValue

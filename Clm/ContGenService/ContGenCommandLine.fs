@@ -211,7 +211,7 @@ module SvcCommandLine =
                         }
                 }
 
-            match MsgResponseHandler.tryCreate w.messagingClientAccessInfo with
+            match MsgResponseHandler.tryCreate (Logger.log4net, w.messagingClientAccessInfo) with
             | Some m ->
                 let q =
                     {

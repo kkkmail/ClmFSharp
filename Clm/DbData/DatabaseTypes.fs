@@ -12,6 +12,7 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open Clm.ReactionRates
+open DynamicSql
 
 
 /// You must add reference to System.Configuration !
@@ -88,6 +89,7 @@ module DatabaseTypes =
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
     type ResultDataTableRow = ResultDataTable.Row
 
+
     type ResultDataTableData = SqlCommandProvider<"
         select *
         from dbo.ResultData
@@ -97,8 +99,11 @@ module DatabaseTypes =
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
 
+
     type RunQueueTableData = SqlCommandProvider<"
-        select r.*
+        select
+            r.*,
+            t.clmDefaultValueId
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
@@ -261,12 +266,13 @@ module DatabaseTypes =
     type RunQueue
         with
 
-        static member create i (r : RunQueueTableRow) =
+        static member create i d (r : RunQueueTableRow) =
             {
                 runQueueId = RunQueueId r.runQueueId
                 info =
                     {
                         modelDataId = ModelDataId r.modelDataId
+                        defaultValueId = d
 
                         modelCommandLineParam =
                             {
@@ -542,21 +548,57 @@ module DatabaseTypes =
 
 
     let loadRunQueue i (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let runQueueTable = new RunQueueTable()
-        (new RunQueueTableData(conn)).Execute() |> runQueueTable.Load
+        seq
+            {
+                use conn = new SqlConnection(connectionString)
+                openConnIfClosed conn
+                use data = new RunQueueTableData(conn)
+                use reader= new DynamicSqlDataReader(data.Execute())
 
-        runQueueTable.Rows
+                while (reader.Read()) do
+                    yield
+                        {
+                            runQueueId = RunQueueId reader?runQueueId
+                            info =
+                                {
+                                    modelDataId = ModelDataId reader?modelDataId
+                                    defaultValueId = ClmDefaultValueId reader?defaultValueId
+
+                                    modelCommandLineParam =
+                                        {
+                                            taskParam =
+                                                {
+                                                    y0 = reader?y0
+                                                    tEnd = reader?tEnd
+                                                    useAbundant = reader?useAbundant
+                                                }
+
+                                            serviceAccessInfo = i
+                                        }
+                                }
+                            statusId = reader?statusId
+                        }
+                    }
         |> List.ofSeq
-        |> List.map (fun e -> RunQueue.create i e)
 
 
-    let saveRunQueueEntry modelDataId p (ConnectionString connectionString) =
+    // kk:20190914 - Keeping previous version for reference. Delete after 90 days.
+    //let loadRunQueue i (ConnectionString connectionString) =
+    //    use conn = new SqlConnection(connectionString)
+    //    openConnIfClosed conn
+    //    let runQueueTable = new RunQueueTable()
+    //    (new RunQueueTableData(conn)).Execute() |> runQueueTable.Load
+    //
+    //    runQueueTable.Rows
+    //    |> List.ofSeq
+    //    |> List.map (fun e -> RunQueue.create i e)
+
+
+    let saveRunQueueEntry modelDataId defaultValueId p (ConnectionString connectionString) =
         use conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         use t = new RunQueueTable()
-        let r = RunQueue.fromModelCommandLineParam modelDataId p
+        let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
         let row = r.addRow t
         t.Update conn |> ignore
         row.runQueueId |> RunQueueId

@@ -41,7 +41,7 @@ module SolverRunnerTasks =
         | Completed
 
 
-    let notify m svc p r =
+    let notify m d svc p r =
         let t =
             match p with
             | Running d -> TaskProgress.create d
@@ -49,10 +49,14 @@ module SolverRunnerTasks =
 
         progressNotifier svc
             {
-                updatedLocalProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
-                updateModelId = m
+                localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
+                runningProcessData =
+                    {
+                        modelDataId = m
+                        defaultValueId = d
+                        runQueueId = r
+                    }
                 progress = t
-                resultDataId = r
             }
 
 
@@ -128,11 +132,12 @@ module SolverRunnerTasks =
             let binaryInfo = modelDataParamsWithExtraData.binaryInfo
             let seed = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.seedValue
             let rnd = RandomValueGetter.create (Some seed)
+            let defaultValueId = md.modelData.modelDataParams.modelInfo.clmDefaultValueId
 
             let chartInitData =
                 {
                     modelDataId = modelDataId
-                    defaultValueId = md.modelData.modelDataParams.modelInfo.clmDefaultValueId
+                    defaultValueId = defaultValueId
                     binaryInfo = binaryInfo
                     y0 = y0
                     tEnd = tEnd
@@ -150,13 +155,13 @@ module SolverRunnerTasks =
 
                 onCompleted =
                     match n with
-                    | Some svc -> fun () -> notify modelDataId svc Completed d
+                    | Some svc -> fun () -> notify modelDataId defaultValueId svc Completed d
                     | None -> ignore
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId svc (Running r) d) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId defaultValueId svc (Running r) d) |> Some)
             }
 
 
@@ -242,26 +247,20 @@ module SolverRunnerTasks =
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results with
-        | Some tEnd, Some y0, Some modelDataId, Some i ->
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId with
+        | Some tEnd, Some y0, Some modelDataId, Some i, Some d ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
             match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
-
-                let d =
-                    match results.TryGetResult ResultId with
-                    | Some v -> v |> ResultDataId
-                    | None -> Guid.NewGuid() |> ResultDataId
-
-                let runSolverData = RunSolverData.create md i a y0 tEnd d
+                let runSolverData = RunSolverData.create md i a y0 tEnd (RunQueueId d)
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
                 nSolve data |> ignore
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData d runSolverData
+                let (r, chartData) = getResultAndChartData (ResultDataId d) runSolverData
 
                 {
                     runSolverData = runSolverData

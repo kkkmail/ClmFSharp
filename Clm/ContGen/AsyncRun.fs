@@ -5,6 +5,7 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.Logging
 
 module AsyncRun =
 
@@ -15,6 +16,7 @@ module AsyncRun =
             removeFromQueue : RunQueueId -> unit
             runModel : ModelDataId -> ModelCommandLineParam -> RunInfo option
             usePartitioner : bool
+            logger : Logger
         }
 
 
@@ -31,7 +33,7 @@ module AsyncRun =
         }
 
         member state.runningCount = state.running.Count
-        member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.runningQueueId) |> List.choose id |> Set.ofList
+        member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.progressUpdateInfo.processStartedInfo.runningProcessData.runQueueId) |> Set.ofList
 
         static member defaultValue u =
             {
@@ -50,7 +52,7 @@ module AsyncRun =
             let r =
                 s.running
                 |> Map.toList
-                |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A, %A)" e.runningModelId e.runningProcessId e.started e.progress) |> String.concat ", "
+                |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A, %A)" e.progressUpdateInfo.processStartedInfo.runningProcessData.modelDataId e.progressUpdateInfo.processStartedInfo.processId e.started e.progressUpdateInfo.progress) |> String.concat ", "
             sprintf "{ running: [%s]; queue: [%s]; runLimit = %A; runningCount: %A; workState: %A; minUsefulEe: %A }" r q s.runLimit s.runningCount s.workState s.minUsefulEe
 
         member s.isShuttingDown =
@@ -82,18 +84,22 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
+        let className = "AsyncRunner"
+        let getMethodName n = className + "." + n
+        let onStartRunName = getMethodName "onStartRun"
+        let cancelProcessImplName = getMethodName "cancelProcessImpl"
 
         let onStartRun (s : AsyncRunnerState) =
-            printfn "AsyncRunner.onStartRun: s = %A" s
+            printfn "%s: s = %A" onStartRunName s
             let updateQueue t (g : AsyncRunnerState) = { g with queue = t }
 
             let start (g : AsyncRunnerState) e =
-                let x = timed "AsyncRunner.onStartRun.start: e.run" e.run e.processToStartInfo
-                printfn "AsyncRunner.onStartRun: Starting modelId: %A - result: %A." e.processToStartInfo.modelDataId x
+                let x = timed (onStartRunName + ".start: e.run") e.run e.processToStartInfo
+                printfn "%s: Starting modelId: %A - result: %A." onStartRunName e.processToStartInfo.modelDataId x
 
                 match x with
                 | StartedSuccessfully r ->
-                    { g with running = g.running.Add(r.runningProcessInfo.runningProcessId, r.runningProcessInfo)}
+                    { g with running = g.running.Add(r.processId, r.toRunningProcessInfo())}
                 | FailedToStart -> g
                 | AlreadyCompleted ->
                     generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
@@ -103,10 +109,10 @@ module AsyncRun =
                 if s.runningCount < s.runLimit
                 then
                     let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
-                    printfn "AsyncRunner.onStartRun: run = %A, queue = %A" run queue
+                    printfn "%s: run = %A, queue = %A" onStartRunName run queue
 
                     run
-                    |> List.fold (fun acc e -> timed "AsyncRunner.onStartRun.start" start acc e) s
+                    |> List.fold (fun acc e -> timed (onStartRunName + ".start") start acc e) s
                     |> updateQueue queue
                 else s
 
@@ -136,7 +142,7 @@ module AsyncRun =
             try
                 match i with
                 | LocalProcess (LocalProcessId a) -> (Process.GetProcessById a).Kill()
-                | RemoteProcess a -> printfn "Cannot yet cancel remove process: %A." a
+                | RemoteProcess a -> generatorInfo.logger.logErr (sprintf "%s: Cannot yet cancel remote process: %A." cancelProcessImplName a)
                 true
             with
                 | e -> false
@@ -172,22 +178,23 @@ module AsyncRun =
 
         let  onProgressUpdated (s : AsyncRunnerState) (p : ProgressUpdateInfo) =
             printfn "AsyncRunner.onProgressUpdated: %A" p
-            match s.running.TryFind p.updatedProcessId with
+            let removeFromQueue() = generatorInfo.removeFromQueue p.processStartedInfo.runningProcessData.runQueueId
+
+            match s.running.TryFind p.processStartedInfo.processId with
             | Some e ->
                 match p.progress with
-                | NotStarted | InProgress _ -> { s with running = s.running.Add(p.updatedProcessId, { e with progress = p.progress })}
+                | NotStarted | InProgress _ -> { s with running = s.running.Add(p.processStartedInfo.processId, { e with progressUpdateInfo = { e.progressUpdateInfo with progress = p.progress } })}
                 | Completed ->
-                    match e.runningQueueId with
-                    | Some v -> generatorInfo.removeFromQueue v
-                    | None -> ignore()
-        
-                    printfn "AsyncRunner.onProgressUpdated: trying to remove: p.updatedProcessId = %A" p.updatedProcessId
-                    onStartRun { s with running =  s.running.tryRemove p.updatedProcessId }
+                    removeFromQueue()
+                    printfn "AsyncRunner.onProgressUpdated: trying to remove: p.updatedProcessId = %A" p.processStartedInfo.processId
+                    onStartRun { s with running =  s.running.tryRemove p.processStartedInfo.processId }
             | None ->
-                printfn "AsyncRunner.onProgressUpdated: unable to find: p.updatedProcessId = %A" p.updatedProcessId
+                printfn "AsyncRunner.onProgressUpdated: unable to find: p.updatedProcessId = %A" p.processStartedInfo.processId
                 match p.progress with
-                | NotStarted | InProgress _ -> { s with running = s.running.Add(p.updatedProcessId, p.runningProcessInfo) }
-                | Completed -> s
+                | NotStarted | InProgress _ -> { s with running = s.running.Add(p.processStartedInfo.processId, p.toRunningProcessInfo()) }
+                | Completed ->
+                    removeFromQueue()
+                    s
 
 
         let onGetState s (r : AsyncReplyChannel<AsyncRunnerState>) =

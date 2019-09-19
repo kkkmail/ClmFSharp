@@ -2,6 +2,7 @@
 
 open System
 open FSharp.Collections
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ReactionTypes

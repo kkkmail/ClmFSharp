@@ -10,20 +10,9 @@ open System.Diagnostics
 
 module GeneralData =
 
-    /// A base name, which controls the database name and a working folder name.
-    /// It is loosely the same as the version number.
-    /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
-    /// Eventually it could be bound to the version number, but not today.
-    [<Literal>]
-    let ClmBaseName = "clm4001"
-
     [<Literal>]
     let DefaultRootDrive = "C"
 
-
-    /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
-    /// the old verison is finishing its run.
-    let DefaultContGenServicePort = 4001
     let DefaultContGenServiceAddress = "localhost"
 
     let DefaultWorkerNodeServicePort = 20000 + DefaultContGenServicePort

@@ -187,7 +187,6 @@ module SvcCommandLine =
     /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
     let getServiceProxy p =
         let name = contGenServiceName
-
         let version = getVersion p
 
         let msgAddress = getMsgServerAddress logger version name p

@@ -105,7 +105,9 @@ module Logging =
                 logExn = fun s e -> printfn "%s, exception occurred: %A." s e
             }
 
-        static member log4net =
+        /// The real log4net logger.
+        /// If you are on the edge, e.g. SolverRunner, and printfn is absolutely unavailalbe then use this.
+        static member log4netImpl =
             {
                 logInfo =
                     fun s ->
@@ -135,12 +137,10 @@ module Logging =
                         |> logAgent.Post
             }
 
-        static member ignored = Logger.defaultValue
-        //    {
-        //        logInfo = fun _ -> ignore()
-        //        logErr = fun _ -> ignore()
-        //        logExn = fun _ _ -> ignore()
-        //    }
+        /// The twisty log4net logger. It could be real log4net or it could be just printfn.
+        /// Use it when printfn is available and you would like to get all possible output.
+        /// Twist it to either real log4net or printfn depending on the needs.
+        static member log4net = Logger.defaultValue
 
 
     let logger = Logger.defaultValue

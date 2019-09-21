@@ -47,9 +47,9 @@ module WindowsService =
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 
+        let logger = Logger.log4net
         let initService () = ()
         do initService ()
-        let logger = Logger.ignored
         let mutable shutDownInfo : ContGenShutDownInfo option = None
 
         let tryDispose() =

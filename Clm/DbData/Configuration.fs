@@ -1,4 +1,5 @@
 ﻿namespace DbData
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 
 module Configuration =

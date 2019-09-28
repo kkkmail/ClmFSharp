@@ -140,7 +140,7 @@ module Logging =
         /// The twisty log4net logger. It could be real log4net or it could be just printfn.
         /// Use it when printfn is available and you would like to get all possible output.
         /// Twist it to either real log4net or printfn depending on the needs.
-        static member log4net = Logger.defaultValue
+        static member log4net = Logger.log4netImpl
 
 
-    let logger = Logger.defaultValue
+    let logger = Logger.log4netImpl

@@ -13,7 +13,7 @@ open ClmSys.TimerEvents
 module Client =
 
     /// Maximum number of messages to process in one go.
-    let maxNumberOfMessages = 1000
+    let maxNumberOfMessages = 10
 
 
     type MessagingClientData =

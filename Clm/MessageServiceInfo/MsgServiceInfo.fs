@@ -41,6 +41,9 @@ module ServiceInfo =
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
 
+        /// Currently all these messages are considred as small.
+        member this.isLarge = false
+
 
     type WorkerNodeRunModelData =
         {
@@ -54,6 +57,10 @@ module ServiceInfo =
 
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
+
+        member this.isLarge =
+            match this with
+            | RunModelWrkMsg _ -> true
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
@@ -115,6 +122,12 @@ module ServiceInfo =
             messageInfo : MessageInfo
             createdOn : DateTime
         }
+
+
+    type MessageResult =
+        | NoMessage
+        | SimpleMessage of Message
+        | LargeMessage of Message
 
 
     type MessageWithType =

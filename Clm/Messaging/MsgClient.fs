@@ -150,7 +150,7 @@ module Client =
                 None
 
 
-        let tryReceiveSingleMessage (s : MessagingClientStateData) =
+        let tryReceiveSingleMessage (s : MessagingClientStateData) : Async<MessageResult> =
             async {
                 printfn "%s..." tryReceiveSingleMessageName
 
@@ -173,15 +173,18 @@ module Client =
                             ignore()
                         | false ->
                             s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageId)
-                        return Some m
+
+                        match m.isLarge with
+                        | false -> return SimpleMessage m
+                        | true -> return LargeMessage m
                     | None ->
                         printfn "%s: Did not receive a message." tryReceiveSingleMessageName
-                        return None
+                        return NoMessage
                 with
                 | e ->
                     printfn "%s: exception occurred: %A" tryReceiveSingleMessageName e
                     s.logExn tryReceiveSingleMessageName e
-                    return None
+                    return NoMessage
             }
 
 

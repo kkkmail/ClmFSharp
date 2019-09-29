@@ -548,8 +548,7 @@ module DatabaseTypes =
 
 
     let loadRunQueue i (ConnectionString connectionString) =
-        printfn "loadRunQueue: Starting..."
-        let mutable cnt = 0
+        //printfn "loadRunQueue: Starting..."
 
         seq
             {
@@ -559,19 +558,13 @@ module DatabaseTypes =
                 use reader= new DynamicSqlDataReader(data.Execute())
 
                 while (reader.Read()) do
-                    printfn "loadRunQueue: Got row: %A" cnt
-                    cnt <- cnt + 1
-
-                    let defaultValueId = ClmDefaultValueId reader?defaultValueId
-                    printfn "loadRunQueue: defaultValueId = %A" defaultValueId
-
                     yield
                         {
                             runQueueId = RunQueueId reader?runQueueId
                             info =
                                 {
                                     modelDataId = ModelDataId reader?modelDataId
-                                    defaultValueId = ClmDefaultValueId reader?defaultValueId
+                                    defaultValueId = ClmDefaultValueId reader?clmDefaultValueId
 
                                     modelCommandLineParam =
                                         {

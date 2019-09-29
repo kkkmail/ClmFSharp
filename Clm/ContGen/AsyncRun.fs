@@ -133,7 +133,7 @@ module AsyncRun =
             printfn "onQueueStarting..."
 
             let w t =
-                let x =generatorInfo.getQueue()
+                let x = generatorInfo.getQueue()
                 printfn "onQueueStarting: queue length: %A" x.Length
                 x |> onQueueObtained { s with workState = t }
 

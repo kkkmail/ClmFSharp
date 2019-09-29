@@ -1,7 +1,6 @@
 ﻿namespace MessagingServiceInfo
 
 open System
-open System.Runtime.Remoting.Channels
 open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
@@ -34,6 +33,12 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
+    type MessageSize =
+        | SmallSize
+        | MediumSize
+        | LargeSize
+
+
     type PartitionerMessage =
         | UpdateProgressPrtMsg of RemoteProgressUpdateInfo
         | SaveResultPrtMsg of ResultDataWithId
@@ -41,8 +46,13 @@ module ServiceInfo =
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
 
-        /// Currently all these messages are considred as small.
-        member this.isLarge = false
+        member this.messageSize =
+            match this with
+            | UpdateProgressPrtMsg _ -> SmallSize
+            | SaveResultPrtMsg _ -> SmallSize
+            | SaveChartsPrtMsg _ -> MediumSize
+            | RegisterWorkerNodePrtMsg _ -> SmallSize
+            | UnregisterWorkerNodePrtMsg _ -> SmallSize
 
 
     type WorkerNodeRunModelData =
@@ -58,9 +68,9 @@ module ServiceInfo =
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
 
-        member this.isLarge =
+        member this.messageSize =
             match this with
-            | RunModelWrkMsg _ -> true
+            | RunModelWrkMsg _ -> LargeSize
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
@@ -69,6 +79,15 @@ module ServiceInfo =
         | TextData of string
         | PartitionerMsg of PartitionerMessage
         | WorkerNodeMsg of WorkerNodeMessage
+
+        member this.messageSize =
+            match this with
+            | TextData s ->
+                if s.Length < 1_000 then SmallSize
+                else if s.Length < 1_000_000 then MediumSize
+                else LargeSize
+            | PartitionerMsg m -> m.messageSize
+            | WorkerNodeMsg m -> m.messageSize
 
 
     type MessageInfo =
@@ -126,7 +145,8 @@ module ServiceInfo =
 
     type MessageResult =
         | NoMessage
-        | SimpleMessage of Message
+        | SmallMessage of Message
+        | MediumMessage of Message
         | LargeMessage of Message
 
 

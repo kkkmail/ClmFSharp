@@ -13,7 +13,43 @@ open ClmSys.TimerEvents
 module Client =
 
     /// Maximum number of messages to process in one go.
-    let maxNumberOfMessages = 10
+    let maxNumberOfMessages = 100
+
+    let maxNumberOfSmallMessages = 100
+    let maxNumberOfMediumMessages = 5
+    let maxNumberOfLargeMessages = 1
+
+    type MessageCount =
+        {
+            smallMessages : int
+            mediumMessages : int
+            largeMessages : int
+        }
+
+        with
+        static member defaultValue =
+            {
+                smallMessages = 0
+                mediumMessages = 0
+                largeMessages = 0
+            }
+
+        static member maxAllowed =
+            {
+                smallMessages = maxNumberOfSmallMessages
+                mediumMessages = maxNumberOfMediumMessages
+                largeMessages = maxNumberOfMediumMessages
+            }
+
+        member t.canProcess =
+            let m = MessageCount.maxAllowed
+
+            if t.smallMessages < m.smallMessages && t.mediumMessages < m.mediumMessages && t.largeMessages < m.largeMessages then true
+            else false
+
+        member t.onSmallMessage() = { t with smallMessages  = t.smallMessages + 1 }
+        member t.onMediumMessage() = { t with mediumMessages = t.mediumMessages + 1 }
+        member t.onLargeMessage() = { t with largeMessages = t.largeMessages + 1 }
 
 
     type MessagingClientData =
@@ -174,9 +210,10 @@ module Client =
                         | false ->
                             s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageId)
 
-                        match m.isLarge with
-                        | false -> return SimpleMessage m
-                        | true -> return LargeMessage m
+                        match m.messageInfo.messageData.messageSize with
+                        | SmallSize -> return SmallMessage m
+                        | MediumSize -> return MediumMessage m
+                        | LargeSize -> return LargeMessage m
                     | None ->
                         printfn "%s: Did not receive a message." tryReceiveSingleMessageName
                         return NoMessage
@@ -189,14 +226,42 @@ module Client =
 
 
         let receiveMessagesImpl (s : MessagingClientStateData) =
+            let mapper (c : MessageCount) =
+                async {
+                    match c.canProcess with
+                    | true ->
+                        match! tryReceiveSingleMessage s with
+                        | NoMessage -> return None
+                        | SmallMessage m -> return Some (c.onSmallMessage(), m)
+                        | MediumMessage m -> return Some (c.onMediumMessage(), m)
+                        | LargeMessage m -> return Some (c.onLargeMessage(), m)
+                    | false -> return None
+                    }
+
+            let tryReceiveMessages() =
+                async {
+                    let rec doTryReceive x w c =
+                        async {
+                            match x with
+                            | [] -> return w
+                            | _ :: t ->
+                                match! mapper c with
+                                | Some (c1, m) -> return! doTryReceive t (m :: w) c1
+                                | None -> return w
+                            }
+
+                    let! y = doTryReceive MessagingClientStateData.maxMessages [] MessageCount.defaultValue
+                    return y
+                    }
+
             async {
                 printfn "%s..." receiveMessagesImplName
+
                 try
                     let serverVersion = s.service.getVersion()
 
                     match serverVersion = messagingDataVersion with
-                    | true ->
-                        return! MessagingClientStateData.maxMessages |> List.mapWhileSomeAsync (fun _ -> tryReceiveSingleMessage s)
+                    | true -> return! tryReceiveMessages()
                     | false ->
                         s.logErr (sprintf "%s: Different data versions - client: %A, server: %A." receiveMessagesImplName messagingDataVersion.value serverVersion.value)
                         return []

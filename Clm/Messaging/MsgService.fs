@@ -1,7 +1,6 @@
 ﻿namespace Messaging
 
 open ClmSys.VersionInfo
-open ClmSys.Rop
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
@@ -47,6 +46,7 @@ module Service =
         | GetState of AsyncReplyChannel<MsgServiceState>
         | TryPeekMessage of MessagingClientId * AsyncReplyChannel<Message option>
         | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<bool>
+        | RemoveExpiredMessages
 
 
     type MessagingService(d : MessagingServiceData) =
@@ -139,6 +139,10 @@ module Service =
                 s
 
 
+        let onRemoveExpiredMessages s =
+            s
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -152,6 +156,7 @@ module Service =
                             | GetState r -> return! timed "MessagingService.onGetState" onGetState s r |> loop
                             | TryPeekMessage (n, r) -> return! timed "MessagingService.onTryPeekMessage" onTryPeekMessage s n r |> loop
                             | TryDeleteFromServer (n, m, r) -> return! timed "MessagingService.onTryTryDeleteFromServer" onTryTryDeleteFromServer s n m r |> loop
+                            | RemoveExpiredMessages -> return! timed "MessagingService.onRemoveExpiredMessages" onRemoveExpiredMessages s |> loop
 
                         }
 

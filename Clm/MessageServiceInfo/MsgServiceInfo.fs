@@ -142,6 +142,11 @@ module ServiceInfo =
             createdOn : DateTime
         }
 
+        member this.isExpired(waitTime : TimeSpan) =
+            match this.messageInfo.deliveryType with
+            | GuaranteedDelivery -> false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+
 
     type MessageResult =
         | NoMessage

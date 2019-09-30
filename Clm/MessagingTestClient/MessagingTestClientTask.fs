@@ -30,8 +30,12 @@ module MessagingTestClientTask =
 
             let m =
                 {
-                    recipient = r
-                    deliveryType = NonGuaranteedDelivery
+                    recipientInfo =
+                        {
+                            recipient = r
+                            deliveryType = NonGuaranteedDelivery
+                        }
+
                     messageData = sprintf "Message sent at %A." DateTime.Now |> TextData
                 }
 

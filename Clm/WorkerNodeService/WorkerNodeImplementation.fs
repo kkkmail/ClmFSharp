@@ -286,8 +286,8 @@ module ServiceImplementation =
 
 
         let onProcessMessage s (m : Message) =
-            printfn "%s: m.messageId = %A." onProcessMessageName m.messageId
-            match m.messageInfo.messageData with
+            printfn "%s: m.messageId = %A." onProcessMessageName m.messageDataInfo.messageId
+            match m.messageData with
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg (d, m) ->
@@ -299,7 +299,7 @@ module ServiceImplementation =
                         logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.value)
                         s
             | _ ->
-                logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageInfo.messageData)
+                logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
                 s
 
 

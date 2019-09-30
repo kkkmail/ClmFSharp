@@ -5,12 +5,15 @@ open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
+open ClmSys.TimerEvents
+open ClmSys.Logging
 
 module Service =
 
     type MessagingServiceData =
         {
             messagingServiceProxy : MessagingServiceProxy
+            logger : Logger
         }
 
 
@@ -27,7 +30,7 @@ module Service =
             {
                 msgVersion = messagingDataVersion
                 msgWorkState = s.workState
-                msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageId))
+                msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageDataInfo.messageId))
             }
 
         static member defaultValue d =
@@ -39,7 +42,7 @@ module Service =
 
 
     type MessagingServiceMessage =
-        | Start
+        | Start of MessagingService
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
         | ConfigureService of MessagingConfigParam
@@ -49,18 +52,38 @@ module Service =
         | RemoveExpiredMessages
 
 
-    type MessagingService(d : MessagingServiceData) =
-        let updateMessages s m =
-            match s.messages.TryFind m.messageInfo.recipient with
-            | Some r -> { s with messages = s.messages.Add (m.messageInfo.recipient, m :: r) }
-            | None -> { s with messages = s.messages.Add (m.messageInfo.recipient, [ m ]) }
+    and MessagingService(d : MessagingServiceData) =
+        let className = "MessagingService"
+        let getMethodName n = className + "." + n
+        let onStartName = getMethodName "onStart"
+        let onStartNameName = getMethodName "onStartName"
 
 
-        let onStart (s : MessagingServiceState) =
-            printfn "MessagingService.onStart"
-            s.proxy.loadMessages()
-            |> List.sortByDescending (fun e -> e.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
-            |> List.fold (fun acc e -> updateMessages acc e) s
+        let updateMessages s (m : Message) =
+            match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
+            | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m :: r) }
+            | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m ]) }
+
+
+        let onStart (s : MessagingServiceState) (w : MessagingService) =
+            match s.workState with
+            | MsgSvcNotStarted ->
+                printfn "%s" onStartName
+
+                let x =
+                    s.proxy.loadMessages()
+                    |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
+                    |> List.fold (fun acc e -> updateMessages acc e) s
+
+                let eventHandler _ =
+                    w.removeExpiredMessages()
+
+                let h = new EventHandler(EventHandlerInfo.defaultValue (d.logger.logExn onStartName) eventHandler)
+                do h.start()
+
+                x
+            | CanTransmitMessages -> s
+            | ShuttingDown -> s
 
 
         let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
@@ -69,14 +92,17 @@ module Service =
             s
 
 
-        let onSendMessage (s : MessagingServiceState) m (r : AsyncReplyChannel<MessageDeliveryResult>) =
-            printfn "MessagingService.onSendMessage: messageId = %A." m.messageId
+        let onSendMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<MessageDeliveryResult>) =
+            printfn "MessagingService.onSendMessage: messageId = %A." m.messageDataInfo.messageId
 
-            match m.dataVersion = messagingDataVersion with
+            match m.messageDataInfo.dataVersion = messagingDataVersion with
             | true ->
                 match s.workState with
+                | MsgSvcNotStarted ->
+                    d.logger.logErr (sprintf "%s: Service must be started to send messages." onStartNameName)
+                    s
                 | CanTransmitMessages ->
-                    match m.messageInfo.deliveryType with
+                    match m.messageDataInfo.recipientInfo.deliveryType with
                     | GuaranteedDelivery -> s.proxy.saveMessage m
                     | NonGuaranteedDelivery -> ignore()
 
@@ -112,7 +138,7 @@ module Service =
                         printfn "MessagingService.onTryPeekMessage: No messages."
                         None
                     | h :: _ ->
-                        printfn "MessagingService.onTryPeekMessage: Found message with id %A." h.messageId
+                        printfn "MessagingService.onTryPeekMessage: Found message with id %A." h.messageDataInfo.messageId
                         Some h
                 | None ->
                     printfn "MessagingService.onTryPeekMessage: No client for ClientId %A." n
@@ -128,7 +154,7 @@ module Service =
             match s.messages.TryFind n with
             | Some v ->
                 printfn "    MessagingService.onTryTryDeleteFromServer: v.Length: %A" v.Length
-                let x = removeFirst (fun e -> e.messageId = m) v
+                let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
                 printfn "    MessagingService.onTryTryDeleteFromServer: x.Length: %A" x.Length
                 r.Reply (x.Length <> v.Length)
                 s.proxy.deleteMessage m
@@ -149,7 +175,7 @@ module Service =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! timed "MessagingService.onStart" onStart s |> loop
+                            | Start w -> return! timed "MessagingService.onStart" onStart s w |> loop
                             | GetVersion r -> return! timed "MessagingService.onGetVersion" onGetVersion s r |> loop
                             | SendMessage (m, r) -> return! timed "MessagingService.onSendMessage" onSendMessage s m r |> loop
                             | ConfigureService x -> return! timed "MessagingService.onConfigure" onConfigure s x |> loop
@@ -160,12 +186,14 @@ module Service =
 
                         }
 
-                onStart (MessagingServiceState.defaultValue d) |> loop
+                (MessagingServiceState.defaultValue d) |> loop
                 )
 
+        member this.start() = Start this |> messageLoop.Post
         member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
         member __.configureService x = ConfigureService x |> messageLoop.Post
         member __.getState() = GetState |> messageLoop.PostAndReply
         member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
         member __.tryDeleteFromServer n m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+        member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post

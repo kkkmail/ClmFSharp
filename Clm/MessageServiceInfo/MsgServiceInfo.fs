@@ -17,6 +17,7 @@ module ServiceInfo =
 
 
     type MessagingWorkState =
+        | MsgSvcNotStarted
         | CanTransmitMessages
         | ShuttingDown
 
@@ -90,10 +91,16 @@ module ServiceInfo =
             | WorkerNodeMsg m -> m.messageSize
 
 
-    type MessageInfo =
+    type MessageRecipientInfo =
         {
             recipient : MessagingClientId
             deliveryType : MessageDeliveryType
+        }
+
+
+    type MessageInfo =
+        {
+            recipientInfo : MessageRecipientInfo
             messageData : MessageData
         }
 
@@ -107,8 +114,11 @@ module ServiceInfo =
 
         member this.messageInfo =
             {
-                recipient = this.partitionerRecipient.messagingClientId
-                deliveryType = this.deliveryType
+                recipientInfo =
+                    {
+                        recipient = this.partitionerRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
                 messageData = this.messageData |> PartitionerMsg
             }
 
@@ -122,8 +132,11 @@ module ServiceInfo =
 
         member this.messageInfo =
             {
-                recipient = this.workerNodeRecipient.messagingClientId
-                deliveryType = this.deliveryType
+                recipientInfo =
+                    {
+                        recipient = this.workerNodeRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
                 messageData = this.messageData |> WorkerNodeMsg
             }
 
@@ -133,19 +146,27 @@ module ServiceInfo =
         | OutgoingMessage
 
 
-    type Message =
+    /// TODO kk:20190930 - The name is not good.
+    type MessageDataInfo =
         {
             messageId : MessageId
             dataVersion : MessagingDataVersion
             sender : MessagingClientId
-            messageInfo : MessageInfo
+            recipientInfo : MessageRecipientInfo
             createdOn : DateTime
         }
 
+
+    type Message =
+        {
+            messageDataInfo : MessageDataInfo
+            messageData : MessageData
+        }
+
         member this.isExpired(waitTime : TimeSpan) =
-            match this.messageInfo.deliveryType with
+            match this.messageDataInfo.recipientInfo.deliveryType with
             | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+            | NonGuaranteedDelivery -> if this.messageDataInfo.createdOn.Add waitTime < DateTime.Now then true else false
 
 
     type MessageResult =

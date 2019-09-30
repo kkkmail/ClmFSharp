@@ -9,6 +9,10 @@ module TimerEvents =
     let RefreshInterval = 30_000
 
 
+    [<Literal>]
+    let OneHourRefreshInterval = 3_600_000
+
+
     type EventHandlerInfo =
         {
             eventHandler : unit -> unit
@@ -20,6 +24,13 @@ module TimerEvents =
             {
                 eventHandler = h
                 refreshInterfal = None
+                logger = logger
+            }
+
+        static member oneHourValue logger h =
+            {
+                eventHandler = h
+                refreshInterfal = Some OneHourRefreshInterval
                 logger = logger
             }
 

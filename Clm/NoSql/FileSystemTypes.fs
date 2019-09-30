@@ -113,12 +113,12 @@ module FileSystemTypes =
     //    0
 
 
-    let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageId.value m
+    let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageDataInfo.messageId.value m
     let tryLoadMessageFs serviceName (MessageId messageId) = tryLoadData<Message, Guid> serviceName messageTblName messageId
     let tryDeleteMessageFs serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
     let getMessageIdsFs serviceName () = getObjectIds<Guid> serviceName messageTblName Guid.Parse |> List.map MessageId
 
-    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageId.value m
+    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
     let tryLoadMessageWithTypeFs serviceName (MessageId messageId) = tryLoadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let getMessageWithTypeIdsFs serviceName () = getObjectIds<Guid> serviceName messageWithTypeTblName Guid.Parse |> List.map MessageId

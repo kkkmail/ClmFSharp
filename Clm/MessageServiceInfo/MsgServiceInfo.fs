@@ -162,19 +162,12 @@ module ServiceInfo =
             createdOn : DateTime
         }
 
-        member this.isExpired(waitTime : TimeSpan) =
-            match this.recipientInfo.deliveryType with
-            | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
-
 
     type Message =
         {
             messageDataInfo : MessageDataInfo
             messageData : MessageData
         }
-
-        member this.isExpired = this.messageDataInfo.isExpired
 
 
     type MessageWithOptionalData =
@@ -183,6 +176,17 @@ module ServiceInfo =
             messageDataOpt : MessageData option
         }
 
+
+    type MessageDataInfo
+        with
+        member this.isExpired(waitTime : TimeSpan) =
+            match this.recipientInfo.deliveryType with
+            | GuaranteedDelivery -> false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+
+
+    type MessageWithOptionalData
+        with
         member this.isExpired = this.messageDataInfo.isExpired
 
         member this.toMessasge() =
@@ -198,6 +202,8 @@ module ServiceInfo =
 
     type Message
         with
+        member this.isExpired t = this.messageDataInfo.isExpired t
+
         member this.toMessageWithOptionalData() =
             match this.messageData.keepInMemory with
             | true ->

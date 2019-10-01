@@ -90,6 +90,12 @@ module ServiceInfo =
             | PartitionerMsg m -> m.messageSize
             | WorkerNodeMsg m -> m.messageSize
 
+        member this.keepInMemory =
+            match this.messageSize with
+            | SmallSize -> true
+            | MediumSize -> false
+            | LargeSize -> false
+
 
     type MessageRecipientInfo =
         {
@@ -156,6 +162,11 @@ module ServiceInfo =
             createdOn : DateTime
         }
 
+        member this.isExpired(waitTime : TimeSpan) =
+            match this.recipientInfo.deliveryType with
+            | GuaranteedDelivery -> false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+
 
     type Message =
         {
@@ -163,10 +174,42 @@ module ServiceInfo =
             messageData : MessageData
         }
 
-        member this.isExpired(waitTime : TimeSpan) =
-            match this.messageDataInfo.recipientInfo.deliveryType with
-            | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.messageDataInfo.createdOn.Add waitTime < DateTime.Now then true else false
+        member this.isExpired = this.messageDataInfo.isExpired
+
+
+    type MessageWithOptionalData =
+        {
+            messageDataInfo : MessageDataInfo
+            messageDataOpt : MessageData option
+        }
+
+        member this.isExpired = this.messageDataInfo.isExpired
+
+        member this.toMessasge() =
+            match this.messageDataOpt with
+            | Some m ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageData = m
+                }
+                |> Some
+            | None -> None
+
+
+    type Message
+        with
+        member this.toMessageWithOptionalData() =
+            match this.messageData.keepInMemory with
+            | true ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageDataOpt = Some this.messageData
+                }
+            | false ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageDataOpt = None
+                }
 
 
     type MessageResult =

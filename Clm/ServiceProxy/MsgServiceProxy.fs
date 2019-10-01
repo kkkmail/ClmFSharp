@@ -13,6 +13,8 @@ module MsgServiceProxy =
 
     let private saveMessage clientName m = tryFun (fun _ -> saveMessageFs clientName m) |> ignore
     let private deleteMessage clientName i = tryFun (fun _ -> tryDeleteMessageFs clientName i) |> ignore
+    let private tryLoadMessage clientName i = tryFun (fun _ -> tryLoadMessageFs clientName i) |> Option.bind id
+
 
     let private loadMessages clientName () =
         match tryFun (getMessageIdsFs clientName) with
@@ -21,6 +23,7 @@ module MsgServiceProxy =
             |> List.map (fun e -> tryFun (fun _ -> tryLoadMessageFs clientName e) |> Option.bind id)
             |> List.choose id
         | None -> []
+
 
     let private saveMessageWithType clientName m = tryFun (fun _ -> saveMessageWithTypeFs clientName m) |> ignore
     let private deleteMessageWithType clientName i = tryFun (fun _ -> tryDeleteMessageWithTypeFs clientName i) |> ignore
@@ -55,6 +58,7 @@ module MsgServiceProxy =
             loadMessages : unit -> List<Message>
             saveMessage : Message -> unit
             deleteMessage : MessageId -> unit
+            tryLoadMessage : MessageId -> Message option
         }
 
         static member defaultValue =
@@ -62,4 +66,5 @@ module MsgServiceProxy =
                 loadMessages = loadMessages messagingServiceName
                 saveMessage = saveMessage messagingServiceName
                 deleteMessage = deleteMessage messagingServiceName
+                tryLoadMessage = tryLoadMessage messagingServiceName
             }

@@ -131,11 +131,11 @@ module Client =
 
 
         /// Outgoing messages are stored with the newest at the head.
-        let sortOutgoing m = m |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn)
+        let sortOutgoing (m : List<Message>) = m |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn)
 
 
         /// Incoming messages are stored with the oldest at the head.
-        let sortIncoming m = m |> List.sortBy (fun e -> e.messageDataInfo.createdOn)
+        let sortIncoming (m : List<Message>) = m |> List.sortBy (fun e -> e.messageDataInfo.createdOn)
 
 
         let onSendMessage (s : MessagingClientStateData) (m : MessageInfo) =
@@ -167,7 +167,7 @@ module Client =
             s
 
 
-        let sendMessageImpl (s : MessagingClientStateData) m =
+        let sendMessageImpl (s : MessagingClientStateData) (m : Message) =
             printfn "%s: messageId = %A, createdOn = %A" sendMessageImplName m.messageDataInfo.messageId.value m.messageDataInfo.createdOn
             try
                 match s.service.sendMessage m with

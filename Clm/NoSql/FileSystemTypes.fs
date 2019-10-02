@@ -57,12 +57,16 @@ module FileSystemTypes =
 
 
     let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) =
+        printfn "tryLoadData: Loading data for objectId: %A ..." objectId
         let f = getFileName serviceName tableName objectId
 
-        if File.Exists f
-        then File.ReadAllText(f) |> JsonConvert.DeserializeObject<'T> |> Some
-        else None
+        let x =
+            if File.Exists f
+            then File.ReadAllText(f) |> JsonConvert.DeserializeObject<'T> |> Some
+            else None
 
+        printfn "tryLoadData: Finished loading data for objectId: %A." objectId
+        x
 
     let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
         let f = getFileName serviceName tableName objectId

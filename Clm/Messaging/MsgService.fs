@@ -58,6 +58,7 @@ module Service =
     and MessagingService(d : MessagingServiceData) =
         let className = "MessagingService"
         let getMethodName n = className + "." + n
+        let updateMessagesName = getMethodName "updateMessages"
         let onStartName = getMethodName "onStart"
         let onGetVersionName = getMethodName "onGetVersion"
         let onSendMessageName = getMethodName "onSendMessage"
@@ -69,10 +70,15 @@ module Service =
 
 
         let updateMessages s (m : Message) =
-            match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
-            | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m.toMessageWithOptionalData() :: r) }
-            | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m.toMessageWithOptionalData() ]) }
+            printfn "%s: Updating with mesageid: %A ..." updateMessagesName m.messageDataInfo.messageId
 
+            let x =
+                match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
+                | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m.toMessageWithOptionalData() :: r) }
+                | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m.toMessageWithOptionalData() ]) }
+
+            printfn "%s: Updated with mesageid: %A." updateMessagesName m.messageDataInfo.messageId
+            x
 
         let onStart (s : MessagingServiceState) (w : MessagingService) =
             match s.workState with
@@ -102,7 +108,7 @@ module Service =
 
 
         let onSendMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<MessageDeliveryResult>) =
-            printfn "%s: messageId = %A." onSendMessageName m.messageDataInfo.messageId
+            printfn "%s: Sending messageId = %A ..." onSendMessageName m.messageDataInfo.messageId
 
             match m.messageDataInfo.dataVersion = messagingDataVersion with
             | true ->
@@ -116,6 +122,7 @@ module Service =
                     | NonGuaranteedDelivery, false -> ignore()
 
                     r.Reply DeliveredSuccessfully
+                    printfn "%s: Sent messageId = %A." onSendMessageName m.messageDataInfo.messageId
                     updateMessages s m
                 | ShuttingDown ->
                     r.Reply ServerIsShuttingDown
@@ -161,7 +168,9 @@ module Service =
                     printfn "%s: No client for ClientId %A." onTryPeekMessageName n
                     None, s
 
+            printfn "%s: Replying with message id: %A ..." onTryPeekMessageName (reply |> Option.bind (fun e -> Some e.messageDataInfo.messageId))
             r.Reply reply
+            printfn "%s: Replied with message id: %A." onTryPeekMessageName (reply |> Option.bind (fun e -> Some e.messageDataInfo.messageId))
             w
 
 

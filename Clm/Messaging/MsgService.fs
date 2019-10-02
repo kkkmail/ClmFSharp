@@ -28,7 +28,7 @@ module Service =
 
         member s.proxy = s.messageServiceData.messagingServiceProxy
 
-        member s.state =
+        member s.getState() =
             {
                 msgVersion = messagingDataVersion
                 msgWorkState = s.workState
@@ -131,7 +131,7 @@ module Service =
 
 
         let onGetState (s : MessagingServiceState) (r : AsyncReplyChannel<MsgServiceState>) =
-            r.Reply s.state
+            s.getState() |> r.Reply
             s
 
 
@@ -197,14 +197,14 @@ module Service =
                     async
                         {
                             match! u.Receive() with
-                            | Start w -> return! timed onStartName onStart s w |> loop
-                            | GetVersion r -> return! timed onGetVersionName onGetVersion s r |> loop
-                            | SendMessage (m, r) -> return! timed onSendMessageName onSendMessage s m r |> loop
-                            | ConfigureService x -> return! timed onConfigureName onConfigure s x |> loop
-                            | GetState r -> return! timed onGetStateName onGetState s r |> loop
-                            | TryPeekMessage (n, r) -> return! timed onTryPeekMessageName onTryPeekMessage s n r |> loop
-                            | TryDeleteFromServer (n, m, r) -> return! timed onTryTryDeleteFromServerName onTryTryDeleteFromServer s n m r |> loop
-                            | RemoveExpiredMessages -> return! timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop
+                            | Start w -> return! (timed onStartName onStart s w |> loop)
+                            | GetVersion r -> return! (timed onGetVersionName onGetVersion s r |> loop)
+                            | SendMessage (m, r) -> return! (timed onSendMessageName onSendMessage s m r |> loop)
+                            | ConfigureService x -> return! (timed onConfigureName onConfigure s x |> loop)
+                            | GetState r -> return! (timed onGetStateName onGetState s r |> loop)
+                            | TryPeekMessage (n, r) -> return! (timed onTryPeekMessageName onTryPeekMessage s n r |> loop)
+                            | TryDeleteFromServer (n, m, r) -> return! (timed onTryTryDeleteFromServerName onTryTryDeleteFromServer s n m r |> loop)
+                            | RemoveExpiredMessages -> return! (timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop)
                         }
 
                 (MessagingServiceState.defaultValue d) |> loop

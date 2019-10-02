@@ -80,6 +80,7 @@ module Client =
             messageClientData : MessagingClientData
             incomingMessages : List<Message>
             outgoingMessages : List<Message>
+            expirationTime : TimeSpan
         }
 
         member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
@@ -98,6 +99,7 @@ module Client =
                 messageClientData = d
                 incomingMessages = []
                 outgoingMessages = []
+                expirationTime = TimeSpan(6, 0, 0)
             }
 
 
@@ -110,6 +112,7 @@ module Client =
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
         | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<bool>
+        | RemoveExpiredMessages
 
 
     and MessagingClient(d : MessagingClientData) =
@@ -128,6 +131,7 @@ module Client =
         let onTransmittingName = getMethodName "onTransmitting"
         let onStartTransmittingName = getMethodName "onStartTransmitting"
         let onTryProcessMessageName = getMethodName "onTryProcessMessage"
+        let onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
 
 
         /// Outgoing messages are stored with the newest at the head.
@@ -322,6 +326,12 @@ module Client =
                 let h = new EventHandler(EventHandlerInfo.defaultValue (s.logExn onTransmittingName) eventHandler)
                 do h.start()
 
+                let eventHandler1 _ =
+                    w.removeExpiredMessages()
+
+                let h1 = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler1)
+                do h1.start()
+
                 {
                     s
                     with
@@ -382,6 +392,19 @@ module Client =
             }
 
 
+        let onRemoveExpiredMessages (s : MessagingClientStateData) =
+            let removeExpired (r : List<Message>) =
+                let expired, notExpired = r |> List.partition (fun e -> e.isExpired s.expirationTime)
+                expired |> List.map (fun e -> s.proxy.deleteMessage e.messageDataInfo.messageId) |> ignore
+                notExpired
+
+            {
+                s with
+                    outgoingMessages = s.outgoingMessages |> removeExpired
+                    incomingMessages = s.incomingMessages |> removeExpired
+            }
+
+
         let messageLoop =
             MailboxProcessor.Start(fun u ->
                 let rec loop s =
@@ -396,6 +419,7 @@ module Client =
                             | ConfigureClient x -> return! timed onConfigureClientName onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! timed onTryPeekReceivedMessageName onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! timed onTryRemoveReceivedMessageName onTryRemoveReceivedMessage s m r |> loop
+                            | RemoveExpiredMessages -> return! timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop
                         }
 
                 MessagingClientStateData.defaultValue d |> loop
@@ -411,3 +435,4 @@ module Client =
         member private __.tryPeekReceivedMessage() : Async<Message option> = messageLoop.PostAndAsyncReply (fun reply -> TryPeekReceivedMessage reply)
         member private __.tryRemoveReceivedMessage m = messageLoop.PostAndAsyncReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member this.tryProcessMessage s f = onTryProcessMessage this s f
+        member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post

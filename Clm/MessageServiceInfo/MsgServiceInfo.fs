@@ -81,7 +81,7 @@ module ServiceInfo =
         | PartitionerMsg of PartitionerMessage
         | WorkerNodeMsg of WorkerNodeMessage
 
-        member this.messageSize =
+        member this.getMessageSize() =
             match this with
             | TextData s ->
                 if s.Length < 1_000 then SmallSize
@@ -90,8 +90,8 @@ module ServiceInfo =
             | PartitionerMsg m -> m.messageSize
             | WorkerNodeMsg m -> m.messageSize
 
-        member this.keepInMemory =
-            match this.messageSize with
+        member this.keepInMemory() =
+            match this.getMessageSize() with
             | SmallSize -> true
             | MediumSize -> false
             | LargeSize -> false
@@ -118,7 +118,7 @@ module ServiceInfo =
             messageData : PartitionerMessage
         }
 
-        member this.messageInfo =
+        member this.getMessageInfo() =
             {
                 recipientInfo =
                     {
@@ -136,7 +136,7 @@ module ServiceInfo =
             messageData : WorkerNodeMessage
         }
 
-        member this.messageInfo =
+        member this.getMessageInfo() =
             {
                 recipientInfo =
                     {
@@ -187,7 +187,7 @@ module ServiceInfo =
 
     type MessageWithOptionalData
         with
-        member this.isExpired = this.messageDataInfo.isExpired
+        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
         member this.toMessasge() =
             match this.messageDataOpt with
@@ -202,10 +202,10 @@ module ServiceInfo =
 
     type Message
         with
-        member this.isExpired t = this.messageDataInfo.isExpired t
+        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
         member this.toMessageWithOptionalData() =
-            match this.messageData.keepInMemory with
+            match this.messageData.keepInMemory() with
             | true ->
                 {
                     messageDataInfo = this.messageDataInfo

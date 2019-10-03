@@ -8,7 +8,6 @@ open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
-open ContGenServiceInfo.ServiceInfo
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
@@ -62,7 +61,13 @@ module FileSystemTypes =
 
         let x =
             if File.Exists f
-            then File.ReadAllText(f) |> JsonConvert.DeserializeObject<'T> |> Some
+            then
+                printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
+                let data = File.ReadAllText(f)
+                printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
+                let retVal = data |> JsonConvert.DeserializeObject<'T> |> Some
+                printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
+                retVal
             else None
 
         printfn "tryLoadData: Finished loading data for objectId: %A." objectId

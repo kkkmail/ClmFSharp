@@ -117,7 +117,7 @@ module Service =
                     d.logger.logErr (sprintf "%s: Service must be started to send messages." onSendMessageName)
                     s
                 | CanTransmitMessages ->
-                    match m.messageDataInfo.recipientInfo.deliveryType, m.messageData.keepInMemory with
+                    match m.messageDataInfo.recipientInfo.deliveryType, m.messageData.keepInMemory() with
                     | GuaranteedDelivery, _ | NonGuaranteedDelivery, true -> s.proxy.saveMessage m
                     | NonGuaranteedDelivery, false -> ignore()
 

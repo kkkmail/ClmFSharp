@@ -533,6 +533,6 @@ module GeneralData =
         | _ -> None
 
 
-    let serializer = FsPickler.CreateXmlSerializer()
+    let serializer = FsPickler.CreateXmlSerializer(indent = true)
     let serialize t = serializer.PickleToString t
     let deserialize s = serializer.UnPickleOfString s

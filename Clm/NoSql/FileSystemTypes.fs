@@ -31,7 +31,7 @@ module FileSystemTypes =
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
 
-    let storageExt = "json"
+    let storageExt = "xml"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =

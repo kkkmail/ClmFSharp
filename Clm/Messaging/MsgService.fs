@@ -118,8 +118,8 @@ module Service =
                     s
                 | CanTransmitMessages ->
                     match m.messageDataInfo.recipientInfo.deliveryType, m.messageData.keepInMemory() with
-                    | GuaranteedDelivery, _ | NonGuaranteedDelivery, true -> s.proxy.saveMessage m
-                    | NonGuaranteedDelivery, false -> ignore()
+                    | GuaranteedDelivery, _ | NonGuaranteedDelivery, false -> s.proxy.saveMessage m
+                    | NonGuaranteedDelivery, true -> ignore()
 
                     r.Reply DeliveredSuccessfully
                     printfn "%s: Sent messageId = %A." onSendMessageName m.messageDataInfo.messageId

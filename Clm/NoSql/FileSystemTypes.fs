@@ -1,6 +1,6 @@
 ﻿namespace NoSql
 
-open Newtonsoft.Json
+//open Newtonsoft.Json
 open System
 open ClmSys.Logging
 open ClmSys.GeneralData
@@ -55,7 +55,7 @@ module FileSystemTypes =
         file
 
 
-    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) =
+    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : ('T option) =
         printfn "tryLoadData: Loading data for objectId: %A ..." objectId
         let f = getFileName serviceName tableName objectId
 
@@ -65,7 +65,8 @@ module FileSystemTypes =
                 printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
                 let data = File.ReadAllText(f)
                 printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
-                let retVal = data |> JsonConvert.DeserializeObject<'T> |> Some
+                //let retVal = data |> JsonConvert.DeserializeObject<'T> |> Some
+                let retVal = data |> deserialize |> Some
                 printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
                 retVal
             else None
@@ -75,7 +76,8 @@ module FileSystemTypes =
 
     let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
         let f = getFileName serviceName tableName objectId
-        let d = t |> JsonConvert.SerializeObject
+        //let d = t |> JsonConvert.SerializeObject
+        let d = t |> serialize
         File.WriteAllText(f, d)
         true
 

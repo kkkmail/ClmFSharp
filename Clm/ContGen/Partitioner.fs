@@ -189,7 +189,7 @@ module Partitioner =
                             m
                         )
                         |> RunModelWrkMsg
-                }.messageInfo
+                }.getMessageInfo()
                 |> sendMessage
 
             match tryGetResult() with

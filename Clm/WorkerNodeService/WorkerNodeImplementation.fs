@@ -135,7 +135,7 @@ module ServiceImplementation =
                     partitionerRecipient = partitioner
                     deliveryType = GuaranteedDelivery
                     messageData = r |> SaveResultPrtMsg
-                }.messageInfo
+                }.getMessageInfo()
                 |> sendMessage
 
                 proxy.tryDeleteResultData d |> ignore
@@ -153,7 +153,7 @@ module ServiceImplementation =
                         //{
                         //    c with charts = c.charts |> List.map (fun e -> { e with chartName = Path.GetFileNameWithoutExtension e.chartName })
                         //} |> SaveChartsPrtMsg
-                }.messageInfo
+                }.getMessageInfo()
                 |> sendMessage
 
                 try
@@ -188,7 +188,7 @@ module ServiceImplementation =
                                 progress = Completed
                             }
                             |> UpdateProgressPrtMsg
-                    }.messageInfo
+                    }.getMessageInfo()
                     |> sendMessage
 
                     proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
@@ -219,7 +219,7 @@ module ServiceImplementation =
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodePrtMsg
-            }.messageInfo
+            }.getMessageInfo()
             |> sendMessage
 
             s
@@ -231,7 +231,7 @@ module ServiceImplementation =
                 partitionerRecipient = partitioner
                 deliveryType = GuaranteedDelivery
                 messageData = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId |> UnregisterWorkerNodePrtMsg
-            }.messageInfo
+            }.getMessageInfo()
             |> sendMessage
 
             s
@@ -252,7 +252,7 @@ module ServiceImplementation =
                         partitionerRecipient = partitioner
                         deliveryType = t
                         messageData = UpdateProgressPrtMsg q
-                    }.messageInfo
+                    }.getMessageInfo()
                     |> sendMessage
 
                     if c
@@ -320,7 +320,7 @@ module ServiceImplementation =
                     partitionerRecipient = partitioner
                     deliveryType = GuaranteedDelivery
                     messageData = { i.workerNodeAccessInfo.workerNodeInfo with noOfCores = cores} |> RegisterWorkerNodePrtMsg
-                }.messageInfo
+                }.getMessageInfo()
                 |> sendMessage
 
             s

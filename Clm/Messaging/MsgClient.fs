@@ -219,7 +219,7 @@ module Client =
                         | false ->
                             s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId)
 
-                        match m.messageData.messageSize with
+                        match m.messageData.getMessageSize() with
                         | SmallSize -> return SmallMessage m
                         | MediumSize -> return MediumMessage m
                         | LargeSize -> return LargeMessage m

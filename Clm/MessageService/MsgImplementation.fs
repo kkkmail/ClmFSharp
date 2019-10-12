@@ -1,6 +1,7 @@
 ﻿namespace MessagingService
 
 open System
+open ClmSys.Logging
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
@@ -13,9 +14,12 @@ module ServiceImplementation =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.defaultValue
+                logger = Logger.log4net
             }
 
-        MessagingService d
+        let service = MessagingService d
+        do service.start()
+        service
 
 
     let mutable serviceAccessInfo = getServiceAccessInfo []

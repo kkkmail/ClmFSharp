@@ -83,8 +83,8 @@ module Partitioner =
         let proxy = p.partitionerProxy
 
 
-        let sendMessage m =
-            printfn "PartitionerRunner.sendMessage: recipient: %A" m.recipient
+        let sendMessage (m : MessageInfo) =
+            printfn "PartitionerRunner.sendMessage: recipient: %A" m.recipientInfo.recipient
             messagingClient.sendMessage m
 
 
@@ -189,7 +189,7 @@ module Partitioner =
                             m
                         )
                         |> RunModelWrkMsg
-                }.messageInfo
+                }.getMessageInfo()
                 |> sendMessage
 
             match tryGetResult() with
@@ -285,8 +285,8 @@ module Partitioner =
 
 
         let onProcessMessage (s : PartitionerRunnerState) (m : Message) =
-            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageId
-            match m.messageInfo.messageData with
+            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageDataInfo.messageId
+            match m.messageData with
             | PartitionerMsg x ->
                 match x with
                 | UpdateProgressPrtMsg i ->
@@ -299,7 +299,7 @@ module Partitioner =
                     x
                 | UnregisterWorkerNodePrtMsg r -> onUnregister s r
             | _ ->
-                p.logger.logErr (sprintf "Invalid message type: %A." m.messageInfo.messageData)
+                p.logger.logErr (sprintf "Invalid message type: %A." m.messageData)
                 s
 
 

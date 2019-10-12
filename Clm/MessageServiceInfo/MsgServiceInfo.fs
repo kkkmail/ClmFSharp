@@ -1,7 +1,6 @@
 ﻿namespace MessagingServiceInfo
 
 open System
-open System.Runtime.Remoting.Channels
 open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
@@ -18,6 +17,7 @@ module ServiceInfo =
 
 
     type MessagingWorkState =
+        | MsgSvcNotStarted
         | CanTransmitMessages
         | ShuttingDown
 
@@ -34,12 +34,26 @@ module ServiceInfo =
         | NonGuaranteedDelivery
 
 
+    type MessageSize =
+        | SmallSize
+        | MediumSize
+        | LargeSize
+
+
     type PartitionerMessage =
         | UpdateProgressPrtMsg of RemoteProgressUpdateInfo
         | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
+
+        member this.messageSize =
+            match this with
+            | UpdateProgressPrtMsg _ -> SmallSize
+            | SaveResultPrtMsg _ -> SmallSize
+            | SaveChartsPrtMsg _ -> MediumSize
+            | RegisterWorkerNodePrtMsg _ -> SmallSize
+            | UnregisterWorkerNodePrtMsg _ -> SmallSize
 
 
     type WorkerNodeRunModelData =
@@ -55,6 +69,10 @@ module ServiceInfo =
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
 
+        member this.messageSize =
+            match this with
+            | RunModelWrkMsg _ -> LargeSize
+
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
     /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
@@ -63,11 +81,32 @@ module ServiceInfo =
         | PartitionerMsg of PartitionerMessage
         | WorkerNodeMsg of WorkerNodeMessage
 
+        member this.getMessageSize() =
+            match this with
+            | TextData s ->
+                if s.Length < 1_000 then SmallSize
+                else if s.Length < 1_000_000 then MediumSize
+                else LargeSize
+            | PartitionerMsg m -> m.messageSize
+            | WorkerNodeMsg m -> m.messageSize
 
-    type MessageInfo =
+        member this.keepInMemory() =
+            match this.getMessageSize() with
+            | SmallSize -> true
+            | MediumSize -> false
+            | LargeSize -> false
+
+
+    type MessageRecipientInfo =
         {
             recipient : MessagingClientId
             deliveryType : MessageDeliveryType
+        }
+
+
+    type MessageInfo =
+        {
+            recipientInfo : MessageRecipientInfo
             messageData : MessageData
         }
 
@@ -79,10 +118,13 @@ module ServiceInfo =
             messageData : PartitionerMessage
         }
 
-        member this.messageInfo =
+        member this.getMessageInfo() =
             {
-                recipient = this.partitionerRecipient.messagingClientId
-                deliveryType = this.deliveryType
+                recipientInfo =
+                    {
+                        recipient = this.partitionerRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
                 messageData = this.messageData |> PartitionerMsg
             }
 
@@ -94,10 +136,13 @@ module ServiceInfo =
             messageData : WorkerNodeMessage
         }
 
-        member this.messageInfo =
+        member this.getMessageInfo() =
             {
-                recipient = this.workerNodeRecipient.messagingClientId
-                deliveryType = this.deliveryType
+                recipientInfo =
+                    {
+                        recipient = this.workerNodeRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
                 messageData = this.messageData |> WorkerNodeMsg
             }
 
@@ -107,14 +152,77 @@ module ServiceInfo =
         | OutgoingMessage
 
 
-    type Message =
+    /// TODO kk:20190930 - The name is not good.
+    type MessageDataInfo =
         {
             messageId : MessageId
             dataVersion : MessagingDataVersion
             sender : MessagingClientId
-            messageInfo : MessageInfo
+            recipientInfo : MessageRecipientInfo
             createdOn : DateTime
         }
+
+
+    type Message =
+        {
+            messageDataInfo : MessageDataInfo
+            messageData : MessageData
+        }
+
+
+    type MessageWithOptionalData =
+        {
+            messageDataInfo : MessageDataInfo
+            messageDataOpt : MessageData option
+        }
+
+
+    type MessageDataInfo
+        with
+        member this.isExpired(waitTime : TimeSpan) =
+            match this.recipientInfo.deliveryType with
+            | GuaranteedDelivery -> false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+
+
+    type MessageWithOptionalData
+        with
+        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
+
+        member this.toMessasge() =
+            match this.messageDataOpt with
+            | Some m ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageData = m
+                }
+                |> Some
+            | None -> None
+
+
+    type Message
+        with
+        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
+
+        member this.toMessageWithOptionalData() =
+            match this.messageData.keepInMemory() with
+            | true ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageDataOpt = Some this.messageData
+                }
+            | false ->
+                {
+                    messageDataInfo = this.messageDataInfo
+                    messageDataOpt = None
+                }
+
+
+    type MessageResult =
+        | NoMessage
+        | SmallMessage of Message
+        | MediumMessage of Message
+        | LargeMessage of Message
 
 
     type MessageWithType =

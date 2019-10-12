@@ -91,7 +91,7 @@
       <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data">
-      <HintPath>..\packages\FSharp.Data.3.1.1\lib\net45\FSharp.Data.dll</HintPath>
+      <HintPath>..\packages\FSharp.Data.3.3.2\lib\net45\FSharp.Data.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Data.SqlClient">
       <HintPath>..\packages\FSharp.Data.SqlClient.2.0.5\lib\net40\FSharp.Data.SqlClient.dll</HintPath>

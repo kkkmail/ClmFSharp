@@ -1,6 +1,6 @@
 ﻿namespace NoSql
 
-open Newtonsoft.Json
+//open Newtonsoft.Json
 open System
 open ClmSys.Logging
 open ClmSys.GeneralData
@@ -8,7 +8,6 @@ open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
-open ContGenServiceInfo.ServiceInfo
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
@@ -32,7 +31,7 @@ module FileSystemTypes =
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
 
-    let storageExt = "json"
+    let storageExt = "xml"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
@@ -56,17 +55,29 @@ module FileSystemTypes =
         file
 
 
-    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) =
+    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : ('T option) =
+        printfn "tryLoadData: Loading data for objectId: %A ..." objectId
         let f = getFileName serviceName tableName objectId
 
-        if File.Exists f
-        then File.ReadAllText(f) |> JsonConvert.DeserializeObject<'T> |> Some
-        else None
+        let x =
+            if File.Exists f
+            then
+                printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
+                let data = File.ReadAllText(f)
+                printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
+                //let retVal = data |> JsonConvert.DeserializeObject<'T> |> Some
+                let retVal = data |> deserialize |> Some
+                printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
+                retVal
+            else None
 
+        printfn "tryLoadData: Finished loading data for objectId: %A." objectId
+        x
 
     let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
         let f = getFileName serviceName tableName objectId
-        let d = t |> JsonConvert.SerializeObject
+        //let d = t |> JsonConvert.SerializeObject
+        let d = t |> serialize
         File.WriteAllText(f, d)
         true
 
@@ -113,12 +124,12 @@ module FileSystemTypes =
     //    0
 
 
-    let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageId.value m
+    let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageDataInfo.messageId.value m
     let tryLoadMessageFs serviceName (MessageId messageId) = tryLoadData<Message, Guid> serviceName messageTblName messageId
     let tryDeleteMessageFs serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
     let getMessageIdsFs serviceName () = getObjectIds<Guid> serviceName messageTblName Guid.Parse |> List.map MessageId
 
-    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageId.value m
+    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
     let tryLoadMessageWithTypeFs serviceName (MessageId messageId) = tryLoadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let getMessageWithTypeIdsFs serviceName () = getObjectIds<Guid> serviceName messageWithTypeTblName Guid.Parse |> List.map MessageId

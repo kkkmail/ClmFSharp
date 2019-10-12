@@ -7,6 +7,7 @@ open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
 open System.Diagnostics
+open MBrace.FsPickler
 
 module GeneralData =
 
@@ -530,3 +531,8 @@ module GeneralData =
             p.ProcessName |> Some
         with
         | _ -> None
+
+
+    let serializer = FsPickler.CreateXmlSerializer(indent = true)
+    let serialize t = serializer.PickleToString t
+    let deserialize s = serializer.UnPickleOfString s

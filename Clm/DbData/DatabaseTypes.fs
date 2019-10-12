@@ -548,6 +548,8 @@ module DatabaseTypes =
 
 
     let loadRunQueue i (ConnectionString connectionString) =
+        //printfn "loadRunQueue: Starting..."
+
         seq
             {
                 use conn = new SqlConnection(connectionString)
@@ -562,7 +564,7 @@ module DatabaseTypes =
                             info =
                                 {
                                     modelDataId = ModelDataId reader?modelDataId
-                                    defaultValueId = ClmDefaultValueId reader?defaultValueId
+                                    defaultValueId = ClmDefaultValueId reader?clmDefaultValueId
 
                                     modelCommandLineParam =
                                         {

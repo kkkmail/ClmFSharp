@@ -139,6 +139,7 @@ module Runner =
 
 
         let getQueue i () =
+            printfn "ModelRunner.getQueue"
             match p.runnerProxy.loadRunQueue i with
             | Some q -> q |> List.map (fun e ->
                                         {

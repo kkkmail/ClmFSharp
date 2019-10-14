@@ -14,6 +14,7 @@ open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
 open ClmSys.GeneralData
+open Clm.Distributions
 
 module ClmModelData =
 
@@ -123,7 +124,7 @@ module ClmModelData =
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
 
 
-    let generatePairs<'A, 'B> rnd (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
+    let generatePairs<'A, 'B> (rnd : SuccessNumberGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)

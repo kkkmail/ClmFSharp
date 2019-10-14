@@ -157,6 +157,17 @@ module Distributions =
         static member create() = RandomValueGetter.create None
 
 
+    /// Generates number of successes using either:
+    ///    1. Given distribution (RandomValueGetter).
+    ///    2. Value of threshold parameter of distribution.
+    type SuccessNumberGetter =
+        | RandomValueGetterBased of RandomValueGetter
+        | ThresholdValueBased of RandomValueGetter
+
+        member this.randomValueGetter =
+            match this with | RandomValueGetterBased r | ThresholdValueBased r -> r
+
+
     /// First scale, then shift. This is more convenient here than the other way around.
     type Distribution =
         | Distribution of DistributionParamsWithType
@@ -199,16 +210,19 @@ module Distributions =
         member __.next (rnd : RandomValueGetter) = rnd.next()
         member __.nextN (rnd : RandomValueGetter) n = rnd.nextN n
 
-        member d.successNumber (rnd : RandomValueGetter) (noOfTries : int64) =
+        member d.successNumber (s : SuccessNumberGetter) (noOfTries : int64) =
             match d.value.distributionParams.threshold with
             | Some p ->
                 let mean = 1.0
-                let stdDev = 0.0
-
                 let m = (mean * p) * (double noOfTries)
-                let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
 
-                let sn = getGausssian rnd.nextDouble m s
+                let sn =
+                    match s with
+                        | RandomValueGetterBased rnd ->
+                            let stdDev = 0.0
+                            let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
+                            getGausssian rnd.nextDouble m s
+                        | ThresholdValueBased _ -> double m
                 printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
                 min (max 0L (int64 sn)) noOfTries |> int
             | None -> noOfTries |> int
@@ -220,7 +234,7 @@ module Distributions =
         static member createSymmetricTriangular p = { distributionType = SymmetricTriangular; distributionParams = p } |> Distribution
 
 
-    /// EE distributions. They are specially formatted distributions to return values only between (-1 and 1).
+    /// EE distributions. They are specially formatted distributions to return values only between [-1 and 1].
     type EeDistribution =
         | EeDistribution of Distribution
 

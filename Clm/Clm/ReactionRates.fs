@@ -15,12 +15,23 @@ module ReactionRates =
         | RandomChoice
 
 
+    /// Specifies how to apply similarity
+    /// DistrBased uses distribution threshold to determine if an amino acid should / should not be included.
+    /// This results in some spread inthe number of amino acids.
+    /// FixedVal - fixes the number of amin of acids, but the choice of them is still random.
+    type CatRatesSimGenType =
+        | DistrBased
+        | FixedVal
+
+
     /// Specifies how to generate catalytic rates.
     /// ByIndividualCatalyst - enforces thermodynamic constraint on each catalyst.
     /// ByEnantiomerPairs - enforces thermodynamic constraint on a pair of enantiomer catalysts.
     type CatalyticRateGenerationType =
-        | ByIndividualCatalyst
-        | ByEnantiomerPairs
+        | ByIndividualCatalyst of CatRatesSimGenType
+        | ByEnantiomerPairs of CatRatesSimGenType
+
+        member this.catRatesSimGenType = match this with | ByIndividualCatalyst c | ByEnantiomerPairs c -> c
 
 
     type RateData =
@@ -48,6 +59,7 @@ module ReactionRates =
             a : array<'A>
             b : array<'B>
             reactionName : ReactionName
+            successNumberType : SuccessNumberType
         }
 
 
@@ -155,9 +167,14 @@ module ReactionRates =
         }
 
 
+    type CatRatesSimGeneration =
+        | DistributionBased of Distribution
+        | FixedValue of Distribution
+
+
     type CatRatesSimilarityParam =
         {
-            simBaseDistribution : Distribution
+            catRatesSimGeneration : CatRatesSimGeneration
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getForwardEeDistr : EeDistributionGetter
             getBackwardEeDistr : EeDistributionGetter
@@ -517,6 +534,7 @@ module ReactionRates =
     type ReactionRateProviderParams =
         {
             rateParams: list<ReactionRateModelParam>
+            successNumberType : SuccessNumberType // kk:20191015 - currently there is one success number type for all relevant reactions.
         }
 
         member p.tryFindFoodCreationParam() = p.rateParams |> List.tryPick (fun e -> match e with | FoodCreationRateParam m -> Some m | _ -> None)

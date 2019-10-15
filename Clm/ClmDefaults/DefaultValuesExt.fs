@@ -16,8 +16,8 @@ module DefaultValuesExt =
 
     let defaultEeBackwardDistribution catRateGenType =
         match catRateGenType with
-        | ByIndividualCatalyst -> defaultEeDistribution |> Some
-        | ByEnantiomerPairs -> None
+        | ByIndividualCatalyst _ -> defaultEeDistribution |> Some
+        | ByEnantiomerPairs _ -> None
 
 
     type ReactionRateProviderParams
@@ -112,7 +112,13 @@ module DefaultValuesExt =
 
                 catSynthSimParam =
                     {
-                        simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                        catRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
@@ -147,7 +153,13 @@ module DefaultValuesExt =
 
                 catDestrSimParam =
                     {
-                        simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                        catRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
@@ -276,7 +288,13 @@ module DefaultValuesExt =
 
                 catRacemSimParam =
                     {
-                        simBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                        catRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
                         getForwardEeDistr = defaultEeDistributionGetter
                         getBackwardEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter

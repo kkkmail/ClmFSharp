@@ -157,6 +157,11 @@ module Distributions =
         static member create() = RandomValueGetter.create None
 
 
+    type SuccessNumberType =
+        | RandomValueBased
+        | ThresholdBased
+
+
     /// Generates number of successes using either:
     ///    1. Given distribution (RandomValueGetter).
     ///    2. Value of threshold parameter of distribution.
@@ -176,7 +181,7 @@ module Distributions =
 
         member d.isDefined (rnd : RandomValueGetter) =
             match d.value.distributionParams.threshold with
-            | Some t -> if rnd.nextDouble() < t then true else false
+            | Some t -> rnd.nextDouble() < t
             | None -> true
 
         member private d.scale x =

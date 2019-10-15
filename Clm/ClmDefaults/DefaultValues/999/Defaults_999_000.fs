@@ -9,7 +9,7 @@ module Defaults_999_000 =
 
     let clmDefaultValueId = 999_000L |> ClmDefaultValueId
     let description = Some "For n = 3 - 5"
-    let catRateGenType = ByEnantiomerPairs
+    let catRateGenType = ByEnantiomerPairs DistrBased
 
     let defaultRateParams =
         //===========================================================

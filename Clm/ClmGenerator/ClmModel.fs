@@ -23,7 +23,11 @@ module ClmModel =
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
-        let rrp = { rateParams = modelParams.reactionRateModelParams }
+
+        let rrp = 
+            {
+                rateParams = modelParams.reactionRateModelParams
+            }
 
         let si =
             {

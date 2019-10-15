@@ -36,6 +36,7 @@ module ClmModelData =
             reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
             clmDefaultValueId : ClmDefaultValueId
+            successNumberType : SuccessNumberType
         }
 
 
@@ -58,6 +59,7 @@ module ClmModelData =
                             reactionRateModelParams = v.defaultRateParams.rateParams
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
+                            successNumberType = 0
                         }
 
                     modelCommandLineParams = c.commandLineParams
@@ -124,14 +126,21 @@ module ClmModelData =
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
 
 
-    let generatePairs<'A, 'B> (rnd : SuccessNumberGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
-        // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + E(B), E(A) + B)
+    let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
+        // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
+        let sng =
+            rnd
+            |>
+            match i.successNumberType with
+            | RandomValueBased -> RandomValueGetterBased
+            | ThresholdBased -> ThresholdValueBased
+
         match rateProvider.tryGetPrimaryDistribution i.reactionName with
         | Some d ->
-            let sn = d.successNumber rnd noOfTries
+            let sn = d.successNumber sng noOfTries
             printfn "generatePairs.sn = %A" sn
             [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
         | None -> []
@@ -162,18 +171,19 @@ module ClmModelData =
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
-        static member create rnd rateProvider (si : SubstInfo) =
+        /// Note that currently all generators share the same success number type.
+        static member create rnd rateProvider (si : SubstInfo) st =
             let generatePairs x = generatePairs rnd x rateProvider
 
             {
                 commonData =
                     {
                         substInfo = si
-                        catSynthPairs = generatePairs si.catSynthInfo
-                        catDestrPairs = generatePairs si.catDestrInfo
-                        catLigPairs = generatePairs si.catLigInfo
-                        catRacemPairs = generatePairs si.catRacemInfo
-                        sedDirPairs = generatePairs si.sedDirInfo
+                        catSynthPairs = generatePairs (si.catSynthInfo st)
+                        catDestrPairs = generatePairs (si.catDestrInfo st)
+                        catLigPairs = generatePairs (si.catLigInfo st)
+                        catRacemPairs = generatePairs (si.catRacemInfo st)
+                        sedDirPairs = generatePairs (si.sedDirInfo st)
                     }
             }
 
@@ -188,8 +198,7 @@ module ClmModelData =
         member data.getReactions rnd rateProvider n =
             match data with
             | RandomChoiceModel m ->
-                let x = 
-                    m.getReactions rnd rateProvider n
+                let x = m.getReactions rnd rateProvider n
 
                 let b =
                     match rateProvider.tryGetModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with
@@ -198,6 +207,6 @@ module ClmModelData =
 
                 b
 
-        static member create rnd t rateProvider si =
+        static member create rnd t rateProvider si st =
             match t with
-            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si st |> RandomChoiceModel

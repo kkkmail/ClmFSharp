@@ -151,15 +151,21 @@ module ReactionRateFunctions =
                     }
                 | false -> CatRatesEeParam.defaultValue
 
+            match i.simParams.catRatesSimGeneration with
+            | DistributionBased simBaseDistribution ->
+                i.aminoAcids
+                |> List.map (fun a -> i.simReactionCreator a, simBaseDistribution.isDefined i.rnd)
+            | FixedValue d ->
+                // Here we need to ensure that number of successes is NOT random but fixed.
+                let isDefined j =
+                    match d.value.distributionParams.threshold with
+                    | Some t -> (double j) < t * (double i.aminoAcids.Length)
+                    | None -> true
 
-            // TODO kk:20191014 - Here we need to ensure that number of successes in the call to i.simParams.simBaseDistribution.isDefined is NOT random but fixed. 
-            // This is not that straightforward. 
-            // Breaking the compilation for the time being...
-            return! 0
-            // Remove that stuff above one the issue is fixed.
-
-            i.aminoAcids
-            |> List.map (fun a -> i.simReactionCreator a, i.simParams.simBaseDistribution.isDefined i.rnd)
+                i.aminoAcids
+                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.sortBy (fun (r, _) -> r)
+                |> List.mapi (fun j (_, a) -> i.simReactionCreator a, isDefined j)
             |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
             |> ignore
 

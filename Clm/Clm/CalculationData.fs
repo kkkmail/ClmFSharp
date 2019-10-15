@@ -147,39 +147,44 @@ module CalculationData =
         member si.ligationReactions = si.ligationPairs |> List.map LigationReaction
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
-        member si.catSynthInfo =
+        member si.catSynthInfo t =
             {
                 a = si.synthesisReactions |> Array.ofList
                 b = si.synthCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticSynthesisName
+                successNumberType = t
             }
 
-        member si.catDestrInfo =
+        member si.catDestrInfo t =
             {
                 a = si.destructionReactions |> Array.ofList
                 b = si.destrCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticDestructionName
+                successNumberType = t
             }
 
-        member si.catLigInfo =
+        member si.catLigInfo t =
             {
                 a = si.ligationReactions |> Array.ofList
                 b = si.ligCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticLigationName
+                successNumberType = t
             }
 
-        member si.catRacemInfo =
+        member si.catRacemInfo t =
             {
                 a = si.racemizationReactions |> Array.ofList
                 b = si.racemCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticRacemizationName
+                successNumberType = t
             }
 
-        member si.sedDirInfo =
+        member si.sedDirInfo t =
             {
                 a = si.chiralAminoAcids |> Array.ofList
                 b = si.sedDirAgents |> Array.ofList
                 reactionName = ReactionName.SedimentationDirectName
+                successNumberType = t
             }
 
 

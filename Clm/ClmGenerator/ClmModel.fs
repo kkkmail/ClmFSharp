@@ -24,9 +24,10 @@ module ClmModel =
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
 
-        let rrp = 
+        let rrp =
             {
                 rateParams = modelParams.reactionRateModelParams
+                successNumberType = modelParams.successNumberType
             }
 
         let si =
@@ -40,7 +41,7 @@ module ClmModel =
         let rateProvider = ReactionRateProvider (rrp, si)
 
 
-        let bf = RateGenerationData.create rnd generationType rateProvider si
+        let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType
 
         let modelInfo =
             {

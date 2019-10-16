@@ -4,6 +4,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open ClmSys.GeneralData
+open Clm.Distributions
 
 module Defaults_012 =
 
@@ -27,6 +28,7 @@ module Defaults_012 =
         let clmDefaultValueId = (12_000L + n) |> ClmDefaultValueId
         let description = None
         let catRateGenType = ByEnantiomerPairs DistrBased
+        let successNumberType = RandomValueBased
 
         let defaultRateParams =
             //===========================================================
@@ -55,6 +57,7 @@ module Defaults_012 =
 
             {
                 rateParams = rates
+                successNumberType = successNumberType
             }
 
         {

@@ -59,7 +59,7 @@ module ClmModelData =
                             reactionRateModelParams = v.defaultRateParams.rateParams
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
-                            successNumberType = 0
+                            successNumberType = v.defaultRateParams.successNumberType
                         }
 
                     modelCommandLineParams = c.commandLineParams

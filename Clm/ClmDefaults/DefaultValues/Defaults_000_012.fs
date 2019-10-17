@@ -6,13 +6,13 @@ open ClmDefaults.DefaultValuesExt
 open ClmSys.GeneralData
 open Clm.Distributions
 
-module Defaults_016 =
+module Defaults_000_012 =
 
-    let nsd =
+    let ns =
         [
             ( 0L, 0.00)
             ( 1L, 0.10)
-            ( 2L, 0.20) // Same as 9028
+            ( 2L, 0.20)
             ( 3L, 0.30)
             ( 4L, 0.40)
             ( 5L, 0.50)
@@ -25,7 +25,7 @@ module Defaults_016 =
 
 
     let getGefaultValue (n, s) =
-        let clmDefaultValueId = (16_000L + n) |> ClmDefaultValueId
+        let clmDefaultValueId = (12_000L + n) |> ClmDefaultValueId
         let description = None
         let catRateGenType = ByEnantiomerPairs DistrBased
         let successNumberType = RandomValueBased
@@ -35,12 +35,10 @@ module Defaults_016 =
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
             let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
-            let catSynthRndParam = (synthParam, (Some 0.000_050), 100_000.0)
+            let catSynthRndParam = (synthParam, (Some 0.000_020), 100_000.0)
             let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some s) catRateGenType
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
-            let catDestrRndParam = (destrParam, (Some 0.000_050), 100_000.0)
-            let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some s) catRateGenType
             //===========================================================
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
             //===========================================================
@@ -52,7 +50,6 @@ module Defaults_016 =
                     catSynthParam
 
                     destrParam |> DestructionRateParam
-                    catDestrParam
 
                     ligParam |> LigationRateParam
                 ]

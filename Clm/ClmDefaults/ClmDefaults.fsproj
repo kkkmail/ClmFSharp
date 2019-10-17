@@ -77,6 +77,9 @@
     <Compile Include="DefaultValues\Defaults_000_015.fs" />
     <Compile Include="DefaultValues\Defaults_000_016.fs" />
     <Compile Include="DefaultValues\Defaults_999_999.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_011.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_012.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_016.fs" />
     <Compile Include="AllDefaults.fs" />
     <Compile Include="ClmDefaultsTasks.fs" />
     <Compile Include="Program.fs" />

@@ -6,9 +6,9 @@ open ClmDefaults.DefaultValuesExt
 open ClmSys.GeneralData
 open Clm.Distributions
 
-module Defaults_999_000 =
+module Defaults_999_999 =
 
-    let clmDefaultValueId = 999_000L |> ClmDefaultValueId
+    let clmDefaultValueId = 999_999L |> ClmDefaultValueId
     let description = Some "For n = 3 - 5"
     let catRateGenType = ByEnantiomerPairs DistrBased
     let successNumberType = RandomValueBased

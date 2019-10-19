@@ -71,7 +71,7 @@ module SolverRunnerTasks =
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
 
             match results.TryGetResult Remote with
-            | None ->
+            | None | Some false ->
                 {
                     contGenServiceAccessInfo =
                         {
@@ -83,7 +83,7 @@ module SolverRunnerTasks =
                     minUsefulEe = ee
                 }
                 |> ContGenSvcAccessInfo
-            | Some _ ->
+            | Some true ->
                 {
                     wrkNodeServiceAccessInfo =
                         {

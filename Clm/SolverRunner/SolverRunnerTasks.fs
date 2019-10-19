@@ -4,7 +4,6 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
-open ClmSys.GeneralData
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
@@ -62,8 +61,8 @@ module SolverRunnerTasks =
 
     let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult Remote with
-        | None -> SolverRunnerProxyInfo.defaultValue
-        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
+        | None | Some false -> SolverRunnerProxyInfo.defaultValue
+        | Some true -> SolverRunnerProxyInfo.defaultRemoteValue
 
 
     let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =

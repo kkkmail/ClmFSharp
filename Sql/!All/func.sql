@@ -16,7 +16,7 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
 	)
 	,t2 as
 	(
@@ -92,6 +92,9 @@ begin
 	return @retval
 end
 go
+--declare @clmDefaultValueId bigint
+--set @clmDefaultValueId = 9028
+
 drop function if exists dbo.getCatDestrSim
 go
 
@@ -110,54 +113,56 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
-	),
-	t2 as
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
 	(
 		select b.* 
 		from t1
 		cross apply openjson(t1.[value]) as a
 		cross apply openjson(a.[value]) as b
 		where b.[key] = 'Fields'
-	),
-	t3 as
+	)
+	,t3 as
 	(
 		select b.* 
 		from t2
 		cross apply openjson(t2.[value]) as a
 		cross apply openjson(a.[value]) as b
 		where b.[key] = 'catDestrSimParam'
-	),
-	t4 as
+	)
+	,t4 as
 	(
 		select a.* 
 		from t3
 		cross apply openjson(t3.[value]) as a
-		where a.[key] = 'simBaseDistribution'
-	),
-	t5 as
+		where a.[key] = 'catRatesSimGeneration'
+	)
+	,t5 as
 	(
 		select a.*
 		from t4
 		cross apply openjson(t4.[value]) as a
 		where a.[key] = 'Fields'
-	),
-	t6 as
+	)
+	,t6 as
 	(
-		select b.* 
+		select d.*
 		from t5
 		cross apply openjson(t5.[value]) as a
 		cross apply openjson(a.[value]) as b
-		where b.[key] = 'distributionParams'
-	),
-	t7 as
+		cross apply openjson(b.[value]) as c
+		cross apply openjson(c.[value]) as d
+		where b.[key] = 'Fields' and d.[key] = 'distributionParams'
+	)
+	,t7 as
 	(
 		select a.*
 		from t6
 		cross apply openjson(t6.[value]) as a
 		where a.[key] = 'threshold'
-	),
-	t8 as
+	)
+	,t8 as
 	(
 		select a.* 
 		from t7
@@ -189,7 +194,7 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
 	)
 	,t2 as
 	(
@@ -265,6 +270,9 @@ begin
 	return @retval
 end
 go
+--declare @clmDefaultValueId bigint
+--set @clmDefaultValueId = 9028
+
 drop function if exists dbo.getCatSynthSim
 go
 
@@ -283,54 +291,56 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
-	),
-	t2 as
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
 	(
 		select b.* 
 		from t1
 		cross apply openjson(t1.[value]) as a
 		cross apply openjson(a.[value]) as b
 		where b.[key] = 'Fields'
-	),
-	t3 as
+	)
+	,t3 as
 	(
 		select b.* 
 		from t2
 		cross apply openjson(t2.[value]) as a
 		cross apply openjson(a.[value]) as b
 		where b.[key] = 'catSynthSimParam'
-	),
-	t4 as
+	)
+	,t4 as
 	(
 		select a.* 
 		from t3
 		cross apply openjson(t3.[value]) as a
-		where a.[key] = 'simBaseDistribution'
-	),
-	t5 as
+		where a.[key] = 'catRatesSimGeneration'
+	)
+	,t5 as
 	(
 		select a.*
 		from t4
 		cross apply openjson(t4.[value]) as a
 		where a.[key] = 'Fields'
-	),
-	t6 as
+	)
+	,t6 as
 	(
-		select b.* 
+		select d.*
 		from t5
 		cross apply openjson(t5.[value]) as a
 		cross apply openjson(a.[value]) as b
-		where b.[key] = 'distributionParams'
-	),
-	t7 as
+		cross apply openjson(b.[value]) as c
+		cross apply openjson(c.[value]) as d
+		where b.[key] = 'Fields' and d.[key] = 'distributionParams'
+	)
+	,t7 as
 	(
 		select a.*
 		from t6
 		cross apply openjson(t6.[value]) as a
 		where a.[key] = 'threshold'
-	),
-	t8 as
+	)
+	,t8 as
 	(
 		select a.* 
 		from t7
@@ -342,6 +352,16 @@ begin
 	cross apply openjson(t8.[value]) as a
 
 	return @retval
+end
+go
+drop function if exists dbo.getGroupId
+go
+
+create function dbo.getGroupId(@clmDefaultValueId bigint)
+returns bigint
+as
+begin
+	return (@clmDefaultValueId / 1000000000)
 end
 go
 drop function if exists dbo.getWasteRecyclingRate
@@ -362,7 +382,7 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
 	)
 	select @retVal = cast(b.[value] as float)
 	from t1

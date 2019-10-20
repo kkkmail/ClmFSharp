@@ -16,7 +16,7 @@ begin
 		from openjson(@json) a
 		cross apply openjson(a.[value]) as b
 		cross apply openjson(b.[value]) as c
-		where  c.[key] = 'Fields'
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
 	)
 	,t2 as
 	(

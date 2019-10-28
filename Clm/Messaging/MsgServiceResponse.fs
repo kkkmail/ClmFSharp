@@ -7,12 +7,24 @@ open ClmSys.Logging
 
 module ServiceResponse =
 
-    type MsgResponseHandler private (url) =
-        let service = Activator.GetObject (typeof<IMessagingService>, url) :?> IMessagingService
+    type MsgResponseHandler private (logger : Logger, url) =
+        let className = "MsgResponseHandler"
+        let getMethodName n = className + "." + n
+        let tryGetServiceName = getMethodName "tryGetService"
 
-        member __.messagingService = service
-        new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.serviceUrl)
-        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.messagingServiceAccessInfo.serviceUrl)
+
+        let tryGetService() =
+            try
+                Activator.GetObject (typeof<IMessagingService>, url) :?> IMessagingService |> Some
+            with
+            | exn ->
+                logger.logExn tryGetServiceName exn
+                None
+
+        member __.tryGetMessagingService() = tryGetService()
+
+        new (i : MessagingClientAccessInfo) = MsgResponseHandler(logger, i.msgSvcAccessInfo.serviceUrl)
+        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(logger, i.messagingServiceAccessInfo.serviceUrl)
 
         static member tryCreate(logger : Logger, i : MessagingClientAccessInfo) =
             try

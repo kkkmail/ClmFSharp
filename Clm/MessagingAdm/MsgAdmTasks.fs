@@ -47,15 +47,19 @@ module MsgAdmTasks =
         static member private tryCreatStartServiceTask s p =
             p |> List.tryPick (fun e -> match e with | StartMsgService -> s |> StartMsgServiceTask |> Some | _ -> None)
 
-        static member createTask s p =
-            let tt =
-                [
-                    MsgAdmTask.tryCreatStopServiceTask
-                    MsgAdmTask.tryCreatStartServiceTask
-                    MsgAdmTask.tryCreateMonitorTask
-                ]
-                |> List.tryPick (fun e -> e s p)
+        static member createTask so p =
+            match so() with
+            | Some s ->
+                let tt =
+                        [
+                            MsgAdmTask.tryCreatStopServiceTask
+                            MsgAdmTask.tryCreatStartServiceTask
+                            MsgAdmTask.tryCreateMonitorTask
+                        ]
+                        |> List.tryPick (fun e -> e s p)
 
-            match tt with
-            | Some t -> t
-            | None -> MonitorMsgServiceTask s
+                match tt with
+                | Some t -> t
+                | None -> MonitorMsgServiceTask s
+                |> Some
+            | None -> None

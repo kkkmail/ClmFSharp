@@ -219,12 +219,21 @@ module FSharpCodeExt =
             shift + "}" + Nl
 
 
+    type CatRatesSimGeneration
+        with
+
+        member p.toFSharpCode =
+            match p with
+            | DistributionBased d -> "DistributionBased " + d.toFSharpCode
+            | FixedValue d -> "FixedValue " + d.toFSharpCode
+
+
     type CatRatesSimilarityParam
         with
 
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
-            shift + "    simBaseDistribution = " + p.simBaseDistribution.toFSharpCode + Nl +
+            shift + "    catRatesSimGeneration = " + p.catRatesSimGeneration.toFSharpCode + Nl +
             shift + "    getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
             shift + "    getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
             shift + "    getBackwardEeDistr = " + p.getBackwardEeDistr.toFSharpCode + Nl +

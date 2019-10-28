@@ -4,7 +4,6 @@ open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
 open ClmSys.ExitErrorCodes
-open ClmSys.GeneralData
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.CommandLine
@@ -62,8 +61,8 @@ module SolverRunnerTasks =
 
     let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult Remote with
-        | None -> SolverRunnerProxyInfo.defaultValue
-        | Some _ -> SolverRunnerProxyInfo.defaultRemoteValue
+        | None | Some false -> SolverRunnerProxyInfo.defaultValue
+        | Some true -> SolverRunnerProxyInfo.defaultRemoteValue
 
 
     let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
@@ -72,7 +71,7 @@ module SolverRunnerTasks =
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
 
             match results.TryGetResult Remote with
-            | None ->
+            | None | Some false ->
                 {
                     contGenServiceAccessInfo =
                         {
@@ -84,7 +83,7 @@ module SolverRunnerTasks =
                     minUsefulEe = ee
                 }
                 |> ContGenSvcAccessInfo
-            | Some _ ->
+            | Some true ->
                 {
                     wrkNodeServiceAccessInfo =
                         {

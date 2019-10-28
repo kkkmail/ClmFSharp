@@ -43,10 +43,23 @@ module ChartData =
         static member create (i : BinaryInfo) t x =
             let totals = i.getTotals x
 
+            let getCorrectLD li di =
+                let l = if li > 0.0 then li else 0.0
+                let d = if di > 0.0 then di else 0.0
+                (l, d)
+
+            let getTotal li di =
+                let (l, d) = getCorrectLD li di
+                l + d
+
+            let getEe li di =
+                let (l, d) = getCorrectLD li di
+                if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
+
             {
                 t = t
-                aminoAcidsData = totals |> List.map (fun (l, d) -> l + d) |> Array.ofList
-                enantiomericExcess = totals |> List.map (fun (l, d) -> if (l + d) > 0.0 then (l - d) / (l + d) else 0.0) |> Array.ofList
+                aminoAcidsData = totals |> List.map (fun (l, d) -> getTotal l d) |> Array.ofList
+                enantiomericExcess = totals |> List.map (fun (l, d) -> getEe l d) |> Array.ofList
 
                 totalSubst =
                     let foodIdx = i.allSubstData.allInd.TryFind (AchiralSubst.Food |> Simple)

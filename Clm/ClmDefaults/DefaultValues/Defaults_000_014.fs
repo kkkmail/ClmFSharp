@@ -4,37 +4,41 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open ClmSys.GeneralData
+open Clm.Distributions
 
-module Defaults_012 =
+module Defaults_000_014 =
 
-    let ns =
+    let nw =
         [
-            ( 0L, 0.00)
-            ( 1L, 0.10)
-            ( 2L, 0.20)
-            ( 3L, 0.30)
-            ( 4L, 0.40)
-            ( 5L, 0.50)
-            ( 6L, 0.60)
-            ( 7L, 0.70)
-            ( 8L, 0.80)
-            ( 9L, 0.90)
-            (10L, 1.00)
+            ( 0L,   0.10)
+            ( 1L,   1.00)
+            ( 2L,  10.00)
+            ( 3L, 100.00)
+            ( 4L,   0.20)
+            ( 5L,   0.50)
+            ( 6L,   2.00)
+            ( 7L,   5.00)
+            ( 8L,  20.00)
+            ( 9L,  50.00)
+            (10L,   0.01)
+            (11L,   0.02)
+            (12L,   0.05)
         ]
 
 
-    let getGefaultValue (n, s) =
-        let clmDefaultValueId = (12_000L + n) |> ClmDefaultValueId
+    let getGefaultValue (n, w) =
+        let clmDefaultValueId = (14_000L + n) |> ClmDefaultValueId
         let description = None
-        let catRateGenType = ByEnantiomerPairs
+        let catRateGenType = ByEnantiomerPairs DistrBased
+        let successNumberType = RandomValueBased
 
         let defaultRateParams =
             //===========================================================
-            let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
+            let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam w
             //===========================================================
             let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
             let catSynthRndParam = (synthParam, (Some 0.000_020), 100_000.0)
-            let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some s) catRateGenType
+            let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some 0.20) catRateGenType
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
             //===========================================================
@@ -55,6 +59,7 @@ module Defaults_012 =
 
             {
                 rateParams = rates
+                successNumberType = successNumberType
             }
 
         {

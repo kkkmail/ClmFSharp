@@ -8,17 +8,17 @@ module CommandLine =
     let SolverRunnerName = "SolverRunner.exe"
 
 
-    [<CliPrefix(CliPrefix.None)>]
+    [<CliPrefix(CliPrefix.Dash)>]
     type SolverRunnerArguments =
-        | [<Unique>] [<AltCommandLine("t")>]  EndTime of decimal
-        | [<Unique>] [<AltCommandLine("y0")>] TotalAmount of decimal
-        | [<Unique>] [<AltCommandLine("a")>]  UseAbundant of bool
-        | [<Unique>] [<AltCommandLine("m")>]  ModelId of Guid
-        | [<Unique>] [<AltCommandLine("n")>]  NotifyAddress of string
-        | [<Unique>] [<AltCommandLine("p")>]  NotifyPort of int
-        | [<Unique>] [<AltCommandLine("ee")>] MinimumUsefulEe of double
-        | [<Unique>] [<AltCommandLine("r")>]  Remote of bool
-        | [<Unique>] [<AltCommandLine("i")>]  ResultId of Guid
+        | [<Unique>] [<AltCommandLine("-t")>]  EndTime of decimal
+        | [<Unique>] [<AltCommandLine("-y0")>] TotalAmount of decimal
+        | [<Unique>] [<AltCommandLine("-a")>]  UseAbundant of bool
+        | [<Unique>] [<AltCommandLine("-m")>]  ModelId of Guid
+        | [<Unique>] [<AltCommandLine("-n")>]  NotifyAddress of string
+        | [<Unique>] [<AltCommandLine("-p")>]  NotifyPort of int
+        | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
+        | [<Unique>] [<AltCommandLine("-r")>]  Remote of bool
+        | [<Unique>] [<AltCommandLine("-i")>]  ResultId of Guid
 
 
     with

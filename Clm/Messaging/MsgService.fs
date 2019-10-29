@@ -97,7 +97,7 @@ module Service =
                 let h = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler)
                 do h.start()
 
-                x
+                { x with workState = CanTransmitMessages }
             | CanTransmitMessages | ShuttingDown -> s
 
 

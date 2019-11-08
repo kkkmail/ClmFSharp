@@ -60,6 +60,9 @@ module AllDefaults =
         @
         updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both scarcity param = 20, vary both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
             (Defaults_001_000_017.nsd |> List.map Defaults_001_000_017.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both scarcity param = 100, vary both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_018.nsd |> List.map Defaults_001_000_018.getGefaultValue)
 
 
         @

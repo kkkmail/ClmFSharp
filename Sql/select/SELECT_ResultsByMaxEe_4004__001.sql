@@ -41,6 +41,7 @@ b as
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
 		inner join ModelData m on t.clmTaskId = m.clmTaskId
 		inner join ResultData r on m.modelDataId = r.modelDataId
+	where r.maxEe <= 1
 ),
 c as
 (

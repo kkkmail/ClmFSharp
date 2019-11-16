@@ -20,7 +20,7 @@ The system uses MS SQL as a database to store various parameters and generates H
 
 ## Build order
 The system uses F# type providers, which means that the database must be created first. The compile time connection string (as well as the run time connection string) are loaded from `App.config`. See `DbData.DatabaseTypes` fro details. Because the database is primitive (it contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not seem justified. So, the procedure is as follows:
-1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm4000`) / adjust it as necessary.
+1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm4004`) / adjust it as necessary.
 2.	Create MSSQL database with the name from step #1.
 3.	Run `-build.bat` file from `SQL` folder. It will produce a file `all.sql` in the folder `!All`. If no changes to tables were made, then the file will come out the same as in repository.
 4.	Load that file (`all.sql`) and run it in the database created on step #2. The script is fully reentrable, which means that it can be run many times without any side effects.
@@ -86,7 +86,7 @@ This is a rudimentary admin console for `WorkerNodeService`. It allows changing 
 ### MessagingService
 `MessagingService` provides communication between worker nodes and system core. The nodes and system core may be located anywhere and as such might be unable to talk directly. Messaging service allows them to talk by forwarding messaging with guaranteed and non-guaranteed delivery. For example, all progress notification messages (except model completion message) are sent with non-guaranteed delivery. This structure allows any of the nodes even to be temporarily cut off from the internet but still be able to send / receive the necessary data when the connection is restored.
 
-###MessagingAdm
+### MessagingAdm
 This is an admin console for messaging service. Once the service is running there is almost nothing to configure. However, the console may be used to monitor the service state.
 
 

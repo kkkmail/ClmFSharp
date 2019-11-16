@@ -37,7 +37,7 @@ module Service =
 
         static member defaultValue d =
             {
-                workState = CanTransmitMessages
+                workState = MsgSvcNotStarted
                 messageServiceData = d
                 messages = Map.empty
                 expirationTime = TimeSpan(6, 0, 0)
@@ -70,20 +70,21 @@ module Service =
 
 
         let updateMessages s (m : Message) =
-            printfn "%s: Updating with mesageid: %A ..." updateMessagesName m.messageDataInfo.messageId
+            printfn "%s: Updating with message id: %A ..." updateMessagesName m.messageDataInfo.messageId
 
             let x =
                 match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
                 | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m.toMessageWithOptionalData() :: r) }
                 | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m.toMessageWithOptionalData() ]) }
 
-            printfn "%s: Updated with mesageid: %A." updateMessagesName m.messageDataInfo.messageId
+            printfn "%s: Updated with message id: %A." updateMessagesName m.messageDataInfo.messageId
             x
 
         let onStart (s : MessagingServiceState) (w : MessagingService) =
+            printfn "%s: workState: %A" onStartName s.workState
+
             match s.workState with
             | MsgSvcNotStarted ->
-                printfn "%s" onStartName
 
                 let x =
                     s.proxy.loadMessages()
@@ -96,9 +97,8 @@ module Service =
                 let h = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler)
                 do h.start()
 
-                x
-            | CanTransmitMessages -> s
-            | ShuttingDown -> s
+                { x with workState = CanTransmitMessages }
+            | CanTransmitMessages | ShuttingDown -> s
 
 
         let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =

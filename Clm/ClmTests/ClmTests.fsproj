@@ -74,11 +74,14 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="AccidentalFish.FSharp.Validation">
+      <HintPath>..\packages\AccidentalFish.FSharp.Validation.0.10.1\lib\netstandard2.0\AccidentalFish.FSharp.Validation.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FsUnit.Xunit">
-      <HintPath>..\packages\FsUnit.xUnit.3.5.0\lib\net46\FsUnit.Xunit.dll</HintPath>
+      <HintPath>..\packages\FsUnit.xUnit.3.8.0\lib\net46\FsUnit.Xunit.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>

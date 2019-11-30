@@ -12,6 +12,7 @@ open ClmSys.Logging
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open MessagingService.SvcCommandLine
+open System.ServiceModel
 
 module WindowsService =
 
@@ -26,6 +27,28 @@ module WindowsService =
 
             {
                 msgSvcTcpChannel = channel
+            }
+            |> Some
+        with
+        | e ->
+            logger.logExn "Error starting service." e
+            None
+
+
+    let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
+        try
+            serviceAccessInfo <- i
+
+            let binding = new NetTcpBinding()
+
+            // TODO kk:2019130 - Fix this!!!
+            let baseAddress = new Uri("net.tcp://localhost:8000/wcfserver")
+            let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
+            let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)
+            do serviceHost.Open()
+
+            {
+                serviceHost = serviceHost
             }
             |> Some
         with

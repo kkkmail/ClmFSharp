@@ -2,6 +2,9 @@
 
 open System
 open System.Runtime.Remoting.Channels.Tcp
+open System.ServiceModel
+open System.ServiceModel.Description
+
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
@@ -261,10 +264,39 @@ module ServiceInfo =
         }
 
 
+    type MsgWcfSvcShutDownInfo =
+        {
+            serviceHost : ServiceHost
+        }
+
+
     type IMessagingService =
         abstract getVersion : unit -> MessagingDataVersion
         abstract sendMessage : Message -> MessageDeliveryResult
         abstract configureService : MessagingConfigParam -> unit
         abstract tryPeekMessage : MessagingClientId -> Message option
         abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+        abstract getState : unit -> MsgServiceState
+
+
+    /// https://gist.github.com/dgfitch/661656
+    [<ServiceContract(ConfigurationName = "MessagingWcfService")>]
+    type IMessagingWcfService =
+
+        [<OperationContract(Name = "getVersion")>]
+        abstract getVersion : unit -> MessagingDataVersion
+
+        [<OperationContract(Name = "sendMessage")>]
+        abstract sendMessage : Message -> MessageDeliveryResult
+
+        [<OperationContract(Name = "configureService")>]
+        abstract configureService : MessagingConfigParam -> unit
+
+        [<OperationContract(Name = "tryPeekMessage")>]
+        abstract tryPeekMessage : MessagingClientId -> Message option
+
+        [<OperationContract(Name = "tryDeleteFromServer")>]
+        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+
+        [<OperationContract(Name = "getState")>]
         abstract getState : unit -> MsgServiceState

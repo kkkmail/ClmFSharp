@@ -40,3 +40,15 @@ module ServiceImplementation =
             member __.tryPeekMessage n = a.tryPeekMessage n
             member __.tryDeleteFromServer n m = a.tryDeleteFromServer n m
             member __.getState() = a.getState()
+
+
+    type MessagingWcfService() =
+        let a = createServiceImpl serviceAccessInfo
+
+        interface IMessagingWcfService with
+            member __.getVersion() = a.getVersion()
+            member __.sendMessage m = a.sendMessage m
+            member __.configureService x = a.configureService x
+            member __.tryPeekMessage n = a.tryPeekMessage n
+            member __.tryDeleteFromServer n m = a.tryDeleteFromServer n m
+            member __.getState() = a.getState()

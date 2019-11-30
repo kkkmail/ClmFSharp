@@ -6,10 +6,9 @@ go
 
 
 -- Calculates how often the symmetry is broken for all processed default sets.
-
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
-set @maxWeightedAverageAbsEe = 0.0001
-set @maxLastEe = 0.0001
+set @maxWeightedAverageAbsEe = 0.003
+set @maxLastEe = 0.003
 set @runeTimeEst = 1.60
 
 ; with
@@ -31,7 +30,6 @@ b as
 		t.numberOfAminoAcids,
 		r.modelDataId,
 		case 
-			--when r.maxEe > @maxEe and r.maxAverageEe > @maxAverageEe then 1 
 			when r.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or r.maxLastEe > @maxLastEe then 1 
 			else 0 
 		end as isSymmetryBroken,

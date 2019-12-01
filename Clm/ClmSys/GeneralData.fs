@@ -9,6 +9,7 @@ open ClmSys.Logging
 open ClmSys.Rop
 open System.Diagnostics
 open MBrace.FsPickler
+open Newtonsoft.Json
 
 module GeneralData =
 
@@ -546,9 +547,15 @@ module GeneralData =
     let xmlDeserialize s = xmlSerializer.UnPickleOfString s
 
 
+    let jsonSerialize t = JsonConvert.SerializeObject t
+    let jsonDeserialize<'T> s = JsonConvert.DeserializeObject<'T> s
+
+
     let serializer = FsPickler.CreateXmlSerializer(indent = true)
-    let serialize t = serializer.PickleToString t
-    let deserialize s = serializer.UnPickleOfString s
+    //let serialize t = serializer.PickleToString t
+    //let deserialize s = serializer.UnPickleOfString s
+    let serialize t = jsonSerialize t
+    let deserialize s = jsonDeserialize s
 
 
     let trySerialize<'A> (a : 'A) =
@@ -560,6 +567,7 @@ module GeneralData =
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
     let tryCastAs<'T> (o:obj) =
+        printfn "tryCastAs: typeof<'T> = '%A', o.GetType() = '%A'." typeof<'T> (o.GetType())
         match o with
         | :? 'T as res -> Some res
         | _ -> None
@@ -567,7 +575,16 @@ module GeneralData =
 
     let tryDeserialize<'A> b : Result<'A, exn> =
         try
-            match (b |> unZip |> deserialize) |> tryCastAs<'A> with
+            printfn "tryDeserialize: Unzipping..."
+            let x = b |> unZip
+            printfn "x = %A" x
+
+            printfn "tryDeserialize: Deserializing..."
+            let y = deserialize x
+            printfn "y = %A" y
+
+            //match (b |> unZip |> deserialize) with // |> tryCastAs<'A>
+            match y with
             | Some v -> Success v
             | None -> new InvalidCastException (sprintf "tryDeserialize: Unable to cast to type: '%A'." typeof<'A>) :> exn |> Failure
         with

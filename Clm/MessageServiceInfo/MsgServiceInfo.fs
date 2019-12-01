@@ -284,19 +284,22 @@ module ServiceInfo =
     type IMessagingWcfService =
 
         [<OperationContract(Name = "getVersion")>]
-        abstract getVersion : unit -> MessagingDataVersion
+        abstract getVersion : u:unit -> MessagingDataVersion
 
         [<OperationContract(Name = "sendMessage")>]
-        abstract sendMessage : Message -> MessageDeliveryResult
+        abstract sendMessage : m:Message -> MessageDeliveryResult
 
         [<OperationContract(Name = "configureService")>]
-        abstract configureService : MessagingConfigParam -> unit
+        abstract configureService : p:MessagingConfigParam -> unit
 
         [<OperationContract(Name = "tryPeekMessage")>]
-        abstract tryPeekMessage : MessagingClientId -> Message option
+        abstract tryPeekMessage : c:MessagingClientId -> Message option
 
         [<OperationContract(Name = "tryDeleteFromServer")>]
-        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+        abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
 
         [<OperationContract(Name = "getState")>]
-        abstract getState : unit -> MsgServiceState
+        abstract getState : u:unit -> MsgServiceState
+
+        [<OperationContract(Name="testMethod")>]
+        abstract member testMethod : name:string -> string

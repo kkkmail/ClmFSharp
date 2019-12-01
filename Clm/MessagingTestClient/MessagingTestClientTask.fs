@@ -27,6 +27,8 @@ module MessagingTestClientTask =
 
         while true do
             printfn "Sending message to %A" r
+            let x = a.testMethod "Some name"
+            printfn "runTestClient: x = '%A'." x
 
             let m =
                 {

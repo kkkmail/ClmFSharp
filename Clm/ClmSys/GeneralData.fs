@@ -69,6 +69,10 @@ module GeneralData =
         "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
+    let private getWcfServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+        "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+
+
     type ServiceAccessInfo =
         {
             serviceAddress : ServiceAddress
@@ -78,6 +82,9 @@ module GeneralData =
 
         member s.serviceUrl =
             getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
+
+        member s.wcfServiceUrl =
+            getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
 
 
     type MinUsefulEe =

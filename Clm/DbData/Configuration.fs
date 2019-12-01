@@ -21,10 +21,10 @@ module Configuration =
     let ClmCommandTimeout = 7200
 
     [<Literal>]
-    let ClmSqlProviderName : string = "name=" + ClmDbName
+    let ClmSqlProviderName : string = "name=" + "Clm"
 
 
-    let buildConnectionString (key : string) : string = 
+    let buildConnectionString (key : string) : string =
         [ 
             Some (sprintf "Server=localhost;Database=%s;Integrated Security=SSPI" key) 
         ]

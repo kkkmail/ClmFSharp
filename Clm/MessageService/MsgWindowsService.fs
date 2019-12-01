@@ -13,6 +13,7 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open MessagingService.SvcCommandLine
 open System.ServiceModel
+open System.ServiceModel.Description
 
 module WindowsService =
 
@@ -37,15 +38,14 @@ module WindowsService =
 
     let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
         try
+            printfn "startWcfServiceRun: Creating WCF service..."
             serviceAccessInfo <- i
-
             let binding = new NetTcpBinding()
-
-            // TODO kk:2019130 - Fix this!!!
-            let baseAddress = new Uri("net.tcp://localhost:8000/wcfserver")
+            let baseAddress = new Uri(i.messagingServiceAccessInfo.wcfServiceUrl)
             let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
             let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)
             do serviceHost.Open()
+            printfn "... completed."
 
             {
                 serviceHost = serviceHost
@@ -53,7 +53,7 @@ module WindowsService =
             |> Some
         with
         | e ->
-            logger.logExn "Error starting service." e
+            logger.logExn "Error starting WCF service." e
             None
 
 
@@ -64,6 +64,7 @@ module WindowsService =
         do initService ()
         let logger = Logger.log4net
         let mutable shutDownInfo : MsgSvcShutDownInfo option = None
+        let mutable shutDownWcfInfo : MsgWcfSvcShutDownInfo option = None
 
         let tryDispose() =
             match shutDownInfo with
@@ -73,12 +74,21 @@ module WindowsService =
                 shutDownInfo <- None
             | None -> ignore()
 
+            match shutDownWcfInfo with
+            | Some i ->
+                logger.logInfo "MessagingWindowsService: Closing WCF service host."
+                i.serviceHost.Close()
+                shutDownInfo <- None
+            | None -> ignore()
+
+
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            shutDownInfo <- startServiceRun logger i
+            //shutDownInfo <- startServiceRun logger i
+            shutDownWcfInfo <- startWcfServiceRun logger i
 
         override __.OnStop () =
             tryDispose()

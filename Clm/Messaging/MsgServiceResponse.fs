@@ -38,24 +38,29 @@ module ServiceResponse =
         let sendMessageImpl m =
             printfn "%s: Starting..." sendMessageImplName
 
-            match tryGetWcfService() with
-            | Success service ->
-                printfn "%s: Created service..." sendMessageImplName
-                match m |> trySerialize with
-                | Success b ->
-                    printfn "%s: trySerialize succeeded..." sendMessageImplName
-                    match b |> service.sendMessage |> tryDeserialize<MessageDeliveryResult> with
-                    | Success r ->
-                        printfn "%s: service.sendMessage succeeded. Result: %A." sendMessageImplName r
-                        r
+            try
+                match tryGetWcfService() with
+                | Success service ->
+                    printfn "%s: Created service..." sendMessageImplName
+                    match m |> trySerialize with
+                    | Success b ->
+                        printfn "%s: trySerialize succeeded..." sendMessageImplName
+                        match b |> service.sendMessage |> tryDeserialize<MessageDeliveryResult> with
+                        | Success r ->
+                            printfn "%s: service.sendMessage succeeded. Result: %A." sendMessageImplName r
+                            r
+                        | Failure e ->
+                            printfn "%s: service.sendMessage FAILED. Exception: %A" sendMessageImplName e
+                            ExceptionOccurred e
                     | Failure e ->
-                        printfn "%s: service.sendMessage FAILED. Exception: %A" sendMessageImplName e
+                        printfn "%s: trySerialize FAILED. Exception: %A" sendMessageImplName e
                         ExceptionOccurred e
                 | Failure e ->
-                    printfn "%s: trySerialize FAILED. Exception: %A" sendMessageImplName e
+                    printfn "%s: FAILED to create service. Exception: %A" sendMessageImplName e
                     ExceptionOccurred e
-            | Failure e ->
-                printfn "%s: FAILED to create service. Exception: %A" sendMessageImplName e
+            with
+            | e ->
+                printfn "%s: Exception occured: %A" sendMessageImplName e
                 ExceptionOccurred e
 
         let configureServiceImpl x = failwith "configureServiceImpl is not implemented."

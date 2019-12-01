@@ -36,7 +36,7 @@ module MessagingTestClientTask =
                     recipientInfo =
                         {
                             recipient = r
-                            deliveryType = NonGuaranteedDelivery
+                            deliveryType = GuaranteedDelivery
                         }
 
                     messageData = sprintf "Message sent at %A." DateTime.Now |> TextData

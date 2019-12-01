@@ -9,6 +9,7 @@ open Messaging.Service
 open ServiceProxy.MsgServiceProxy
 open ClmSys.Rop
 open ClmSys.GeneralData
+open System.ServiceModel
 
 module ServiceImplementation =
 
@@ -44,17 +45,29 @@ module ServiceImplementation =
             member __.getState() = a.getState()
 
 
+    [<ServiceBehavior(IncludeExceptionDetailInFaults = true)>]
     type MessagingWcfService() =
+        let className = "MessagingWcfService"
+        let getMethodName n = className + "." + n
+        let sendMessageImplName = getMethodName "sendMessageImpl"
+
         let a = createServiceImpl serviceAccessInfo
 
         let sendMessageImpl b =
-            match b |> tryDeserialize<Message> with
-            | Success m ->
-                failwith ""
-            | Failure f ->
-                failwith ""
+            printfn "%s: Starting..." sendMessageImplName
 
-            //a.sendMessage
+            let reply =
+                match b |> tryDeserialize<Message> with
+                | Success m ->
+                    printfn "%s: Got message with id: %A" sendMessageImplName m.messageDataInfo.messageId
+                    a.sendMessage m
+                | Failure f ->
+                    printfn "%s: Failed to get message with exception: %A" sendMessageImplName f
+                    ExceptionOccurred f
+
+            match reply |> trySerialize with
+            | Success r -> r
+            | Failure f -> [||]
 
         interface IMessagingWcfService with
             member __.getVersion() = a.getVersion()

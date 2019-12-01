@@ -71,6 +71,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
     <PlatformTarget>x64</PlatformTarget>
+    <StartArguments>MessagingTestClient.exe -name Client1 -rcp F1486FCF-C084-4CA8-BF9E-7483F31620DC</StartArguments>
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>

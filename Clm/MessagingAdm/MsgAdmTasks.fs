@@ -7,8 +7,8 @@ open System
 
 module MsgAdmTasks =
 
-    //let monitorService (service : IMessagingService) =
-    let monitorService (service : IMessagingWcfService) =
+    let monitorService (service : IMessagingService) =
+    //let monitorService (service : IMessagingWcfService) =
         let i = 30_000
 
         while true do
@@ -24,21 +24,21 @@ module MsgAdmTasks =
         ignore()
 
 
-    //let stopService (service : IMessagingService) = service.configureService (MsgWorkState ShuttingDown)
-    //let startService (service : IMessagingService) = service.configureService (MsgWorkState CanTransmitMessages)
+    let stopService (service : IMessagingService) = service.configureService (MsgWorkState ShuttingDown)
+    let startService (service : IMessagingService) = service.configureService (MsgWorkState CanTransmitMessages)
 
-    let stopService (service : IMessagingWcfService) = service.configureService (MsgWorkState ShuttingDown)
-    let startService (service : IMessagingWcfService) = service.configureService (MsgWorkState CanTransmitMessages)
+    //let stopService (service : IMessagingWcfService) = service.configureService (MsgWorkState ShuttingDown)
+    //let startService (service : IMessagingWcfService) = service.configureService (MsgWorkState CanTransmitMessages)
 
 
     type MsgAdmTask =
-        //| MonitorMsgServiceTask of IMessagingService
-        //| StartMsgServiceTask of IMessagingService
-        //| StopMsgServiceTask of IMessagingService
+        | MonitorMsgServiceTask of IMessagingService
+        | StartMsgServiceTask of IMessagingService
+        | StopMsgServiceTask of IMessagingService
 
-        | MonitorMsgServiceTask of IMessagingWcfService
-        | StartMsgServiceTask of IMessagingWcfService
-        | StopMsgServiceTask of IMessagingWcfService
+        //| MonitorMsgServiceTask of IMessagingWcfService
+        //| StartMsgServiceTask of IMessagingWcfService
+        //| StopMsgServiceTask of IMessagingWcfService
 
         member task.run () =
             match task with

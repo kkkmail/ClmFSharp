@@ -78,6 +78,7 @@
     <Compile Include="Registry.fs" />
     <Compile Include="TimerEvents.fs" />
     <Compile Include="ServiceInstaller.fs" />
+    <Compile Include="Wcf.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
   </ItemGroup>
@@ -121,6 +122,7 @@
     <Reference Include="System.Security.Principal.Windows">
       <HintPath>..\packages\System.Security.Principal.Windows.4.6.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.ValueTuple">

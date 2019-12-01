@@ -6,6 +6,7 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
+open ClmSys.Rop
 open System.Diagnostics
 open MBrace.FsPickler
 
@@ -540,6 +541,35 @@ module GeneralData =
         | _ -> None
 
 
+    let xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
+    let xmlSerialize t = xmlSerializer.PickleToString t
+    let xmlDeserialize s = xmlSerializer.UnPickleOfString s
+
+
     let serializer = FsPickler.CreateXmlSerializer(indent = true)
     let serialize t = serializer.PickleToString t
     let deserialize s = serializer.UnPickleOfString s
+
+
+    let trySerialize<'A> (a : 'A) =
+        try
+            a |> serialize |> zip |> Success
+        with
+        | e -> Failure e
+
+
+    /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
+    let tryCastAs<'T> (o:obj) =
+        match o with
+        | :? 'T as res -> Some res
+        | _ -> None
+
+
+    let tryDeserialize<'A> b : Result<'A, exn> =
+        try
+            match (b |> unZip |> deserialize) |> tryCastAs<'A> with
+            | Some v -> Success v
+            | None -> new InvalidCastException (sprintf "tryDeserialize: Unable to cast to type: '%A'." typeof<'A>) :> exn |> Failure
+        with
+        | e -> Failure e
+

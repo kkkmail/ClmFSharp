@@ -7,6 +7,8 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
 open ServiceProxy.MsgServiceProxy
+open ClmSys.Rop
+open ClmSys.GeneralData
 
 module ServiceImplementation =
 
@@ -45,9 +47,18 @@ module ServiceImplementation =
     type MessagingWcfService() =
         let a = createServiceImpl serviceAccessInfo
 
+        let sendMessageImpl b =
+            match b |> tryDeserialize<Message> with
+            | Success m ->
+                failwith ""
+            | Failure f ->
+                failwith ""
+
+            //a.sendMessage
+
         interface IMessagingWcfService with
             member __.getVersion() = a.getVersion()
-            member __.sendMessage m = a.sendMessage m
+            member __.sendMessage m = sendMessageImpl m
             member __.configureService x = a.configureService x
             member __.tryPeekMessage n = a.tryPeekMessage n
             member __.tryDeleteFromServer x = a.tryDeleteFromServer (fst x) (snd x)

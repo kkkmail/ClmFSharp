@@ -287,7 +287,8 @@ module ServiceInfo =
         abstract getVersion : u:unit -> MessagingDataVersion
 
         [<OperationContract(Name = "sendMessage")>]
-        abstract sendMessage : m:Message -> MessageDeliveryResult
+        //abstract sendMessage : m:Message -> MessageDeliveryResult
+        abstract sendMessage : m:byte[] -> byte[]
 
         [<OperationContract(Name = "configureService")>]
         abstract configureService : p:MessagingConfigParam -> unit

@@ -45,10 +45,14 @@ module ServiceResponse =
                     match m |> trySerialize with
                     | Success b ->
                         printfn "%s: trySerialize succeeded..." sendMessageImplName
-                        match b |> service.sendMessage |> tryDeserialize<MessageDeliveryResult> with
-                        | Success r ->
+                        let r = b |> service.sendMessage
+                        printfn "%s: r = %A" sendMessageImplName r
+                        let d = r |> tryDeserialize<MessageDeliveryResult>
+                        printfn "%s: d = %A" sendMessageImplName d
+                        match d with
+                        | Success result ->
                             printfn "%s: service.sendMessage succeeded. Result: %A." sendMessageImplName r
-                            r
+                            result
                         | Failure e ->
                             printfn "%s: service.sendMessage FAILED. Exception: %A" sendMessageImplName e
                             ExceptionOccurred e

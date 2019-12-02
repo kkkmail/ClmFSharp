@@ -65,9 +65,15 @@ module ServiceImplementation =
                     printfn "%s: Failed to get message with exception: %A" sendMessageImplName f
                     ExceptionOccurred f
 
+            printfn "%s: reply = %A" sendMessageImplName reply
+
             match reply |> trySerialize with
-            | Success r -> r
-            | Failure f -> [||]
+            | Success r ->
+                printfn "%s: r = %A" sendMessageImplName r
+                r
+            | Failure f ->
+                printfn "%s: f = %A" sendMessageImplName f
+                [||]
 
         interface IMessagingWcfService with
             member __.getVersion() = a.getVersion()

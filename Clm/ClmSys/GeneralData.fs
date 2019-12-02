@@ -552,17 +552,24 @@ module GeneralData =
 
 
     let serializer = FsPickler.CreateXmlSerializer(indent = true)
-    //let serialize t = serializer.PickleToString t
-    //let deserialize s = serializer.UnPickleOfString s
-    let serialize t = jsonSerialize t
-    let deserialize s = jsonDeserialize s
+    let serialize t = serializer.PickleToString t
+    let deserialize s = serializer.UnPickleOfString s
+    //let serialize t = jsonSerialize t
+    //let deserialize s = jsonDeserialize s
 
 
     let trySerialize<'A> (a : 'A) =
         try
-            a |> serialize |> zip |> Success
+            printfn "trySerialize: a = '%A'." a
+            let b = a |> serialize
+            printfn "trySerialize: b = '%A'." b
+            let c = b |> zip
+            printfn "trySerialize: c = '%A'." c
+            c |> Success
         with
-        | e -> Failure e
+        | e ->
+            printfn "trySerialize: Exception: '%A'." e
+            Failure e
 
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
@@ -577,16 +584,22 @@ module GeneralData =
         try
             printfn "tryDeserialize: Unzipping..."
             let x = b |> unZip
-            printfn "x = %A" x
+            printfn "tryDeserialize: x = %A" x
 
-            printfn "tryDeserialize: Deserializing..."
-            let y = deserialize x
-            printfn "y = %A" y
+            printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
+            let (y : 'A) = deserialize x
+            printfn "tryDeserialize: y = %A" y
+            Success y
 
             //match (b |> unZip |> deserialize) with // |> tryCastAs<'A>
-            match y with
-            | Some v -> Success v
-            | None -> new InvalidCastException (sprintf "tryDeserialize: Unable to cast to type: '%A'." typeof<'A>) :> exn |> Failure
+            //match y with
+            //| Some v ->
+            //    printfn "tryDeserialize: v = %A" v
+            //    Success v
+            //| None ->
+            //    printfn "tryDeserialize: Unable to cast to type: '%A'." typeof<'A>
+            //    new InvalidCastException (sprintf "tryDeserialize: Unable to cast to type: '%A'." typeof<'A>) :> exn |> Failure
         with
-        | e -> Failure e
-
+        | e ->
+            printfn "tryDeserialize: Exception: '%A'." e
+            Failure e

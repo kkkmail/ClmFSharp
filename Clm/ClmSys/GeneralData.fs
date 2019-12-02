@@ -565,11 +565,11 @@ module GeneralData =
             printfn "trySerialize: b = '%A'." b
             let c = b |> zip
             printfn "trySerialize: c = '%A'." c
-            c |> Success
+            c |> Ok
         with
         | e ->
             printfn "trySerialize: Exception: '%A'." e
-            Failure e
+            Error e
 
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
@@ -589,7 +589,7 @@ module GeneralData =
             printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
             let (y : 'A) = deserialize x
             printfn "tryDeserialize: y = %A" y
-            Success y
+            Ok y
 
             //match (b |> unZip |> deserialize) with // |> tryCastAs<'A>
             //match y with
@@ -602,4 +602,4 @@ module GeneralData =
         with
         | e ->
             printfn "tryDeserialize: Exception: '%A'." e
-            Failure e
+            Error e

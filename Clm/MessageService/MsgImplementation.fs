@@ -58,20 +58,20 @@ module ServiceImplementation =
 
             let reply =
                 match b |> tryDeserialize<Message> with
-                | Success m ->
+                | Ok m ->
                     printfn "%s: Got message with id: %A" sendMessageImplName m.messageDataInfo.messageId
                     a.sendMessage m
-                | Failure f ->
+                | Error f ->
                     printfn "%s: Failed to get message with exception: %A" sendMessageImplName f
                     ExceptionOccurred f
 
             printfn "%s: reply = %A" sendMessageImplName reply
 
             match reply |> trySerialize with
-            | Success r ->
+            | Ok r ->
                 printfn "%s: r = %A" sendMessageImplName r
                 r
-            | Failure f ->
+            | Error f ->
                 printfn "%s: f = %A" sendMessageImplName f
                 [||]
 

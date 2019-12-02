@@ -37,20 +37,20 @@ module Logging =
 
 
     type LogMessage =
-        | Debug of LogInfo
-        | Info of LogInfo
-        | Warning of LogInfo
-        | Error of ErrorInfo * LogInfo
-        | Fatal of ErrorInfo * LogInfo
+        | DebugMessage of LogInfo
+        | InfoMessage of LogInfo
+        | WarningMessage of LogInfo
+        | ErrorMessage of ErrorInfo * LogInfo
+        | FatalMessage of ErrorInfo * LogInfo
 
         member this.Message =
-            match this with | Debug i | Info i | Warning i | Error (_, i) | Fatal (_, i) -> i.Message
+            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrorMessage (_, i) | FatalMessage (_, i) -> i.Message
         member this.Exception =
-            match this with | Error (e, _) | Fatal (e, _) -> Some e.Error | _ -> None
+            match this with | ErrorMessage (e, _) | FatalMessage (e, _) -> Some e.Error | _ -> None
         member this.Level =
-            match this with | Debug _ -> Level.Debug | Info _ -> Level.Info | Warning _ -> Level.Warn | Error _ -> Level.Error | Fatal _ -> Level.Fatal
+            match this with | DebugMessage _ -> Level.Debug | InfoMessage _ -> Level.Info | WarningMessage _ -> Level.Warn | ErrorMessage _ -> Level.Error | FatalMessage _ -> Level.Fatal
         member this.LogInfo =
-            match this with | Debug i | Info i | Warning i | Error (_, i) | Fatal (_, i) -> i
+            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrorMessage (_, i) | FatalMessage (_, i) -> i
 
 
     //let private writeLog level message maybeEx logDate (stackTrace: StackTrace) =
@@ -115,7 +115,7 @@ module Logging =
                             Message = s
                             Date = DateTime.Now
                         }
-                        |> Info
+                        |> InfoMessage
                         |> logAgent.Post
 
                 logErr =
@@ -124,7 +124,7 @@ module Logging =
                             Message = s
                             Date = DateTime.Now
                         }
-                        |> Info
+                        |> InfoMessage
                         |> logAgent.Post
 
                 logExn =
@@ -133,7 +133,7 @@ module Logging =
                             Message = s + ", exception: " + e.ToString()
                             Date = DateTime.Now
                         }
-                        |> Info
+                        |> InfoMessage
                         |> logAgent.Post
             }
 

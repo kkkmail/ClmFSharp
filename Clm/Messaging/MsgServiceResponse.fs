@@ -29,9 +29,9 @@ module ServiceResponse =
                 let channelFactory = new ChannelFactory<IMessagingWcfService>(binding, address)
                 let server = channelFactory.CreateChannel()
                 printfn "%s: Completed." tryGetWcfServiceName
-                Success server
+                Ok server
             with
-            | e -> Failure e
+            | e -> Error e
 
         let getVersionImpl() = messagingDataVersion
 
@@ -40,26 +40,26 @@ module ServiceResponse =
 
             try
                 match tryGetWcfService() with
-                | Success service ->
+                | Ok service ->
                     printfn "%s: Created service..." sendMessageImplName
                     match m |> trySerialize with
-                    | Success b ->
+                    | Ok b ->
                         printfn "%s: trySerialize succeeded..." sendMessageImplName
                         let r = b |> service.sendMessage
                         printfn "%s: r = %A" sendMessageImplName r
                         let d = r |> tryDeserialize<MessageDeliveryResult>
                         printfn "%s: d = %A" sendMessageImplName d
                         match d with
-                        | Success result ->
+                        | Ok result ->
                             printfn "%s: service.sendMessage succeeded. Result: %A." sendMessageImplName r
                             result
-                        | Failure e ->
+                        | Error e ->
                             printfn "%s: service.sendMessage FAILED. Exception: %A" sendMessageImplName e
                             ExceptionOccurred e
-                    | Failure e ->
+                    | Error e ->
                         printfn "%s: trySerialize FAILED. Exception: %A" sendMessageImplName e
                         ExceptionOccurred e
-                | Failure e ->
+                | Error e ->
                     printfn "%s: FAILED to create service. Exception: %A" sendMessageImplName e
                     ExceptionOccurred e
             with

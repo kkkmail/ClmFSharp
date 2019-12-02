@@ -17,4 +17,10 @@ module GeneralErrors =
 
 
     type SerializationError =
-        | X
+        | SerializationException of exn
+        | DeserializationException of exn
+
+
+    type WcfError =
+        | WcfException of exn
+        | WcfSerializationError of SerializationError

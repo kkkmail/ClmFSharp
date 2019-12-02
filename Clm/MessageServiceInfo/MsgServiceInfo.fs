@@ -7,6 +7,7 @@ open System.ServiceModel.Description
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.GeneralErrors
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
@@ -243,11 +244,21 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type MessageDeliveryResult =
-        | DeliveredSuccessfully
+    //type MessageDeliveryException =
+    //    | SerializationException
+
+
+    type MessageDeliveryError =
         | DataVersionMismatch of MessagingDataVersion
-        | ExceptionOccurred of exn
+        | WcfError of WcfError
         | ServerIsShuttingDown
+
+
+    type MessageDelivered =
+        | MessageDelivered
+
+
+    type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
 
 
     type MsgServiceState =
@@ -304,3 +315,6 @@ module ServiceInfo =
 
         [<OperationContract(Name="testMethod")>]
         abstract member testMethod : name:string -> string
+
+
+    type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

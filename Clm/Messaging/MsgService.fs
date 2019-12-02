@@ -121,14 +121,14 @@ module Service =
                     | GuaranteedDelivery, _ | NonGuaranteedDelivery, false -> s.proxy.saveMessage m
                     | NonGuaranteedDelivery, true -> ignore()
 
-                    r.Reply DeliveredSuccessfully
+                    MessageDelivered |> Ok |> r.Reply
                     printfn "%s: Sent messageId = %A." onSendMessageName m.messageDataInfo.messageId
                     updateMessages s m
                 | ShuttingDown ->
-                    r.Reply ServerIsShuttingDown
+                    ServerIsShuttingDown |> Error |> r.Reply
                     s
             | false ->
-                r.Reply (DataVersionMismatch messagingDataVersion)
+                messagingDataVersion |> DataVersionMismatch |> Error |> r.Reply
                 s
 
 

@@ -178,19 +178,19 @@ module Client =
                 match s.tryGetService() with
                 | Some service ->
                     match service.sendMessage m with
-                    | DeliveredSuccessfully _ ->
+                    | Ok _ ->
                         match m.messageDataInfo.recipientInfo.deliveryType with
                         | GuaranteedDelivery -> s.proxy.deleteMessage m.messageDataInfo.messageId
                         | NonGuaranteedDelivery -> ignore()
                         Some m
-                    | DataVersionMismatch v ->
+                    | Error (DataVersionMismatch v) ->
                         s.logErr (sprintf "%s: messageId = %A, data version mismatch server has: %A but client has: %A." sendMessageImplName m.messageDataInfo.messageId.value v messagingDataVersion)
                         None
-                    | ServerIsShuttingDown ->
+                    | Error ServerIsShuttingDown ->
                         s.logInfo (sprintf "%s: messageId = %A - server is shutting down." sendMessageImplName m.messageDataInfo.messageId.value)
                         None
-                    | ExceptionOccurred e ->
-                        s.logExn (sprintf "%s: messageId = %A" sendMessageImplName m.messageDataInfo.messageId.value) e
+                    | Error (WcfError e) ->
+                        s.logErr (sprintf "%s: messageId = %A, error: %A" sendMessageImplName m.messageDataInfo.messageId.value e)
                         None
                 | None ->
                     s.logErr (sprintf "%s: Unable to create connection, messageId = %A." sendMessageImplName m.messageDataInfo.messageId.value)

@@ -3,6 +3,7 @@
 open System
 open ClmSys.Logging
 open ClmSys.MessagingData
+open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
@@ -61,9 +62,9 @@ module ServiceImplementation =
                 | Ok m ->
                     printfn "%s: Got message with id: %A" sendMessageImplName m.messageDataInfo.messageId
                     a.sendMessage m
-                | Error f ->
-                    printfn "%s: Failed to get message with exception: %A" sendMessageImplName f
-                    ExceptionOccurred f
+                | Error e ->
+                    printfn "%s: Failed to get message with exception: %A" sendMessageImplName e
+                    e |> WcfSerializationError |> WcfError |> Error
 
             printfn "%s: reply = %A" sendMessageImplName reply
 

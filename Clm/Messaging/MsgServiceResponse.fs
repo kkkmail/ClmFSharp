@@ -17,22 +17,6 @@ open ClmSys.Wcf
 
 module ServiceResponse =
 
-    // let tryCommunicate<'A, 'B> (t : Result<IMessagingWcfService, WcfError>) (c : WcfCommunicator) (a : 'A) : Result<'B, WcfError> =
-    //let tryCommunicate<'A, 'B> t c (a : 'A) : Result<'B, WcfError> =
-    //    let communicate service =
-    //        match a |> trySerialize with
-    //        | Ok b ->
-    //            c service b
-    //            |> tryDeserialize<'B>
-    //            |> Result.mapError WcfSerializationError
-    //        | Error e -> e |> WcfSerializationError |> Error
-
-    //    try
-    //        t() |> Result.bind communicate
-    //    with
-    //    | e -> e |> WcfException |> Error
-
-
     type MsgWcfClient (url) =
         let className = "MsgWcfClient"
         let getMethodName n = className + "." + n
@@ -40,68 +24,12 @@ module ServiceResponse =
         let tryGetWcfServiceName = getMethodName "tryGetWcfService"
         let sendMessageImplName = getMethodName "sendMessageImpl"
 
-        //let getWcfService() =
-        //    printfn "%s: Creating WCF client..." getWcfServiceName
-        //    let binding = new NetTcpBinding()
-        //    let address = new EndpointAddress(url)
-        //    let channelFactory = new ChannelFactory<IMessagingWcfService>(binding, address)
-        //    let server = channelFactory.CreateChannel()
-        //    printfn "%s: Completed." getWcfServiceName
-        //    server
-
-        let tryGetWcfService() =
-            try
-                printfn "%s: Creating WCF client..." tryGetWcfServiceName
-                let binding = new NetTcpBinding()
-                let address = new EndpointAddress(url)
-                let channelFactory = new ChannelFactory<IMessagingWcfService>(binding, address)
-                let server = channelFactory.CreateChannel()
-                printfn "%s: Completed." tryGetWcfServiceName
-                Ok server
-            with
-            | e -> e |> WcfException |> Error
+        let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url
 
         let getVersionImpl() = messagingDataVersion
 
-        let sendMessageImpl m =
-            // let r = tryCommunicate<Message, MessageDeliveryResult> tryGetWcfService (fun service -> service.sendMessage) m
-            let r = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) m
+        let sendMessageImpl m = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) MsgWcfError m
 
-            match r with
-            | Ok v -> v
-            | Error e -> e |> WcfError |> Error
-
-
-            //printfn "%s: Starting..." sendMessageImplName
-
-            //try
-            //    match tryGetWcfService() with
-            //    | Ok service ->
-            //        printfn "%s: Created service..." sendMessageImplName
-            //        match m |> trySerialize with
-            //        | Ok b ->
-            //            printfn "%s: trySerialize succeeded..." sendMessageImplName
-            //            let r = b |> service.sendMessage
-            //            printfn "%s: r = %A" sendMessageImplName r
-            //            let d = r |> tryDeserialize<MessageDeliveryResult>
-            //            printfn "%s: d = %A" sendMessageImplName d
-            //            match d with
-            //            | Ok result ->
-            //                printfn "%s: service.sendMessage succeeded. Result: %A." sendMessageImplName r
-            //                result
-            //            | Error e ->
-            //                printfn "%s: service.sendMessage FAILED. Exception: %A" sendMessageImplName e
-            //                ExceptionOccurred e
-            //        | Error e ->
-            //            printfn "%s: trySerialize FAILED. Exception: %A" sendMessageImplName e
-            //            ExceptionOccurred e
-            //    | Error e ->
-            //        printfn "%s: FAILED to create service. Exception: %A" sendMessageImplName e
-            //        ExceptionOccurred e
-            //with
-            //| e ->
-            //    printfn "%s: Exception occured: %A" sendMessageImplName e
-            //    ExceptionOccurred e
 
         let configureServiceImpl x = failwith "configureServiceImpl is not implemented."
         let tryPeekMessageImpl n = None
@@ -140,7 +68,8 @@ module ServiceResponse =
                 //let binding = new NetTcpBinding()
                 //let address = new EndpointAddress(url)
                 //let channelFactory = new ChannelFactory<IMessagingWcfService>(binding, address)
-                //let server = channelFactory.CreateChannel()
+                //let server1 = channelFactory.CreateChannel()
+                //let x = server1 :?> IClientChannel
                 //printfn "... completed."
                 //Some server
 

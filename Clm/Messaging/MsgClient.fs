@@ -189,7 +189,7 @@ module Client =
                     | Error ServerIsShuttingDown ->
                         s.logInfo (sprintf "%s: messageId = %A - server is shutting down." sendMessageImplName m.messageDataInfo.messageId.value)
                         None
-                    | Error (WcfError e) ->
+                    | Error (MsgWcfError e) ->
                         s.logErr (sprintf "%s: messageId = %A, error: %A" sendMessageImplName m.messageDataInfo.messageId.value e)
                         None
                 | None ->

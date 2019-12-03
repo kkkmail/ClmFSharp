@@ -9,6 +9,7 @@ open Argu
 
 open ClmSys.MessagingData
 open ClmSys.Logging
+open ClmSys.Wcf
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open MessagingService.SvcCommandLine
@@ -40,7 +41,7 @@ module WindowsService =
         try
             printfn "startWcfServiceRun: Creating WCF service..."
             serviceAccessInfo <- i
-            let binding = new NetTcpBinding()
+            let binding = getBinding()
             let baseAddress = new Uri(i.messagingServiceAccessInfo.wcfServiceUrl)
             let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
             let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)

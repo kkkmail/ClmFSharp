@@ -243,22 +243,35 @@ module ServiceInfo =
     type MessagingClientConfigParam =
         | DummyConfig
 
-
-    //type MessageDeliveryException =
-    //    | SerializationException
-
-
-    type MessageDeliveryError =
-        | DataVersionMismatch of MessagingDataVersion
-        | WcfError of WcfError
-        | ServerIsShuttingDown
+//    abstract getVersion : unit -> MessagingDataVersion
 
 
     type MessageDelivered =
         | MessageDelivered
 
 
+    type MessageDeliveryError =
+        | DataVersionMismatch of MessagingDataVersion
+        | MsgWcfError of WcfError
+        | ServerIsShuttingDown
+
+
     type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
+
+
+    type ServiceConfigured =
+        | ServiceConfigured
+
+
+    type ConfigureServiceError =
+        | SvcgWcfError of WcfError
+
+
+    type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
+//    abstract configureService : MessagingConfigParam -> unit
+//    abstract tryPeekMessage : MessagingClientId -> Message option
+//    abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+//    abstract getState : unit -> MsgServiceState
 
 
     type MsgServiceState =
@@ -312,9 +325,6 @@ module ServiceInfo =
 
         [<OperationContract(Name = "getState")>]
         abstract getState : u:unit -> MsgServiceState
-
-        [<OperationContract(Name="testMethod")>]
-        abstract member testMethod : name:string -> string
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

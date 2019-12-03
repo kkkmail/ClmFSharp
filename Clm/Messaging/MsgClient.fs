@@ -209,7 +209,7 @@ module Client =
                     match s.tryGetService() with
                     | Some service ->
                         match service.tryPeekMessage s.msgClientId with
-                        | Some m ->
+                        | Ok (Some m) ->
                             printfn "%s: Received message with id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
                             match m.messageDataInfo.recipientInfo.deliveryType with
                             | GuaranteedDelivery ->
@@ -220,20 +220,24 @@ module Client =
                                 |> s.proxy.saveMessage
                             | NonGuaranteedDelivery -> ignore()
 
-                            match service.tryDeleteFromServer s.msgClientId m.messageDataInfo.messageId with
+                            match service.tryDeleteFromServer (s.msgClientId, m.messageDataInfo.messageId) with
                             //match service.tryDeleteFromServer (s.msgClientId, m.messageDataInfo.messageId) with
-                            | true ->
+                            | Ok true ->
                                 printfn "%s: Deleted message from server. Message id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
                                 ignore()
-                            | false ->
+                            | Ok false ->
                                 s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId)
-
+                            | Error e ->
+                                s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A due to error: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId e)
                             match m.messageData.getMessageSize() with
                             | SmallSize -> return SmallMessage m
                             | MediumSize -> return MediumMessage m
                             | LargeSize -> return LargeMessage m
-                        | None ->
+                        | Ok None ->
                             printfn "%s: Did not receive a message." tryReceiveSingleMessageName
+                            return NoMessage
+                        | Error e ->
+                            printfn "%s: Exception occurred: %A." tryReceiveSingleMessageName e
                             return NoMessage
                     | None ->
                         s.logErr (sprintf "%s: Unable to create connection." tryReceiveSingleMessageName)

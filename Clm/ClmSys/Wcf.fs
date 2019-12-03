@@ -38,14 +38,10 @@ module Wcf =
     let toWcfSerializationError f e = e |> WcfSerializationError |> f |> Error
 
 
-    let abc<'A, 'B> (x : Result<Result<'A, 'B>, 'B>) =
-        let a =
-            x |> Result.bind id
-
-        a
-
-
     /// Client communication with the server.
+    /// Note that this is a generic with 4 implicit parameters.
+    /// We can bake in the first one into t at the caller.
+    /// However, to do that here required assigning and using all 4.
     let tryCommunicate t c f a =
         try
             match t() with

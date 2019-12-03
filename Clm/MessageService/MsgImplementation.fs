@@ -43,24 +43,18 @@ module ServiceImplementation =
             member __.sendMessage m = a.sendMessage m
             member __.configureService x = a.configureService x
             member __.tryPeekMessage n = a.tryPeekMessage n
-            member __.tryDeleteFromServer n m = a.tryDeleteFromServer n m
+            member __.tryDeleteFromServer x = a.tryDeleteFromServer x
             member __.getState() = a.getState()
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true)>]
     type MessagingWcfService() =
-        let className = "MessagingWcfService"
-        let getMethodName n = className + "." + n
-        let sendMessageImplName = getMethodName "sendMessageImpl"
-
         let a = createServiceImpl serviceAccessInfo
-
-        let sendMessageImpl b = tryReply a.sendMessage MsgWcfError b
 
         interface IMessagingWcfService with
             member __.getVersion() = a.getVersion()
-            member __.sendMessage m = sendMessageImpl m
-            member __.configureService x = a.configureService x
-            member __.tryPeekMessage n = a.tryPeekMessage n
-            member __.tryDeleteFromServer x = a.tryDeleteFromServer (fst x) (snd x)
+            member __.sendMessage b = tryReply a.sendMessage MsgWcfError b
+            member __.configureService b = tryReply a.configureService CfgSvcWcfError b
+            member __.tryPeekMessage n = tryReply a.tryPeekMessage TryPeekMsgWcfError n
+            member __.tryDeleteFromServer x = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError x
             member __.getState() = a.getState()

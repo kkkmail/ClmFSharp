@@ -243,6 +243,15 @@ module ServiceInfo =
     type MessagingClientConfigParam =
         | DummyConfig
 
+
+    //type IMessagingService =
+    //    abstract getVersion : unit -> MessagingDataVersion
+    //    abstract sendMessage : Message -> MessageDeliveryResult
+    //    abstract configureService : MessagingConfigParam -> unit
+    //    abstract tryPeekMessage : MessagingClientId -> Message option
+    //    abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+    //    abstract getState : unit -> MsgServiceState
+
 //    abstract getVersion : unit -> MessagingDataVersion
 
 
@@ -264,11 +273,25 @@ module ServiceInfo =
 
 
     type ConfigureServiceError =
-        | SvcgWcfError of WcfError
+        | CfgSvcWcfError of WcfError
 
 
     type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
-//    abstract configureService : MessagingConfigParam -> unit
+
+
+    type TryPeekMessageError =
+        | TryPeekMsgWcfError of WcfError
+
+
+    type TryPeekMessageResult = Result<Message option, TryPeekMessageError>
+
+
+    type TryDeleteFromServerError =
+        | TryDeleteMsgWcfError of WcfError
+
+
+    type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
+
 //    abstract tryPeekMessage : MessagingClientId -> Message option
 //    abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
 //    abstract getState : unit -> MsgServiceState
@@ -297,9 +320,9 @@ module ServiceInfo =
     type IMessagingService =
         abstract getVersion : unit -> MessagingDataVersion
         abstract sendMessage : Message -> MessageDeliveryResult
-        abstract configureService : MessagingConfigParam -> unit
-        abstract tryPeekMessage : MessagingClientId -> Message option
-        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
+        abstract configureService : MessagingConfigParam -> ConfigureServiceResult
+        abstract tryPeekMessage : MessagingClientId -> TryPeekMessageResult
+        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> TryDeleteFromServerResult
         abstract getState : unit -> MsgServiceState
 
 
@@ -315,13 +338,16 @@ module ServiceInfo =
         abstract sendMessage : m:byte[] -> byte[]
 
         [<OperationContract(Name = "configureService")>]
-        abstract configureService : p:MessagingConfigParam -> unit
+        //abstract configureService : p:MessagingConfigParam -> unit
+        abstract configureService : p:byte[] -> byte[]
 
         [<OperationContract(Name = "tryPeekMessage")>]
-        abstract tryPeekMessage : c:MessagingClientId -> Message option
+        //abstract tryPeekMessage : c:MessagingClientId -> Message option
+        abstract tryPeekMessage : c:byte[] -> byte[]
 
         [<OperationContract(Name = "tryDeleteFromServer")>]
-        abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
+        //abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
+        abstract tryDeleteFromServer : cm:byte[] -> byte[]
 
         [<OperationContract(Name = "getState")>]
         abstract getState : u:unit -> MsgServiceState

@@ -43,8 +43,8 @@ module MsgAdmTasks =
         member task.run () =
             match task with
             | MonitorMsgServiceTask s -> monitorService s
-            | StartMsgServiceTask s -> startService s
-            | StopMsgServiceTask s -> stopService s
+            | StartMsgServiceTask s -> startService s |> ignore
+            | StopMsgServiceTask s -> stopService s |> ignore
 
         static member private tryCreateMonitorTask s p =
             p |> List.tryPick (fun e -> match e with | MonitorMsgService -> s |> MonitorMsgServiceTask |> Some | _ -> None)

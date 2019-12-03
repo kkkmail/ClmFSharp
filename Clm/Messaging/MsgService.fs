@@ -222,8 +222,12 @@ module Service =
         member this.start() = Start this |> messageLoop.Post
         member __.getVersion() = GetVersion |> messageLoop.PostAndReply
         member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
-        member __.configureService x = ConfigureService x |> messageLoop.Post
+
+        member __.configureService x =
+            ConfigureService x |> messageLoop.Post
+            Ok ServiceConfigured
+
         member __.getState() = GetState |> messageLoop.PostAndReply
-        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
-        member __.tryDeleteFromServer n m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok
+        member __.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply)) |> Ok
         member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post

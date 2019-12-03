@@ -18,22 +18,13 @@ open ClmSys.Wcf
 module ServiceResponse =
 
     type MsgWcfClient (url) =
-        let className = "MsgWcfClient"
-        let getMethodName n = className + "." + n
-        //let getWcfServiceName = getMethodName "getWcfService"
-        let tryGetWcfServiceName = getMethodName "tryGetWcfService"
-        let sendMessageImplName = getMethodName "sendMessageImpl"
-
         let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url
 
         let getVersionImpl() = messagingDataVersion
-
         let sendMessageImpl m = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) MsgWcfError m
-
-
-        let configureServiceImpl x = failwith "configureServiceImpl is not implemented."
-        let tryPeekMessageImpl n = None
-        let tryDeleteFromServerImpl n m = false
+        let configureServiceImpl x = tryCommunicate tryGetWcfService (fun service -> service.configureService) CfgSvcWcfError x
+        let tryPeekMessageImpl n = tryCommunicate tryGetWcfService (fun service -> service.tryPeekMessage) TryPeekMsgWcfError n
+        let tryDeleteFromServerImpl x = tryCommunicate tryGetWcfService (fun service -> service.tryDeleteFromServer) TryDeleteMsgWcfError x
         let getStateImpl() = failwith "getStateImpl is not implemented."
 
         interface IMessagingService with
@@ -41,7 +32,7 @@ module ServiceResponse =
             member __.sendMessage m = sendMessageImpl m
             member __.configureService x = configureServiceImpl x
             member __.tryPeekMessage n = tryPeekMessageImpl n
-            member __.tryDeleteFromServer n m = tryDeleteFromServerImpl n m
+            member __.tryDeleteFromServer x = tryDeleteFromServerImpl x
             member __.getState() = getStateImpl()
 
 
@@ -64,15 +55,6 @@ module ServiceResponse =
 
         let tryGetWcfService() =
             try
-                //printfn "tryGetWcfService: Creating WCF client..."
-                //let binding = new NetTcpBinding()
-                //let address = new EndpointAddress(url)
-                //let channelFactory = new ChannelFactory<IMessagingWcfService>(binding, address)
-                //let server1 = channelFactory.CreateChannel()
-                //let x = server1 :?> IClientChannel
-                //printfn "... completed."
-                //Some server
-
                 let server = MsgWcfClient url
                 Some (server :> IMessagingService)
             with

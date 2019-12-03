@@ -221,7 +221,6 @@ module Client =
                             | NonGuaranteedDelivery -> ignore()
 
                             match service.tryDeleteFromServer (s.msgClientId, m.messageDataInfo.messageId) with
-                            //match service.tryDeleteFromServer (s.msgClientId, m.messageDataInfo.messageId) with
                             | Ok true ->
                                 printfn "%s: Deleted message from server. Message id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
                                 ignore()

@@ -52,9 +52,9 @@ module ServiceImplementation =
         let a = createServiceImpl serviceAccessInfo
 
         interface IMessagingWcfService with
-            member __.getVersion() = a.getVersion()
+            member __.getVersion b = tryReply a.getVersion GetVersionWcfError b
             member __.sendMessage b = tryReply a.sendMessage MsgWcfError b
             member __.configureService b = tryReply a.configureService CfgSvcWcfError b
-            member __.tryPeekMessage n = tryReply a.tryPeekMessage TryPeekMsgWcfError n
-            member __.tryDeleteFromServer x = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError x
-            member __.getState() = a.getState()
+            member __.tryPeekMessage b = tryReply a.tryPeekMessage TryPeekMsgWcfError b
+            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError b
+            member __.getState b = tryReply a.getState GetStateWcfError b

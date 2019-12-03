@@ -244,15 +244,11 @@ module ServiceInfo =
         | DummyConfig
 
 
-    //type IMessagingService =
-    //    abstract getVersion : unit -> MessagingDataVersion
-    //    abstract sendMessage : Message -> MessageDeliveryResult
-    //    abstract configureService : MessagingConfigParam -> unit
-    //    abstract tryPeekMessage : MessagingClientId -> Message option
-    //    abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
-    //    abstract getState : unit -> MsgServiceState
+    type GetVersionError =
+        | GetVersionWcfError of WcfError
 
-//    abstract getVersion : unit -> MessagingDataVersion
+
+    type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
 
 
     type MessageDelivered =
@@ -292,10 +288,6 @@ module ServiceInfo =
 
     type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
 
-//    abstract tryPeekMessage : MessagingClientId -> Message option
-//    abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
-//    abstract getState : unit -> MsgServiceState
-
 
     type MsgServiceState =
         {
@@ -303,6 +295,13 @@ module ServiceInfo =
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
         }
+
+
+    type GetStateError =
+        | GetStateWcfError of WcfError
+
+
+    type GetStateResult = Result<MsgServiceState, GetStateError>
 
 
     type MsgSvcShutDownInfo =
@@ -318,12 +317,12 @@ module ServiceInfo =
 
 
     type IMessagingService =
-        abstract getVersion : unit -> MessagingDataVersion
+        abstract getVersion : unit -> GetVersionResult
         abstract sendMessage : Message -> MessageDeliveryResult
         abstract configureService : MessagingConfigParam -> ConfigureServiceResult
         abstract tryPeekMessage : MessagingClientId -> TryPeekMessageResult
         abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> TryDeleteFromServerResult
-        abstract getState : unit -> MsgServiceState
+        abstract getState : unit -> GetStateResult
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -331,7 +330,8 @@ module ServiceInfo =
     type IMessagingWcfService =
 
         [<OperationContract(Name = "getVersion")>]
-        abstract getVersion : u:unit -> MessagingDataVersion
+        //abstract getVersion : u:unit -> MessagingDataVersion
+        abstract getVersion : u:byte[] -> byte[]
 
         [<OperationContract(Name = "sendMessage")>]
         //abstract sendMessage : m:Message -> MessageDeliveryResult
@@ -350,7 +350,8 @@ module ServiceInfo =
         abstract tryDeleteFromServer : cm:byte[] -> byte[]
 
         [<OperationContract(Name = "getState")>]
-        abstract getState : u:unit -> MsgServiceState
+        //abstract getState : u:unit -> MsgServiceState
+        abstract getState : u:byte[] -> byte[]
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

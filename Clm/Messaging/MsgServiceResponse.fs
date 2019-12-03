@@ -17,19 +17,20 @@ open ClmSys.Wcf
 
 module ServiceResponse =
 
-    let tryCommunicate<'A, 'B> t (c : WcfCommunicator) (a : 'A) : Result<'B, WcfError> =
-        let communicate service =
-            match a |> trySerialize with
-            | Ok b ->
-                c service b
-                |> tryDeserialize<'B>
-                |> Result.mapError WcfSerializationError
-            | Error e -> e |> WcfSerializationError |> Error
+    // let tryCommunicate<'A, 'B> (t : Result<IMessagingWcfService, WcfError>) (c : WcfCommunicator) (a : 'A) : Result<'B, WcfError> =
+    //let tryCommunicate<'A, 'B> t c (a : 'A) : Result<'B, WcfError> =
+    //    let communicate service =
+    //        match a |> trySerialize with
+    //        | Ok b ->
+    //            c service b
+    //            |> tryDeserialize<'B>
+    //            |> Result.mapError WcfSerializationError
+    //        | Error e -> e |> WcfSerializationError |> Error
 
-        try
-            t() |> Result.bind communicate
-        with
-        | e -> e |> WcfException |> Error
+    //    try
+    //        t() |> Result.bind communicate
+    //    with
+    //    | e -> e |> WcfException |> Error
 
 
     type MsgWcfClient (url) =
@@ -63,7 +64,8 @@ module ServiceResponse =
         let getVersionImpl() = messagingDataVersion
 
         let sendMessageImpl m =
-            let r = tryCommunicate<Message, MessageDeliveryResult> tryGetWcfService (fun service -> service.sendMessage) m
+            // let r = tryCommunicate<Message, MessageDeliveryResult> tryGetWcfService (fun service -> service.sendMessage) m
+            let r = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) m
 
             match r with
             | Ok v -> v

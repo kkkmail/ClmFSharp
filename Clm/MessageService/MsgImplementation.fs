@@ -46,6 +46,17 @@ module ServiceImplementation =
             member __.getState() = a.getState()
 
 
+    let tryReply p f a =
+        let reply =
+            match a |> tryDeserialize with
+            | Ok m -> p m
+            | Error e -> f e
+
+        match reply |> trySerialize with
+        | Ok r -> r
+        | Error _ -> [||]
+
+
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true)>]
     type MessagingWcfService() =
         let className = "MessagingWcfService"
@@ -56,25 +67,26 @@ module ServiceImplementation =
 
         let sendMessageImpl b =
             printfn "%s: Starting..." sendMessageImplName
+            tryReply a.sendMessage (fun e -> e |> WcfSerializationError |> WcfError |> Error) b
 
-            let reply =
-                match b |> tryDeserialize<Message> with
-                | Ok m ->
-                    printfn "%s: Got message with id: %A" sendMessageImplName m.messageDataInfo.messageId
-                    a.sendMessage m
-                | Error e ->
-                    printfn "%s: Failed to get message with exception: %A" sendMessageImplName e
-                    e |> WcfSerializationError |> WcfError |> Error
+            //let reply =
+            //    match b |> tryDeserialize<Message> with
+            //    | Ok m ->
+            //        printfn "%s: Got message with id: %A" sendMessageImplName m.messageDataInfo.messageId
+            //        a.sendMessage m
+            //    | Error e ->
+            //        printfn "%s: Failed to get message with exception: %A" sendMessageImplName e
+            //        e |> WcfSerializationError |> WcfError |> Error
 
-            printfn "%s: reply = %A" sendMessageImplName reply
+            //printfn "%s: reply = %A" sendMessageImplName reply
 
-            match reply |> trySerialize with
-            | Ok r ->
-                printfn "%s: r = %A" sendMessageImplName r
-                r
-            | Error f ->
-                printfn "%s: f = %A" sendMessageImplName f
-                [||]
+            //match reply |> trySerialize with
+            //| Ok r ->
+            //    printfn "%s: r = %A" sendMessageImplName r
+            //    r
+            //| Error f ->
+            //    printfn "%s: f = %A" sendMessageImplName f
+            //    [||]
 
         interface IMessagingWcfService with
             member __.getVersion() = a.getVersion()

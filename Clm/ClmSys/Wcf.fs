@@ -20,3 +20,18 @@ module Wcf =
         |> Result.mapError ReadFileError
         |> Result.bind (fun content -> parseJson content |> Result.mapError JsonParseError)
 
+
+    /// Client communication with the server.
+    let tryCommunicate t c a =
+        let communicate service =
+            match a |> trySerialize with
+            | Ok b ->
+                c service b
+                |> tryDeserialize
+                |> Result.mapError WcfSerializationError
+            | Error e -> e |> WcfSerializationError |> Error
+
+        try
+            t() |> Result.bind communicate
+        with
+        | e -> e |> WcfException |> Error

@@ -284,12 +284,15 @@ module Client =
                 try
                     match s.tryGetService() with
                     | Some service ->
-                        let serverVersion = service.getVersion()
-
-                        match serverVersion = messagingDataVersion with
-                        | true -> return! tryReceiveMessages()
-                        | false ->
-                            s.logErr (sprintf "%s: Different data versions - client: %A, server: %A." receiveMessagesImplName messagingDataVersion.value serverVersion.value)
+                        match service.getVersion() with
+                        | Ok serverVersion ->
+                            match serverVersion = messagingDataVersion with
+                            | true -> return! tryReceiveMessages()
+                            | false ->
+                                s.logErr (sprintf "%s: Different data versions - client: %A, server: %A." receiveMessagesImplName messagingDataVersion.value serverVersion.value)
+                                return []
+                        | Error e ->
+                            s.logErr (sprintf "%s: Exception occurred: %A." receiveMessagesImplName e)
                             return []
                     | None ->
                         s.logErr (sprintf "%s: Unable to create connection." receiveMessagesImplName)

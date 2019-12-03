@@ -17,15 +17,16 @@ open ClmSys.Wcf
 
 module ServiceResponse =
 
+    /// It seems imposible to bake in "tryCommunicate tryGetWcfService" into a function due to generics + type inference interplay.
     type MsgWcfClient (url) =
         let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url
 
-        let getVersionImpl() = messagingDataVersion
+        let getVersionImpl() = tryCommunicate tryGetWcfService (fun service -> service.getVersion) GetVersionWcfError ()
         let sendMessageImpl m = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) MsgWcfError m
         let configureServiceImpl x = tryCommunicate tryGetWcfService (fun service -> service.configureService) CfgSvcWcfError x
         let tryPeekMessageImpl n = tryCommunicate tryGetWcfService (fun service -> service.tryPeekMessage) TryPeekMsgWcfError n
         let tryDeleteFromServerImpl x = tryCommunicate tryGetWcfService (fun service -> service.tryDeleteFromServer) TryDeleteMsgWcfError x
-        let getStateImpl() = failwith "getStateImpl is not implemented."
+        let getStateImpl() = tryCommunicate tryGetWcfService (fun service -> service.getState) GetStateWcfError ()
 
         interface IMessagingService with
             member __.getVersion() = getVersionImpl()

@@ -1,12 +1,13 @@
 ﻿namespace WorkerNodeServiceInfo
 
 open ClmSys.VersionInfo
+open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open System.Runtime.Remoting.Channels.Tcp
 
 module ServiceInfo =
 
-    let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value
+    let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value |> toValidServiceName
     let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
 
 

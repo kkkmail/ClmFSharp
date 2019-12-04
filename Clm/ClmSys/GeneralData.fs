@@ -68,20 +68,26 @@ module GeneralData =
         static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
+    let toValidServiceName (serviceName : string) =
+        serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
+
+
     let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
-        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + (toValidServiceName serviceName)
 
 
     let private getWcfServiceUrlImpl serviceAddress (servicePort : int) serviceName =
-        "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+        "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + (toValidServiceName serviceName)
 
 
     type ServiceAccessInfo =
         {
             serviceAddress : ServiceAddress
             servicePort : ServicePort
-            serviceName : string
+            inputServiceName : string
         }
+
+        member s.serviceName = toValidServiceName s.inputServiceName
 
         member s.serviceUrl =
             getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
@@ -552,7 +558,7 @@ module GeneralData =
     let jsonDeserialize<'T> s = JsonConvert.DeserializeObject<'T> s
 
 
-    let serializer = FsPickler.CreateXmlSerializer(indent = true)
+    let serializer = xmlSerializer
     let serialize t = serializer.PickleToString t
     let deserialize s = serializer.UnPickleOfString s
     //let serialize t = jsonSerialize t
@@ -561,11 +567,12 @@ module GeneralData =
 
     let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
         try
-            printfn "trySerialize: a = '%A'." a
+            printfn "trySerialize: Serializing type %A..." typeof<'A>
+            //printfn "trySerialize: a = '%A'." a
             let b = a |> serialize
-            printfn "trySerialize: b = '%A'." b
+            //printfn "trySerialize: b = '%A'." b
             let c = b |> zip
-            printfn "trySerialize: c = '%A'." c
+            //printfn "trySerialize: c = '%A'." c
             c |> Ok
         with
         | e ->
@@ -575,7 +582,7 @@ module GeneralData =
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
     let tryCastAs<'T> (o:obj) : 'T option =
-        printfn "tryCastAs: typeof<'T> = '%A', o.GetType() = '%A'." typeof<'T> (o.GetType())
+        //printfn "tryCastAs: typeof<'T> = '%A', o.GetType() = '%A'." typeof<'T> (o.GetType())
         match o with
         | :? 'T as res -> Some res
         | _ -> None
@@ -583,13 +590,13 @@ module GeneralData =
 
     let tryDeserialize<'A> (b : byte[]) : Result<'A, SerializationError> =
         try
-            printfn "tryDeserialize: Unzipping..."
+            //printfn "tryDeserialize: Unzipping..."
             let x = b |> unZip
-            printfn "tryDeserialize: x = %A" x
+            //printfn "tryDeserialize: x = %A" x
 
             printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
             let (y : 'A) = deserialize x
-            printfn "tryDeserialize: y = %A" y
+            //printfn "tryDeserialize: y = %A" y
             Ok y
         with
         | e ->

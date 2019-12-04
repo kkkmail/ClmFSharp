@@ -69,7 +69,7 @@ module AdmCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = MessagingServiceName
+                    inputServiceName = MessagingServiceName
                 }
         }
 

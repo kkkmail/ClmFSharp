@@ -120,7 +120,7 @@ module MsgCliCommandLine =
                         {
                             serviceAddress = address
                             servicePort = port
-                            serviceName = MessagingServiceName
+                            inputServiceName = MessagingServiceName
                         }
                 }
                 |> Some

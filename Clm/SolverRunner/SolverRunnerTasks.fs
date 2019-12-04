@@ -77,7 +77,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
-                            serviceName = ContGenServiceName
+                            inputServiceName = ContGenServiceName
                         }
 
                     minUsefulEe = ee
@@ -89,7 +89,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
-                            serviceName = WorkerNodeServiceName
+                            inputServiceName = WorkerNodeServiceName
                         }
 
                     minUsefulEe = ee

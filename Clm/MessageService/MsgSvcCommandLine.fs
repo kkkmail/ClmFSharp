@@ -95,7 +95,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = MessagingServiceName
+                    inputServiceName = MessagingServiceName
                 }
         }
 

@@ -71,6 +71,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
     <PlatformTarget>x64</PlatformTarget>
+    <StartArguments>r</StartArguments>
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>

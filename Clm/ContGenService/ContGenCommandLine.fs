@@ -177,7 +177,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = ContGenServiceName
+                    inputServiceName = ContGenServiceName
                 }
 
             minUsefulEe = ee
@@ -206,7 +206,7 @@ module SvcCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
-                            serviceName = MessagingServiceName
+                            inputServiceName = MessagingServiceName
                         }
                 }
 

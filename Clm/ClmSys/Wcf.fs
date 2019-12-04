@@ -20,6 +20,7 @@ module Wcf =
         binding.CloseTimeout <- connectionTimeOut
         binding.SendTimeout <- dataTimeOut
         binding.ReceiveTimeout <- dataTimeOut
+        binding.Security.Mode <- SecurityMode.None
         binding
 
 
@@ -47,25 +48,44 @@ module Wcf =
             match t() with
             | Ok (service, factoryCloser) ->
                 try
+                    printfn "tryCommunicate: Checking channel state..."
+                    let channel = (box service) :?> IClientChannel
+                    printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
+
                     match a |> trySerialize with
                     | Ok b ->
-                        c service b
+                        printfn "tryCommunicate: Calling service at %A..." DateTime.Now
+                        let d = c service b
+                        channel.Close()
+                        factoryCloser()
+
+                        d
                         |> tryDeserialize
                         |> Result.mapError WcfSerializationError
                         |> Result.mapError f
                         |> Result.bind id
                     | Error e -> toWcfSerializationError f e
-                finally
-                    let channel = (box service) :?> IClientChannel
-                    channel.Close()
-                    factoryCloser()
+                with
+                | e ->
+                    try
+                        let channel = (box service) :?> IClientChannel
+                        channel.Abort()
+                        factoryCloser()
+                    with
+                    | _ -> ignore()
+
+                    toWcfError f e // We want the outer "real" error.
             | Error e -> e |> f |> Error
         with
-        | e -> toWcfError f e
+        | e ->
+            printfn "tryCommunicate: At %A got exception: %A" DateTime.Now e
+            toWcfError f e
 
 
     /// Server reply.
     let tryReply p f a =
+        printfn "tryReply: Replying..."
+
         let reply =
             match a |> tryDeserialize with
             | Ok m -> p m

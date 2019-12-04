@@ -45,8 +45,6 @@ module ServiceResponse =
 
         let tryGetService() =
             try
-                //let channel = new TcpChannel()
-                //do ChannelServices.RegisterChannel(channel, true)
                 Activator.GetObject (typeof<IMessagingService>, url) :?> IMessagingService |> Some
             with
             | exn ->

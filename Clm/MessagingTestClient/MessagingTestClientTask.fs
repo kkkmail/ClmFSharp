@@ -27,9 +27,11 @@ module MessagingTestClientTask =
         do a.start()
 
         while true do
+            printfn "Getting version number for: %A" r
+            let version = a.getVersion()
+            printfn "Version number: %A" version
+
             printfn "Sending message to %A" r
-            //let x = a.testMethod "Some name"
-            //printfn "runTestClient: x = '%A'." x
 
             let m =
                 {

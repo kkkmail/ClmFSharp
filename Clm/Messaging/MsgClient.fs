@@ -443,17 +443,6 @@ module Client =
                             | TryPeekReceivedMessage r -> return! timed onTryPeekReceivedMessageName onTryPeekReceivedMessage s r |> loop
                             | TryRemoveReceivedMessage (m, r) -> return! timed onTryRemoveReceivedMessageName onTryRemoveReceivedMessage s m r |> loop
                             | RemoveExpiredMessages -> return! timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop
-                            //| RunTestMethod (name, reply) ->
-                            //    match s.tryGetService() with
-                            //    | Some service ->
-                            //        printfn "RunTestMethod: Successfully obtained WCF service."
-                            //        let x = service.testMethod name
-                            //        printfn "RunTestMethod: x = '%A'." x
-                            //        reply.Reply x
-                            //    | None ->
-                            //        printfn "RunTestMethod: Unable to get WCF service."
-                            //        reply.Reply "!Error!"
-                            //    return! s|> loop
                         }
 
                 MessagingClientStateData.defaultValue d |> loop
@@ -470,6 +459,3 @@ module Client =
         member private __.tryRemoveReceivedMessage m = messageLoop.PostAndAsyncReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member this.tryProcessMessage s f = onTryProcessMessage this s f
         member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post
-
-        //member __.testMethod (m : string) : string =
-        //    messageLoop.PostAndReply (fun reply -> RunTestMethod (m, reply))

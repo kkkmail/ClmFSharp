@@ -5,6 +5,8 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingAdm.AdmCommandLine
 open System
 
+open ClmSys.GeneralData
+
 module MsgAdmTasks =
 
     let monitorService (service : IMessagingService) =
@@ -55,19 +57,11 @@ module MsgAdmTasks =
         static member private tryCreatStartServiceTask s p =
             p |> List.tryPick (fun e -> match e with | StartMsgService -> s |> StartMsgServiceTask |> Some | _ -> None)
 
-        static member createTask so p =
-            match so() with
-            | Some s ->
-                let tt =
-                        [
-                            MsgAdmTask.tryCreatStopServiceTask
-                            MsgAdmTask.tryCreatStartServiceTask
-                            MsgAdmTask.tryCreateMonitorTask
-                        ]
-                        |> List.tryPick (fun e -> e s p)
-
-                match tt with
-                | Some t -> t
-                | None -> MonitorMsgServiceTask s
-                |> Some
-            | None -> None
+        static member createTask s p =
+            [
+                MsgAdmTask.tryCreatStopServiceTask
+                MsgAdmTask.tryCreatStartServiceTask
+                MsgAdmTask.tryCreateMonitorTask
+            ]
+            |> List.tryPick (fun e -> e s p)
+            |> Option.defaultWith (fun () -> MonitorMsgServiceTask s)

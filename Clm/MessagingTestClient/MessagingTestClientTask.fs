@@ -18,7 +18,7 @@ module MessagingTestClientTask =
         let d =
             {
                 msgAccessInfo = i
-                msgResponseHandler = h
+                messagingService = h
                 msgClientProxy = MessagingClientProxy { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
                 logger = logger
             }

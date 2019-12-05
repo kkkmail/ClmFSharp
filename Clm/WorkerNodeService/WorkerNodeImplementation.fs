@@ -43,7 +43,7 @@ module ServiceImplementation =
     type WorkerNodeRunnerData =
         {
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
-            msgResponseHandler : MsgResponseHandler
+            messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
             workerNodeProxy : WorkerNodeProxy
             logger : Logger
@@ -54,7 +54,7 @@ module ServiceImplementation =
         member this.messagingClientData =
             {
                 msgAccessInfo = this.workerNodeAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
-                msgResponseHandler = this.msgResponseHandler
+                messagingService = this.messagingService
                 msgClientProxy = this.msgClientProxy
                 logger = this.logger
             }
@@ -381,23 +381,20 @@ module ServiceImplementation =
         let className = "WorkerNodeService"
 
         let w =
-            match MsgResponseHandler.tryCreate (logger, serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo) with
-            | Some h ->
-                logger.logInfo (sprintf "%s: Created MsgResponseHandler: %A" className h)
-                {
-                    workerNodeAccessInfo = serviceAccessInfo
-                    msgResponseHandler = h
-                    msgClientProxy = MessagingClientProxy { messagingClientName = workerNodeServiceName }
-                    workerNodeProxy = WorkerNodeProxy WorkerNodeProxyInfo.defaultValue
-                    logger = logger
-                    exeName = SolverRunnerName
-                    minUsefulEe = MinUsefulEe.defaultValue
+            let h = MsgResponseHandler (serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo)
+            logger.logInfo (sprintf "%s: Created MsgResponseHandler: %A" className h)
 
-                }
-                |> createServiceImpl
-            | None ->
-                logger.logErr (sprintf "%s: Cannot create MsgResponseHandler." className)
-                None
+            {
+                workerNodeAccessInfo = serviceAccessInfo
+                messagingService = h
+                msgClientProxy = MessagingClientProxy { messagingClientName = workerNodeServiceName }
+                workerNodeProxy = WorkerNodeProxy WorkerNodeProxyInfo.defaultValue
+                logger = logger
+                exeName = SolverRunnerName
+                minUsefulEe = MinUsefulEe.defaultValue
+
+            }
+            |> createServiceImpl
 
         let initService () = ()
         do initService ()

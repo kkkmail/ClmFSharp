@@ -35,7 +35,7 @@ module Partitioner =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
-            msgResponseHandler : MsgResponseHandler
+            messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
             logger : Logger
         }
@@ -43,7 +43,7 @@ module Partitioner =
         member this.messagingClientData =
             {
                 msgAccessInfo = this.partitionerMsgAccessInfo.messagingClientAccessInfo
-                msgResponseHandler = this.msgResponseHandler
+                messagingService = this.messagingService
                 msgClientProxy = this.msgClientProxy
                 logger = this.logger
             }

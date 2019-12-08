@@ -114,7 +114,7 @@ module ServiceImplementation =
                             serviceAccessInfo = getSolverRunnerAccessInfo d.minUsefulEe
                         }
 
-                    callBackInfo = d.runningProcessData
+                    callBackInfo = { d.runningProcessData with workerNodeId = Some i.workerNodeAccessInfo.workerNodeInfo.workerNodeId }
                 }
 
             match proxy.runModel a with

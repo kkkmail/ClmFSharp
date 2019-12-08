@@ -4,6 +4,7 @@ open System
 open FSharp.Collections
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
@@ -67,6 +68,7 @@ module ModelParams =
     type ResultDataWithId =
         {
             resultDataId : ResultDataId
+            workerNodeId : WorkerNodeId option
             resultData : ResultData
         }
 

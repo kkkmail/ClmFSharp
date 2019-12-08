@@ -20,6 +20,7 @@ open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
+open ClmSys.MessagingData
 
 module SolverRunnerTasks =
 
@@ -188,12 +189,13 @@ module SolverRunnerTasks =
         }
 
 
-    let getResultAndChartData rdi (d : RunSolverData) =
+    let getResultAndChartData rdi w (d : RunSolverData) =
         let chartData = d.chartDataUpdater.getContent()
 
         let r =
             {
                 resultDataId = rdi
+                workerNodeId = w
                 resultData =
                     {
                         modelDataId = d.modelDataId
@@ -256,10 +258,11 @@ module SolverRunnerTasks =
                 let runSolverData = RunSolverData.create md i a y0 tEnd (RunQueueId d)
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
+                let w = results.TryGetResult WrkNodeId |> Option.bind (fun x -> x |> MessagingClientId |> WorkerNodeId |> Some)
                 nSolve data |> ignore
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData (ResultDataId d) runSolverData
+                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
 
                 {
                     runSolverData = runSolverData

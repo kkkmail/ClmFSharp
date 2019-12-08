@@ -226,6 +226,7 @@ module DatabaseTypes =
         static member create (r : ResultDataTableRow) =
             {
                     resultDataId = r.resultDataId |> ResultDataId
+                    workerNodeId = 0
 
                     resultData =
                     {

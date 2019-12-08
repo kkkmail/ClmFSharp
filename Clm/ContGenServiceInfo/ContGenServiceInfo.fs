@@ -214,7 +214,6 @@ module ServiceInfo =
     type ContGenRunnerState =
         {
             runLimit : int
-            //maxQueueLength : int
             running : RunningProcessInfo[]
             queue : ModelDataId[]
             runningCount : int

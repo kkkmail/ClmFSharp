@@ -6,6 +6,7 @@ open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
 open ClmSys.VersionInfo
+open ClmSys.MessagingData
 open System.Runtime.Remoting.Channels.Tcp
 
 module ServiceInfo =
@@ -55,6 +56,7 @@ module ServiceInfo =
             modelDataId : ModelDataId
             defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
+            workerNodeId : WorkerNodeId option
         }
 
         member this.toResultDataId() = this.runQueueId.toResultDataId()

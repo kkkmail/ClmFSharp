@@ -109,6 +109,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = c.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
+                                            workerNodeId = None
                                         }
                                 }
                                 |> Some
@@ -150,6 +151,7 @@ module Runner =
                                                     modelDataId = e.info.modelDataId
                                                     defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
+                                                    workerNodeId = None
                                                 }
                                         })
             | None -> []
@@ -206,6 +208,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = t1.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
+                                            workerNodeId = None
                                         }
                                 }
                                 |> Some
@@ -221,7 +224,6 @@ module Runner =
                 generate = generateAll p.serviceAccessInfo
                 getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
-                //maxQueueLength = 4
                 runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u
                 logger = Logger.log4net

@@ -12,6 +12,7 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open Clm.ReactionRates
+open ClmSys.MessagingData
 open DynamicSql
 
 
@@ -226,12 +227,11 @@ module DatabaseTypes =
         static member create (r : ResultDataTableRow) =
             {
                     resultDataId = r.resultDataId |> ResultDataId
-                    workerNodeId = 0
+                    workerNodeId = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
 
                     resultData =
                     {
                         modelDataId = r.modelDataId |> ModelDataId
-
 
                         y0 = r.y0
                         tEnd = r.tEnd
@@ -248,6 +248,7 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         resultDataId = r.resultDataId.value,
+                        workerNodeId = (r.workerNodeId |> Option.bind (fun e -> e.value.value |> Some)),
                         y0 = r.resultData.y0,
                         tEnd = r.resultData.tEnd,
                         useAbundant = r.resultData.useAbundant,

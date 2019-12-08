@@ -16,6 +16,7 @@ module Runner =
             {
                 modelDataId = p.callBackInfo.modelDataId
                 resultDataId = p.callBackInfo.runQueueId.toResultDataId()
+                workerNodeId = p.callBackInfo.workerNodeId
                 minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
                 remote = r
             }

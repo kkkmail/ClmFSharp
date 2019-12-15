@@ -227,7 +227,7 @@ module DatabaseTypes =
         static member create (r : ResultDataTableRow) =
             {
                     resultDataId = r.resultDataId |> ResultDataId
-                    workerNodeId = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                    workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
 
                     resultData =
                     {
@@ -248,7 +248,7 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         resultDataId = r.resultDataId.value,
-                        workerNodeId = (r.workerNodeId |> Option.bind (fun e -> e.value.value |> Some)),
+                        workerNodeId = r.workerNodeId .value.value,
                         y0 = r.resultData.y0,
                         tEnd = r.resultData.tEnd,
                         useAbundant = r.resultData.useAbundant,
@@ -500,6 +500,7 @@ module DatabaseTypes =
             INSERT INTO dbo.ResultData
                        (resultDataId
                        ,modelDataId
+                       ,workerNodeId
                        ,y0
                        ,tEnd
                        ,useAbundant
@@ -512,6 +513,7 @@ module DatabaseTypes =
                  VALUES
                        (@resultDataId
                        ,@modelDataId
+                       ,@workerNodeId
                        ,@y0
                        ,@tEnd
                        ,@useAbundant
@@ -526,6 +528,7 @@ module DatabaseTypes =
             cmd.Execute(
                     resultDataId = r.resultDataId.value
                     ,modelDataId = r.resultData.modelDataId.value
+                    ,workerNodeId = r.workerNodeId.messagingClientId.value
                     ,y0 = r.resultData.y0
                     ,tEnd = r.resultData.tEnd
                     ,useAbundant = r.resultData.useAbundant

@@ -108,7 +108,7 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 
 	CREATE TABLE [dbo].[ResultData](
 		[resultDataId] [uniqueidentifier] NOT NULL,
-		[workerNodeId] [uniqueidentifier] NULL,
+		[workerNodeId] [uniqueidentifier] NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,

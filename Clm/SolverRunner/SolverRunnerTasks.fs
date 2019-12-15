@@ -252,8 +252,8 @@ module SolverRunnerTasks =
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId with
-        | Some tEnd, Some y0, Some modelDataId, Some i, Some d ->
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
+        | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
             match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
@@ -266,7 +266,7 @@ module SolverRunnerTasks =
                         useAbundant = a
                     }
 
-                let w = results.TryGetResult WrkNodeId |> Option.bind (fun x -> x |> MessagingClientId |> WorkerNodeId |> Some)
+                let w = g |> MessagingClientId |> WorkerNodeId
                 let runSolverData = RunSolverData.create md i c (RunQueueId d) w
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)

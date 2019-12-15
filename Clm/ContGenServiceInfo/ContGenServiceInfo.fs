@@ -56,7 +56,7 @@ module ServiceInfo =
             modelDataId : ModelDataId
             defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
-            workerNodeId : WorkerNodeId option
+            workerNodeId : WorkerNodeId
         }
 
         member this.toResultDataId() = this.runQueueId.toResultDataId()

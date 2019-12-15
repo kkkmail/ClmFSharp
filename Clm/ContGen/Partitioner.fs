@@ -182,7 +182,7 @@ module Partitioner =
                             {
                                 remoteProcessId = e.remoteProcessId
                                 localProcessId = None
-                                runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = Some n.workerNodeInfo.workerNodeId }
+                                runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
                                 taskParam = e.runModelParam.commandLineParam.taskParam
                                 minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                             },

@@ -11,6 +11,7 @@ open AsyncRun
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open ClmSys.Logging
+open ClmSys.MessagingData
 
 module Runner =
 
@@ -40,6 +41,7 @@ module Runner =
         let className = "ModelRunner"
         let getMethodName n = className + "." + n
         let tryGetQueueIdName = getMethodName "tryGetQueueId"
+        let localWorkerNodeId = Guid.Empty |> MessagingClientId |> WorkerNodeId
 
 
         let runModel e c =
@@ -109,7 +111,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = c.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
-                                            workerNodeId = None
+                                            workerNodeId = localWorkerNodeId
                                         }
                                 }
                                 |> Some
@@ -151,7 +153,7 @@ module Runner =
                                                     modelDataId = e.info.modelDataId
                                                     defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
-                                                    workerNodeId = None
+                                                    workerNodeId = localWorkerNodeId
                                                 }
                                         })
             | None -> []
@@ -208,7 +210,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = t1.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
-                                            workerNodeId = None
+                                            workerNodeId = localWorkerNodeId
                                         }
                                 }
                                 |> Some

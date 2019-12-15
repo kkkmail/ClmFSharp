@@ -68,7 +68,7 @@ module ModelParams =
     type ResultDataWithId =
         {
             resultDataId : ResultDataId
-            workerNodeId : WorkerNodeId option
+            workerNodeId : WorkerNodeId
             resultData : ResultData
         }
 
@@ -163,7 +163,7 @@ module ModelParams =
         {
             modelDataId : ModelDataId
             resultDataId : ResultDataId
-            workerNodeId : WorkerNodeId option
+            workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool
         }
@@ -186,11 +186,6 @@ module ModelParams =
 
         member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
-            
-            let b, v =
-                match d.workerNodeId with
-                | Some (WorkerNodeId (MessagingClientId v)) -> true, v
-                | None -> false, Guid.Empty
 
             [
                 EndTime this.taskParam.tEnd
@@ -202,8 +197,7 @@ module ModelParams =
                 MinimumUsefulEe d.minUsefulEe.value
                 Remote d.remote
                 ResultId d.resultDataId.value
-
-                if b then WrkNodeId v
+                WrkNodeId d.workerNodeId.messagingClientId.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

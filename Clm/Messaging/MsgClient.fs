@@ -143,7 +143,6 @@ module Client =
 
 
         let onSendMessage (s : MessagingClientStateData) (m : MessageInfo) =
-            printfn "%s..." onSendMessageName
             let message =
                 {
                     messageDataInfo =
@@ -157,6 +156,8 @@ module Client =
 
                     messageData = m.messageData
                 }
+
+            printfn "%s: messageId = %A" onSendMessageName message.messageDataInfo.messageId
 
             match m.recipientInfo.deliveryType with
             | GuaranteedDelivery -> s.proxy.saveMessage { messageType = OutgoingMessage; message = message }
@@ -292,13 +293,14 @@ module Client =
 
 
         let onTryPeekReceivedMessage (s : MessagingClientStateData) (r : AsyncReplyChannel<Message option>) =
-            printfn "%s..." onTryPeekReceivedMessageName
-            s.incomingMessages |> List.tryHead |> r.Reply
+            let x = s.incomingMessages |> List.tryHead
+            printfn "%s: messageId = %A" onTryPeekReceivedMessageName (x |> Option.bind (fun e -> Some e.messageDataInfo.messageId))
+            r.Reply x
             s
 
 
         let onTryRemoveReceivedMessage (s : MessagingClientStateData) m (r : AsyncReplyChannel<bool>) =
-            printfn "%s..." onTryRemoveReceivedMessageName
+            printfn "%s: messageId: %A" onTryRemoveReceivedMessageName m
             s.proxy.deleteMessage m
             r.Reply true
             { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }
@@ -363,6 +365,7 @@ module Client =
         let onTryProcessMessage (w : MessagingClient) x f =
             async {
                 printfn "%s: Starting..." onTryProcessMessageName
+
                 match! w.tryPeekReceivedMessage() with
                 | Some m ->
                     try

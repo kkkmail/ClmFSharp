@@ -43,7 +43,8 @@ module WindowsService =
             serviceAccessInfo <- i
             let binding = getBinding()
             let baseAddress = new Uri(i.messagingServiceAccessInfo.wcfServiceUrl)
-            let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
+            //let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
+            let serviceHost = new ServiceHost(new MessagingWcfService(), baseAddress)
             let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)
             do serviceHost.Open()
             printfn "... completed."

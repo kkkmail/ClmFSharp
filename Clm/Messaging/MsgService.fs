@@ -143,7 +143,7 @@ module Service =
 
 
         let onTryPeekMessage s n (r : AsyncReplyChannel<Message option>) =
-            printfn "%s: ClientId: %A" onTryPeekMessageName n
+            printfn "%s: clientId: %A" onTryPeekMessageName n
 
             let reply, w =
                 match s.messages.TryFind n with
@@ -165,7 +165,7 @@ module Service =
                                 d.logger.logErr (sprintf "%s: Cannot find message data for id: %A" onTryPeekMessageName h.messageDataInfo.messageId)
                                 None, { s with messages = s.messages.Add(n, t |> List.rev) }
                 | None ->
-                    printfn "%s: No client for ClientId %A." onTryPeekMessageName n
+                    printfn "%s: No messages for clientId %A." onTryPeekMessageName n
                     None, s
 
             printfn "%s: Replying with message id: %A ..." onTryPeekMessageName (reply |> Option.bind (fun e -> Some e.messageDataInfo.messageId))

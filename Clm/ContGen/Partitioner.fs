@@ -150,47 +150,53 @@ module Partitioner =
             | None -> s
 
 
+        let onCannotRun (e : RunModelParamWithRemoteId) g =
+            printfn "PartitionerRunner.onCannotRun"
+            proxy.savePartitionerQueueElement e.queueElement
+            { g with partitionerQueue = e.queueElement :: g.partitionerQueue |> List.distinctBy (fun e -> e.queuedRemoteProcessId) }
+
+
+        let onRunOrCompleted (e : RunModelParamWithRemoteId) g =
+            printfn "PartitionerRunner.onRunOrCompleted"
+
+            match proxy.tryDeletePartitionerQueueElement e.remoteProcessId with
+            | Some _ ->
+                printfn "PartitionerRunner.onRunOrCompleted - Deleted queue element with id: %A" e.remoteProcessId
+                ignore()
+            | None ->
+                // This is not an error if queue element is not found.
+                printfn "PartitionerRunner.onRunOrCompleted - Cannot delete queue element with id: %A" e.remoteProcessId
+                ignore()
+
+            { g with partitionerQueue = g.partitionerQueue |> List.filter (fun a -> a.queuedRemoteProcessId <> e.remoteProcessId) }
+
+
+        let sendRunModelMessage (e : RunModelParamWithRemoteId) n m =
+            {
+                workerNodeRecipient = n.workerNodeInfo.workerNodeId
+                deliveryType = GuaranteedDelivery
+                messageData =
+                    (
+                        {
+                            remoteProcessId = e.remoteProcessId
+                            localProcessId = None
+                            runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
+                            taskParam = e.runModelParam.commandLineParam.taskParam
+                            minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                        },
+                        m
+                    )
+                    |> RunModelWrkMsg
+            }.getMessageInfo()
+            |> sendMessage
+
+
         let onTryRunModelWithRemoteId s (e : RunModelParamWithRemoteId) =
             printfn "PartitionerRunner.onRunModelWithRemoteId: e = %A." e
             let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
-
-            let onCannotRun g =
-                printfn "PartitionerRunner.onRun"
-                proxy.savePartitionerQueueElement e.queueElement
-                { g with partitionerQueue = e.queueElement :: g.partitionerQueue |> List.distinctBy (fun e -> e.queuedRemoteProcessId) }
-
-            let onRunOrCompleted (g : PartitionerRunnerState) =
-                printfn "PartitionerRunner.onRun"
-
-                match proxy.tryDeletePartitionerQueueElement e.remoteProcessId with
-                | Some _ ->
-                    printfn "PartitionerRunner.onRun - Deleted queue element with id: %A" e.remoteProcessId
-                    ignore()
-                | None ->
-                    // This is not an error if queue element is not found.
-                    printfn "PartitionerRunner.onRun - Cannot delete queue element with id: %A" e.remoteProcessId
-                    ignore()
-
-                { g with partitionerQueue = g.partitionerQueue |> List.filter (fun a -> a.queuedRemoteProcessId <> e.remoteProcessId)}
-
-            let sendRunModelMessage n (m : ModelData) =
-                {
-                    workerNodeRecipient = n.workerNodeInfo.workerNodeId
-                    deliveryType = GuaranteedDelivery
-                    messageData =
-                        (
-                            {
-                                remoteProcessId = e.remoteProcessId
-                                localProcessId = None
-                                runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
-                                taskParam = e.runModelParam.commandLineParam.taskParam
-                                minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
-                            },
-                            m
-                        )
-                        |> RunModelWrkMsg
-                }.getMessageInfo()
-                |> sendMessage
+            let onCannotRun g = onCannotRun e g
+            let onRunOrCompleted g = onRunOrCompleted e g
+            let sendRunModelMessage n m = sendRunModelMessage e n m
 
             match tryGetResult() with
             | None ->

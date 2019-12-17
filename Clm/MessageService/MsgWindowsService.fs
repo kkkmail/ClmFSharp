@@ -43,8 +43,14 @@ module WindowsService =
             serviceAccessInfo <- i
             let binding = getBinding()
             let baseAddress = new Uri(i.messagingServiceAccessInfo.wcfServiceUrl)
-            //let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
-            let serviceHost = new ServiceHost(new MessagingWcfService(), baseAddress)
+
+            let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
+
+            ////https://stackoverflow.com/questions/8902203/programmatically-set-instancecontextmode/8908511
+            //let serviceHost = new ServiceHost(new MessagingWcfService(), baseAddress)
+            //let sb = serviceHost.Description.Behaviors.[typeof<ServiceBehaviorAttribute>] :?> ServiceBehaviorAttribute
+            //sb.InstanceContextMode <- InstanceContextMode.Single
+
             let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)
             do serviceHost.Open()
             printfn "... completed."

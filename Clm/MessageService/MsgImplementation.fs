@@ -47,7 +47,7 @@ module ServiceImplementation =
             member __.getState() = a.getState()
 
 
-    [<ServiceBehavior(IncludeExceptionDetailInFaults = true)>]
+    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type MessagingWcfService() =
         let a = createServiceImpl serviceAccessInfo
 

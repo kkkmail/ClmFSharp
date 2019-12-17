@@ -110,7 +110,7 @@ module Service =
         let onSendMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<MessageDeliveryResult>) =
             printfn "%s: Sending messageId = %A ..." onSendMessageName m.messageDataInfo.messageId
 
-            match m.messageDataInfo.dataVersion = messagingDataVersion with
+            match m.messageDataInfo.dataVersion.value = messagingDataVersion.value with
             | true ->
                 match s.workState with
                 | MsgSvcNotStarted ->
@@ -128,6 +128,7 @@ module Service =
                     ServerIsShuttingDown |> Error |> r.Reply
                     s
             | false ->
+                printfn "%s: Data version mismatch: messagingDataVersion = %A, m.messageDataInfo.dataVersion = %A." onSendMessageName messagingDataVersion m.messageDataInfo.dataVersion
                 messagingDataVersion |> DataVersionMismatch |> Error |> r.Reply
                 s
 

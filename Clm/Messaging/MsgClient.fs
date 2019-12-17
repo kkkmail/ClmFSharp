@@ -182,7 +182,7 @@ module Client =
                 | NonGuaranteedDelivery -> ignore()
                 Some m
             | Error (DataVersionMismatch v) ->
-                s.logErr (sprintf "%s: messageId = %A, data version mismatch server has: %A but client has: %A." sendMessageImplName m.messageDataInfo.messageId.value v messagingDataVersion)
+                s.logErr (sprintf "%s: messageId = %A, data version mismatch server has: %A but client message has: %A." sendMessageImplName m.messageDataInfo.messageId.value v m.messageDataInfo.dataVersion)
                 None
             | Error ServerIsShuttingDown ->
                 s.logInfo (sprintf "%s: messageId = %A - server is shutting down." sendMessageImplName m.messageDataInfo.messageId.value)

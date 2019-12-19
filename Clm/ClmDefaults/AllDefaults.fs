@@ -67,6 +67,24 @@ module AllDefaults =
         updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both scarcity param = 200, vary both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
             (Defaults_001_000_019.nsd |> List.map Defaults_001_000_019.getGefaultValue)
 
+        @
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrScarcity = 50, vary catDestrSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_021.nd |> List.map Defaults_001_000_021.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 50, vary catSynthSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_022.ns |> List.map Defaults_001_000_022.getGefaultValue)
+        @
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrScarcity = 100, vary catDestrSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_023.nd |> List.map Defaults_001_000_023.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 100, vary catSynthSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_024.ns |> List.map Defaults_001_000_024.getGefaultValue)
+        @
+        updateDescription "Catalytic destruction / forward only for n = 20 (catDestrScarcity = 200, vary catDestrSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_025.nd |> List.map Defaults_001_000_025.getGefaultValue)
+        @
+        updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 200, vary catSynthSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
+            (Defaults_001_000_026.ns |> List.map Defaults_001_000_026.getGefaultValue)
 
         @
         updateDescription "Tests."

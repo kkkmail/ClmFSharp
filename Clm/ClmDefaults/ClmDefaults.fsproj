@@ -86,6 +86,12 @@
     <Compile Include="DefaultValues\Defaults_001_000_017.fs" />
     <Compile Include="DefaultValues\Defaults_001_000_018.fs" />
     <Compile Include="DefaultValues\Defaults_001_000_019.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_021.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_022.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_023.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_024.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_025.fs" />
+    <Compile Include="DefaultValues\Defaults_001_000_026.fs" />
     <Compile Include="AllDefaults.fs" />
     <Compile Include="ClmDefaultsTasks.fs" />
     <Compile Include="Program.fs" />

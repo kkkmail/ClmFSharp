@@ -27,10 +27,8 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
-    type WorkerNodeRunnerState =
-        {
-            runningWorkers : Map<LocalProcessId, RemoteProcessId>
-        }
+    type WorkerNodeRunnerState
+        with
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
@@ -412,7 +410,18 @@ module ServiceImplementation =
             | None -> logger.logErr (sprintf "%s: Failed to configure service: %A" className d)
 
 
+        let monitorImpl p =
+            match w with
+            | Some r ->
+                let s = r.getState()
+                WrkNodeState s
+            | None ->
+                logger.logErr (sprintf "%s: Failed to monitor service: %A" className p)
+                CannotAccessWrkNode
+
+
         interface IWorkerNodeService with
             member __.updateLocalProgress p = updateLocalProgressImpl p
             member __.ping() = ignore()
             member __.configure d = configureImpl d
+            member __.monitor p = monitorImpl p

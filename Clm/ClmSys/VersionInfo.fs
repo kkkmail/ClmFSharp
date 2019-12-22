@@ -16,7 +16,7 @@ module VersionInfo =
 
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "4.1.0.0"
+    let VersionNumberValue = "4.1.0.1"
 
 
     /// A base name, which controls the database name and a working folder name.
@@ -24,12 +24,12 @@ module VersionInfo =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     /// Eventually it could be bound to the version number, but not today.
     [<Literal>]
-    let ClmBaseName = "clm4100"
+    let ClmBaseName = "clm4101"
 
 
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
-    let DefaultContGenServicePort = 4100
+    let DefaultContGenServicePort = 4101
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

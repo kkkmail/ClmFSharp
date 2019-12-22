@@ -151,7 +151,7 @@ module AdmCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = ContGenServiceName
+                    inputServiceName = ContGenServiceName
                 }
 
             minUsefulEe = ee

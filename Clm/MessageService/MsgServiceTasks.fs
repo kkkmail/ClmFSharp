@@ -20,12 +20,19 @@ module ServiceTasks =
             |> List.choose id
 
 
-    let runService l (_, i) = startServiceRun l i
+    //let runService l (_, i) = startServiceRun l i
+    let runService l (_, i) = startWcfServiceRun l i
+
+
+    //let cleanupService logger i =
+    //    logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
+    //    ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
 
 
     let cleanupService logger i =
         logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
-        ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
+        //ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
+        printfn "cleanupService is not yet implemented."
 
 
     let serviceInfo =

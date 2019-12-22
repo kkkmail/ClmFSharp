@@ -4,7 +4,6 @@ open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
-open System.Runtime.Remoting.Channels.Tcp
 open Argu
 
 open ClmSys.Logging
@@ -16,18 +15,17 @@ open ProgressNotifierClient.ServiceResponse
 open ClmSys.TimerEvents
 
 module WindowsService =
+    let private serviceName = WorkerNodeServiceName
+
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) : WrkNodeShutDownInfo option =
         try
-            logger.logInfo ("WindowsService.startServiceRun: registering WorkerNodeService...")
+            logger.logInfo (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName)
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
-            logger.logInfo (sprintf "startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
+            logger.logInfo (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
             ChannelServices.RegisterChannel (channel, false)
-
-            RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<WorkerNodeService>, WorkerNodeServiceName, WellKnownObjectMode.Singleton )
-
+            RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName, WellKnownObjectMode.Singleton)
             let service = (new WorkerNodeResponseHandler(i)).workerNodeService
 
             try
@@ -51,7 +49,7 @@ module WindowsService =
 
 
     type public WorkerNodeWindowsService () =
-        inherit ServiceBase (ServiceName = WorkerNodeServiceName)
+        inherit ServiceBase (ServiceName = serviceName)
 
         let initService () = ()
         do initService ()

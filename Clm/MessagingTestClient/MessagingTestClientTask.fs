@@ -18,14 +18,19 @@ module MessagingTestClientTask =
         let d =
             {
                 msgAccessInfo = i
-                msgResponseHandler = h
+                messagingService = h
                 msgClientProxy = MessagingClientProxy { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
                 logger = logger
             }
 
         let a = MessagingClient d
+        do a.start()
 
         while true do
+            printfn "Getting version number for: %A" r
+            let version = a.getVersion()
+            printfn "Version number: %A" version
+
             printfn "Sending message to %A" r
 
             let m =
@@ -33,7 +38,7 @@ module MessagingTestClientTask =
                     recipientInfo =
                         {
                             recipient = r
-                            deliveryType = NonGuaranteedDelivery
+                            deliveryType = GuaranteedDelivery
                         }
 
                     messageData = sprintf "Message sent at %A." DateTime.Now |> TextData

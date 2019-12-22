@@ -55,7 +55,7 @@ module Client =
     type MessagingClientData =
         {
             msgAccessInfo : MessagingClientAccessInfo
-            msgResponseHandler : MsgResponseHandler
+            messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
             logger : Logger
         }
@@ -84,7 +84,7 @@ module Client =
         }
 
         member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
-        member s.tryGetService() = s.messageClientData.msgResponseHandler.tryGetMessagingService()
+        member s.messagingService = s.messageClientData.messagingService
         member s.proxy = s.messageClientData.msgClientProxy
 
         member s.logErr = s.messageClientData.logger.logErr
@@ -143,7 +143,6 @@ module Client =
 
 
         let onSendMessage (s : MessagingClientStateData) (m : MessageInfo) =
-            printfn "%s..." onSendMessageName
             let message =
                 {
                     messageDataInfo =
@@ -157,6 +156,8 @@ module Client =
 
                     messageData = m.messageData
                 }
+
+            printfn "%s: messageId = %A" onSendMessageName message.messageDataInfo.messageId
 
             match m.recipientInfo.deliveryType with
             | GuaranteedDelivery -> s.proxy.saveMessage { messageType = OutgoingMessage; message = message }
@@ -173,30 +174,21 @@ module Client =
 
         let sendMessageImpl (s : MessagingClientStateData) (m : Message) =
             printfn "%s: messageId = %A, createdOn = %A" sendMessageImplName m.messageDataInfo.messageId.value m.messageDataInfo.createdOn
-            try
-                match s.tryGetService() with
-                | Some service ->
-                    match service.sendMessage m with
-                    | DeliveredSuccessfully _ ->
-                        match m.messageDataInfo.recipientInfo.deliveryType with
-                        | GuaranteedDelivery -> s.proxy.deleteMessage m.messageDataInfo.messageId
-                        | NonGuaranteedDelivery -> ignore()
-                        Some m
-                    | DataVersionMismatch v ->
-                        s.logErr (sprintf "%s: messageId = %A, data version mismatch server has: %A but client has: %A." sendMessageImplName m.messageDataInfo.messageId.value v messagingDataVersion)
-                        None
-                    | ServerIsShuttingDown ->
-                        s.logInfo (sprintf "%s: messageId = %A - server is shutting down." sendMessageImplName m.messageDataInfo.messageId.value)
-                        None
-                    | ExceptionOccurred e ->
-                        s.logExn (sprintf "%s: messageId = %A" sendMessageImplName m.messageDataInfo.messageId.value) e
-                        None
-                | None ->
-                    s.logErr (sprintf "%s: Unable to create connection, messageId = %A." sendMessageImplName m.messageDataInfo.messageId.value)
-                    None
-            with
-            | e ->
-                s.logExn (sprintf "%s: Failed to send message: %A" sendMessageImplName m.messageDataInfo.messageId) e
+
+            match s.messagingService.sendMessage m with
+            | Ok _ ->
+                match m.messageDataInfo.recipientInfo.deliveryType with
+                | GuaranteedDelivery -> s.proxy.deleteMessage m.messageDataInfo.messageId
+                | NonGuaranteedDelivery -> ignore()
+                Some m
+            | Error (DataVersionMismatch v) ->
+                s.logErr (sprintf "%s: messageId = %A, data version mismatch server has: %A but client message has: %A." sendMessageImplName m.messageDataInfo.messageId.value v m.messageDataInfo.dataVersion)
+                None
+            | Error ServerIsShuttingDown ->
+                s.logInfo (sprintf "%s: messageId = %A - server is shutting down." sendMessageImplName m.messageDataInfo.messageId.value)
+                None
+            | Error (MsgWcfError e) ->
+                s.logErr (sprintf "%s: messageId = %A, error: %A" sendMessageImplName m.messageDataInfo.messageId.value e)
                 None
 
 
@@ -204,42 +196,35 @@ module Client =
             async {
                 printfn "%s..." tryReceiveSingleMessageName
 
-                try
-                    match s.tryGetService() with
-                    | Some service ->
-                        match service.tryPeekMessage s.msgClientId with
-                        | Some m ->
-                            printfn "%s: Received message with id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
-                            match m.messageDataInfo.recipientInfo.deliveryType with
-                            | GuaranteedDelivery ->
-                                {
-                                    message = m
-                                    messageType = IncomingMessage
-                                }
-                                |> s.proxy.saveMessage
-                            | NonGuaranteedDelivery -> ignore()
+                match s.messagingService.tryPeekMessage s.msgClientId with
+                | Ok (Some m) ->
+                    printfn "%s: Received message with id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
+                    match m.messageDataInfo.recipientInfo.deliveryType with
+                    | GuaranteedDelivery ->
+                        {
+                            message = m
+                            messageType = IncomingMessage
+                        }
+                        |> s.proxy.saveMessage
+                    | NonGuaranteedDelivery -> ignore()
 
-                            match service.tryDeleteFromServer s.msgClientId m.messageDataInfo.messageId with
-                            | true ->
-                                printfn "%s: Deleted message from server. Message id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
-                                ignore()
-                            | false ->
-                                s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId)
-
-                            match m.messageData.getMessageSize() with
-                            | SmallSize -> return SmallMessage m
-                            | MediumSize -> return MediumMessage m
-                            | LargeSize -> return LargeMessage m
-                        | None ->
-                            printfn "%s: Did not receive a message." tryReceiveSingleMessageName
-                            return NoMessage
-                    | None ->
-                        s.logErr (sprintf "%s: Unable to create connection." tryReceiveSingleMessageName)
-                        return NoMessage
-                with
-                | e ->
-                    printfn "%s: exception occurred: %A" tryReceiveSingleMessageName e
-                    s.logExn tryReceiveSingleMessageName e
+                    match s.messagingService.tryDeleteFromServer (s.msgClientId, m.messageDataInfo.messageId) with
+                    | Ok true ->
+                        printfn "%s: Deleted message from server. Message id: %A" tryReceiveSingleMessageName m.messageDataInfo.messageId
+                        ignore()
+                    | Ok false ->
+                        s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId)
+                    | Error e ->
+                        s.logErr (sprintf "%s: Unable to delete a message from server for client: %A, message id: %A due to error: %A." tryReceiveSingleMessageName s.msgClientId m.messageDataInfo.messageId e)
+                    match m.messageData.getMessageSize() with
+                    | SmallSize -> return SmallMessage m
+                    | MediumSize -> return MediumMessage m
+                    | LargeSize -> return LargeMessage m
+                | Ok None ->
+                    printfn "%s: Did not receive a message." tryReceiveSingleMessageName
+                    return NoMessage
+                | Error e ->
+                    printfn "%s: Exception occurred: %A." tryReceiveSingleMessageName e
                     return NoMessage
             }
 
@@ -276,22 +261,15 @@ module Client =
             async {
                 printfn "%s..." receiveMessagesImplName
 
-                try
-                    match s.tryGetService() with
-                    | Some service ->
-                        let serverVersion = service.getVersion()
-
-                        match serverVersion = messagingDataVersion with
-                        | true -> return! tryReceiveMessages()
-                        | false ->
-                            s.logErr (sprintf "%s: Different data versions - client: %A, server: %A." receiveMessagesImplName messagingDataVersion.value serverVersion.value)
-                            return []
-                    | None ->
-                        s.logErr (sprintf "%s: Unable to create connection." receiveMessagesImplName)
+                match s.messagingService.getVersion() with
+                | Ok serverVersion ->
+                    match serverVersion = messagingDataVersion with
+                    | true -> return! tryReceiveMessages()
+                    | false ->
+                        s.logErr (sprintf "%s: Different data versions - client: %A, server: %A." receiveMessagesImplName messagingDataVersion.value serverVersion.value)
                         return []
-                with
-                | e ->
-                    s.logExn receiveMessagesImplName e
+                | Error e ->
+                    s.logErr (sprintf "%s: Exception occurred: %A." receiveMessagesImplName e)
                     return []
                 }
 
@@ -315,13 +293,14 @@ module Client =
 
 
         let onTryPeekReceivedMessage (s : MessagingClientStateData) (r : AsyncReplyChannel<Message option>) =
-            printfn "%s..." onTryPeekReceivedMessageName
-            s.incomingMessages |> List.tryHead |> r.Reply
+            let x = s.incomingMessages |> List.tryHead
+            printfn "%s: messageId = %A" onTryPeekReceivedMessageName (x |> Option.bind (fun e -> Some e.messageDataInfo.messageId))
+            r.Reply x
             s
 
 
         let onTryRemoveReceivedMessage (s : MessagingClientStateData) m (r : AsyncReplyChannel<bool>) =
-            printfn "%s..." onTryRemoveReceivedMessageName
+            printfn "%s: messageId: %A" onTryRemoveReceivedMessageName m
             s.proxy.deleteMessage m
             r.Reply true
             { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }
@@ -386,6 +365,7 @@ module Client =
         let onTryProcessMessage (w : MessagingClient) x f =
             async {
                 printfn "%s: Starting..." onTryProcessMessageName
+
                 match! w.tryPeekReceivedMessage() with
                 | Some m ->
                     try

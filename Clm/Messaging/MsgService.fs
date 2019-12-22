@@ -110,7 +110,7 @@ module Service =
         let onSendMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<MessageDeliveryResult>) =
             printfn "%s: Sending messageId = %A ..." onSendMessageName m.messageDataInfo.messageId
 
-            match m.messageDataInfo.dataVersion = messagingDataVersion with
+            match m.messageDataInfo.dataVersion.value = messagingDataVersion.value with
             | true ->
                 match s.workState with
                 | MsgSvcNotStarted ->
@@ -121,14 +121,15 @@ module Service =
                     | GuaranteedDelivery, _ | NonGuaranteedDelivery, false -> s.proxy.saveMessage m
                     | NonGuaranteedDelivery, true -> ignore()
 
-                    r.Reply DeliveredSuccessfully
+                    MessageDelivered |> Ok |> r.Reply
                     printfn "%s: Sent messageId = %A." onSendMessageName m.messageDataInfo.messageId
                     updateMessages s m
                 | ShuttingDown ->
-                    r.Reply ServerIsShuttingDown
+                    ServerIsShuttingDown |> Error |> r.Reply
                     s
             | false ->
-                r.Reply (DataVersionMismatch messagingDataVersion)
+                printfn "%s: Data version mismatch: messagingDataVersion = %A, m.messageDataInfo.dataVersion = %A." onSendMessageName messagingDataVersion m.messageDataInfo.dataVersion
+                messagingDataVersion |> DataVersionMismatch |> Error |> r.Reply
                 s
 
 
@@ -143,7 +144,7 @@ module Service =
 
 
         let onTryPeekMessage s n (r : AsyncReplyChannel<Message option>) =
-            printfn "%s: ClientId: %A" onTryPeekMessageName n
+            printfn "%s: clientId: %A" onTryPeekMessageName n
 
             let reply, w =
                 match s.messages.TryFind n with
@@ -165,7 +166,7 @@ module Service =
                                 d.logger.logErr (sprintf "%s: Cannot find message data for id: %A" onTryPeekMessageName h.messageDataInfo.messageId)
                                 None, { s with messages = s.messages.Add(n, t |> List.rev) }
                 | None ->
-                    printfn "%s: No client for ClientId %A." onTryPeekMessageName n
+                    printfn "%s: No messages for clientId %A." onTryPeekMessageName n
                     None, s
 
             printfn "%s: Replying with message id: %A ..." onTryPeekMessageName (reply |> Option.bind (fun e -> Some e.messageDataInfo.messageId))
@@ -220,10 +221,14 @@ module Service =
                 )
 
         member this.start() = Start this |> messageLoop.Post
-        member __.getVersion() = GetVersion |> messageLoop.PostAndReply
+        member __.getVersion() = GetVersion |> messageLoop.PostAndReply |> Ok
         member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
-        member __.configureService x = ConfigureService x |> messageLoop.Post
-        member __.getState() = GetState |> messageLoop.PostAndReply
-        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
-        member __.tryDeleteFromServer n m = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+
+        member __.configureService x =
+            ConfigureService x |> messageLoop.Post
+            Ok ServiceConfigured
+
+        member __.getState() = GetState |> messageLoop.PostAndReply |> Ok
+        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok
+        member __.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply)) |> Ok
         member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post

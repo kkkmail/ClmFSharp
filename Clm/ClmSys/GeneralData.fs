@@ -6,8 +6,11 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
+open ClmSys.Rop
 open System.Diagnostics
 open MBrace.FsPickler
+open Newtonsoft.Json
+open GeneralErrors
 
 module GeneralData =
 
@@ -65,19 +68,29 @@ module GeneralData =
         static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
+    let toValidServiceName (serviceName : string) =
+        serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
+
+
     let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
         "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+
+
+    let private getWcfServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+        "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
     type ServiceAccessInfo =
         {
             serviceAddress : ServiceAddress
             servicePort : ServicePort
-            serviceName : string
+            inputServiceName : string
         }
 
-        member s.serviceUrl =
-            getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
+        member s.serviceName = s.inputServiceName
+        member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
+        member s.wcfServiceName = toValidServiceName s.inputServiceName
+        member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
 
 
     type MinUsefulEe =
@@ -533,6 +546,56 @@ module GeneralData =
         | _ -> None
 
 
-    let serializer = FsPickler.CreateXmlSerializer(indent = true)
+    let xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
+    let xmlSerialize t = xmlSerializer.PickleToString t
+    let xmlDeserialize s = xmlSerializer.UnPickleOfString s
+
+
+    let jsonSerialize t = JsonConvert.SerializeObject t
+    let jsonDeserialize<'T> s = JsonConvert.DeserializeObject<'T> s
+
+
+    let serializer = xmlSerializer
     let serialize t = serializer.PickleToString t
     let deserialize s = serializer.UnPickleOfString s
+    //let serialize t = jsonSerialize t
+    //let deserialize s = jsonDeserialize s
+
+
+    let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
+        try
+            printfn "trySerialize: Serializing type %A..." typeof<'A>
+            //printfn "trySerialize: a = '%A'." a
+            let b = a |> serialize
+            //printfn "trySerialize: b = '%A'." b
+            let c = b |> zip
+            //printfn "trySerialize: c = '%A'." c
+            c |> Ok
+        with
+        | e ->
+            printfn "trySerialize: Exception: '%A'." e
+            e |> SerializationException |> Error
+
+
+    /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
+    let tryCastAs<'T> (o:obj) : 'T option =
+        //printfn "tryCastAs: typeof<'T> = '%A', o.GetType() = '%A'." typeof<'T> (o.GetType())
+        match o with
+        | :? 'T as res -> Some res
+        | _ -> None
+
+
+    let tryDeserialize<'A> (b : byte[]) : Result<'A, SerializationError> =
+        try
+            //printfn "tryDeserialize: Unzipping..."
+            let x = b |> unZip
+            //printfn "tryDeserialize: x = %A" x
+
+            printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
+            let (y : 'A) = deserialize x
+            //printfn "tryDeserialize: y = %A" y
+            Ok y
+        with
+        | e ->
+            printfn "tryDeserialize: Exception: '%A'." e
+            e |> DeserializationException |> Error

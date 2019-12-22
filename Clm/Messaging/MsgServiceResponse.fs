@@ -1,43 +1,30 @@
 ﻿namespace Messaging
 
-open System
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.Logging
+open ClmSys.Wcf
+
 
 module ServiceResponse =
 
-    type MsgResponseHandler private (logger : Logger, url) =
-        let className = "MsgResponseHandler"
-        let getMethodName n = className + "." + n
-        let tryGetServiceName = getMethodName "tryGetService"
+    /// It seems imposible to bake in "tryCommunicate tryGetWcfService" into a function due to generics + type inference interplay.
+    type MsgResponseHandler private (url) =
+        let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url
 
+        let getVersionImpl() = tryCommunicate tryGetWcfService (fun service -> service.getVersion) GetVersionWcfError ()
+        let sendMessageImpl m = tryCommunicate tryGetWcfService (fun service -> service.sendMessage) MsgWcfError m
+        let configureServiceImpl x = tryCommunicate tryGetWcfService (fun service -> service.configureService) CfgSvcWcfError x
+        let tryPeekMessageImpl n = tryCommunicate tryGetWcfService (fun service -> service.tryPeekMessage) TryPeekMsgWcfError n
+        let tryDeleteFromServerImpl x = tryCommunicate tryGetWcfService (fun service -> service.tryDeleteFromServer) TryDeleteMsgWcfError x
+        let getStateImpl() = tryCommunicate tryGetWcfService (fun service -> service.getState) GetStateWcfError ()
 
-        let tryGetService() =
-            try
-                Activator.GetObject (typeof<IMessagingService>, url) :?> IMessagingService |> Some
-            with
-            | exn ->
-                logger.logExn tryGetServiceName exn
-                None
+        interface IMessagingService with
+            member __.getVersion() = getVersionImpl()
+            member __.sendMessage m = sendMessageImpl m
+            member __.configureService x = configureServiceImpl x
+            member __.tryPeekMessage n = tryPeekMessageImpl n
+            member __.tryDeleteFromServer x = tryDeleteFromServerImpl x
+            member __.getState() = getStateImpl()
 
-        member __.tryGetMessagingService() = tryGetService()
-
-        new (i : MessagingClientAccessInfo) = MsgResponseHandler(logger, i.msgSvcAccessInfo.serviceUrl)
-        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(logger, i.messagingServiceAccessInfo.serviceUrl)
-
-        static member tryCreate(logger : Logger, i : MessagingClientAccessInfo) =
-            try
-                MsgResponseHandler(i) |> Some
-            with
-            | exn ->
-                logger.logExn "MsgResponseHandler.tryCreate" exn
-                None
-
-        static member tryCreate(logger : Logger, i : MessagingServiceAccessInfo) =
-            try
-                MsgResponseHandler(i) |> Some
-            with
-            | exn ->
-                logger.logExn "MsgResponseHandler.tryCreate" exn
-                None
+        new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.wcfServiceUrl)
+        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.messagingServiceAccessInfo.wcfServiceUrl)

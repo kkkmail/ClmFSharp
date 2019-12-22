@@ -7,6 +7,9 @@ open ContGenServiceInfo.ServiceInfo
 module ContGenServiceResponse =
 
     type ContGenResponseHandler (i : ContGenServiceAccessInfo) =
+        do
+            printfn "ContGenResponseHandler: i = %A" i
+
         let service : IContGenService =
             Activator.GetObject (typeof<IContGenService>, i.contGenServiceAccessInfo.serviceUrl) :?> IContGenService
 

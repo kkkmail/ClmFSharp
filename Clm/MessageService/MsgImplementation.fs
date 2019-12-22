@@ -3,10 +3,15 @@
 open System
 open ClmSys.Logging
 open ClmSys.MessagingData
+open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
 open ServiceProxy.MsgServiceProxy
+open ClmSys.Rop
+open ClmSys.GeneralData
+open System.ServiceModel
+open ClmSys.Wcf
 
 module ServiceImplementation =
 
@@ -38,5 +43,18 @@ module ServiceImplementation =
             member __.sendMessage m = a.sendMessage m
             member __.configureService x = a.configureService x
             member __.tryPeekMessage n = a.tryPeekMessage n
-            member __.tryDeleteFromServer n m = a.tryDeleteFromServer n m
+            member __.tryDeleteFromServer x = a.tryDeleteFromServer x
             member __.getState() = a.getState()
+
+
+    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
+    type MessagingWcfService() =
+        let a = createServiceImpl serviceAccessInfo
+
+        interface IMessagingWcfService with
+            member __.getVersion b = tryReply a.getVersion GetVersionWcfError b
+            member __.sendMessage b = tryReply a.sendMessage MsgWcfError b
+            member __.configureService b = tryReply a.configureService CfgSvcWcfError b
+            member __.tryPeekMessage b = tryReply a.tryPeekMessage TryPeekMsgWcfError b
+            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError b
+            member __.getState b = tryReply a.getState GetStateWcfError b

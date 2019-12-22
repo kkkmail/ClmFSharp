@@ -20,6 +20,7 @@ open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
+open ClmSys.MessagingData
 
 module SolverRunnerTasks =
 
@@ -40,7 +41,7 @@ module SolverRunnerTasks =
         | Completed
 
 
-    let notify m d svc p r =
+    let notify (r : RunningProcessData) (svc : ResponseHandler) (p : RunProgress) =
         let t =
             match p with
             | Running d -> TaskProgress.create d
@@ -49,12 +50,7 @@ module SolverRunnerTasks =
         progressNotifier svc
             {
                 localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
-                runningProcessData =
-                    {
-                        modelDataId = m
-                        defaultValueId = d
-                        runQueueId = r
-                    }
+                runningProcessData = r
                 progress = t
             }
 
@@ -77,7 +73,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
-                            serviceName = ContGenServiceName
+                            inputServiceName = ContGenServiceName
                         }
 
                     minUsefulEe = ee
@@ -89,7 +85,7 @@ module SolverRunnerTasks =
                         {
                             serviceAddress = ServiceAddress address
                             servicePort = ServicePort port
-                            serviceName = WorkerNodeServiceName
+                            inputServiceName = WorkerNodeServiceName
                         }
 
                     minUsefulEe = ee
@@ -124,7 +120,8 @@ module SolverRunnerTasks =
             updateChart : double -> double[] -> unit
         }
 
-        static member create (md : ModelData) i a y0 tEnd d =
+
+        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineTaskParam) (d : RunQueueId) w =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -133,13 +130,21 @@ module SolverRunnerTasks =
             let rnd = RandomValueGetter.create (Some seed)
             let defaultValueId = md.modelData.modelDataParams.modelInfo.clmDefaultValueId
 
+            let r =
+                {
+                    modelDataId = modelDataId
+                    defaultValueId = defaultValueId
+                    runQueueId = d
+                    workerNodeId = w
+                }
+
             let chartInitData =
                 {
                     modelDataId = modelDataId
                     defaultValueId = defaultValueId
                     binaryInfo = binaryInfo
-                    y0 = y0
-                    tEnd = tEnd
+                    y0 = c.y0
+                    tEnd = c.tEnd
                 }
 
             let chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
@@ -148,19 +153,19 @@ module SolverRunnerTasks =
             {
                 modelDataId = modelDataId
                 modelData = md
-                getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData a)
-                y0 = double y0
-                useAbundant = a
+                getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData c.useAbundant)
+                y0 = double c.y0
+                useAbundant = c.useAbundant
 
                 onCompleted =
                     match n with
-                    | Some svc -> fun () -> notify modelDataId defaultValueId svc Completed d
+                    | Some svc -> fun () -> notify r svc Completed
                     | None -> ignore
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun r -> notify modelDataId defaultValueId svc (Running r) d) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (Running p)) |> Some)
             }
 
 
@@ -188,12 +193,13 @@ module SolverRunnerTasks =
         }
 
 
-    let getResultAndChartData rdi (d : RunSolverData) =
+    let getResultAndChartData rdi w (d : RunSolverData) =
         let chartData = d.chartDataUpdater.getContent()
 
         let r =
             {
                 resultDataId = rdi
+                workerNodeId = w
                 resultData =
                     {
                         modelDataId = d.modelDataId
@@ -246,20 +252,28 @@ module SolverRunnerTasks =
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId with
-        | Some tEnd, Some y0, Some modelDataId, Some i, Some d ->
+        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
+        | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy(getSolverRunnerProxy results)
             match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
-                let runSolverData = RunSolverData.create md i a y0 tEnd (RunQueueId d)
+                let c =
+                    {
+                        tEnd = tEnd
+                        y0 = y0
+                        useAbundant = a
+                    }
+
+                let w = g |> MessagingClientId |> WorkerNodeId
+                let runSolverData = RunSolverData.create md i c (RunQueueId d) w
                 let nSolveParam = getNSolveParam runSolverData
                 let data = nSolveParam 0.0 (double tEnd)
                 nSolve data |> ignore
 
                 printfn "Saving."
-                let (r, chartData) = getResultAndChartData (ResultDataId d) runSolverData
+                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
 
                 {
                     runSolverData = runSolverData

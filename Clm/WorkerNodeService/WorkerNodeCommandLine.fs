@@ -191,7 +191,7 @@ module SvcCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
-                            serviceName = MessagingServiceName
+                            inputServiceName = MessagingServiceName
                         }
                 }
 
@@ -204,7 +204,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = WorkerNodeServiceName
+                    inputServiceName = WorkerNodeServiceName
                 }
         }
 

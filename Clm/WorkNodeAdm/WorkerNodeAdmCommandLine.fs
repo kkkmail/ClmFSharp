@@ -162,7 +162,7 @@ module AdmCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
-                            serviceName = MessagingServiceName
+                            inputServiceName = MessagingServiceName
                         }
                 }
 
@@ -175,7 +175,7 @@ module AdmCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = WorkerNodeServiceName
+                    inputServiceName = WorkerNodeServiceName
                 }
         }
 

@@ -11,6 +11,7 @@ open AsyncRun
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open ClmSys.Logging
+open ClmSys.MessagingData
 
 module Runner =
 
@@ -40,6 +41,7 @@ module Runner =
         let className = "ModelRunner"
         let getMethodName n = className + "." + n
         let tryGetQueueIdName = getMethodName "tryGetQueueId"
+        let localWorkerNodeId = Guid.Empty |> MessagingClientId |> WorkerNodeId
 
 
         let runModel e c =
@@ -109,6 +111,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = c.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
+                                            workerNodeId = localWorkerNodeId
                                         }
                                 }
                                 |> Some
@@ -150,6 +153,7 @@ module Runner =
                                                     modelDataId = e.info.modelDataId
                                                     defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
+                                                    workerNodeId = localWorkerNodeId
                                                 }
                                         })
             | None -> []
@@ -206,6 +210,7 @@ module Runner =
                                             modelDataId = modelDataId
                                             defaultValueId = t1.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
+                                            workerNodeId = localWorkerNodeId
                                         }
                                 }
                                 |> Some
@@ -221,7 +226,6 @@ module Runner =
                 generate = generateAll p.serviceAccessInfo
                 getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
-                //maxQueueLength = 4
                 runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u
                 logger = Logger.log4net

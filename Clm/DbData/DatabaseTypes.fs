@@ -12,6 +12,7 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open Clm.ReactionRates
+open ClmSys.MessagingData
 open DynamicSql
 
 
@@ -226,11 +227,11 @@ module DatabaseTypes =
         static member create (r : ResultDataTableRow) =
             {
                     resultDataId = r.resultDataId |> ResultDataId
+                    workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
 
                     resultData =
                     {
                         modelDataId = r.modelDataId |> ModelDataId
-
 
                         y0 = r.y0
                         tEnd = r.tEnd
@@ -247,6 +248,7 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         resultDataId = r.resultDataId.value,
+                        workerNodeId = r.workerNodeId .value.value,
                         y0 = r.resultData.y0,
                         tEnd = r.resultData.tEnd,
                         useAbundant = r.resultData.useAbundant,
@@ -498,6 +500,7 @@ module DatabaseTypes =
             INSERT INTO dbo.ResultData
                        (resultDataId
                        ,modelDataId
+                       ,workerNodeId
                        ,y0
                        ,tEnd
                        ,useAbundant
@@ -510,6 +513,7 @@ module DatabaseTypes =
                  VALUES
                        (@resultDataId
                        ,@modelDataId
+                       ,@workerNodeId
                        ,@y0
                        ,@tEnd
                        ,@useAbundant
@@ -524,6 +528,7 @@ module DatabaseTypes =
             cmd.Execute(
                     resultDataId = r.resultDataId.value
                     ,modelDataId = r.resultData.modelDataId.value
+                    ,workerNodeId = r.workerNodeId.messagingClientId.value
                     ,y0 = r.resultData.y0
                     ,tEnd = r.resultData.tEnd
                     ,useAbundant = r.resultData.useAbundant

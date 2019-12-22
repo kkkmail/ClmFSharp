@@ -2,8 +2,12 @@
 
 open System
 open System.Runtime.Remoting.Channels.Tcp
+open System.ServiceModel
+open System.ServiceModel.Description
+
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.GeneralErrors
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
@@ -240,11 +244,49 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type MessageDeliveryResult =
-        | DeliveredSuccessfully
+    type GetVersionError =
+        | GetVersionWcfError of WcfError
+
+
+    type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
+
+
+    type MessageDelivered =
+        | MessageDelivered
+
+
+    type MessageDeliveryError =
         | DataVersionMismatch of MessagingDataVersion
-        | ExceptionOccurred of exn
+        | MsgWcfError of WcfError
         | ServerIsShuttingDown
+
+
+    type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
+
+
+    type ServiceConfigured =
+        | ServiceConfigured
+
+
+    type ConfigureServiceError =
+        | CfgSvcWcfError of WcfError
+
+
+    type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
+
+
+    type TryPeekMessageError =
+        | TryPeekMsgWcfError of WcfError
+
+
+    type TryPeekMessageResult = Result<Message option, TryPeekMessageError>
+
+
+    type TryDeleteFromServerError =
+        | TryDeleteMsgWcfError of WcfError
+
+
+    type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
 
 
     type MsgServiceState =
@@ -255,16 +297,61 @@ module ServiceInfo =
         }
 
 
+    type GetStateError =
+        | GetStateWcfError of WcfError
+
+
+    type GetStateResult = Result<MsgServiceState, GetStateError>
+
+
     type MsgSvcShutDownInfo =
         {
             msgSvcTcpChannel : TcpChannel
         }
 
 
+    type MsgWcfSvcShutDownInfo =
+        {
+            serviceHost : ServiceHost
+        }
+
+
     type IMessagingService =
-        abstract getVersion : unit -> MessagingDataVersion
+        abstract getVersion : unit -> GetVersionResult
         abstract sendMessage : Message -> MessageDeliveryResult
-        abstract configureService : MessagingConfigParam -> unit
-        abstract tryPeekMessage : MessagingClientId -> Message option
-        abstract tryDeleteFromServer : MessagingClientId -> MessageId -> bool
-        abstract getState : unit -> MsgServiceState
+        abstract configureService : MessagingConfigParam -> ConfigureServiceResult
+        abstract tryPeekMessage : MessagingClientId -> TryPeekMessageResult
+        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> TryDeleteFromServerResult
+        abstract getState : unit -> GetStateResult
+
+
+    /// https://gist.github.com/dgfitch/661656
+    [<ServiceContract(ConfigurationName = "MessagingWcfService")>]
+    type IMessagingWcfService =
+
+        [<OperationContract(Name = "getVersion")>]
+        //abstract getVersion : u:unit -> MessagingDataVersion
+        abstract getVersion : u:byte[] -> byte[]
+
+        [<OperationContract(Name = "sendMessage")>]
+        //abstract sendMessage : m:Message -> MessageDeliveryResult
+        abstract sendMessage : m:byte[] -> byte[]
+
+        [<OperationContract(Name = "configureService")>]
+        //abstract configureService : p:MessagingConfigParam -> unit
+        abstract configureService : p:byte[] -> byte[]
+
+        [<OperationContract(Name = "tryPeekMessage")>]
+        //abstract tryPeekMessage : c:MessagingClientId -> Message option
+        abstract tryPeekMessage : c:byte[] -> byte[]
+
+        [<OperationContract(Name = "tryDeleteFromServer")>]
+        //abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
+        abstract tryDeleteFromServer : cm:byte[] -> byte[]
+
+        [<OperationContract(Name = "getState")>]
+        //abstract getState : u:unit -> MsgServiceState
+        abstract getState : u:byte[] -> byte[]
+
+
+    type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

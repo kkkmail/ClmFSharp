@@ -4,6 +4,7 @@ open System
 open FSharp.Collections
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
+open ClmSys.MessagingData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
@@ -67,6 +68,7 @@ module ModelParams =
     type ResultDataWithId =
         {
             resultDataId : ResultDataId
+            workerNodeId : WorkerNodeId
             resultData : ResultData
         }
 
@@ -161,6 +163,7 @@ module ModelParams =
         {
             modelDataId : ModelDataId
             resultDataId : ResultDataId
+            workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool
         }
@@ -194,6 +197,7 @@ module ModelParams =
                 MinimumUsefulEe d.minUsefulEe.value
                 Remote d.remote
                 ResultId d.resultDataId.value
+                WrkNodeId d.workerNodeId.messagingClientId.value
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

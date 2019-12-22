@@ -177,7 +177,7 @@ module SvcCommandLine =
                 {
                     serviceAddress = address
                     servicePort = port
-                    serviceName = ContGenServiceName
+                    inputServiceName = ContGenServiceName
                 }
 
             minUsefulEe = ee
@@ -206,26 +206,23 @@ module SvcCommandLine =
                         {
                             serviceAddress = msgAddress
                             servicePort = msgPort
-                            serviceName = MessagingServiceName
+                            inputServiceName = MessagingServiceName
                         }
                 }
 
-            match MsgResponseHandler.tryCreate (Logger.log4net, w.messagingClientAccessInfo) with
-            | Some m ->
-                let q =
-                    {
-                        partitionerMsgAccessInfo = w
-                        partitionerProxy = PartitionerProxy PartitionerProxyInfo.defaultValue
-                        msgResponseHandler = m
-                        msgClientProxy = MessagingClientProxy { messagingClientName = contGenServiceName }
-                        logger = logger
-                    }
+            let m = MsgResponseHandler (w.messagingClientAccessInfo)
 
-                let r = createServiceImpl q
-                PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
-            | None ->
-                printfn "Unable to create MsgResponseHandler."
-                localRunner()
+            let q =
+                {
+                    partitionerMsgAccessInfo = w
+                    partitionerProxy = PartitionerProxy PartitionerProxyInfo.defaultValue
+                    messagingService = m
+                    msgClientProxy = MessagingClientProxy { messagingClientName = contGenServiceName }
+                    logger = logger
+                }
+
+            let r = createServiceImpl q
+            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

@@ -11,10 +11,8 @@ let main argv =
         let results = (parser.Parse argv).GetAllResults()
         let i = getServiceAccessInfo results
         let service = new MsgResponseHandler(i)
-
-        match MsgAdmTask.createTask service.tryGetMessagingService results with
-        | Some task -> task.run()
-        | None -> printfn "Unable to create connection."
+        let task = MsgAdmTask.createTask service results
+        task.run()
 
         CompletedSuccessfully
     with

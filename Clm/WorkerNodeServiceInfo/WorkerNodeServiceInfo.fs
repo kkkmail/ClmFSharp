@@ -41,11 +41,14 @@ module ServiceInfo =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node"
             | WrkNodeState s ->
-                let toString acc (LocalProcessId k) (RemoteProcessId v) =
-                    (if acc = EmptyString then acc else acc + ", ") + (sprintf "    LP: %A - RP %A\n" k v)
+                let toString acc ((LocalProcessId k), (RemoteProcessId v)) =
+                    (if acc = EmptyString then acc else acc + ", ") + (sprintf "        LP: %A - RP %A\n" k v)
 
-                let x = s.runningWorkers |> Map.fold toString EmptyString
-                sprintf "%ACount: %A" x s.runningWorkers.Count
+                let x =
+                    match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r) |> List.fold toString EmptyString with
+                    | EmptyString -> "[]"
+                    | s -> "\n    [\n" + s + "    ]"
+                sprintf "Running: %s\nCount: %A" x s.runningWorkers.Count
 
 
     type IWorkerNodeService =

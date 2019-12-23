@@ -23,9 +23,18 @@ module ServiceInfo =
         | WorkerNumberOfSores of int
 
 
+    type RunnerState =
+        {
+            runnerRemoteProcessId : RemoteProcessId
+            progress : TaskProgress
+            lastUpdated : DateTime
+        }
+
+
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<LocalProcessId, RemoteProcessId>
+            runningWorkers : Map<LocalProcessId, RunnerState>
+            numberOfCores : int
         }
 
 
@@ -41,14 +50,15 @@ module ServiceInfo =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node"
             | WrkNodeState s ->
-                let toString acc ((LocalProcessId k), (RemoteProcessId v)) =
-                    (if acc = EmptyString then acc else acc + ", ") + (sprintf "        LP: %A - RP %A\n" k v)
+                let toString acc ((LocalProcessId k), (v : RunnerState)) =
+                    (if acc = EmptyString then acc else acc + ", ") +
+                    (sprintf "        LP: %A, RP %A, P:%A, T: %s\n" k v.runnerRemoteProcessId v.progress (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
 
                 let x =
-                    match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r) |> List.fold toString EmptyString with
+                    match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"
                     | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A" x s.runningWorkers.Count
+                sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfCores
 
 
     type IWorkerNodeService =

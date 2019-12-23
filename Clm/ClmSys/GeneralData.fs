@@ -6,7 +6,6 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
-open ClmSys.Rop
 open System.Diagnostics
 open MBrace.FsPickler
 open Newtonsoft.Json

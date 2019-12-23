@@ -5,6 +5,10 @@ open System
 module CommandLine =
 
     [<Literal>]
+    let SolverRunnerProcessName = "SolverRunner"
+
+
+    [<Literal>]
     let SolverRunnerName = "SolverRunner.exe"
 
 

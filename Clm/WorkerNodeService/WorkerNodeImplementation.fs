@@ -35,6 +35,7 @@ module ServiceImplementation =
         static member defaultValue =
             {
                 runningWorkers = Map.empty
+                numberOfCores = 0
             }
 
 
@@ -89,6 +90,7 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage m = messagingClient.sendMessage m
         let logErr = i.logger.logErr
+        let logExn = i.logger.logExn
         let proxy = i.workerNodeProxy
 
 
@@ -119,9 +121,18 @@ module ServiceImplementation =
             | Some result ->
                 printfn "%s: Number of running models = %A." onRunModelName (s.runningWorkers.Count + 1)
                 proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId }
-                { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, d.remoteProcessId) }
+                
+                let rs =
+                    {
+                        runnerRemoteProcessId = d.remoteProcessId
+                        progress = TaskProgress.NotStarted
+                        lastUpdated = DateTime.Now
+                    }
+
+                { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, rs) }
             | None ->
-                proxy.saveWorkerNodeRunModelData { d with localProcessId = None }
+                // TODO kk:20191223 - Do we really need to save it here.
+                //proxy.saveWorkerNodeRunModelData { d with localProcessId = None }
                 s
 
 
@@ -159,8 +170,7 @@ module ServiceImplementation =
                     |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
                     |> ignore
                 with
-                | ex ->
-                    i.logger.logExn onSaveChartsName ex
+                | ex -> logExn onSaveChartsName ex
 
                 proxy.tryDeleteChartInfo d |> ignore
             | None -> logErr (sprintf "%s: Unable to find charts with resultDataId: %A" onSaveChartsName d)
@@ -201,10 +211,23 @@ module ServiceImplementation =
                 | Some v ->
                     match tryGetProcessById v with
                     | Some p ->
+                        printfn "%s: Found process with id: %A" onStartName v
+
                         match tryGetProcessName p with
-                        | Some n when n = SolverRunnerName ->
-                            { g with runningWorkers = s.runningWorkers.Add(v, w.remoteProcessId) }
-                        | _ -> runIfNoResult g w
+                        | Some n when n = SolverRunnerProcessName ->
+                            printfn "%s: Found process with name: %s" onStartName n
+
+                            let rs =
+                                {
+                                    runnerRemoteProcessId = w.remoteProcessId
+                                    progress = TaskProgress.NotStarted
+                                    lastUpdated = DateTime.Now
+                                }
+
+                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }
+                        | m ->
+                            printfn "%s: CANNOT find process with name: %s, but found %A" onStartName SolverRunnerProcessName m
+                            runIfNoResult g w
                     | None -> runIfNoResult g w
                 | None -> onRunModel g w
 
@@ -237,34 +260,48 @@ module ServiceImplementation =
 
         let onUpdateProgress s (p : LocalProgressUpdateInfo) =
             printfn "%s: p = %A." onUpdateProgressName p
-            let updateProgress t c =
-                match s.runningWorkers.TryFind p.localProcessId with
-                | Some r ->
-                    let q =
-                        {
-                            remoteProcessId = r
-                            runningProcessData = p.runningProcessData
-                            progress = p.progress
-                        }
-                    {
-                        partitionerRecipient = partitioner
-                        deliveryType = t
-                        messageData = UpdateProgressPrtMsg q
-                    }.getMessageInfo()
-                    |> sendMessage
 
-                    if c
-                    then
-                        printfn "%s: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..." onUpdateProgressName
-                        proxy.tryDeleteWorkerNodeRunModelData r |> ignore
-                        proxy.tryDeleteModelData p.runningProcessData.modelDataId |> ignore
-                        p.runningProcessData.toResultDataId() |> onSaveResult
-                        p.runningProcessData.toResultDataId() |> onSaveCharts
-                | None -> logErr (sprintf "%s: Unable to find mapping from local process %A." onUpdateProgressName p.localProcessId)
+            let updateProgress t c =
+                let rso =
+                    match s.runningWorkers.TryFind p.localProcessId with
+                    | Some r ->
+                        let q =
+                            {
+                                remoteProcessId = r.runnerRemoteProcessId
+                                runningProcessData = p.runningProcessData
+                                progress = p.progress
+                            }
+                        {
+                            partitionerRecipient = partitioner
+                            deliveryType = t
+                            messageData = UpdateProgressPrtMsg q
+                        }.getMessageInfo()
+                        |> sendMessage
+
+                        if c
+                        then
+                            printfn "%s: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..." onUpdateProgressName
+                            proxy.tryDeleteWorkerNodeRunModelData r.runnerRemoteProcessId |> ignore
+                            proxy.tryDeleteModelData p.runningProcessData.modelDataId |> ignore
+                            p.runningProcessData.toResultDataId() |> onSaveResult
+                            p.runningProcessData.toResultDataId() |> onSaveCharts
+
+                        { r with
+                            progress = p.progress
+                            lastUpdated = DateTime.Now
+                        }
+                        |> Some
+
+                    | None ->
+                        logErr (sprintf "%s: Unable to find mapping from local process %A." onUpdateProgressName p.localProcessId)
+                        None
 
                 if c
                 then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }
-                else s
+                else
+                    match rso with
+                    | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }
+                    | None -> s
 
 
             let (t, c) =
@@ -280,7 +317,7 @@ module ServiceImplementation =
             s.runningWorkers
             |> Map.toList
             |> List.map (fun (_, v) -> v)
-            |> List.tryFind (fun e -> e = d.remoteProcessId)
+            |> List.tryFind (fun e -> e.runnerRemoteProcessId = d.remoteProcessId)
 
 
         let onProcessMessage s (m : Message) =
@@ -289,12 +326,12 @@ module ServiceImplementation =
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg (d, m) ->
-                    proxy.saveModelData m
-
                     match tryFindRunningModel s d with
-                    | None -> onRunModel s d
+                    | None ->
+                        proxy.saveModelData m
+                        onRunModel s d
                     | Some r ->
-                        logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.value)
+                        logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.runnerRemoteProcessId.value)
                         s
             | _ ->
                 logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
@@ -309,7 +346,7 @@ module ServiceImplementation =
             }
 
 
-        let onConfigureWorker s d =
+        let onConfigureWorker (s : WorkerNodeRunnerState) d =
             match d with
             | WorkerNumberOfSores c ->
                 printfn "%s" onConfigureWorkerName
@@ -321,7 +358,7 @@ module ServiceImplementation =
                 }.getMessageInfo()
                 |> sendMessage
 
-            s
+                { s with numberOfCores = cores }
 
 
         let messageLoop =

@@ -82,6 +82,7 @@
     <Compile Include="Wcf.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
+    <None Include="TryGetProcessTest.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">

@@ -61,6 +61,19 @@ module AsyncRun =
             | ShuttingDown -> true
 
 
+    let private className = "AsyncRunner"
+    let private getMethodName n = className + "." + n
+    let private onStartRunName = getMethodName "onStartRun"
+    let private cancelProcessImplName = getMethodName "cancelProcessImpl"
+    let private onQueueStartingName = getMethodName "onQueueStarting"
+    let private onGenerationStartedName = getMethodName "onGenerationStarted"
+    let private onGenerationCompletedName = getMethodName "onGenerationCompleted"
+    let private onConfigureServiceName = getMethodName "onConfigureService"
+    let private onProgressUpdatedName = getMethodName "onProgressUpdated"
+    let private onGetStateName = getMethodName "onGetState"
+    let private onRunModelName = getMethodName "onRunModel"
+
+
     type RunnerMessage =
         | QueueStarting
         | ConfigureService of AsyncRunner * ContGenConfigParam
@@ -84,10 +97,6 @@ module AsyncRun =
 
 
     and AsyncRunner (generatorInfo : GeneratorInfo) =
-        let className = "AsyncRunner"
-        let getMethodName n = className + "." + n
-        let onStartRunName = getMethodName "onStartRun"
-        let cancelProcessImplName = getMethodName "cancelProcessImpl"
 
         let onStartRun (s : AsyncRunnerState) =
             printfn "%s: s = %A" onStartRunName s
@@ -130,11 +139,11 @@ module AsyncRun =
 
 
         let onQueueStarting s =
-            printfn "onQueueStarting..."
+            printfn "%s..." onQueueStartingName
 
             let w t =
                 let x = generatorInfo.getQueue()
-                printfn "onQueueStarting: queue length: %A" x.Length
+                printfn "%s: queue length: %A" onQueueStartingName x.Length
                 x |> onQueueObtained { s with workState = t }
 
             match s.workState with
@@ -150,7 +159,7 @@ module AsyncRun =
                 | RemoteProcess a -> generatorInfo.logger.logErr (sprintf "%s: Cannot yet cancel remote process: %A." cancelProcessImplName a)
                 true
             with
-                | e -> false
+            | _ -> false
 
 
         let onConfigureService (s : AsyncRunnerState) (a : AsyncRunner) (p : ContGenConfigParam) =
@@ -215,7 +224,7 @@ module AsyncRun =
 
                 if s.queue.Length <= s.maxQueueLength
                 then
-                    printfn "AsyncRunner.onGenerationStarted - s.queue.Length = %A. Starting generating..." s.queue.Length
+                    printfn "%s: s.queue.Length = %A. Starting generating..." onGenerationStartedName s.queue.Length
                     generate |> toAsync |> Async.Start
                     { s with workState = Generating }
                 else s
@@ -225,7 +234,7 @@ module AsyncRun =
             let w t =
                 let x = s.runningQueue
                 { s with workState = t; queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
-                |> timed "AsyncRunner.onGenerationCompleted.onStartRun" onStartRun
+                |> timed onGenerationCompletedName onStartRun
 
             match s.workState with
             | Idle | CanGenerate -> w s.workState
@@ -249,16 +258,16 @@ module AsyncRun =
                         {
                             let! m = u.Receive()
                             let s = { sInput with messageCount = sInput.messageCount + 1L }
-                            printfn "AsyncRunner.s = %s, m = %A." (s.ToString()) (m.ToString())
+                            printfn "%s: s = %s, m = %A." className (s.ToString()) (m.ToString())
 
                             match m with
-                            | QueueStarting -> return! timed "AsyncRunner.onQueueStarting" onQueueStarting s |> loop
-                            | ConfigureService (a, p) -> return! timed "AsyncRunner.onConfigureService" onConfigureService s a p |> loop
-                            | ProgressUpdated p -> return! timed "AsyncRunner.onProgressUpdated" onProgressUpdated s p |> loop
-                            | GetState r -> return! timed "AsyncRunner.onGetState" onGetState s r |> loop
-                            | GenerationStarted a -> return! timed "AsyncRunner.onGenerationStarted" onGenerationStarted s a |> loop
-                            | GenerationCompleted r -> return! timed "AsyncRunner.onGenerationCompleted" onGenerationCompleted s r |> loop
-                            | RunModel (m, p) -> return! timed "AsyncRunner.onRunModel" onRunModel s m p |> loop
+                            | QueueStarting -> return! timed onQueueStartingName onQueueStarting s |> loop
+                            | ConfigureService (a, p) -> return! timed onConfigureServiceName onConfigureService s a p |> loop
+                            | ProgressUpdated p -> return! timed onProgressUpdatedName onProgressUpdated s p |> loop
+                            | GetState r -> return! timed onGetStateName onGetState s r |> loop
+                            | GenerationStarted a -> return! timed onGenerationStartedName onGenerationStarted s a |> loop
+                            | GenerationCompleted r -> return! timed onGenerationCompletedName onGenerationCompleted s r |> loop
+                            | RunModel (m, p) -> return! timed onRunModelName onRunModel s m p |> loop
                         }
 
                 AsyncRunnerState.defaultValue generatorInfo.usePartitioner |> loop

@@ -73,25 +73,28 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
+    let private className = "PartitionerRunner"
+    let private getMethodName n = className + "." + n
+    let private sendMessageName = getMethodName "sendMessage"
+    let private setRunLimitName = getMethodName "setRunLimit"
+    let private onRegisterName = getMethodName "onRegister"
+    let private tryGetNodeName = getMethodName "tryGetNode"
+    let private onCannotRunName = getMethodName "onCannotRun"
+    let private onRunOrCompletedName = getMethodName "onRunOrCompleted"
+    let private onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
+    let private onUnregisterName = getMethodName "onUnregister"
+    let private onStartName = getMethodName "onStart"
+    let private onUpdateProgressName = getMethodName "onUpdateProgress"
+    let private onSaveResultName = getMethodName "onSaveResult"
+    let private onSaveChartsName = getMethodName "onSaveCharts"
+    let private onProcessMessageName = getMethodName "onProcessMessage"
+    let private onGetMessagesName = getMethodName "onGetMessages"
+    let private tryGetRunnerName = getMethodName "tryGetRunner"
+    let private onRunModelName = getMethodName "onRunModel"
+    let private onGetStateName = getMethodName "onGetState"
+
+
     type PartitionerRunner(p : PartitionerRunnerParam) =
-        let className = "PartitionerRunner"
-        let getMethodName n = className + "." + n
-        let sendMessageName = getMethodName "sendMessage"
-        let setRunLimitName = getMethodName "setRunLimit"
-        let onRegisterName = getMethodName "onRegister"
-        let tryGetNodeName = getMethodName "tryGetNode"
-        let onCannotRunName = getMethodName "onCannotRun"
-        let onRunOrCompletedName = getMethodName "onRunOrCompleted"
-        let onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
-        let onUnregisterName = getMethodName "onUnregister"
-        let onStartName = getMethodName "onStart"
-        let onUpdateProgressName = getMethodName "onUpdateProgress"
-        let onSaveResultName = getMethodName "onSaveResult"
-        let onSaveChartsName = getMethodName "onSaveCharts"
-        let onProcessMessageName = getMethodName "onProcessMessage"
-        let onGetMessagesName = getMethodName "onGetMessages"
-        let tryGetRunnerName = getMethodName "tryGetRunner"
-        let onRunModelName = getMethodName "onRunModel"
 
         let messagingClient = MessagingClient p.messagingClientData
         do messagingClient.start()
@@ -385,12 +388,18 @@ module Partitioner =
                 s
             | Some w, Some d ->
                 // This should not happen because we have the result and that means that
-                // the relevant message was processed and that that shoud've removed the runner from the list.
+                // the relevant message was processed and that that should've removed the runner from the list.
                 // Nevertless, we just let the duplicate calculation run.
                 printfn "%s: Error - found running model: %A and result: %A." onRunModelName w.runQueueId d.resultDataId
                 printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
                 reply w.remoteProcessId
                 s
+
+
+        let onGetState s (r : AsyncReplyChannel<PartitionerRunnerState>) =
+            printfn "%s" onGetStateName
+            r.Reply s
+            s
 
 
         let messageLoop =
@@ -402,7 +411,7 @@ module Partitioner =
                             | Start q -> return! timed onStartName onStart s q |> loop
                             | RunModel (p, r) -> return! timed onRunModelName onRunModel s p r |> loop
                             | GetMessages ->return! timed onGetMessagesName onGetMessages s |> loop
-                            | GetState r -> r.Reply s
+                            | GetState r -> return! timed onGetStateName onGetState s r |> loop
                         }
 
                 PartitionerRunnerState.defaultValue |> loop
@@ -411,7 +420,7 @@ module Partitioner =
 
         member __.start q = Start q |> messageLoop.Post
         member __.runModel p = messageLoop.PostAndReply (fun reply -> RunModel (p, reply))
-        member __.getMessages() = GetMessages |> messageLoop.Post
+        member __.getMessages () = GetMessages |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState
 
 

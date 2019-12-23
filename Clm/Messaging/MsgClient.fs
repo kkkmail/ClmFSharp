@@ -8,6 +8,7 @@ open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open ClmSys.TimerEvents
+open System.Threading
 
 module Client =
 
@@ -314,12 +315,10 @@ module Client =
                 let h1 = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler1)
                 do h1.start()
 
-                {
-                    s
-                    with
-                        messagingClientState = MsgCliIdle
-                        outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
-                        incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
+                { s with
+                    messagingClientState = MsgCliIdle
+                    outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
+                    incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
                 }
             | MsgCliIdle -> s
 
@@ -388,27 +387,39 @@ module Client =
         member __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post
 
 
+    let mutable private callCount = -1
+
+
     let onTryProcessMessage (w : MessagingClient) x f =
         printfn "%s: Starting..." onTryProcessMessageName
 
-        match w.tryPeekReceivedMessage() with
-        | Some m ->
-            try
-                printfn "    %s: calling f m, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-                let r = f x m
-                printfn "    %s: calling tryRemoveReceivedMessage, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+        let retVal =
+            if Interlocked.Increment(&callCount) = 0
+            then
+                match w.tryPeekReceivedMessage() with
+                | Some m ->
+                    try
+                        printfn "    %s: calling f m, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+                        let r = f x m
+                        printfn "    %s: calling tryRemoveReceivedMessage, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
 
-                match w.tryRemoveReceivedMessage m.messageDataInfo.messageId with
-                | true -> printfn "    %s: Successfully removed messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-                | false -> printfn "    %s: !!! ERROR !!! removing messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+                        match w.tryRemoveReceivedMessage m.messageDataInfo.messageId with
+                        | true -> printfn "    %s: Successfully removed messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+                        | false -> printfn "    %s: !!! ERROR !!! removing messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
 
-                printfn "    %s - completed." onTryProcessMessageName
-                Some r
-            with
-            | ex ->
-                logger.logExn onTryProcessMessageName ex
+                        printfn "    %s - completed." onTryProcessMessageName
+                        Some r
+                    with
+                    | ex ->
+                        logger.logExn onTryProcessMessageName ex
+                        None
+                | None -> None
+            else
+                printfn "%s: Not processing message at %A because callCount = %A." onTryProcessMessageName DateTime.Now callCount
                 None
-        | None -> None
+
+        Interlocked.Decrement(&callCount) |> ignore
+        retVal
 
 
     type MessagingClient

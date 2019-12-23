@@ -44,6 +44,19 @@ module Service =
             }
 
 
+    let private className = "MessagingService"
+    let private getMethodName n = className + "." + n
+    let private updateMessagesName = getMethodName "updateMessages"
+    let private onStartName = getMethodName "onStart"
+    let private onGetVersionName = getMethodName "onGetVersion"
+    let private onSendMessageName = getMethodName "onSendMessage"
+    let private onTryPeekMessageName = getMethodName "onTryPeekMessage"
+    let private onTryDeleteFromServerName = getMethodName "onTryDeleteFromServer"
+    let private onConfigureName = getMethodName "onConfigure"
+    let private onGetStateName = getMethodName "onGetState"
+    let private onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
+
+
     type MessagingServiceMessage =
         | Start of MessagingService
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
@@ -56,18 +69,6 @@ module Service =
 
 
     and MessagingService(d : MessagingServiceData) =
-        let className = "MessagingService"
-        let getMethodName n = className + "." + n
-        let updateMessagesName = getMethodName "updateMessages"
-        let onStartName = getMethodName "onStart"
-        let onGetVersionName = getMethodName "onGetVersion"
-        let onSendMessageName = getMethodName "onSendMessage"
-        let onTryPeekMessageName = getMethodName "onTryPeekMessage"
-        let onTryTryDeleteFromServerName = getMethodName "onTryTryDeleteFromServer"
-        let onConfigureName = getMethodName "onConfigure"
-        let onGetStateName = getMethodName "onGetState"
-        let onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
-
 
         let updateMessages s (m : Message) =
             printfn "%s: Updating with message id: %A ..." updateMessagesName m.messageDataInfo.messageId
@@ -80,20 +81,18 @@ module Service =
             printfn "%s: Updated with message id: %A." updateMessagesName m.messageDataInfo.messageId
             x
 
+
         let onStart (s : MessagingServiceState) (w : MessagingService) =
             printfn "%s: workState: %A" onStartName s.workState
 
             match s.workState with
             | MsgSvcNotStarted ->
-
                 let x =
                     s.proxy.loadMessages()
                     |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
                     |> List.fold (fun acc e -> updateMessages acc e) s
 
-                let eventHandler _ =
-                    w.removeExpiredMessages()
-
+                let eventHandler _ = w.removeExpiredMessages()
                 let h = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler)
                 do h.start()
 
@@ -135,7 +134,10 @@ module Service =
 
         let onConfigure s x =
             match x with
-            | MsgWorkState w -> { s with workState = w }
+            | MsgWorkState w ->
+                match w with
+                | MsgSvcNotStarted -> s // Cannot change the state to not started.
+                | CanTransmitMessages | ShuttingDown -> { s with workState = w }
 
 
         let onGetState (s : MessagingServiceState) (r : AsyncReplyChannel<MsgServiceState>) =
@@ -175,19 +177,19 @@ module Service =
             w
 
 
-        let onTryTryDeleteFromServer s n m (r : AsyncReplyChannel<bool>) =
-            printfn "%s: ClientId: %A, MessageId: %A" onTryTryDeleteFromServerName n m
+        let onTryDeleteFromServer s n m (r : AsyncReplyChannel<bool>) =
+            printfn "%s: ClientId: %A, MessageId: %A" onTryDeleteFromServerName n m
 
             match s.messages.TryFind n with
             | Some v ->
-                printfn "    %s: v.Length: %A" onTryTryDeleteFromServerName v.Length
+                printfn "    %s: v.Length: %A" onTryDeleteFromServerName v.Length
                 let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
-                printfn "    %s: x.Length: %A" onTryTryDeleteFromServerName x.Length
+                printfn "    %s: x.Length: %A" onTryDeleteFromServerName x.Length
                 r.Reply (x.Length <> v.Length)
                 s.proxy.deleteMessage m
                 { s with messages = s.messages.Add(n, x) }
             | None ->
-                printfn "    %s: Cannot find client for ClientId %A." onTryTryDeleteFromServerName n
+                printfn "    %s: Cannot find client for ClientId %A." onTryDeleteFromServerName n
                 r.Reply false
                 s
 
@@ -213,7 +215,7 @@ module Service =
                             | ConfigureService x -> return! (timed onConfigureName onConfigure s x |> loop)
                             | GetState r -> return! (timed onGetStateName onGetState s r |> loop)
                             | TryPeekMessage (n, r) -> return! (timed onTryPeekMessageName onTryPeekMessage s n r |> loop)
-                            | TryDeleteFromServer (n, m, r) -> return! (timed onTryTryDeleteFromServerName onTryTryDeleteFromServer s n m r |> loop)
+                            | TryDeleteFromServer (n, m, r) -> return! (timed onTryDeleteFromServerName onTryDeleteFromServer s n m r |> loop)
                             | RemoveExpiredMessages -> return! (timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop)
                         }
 

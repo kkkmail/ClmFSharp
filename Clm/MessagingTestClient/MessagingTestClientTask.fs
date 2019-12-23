@@ -48,15 +48,12 @@ module MessagingTestClientTask =
             printfn "Checking messages."
 
             let checkMessage() =
-                async {
-                    match! a.tryProcessMessage () (fun _ m -> m) with
-                    | Some m ->
-                        printfn "    Received message: %A" m
-                    | None -> ignore()
-                }
+                match a.tryProcessMessage () (fun _ m -> m) with
+                | Some m ->
+                    printfn "    Received message: %A" m
+                | None -> ignore()
 
-            let t = [for _ in 1..20 -> ()] |> List.mapAsync checkMessage
-            t |> Async.RunSynchronously |> ignore
+            let t = [for _ in 1..20 -> ()] |> List.map checkMessage
             Thread.Sleep 30_000
 
 

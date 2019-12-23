@@ -74,6 +74,25 @@ module Partitioner =
 
 
     type PartitionerRunner(p : PartitionerRunnerParam) =
+        let className = "PartitionerRunner"
+        let getMethodName n = className + "." + n
+        let sendMessageName = getMethodName "sendMessage"
+        let setRunLimitName = getMethodName "setRunLimit"
+        let onRegisterName = getMethodName "onRegister"
+        let tryGetNodeName = getMethodName "tryGetNode"
+        let onCannotRunName = getMethodName "onCannotRun"
+        let onRunOrCompletedName = getMethodName "onRunOrCompleted"
+        let onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
+        let onUnregisterName = getMethodName "onUnregister"
+        let onStartName = getMethodName "onStart"
+        let onUpdateProgressName = getMethodName "onUpdateProgress"
+        let onSaveResultName = getMethodName "onSaveResult"
+        let onSaveChartsName = getMethodName "onSaveCharts"
+        let onProcessMessageName = getMethodName "onProcessMessage"
+        let onGetMessagesName = getMethodName "onGetMessages"
+        let tryGetRunnerName = getMethodName "tryGetRunner"
+        let onRunModelName = getMethodName "onRunModel"
+
         let messagingClient = MessagingClient p.messagingClientData
         do messagingClient.start()
 
@@ -84,12 +103,12 @@ module Partitioner =
 
 
         let sendMessage (m : MessageInfo) =
-            printfn "PartitionerRunner.sendMessage: recipient: %A" m.recipientInfo.recipient
+            printfn "%s: recipient: %A" sendMessageName m.recipientInfo.recipient
             messagingClient.sendMessage m
 
 
         let setRunLimit x =
-            printfn "PartitionerRunner.setRunLimit: x: %A" x
+            printfn "%s: x: %A" setRunLimitName x
             let c =
                 x.workerNodes
                 |> Map.toList
@@ -97,12 +116,12 @@ module Partitioner =
                 |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
 
             x.partitionerCallBackInfo.setRunLimit c
-            printfn "PartitionerRunner.setRunLimit completed."
+            printfn "%s: completed." setRunLimitName
             x
 
 
         let onRegister s (r : WorkerNodeInfo) =
-            printfn "PartitionerRunner.onRegister: r = %A." r
+            printfn "%s: r = %A." onRegisterName r
 
             let updated q =
                 let newState = { workerNodeInfo = r; runningProcesses = q }
@@ -117,7 +136,7 @@ module Partitioner =
 
 
         let tryGetNode s =
-            printfn "PartitionerRunner.tryGetNode."
+            printfn "%s." tryGetNodeName
 
             let x =
                 s.workerNodes
@@ -125,7 +144,8 @@ module Partitioner =
                     |> List.map (fun (_, v) -> v)
                     |> List.sortBy (fun e -> e.priority)
                     |> List.tryFind (fun e -> e.runningProcesses.Length < e.workerNodeInfo.noOfCores)
-            printfn "PartitionerRunner.tryGetNode: retVal = %A" x
+
+            printfn "%s: retVal = %A" tryGetNodeName x
             x
 
 
@@ -151,21 +171,21 @@ module Partitioner =
 
 
         let onCannotRun (e : RunModelParamWithRemoteId) g =
-            printfn "PartitionerRunner.onCannotRun"
+            printfn "%s." onCannotRunName
             proxy.savePartitionerQueueElement e.queueElement
             { g with partitionerQueue = e.queueElement :: g.partitionerQueue |> List.distinctBy (fun e -> e.queuedRemoteProcessId) }
 
 
         let onRunOrCompleted (e : RunModelParamWithRemoteId) g =
-            printfn "PartitionerRunner.onRunOrCompleted"
+            printfn "%s." onRunOrCompletedName
 
             match proxy.tryDeletePartitionerQueueElement e.remoteProcessId with
             | Some _ ->
-                printfn "PartitionerRunner.onRunOrCompleted - Deleted queue element with id: %A" e.remoteProcessId
+                printfn "%s: Deleted queue element with id: %A" onRunOrCompletedName e.remoteProcessId
                 ignore()
             | None ->
                 // This is not an error if queue element is not found.
-                printfn "PartitionerRunner.onRunOrCompleted - Cannot delete queue element with id: %A" e.remoteProcessId
+                printfn "%s: Cannot delete queue element with id: %A" onRunOrCompletedName e.remoteProcessId
                 ignore()
 
             { g with partitionerQueue = g.partitionerQueue |> List.filter (fun a -> a.queuedRemoteProcessId <> e.remoteProcessId) }
@@ -192,7 +212,7 @@ module Partitioner =
 
 
         let onTryRunModelWithRemoteId s (e : RunModelParamWithRemoteId) =
-            printfn "PartitionerRunner.onRunModelWithRemoteId: e = %A." e
+            printfn "%s: e = %A." onTryRunModelWithRemoteIdName e
             let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
             let onCannotRun g = onCannotRun e g
             let onRunOrCompleted g = onRunOrCompleted e g
@@ -202,11 +222,11 @@ module Partitioner =
             | None ->
                 match tryGetNode s with
                 | Some n ->
-                    printfn "PartitionerRunner.onRunModelWithRemoteId: Using Node: %A." n
+                    printfn "%s: Using Node: %A." onTryRunModelWithRemoteIdName n
 
                     match tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
                     | Some m ->
-                        printfn "PartitionerRunner.onRunModelWithRemoteId: using modelDataId: %A." m.modelDataId
+                        printfn "%s: using modelDataId: %A." onTryRunModelWithRemoteIdName m.modelDataId
                         sendRunModelMessage n m
 
                         let i =
@@ -216,22 +236,22 @@ module Partitioner =
                             }
 
                         let newNodeState = { n with runningProcesses = i :: n.runningProcesses }
-                        printfn "PartitionerRunner.onRunModelWithRemoteId: newNodeState = %A" newNodeState
+                        printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
                         proxy.saveWorkerNodeState newNodeState |> ignore
                         { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }
                         |> onRunOrCompleted
                     | None ->
-                        printfn "PartitionerRunner.onRunModelWithRemoteId - cannot find model."
-                        logger.logErr (sprintf "Unable to load model with id: %A" e.runModelParam.callBackInfo.modelDataId)
+                        printfn "%s: cannot find model." onTryRunModelWithRemoteIdName
+                        logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
                         onCannotRun s
                 | None ->
-                    printfn "PartitionerRunner.onRunModelWithRemoteId - cannot find node to run."
+                    printfn "%s: cannot find node to run." onTryRunModelWithRemoteIdName
                     onCannotRun s
             | Some _ -> onRunOrCompleted s |> onCompleted e.remoteProcessId id
 
 
         let onUnregister s (r : WorkerNodeId) =
-            printfn "PartitionerRunner.onUnregister: r = %A." r
+            printfn "%s: r = %A." onUnregisterName r
 
             let removeNode g =
                 proxy.tryDeleteWorkerNodeState r |> ignore
@@ -243,7 +263,7 @@ module Partitioner =
                 |> List.map (fun e -> e.remoteProcessId)
                 |> List.map proxy.tryLoadRunModelParamWithRemoteId
                 |> List.choose id
-                |> List.fold (fun acc e ->  onTryRunModelWithRemoteId acc e) (removeNode s)
+                |> List.fold (fun acc e -> onTryRunModelWithRemoteId acc e) (removeNode s)
             | None -> removeNode s
 
 
@@ -255,13 +275,13 @@ module Partitioner =
 
 
         let onStart s q =
-            printfn "PartitionerRunner.onStart"
+            printfn "%s" onStartName
 
             let onStartRun g r = { g with workerNodes = g.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
 
             let g = loadQueue { s with partitionerCallBackInfo = q }
             let workers = proxy.loadAllWorkerNodeState()
-            printfn "PartitionerRunner.onStart: workers = %A" workers
+            printfn "%s: workers = %A" onStartName workers
 
             workers
             |> List.fold (fun acc r -> onStartRun acc r) g
@@ -269,7 +289,7 @@ module Partitioner =
 
 
         let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
-            printfn "PartitionerRunner.onUpdateProgress: i = %A." i
+            printfn "%s: i = %A." onUpdateProgressName i
             i.toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
 
             match i.progress with
@@ -279,43 +299,40 @@ module Partitioner =
 
 
         let onSaveResult s r =
-            printfn "PartitionerRunner.onSaveResult: r = %A." r
+            printfn "%s: r = %A." onSaveResultName r
             proxy.saveResultData r
             s
 
 
         let onSaveCharts s (c : ChartInfo) =
-            printfn "PartitionerRunner.onSaveCharts: resultDataId = %A." c.resultDataId
+            printfn "%s: resultDataId = %A." onSaveChartsName c.resultDataId
             proxy.saveCharts c
             s
 
 
         let onProcessMessage (s : PartitionerRunnerState) (m : Message) =
-            printfn "PartitionerRunner.onProcessMessage: m.messageId = %A." m.messageDataInfo.messageId
+            printfn "%s: m.messageId = %A." onProcessMessageName m.messageDataInfo.messageId
             match m.messageData with
             | PartitionerMsg x ->
                 match x with
-                | UpdateProgressPrtMsg i ->
-                    onUpdateProgress s i
+                | UpdateProgressPrtMsg i -> onUpdateProgress s i
                 | SaveResultPrtMsg r -> onSaveResult s r
                 | SaveChartsPrtMsg c -> onSaveCharts s c
                 | RegisterWorkerNodePrtMsg r ->
                     let x = onRegister s r
-                    printfn "PartitionerRunner.onProcessMessage.RegisterWorkerNodePrtMsg completed, state = %A." x
+                    printfn "%s: RegisterWorkerNodePrtMsg completed, state = %A." onProcessMessageName x
                     x
                 | UnregisterWorkerNodePrtMsg r -> onUnregister s r
             | _ ->
-                p.logger.logErr (sprintf "Invalid message type: %A." m.messageData)
+                p.logger.logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
                 s
 
 
         let onGetMessages s =
-            async {
-                printfn "PartitionerRunner.onGetMessages, state: %A" s
-                let! y = List.foldWhileSomeAsync (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
-                printfn "PartitionerRunner.onGetMessages completed, y = %A" y
-                return y
-            }
+            printfn "%s: state: %A" onGetMessagesName s
+            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
+            printfn "%s: completed, y = %A" onGetMessagesName y
+            y
 
 
         let tryGetRunner s q =
@@ -324,13 +341,13 @@ module Partitioner =
                     |> Map.toList
                     |> List.map (fun (_, v) -> v.runningProcesses)
                     |> List.concat
-            printfn "PartitionerRunner.tryGetRunner: q = %A, x = %A" q x
+            printfn "%s: q = %A, x = %A" tryGetRunnerName q x
             x
             |> List.tryFind (fun e -> e.runQueueId = q)
 
 
         let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedResult>) =
-            printfn "PartitionerRunner.onRunModel"
+            printfn "%s" onRunModelName
 
             let reply q =
                 {
@@ -344,11 +361,11 @@ module Partitioner =
 
             match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
             | Some w, None ->
-                printfn "PartitionerRunner.onRunModel - | Some %A, None" w
+                printfn "%s: | Some %A, None" onRunModelName w
                 reply w.remoteProcessId
                 s
             | None, None ->
-                printfn "PartitionerRunner.onRunModel - | None, None"
+                printfn "%s: | None, None" onRunModelName
                 let q = a.callBackInfo.runQueueId.toRemoteProcessId()
 
                 let e =
@@ -363,15 +380,15 @@ module Partitioner =
             | None, Some d ->
                 // This can happen when there are serveral unprocessed messages in different mailbox processors.
                 // Since we already have the result, we don't start the remote calculation again.
-                printfn "PartitionerRunner.onRunModel - | None, Some %A" d.resultDataId
+                printfn "%s: | None, Some %A" onRunModelName d.resultDataId
                 r.Reply AlreadyCompleted
                 s
             | Some w, Some d ->
                 // This should not happen because we have the result and that means that
                 // the relevant message was processed and that that shoud've removed the runner from the list.
                 // Nevertless, we just let the duplicate calculation run.
-                printfn "PartitionerRunner.onRunModel: Error - found running model: %A and result: %A." w.runQueueId d.resultDataId
-                printfn "PartitionerRunner.onRunModel - | Some %A, Some %A" w d.resultDataId
+                printfn "%s: Error - found running model: %A and result: %A." onRunModelName w.runQueueId d.resultDataId
+                printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
                 reply w.remoteProcessId
                 s
 
@@ -382,11 +399,9 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start q -> return! timed "PartitionerRunner.onStart" onStart s q |> loop
-                            | RunModel (p, r) -> return! timed "PartitionerRunner.onRunModel" onRunModel s p r |> loop
-                            | GetMessages ->
-                                let! ns = timed "PartitionerRunner.onGetMessages" onGetMessages s
-                                return! ns |> loop
+                            | Start q -> return! timed onStartName onStart s q |> loop
+                            | RunModel (p, r) -> return! timed onRunModelName onRunModel s p r |> loop
+                            | GetMessages ->return! timed onGetMessagesName onGetMessages s |> loop
                             | GetState r -> r.Reply s
                         }
 

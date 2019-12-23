@@ -339,11 +339,9 @@ module ServiceImplementation =
 
 
         let onGetMessages s =
-            async {
-                printfn "%s" onGetMessagesName
-                printfn "%s: WorkerNodeRunnerState: %A" onGetMessagesName s
-                return! List.foldWhileSomeAsync (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
-            }
+            printfn "%s" onGetMessagesName
+            printfn "%s: WorkerNodeRunnerState: %A" onGetMessagesName s
+            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
 
 
         let onConfigureWorker (s : WorkerNodeRunnerState) d =
@@ -371,9 +369,7 @@ module ServiceImplementation =
                             | Register -> return! timed onRegisterName onRegister s |> loop
                             | Unregister -> return! timed onUnregisterName onUnregister s |> loop
                             | UpdateProgress p -> return! timed onUpdateProgressName onUpdateProgress s p |> loop
-                            | GetMessages ->
-                                let! ns = onGetMessages s
-                                return! ns |> loop
+                            | GetMessages -> return! onGetMessages s |> loop
                             | RunModel d -> return! timed onRunModelName onRunModel s d |> loop
                             | GetState w -> w.Reply s
                             | ConfigureWorker d -> return! timed onConfigureWorkerName onConfigureWorker s d |> loop

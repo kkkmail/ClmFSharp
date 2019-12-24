@@ -235,7 +235,7 @@ module ServiceImplementation =
                     | None -> runIfNoResult g w
                 | None -> onRunModel g w
 
-            m |> List.fold (fun acc e -> tryRunModel acc e) s
+            m |> List.fold (fun acc e -> tryRunModel acc e) { s with numberOfCores = i.workerNodeAccessInfo.workerNodeInfo.noOfCores }
 
 
         let onRegister s =

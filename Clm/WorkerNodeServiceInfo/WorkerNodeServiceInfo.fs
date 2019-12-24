@@ -27,8 +27,20 @@ module ServiceInfo =
         {
             runnerRemoteProcessId : RemoteProcessId
             progress : TaskProgress
+            started : DateTime
             lastUpdated : DateTime
         }
+
+        override r.ToString() =
+            let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
+
+            let estCompl =
+                match r.progress.estimateEndTime r.started with
+                | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
+                | None -> EmptyString
+
+            sprintf "RP: %A; T: %s;%s %A" r.runnerRemoteProcessId.value s estCompl r.progress
+
 
 
     type WorkerNodeRunnerState =
@@ -51,8 +63,7 @@ module ServiceInfo =
             | CannotAccessWrkNode -> "Cannot access worker node"
             | WrkNodeState s ->
                 let toString acc ((LocalProcessId k), (v : RunnerState)) =
-                    (if acc = EmptyString then acc else acc + ", ") +
-                    (sprintf "        LP: %A, RP %A, P:%A, T: %s\n" k v.runnerRemoteProcessId v.progress (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
+                    acc + (sprintf "        LP: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
 
                 let x =
                     match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
@@ -87,5 +98,3 @@ module ServiceInfo =
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
-
-

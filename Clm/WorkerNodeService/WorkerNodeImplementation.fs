@@ -70,20 +70,22 @@ module ServiceImplementation =
         | ConfigureWorker of WorkerNodeConfigParam
 
 
-    type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        let className = "WorkerNodeRunner"
-        let getMethodName n = className + "." + n
-        let onRunModelName = getMethodName "onRunModel"
-        let onSaveResultName = getMethodName "onSaveResult"
-        let onSaveChartsName = getMethodName "onSaveCharts"
-        let onStartName = getMethodName "onStart"
-        let onRegisterName = getMethodName "onRegister"
-        let onUnregisterName = getMethodName "onUnregister"
-        let onUpdateProgressName = getMethodName "onUpdateProgress"
-        let onProcessMessageName = getMethodName "onProcessMessage"
-        let onGetMessagesName = getMethodName "onGetMessages"
-        let onConfigureWorkerName = getMethodName "onConfigureWorker"
+    let private className = "WorkerNodeRunner"
+    let private getMethodName n = className + "." + n
+    let private onRunModelName = getMethodName "onRunModel"
+    let private onSaveResultName = getMethodName "onSaveResult"
+    let private onSaveChartsName = getMethodName "onSaveCharts"
+    let private onStartName = getMethodName "onStart"
+    let private onRegisterName = getMethodName "onRegister"
+    let private onUnregisterName = getMethodName "onUnregister"
+    let private onUpdateProgressName = getMethodName "onUpdateProgress"
+    let private onProcessMessageName = getMethodName "onProcessMessage"
+    let private onGetMessagesName = getMethodName "onGetMessages"
+    let private onGetStateName = getMethodName "onGetState"
+    let private onConfigureWorkerName = getMethodName "onConfigureWorker"
 
+
+    type WorkerNodeRunner(i : WorkerNodeRunnerData) =
         let messagingClient = MessagingClient i.messagingClientData
         do messagingClient.start()
 
@@ -126,6 +128,7 @@ module ServiceImplementation =
                     {
                         runnerRemoteProcessId = d.remoteProcessId
                         progress = TaskProgress.NotStarted
+                        started = DateTime.Now
                         lastUpdated = DateTime.Now
                     }
 
@@ -221,6 +224,7 @@ module ServiceImplementation =
                                 {
                                     runnerRemoteProcessId = w.remoteProcessId
                                     progress = TaskProgress.NotStarted
+                                    started = DateTime.Now
                                     lastUpdated = DateTime.Now
                                 }
 
@@ -344,6 +348,11 @@ module ServiceImplementation =
             List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
 
 
+        let onGetState s (r : AsyncReplyChannel<WorkerNodeRunnerState>) =
+            r.Reply s
+            s
+
+
         let onConfigureWorker (s : WorkerNodeRunnerState) d =
             match d with
             | WorkerNumberOfSores c ->
@@ -371,7 +380,7 @@ module ServiceImplementation =
                             | UpdateProgress p -> return! timed onUpdateProgressName onUpdateProgress s p |> loop
                             | GetMessages -> return! onGetMessages s |> loop
                             | RunModel d -> return! timed onRunModelName onRunModel s d |> loop
-                            | GetState w -> w.Reply s
+                            | GetState r -> return! timed onGetStateName onGetState s r |> loop
                             | ConfigureWorker d -> return! timed onConfigureWorkerName onConfigureWorker s d |> loop
                         }
 

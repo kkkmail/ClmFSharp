@@ -136,6 +136,11 @@ module SolverRunnerTasks =
                     defaultValueId = defaultValueId
                     runQueueId = d
                     workerNodeId = w
+                    commandLineParams =
+                        {
+                            taskParam = c
+                            serviceAccessInfo = i
+                        }
                 }
 
             let chartInitData =

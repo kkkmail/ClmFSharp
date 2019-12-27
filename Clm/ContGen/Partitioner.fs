@@ -222,29 +222,6 @@ module Partitioner =
             | Some _ -> onCompleted e.remoteProcessId s, AlreadyCompleted
 
 
-        let onFailed s (e : RunModelParamWithRemoteId) =
-            let x = e.runModelParam
-            s
-
-
-        let onUnregister s (r : WorkerNodeId) =
-            printfn "%s: r = %A." onUnregisterName r
-
-            let removeNode g =
-                proxy.tryDeleteWorkerNodeState r |> ignore
-                { g with workerNodes = g.workerNodes.tryRemove r } |> setRunLimit
-
-            match s.workerNodes.TryFind r with
-            | Some n ->
-                n.runningProcesses
-                |> Map.toList
-                |> List.map (fun (e, _) -> e)
-                |> List.map proxy.tryLoadRunModelParamWithRemoteId
-                |> List.choose id
-                |> List.fold (fun acc e -> onFailed acc e) (removeNode s)
-            | None -> removeNode s
-
-
         let onStart s q =
             printfn "%s" onStartName
 
@@ -267,6 +244,30 @@ module Partitioner =
             | InProgress _ -> s
             | Completed -> onCompleted i.remoteProcessId s
             | Failed _ -> onCompleted i.remoteProcessId s
+
+
+        let onFailed s r (e : RunModelParamWithRemoteId) =
+            (e.toRemoteProgressUpdateInfo (Failed (sprintf "Remote process %A failed because worker node %A has been unregistered." e.remoteProcessId r))).toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
+            s
+
+
+        let onUnregister s (r : WorkerNodeId) =
+            printfn "%s: r = %A." onUnregisterName r
+
+            let removeNode g =
+                proxy.tryDeleteWorkerNodeState r |> ignore
+                { g with workerNodes = g.workerNodes.tryRemove r } |> setRunLimit
+
+            match s.workerNodes.TryFind r with
+            | Some n ->
+                n.runningProcesses
+                |> Map.toList
+                |> List.map (fun (e, _) -> e)
+                |> List.map proxy.tryLoadRunModelParamWithRemoteId
+                |> List.choose id
+                |> List.fold (fun acc e -> onFailed acc r e) (removeNode s)
+            | None -> removeNode s
+
 
         let onSaveResult s r =
             printfn "%s: r = %A." onSaveResultName r
@@ -321,8 +322,6 @@ module Partitioner =
                 |> StartedSuccessfully
                 |> r.Reply
 
-            let failed () = r.Reply FailedToStart
-
             let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
 
             match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
@@ -342,7 +341,7 @@ module Partitioner =
 
                 proxy.saveRunModelParamWithRemoteId e
                 let (g, x) = onTryRunModelWithRemoteId s e
-                // TODO kk:20191227 - Shall we remove model if failed???
+                // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
                 r.Reply x
                 g
             | None, Some d ->

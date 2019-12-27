@@ -55,7 +55,7 @@ module AsyncRun =
                 s.running
                 |> Map.toList
                 |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A, %A)" e.progressUpdateInfo.processStartedInfo.runningProcessData.modelDataId e.progressUpdateInfo.processStartedInfo.processId e.started e.progressUpdateInfo.progress) |> String.concat ", "
-            sprintf "{ running: [%s]; queue: [%s]; runLimit = %A; runningCount: %A; workState: %A; minUsefulEe: %A }" r q s.runLimit s.runningCount s.workState s.minUsefulEe
+            sprintf "{ running: [%s]; queue: [%s]; runLimit = %A; runningCount: %A; workState: %A; minUsefulEe: %A; lastRunError = %A }" r q s.runLimit s.runningCount s.workState s.minUsefulEe s.lastRunError
 
         member s.isShuttingDown =
             match s.workState with

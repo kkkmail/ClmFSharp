@@ -12,6 +12,13 @@ module ServiceInfo =
             runModelParam : RunModelParam
         }
 
+        member this.toRemoteProgressUpdateInfo p =
+            {
+                remoteProcessId = this.remoteProcessId
+                runningProcessData = this.runModelParam.callBackInfo
+                progress = p
+            }
+
 
     type RunningProcessInfo =
         {

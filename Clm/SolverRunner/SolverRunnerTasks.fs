@@ -21,6 +21,7 @@ open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
 open ClmSys.MessagingData
+open ClmSys.Retry
 
 module SolverRunnerTasks =
 
@@ -30,23 +31,13 @@ module SolverRunnerTasks =
     let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
         try
             printfn "Notifying of progress: %A." p
-            r.updateLocalProgress p
+            tryFun (fun e -> printfn "Exception occurred: %A. Retrying..." e) (fun () -> r.updateLocalProgress p) |> ignore
             printfn "...completed."
         with
         | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
 
 
-    type RunProgress =
-        | Running of decimal
-        | Completed
-
-
-    let notify (r : RunningProcessData) (svc : ResponseHandler) (p : RunProgress) =
-        let t =
-            match p with
-            | Running d -> TaskProgress.create d
-            | Completed -> TaskProgress.Completed
-
+    let notify (r : RunningProcessData) (svc : ResponseHandler) (t : TaskProgress) =
         progressNotifier svc
             {
                 localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
@@ -114,6 +105,7 @@ module SolverRunnerTasks =
             y0 : double
             useAbundant : bool
             onCompleted : unit -> unit
+            onFailed : (string -> unit)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> unit) option
@@ -167,10 +159,15 @@ module SolverRunnerTasks =
                     | Some svc -> fun () -> notify r svc Completed
                     | None -> ignore
 
+                onFailed =
+                    match n with
+                    | Some svc -> fun e -> notify r svc (Failed e)
+                    | None -> ignore
+
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (Running p)) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (TaskProgress.create p)) |> Some)
             }
 
 
@@ -273,27 +270,34 @@ module SolverRunnerTasks =
 
                 let w = g |> MessagingClientId |> WorkerNodeId
                 let runSolverData = RunSolverData.create md i c (RunQueueId d) w
-                let nSolveParam = getNSolveParam runSolverData
-                let data = nSolveParam 0.0 (double tEnd)
-                nSolve data |> ignore
 
-                printfn "Saving."
-                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
+                try
+                    let nSolveParam = getNSolveParam runSolverData
+                    let data = nSolveParam 0.0 (double tEnd)
+                    nSolve data |> ignore
 
-                {
-                    runSolverData = runSolverData
-                    serviceAccessInfo = i
-                    resultDataWithId = r
-                    chartData = chartData
-                    sovlerRunnerProxy = p
-                }
-                |> plotAllResults
+                    printfn "Saving."
+                    let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
 
-                r |> p.saveResultData |> ignore
-                printfn "Completed."
-                runSolverData.onCompleted()
+                    {
+                        runSolverData = runSolverData
+                        serviceAccessInfo = i
+                        resultDataWithId = r
+                        chartData = chartData
+                        sovlerRunnerProxy = p
+                    }
+                    |> plotAllResults
 
-                CompletedSuccessfully
+                    r |> p.saveResultData |> ignore
+                    printfn "Completed."
+                    runSolverData.onCompleted()
+
+                    CompletedSuccessfully
+                with
+                | e ->
+                    printfn "Failed!"
+                    runSolverData.onFailed (e.ToString())
+                    UnknownException
             | _ ->
                 printfn "Unable to load model with id: %A" modelDataId
                 UnknownException

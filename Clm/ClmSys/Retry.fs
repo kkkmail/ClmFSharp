@@ -1,12 +1,11 @@
 ﻿namespace ClmSys
 
 open System.Diagnostics
+open System.Threading
+open System
 
-// http://www.fssnip.net/bb/title/Exception-Retry-Computation-Expression
+/// http://www.fssnip.net/bb/title/Exception-Retry-Computation-Expression
 module Retry =
-    open System.Threading
-    open System
-
 
     type RetryParams =
         {
@@ -14,9 +13,10 @@ module Retry =
             waitBetweenRetries : int
         }
 
+
     let defaultRetryParams =
         {
-            maxRetries = 5
+            maxRetries = 10
             waitBetweenRetries = 10_000
         }
 

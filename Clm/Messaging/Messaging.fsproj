@@ -71,7 +71,6 @@
     <Compile Include="MsgServiceResponse.fs" />
     <Compile Include="MsgCliCommandLine.fs" />
     <Compile Include="MsgClient.fs" />
-    <Compile Include="MsgClientAsync.fs" />
     <Compile Include="MsgService.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

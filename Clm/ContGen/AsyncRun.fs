@@ -30,6 +30,7 @@ module AsyncRun =
             messageCount : int64
             minUsefulEe : MinUsefulEe
             usePartitioner : bool
+            lastRunError : string option
         }
 
         member state.runningCount = state.running.Count
@@ -45,6 +46,7 @@ module AsyncRun =
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe
                 usePartitioner = u
+                lastRunError = None
             }
 
         override s.ToString() =
@@ -190,10 +192,39 @@ module AsyncRun =
             | SetMinUsefulEe ee -> { s with minUsefulEe = MinUsefulEe ee }
 
 
+        let updateQueue (s : AsyncRunnerState) r =
+            let x = s.runningQueue
+            { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
+
+
+//type RunInfo =
+//    {
+//        run : RunningProcessData -> ProcessStartedResult
+//        processToStartInfo : RunningProcessData
+//    }
+
+
+        let onRunModel (s : AsyncRunnerState) (i : ModelDataId) p =
+            match generatorInfo.runModel i p with
+            | Some r ->
+                let x = s.runningQueue
+                let filter e = x.Contains e.processToStartInfo.runQueueId |> not
+                { s with queue = s.queue @ [ r ] |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter filter }
+            | None -> s
+
+
         let  onProgressUpdated (s : AsyncRunnerState) (p : ProgressUpdateInfo) =
             printfn "AsyncRunner.onProgressUpdated: %A" p
             let removeFromQueue() = generatorInfo.removeFromQueue p.processStartedInfo.runningProcessData.runQueueId
-            let addToQueue() = 0
+
+            let onCompleted g =
+                printfn "AsyncRunner.onProgressUpdated: trying to remove: p.updatedProcessId = %A" p.processStartedInfo.processId
+                onStartRun { g with running = g.running.tryRemove p.processStartedInfo.processId }
+
+            let onFailed g f =
+                let i = p.processStartedInfo.runningProcessData.modelDataId
+                let c = p.processStartedInfo.runningProcessData.commandLineParams
+                onRunModel { g with running = g.running.tryRemove p.processStartedInfo.processId; lastRunError = Some f } i c
 
             match s.running.TryFind p.processStartedInfo.processId with
             | Some e ->
@@ -201,8 +232,8 @@ module AsyncRun =
                 | NotStarted | InProgress _ -> { s with running = s.running.Add(p.processStartedInfo.processId, { e with progressUpdateInfo = { e.progressUpdateInfo with progress = p.progress } })}
                 | Completed ->
                     removeFromQueue()
-                    printfn "AsyncRunner.onProgressUpdated: trying to remove: p.updatedProcessId = %A" p.processStartedInfo.processId
-                    onStartRun { s with running =  s.running.tryRemove p.processStartedInfo.processId }
+                    onCompleted s
+                | Failed f -> onFailed s f
             | None ->
                 printfn "AsyncRunner.onProgressUpdated: unable to find: p.updatedProcessId = %A" p.processStartedInfo.processId
                 match p.progress with
@@ -210,6 +241,7 @@ module AsyncRun =
                 | Completed ->
                     removeFromQueue()
                     s
+                | Failed f -> onFailed s f
 
 
         let onGetState s (r : AsyncReplyChannel<AsyncRunnerState>) =
@@ -232,24 +264,12 @@ module AsyncRun =
 
 
         let onGenerationCompleted (s : AsyncRunnerState) r =
-            let w t =
-                let x = s.runningQueue
-                { s with workState = t; queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
-                |> timed onGenerationCompletedName onStartRun
+            let w t = { updateQueue s r with workState = t } |> timed onGenerationCompletedName onStartRun
 
             match s.workState with
             | Idle | CanGenerate -> w s.workState
             | Generating -> w CanGenerate
             | NotInitialized | ShuttingDown -> s
-
-
-        let onRunModel (s : AsyncRunnerState) (i : ModelDataId) p =
-            match generatorInfo.runModel i p with
-            | Some r ->
-                let x = s.runningQueue
-                let filter e = x.Contains e.processToStartInfo.runQueueId |> not
-                { s with queue = s.queue @ [ r ] |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter filter }
-            | None -> s
 
 
         let messageLoop =

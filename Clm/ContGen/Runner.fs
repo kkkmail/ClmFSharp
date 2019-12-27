@@ -112,6 +112,7 @@ module Runner =
                                             defaultValueId = c.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
                                             workerNodeId = localWorkerNodeId
+                                            commandLineParams = e
                                         }
                                 }
                                 |> Some
@@ -154,6 +155,7 @@ module Runner =
                                                     defaultValueId = e.info.defaultValueId
                                                     runQueueId = e.runQueueId
                                                     workerNodeId = localWorkerNodeId
+                                                    commandLineParams = e.modelCommandLineParam
                                                 }
                                         })
             | None -> []
@@ -211,6 +213,7 @@ module Runner =
                                             defaultValueId = t1.clmTaskInfo.clmDefaultValueId
                                             runQueueId = q
                                             workerNodeId = localWorkerNodeId
+                                            commandLineParams = p
                                         }
                                 }
                                 |> Some

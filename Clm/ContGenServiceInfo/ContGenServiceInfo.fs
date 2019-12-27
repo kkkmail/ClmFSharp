@@ -19,7 +19,7 @@ module ServiceInfo =
         | NotStarted
         | InProgress of decimal
         | Completed
-        | Failed
+        | Failed of string
 
         static member create d =
             match d with
@@ -32,7 +32,7 @@ module ServiceInfo =
             | NotStarted -> None
             | InProgress p -> estimateEndTime p started
             | Completed -> Some DateTime.Now
-            | Failed -> None
+            | Failed _ -> None
 
 
     type WorkState =
@@ -59,6 +59,7 @@ module ServiceInfo =
             defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
             workerNodeId : WorkerNodeId
+            commandLineParams : ModelCommandLineParam
         }
 
         member this.toResultDataId() = this.runQueueId.toResultDataId()

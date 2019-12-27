@@ -203,15 +203,28 @@ module Partitioner =
                         let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
                         printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
                         proxy.saveWorkerNodeState newNodeState |> ignore
-                        { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }
+
+                        let x =
+                            {
+                                processId = e.remoteProcessId |> RemoteProcess
+                                runningProcessData = e.runModelParam.callBackInfo
+                            }
+                            |> StartedSuccessfully
+
+                        { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
                     | None ->
                         printfn "%s: cannot find model." onTryRunModelWithRemoteIdName
                         logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
-                        s
+                        s, FailedToStart
                 | None ->
                     printfn "%s: cannot find node to run." onTryRunModelWithRemoteIdName
-                    s
-            | Some _ -> (onCompleted e.remoteProcessId s, AlreadyCompleted)
+                    s, FailedToStart
+            | Some _ -> onCompleted e.remoteProcessId s, AlreadyCompleted
+
+
+        let onFailed s (e : RunModelParamWithRemoteId) =
+            let x = e.runModelParam
+            s
 
 
         let onUnregister s (r : WorkerNodeId) =
@@ -228,7 +241,7 @@ module Partitioner =
                 |> List.map (fun (e, _) -> e)
                 |> List.map proxy.tryLoadRunModelParamWithRemoteId
                 |> List.choose id
-                |> List.fold (fun acc e -> onTryRunModelWithRemoteId acc e) (removeNode s)
+                |> List.fold (fun acc e -> onFailed acc e) (removeNode s)
             | None -> removeNode s
 
 
@@ -253,7 +266,7 @@ module Partitioner =
             | NotStarted -> s
             | InProgress _ -> s
             | Completed -> onCompleted i.remoteProcessId s
-
+            | Failed _ -> onCompleted i.remoteProcessId s
 
         let onSaveResult s r =
             printfn "%s: r = %A." onSaveResultName r
@@ -308,6 +321,8 @@ module Partitioner =
                 |> StartedSuccessfully
                 |> r.Reply
 
+            let failed () = r.Reply FailedToStart
+
             let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
 
             match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
@@ -326,8 +341,10 @@ module Partitioner =
                     }
 
                 proxy.saveRunModelParamWithRemoteId e
-                reply q
-                onTryRunModelWithRemoteId s e
+                let (g, x) = onTryRunModelWithRemoteId s e
+                // TODO kk:20191227 - Shall we remove model if failed???
+                r.Reply x
+                g
             | None, Some d ->
                 // This can happen when there are serveral unprocessed messages in different mailbox processors.
                 // Since we already have the result, we don't start the remote calculation again.

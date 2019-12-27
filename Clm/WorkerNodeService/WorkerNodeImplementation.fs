@@ -122,7 +122,7 @@ module ServiceImplementation =
             match proxy.runModel a with
             | Some result ->
                 printfn "%s: Number of running models = %A." onRunModelName (s.runningWorkers.Count + 1)
-                proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId }
+                proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId; commandLine = proxy.getCommandLine a }
                 
                 let rs =
                     {
@@ -134,8 +134,7 @@ module ServiceImplementation =
 
                 { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, rs) }
             | None ->
-                // TODO kk:20191223 - Do we really need to save it here.
-                //proxy.saveWorkerNodeRunModelData { d with localProcessId = None }
+                proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
                 s
 
 

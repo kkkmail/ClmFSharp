@@ -51,6 +51,7 @@ module WorkerNodeProxy =
         member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs name m) |> Option.bind id
         member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs name m)
         member __.runModel p = runLocalModel p true
+        member __.getCommandLine p = getCommandLine p true
         member __.loadAllWorkerNodeRunModelData() = loadAllWorkerNodeRunModelDataImpl()
 
         // These ones are needed for SolverRunner interop.

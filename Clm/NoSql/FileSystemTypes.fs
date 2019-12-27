@@ -95,33 +95,23 @@ module FileSystemTypes =
         |> Array.map creator
         |> List.ofArray
 
-    // TODO kk:20190824 - That does not seem to go in the proper direction. Delete after 90 days or make it work.
-    //let loadAllWorkerNodeInfoImpl (tryFun : (unit -> 'C) -> 'C option) (getIds : ServiceName -> unit -> list<'A>) (tryLoad : ServiceName -> 'A -> 'B option) name =
-    //    match tryFun (getIds name) with
-    //    | Some i ->
-    //        i
-    //        |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
-    //        |> List.choose id
-    //    | None -> []
+
+    type TableActions<'T, 'A> =
+        {
+            save : 'T -> bool
+            tryLoad : 'A -> 'T option
+            tryDelete : 'A -> unit
+            getIds : unit -> list<'A>
+        }
 
 
-    // TODO kk:20190822 - Possibley refactor to use service name only once. Delete after 90 days or make it work.
-    //type TableActions<'T, 'A> =
-    //    {
-    //        saveMessage : MessagingClientName -> 'T -> bool
-    //        tryLoadMessage : MessagingClientName -> 'A -> 'T option
-    //        tryDeleteMessage : MessagingClientName -> 'A -> unit
-    //        getMessageIds : MessagingClientName -> unit -> list<'A>
-    //    }
-    //
-    //
-    //let createTableActions<'T, 'A> serviceName (getId : 'T -> 'A) =
-    //    let saveObject serviceName m = saveData<'T, 'A> serviceName messageTblName (getId m) m
-    //    let tryLoadObject serviceName (MessageId messageId) = tryLoadData<Message, Guid> serviceName messageTblName messageId
-    //    let tryDeleteObject serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
-    //    let getObjectIds serviceName () = getObjectIds<Guid> serviceName messageTblName Guid.Parse |> List.map MessageId
-    //
-    //    0
+    let createTableActions<'T, 'A> tableName (getId : 'T -> 'A) (getObject : Guid -> 'A) serviceName =
+        {
+            save = fun m -> saveData<'T, 'A> serviceName tableName (getId m) m
+            tryLoad = fun m -> tryLoadData<'T, 'A> serviceName tableName m
+            tryDelete = fun m -> tryDeleteData<'T, 'A> serviceName tableName m
+            getIds = fun () -> (getObjectIds<Guid> serviceName tableName Guid.Parse |> List.map getObject)
+        }
 
 
     let saveMessageFs serviceName (m : Message) = saveData<Message, Guid> serviceName messageTblName m.messageDataInfo.messageId.value m
@@ -173,3 +163,15 @@ module FileSystemTypes =
     let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
     let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
     let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)
+
+
+    // TODO kk:20190824 - That does not seem to go in the proper direction. Delete after 90 days or make it work.
+    //let loadAllWorkerNodeInfoImpl (tryFun : (unit -> 'C) -> 'C option) (getIds : ServiceName -> unit -> list<'A>) (tryLoad : ServiceName -> 'A -> 'B option) name =
+    //    match tryFun (getIds name) with
+    //    | Some i ->
+    //        i
+    //        |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
+    //        |> List.choose id
+    //    | None -> []
+
+

@@ -206,6 +206,7 @@ module Partitioner =
                             runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
                             taskParam = e.runModelParam.commandLineParam.taskParam
                             minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                            commandLine = EmptyString
                         },
                         m
                     )

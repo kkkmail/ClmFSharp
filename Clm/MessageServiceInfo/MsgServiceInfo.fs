@@ -67,6 +67,7 @@ module ServiceInfo =
             runningProcessData : RunningProcessData
             taskParam : ModelCommandLineTaskParam
             minUsefulEe : MinUsefulEe
+            commandLine : string
         }
 
 

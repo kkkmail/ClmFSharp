@@ -19,6 +19,7 @@ module ServiceInfo =
         | NotStarted
         | InProgress of decimal
         | Completed
+        | Failed
 
         static member create d =
             match d with
@@ -31,6 +32,7 @@ module ServiceInfo =
             | NotStarted -> None
             | InProgress p -> estimateEndTime p started
             | Completed -> Some DateTime.Now
+            | Failed -> None
 
 
     type WorkState =

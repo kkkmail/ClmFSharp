@@ -6,22 +6,11 @@ open ClmSys.GeneralData
 
 module ServiceInfo =
 
-    type PartitionerQueueElement =
-        {
-            queuedRemoteProcessId : RemoteProcessId
-        }
-
-
     type RunModelParamWithRemoteId =
         {
             remoteProcessId : RemoteProcessId
             runModelParam : RunModelParam
         }
-
-        member this.queueElement =
-            {
-                queuedRemoteProcessId = this.remoteProcessId
-            }
 
 
     type RunningProcessInfo =
@@ -34,11 +23,11 @@ module ServiceInfo =
     type WorkerNodeState =
         {
             workerNodeInfo : WorkerNodeInfo
-            runningProcesses : list<RunningProcessInfo>
+            runningProcesses : Map<RemoteProcessId, RunQueueId>
         }
 
         member e.priority =
             (
                 e.workerNodeInfo.nodePriority.value,
-                (decimal e.runningProcesses.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
+                (decimal e.runningProcesses.Count) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
             )

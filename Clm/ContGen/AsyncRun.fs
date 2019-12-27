@@ -193,6 +193,7 @@ module AsyncRun =
         let  onProgressUpdated (s : AsyncRunnerState) (p : ProgressUpdateInfo) =
             printfn "AsyncRunner.onProgressUpdated: %A" p
             let removeFromQueue() = generatorInfo.removeFromQueue p.processStartedInfo.runningProcessData.runQueueId
+            let addToQueue() = 0
 
             match s.running.TryFind p.processStartedInfo.processId with
             | Some e ->

@@ -58,8 +58,3 @@ module PartitionerProxy =
         member __.saveWorkerNodeState s = tryFun (fun _ -> saveWorkerNodeStateFs name s)
         member __.loadAllWorkerNodeState () = loadAll getWorkerNodeStateIdsFs tryLoadWorkerNodeStateFs name
         member __.tryDeleteWorkerNodeState s = tryFun (fun _ -> tryDeleteWorkerNodeStateFs name s)
-
-        member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
-        member __.tryLoadPartitionerQueueElement q = tryFun (fun () -> tryLoadPartitionerQueueElementFs name q) |> Option.bind id
-        member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name
-        member __.tryDeletePartitionerQueueElement m = tryFun (fun _ -> tryDeletePartitionerQueueElementFs name m)

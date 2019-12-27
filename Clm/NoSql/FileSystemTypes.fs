@@ -159,11 +159,6 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
     let getWorkerNodeStateIdsFs serviceName () = getObjectIds<Guid> serviceName workerNodeStateTblName Guid.Parse |> List.map (fun e -> e |> MessagingClientId |> WorkerNodeId)
 
-    let savePartitionerQueueElementFs serviceName (r : PartitionerQueueElement) = saveData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName r.queuedRemoteProcessId.value r
-    let tryLoadPartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryLoadData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
-    let tryDeletePartitionerQueueElementFs serviceName (RemoteProcessId processId) = tryDeleteData<PartitionerQueueElement, Guid> serviceName partitionerQueueElementTblName processId
-    let getPartitionerQueueElementIdsFs serviceName () = getObjectIds<Guid> serviceName partitionerQueueElementTblName Guid.Parse |> List.map (fun e -> e |> RemoteProcessId)
-
 
     // TODO kk:20190824 - That does not seem to go in the proper direction. Delete after 90 days or make it work.
     //let loadAllWorkerNodeInfoImpl (tryFun : (unit -> 'C) -> 'C option) (getIds : ServiceName -> unit -> list<'A>) (tryLoad : ServiceName -> 'A -> 'B option) name =

@@ -329,16 +329,20 @@ module GeneralData =
         (a |> List.map snd, b |> List.map snd)
 
 
-    /// Tries to remove a given key from the map.
-    /// If found, then returns a new map with the key removed.
-    /// If not found, then returns the orignial map.
     type Map<'k, 'v when 'k : comparison>
         with
 
+        /// Tries to remove a given key from the map.
+        /// If found, then returns a new map with the key removed.
+        /// If not found, then returns the orignial map.
         member m.tryRemove k =
             match m.ContainsKey k with
             | true -> m.Remove k
             | false -> m
+
+
+        /// Tries to get value out of the map OR returns a given default value if there is none.
+        member m.getValueorDefault k v = m |> Map.tryFind k |> Option.defaultValue v
 
 
     /// http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list.

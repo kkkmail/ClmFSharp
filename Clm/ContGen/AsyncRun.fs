@@ -197,13 +197,6 @@ module AsyncRun =
             { s with queue = s.queue @ r |> List.distinctBy (fun e -> e.processToStartInfo.runQueueId) |> List.filter (fun e -> x.Contains e.processToStartInfo.runQueueId |> not) }
 
 
-//type RunInfo =
-//    {
-//        run : RunningProcessData -> ProcessStartedResult
-//        processToStartInfo : RunningProcessData
-//    }
-
-
         let onRunModel (s : AsyncRunnerState) (i : ModelDataId) p =
             match generatorInfo.runModel i p with
             | Some r ->

@@ -32,6 +32,7 @@ module ServiceImplementation =
                 workState = s.workState
                 messageCount = s.messageCount
                 minUsefulEe = s.minUsefulEe
+                lastRunError = s.lastRunError
             }
 
     let parserResults =

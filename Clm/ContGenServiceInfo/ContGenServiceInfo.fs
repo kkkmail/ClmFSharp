@@ -247,12 +247,6 @@ module ServiceInfo =
         | SetMinUsefulEe of ee : double
 
 
-    type ContGenShutDownInfo =
-        {
-            contGenTcpChannel : TcpChannel
-        }
-
-
     type IContGenService =
         abstract getState : unit -> ContGenRunnerState
         abstract loadQueue : unit -> unit
@@ -261,6 +255,13 @@ module ServiceInfo =
         abstract updateRemoteProgress : RemoteProgressUpdateInfo -> unit
         abstract configureService : ContGenConfigParam -> unit
         abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
+
+
+    type ContGenShutDownInfo =
+        {
+            contGenTcpChannel : TcpChannel
+            service : IContGenService
+        }
 
 
     let mutable private callCount = -1

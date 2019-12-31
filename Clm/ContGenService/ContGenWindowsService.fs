@@ -28,13 +28,12 @@ module WindowsService =
                 ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
 
             let service = (new ContGenResponseHandler(i)).contGenService
-            //p |> List.map (fun e -> service.configureService e) |> ignore
-            service.loadQueue()
             let h = new EventHandler(EventHandlerInfo.defaultValue (logger.logExn "ContGenService") (fun () -> getServiceState service))
             do h.start()
 
             {
                 contGenTcpChannel = channel
+                service = service
             }
             |> Some
 

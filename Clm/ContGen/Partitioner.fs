@@ -89,6 +89,125 @@ module Partitioner =
     let private onGetStateName = getMethodName "onGetState"
 
 
+    let setRunLimit x =
+        printfn "%s: x: %A" setRunLimitName x
+        let c =
+            x.workerNodes
+            |> Map.toList
+            |> List.map snd
+            |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
+
+        x.partitionerCallBackInfo.setRunLimit c
+        printfn "%s: completed." setRunLimitName
+        x
+
+
+    let onRegister (proxy : PartitionerProxy) s (r : WorkerNodeInfo) =
+        printfn "%s: r = %A." onRegisterName r
+
+        let updated q =
+            let newState = { workerNodeInfo = r; runningProcesses = q }
+            proxy.saveWorkerNodeState newState |> ignore
+            { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }
+
+
+        match s.workerNodes.TryFind r.workerNodeId with
+        | Some n -> n.runningProcesses
+        | None -> Map.empty
+        |> updated
+        |> setRunLimit
+
+
+    let tryGetNode s =
+        printfn "%s." tryGetNodeName
+
+        let x =
+            s.workerNodes
+                |> Map.toList
+                |> List.map (fun (_, v) -> v)
+                |> List.sortBy (fun e -> e.priority)
+                |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
+
+        printfn "%s: retVal = %A" tryGetNodeName x
+        x
+
+
+    let tryFindRunningNode s r =
+        s.workerNodes
+        |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
+
+
+    let onCompleted (proxy : PartitionerProxy) r s =
+        proxy.tryDeleteRunModelParamWithRemoteId r |> ignore
+
+        match tryFindRunningNode s r with
+        | Some (w, n) ->
+            let newNodeState = { n with runningProcesses = n.runningProcesses.tryRemove r }
+            proxy.saveWorkerNodeState newNodeState |> ignore
+            { s with workerNodes = s.workerNodes.Add (w, newNodeState) }
+        | None -> s
+
+
+    let sendRunModelMessage sendMessage (e : RunModelParamWithRemoteId) n m =
+        {
+            workerNodeRecipient = n.workerNodeInfo.workerNodeId
+            deliveryType = GuaranteedDelivery
+            messageData =
+                (
+                    {
+                        remoteProcessId = e.remoteProcessId
+                        localProcessId = None
+                        runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
+                        taskParam = e.runModelParam.commandLineParam.taskParam
+                        minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+                        commandLine = EmptyString
+                    },
+                    m
+                )
+                |> RunModelWrkMsg
+        }.getMessageInfo()
+        |> sendMessage
+
+
+    let onTryRunModelWithRemoteId (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
+        printfn "%s: e = %A." onTryRunModelWithRemoteIdName e
+        let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
+        let sendRunModelMessage n m = sendRunModelMessage e n m
+
+        match tryGetResult() with
+        | None ->
+            match tryGetNode s with
+            | Some n ->
+                printfn "%s: Using Node: %A." onTryRunModelWithRemoteIdName n
+
+                match proxy.tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
+                | Some m ->
+                    printfn "%s: using modelDataId: %A." onTryRunModelWithRemoteIdName m.modelDataId
+                    sendRunModelMessage n m
+                    let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
+                    printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
+                    proxy.saveWorkerNodeState newNodeState |> ignore
+
+                    let x =
+                        {
+                            processId = e.remoteProcessId |> RemoteProcess
+                            runningProcessData = e.runModelParam.callBackInfo
+                        }
+                        |> StartedSuccessfully
+
+                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
+                | None ->
+                    printfn "%s: cannot find model." onTryRunModelWithRemoteIdName
+                    logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
+                    s, FailedToStart
+            | None ->
+                printfn "%s: cannot find node to run." onTryRunModelWithRemoteIdName
+                s, FailedToStart
+        | Some _ -> onCompleted proxy e.remoteProcessId s, AlreadyCompleted
+
+
+
+
     type PartitionerRunner(p : PartitionerRunnerParam) =
 
         let messagingClient = MessagingClient p.messagingClientData
@@ -98,128 +217,15 @@ module Partitioner =
         let logger = p.logger
         let logErr = logger.logErr
         let proxy = p.partitionerProxy
+        let onRegister = onRegister proxy
+        let onCompleted = onCompleted proxy
 
 
         let sendMessage (m : MessageInfo) =
             printfn "%s: recipient: %A" sendMessageName m.recipientInfo.recipient
             messagingClient.sendMessage m
 
-
-        let setRunLimit x =
-            printfn "%s: x: %A" setRunLimitName x
-            let c =
-                x.workerNodes
-                |> Map.toList
-                |> List.map snd
-                |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
-
-            x.partitionerCallBackInfo.setRunLimit c
-            printfn "%s: completed." setRunLimitName
-            x
-
-
-        let onRegister s (r : WorkerNodeInfo) =
-            printfn "%s: r = %A." onRegisterName r
-
-            let updated q =
-                let newState = { workerNodeInfo = r; runningProcesses = q }
-                proxy.saveWorkerNodeState newState |> ignore
-                { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }
-
-
-            match s.workerNodes.TryFind r.workerNodeId with
-            | Some n -> n.runningProcesses
-            | None -> Map.empty
-            |> updated
-            |> setRunLimit
-
-
-        let tryGetNode s =
-            printfn "%s." tryGetNodeName
-
-            let x =
-                s.workerNodes
-                    |> Map.toList
-                    |> List.map (fun (_, v) -> v)
-                    |> List.sortBy (fun e -> e.priority)
-                    |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
-
-            printfn "%s: retVal = %A" tryGetNodeName x
-            x
-
-
-        let tryFindRunningNode s r =
-            s.workerNodes
-            |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
-
-
-        let onCompleted r s =
-            proxy.tryDeleteRunModelParamWithRemoteId r |> ignore
-
-            match tryFindRunningNode s r with
-            | Some (w, n) ->
-                let newNodeState = { n with runningProcesses = n.runningProcesses.tryRemove r }
-                proxy.saveWorkerNodeState newNodeState |> ignore
-                { s with workerNodes = s.workerNodes.Add (w, newNodeState) }
-            | None -> s
-
-
-        let sendRunModelMessage (e : RunModelParamWithRemoteId) n m =
-            {
-                workerNodeRecipient = n.workerNodeInfo.workerNodeId
-                deliveryType = GuaranteedDelivery
-                messageData =
-                    (
-                        {
-                            remoteProcessId = e.remoteProcessId
-                            localProcessId = None
-                            runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
-                            taskParam = e.runModelParam.commandLineParam.taskParam
-                            minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
-                            commandLine = EmptyString
-                        },
-                        m
-                    )
-                    |> RunModelWrkMsg
-            }.getMessageInfo()
-            |> sendMessage
-
-
-        let onTryRunModelWithRemoteId s (e : RunModelParamWithRemoteId) : (PartitionerRunnerState * ProcessStartedResult) =
-            printfn "%s: e = %A." onTryRunModelWithRemoteIdName e
-            let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
-            let sendRunModelMessage n m = sendRunModelMessage e n m
-
-            match tryGetResult() with
-            | None ->
-                match tryGetNode s with
-                | Some n ->
-                    printfn "%s: Using Node: %A." onTryRunModelWithRemoteIdName n
-
-                    match tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
-                    | Some m ->
-                        printfn "%s: using modelDataId: %A." onTryRunModelWithRemoteIdName m.modelDataId
-                        sendRunModelMessage n m
-                        let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
-                        printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
-                        proxy.saveWorkerNodeState newNodeState |> ignore
-
-                        let x =
-                            {
-                                processId = e.remoteProcessId |> RemoteProcess
-                                runningProcessData = e.runModelParam.callBackInfo
-                            }
-                            |> StartedSuccessfully
-
-                        { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
-                    | None ->
-                        printfn "%s: cannot find model." onTryRunModelWithRemoteIdName
-                        logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
-                        s, FailedToStart
-                | None ->
-                    printfn "%s: cannot find node to run." onTryRunModelWithRemoteIdName
-                    s, FailedToStart
-            | Some _ -> onCompleted e.remoteProcessId s, AlreadyCompleted
+        let sendRunModelMessage = sendRunModelMessage sendMessage
 
 
         let onStart s q =

@@ -215,9 +215,9 @@ module SvcCommandLine =
             let q =
                 {
                     partitionerMsgAccessInfo = w
-                    partitionerProxy = PartitionerProxy PartitionerProxyInfo.defaultValue
+                    partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
                     messagingService = m
-                    msgClientProxy = MessagingClientProxy { messagingClientName = contGenServiceName }
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
                     logger = logger
                 }
 

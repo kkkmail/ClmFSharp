@@ -47,10 +47,19 @@ module MsgServiceProxy =
     /// Provides IO proxy for messaging client.
     /// A messaging client may or may NOT have SQL server at its disposal.
     /// This proxy encapsulates that.
-    type MessagingClientProxy (i : MessagingClientProxyInfo) =
-        member __.loadMessages() = loadMessageWithTypes i.messagingClientName
-        member __.saveMessage m = saveMessageWithType i.messagingClientName m
-        member __.deleteMessage m = deleteMessageWithType i.messagingClientName m
+    type MessagingClientProxy =
+        {
+            loadMessages : unit -> list<MessageWithType>
+            saveMessage : MessageWithType -> unit
+            deleteMessage : MessageId -> unit
+        }
+
+        static member create (i : MessagingClientProxyInfo) =
+            {
+                loadMessages = fun () -> loadMessageWithTypes i.messagingClientName
+                saveMessage = fun m -> saveMessageWithType i.messagingClientName m
+                deleteMessage = fun m -> deleteMessageWithType i.messagingClientName m
+            }
 
 
     type MessagingServiceProxy =

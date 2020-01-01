@@ -6,6 +6,7 @@ open Clm.ModelParams
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
+open Clm.CalculationData
 
 module Runner =
 
@@ -61,47 +62,63 @@ module Runner =
         static member defaultValue = LocalRunnerProxy LocalRunnerConfig.defaultValue
 
 
-    type RunnerProxy(i : RunnerProxyInfo) =
-        let logError e = printfn "Error: %A" e
-        let tryDbFun c f = tryDbFun logError c f
+    type RunnerProxy =
+        {
+            tryLoadClmDefaultValue : ClmDefaultValueId -> ClmDefaultValue option
+            tryUpdateModelData : ModelData -> bool option
+            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> RunQueueId option
+            tryUpdateClmTask : ClmTask -> bool option
+            addClmTask : ClmTask -> ClmTask option
+            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmTask option
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ModelData option
+            loadIncompleteClmTasks : SolverRunnerAccessInfo -> list<ClmTask> option
+            loadRunQueue : SolverRunnerAccessInfo -> list<RunQueue> option
+            deleteRunQueueEntry : RunQueueId -> unit option
+            runModel : RunModelParam -> ProcessStartedResult
+        }
+
+        static member create (i : RunnerProxyInfo) =
+            let logError e = printfn "Error: %A" e
+            let tryDbFun c f = tryDbFun logError c f
 
 
-        let connectionString =
-            match i with
-            | LocalRunnerProxy c -> c.connectionString
-            | PartitionerRunnerProxy c -> c.connectionString
+            let connectionString =
+                match i with
+                | LocalRunnerProxy c -> c.connectionString
+                | PartitionerRunnerProxy c -> c.connectionString
 
 
-        let tryLoadClmDefaultValueImpl d = tryDbFun connectionString (tryLoadClmDefaultValue d) |> Option.bind id
-        let tryUpdateModelDataImpl m = tryDbFun connectionString (tryUpdateModelData m)
-        let saveRunQueueEntryImpl modelId d p = tryDbFun connectionString (saveRunQueueEntry modelId d p)
-        let tryUpdateClmTaskImpl a = tryDbFun connectionString (tryUpdateClmTask a)
-        let addClmTaskImpl a = tryDbFun connectionString (addClmTask a)
-        let tryLoadClmTaskImpl a t = tryDbFun connectionString (tryLoadClmTask a t) |> Option.bind id
-        let tryLoadModelDataImpl a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
-        let loadIncompleteClmTasksImpl a = tryDbFun connectionString (loadIncompleteClmTasks a)
-        let loadRunQueueImpl a = tryDbFun connectionString (loadRunQueue a)
-        let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
+            let tryLoadClmDefaultValueImpl d = tryDbFun connectionString (tryLoadClmDefaultValue d) |> Option.bind id
+            let tryUpdateModelDataImpl m = tryDbFun connectionString (tryUpdateModelData m)
+            let saveRunQueueEntryImpl modelId d p = tryDbFun connectionString (saveRunQueueEntry modelId d p)
+            let tryUpdateClmTaskImpl a = tryDbFun connectionString (tryUpdateClmTask a)
+            let addClmTaskImpl a = tryDbFun connectionString (addClmTask a)
+            let tryLoadClmTaskImpl a t = tryDbFun connectionString (tryLoadClmTask a t) |> Option.bind id
+            let tryLoadModelDataImpl a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
+            let loadIncompleteClmTasksImpl a = tryDbFun connectionString (loadIncompleteClmTasks a)
+            let loadRunQueueImpl a = tryDbFun connectionString (loadRunQueue a)
+            let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
 
 
-        let runModelImpl (p : RunModelParam) : ProcessStartedResult =
-            printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
-            match i with
-            | LocalRunnerProxy _ ->
-                match runLocalModel p false with
-                | Some e -> e.toProcessStartedInfo() |> StartedSuccessfully
-                | None -> FailedToStart
-            | PartitionerRunnerProxy c -> c.runModel p
+            let runModelImpl (p : RunModelParam) : ProcessStartedResult =
+                printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
+                match i with
+                | LocalRunnerProxy _ ->
+                    match runLocalModel p false with
+                    | Some e -> e.toProcessStartedInfo() |> StartedSuccessfully
+                    | None -> FailedToStart
+                | PartitionerRunnerProxy c -> c.runModel p
 
-
-        member __.tryLoadClmDefaultValue d = tryLoadClmDefaultValueImpl d
-        member __.tryUpdateModelData m = tryUpdateModelDataImpl m
-        member __.saveRunQueueEntry modelId p = saveRunQueueEntryImpl modelId p
-        member __.tryUpdateClmTask c = tryUpdateClmTaskImpl c
-        member __.addClmTask c = addClmTaskImpl c
-        member __.tryLoadClmTask i t = tryLoadClmTaskImpl i t
-        member __.tryLoadModelData i m = tryLoadModelDataImpl i m
-        member __.loadIncompleteClmTasks i = loadIncompleteClmTasksImpl i
-        member __.loadRunQueue i = loadRunQueueImpl i
-        member __.deleteRunQueueEntry runQueueId = deleteRunQueueEntryImpl runQueueId
-        member __.runModel p = runModelImpl p
+            {
+                tryLoadClmDefaultValue = tryLoadClmDefaultValueImpl
+                tryUpdateModelData = tryUpdateModelDataImpl
+                saveRunQueueEntry = saveRunQueueEntryImpl
+                tryUpdateClmTask = tryUpdateClmTaskImpl
+                addClmTask = addClmTaskImpl
+                tryLoadClmTask = tryLoadClmTaskImpl
+                tryLoadModelData = tryLoadModelDataImpl
+                loadIncompleteClmTasks = loadIncompleteClmTasksImpl
+                loadRunQueue = loadRunQueueImpl
+                deleteRunQueueEntry = deleteRunQueueEntryImpl
+                runModel = runModelImpl
+            }

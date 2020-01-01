@@ -194,7 +194,7 @@ module SvcCommandLine =
         let partitioner = getPartitioner logger version name p
         let usePartitioner = getUsePartitioner logger version name p
 
-        let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy, None
+        let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create, None
 
         match usePartitioner with
         | false -> localRunner()
@@ -222,7 +222,7 @@ module SvcCommandLine =
                 }
 
             let r = createServiceImpl q
-            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy, Some r
+            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some r
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

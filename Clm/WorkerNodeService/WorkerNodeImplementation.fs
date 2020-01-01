@@ -446,7 +446,7 @@ module ServiceImplementation =
                 workerNodeAccessInfo = serviceAccessInfo
                 messagingService = h
                 msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName }
-                workerNodeProxy = WorkerNodeProxy WorkerNodeProxyInfo.defaultValue
+                workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
                 logger = logger
                 exeName = SolverRunnerName
                 minUsefulEe = MinUsefulEe.defaultValue

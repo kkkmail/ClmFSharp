@@ -62,6 +62,7 @@ module MsgServiceProxy =
             }
 
 
+    /// Provides IO proxy for messaging service.
     type MessagingServiceProxy =
         {
             loadMessages : unit -> List<Message>

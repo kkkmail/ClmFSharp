@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="MsgServiceProxy.fs" />
+    <Compile Include="MsgProcessorProxy.fs" />
     <Compile Include="PartitionerProxy.fs" />
     <Compile Include="RunnerProxy.fs" />
     <Compile Include="SolverRunnerProxy.fs" />

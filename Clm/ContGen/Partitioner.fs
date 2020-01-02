@@ -14,6 +14,7 @@ open ServiceProxy.PartitionerProxy
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.TimerEvents
 open Clm.CalculationData
+open ServiceProxy.MsgProcessorProxy
 
 module Partitioner =
 
@@ -34,7 +35,7 @@ module Partitioner =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
-            messagingClient : MessagingClient
+            messagingClient : MessageProcessorProxy
             //messagingService : IMessagingService
             //msgClientProxy : MessagingClientProxy
             logger : Logger
@@ -351,28 +352,8 @@ module Partitioner =
 
 
     type PartitionerRunner(w : PartitionerRunnerParam) =
-        //let messagingClient = MessagingClient p.messagingClientData
-        //do messagingClient.start()
-
-        let logger = w.logger
-        let logErr = logger.logErr
         let proxy = w.partitionerProxy
-        let onRegister = onRegister proxy
-        let onCompleted = onCompleted proxy
-
-
-        //let sendMessage (m : MessageInfo) =
-        //    printfn "%s: recipient: %A" sendMessageName m.recipientInfo.recipient
-        //    messagingClient.sendMessage m
-
-        //let sendRunModelMessage = sendRunModelMessage p.messagingClient.sendMessage
-
-
-
-
-
-
-
+        let tryProcessMessage = onTryProcessMessage w.messagingClient
 
 
         let messageLoop =
@@ -383,7 +364,7 @@ module Partitioner =
                             match! u.Receive() with
                             | Start q -> return! timed onStartName onStart proxy s q |> loop
                             | RunModel (p, r) -> return! timed onRunModelName onRunModel w.messagingClient.sendMessage proxy s p r |> loop
-                            | GetMessages ->return! timed onGetMessagesName onGetMessages w.messagingClient.tryProcessMessage proxy s |> loop
+                            | GetMessages ->return! timed onGetMessagesName onGetMessages tryProcessMessage proxy s |> loop
                             | GetState r -> return! timed onGetStateName onGetState s r |> loop
                         }
 

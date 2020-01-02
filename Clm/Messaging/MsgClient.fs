@@ -9,6 +9,7 @@ open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open ClmSys.TimerEvents
 open System.Threading
+open ServiceProxy.MsgProcessorProxy
 
 module Client =
 
@@ -390,7 +391,7 @@ module Client =
     let mutable private callCount = -1
 
 
-    let onTryProcessMessage (w : MessagingClient) x f =
+    let onTryProcessMessage (w : MessageProcessorProxy) x f =
         printfn "%s: Starting..." onTryProcessMessageName
 
         let retVal =
@@ -411,7 +412,7 @@ module Client =
                         Some r
                     with
                     | ex ->
-                        logger.logExn onTryProcessMessageName ex
+                        w.logger.logExn onTryProcessMessageName ex
                         None
                 | None -> None
             else
@@ -422,6 +423,6 @@ module Client =
         retVal
 
 
-    type MessagingClient
-        with
-        member w.tryProcessMessage s f = onTryProcessMessage w s f
+    //type MessagingClient
+    //    with
+    //    member w.tryProcessMessage s f = onTryProcessMessage w s f

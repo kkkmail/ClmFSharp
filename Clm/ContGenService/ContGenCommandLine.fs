@@ -228,7 +228,16 @@ module SvcCommandLine =
                 {
                     partitionerMsgAccessInfo = w
                     partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
-                    messagingClient = messagingClient
+
+                    messagingClient =
+                        {
+                            logger = logger
+
+                            sendMessage = messagingClient.sendMessage
+                            tryPeekReceivedMessage = messagingClient.tryPeekReceivedMessage
+                            tryRemoveReceivedMessage = messagingClient.tryRemoveReceivedMessage
+                        }
+
                     logger = logger
                 }
 

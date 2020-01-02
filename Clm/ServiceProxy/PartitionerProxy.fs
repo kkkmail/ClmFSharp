@@ -11,6 +11,7 @@ open ClmSys.Registry
 open ClmSys.Logging
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
+open MessagingServiceInfo.ServiceInfo
 
 module PartitionerProxy =
 
@@ -55,7 +56,6 @@ module PartitionerProxy =
             let tryDbFun c f = tryDbFun logExn c f
             let tryFun f = tryFun logExn f
             let connectionString = i.partitionerConnectionString
-
 
             let loadAll getIds tryLoad name =
                 match tryFun (getIds name) with

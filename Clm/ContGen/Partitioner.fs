@@ -34,18 +34,19 @@ module Partitioner =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
-            messagingService : IMessagingService
-            msgClientProxy : MessagingClientProxy
+            messagingClient : MessagingClient
+            //messagingService : IMessagingService
+            //msgClientProxy : MessagingClientProxy
             logger : Logger
         }
 
-        member this.messagingClientData =
-            {
-                msgAccessInfo = this.partitionerMsgAccessInfo.messagingClientAccessInfo
-                messagingService = this.messagingService
-                msgClientProxy = this.msgClientProxy
-                logger = this.logger
-            }
+        //member this.messagingClientData =
+        //    {
+        //        msgAccessInfo = this.partitionerMsgAccessInfo.messagingClientAccessInfo
+        //        messagingService = this.messagingService
+        //        msgClientProxy = this.msgClientProxy
+        //        logger = this.logger
+        //    }
 
 
     type PartitionerRunnerState =
@@ -169,10 +170,9 @@ module Partitioner =
         |> sendMessage
 
 
-    let onTryRunModelWithRemoteId (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
+    let onTryRunModelWithRemoteId sendMessage (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
         printfn "%s: e = %A." onTryRunModelWithRemoteIdName e
         let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
-        let sendRunModelMessage n m = sendRunModelMessage e n m
 
         match tryGetResult() with
         | None ->
@@ -183,7 +183,7 @@ module Partitioner =
                 match proxy.tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
                 | Some m ->
                     printfn "%s: using modelDataId: %A." onTryRunModelWithRemoteIdName m.modelDataId
-                    sendRunModelMessage n m
+                    sendRunModelMessage sendMessage e n m
                     let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
                     printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
                     proxy.saveWorkerNodeState newNodeState |> ignore
@@ -206,170 +206,173 @@ module Partitioner =
         | Some _ -> onCompleted proxy e.remoteProcessId s, AlreadyCompleted
 
 
+    let onStart (proxy : PartitionerProxy) s q =
+        printfn "%s" onStartName
+
+        let onStartRun g r = { g with workerNodes = g.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
+        let g = { s with partitionerCallBackInfo = q }
+        let workers = proxy.loadAllWorkerNodeState()
+        printfn "%s: workers = %A" onStartName workers
+
+        workers
+        |> List.fold (fun acc r -> onStartRun acc r) g
+        |> setRunLimit
 
 
-    type PartitionerRunner(p : PartitionerRunnerParam) =
+    let onUpdateProgress proxy s (i : RemoteProgressUpdateInfo) =
+        printfn "%s: i = %A." onUpdateProgressName i
+        i.toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
 
-        let messagingClient = MessagingClient p.messagingClientData
-        do messagingClient.start()
+        match i.progress with
+        | NotStarted -> s
+        | InProgress _ -> s
+        | Completed -> onCompleted proxy i.remoteProcessId s
+        | Failed _ -> onCompleted proxy i.remoteProcessId s
 
-        let tryLoadModelData = p.partitionerProxy.tryLoadModelData
-        let logger = p.logger
+
+    let onFailed s r (e : RunModelParamWithRemoteId) =
+        (e.toRemoteProgressUpdateInfo (Failed (sprintf "Remote process %A failed because worker node %A has been unregistered." e.remoteProcessId r))).toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
+        s
+
+
+    let onUnregister proxy s (r : WorkerNodeId) =
+        printfn "%s: r = %A." onUnregisterName r
+
+        let removeNode g =
+            proxy.tryDeleteWorkerNodeState r |> ignore
+            { g with workerNodes = g.workerNodes.tryRemove r } |> setRunLimit
+
+        match s.workerNodes.TryFind r with
+        | Some n ->
+            n.runningProcesses
+            |> Map.toList
+            |> List.map (fun (e, _) -> e)
+            |> List.map proxy.tryLoadRunModelParamWithRemoteId
+            |> List.choose id
+            |> List.fold (fun acc e -> onFailed acc r e) (removeNode s)
+        | None -> removeNode s
+
+
+    let onSaveResult proxy s r =
+        printfn "%s: r = %A." onSaveResultName r
+        proxy.saveResultData r
+        s
+
+
+    let onSaveCharts proxy s (c : ChartInfo) =
+        printfn "%s: resultDataId = %A." onSaveChartsName c.resultDataId
+        proxy.saveCharts c
+        s
+
+
+    let onProcessMessage proxy (s : PartitionerRunnerState) (m : Message) =
+        printfn "%s: m.messageId = %A." onProcessMessageName m.messageDataInfo.messageId
+        match m.messageData with
+        | PartitionerMsg x ->
+            match x with
+            | UpdateProgressPrtMsg i -> onUpdateProgress proxy s i
+            | SaveResultPrtMsg r -> onSaveResult proxy s r
+            | SaveChartsPrtMsg c -> onSaveCharts proxy s c
+            | RegisterWorkerNodePrtMsg r ->
+                let x = onRegister proxy s r
+                printfn "%s: RegisterWorkerNodePrtMsg completed, state = %A." onProcessMessageName x
+                x
+            | UnregisterWorkerNodePrtMsg r -> onUnregister proxy s r
+        | _ ->
+            //p.logger.logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
+            s
+
+
+    let onGetMessages tryProcessMessage proxy s =
+        printfn "%s: state: %A" onGetMessagesName s
+        let y = List.foldWhileSome (fun x () -> tryProcessMessage x (onProcessMessage proxy)) PartitionerRunnerState.maxMessages s
+        printfn "%s: completed, y = %A" onGetMessagesName y
+        y
+
+
+    let tryGetRunner s q =
+        s.workerNodes
+        |> Map.tryPick (fun _ b -> b.runningProcesses |> Map.tryPick (fun a b -> if b = q then Some a else None))
+
+
+    let onRunModel sendMessage proxy s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedResult>) =
+        printfn "%s" onRunModelName
+
+        let reply q =
+            {
+                processId = q |> RemoteProcess
+                runningProcessData = a.callBackInfo
+            }
+            |> StartedSuccessfully
+            |> r.Reply
+
+        let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
+
+        match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
+        | Some w, None ->
+            printfn "%s: | Some %A, None" onRunModelName w
+            reply w
+            s
+        | None, None ->
+            printfn "%s: | None, None" onRunModelName
+            let q = a.callBackInfo.runQueueId.toRemoteProcessId()
+
+            let e =
+                {
+                    remoteProcessId = q
+                    runModelParam = a
+                }
+
+            proxy.saveRunModelParamWithRemoteId e
+            let (g, x) = onTryRunModelWithRemoteId sendMessage proxy s e
+            // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
+            r.Reply x
+            g
+        | None, Some d ->
+            // This can happen when there are serveral unprocessed messages in different mailbox processors.
+            // Since we already have the result, we don't start the remote calculation again.
+            printfn "%s: | None, Some %A" onRunModelName d.resultDataId
+            r.Reply AlreadyCompleted
+            s
+        | Some w, Some d ->
+            // This should not happen because we have the result and that means that
+            // the relevant message was processed and that that should've removed the runner from the list.
+            // Nevertless, we just let the duplicate calculation run.
+            printfn "%s: Error - found running model: %A and result: %A." onRunModelName a.callBackInfo.runQueueId d.resultDataId
+            printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
+            reply w
+            s
+
+
+    let onGetState s (r : AsyncReplyChannel<PartitionerRunnerState>) =
+        printfn "%s" onGetStateName
+        r.Reply s
+        s
+
+
+    type PartitionerRunner(w : PartitionerRunnerParam) =
+        //let messagingClient = MessagingClient p.messagingClientData
+        //do messagingClient.start()
+
+        let logger = w.logger
         let logErr = logger.logErr
-        let proxy = p.partitionerProxy
+        let proxy = w.partitionerProxy
         let onRegister = onRegister proxy
         let onCompleted = onCompleted proxy
 
 
-        let sendMessage (m : MessageInfo) =
-            printfn "%s: recipient: %A" sendMessageName m.recipientInfo.recipient
-            messagingClient.sendMessage m
+        //let sendMessage (m : MessageInfo) =
+        //    printfn "%s: recipient: %A" sendMessageName m.recipientInfo.recipient
+        //    messagingClient.sendMessage m
 
-        let sendRunModelMessage = sendRunModelMessage sendMessage
-
-
-        let onStart s q =
-            printfn "%s" onStartName
-
-            let onStartRun g r = { g with workerNodes = g.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
-            let g = { s with partitionerCallBackInfo = q }
-            let workers = proxy.loadAllWorkerNodeState()
-            printfn "%s: workers = %A" onStartName workers
-
-            workers
-            |> List.fold (fun acc r -> onStartRun acc r) g
-            |> setRunLimit
+        //let sendRunModelMessage = sendRunModelMessage p.messagingClient.sendMessage
 
 
-        let onUpdateProgress s (i : RemoteProgressUpdateInfo) =
-            printfn "%s: i = %A." onUpdateProgressName i
-            i.toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
-
-            match i.progress with
-            | NotStarted -> s
-            | InProgress _ -> s
-            | Completed -> onCompleted i.remoteProcessId s
-            | Failed _ -> onCompleted i.remoteProcessId s
 
 
-        let onFailed s r (e : RunModelParamWithRemoteId) =
-            (e.toRemoteProgressUpdateInfo (Failed (sprintf "Remote process %A failed because worker node %A has been unregistered." e.remoteProcessId r))).toProgressUpdateInfo() |> s.partitionerCallBackInfo.onUpdateProgress
-            s
 
 
-        let onUnregister s (r : WorkerNodeId) =
-            printfn "%s: r = %A." onUnregisterName r
 
-            let removeNode g =
-                proxy.tryDeleteWorkerNodeState r |> ignore
-                { g with workerNodes = g.workerNodes.tryRemove r } |> setRunLimit
-
-            match s.workerNodes.TryFind r with
-            | Some n ->
-                n.runningProcesses
-                |> Map.toList
-                |> List.map (fun (e, _) -> e)
-                |> List.map proxy.tryLoadRunModelParamWithRemoteId
-                |> List.choose id
-                |> List.fold (fun acc e -> onFailed acc r e) (removeNode s)
-            | None -> removeNode s
-
-
-        let onSaveResult s r =
-            printfn "%s: r = %A." onSaveResultName r
-            proxy.saveResultData r
-            s
-
-
-        let onSaveCharts s (c : ChartInfo) =
-            printfn "%s: resultDataId = %A." onSaveChartsName c.resultDataId
-            proxy.saveCharts c
-            s
-
-
-        let onProcessMessage (s : PartitionerRunnerState) (m : Message) =
-            printfn "%s: m.messageId = %A." onProcessMessageName m.messageDataInfo.messageId
-            match m.messageData with
-            | PartitionerMsg x ->
-                match x with
-                | UpdateProgressPrtMsg i -> onUpdateProgress s i
-                | SaveResultPrtMsg r -> onSaveResult s r
-                | SaveChartsPrtMsg c -> onSaveCharts s c
-                | RegisterWorkerNodePrtMsg r ->
-                    let x = onRegister s r
-                    printfn "%s: RegisterWorkerNodePrtMsg completed, state = %A." onProcessMessageName x
-                    x
-                | UnregisterWorkerNodePrtMsg r -> onUnregister s r
-            | _ ->
-                p.logger.logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
-                s
-
-
-        let onGetMessages s =
-            printfn "%s: state: %A" onGetMessagesName s
-            let y = List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) PartitionerRunnerState.maxMessages s
-            printfn "%s: completed, y = %A" onGetMessagesName y
-            y
-
-
-        let tryGetRunner s q =
-            s.workerNodes
-            |> Map.tryPick (fun _ b -> b.runningProcesses |> Map.tryPick (fun a b -> if b = q then Some a else None))
-
-
-        let onRunModel s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedResult>) =
-            printfn "%s" onRunModelName
-
-            let reply q =
-                {
-                    processId = q |> RemoteProcess
-                    runningProcessData = a.callBackInfo
-                }
-                |> StartedSuccessfully
-                |> r.Reply
-
-            let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
-
-            match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
-            | Some w, None ->
-                printfn "%s: | Some %A, None" onRunModelName w
-                reply w
-                s
-            | None, None ->
-                printfn "%s: | None, None" onRunModelName
-                let q = a.callBackInfo.runQueueId.toRemoteProcessId()
-
-                let e =
-                    {
-                        remoteProcessId = q
-                        runModelParam = a
-                    }
-
-                proxy.saveRunModelParamWithRemoteId e
-                let (g, x) = onTryRunModelWithRemoteId s e
-                // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
-                r.Reply x
-                g
-            | None, Some d ->
-                // This can happen when there are serveral unprocessed messages in different mailbox processors.
-                // Since we already have the result, we don't start the remote calculation again.
-                printfn "%s: | None, Some %A" onRunModelName d.resultDataId
-                r.Reply AlreadyCompleted
-                s
-            | Some w, Some d ->
-                // This should not happen because we have the result and that means that
-                // the relevant message was processed and that that should've removed the runner from the list.
-                // Nevertless, we just let the duplicate calculation run.
-                printfn "%s: Error - found running model: %A and result: %A." onRunModelName a.callBackInfo.runQueueId d.resultDataId
-                printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
-                reply w
-                s
-
-
-        let onGetState s (r : AsyncReplyChannel<PartitionerRunnerState>) =
-            printfn "%s" onGetStateName
-            r.Reply s
-            s
 
 
         let messageLoop =
@@ -378,9 +381,9 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start q -> return! timed onStartName onStart s q |> loop
-                            | RunModel (p, r) -> return! timed onRunModelName onRunModel s p r |> loop
-                            | GetMessages ->return! timed onGetMessagesName onGetMessages s |> loop
+                            | Start q -> return! timed onStartName onStart proxy s q |> loop
+                            | RunModel (p, r) -> return! timed onRunModelName onRunModel w.messagingClient.sendMessage proxy s p r |> loop
+                            | GetMessages ->return! timed onGetMessagesName onGetMessages w.messagingClient.tryProcessMessage proxy s |> loop
                             | GetState r -> return! timed onGetStateName onGetState s r |> loop
                         }
 

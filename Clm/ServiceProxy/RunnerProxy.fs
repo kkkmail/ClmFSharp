@@ -77,16 +77,15 @@ module Runner =
             runModel : RunModelParam -> ProcessStartedResult
         }
 
+
         static member create (i : RunnerProxyInfo) =
             let logError e = printfn "Error: %A" e
             let tryDbFun c f = tryDbFun logError c f
-
 
             let connectionString =
                 match i with
                 | LocalRunnerProxy c -> c.connectionString
                 | PartitionerRunnerProxy c -> c.connectionString
-
 
             let tryLoadClmDefaultValueImpl d = tryDbFun connectionString (tryLoadClmDefaultValue d) |> Option.bind id
             let tryUpdateModelDataImpl m = tryDbFun connectionString (tryUpdateModelData m)
@@ -98,7 +97,6 @@ module Runner =
             let loadIncompleteClmTasksImpl a = tryDbFun connectionString (loadIncompleteClmTasks a)
             let loadRunQueueImpl a = tryDbFun connectionString (loadRunQueue a)
             let deleteRunQueueEntryImpl runQueueId = tryDbFun connectionString (deleteRunQueueEntry runQueueId)
-
 
             let runModelImpl (p : RunModelParam) : ProcessStartedResult =
                 printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i

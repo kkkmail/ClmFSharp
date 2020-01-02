@@ -35,19 +35,9 @@ module Partitioner =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
-            messagingClient : MessageProcessorProxy
-            //messagingService : IMessagingService
-            //msgClientProxy : MessagingClientProxy
+            messageProcessorProxy : MessageProcessorProxy
             logger : Logger
         }
-
-        //member this.messagingClientData =
-        //    {
-        //        msgAccessInfo = this.partitionerMsgAccessInfo.messagingClientAccessInfo
-        //        messagingService = this.messagingService
-        //        msgClientProxy = this.msgClientProxy
-        //        logger = this.logger
-        //    }
 
 
     type PartitionerRunnerState =
@@ -353,7 +343,7 @@ module Partitioner =
 
     type PartitionerRunner(w : PartitionerRunnerParam) =
         let proxy = w.partitionerProxy
-        let tryProcessMessage = onTryProcessMessage w.messagingClient
+        let tryProcessMessage = onTryProcessMessage w.messageProcessorProxy
 
 
         let messageLoop =
@@ -363,7 +353,7 @@ module Partitioner =
                         {
                             match! u.Receive() with
                             | Start q -> return! timed onStartName onStart proxy s q |> loop
-                            | RunModel (p, r) -> return! timed onRunModelName onRunModel w.messagingClient.sendMessage proxy s p r |> loop
+                            | RunModel (p, r) -> return! timed onRunModelName onRunModel w.messageProcessorProxy.sendMessage proxy s p r |> loop
                             | GetMessages ->return! timed onGetMessagesName onGetMessages tryProcessMessage proxy s |> loop
                             | GetState r -> return! timed onGetStateName onGetState s r |> loop
                         }

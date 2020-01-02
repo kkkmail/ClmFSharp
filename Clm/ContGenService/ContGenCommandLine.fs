@@ -229,7 +229,7 @@ module SvcCommandLine =
                     partitionerMsgAccessInfo = w
                     partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
 
-                    messagingClient =
+                    messageProcessorProxy =
                         {
                             logger = logger
 

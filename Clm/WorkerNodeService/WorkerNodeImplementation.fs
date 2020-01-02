@@ -18,6 +18,7 @@ open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
 open Clm.CommandLine
 open System.IO
+open ServiceProxy.MsgProcessorProxy
 
 module ServiceImplementation =
 
@@ -42,21 +43,22 @@ module ServiceImplementation =
     type WorkerNodeRunnerData =
         {
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
-            messagingService : IMessagingService
-            msgClientProxy : MessagingClientProxy
             workerNodeProxy : WorkerNodeProxy
+            messageProcessorProxy : MessageProcessorProxy
             logger : Logger
             exeName : string
             minUsefulEe : MinUsefulEe
         }
 
-        member this.messagingClientData =
-            {
-                msgAccessInfo = this.workerNodeAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
-                messagingService = this.messagingService
-                msgClientProxy = this.msgClientProxy
-                logger = this.logger
-            }
+//messagingService : IMessagingService
+//msgClientProxy : MessagingClientProxy
+        //member this.messagingClientData =
+        //    {
+        //        msgAccessInfo = this.workerNodeAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
+        //        messagingService = this.messagingService
+        //        msgClientProxy = this.msgClientProxy
+        //        logger = this.logger
+        //    }
 
 
     type WorkerNodeMessage =
@@ -86,11 +88,9 @@ module ServiceImplementation =
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        let messagingClient = MessagingClient i.messagingClientData
-        do messagingClient.start()
-
         let partitioner = i.workerNodeAccessInfo.partitionerId
-        let sendMessage m = messagingClient.sendMessage m
+        let sendMessage = i.messageProcessorProxy.sendMessage
+        let tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
         let logErr = i.logger.logErr
         let logExn = i.logger.logExn
         let proxy = i.workerNodeProxy
@@ -364,7 +364,7 @@ module ServiceImplementation =
         let onGetMessages s =
             printfn "%s" onGetMessagesName
             printfn "%s: WorkerNodeRunnerState: %A" onGetMessagesName s
-            List.foldWhileSome (fun x () -> messagingClient.tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
+            List.foldWhileSome (fun x () -> tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
 
 
         let onGetState s (r : AsyncReplyChannel<WorkerNodeRunnerState>) =
@@ -439,14 +439,34 @@ module ServiceImplementation =
         let className = "WorkerNodeService"
 
         let w =
-            let h = MsgResponseHandler (serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo)
+            let messagingClientAccessInfo = serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
+            let h = MsgResponseHandler messagingClientAccessInfo
             logger.logInfo (sprintf "%s: Created MsgResponseHandler: %A" className h)
+
+            let messagingClientData =
+                {
+                    msgAccessInfo = messagingClientAccessInfo
+                    messagingService = h
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName }
+                    logger = logger
+                }
+
+            let messagingClient = MessagingClient messagingClientData
+            do messagingClient.start()
 
             {
                 workerNodeAccessInfo = serviceAccessInfo
-                messagingService = h
-                msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName }
                 workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
+
+                messageProcessorProxy =
+                    {
+                        logger = logger
+
+                        sendMessage = messagingClient.sendMessage
+                        tryPeekReceivedMessage = messagingClient.tryPeekReceivedMessage
+                        tryRemoveReceivedMessage = messagingClient.tryRemoveReceivedMessage
+                    }
+
                 logger = logger
                 exeName = SolverRunnerName
                 minUsefulEe = MinUsefulEe.defaultValue

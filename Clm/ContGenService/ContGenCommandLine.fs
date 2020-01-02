@@ -15,6 +15,7 @@ open Messaging.ServiceResponse
 open ServiceProxy.MsgServiceProxy
 open ContGenServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceInfo
+open Messaging.Client
 
 module SvcCommandLine =
 
@@ -212,12 +213,22 @@ module SvcCommandLine =
 
             let m = MsgResponseHandler (w.messagingClientAccessInfo)
 
+            let messagingClientData =
+                {
+                    msgAccessInfo = w.messagingClientAccessInfo
+                    messagingService = m
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
+                    logger = logger
+                }
+
+            let messagingClient = MessagingClient messagingClientData
+            do messagingClient.start()
+
             let q =
                 {
                     partitionerMsgAccessInfo = w
                     partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
-                    messagingService = m
-                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
+                    messagingClient = messagingClient
                     logger = logger
                 }
 

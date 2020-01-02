@@ -256,7 +256,7 @@ module SolverRunnerTasks =
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
-            let p = SolverRunnerProxy(getSolverRunnerProxy results)
+            let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
             match p.tryLoadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now

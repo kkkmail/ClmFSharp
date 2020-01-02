@@ -61,7 +61,7 @@ module ContGenAdmTasks =
                         let g =
                             createOneTimeGenerator
                                 {
-                                    ModelRunnerParam.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy)
+                                    ModelRunnerParam.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
                                     with saveModelCode = true
                                 }
                         g nt |> ignore

@@ -73,7 +73,7 @@ module Runner =
             tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ModelData option
             loadIncompleteClmTasks : SolverRunnerAccessInfo -> list<ClmTask> option
             loadRunQueue : SolverRunnerAccessInfo -> list<RunQueue> option
-            deleteRunQueueEntry : RunQueueId -> unit option
+            deleteRunQueueEntry : RunQueueId -> int option
             runModel : RunModelParam -> ProcessStartedResult
         }
 

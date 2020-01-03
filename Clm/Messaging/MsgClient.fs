@@ -430,8 +430,3 @@ module Client =
 
         Interlocked.Decrement(&callCount) |> ignore
         retVal
-
-
-    //type MessagingClient
-    //    with
-    //    member w.tryProcessMessage s f = onTryProcessMessage w s f

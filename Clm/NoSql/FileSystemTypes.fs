@@ -4,6 +4,7 @@ open Newtonsoft.Json
 open System
 open ClmSys.Logging
 open ClmSys.GeneralData
+open ClmSys.GeneralErrors
 open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
@@ -11,6 +12,7 @@ open MessagingServiceInfo.ServiceInfo
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
+open ClmSys
 
 module FileSystemTypes =
 
@@ -34,66 +36,86 @@ module FileSystemTypes =
     let storageExt = "xml"
 
 
-    let getFolderName (MessagingClientName serviceName) (TableName tableName) =
+    let tryGetFolderName (MessagingClientName serviceName) (TableName tableName) =
         let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
-        logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
+        //logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
 
         try
             Directory.CreateDirectory(folder) |> ignore
+            Ok folder
         with
-        | e ->
-            logger.logExn "getFolderName - exception" e
-
-        logger.logInfo "    ... created."
-        folder
+        | e -> e |> GetFolderNameException |> Error
 
 
-    let getFileName<'A> serviceName tableName (objectId : 'A) =
-        let folder = getFolderName serviceName tableName
-        let file = Path.Combine(folder, objectId.ToString() + "." + storageExt)
-        printfn "getFileName: Using file: %A" file
-        file
+    let tryGetFileName<'A> serviceName tableName (objectId : 'A) =
+        try
+            match tryGetFolderName serviceName tableName with
+            | Ok folder ->
+                let file = Path.Combine(folder, objectId.ToString() + "." + storageExt)
+                Ok file
+            | Error e -> Error e
+        with
+        | e -> e |> GetFileNameException |> Error
 
 
-    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : ('T option) =
-        printfn "tryLoadData: Loading data for objectId: %A ..." objectId
-        let f = getFileName serviceName tableName objectId
+    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T, FileError>) =
+        try
+            //printfn "tryLoadData: Loading data for objectId: %A ..." objectId
+            match tryGetFileName serviceName tableName objectId with
+            | Ok f ->
+                let x =
+                    if File.Exists f
+                    then
+                        //printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
+                        let data = File.ReadAllText(f)
+                        //printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
+                        let retVal = data |> deserialize |> Ok
+                        //printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
+                        retVal
+                    else Error (FileNotFound f)
 
-        let x =
-            if File.Exists f
-            then
-                printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
-                let data = File.ReadAllText(f)
-                printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
-                //let retVal = data |> JsonConvert.DeserializeObject<'T> |> Some
-                let retVal = data |> deserialize |> Some
-                printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
-                retVal
-            else None
+                //printfn "tryLoadData: Finished loading data for objectId: %A." objectId
+                x
+            | Error e -> Error e
+        with
+        | e -> e |> ReadFileException |> Error
 
-        printfn "tryLoadData: Finished loading data for objectId: %A." objectId
-        x
 
-    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
-        let f = getFileName serviceName tableName objectId
-        //let d = t |> JsonConvert.SerializeObject
-        let d = t |> serialize
-        File.WriteAllText(f, d)
-        true
+    let trySaveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        try
+            match tryGetFileName serviceName tableName objectId with
+            | Ok f ->
+                let d = t |> serialize
+                File.WriteAllText(f, d)
+                Ok ()
+            | Error e -> Error e
+        with
+        | e -> e |> WriteFileException |> Error
 
 
     let tryDeleteData<'T, 'A> serviceName tableName (objectId : 'A) =
-        let f = getFileName serviceName tableName objectId
+        try
+            match tryGetFileName serviceName tableName objectId with
+            | Ok f ->
+                if File.Exists f then File.Delete f
+                Ok ()
+            | Error e -> Error e
+        with
+        | e -> e |> DeleteFileException |> Error
 
-        if File.Exists f then File.Delete f
 
-
-    let getObjectIds<'A> serviceName tableName (creator : string -> 'A) =
-        let folder = getFolderName serviceName tableName
-        Directory.GetFiles(folder, "*." + storageExt)
-        |> Array.map (fun e -> Path.GetFileNameWithoutExtension e)
-        |> Array.map creator
-        |> List.ofArray
+    let tryGetObjectIds<'A> serviceName tableName (creator : string -> 'A) =
+        try
+            match tryGetFolderName serviceName tableName with
+            | Ok folder ->
+                Directory.GetFiles(folder, "*." + storageExt)
+                |> Array.map (fun e -> Path.GetFileNameWithoutExtension e)
+                |> Array.map creator
+                |> List.ofArray
+                |> Ok
+            | Error e -> Error e
+        with
+        | e -> e |> GetObjectIdsException |> Error
 
 
     type TableActions<'T, 'A> =

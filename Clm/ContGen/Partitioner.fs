@@ -31,7 +31,7 @@ module Partitioner =
             }
 
 
-    type PartitionerRunnerParam =
+    type PartitionerRunnerData =
         {
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
@@ -341,7 +341,7 @@ module Partitioner =
         s
 
 
-    type PartitionerRunner(w : PartitionerRunnerParam) =
+    type PartitionerRunner(w : PartitionerRunnerData) =
         let proxy = w.partitionerProxy
         let tryProcessMessage = onTryProcessMessage w.messageProcessorProxy
 

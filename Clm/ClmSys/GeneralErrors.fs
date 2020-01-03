@@ -35,17 +35,23 @@ module GeneralErrors =
     let tracer = new Tracer()
 
 
-    type ReadFileError =
+    type FileError =
+        | GetFolderNameException of exn
+        | GetFileNameException of exn
         | FileNotFound of string
+        | ReadFileException of exn
+        | WriteFileException of exn
+        | DeleteFileException of exn
+        | GetObjectIdsException of exn
 
 
     type JsonParseError =
         | InvalidStructure of string
 
 
-    type ReadJsonError =
-        | ReadFileError of ReadFileError
-        | JsonParseError of JsonParseError
+    //type ReadJsonError =
+    //    | ReadFileError of ReadFileError
+    //    | JsonParseError of JsonParseError
 
 
     type SerializationError =
@@ -61,9 +67,9 @@ module GeneralErrors =
     type Err =
         | ExceptionErr of exn
         | UnknownErr of string
-        | ReadFileErr of ReadFileError
-        | JsonParseErr of JsonParseError
-        | ReadJsonErr of ReadJsonError
+        //| ReadFileErr of ReadFileError
+        //| JsonParseErr of JsonParseError
+        //| ReadJsonErr of ReadJsonError
         | SerializationErr of SerializationError
         | WcfErr of WcfError
 

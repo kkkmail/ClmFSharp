@@ -93,16 +93,16 @@ module Logging =
 
     type Logger =
         {
-            logInfo : string -> unit
-            logErr : string -> unit
+            logInfo : string -> string -> unit
+            logErr : string -> string -> unit
             logExn : string -> exn -> unit
         }
 
         static member defaultValue =
             {
-                logInfo = fun s -> printfn "%s" s
-                logErr = fun s -> printfn "%s" s
-                logExn = fun s e -> printfn "%s, exception occurred: %A." s e
+                logInfo = fun s m -> printfn "INFO - %s: %s" s m
+                logErr = fun s m -> printfn "ERROR - %s: %s" s m
+                logExn = fun s e -> printfn "EXCEPTION - %s: %A." s e
             }
 
         /// The real log4net logger.
@@ -110,18 +110,18 @@ module Logging =
         static member log4netImpl =
             {
                 logInfo =
-                    fun s ->
+                    fun s m ->
                         {
-                            Message = s
+                            Message = sprintf "%s: %s" s m
                             Date = DateTime.Now
                         }
                         |> InfoMessage
                         |> logAgent.Post
 
                 logErr =
-                    fun s ->
+                    fun s m ->
                         {
-                            Message = s
+                            Message = sprintf "%s: %s" s m
                             Date = DateTime.Now
                         }
                         |> InfoMessage
@@ -130,7 +130,7 @@ module Logging =
                 logExn =
                     fun s e ->
                         {
-                            Message = s + ", exception: " + e.ToString()
+                            Message = sprintf "%s: %A" s e
                             Date = DateTime.Now
                         }
                         |> InfoMessage

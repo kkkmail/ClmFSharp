@@ -5,24 +5,23 @@ open MessagingServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
 open ClmSys.MessagingData
 open ClmSys.Registry
+open ClmSys.Logging
+open ClmSys
 
 module MsgServiceProxy =
 
-    let private logError e = printfn "Error: %A" e
-    let private tryFun f = tryFun logError f
-
-    let private saveMessage clientName m = tryFun (fun _ -> saveMessageFs clientName m) |> ignore
-    let private deleteMessage clientName i = tryFun (fun _ -> tryDeleteMessageFs clientName i) |> ignore
-    let private tryLoadMessage clientName i = tryFun (fun _ -> tryLoadMessageFs clientName i) |> Option.bind id
+    let private saveMessage clientName m = tryFun (fun _ -> saveMessageFs clientName m)
+    let private deleteMessage clientName i = tryFun (fun _ -> tryDeleteMessageFs clientName i)
+    let private tryLoadMessage clientName i = tryFun (fun _ -> tryLoadMessageFs clientName i)
 
 
     let private loadMessages clientName () =
         match tryFun (getMessageIdsFs clientName) with
-        | Some i ->
+        | Ok i ->
             i
-            |> List.map (fun e -> tryFun (fun _ -> tryLoadMessageFs clientName e) |> Option.bind id)
-            |> List.choose id
-        | None -> []
+            |> List.map (fun e -> tryFun (fun _ -> tryLoadMessageFs clientName e)) // |> Rop.bind id
+            //|> List.choose id
+        | Error _ -> []
 
 
     let private saveMessageWithType clientName m = tryFun (fun _ -> saveMessageWithTypeFs clientName m) |> ignore
@@ -40,6 +39,7 @@ module MsgServiceProxy =
 
     type MessagingClientProxyInfo =
         {
+            //logger : Logger
             messagingClientName : MessagingClientName
         }
 

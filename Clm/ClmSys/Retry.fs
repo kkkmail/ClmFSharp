@@ -57,7 +57,7 @@ module Retry =
     let retry = RetryBuilder()
 
 
-    let tryFun logger f =
+    let tryFun f =
         try
             let p = Process.GetCurrentProcess()
             let c = p.PriorityClass
@@ -68,18 +68,14 @@ module Retry =
 
                     (retry {
                         let! b = rm (fun _ -> f())
-                        return Some b
+                        return Ok b
                     }) defaultRetryParams
                 with
-                    | e ->
-                        logger e
-                        None
+                | e -> Error e
             finally
                 p.PriorityClass <- c
         with
-            | e ->
-                logger e
-                None
+        | e -> Error e
 
 
-    let tryDbFun logger connectionString f = tryFun logger (fun () -> f connectionString)
+    let tryDbFun connectionString f = tryFun (fun () -> f connectionString)

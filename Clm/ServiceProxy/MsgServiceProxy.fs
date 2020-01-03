@@ -7,21 +7,23 @@ open ClmSys.MessagingData
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys
+open ClmSys.GeneralErrors
 
 module MsgServiceProxy =
 
-    let private saveMessage clientName m = tryFun (fun _ -> saveMessageFs clientName m)
-    let private deleteMessage clientName i = tryFun (fun _ -> tryDeleteMessageFs clientName i)
-    let private tryLoadMessage clientName i = tryFun (fun _ -> tryLoadMessageFs clientName i)
+    let private trySaveMessage clientName m = tryRopFun GeneralFileException (fun _ -> trySaveMessageFs clientName m)
+    let private tryDeleteMessage clientName i = tryRopFun GeneralFileException (fun _ -> tryDeleteMessageFs clientName i)
+    let private tryLoadMessage clientName i = tryRopFun GeneralFileException (fun _ -> tryLoadMessageFs clientName i)
+    let private tryGetMessageIds clientName = tryRopFun GeneralFileException (fun _ -> tryGetMessageIdsFs clientName ())
 
 
-    let private loadMessages clientName () =
-        match tryFun (getMessageIdsFs clientName) with
+    let private tryLoadMessages clientName () =
+        match tryGetMessageIds clientName with
         | Ok i ->
             i
-            |> List.map (fun e -> tryFun (fun _ -> tryLoadMessageFs clientName e)) // |> Rop.bind id
-            //|> List.choose id
-        | Error _ -> []
+            |> List.map (tryLoadMessage clientName)
+            |> Ok
+        | Error e -> Error e
 
 
     let private saveMessageWithType clientName m = tryFun (fun _ -> saveMessageWithTypeFs clientName m) |> ignore

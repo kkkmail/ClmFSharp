@@ -36,6 +36,7 @@ module GeneralErrors =
 
 
     type FileError =
+        | GeneralFileException of exn
         | GetFolderNameException of exn
         | GetFileNameException of exn
         | FileNotFound of string

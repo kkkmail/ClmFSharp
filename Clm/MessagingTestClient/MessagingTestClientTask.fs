@@ -10,11 +10,11 @@ open ClmSys.MessagingData
 open ClmSys.Logging
 open ServiceProxy.MsgServiceProxy
 open ClmSys.GeneralData
+open ServiceProxy.MsgProcessorProxy
 
 module MessagingTestClientTask =
 
     let runTestClient i h r =
-
         let d =
             {
                 msgAccessInfo = i
@@ -25,6 +25,8 @@ module MessagingTestClientTask =
 
         let a = MessagingClient d
         do a.start()
+
+        let tryProcessMessage = onTryProcessMessage a.messageProcessorProxy
 
         while true do
             printfn "Getting version number for: %A" r
@@ -48,7 +50,7 @@ module MessagingTestClientTask =
             printfn "Checking messages."
 
             let checkMessage() =
-                match a.tryProcessMessage () (fun _ m -> m) with
+                match tryProcessMessage () (fun _ m -> m) with
                 | Some m ->
                     printfn "    Received message: %A" m
                 | None -> ignore()

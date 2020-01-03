@@ -387,6 +387,15 @@ module Client =
         member __.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post
 
+        member m.messageProcessorProxy =
+            {
+                logger = d.logger
+
+                sendMessage = m.sendMessage
+                tryPeekReceivedMessage = m.tryPeekReceivedMessage
+                tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
+            }
+
 
     let mutable private callCount = -1
 

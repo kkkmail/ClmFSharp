@@ -457,20 +457,10 @@ module ServiceImplementation =
             {
                 workerNodeAccessInfo = serviceAccessInfo
                 workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
-
-                messageProcessorProxy =
-                    {
-                        logger = logger
-
-                        sendMessage = messagingClient.sendMessage
-                        tryPeekReceivedMessage = messagingClient.tryPeekReceivedMessage
-                        tryRemoveReceivedMessage = messagingClient.tryRemoveReceivedMessage
-                    }
-
+                messageProcessorProxy = messagingClient.messageProcessorProxy
                 logger = logger
                 exeName = SolverRunnerName
                 minUsefulEe = MinUsefulEe.defaultValue
-
             }
             |> createServiceImpl
 

@@ -65,7 +65,34 @@ module Rop =
     /// add two switches in parallel
     let plus addSuccess addFailure switch1 switch2 x =
         match (switch1 x), (switch2 x) with
-        | Ok s1,Ok s2 -> Ok (addSuccess s1 s2)
-        | Error f1,Ok _  -> Error f1
-        | Ok _ ,Error f2 -> Error f2
-        | Error f1,Error f2 -> Error (addFailure f1 f2)
+        | Ok s1, Ok s2 -> Ok (addSuccess s1 s2)
+        | Error f1, Ok _ -> Error f1
+        | Ok _, Error f2 -> Error f2
+        | Error f1, Error f2 -> Error (addFailure f1 f2)
+
+
+    /// Unwraps Result<List<Result<'A, 'B>>, 'C> into a list of successes only using given continuation functions.
+    /// Use if for replacing failures with some default values.
+    let unwrapAll a b r =
+        match r with
+        | Ok v -> v |> List.map (fun e -> match e with | Ok x -> Some x | Error f -> b f)
+        | Error f -> a f
+        |> List.choose id
+
+
+    /// Same as above but extracts only successes.
+    /// Use it for logging the failures.
+    let unwrapSuccess a b r =
+        match r with
+        | Ok v ->
+            v
+            |> List.map (fun e ->
+                    match e with
+                    | Ok x -> Some x
+                    | Error f ->
+                        b f |> ignore
+                        None)
+        | Error f ->
+            a f |> ignore
+            []
+        |> List.choose id

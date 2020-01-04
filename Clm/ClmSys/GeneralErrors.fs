@@ -50,11 +50,6 @@ module GeneralErrors =
         | InvalidStructure of string
 
 
-    //type ReadJsonError =
-    //    | ReadFileError of ReadFileError
-    //    | JsonParseError of JsonParseError
-
-
     type SerializationError =
         | SerializationException of exn
         | DeserializationException of exn
@@ -65,19 +60,25 @@ module GeneralErrors =
         | WcfSerializationError of SerializationError
 
 
-    type Err =
-        | ExceptionErr of exn
-        | UnknownErr of string
-        //| ReadFileErr of ReadFileError
-        //| JsonParseErr of JsonParseError
-        //| ReadJsonErr of ReadJsonError
-        | SerializationErr of SerializationError
-        | WcfErr of WcfError
+    type DbError =
+        | DbException of exn
+        | LoadModelDataError of Guid
+        | SaveResultDataError of Guid
+        | LoadResultDataError of Guid
 
 
     type ClmError =
+        | UnhandledExn of exn
+        | UnknownErr of string
+        | FileErr of FileError
+        | SerializationErr of SerializationError
+        | WcfErr of WcfError
+        | DbErr of DbError
+
+
+    type ClmErrorInfo =
         {
             errorId : ErrorId
             traceInfo : TraceInfo
-            err : Err
+            error : ClmError
         }

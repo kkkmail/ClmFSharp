@@ -11,6 +11,7 @@ open ClmSys.Registry
 open ClmSys.Logging
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
+open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 
 module PartitionerProxy =
@@ -19,23 +20,20 @@ module PartitionerProxy =
         {
             partitionerConnectionString : ConnectionString
             resultLocation : string
-            logger : Logger
         }
 
         static member defaultValue =
             {
                 partitionerConnectionString = clmConnectionString
                 resultLocation = DefaultResultLocationFolder
-                logger = logger
             }
 
 
     type PartitionerProxy =
         {
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ModelData option
-
-            saveResultData : ResultDataWithId -> unit
-            tryLoadResultData : ResultDataId -> ResultDataWithId option
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> Result<ModelData, ClmError>
+            saveResultData : ResultDataWithId -> Result<unit, ClmError>
+            tryLoadResultData : ResultDataId -> Result<ResultDataWithId, ClmError>
 
             saveCharts : ChartInfo -> unit
 
@@ -52,24 +50,12 @@ module PartitionerProxy =
 
         static member create (i : PartitionerProxyInfo) =
             let name = partitionerServiceName
-            let logExn = i.logger.logExn "PartitionerProxy"
-            let tryDbFun c f = tryDbFun logExn c f
-            let tryFun f = tryFun logExn f
             let connectionString = i.partitionerConnectionString
 
-            let loadAll getIds tryLoad name =
-                match tryFun (getIds name) with
-                | Some i ->
-                    i
-                    |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
-                    |> List.choose id
-                | None -> []
-
             {
-                tryLoadModelData = fun a m -> tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
-
-                saveResultData = fun r -> tryDbFun connectionString (saveResultData r) |> ignore
-                tryLoadResultData = fun r -> tryDbFun connectionString (tryLoadResultData r) |> Option.bind id
+                tryLoadModelData = tryLoadModelData connectionString
+                saveResultData = saveResultData connectionString
+                tryLoadResultData = tryLoadResultData connectionString
 
                 saveCharts = fun (c : ChartInfo) -> c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
 

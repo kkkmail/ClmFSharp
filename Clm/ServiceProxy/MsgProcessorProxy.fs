@@ -1,17 +1,13 @@
 ﻿namespace ServiceProxy
 
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.Logging
+open ClmSys.GeneralErrors
 
 module MsgProcessorProxy =
 
     type MessageProcessorProxy =
         {
-            logger : Logger
-
-            sendMessage : MessageInfo -> unit
-            tryPeekReceivedMessage : unit -> Message option
-            tryRemoveReceivedMessage : MessageId -> bool
+            sendMessage : MessageInfo -> Result<unit, ClmError>
+            tryPeekReceivedMessage : unit -> Result<Message option, ClmError>
+            tryRemoveReceivedMessage : MessageId -> Result<unit, ClmError>
         }
-
-

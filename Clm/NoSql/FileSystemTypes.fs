@@ -12,7 +12,7 @@ open MessagingServiceInfo.ServiceInfo
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
-open ClmSys
+open ClmSys.Retry
 
 module FileSystemTypes =
 
@@ -44,7 +44,7 @@ module FileSystemTypes =
             Directory.CreateDirectory(folder) |> ignore
             Ok folder
         with
-        | e -> e |> GetFolderNameException |> Error
+        | e -> e |> GetFolderNameException |> FileErr |> Error
 
 
     let tryGetFileName<'A> serviceName tableName (objectId : 'A) =
@@ -55,67 +55,84 @@ module FileSystemTypes =
                 Ok file
             | Error e -> Error e
         with
-        | e -> e |> GetFileNameException |> Error
+        | e -> e |> GetFileNameException |> FileErr |> Error
 
 
-    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T, FileError>) =
-        try
-            //printfn "tryLoadData: Loading data for objectId: %A ..." objectId
-            match tryGetFileName serviceName tableName objectId with
-            | Ok f ->
-                let x =
-                    if File.Exists f
-                    then
-                        //printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
-                        let data = File.ReadAllText(f)
-                        //printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
-                        let retVal = data |> deserialize |> Ok
-                        //printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
-                        retVal
-                    else Error (FileNotFound f)
+    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T, ClmError>) =
+        let w () =
+            try
+                //printfn "tryLoadData: Loading data for objectId: %A ..." objectId
+                match tryGetFileName serviceName tableName objectId with
+                | Ok f ->
+                    let x =
+                        if File.Exists f
+                        then
+                            //printfn "tryLoadData: Reading the data from file %A for objectId: %A ..." f objectId
+                            let data = File.ReadAllText(f)
+                            //printfn "tryLoadData: Finished reading the data from file %A for objectId: %A. Deserializing into type %A ..." f objectId typeof<'T>
+                            let retVal = data |> deserialize |> Ok
+                            //printfn "tryLoadData: Finished deserializing for objectId: %A." objectId
+                            retVal
+                        else f |> FileNotFound |> FileErr |> Error
 
-                //printfn "tryLoadData: Finished loading data for objectId: %A." objectId
-                x
-            | Error e -> Error e
-        with
-        | e -> e |> ReadFileException |> Error
+                    //printfn "tryLoadData: Finished loading data for objectId: %A." objectId
+                    x
+                | Error e -> Error e
+            with
+            | e -> e |> ReadFileException |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
 
 
     let trySaveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
-        try
-            match tryGetFileName serviceName tableName objectId with
-            | Ok f ->
-                let d = t |> serialize
-                File.WriteAllText(f, d)
-                Ok ()
-            | Error e -> Error e
-        with
-        | e -> e |> WriteFileException |> Error
+        let w() =
+            try
+                match tryGetFileName serviceName tableName objectId with
+                | Ok f ->
+                    let d = t |> serialize
+                    File.WriteAllText(f, d)
+                    Ok ()
+                | Error e -> Error e
+            with
+            | e -> e |> WriteFileException |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
 
 
     let tryDeleteData<'T, 'A> serviceName tableName (objectId : 'A) =
-        try
-            match tryGetFileName serviceName tableName objectId with
-            | Ok f ->
-                if File.Exists f then File.Delete f
-                Ok ()
-            | Error e -> Error e
-        with
-        | e -> e |> DeleteFileException |> Error
+        let w() =
+            try
+                match tryGetFileName serviceName tableName objectId with
+                | Ok f ->
+                    if File.Exists f then File.Delete f
+                    Ok ()
+                | Error e -> Error e
+            with
+            | e -> e |> DeleteFileException |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
 
 
     let tryGetObjectIds<'A> serviceName tableName (creator : string -> 'A) =
-        try
-            match tryGetFolderName serviceName tableName with
-            | Ok folder ->
-                Directory.GetFiles(folder, "*." + storageExt)
-                |> List.ofArray
-                |> List.map (fun e -> Path.GetFileNameWithoutExtension e)
-                |> List.map creator
-                |> Ok
-            | Error e -> Error e
-        with
-        | e -> e |> GetObjectIdsException |> Error
+        let w() =
+            try
+                match tryGetFolderName serviceName tableName with
+                | Ok folder ->
+                    Directory.GetFiles(folder, "*." + storageExt)
+                    |> List.ofArray
+                    |> List.map (fun e -> Path.GetFileNameWithoutExtension e)
+                    |> List.map creator
+                    |> Ok
+                | Error e -> Error e
+            with
+            | e -> e |> GetObjectIdsException |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+
+
+    let tryLoadObjects<'T, 'A> serviceName tableName (creator : string -> 'A) =
+        match tryGetObjectIds serviceName tableName creator with
+        | Ok i ->
+            i
+            |> List.map (tryLoadData<'T, 'A> serviceName tableName)
+            |> Ok
+        | Error e -> Error e
 
 
     //type TableActions<'T, 'A> =
@@ -140,53 +157,52 @@ module FileSystemTypes =
     let tryLoadMessageFs serviceName (MessageId messageId) = tryLoadData<Message, Guid> serviceName messageTblName messageId
     let tryDeleteMessageFs serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
     let tryGetMessageIdsFs serviceName () = tryGetObjectIds<MessageId> serviceName messageTblName (fun e -> e |> Guid.Parse |> MessageId)
+    let tryLoadMessageAllFs serviceName () = tryLoadObjects<Message, Guid> serviceName messageTblName Guid.Parse
 
     let trySaveMessageWithTypeFs serviceName (m : MessageWithType) = trySaveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
     let tryLoadMessageWithTypeFs serviceName (MessageId messageId) = tryLoadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
     let tryGetMessageWithTypeIdsFs serviceName () = tryGetObjectIds<MessageId> serviceName messageWithTypeTblName (fun e -> e |> Guid.Parse |> MessageId)
+    let tryLoadMessageWithTypeAllFs serviceName () = tryLoadObjects<MessageWithType, Guid> serviceName messageWithTypeTblName Guid.Parse
 
     let trySaveModelDataFs serviceName (m : ModelData) = trySaveData<ModelData, Guid> serviceName modelDataTblName m.modelDataId.value m
     let tryLoadModelDataFs serviceName (ModelDataId modelDataId) = tryLoadData<ModelData, Guid> serviceName modelDataTblName modelDataId
     let tryDeleteModelDataFs serviceName (ModelDataId modelDataId) = tryDeleteData<ModelData, Guid> serviceName modelDataTblName modelDataId
     let tryGetModelDataIdsFs serviceName () = tryGetObjectIds<ModelDataId> serviceName modelDataTblName (fun e -> e |> Guid.Parse |> ModelDataId)
+    let tryLoadModelDataAllsFs serviceName () = tryLoadObjects<ModelData, Guid> serviceName modelDataTblName Guid.Parse
 
     let trySaveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = trySaveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.remoteProcessId.value m
     let tryLoadWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryLoadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
     let tryDeleteWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
     let tryGetWorkerNodeRunModelDataIdsFs serviceName () = tryGetObjectIds<RemoteProcessId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
+    let tryLoadWorkerNodeRunModelDataAllFs serviceName () = tryLoadObjects<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName Guid.Parse
 
     let trySaveResultDataFs serviceName (r : ResultDataWithId) = trySaveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
     let tryLoadResultDataFs serviceName (ResultDataId resultDataId) = tryLoadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
     let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
     let tryGetResultDataIdsFs serviceName () = tryGetObjectIds<ResultDataId> serviceName resultDataTblName (fun e -> e |> Guid.Parse |> ResultDataId)
+    let tryLoadResultDataAllFs serviceName () = tryLoadObjects<ResultDataWithId, Guid> serviceName resultDataTblName Guid.Parse
 
     let trySaveChartInfoFs serviceName (c : ChartInfo) = trySaveData<ChartInfo, Guid> serviceName chartInfoTblName c.resultDataId.value c
     let tryLoadChartInfoFs serviceName (ResultDataId resultDataId) = tryLoadData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
     let tryDeleteChartInfoFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
     let tryGetChartInfoIdsFs serviceName () = tryGetObjectIds<ResultDataId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> ResultDataId)
+    let tryLoadChartInfoAllFs serviceName () = tryLoadObjects<ChartInfo, Guid> serviceName chartInfoTblName Guid.Parse
 
     let trySaveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = trySaveData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName r.workerNodeId.value.value r
     let tryLoadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryLoadData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let tryGetWorkerNodeInfoIdsFs serviceName () = tryGetObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
+    let tryLoadeWorkerNodeInfoAllFs serviceName () = tryLoadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
 
     let trySaveRunModelParamWithRemoteIdFs serviceName (r : RunModelParamWithRemoteId) = trySaveData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName r.remoteProcessId.value r
     let tryLoadRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryLoadData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
     let tryDeleteRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryDeleteData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
-    let tryGetRunModelParamWithRemoteIdsFs serviceName () = tryGetObjectIds<RemoteProcessId> serviceName runModelParamWithRemoteIdTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
+    let tryGetRunModelParamWithRemoteIdIdsFs serviceName () = tryGetObjectIds<RemoteProcessId> serviceName runModelParamWithRemoteIdTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
+    let tryLoadeRunModelParamWithRemoteIdAllFs serviceName () = tryLoadObjects<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName Guid.Parse
 
     let trySaveWorkerNodeStateFs serviceName (r : WorkerNodeState) = trySaveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
     let tryLoadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryLoadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
     let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
     let tryGetWorkerNodeStateIdsFs serviceName () = tryGetObjectIds<WorkerNodeId> serviceName workerNodeStateTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
-
-
-    // TODO kk:20190824 - That does not seem to go in the proper direction. Delete after 90 days or make it work.
-    //let loadAllWorkerNodeInfoImpl (tryFun : (unit -> 'C) -> 'C option) (getIds : ServiceName -> unit -> list<'A>) (tryLoad : ServiceName -> 'A -> 'B option) name =
-    //    match tryFun (getIds name) with
-    //    | Some i ->
-    //        i
-    //        |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
-    //        |> List.choose id
-    //    | None -> []
+    let tryLoadWorkerNodeStateAllFs serviceName () = tryLoadObjects<WorkerNodeState, Guid> serviceName workerNodeStateTblName Guid.Parse

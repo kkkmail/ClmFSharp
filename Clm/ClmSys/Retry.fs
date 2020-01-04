@@ -99,4 +99,5 @@ module Retry =
         | e -> e |> f |> Error
 
 
-    let tryDbFun connectionString f = tryFun (fun () -> f connectionString)
+    let tryDbFun connectionString g = tryFun (fun () -> g connectionString)
+    let tryDbRopFun connectionString f g = tryRopFun f (fun () -> g connectionString)

@@ -14,9 +14,11 @@ open Clm.CalculationData
 open Clm.ReactionRates
 open ClmSys.MessagingData
 open DynamicSql
+open ClmSys
+open ClmSys.GeneralErrors
+open ClmSys.Retry
 
 
-/// You must add reference to System.Configuration !
 module DatabaseTypes =
 
     let openConnIfClosed (conn : SqlConnection) =
@@ -31,6 +33,7 @@ module DatabaseTypes =
     type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
     type ClmDefaultValueTableRow = ClmDefaultValueTable.Row
 
+
     type ClmDefaultValueData = SqlCommandProvider<"
         select * 
         from dbo.ClmDefaultValue
@@ -40,16 +43,19 @@ module DatabaseTypes =
     type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
     type ClmTaskTableRow = ClmTaskTable.Row
 
+
     type ClmTaskData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
         where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+
 
     type ClmTaskByDefaultData = SqlCommandProvider<"
         select top 1 *
         from dbo.ClmTask
         where clmDefaultValueId = @clmDefaultValueId
         order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
+
 
     type ClmTaskAllIncompleteData = SqlCommandProvider<"
         select *
@@ -61,6 +67,7 @@ module DatabaseTypes =
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
     type CommandLineParamTableRow = CommandLineParamTable.Row
 
+
     type CommandLineParamData = SqlCommandProvider<"
         select *
         from dbo.CommandLineParam
@@ -70,6 +77,7 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
+
 
     type ModelDataTableData = SqlCommandProvider<"
         select
@@ -317,25 +325,27 @@ module DatabaseTypes =
 
 
     let tryUpsertClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
+        let w() =
+            use conn = new SqlConnection(connectionString)
+            openConnIfClosed conn
+            let connectionString = conn.ConnectionString
 
-        use cmd = new SqlCommandProvider<"
-            merge ClmDefaultValue as target
-            using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
-            on (target.clmDefaultValueId = source.clmDefaultValueId)
-            when not matched then
-                insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
-                values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
-            when matched then
-                update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            use cmd = new SqlCommandProvider<"
+                merge ClmDefaultValue as target
+                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+                on (target.clmDefaultValueId = source.clmDefaultValueId)
+                when not matched then
+                    insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
+                    values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
+                when matched then
+                    update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
-                    , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
-                    , description = match p.description with | Some d -> d | None -> null
-                    , fileStructureVersion = FileStructureVersion)
+            cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
+                        , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
+                        , description = match p.description with | Some d -> d | None -> null
+                        , fileStructureVersion = FileStructureVersion)
+        w()
 
 
     let loadCommandLineParams i (ClmTaskId clmTaskId) (ConnectionString connectionString) =
@@ -430,16 +440,24 @@ module DatabaseTypes =
         recordsUpdated = 1
 
 
-    let tryLoadModelData i (ModelDataId modelDataId) (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use d = new ModelDataTableData(conn)
-        let t = new ModelDataTable()
-        d.Execute modelDataId |> t.Load
+    let tryLoadModelData (connectionString : ConnectionString) i (ModelDataId modelDataId) =
+        let w() =
+            try
+                use conn = new SqlConnection(connectionString.value)
+                openConnIfClosed conn
+                use d = new ModelDataTableData(conn)
+                let t = new ModelDataTable()
+                d.Execute modelDataId |> t.Load
 
-        t.Rows
-        |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
-        |> Option.bind (fun v -> ModelData.tryCreate (fun c -> tryLoadClmTask i c connectionString) v)
+                t.Rows
+                |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
+                |> Option.bind (fun v -> ModelData.tryCreate (fun c -> tryLoadClmTask i c connectionString) v)
+                |> Option.map Ok
+                |> Option.defaultValue (modelDataId |> LoadModelDataError |> DbErr |> Error)
+            with
+            | e -> e |> DbException |> DbErr |> Error
+
+        tryRopFun (fun e -> e |> DbException |> DbErr) w
 
 
     let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
@@ -491,65 +509,83 @@ module DatabaseTypes =
         recordsUpdated = 1
 
 
-    let saveResultData (r : ResultDataWithId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
+    let saveResultData (ConnectionString connectionString) (r : ResultDataWithId) =
+        let w() =
+            try
+                use conn = new SqlConnection(connectionString)
+                openConnIfClosed conn
+                let connectionString = conn.ConnectionString
 
-        use cmd = new SqlCommandProvider<"
-            INSERT INTO dbo.ResultData
-                       (resultDataId
-                       ,modelDataId
-                       ,workerNodeId
-                       ,y0
-                       ,tEnd
-                       ,useAbundant
-                       ,maxEe
-                       ,maxAverageEe
-                       ,maxWeightedAverageAbsEe
-                       ,maxLastEe
-                       ,createdOn)
-                 OUTPUT Inserted.resultDataId
-                 VALUES
-                       (@resultDataId
-                       ,@modelDataId
-                       ,@workerNodeId
-                       ,@y0
-                       ,@tEnd
-                       ,@useAbundant
-                       ,@maxEe
-                       ,@maxAverageEe
-                       ,@maxWeightedAverageAbsEe
-                       ,@maxLastEe
-                       ,@createdOn)
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                use cmd = new SqlCommandProvider<"
+                    INSERT INTO dbo.ResultData
+                               (resultDataId
+                               ,modelDataId
+                               ,workerNodeId
+                               ,y0
+                               ,tEnd
+                               ,useAbundant
+                               ,maxEe
+                               ,maxAverageEe
+                               ,maxWeightedAverageAbsEe
+                               ,maxLastEe
+                               ,createdOn)
+                         OUTPUT Inserted.resultDataId
+                         VALUES
+                               (@resultDataId
+                               ,@modelDataId
+                               ,@workerNodeId
+                               ,@y0
+                               ,@tEnd
+                               ,@useAbundant
+                               ,@maxEe
+                               ,@maxAverageEe
+                               ,@maxWeightedAverageAbsEe
+                               ,@maxLastEe
+                               ,@createdOn)
+                ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-        let _result =
-            cmd.Execute(
-                    resultDataId = r.resultDataId.value
-                    ,modelDataId = r.resultData.modelDataId.value
-                    ,workerNodeId = r.workerNodeId.messagingClientId.value
-                    ,y0 = r.resultData.y0
-                    ,tEnd = r.resultData.tEnd
-                    ,useAbundant = r.resultData.useAbundant
-                    ,maxEe = r.resultData.maxEe
-                    ,maxAverageEe = r.resultData.maxAverageEe
-                    ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
-                    ,maxLastEe = r.resultData.maxLastEe
-                    ,createdOn = DateTime.Now)
-            |> Seq.toList
+                let result =
+                    cmd.Execute(
+                            resultDataId = r.resultDataId.value
+                            ,modelDataId = r.resultData.modelDataId.value
+                            ,workerNodeId = r.workerNodeId.messagingClientId.value
+                            ,y0 = r.resultData.y0
+                            ,tEnd = r.resultData.tEnd
+                            ,useAbundant = r.resultData.useAbundant
+                            ,maxEe = r.resultData.maxEe
+                            ,maxAverageEe = r.resultData.maxAverageEe
+                            ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+                            ,maxLastEe = r.resultData.maxLastEe
+                            ,createdOn = DateTime.Now)
+                    |> Seq.toList
 
-        //printfn "saveResultData::result = %A" _result
-        ignore()
+                match result.Length = 1 with
+                | true -> Ok ()
+                | false -> r.resultDataId.value |> SaveResultDataError |> DbErr |> Error
+            with
+            | e -> e |> DbException |> DbErr |> Error
+
+        tryRopFun (fun e -> e |> DbException |> DbErr) w
 
 
-    let tryLoadResultData (ResultDataId resultDataId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use d = new ResultDataTableData(conn)
-        let t = new ResultDataTable()
-        d.Execute(resultDataId = resultDataId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId) |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
+    let tryLoadResultData (ConnectionString connectionString) (ResultDataId resultDataId) =
+        let w() =
+            try
+                use conn = new SqlConnection(connectionString)
+                openConnIfClosed conn
+                use d = new ResultDataTableData(conn)
+                let t = new ResultDataTable()
+                d.Execute(resultDataId = resultDataId) |> t.Load
+
+                t.Rows
+                |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
+                |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
+                |> Option.map Ok
+                |> Option.defaultValue (resultDataId |> LoadResultDataError |> DbErr |> Error)
+            with
+            | e -> e |> DbException |> DbErr |> Error
+
+        tryRopFun (fun e -> e |> DbException |> DbErr) w
 
 
     let loadRunQueue i (ConnectionString connectionString) =

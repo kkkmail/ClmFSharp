@@ -69,6 +69,11 @@ module GeneralErrors =
         | LoadResultDataError of Guid
         | LoadClmDefaultValueError of Int64
         | UpsertClmDefaultValueError of Int64
+        | LoadClmTaskByDefaultError of Int64
+        | LoadClmTaskError of Guid
+        | UpdateClmTaskError of Guid
+        | UpdateModelDataError of Guid
+        | ClmTaskTryCreatError of Guid
 
 
     type ClmError =

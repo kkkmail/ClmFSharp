@@ -314,38 +314,65 @@ module DatabaseTypes =
             t.Rows.Add newRow
             newRow
 
+    let private mapDbError f i v =
+        v
+        |> Option.map Ok
+        |> Option.defaultValue (i |> f |> DbErr |> Error)
+
+
+    let private mapException e = e |> DbException |> DbErr
+    let private toDbError f i = i |> f |> DbErr |> Error
+
 
     let tryLoadClmDefaultValue (ClmDefaultValueId clmDefaultValueId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use d = new ClmDefaultValueData(conn)
-        let t = new ClmDefaultValueTable()
-        d.Execute clmDefaultValueId |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
+        let w() =
+            try
+                use conn = new SqlConnection(connectionString)
+                openConnIfClosed conn
+                use d = new ClmDefaultValueData(conn)
+                let t = new ClmDefaultValueTable()
+                d.Execute clmDefaultValueId |> t.Load
+
+                t.Rows
+                |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId)
+                |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
+                |> mapDbError LoadClmDefaultValueError clmDefaultValueId
+            with
+            | e -> e |> mapException |> Error
+
+        tryRopFun mapException w
 
 
     let tryUpsertClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
         let w() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
-            let connectionString = conn.ConnectionString
+            try
+                use conn = new SqlConnection(connectionString)
+                openConnIfClosed conn
+                let connectionString = conn.ConnectionString
 
-            use cmd = new SqlCommandProvider<"
-                merge ClmDefaultValue as target
-                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
-                on (target.clmDefaultValueId = source.clmDefaultValueId)
-                when not matched then
-                    insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
-                    values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
-                when matched then
-                    update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
-            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                use cmd = new SqlCommandProvider<"
+                    merge ClmDefaultValue as target
+                    using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+                    on (target.clmDefaultValueId = source.clmDefaultValueId)
+                    when not matched then
+                        insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
+                        values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
+                    when matched then
+                        update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
+                ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-            cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
-                        , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
-                        , description = match p.description with | Some d -> d | None -> null
-                        , fileStructureVersion = FileStructureVersion)
-        w()
+                let result = cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
+                                        , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
+                                        , description = match p.description with | Some d -> d | None -> null
+                                        , fileStructureVersion = FileStructureVersion)
+
+                match result = 1 with
+                | true -> Ok ()
+                | false -> toDbError UpsertClmDefaultValueError p.clmDefaultValueId.value
+            with
+            | e -> e |> mapException |> Error
+
+        tryRopFun mapException w
 
 
     let loadCommandLineParams i (ClmTaskId clmTaskId) (ConnectionString connectionString) =

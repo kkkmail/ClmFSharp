@@ -189,6 +189,30 @@ module FileSystemTypes =
     let tryGetChartInfoIdsFs serviceName () = tryGetObjectIds<ResultDataId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> ResultDataId)
     let tryLoadChartInfoAllFs serviceName () = tryLoadObjects<ChartInfo, Guid> serviceName chartInfoTblName Guid.Parse
 
+
+    let trySaveLocalChartInfo d (c : ChartInfo) =
+        let w() =
+            try
+                let getFileName name =
+                    match d with
+                    | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
+                    | None -> name
+
+                let trySaveChart f c =
+                    let folder = Path.GetDirectoryName f
+                    Directory.CreateDirectory(folder) |> ignore
+                    File.WriteAllText(f, c)
+
+                c.charts
+                |> List.map (fun e -> trySaveChart (getFileName e.chartName) e.chartContent)
+                |> ignore
+                Ok ()
+            with
+            | e -> e |> SaveChartsException |> FileErr |> Error
+
+        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+
+
     let trySaveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = trySaveData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName r.workerNodeId.value.value r
     let tryLoadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryLoadData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId

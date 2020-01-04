@@ -1,6 +1,5 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
@@ -8,11 +7,9 @@ open DbData.Configuration
 open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
 open ClmSys.Registry
-open ClmSys.Logging
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.GeneralErrors
-open MessagingServiceInfo.ServiceInfo
 
 module PartitionerProxy =
 
@@ -35,16 +32,16 @@ module PartitionerProxy =
             saveResultData : ResultDataWithId -> Result<unit, ClmError>
             tryLoadResultData : ResultDataId -> Result<ResultDataWithId, ClmError>
 
-            saveCharts : ChartInfo -> unit
+            saveCharts : ChartInfo -> Result<unit, ClmError>
 
-            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> unit
-            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> RunModelParamWithRemoteId option
-            loadAllRunModelParamWithRemoteId : unit -> list<RunModelParamWithRemoteId>
-            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> unit option
+            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> Result<unit, ClmError>
+            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> Result<RunModelParamWithRemoteId, ClmError>
+            loadAllRunModelParamWithRemoteId : unit -> Result<list<Result<RunModelParamWithRemoteId, ClmError>>, ClmError>
+            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> Result<unit, ClmError>
 
-            saveWorkerNodeState : WorkerNodeState -> bool option
-            loadAllWorkerNodeState : unit -> list<WorkerNodeState>
-            tryDeleteWorkerNodeState : WorkerNodeId -> unit option
+            saveWorkerNodeState : WorkerNodeState -> Result<unit, ClmError>
+            loadAllWorkerNodeState : unit -> Result<list<Result<WorkerNodeState, ClmError>>, ClmError>
+            tryDeleteWorkerNodeState : WorkerNodeId -> Result<unit, ClmError>
         }
 
 
@@ -57,14 +54,14 @@ module PartitionerProxy =
                 saveResultData = saveResultData connectionString
                 tryLoadResultData = tryLoadResultData connectionString
 
-                saveCharts = fun (c : ChartInfo) -> c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
+                saveCharts = fun (c : ChartInfo) -> trySaveLocalChartInfo (Some (i.resultLocation, c.defaultValueId)) c
 
-                saveRunModelParamWithRemoteId = fun q -> tryFun (fun () -> saveRunModelParamWithRemoteIdFs name q) |> ignore
-                tryLoadRunModelParamWithRemoteId = fun q -> tryFun (fun () -> tryLoadRunModelParamWithRemoteIdFs name q) |> Option.bind id
-                loadAllRunModelParamWithRemoteId = fun () -> loadAll getRunModelParamWithRemoteIdsFs tryLoadRunModelParamWithRemoteIdFs name
-                tryDeleteRunModelParamWithRemoteId = fun m -> tryFun (fun _ -> tryDeleteRunModelParamWithRemoteIdFs name m)
+                saveRunModelParamWithRemoteId = trySaveRunModelParamWithRemoteIdFs name
+                tryLoadRunModelParamWithRemoteId = tryLoadRunModelParamWithRemoteIdFs name
+                loadAllRunModelParamWithRemoteId = tryLoadeRunModelParamWithRemoteIdAllFs name
+                tryDeleteRunModelParamWithRemoteId = tryDeleteRunModelParamWithRemoteIdFs name
 
-                saveWorkerNodeState = fun s -> tryFun (fun _ -> saveWorkerNodeStateFs name s)
-                loadAllWorkerNodeState = fun () -> loadAll getWorkerNodeStateIdsFs tryLoadWorkerNodeStateFs name
-                tryDeleteWorkerNodeState = fun s -> tryFun (fun _ -> tryDeleteWorkerNodeStateFs name s)
+                saveWorkerNodeState = trySaveWorkerNodeStateFs name
+                loadAllWorkerNodeState = tryLoadWorkerNodeStateAllFs name
+                tryDeleteWorkerNodeState = tryDeleteWorkerNodeStateFs name
             }

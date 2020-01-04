@@ -7,6 +7,7 @@ open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
+open ClmSys.GeneralErrors
 
 module Runner =
 
@@ -64,17 +65,17 @@ module Runner =
 
     type RunnerProxy =
         {
-            tryLoadClmDefaultValue : ClmDefaultValueId -> ClmDefaultValue option
-            tryUpdateModelData : ModelData -> bool option
-            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> RunQueueId option
-            tryUpdateClmTask : ClmTask -> bool option
-            addClmTask : ClmTask -> ClmTask option
-            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmTask option
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ModelData option
+            tryLoadClmDefaultValue : ClmDefaultValueId -> Result<ClmDefaultValue, ClmError>
+            tryUpdateModelData : ModelData -> Result<unit, ClmError>
+            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> Result<RunQueueId, ClmError>
+            tryUpdateClmTask : ClmTask -> Result<unit, ClmError>
+            addClmTask : ClmTask -> Result<ClmTask, ClmError>
+            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId ->  Result<ClmTask, ClmError>
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId ->  Result<ModelData, ClmError>
             loadIncompleteClmTasks : SolverRunnerAccessInfo -> list<ClmTask> option
-            loadRunQueue : SolverRunnerAccessInfo -> list<RunQueue> option
-            deleteRunQueueEntry : RunQueueId -> int option
-            runModel : RunModelParam -> ProcessStartedResult
+            loadRunQueue : SolverRunnerAccessInfo -> Result<list<Result<RunQueue, ClmError>>, ClmError>
+            deleteRunQueueEntry : RunQueueId -> Result<unit, ClmError>
+            runModel : RunModelParam -> Result<ProcessStartedResult, ClmError>
         }
 
 

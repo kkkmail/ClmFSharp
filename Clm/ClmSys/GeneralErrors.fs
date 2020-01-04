@@ -44,6 +44,8 @@ module GeneralErrors =
         | WriteFileException of exn
         | DeleteFileException of exn
         | GetObjectIdsException of exn
+        | CreateChartsException of exn
+        | SaveChartsException of exn
 
 
     type JsonParseError =
@@ -65,6 +67,8 @@ module GeneralErrors =
         | LoadModelDataError of Guid
         | SaveResultDataError of Guid
         | LoadResultDataError of Guid
+        | LoadClmDefaultValueError of Int64
+        | UpsertClmDefaultValueError of Int64
 
 
     type ClmError =

@@ -384,33 +384,9 @@ module GeneralData =
                     defaultValueId = d
                     charts = c |> List.map (fun e -> { chartName = e; chartContent = File.ReadAllText e })
                 }
-                |> Some
+                |> Ok
             with
-                | ex ->
-                    printfn "Exception: %A" ex
-                    None
-
-        member i.trySave (logger : Logger) d =
-            try
-                let getFileName name =
-                    match d with
-                    | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
-                    | None -> name
-
-                let trySaveChart f c =
-                    let folder = Path.GetDirectoryName f
-                    printfn "ChartInfo.trySave: Creating folder = %A" folder
-                    Directory.CreateDirectory(folder) |> ignore
-                    File.WriteAllText(f, c)
-
-                i.charts
-                |> List.map (fun e -> trySaveChart (getFileName e.chartName) e.chartContent)
-                |> ignore
-                Some ()
-            with
-            | ex ->
-                logger.logExn (sprintf "ChartInfo: Exception saving chart with resultDataId: %A" i.resultDataId) ex
-                None
+            | e -> e |> CreateChartsException |> FileErr |> Error
 
 
     type Queue<'A> =

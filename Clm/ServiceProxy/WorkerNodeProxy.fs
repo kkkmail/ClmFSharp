@@ -33,22 +33,22 @@ module WorkerNodeProxy =
 
     type WorkerNodeProxy =
         {
-            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> Result<unit, ClmError>
-            tryLoadWorkerNodeRunModelData : RemoteProcessId ->  Result<WorkerNodeRunModelData, ClmError>
-            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> Result<unit, ClmError>
+            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            tryLoadWorkerNodeRunModelData : RemoteProcessId -> ClmResult<WorkerNodeRunModelData>
+            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
             runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
             getCommandLine : RunModelParam -> string
-            loadAllWorkerNodeRunModelData : unit -> Result<list<Result<WorkerNodeRunModelData, ClmError>>, ClmError>
+            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
 
-            saveModelData : ModelData -> Result<unit, ClmError>
-            tryDeleteModelData : ModelDataId -> Result<unit, ClmError>
+            saveModelData : ModelData -> UnitResult
+            tryDeleteModelData : ModelDataId -> UnitResult
 
-            tryLoadResultData : ResultDataId -> Result<ResultDataWithId, ClmError>
-            tryDeleteResultData : ResultDataId -> Result<unit, ClmError>
-            loadAllResultData : unit -> Result<list<Result<ResultDataWithId, ClmError>>, ClmError>
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryDeleteResultData : ResultDataId -> UnitResult
+            loadAllResultData : unit -> ListResult<ResultDataWithId>
 
-            tryLoadChartInfo : ResultDataId -> Result<ChartInfo, ClmError>
-            tryDeleteChartInfo : ResultDataId -> Result<unit, ClmError>
+            tryLoadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            tryDeleteChartInfo : ResultDataId -> UnitResult
         }
 
         static member create (i : WorkerNodeProxyInfo) =

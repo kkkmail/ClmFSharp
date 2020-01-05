@@ -676,6 +676,7 @@ module DatabaseTypes =
                             }
                         }
             |> List.ofSeq
+            |> List.map Ok
             |> Ok
 
         tryDbFun g

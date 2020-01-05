@@ -223,11 +223,14 @@ module ServiceInfo =
                 }
 
 
-    type MessageResult =
+    type MessageResultInfo =
         | NoMessage
         | SmallMessage of Message
         | MediumMessage of Message
         | LargeMessage of Message
+
+
+    type MessageResult = Result<MessageResultInfo, ClmError>
 
 
     type MessageWithType =
@@ -245,21 +248,11 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type GetVersionError =
-        | GetVersionWcfError of WcfError
-
-
     type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
 
 
     type MessageDelivered =
         | MessageDelivered
-
-
-    type MessageDeliveryError =
-        | DataVersionMismatch of MessagingDataVersion
-        | MsgWcfError of WcfError
-        | ServerIsShuttingDown
 
 
     type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
@@ -269,22 +262,10 @@ module ServiceInfo =
         | ServiceConfigured
 
 
-    type ConfigureServiceError =
-        | CfgSvcWcfError of WcfError
-
-
     type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
 
 
-    type TryPeekMessageError =
-        | TryPeekMsgWcfError of WcfError
-
-
     type TryPeekMessageResult = Result<Message option, TryPeekMessageError>
-
-
-    type TryDeleteFromServerError =
-        | TryDeleteMsgWcfError of WcfError
 
 
     type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
@@ -296,10 +277,6 @@ module ServiceInfo =
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
         }
-
-
-    type GetStateError =
-        | GetStateWcfError of WcfError
 
 
     type GetStateResult = Result<MsgServiceState, GetStateError>

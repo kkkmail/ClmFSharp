@@ -19,9 +19,9 @@ module MsgServiceProxy =
     /// This proxy encapsulates that.
     type MessagingClientProxy =
         {
-            loadMessages : unit -> Result<list<Result<MessageWithType, ClmError>>, ClmError>
-            saveMessage : MessageWithType -> Result<unit, ClmError>
-            deleteMessage : MessageId -> Result<unit, ClmError>
+            loadMessages : unit -> ListResult<MessageWithType>
+            saveMessage : MessageWithType -> UnitResult
+            deleteMessage : MessageId -> UnitResult
         }
 
         static member create (i : MessagingClientProxyInfo) =
@@ -37,9 +37,9 @@ module MsgServiceProxy =
     /// Provides IO proxy for messaging service.
     type MessagingServiceProxy =
         {
-            loadMessages : unit -> Result<list<Result<Message, ClmError>>, ClmError>
-            saveMessage : Message -> Result<unit, ClmError>
-            deleteMessage : MessageId -> Result<unit, ClmError>
+            loadMessages : unit -> ListResult<Message>
+            saveMessage : Message -> UnitResult
+            deleteMessage : MessageId -> UnitResult
             tryLoadMessage : MessageId ->  Result<Message, ClmError>
         }
 

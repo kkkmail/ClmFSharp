@@ -22,18 +22,18 @@ module Rop =
     let bind g = either g fail
 
 
-    // TODO kk:201200104 - This seems useless. Delete after 90 days.
-    //let bindOption g r =
-    //    match r with
-    //    | Ok (Some s) -> Ok (g s)
-    //    | Ok None -> Error ""
-    //    | Error e -> Error e
-    //
-    //
-    //let bindOption f  r =
-    //    match r with
-    //    | Some v -> Ok v
-    //    | None -> Error (f())
+    let bindSuccessOption g w r =
+        match r with
+        | Ok (Some s) -> Ok (g s)
+        | Ok None -> w
+        | Error e -> Error e
+
+
+    let bindErrOption g f r =
+        match r with
+        | Ok (Some s) -> Ok (g s)
+        | Ok None -> Error f
+        | Error e -> Error e
 
 
     /// pipe a two-track value into a switch function
@@ -49,8 +49,10 @@ module Rop =
 
 
     /// convert a one-track function into a two-track function
-    let map f = either (f >> succeed) fail
+    let map g = either (g >> succeed) fail
 
+
+    let mapFailure f = either succeed (f >> fail)
 
     /// convert a dead-end function into a one-track function
     let tee f x = f x; x
@@ -79,7 +81,7 @@ module Rop =
 
 
     /// Unwraps Result<List<Result<'A, 'B>>, 'C> into a list of successes only using given continuation functions.
-    /// Use if for replacing failures with some default values.
+    /// Use it for replacing failures with some default values.
     let unwrapAll a b r =
         match r with
         | Ok v -> v |> List.map (fun e -> match e with | Ok x -> Some x | Error f -> b f)

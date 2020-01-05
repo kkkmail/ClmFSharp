@@ -7,7 +7,7 @@ open ClmSys.Wcf
 
 module ServiceResponse =
 
-    /// Low leverl WCF messaging client.
+    /// Low level WCF messaging client.
     /// It seems imposible to bake in "tryCommunicate tryGetWcfService" into a function due to generics + type inference interplay.
     type MsgResponseHandler private (url) =
         let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url

@@ -7,7 +7,7 @@ module MsgProcessorProxy =
 
     type MessageProcessorProxy =
         {
-            sendMessage : MessageInfo -> Result<unit, ClmError>
-            tryPeekReceivedMessage : unit -> Result<Message option, ClmError>
-            tryRemoveReceivedMessage : MessageId -> Result<unit, ClmError>
+            sendMessage : MessageInfo -> UnitResult
+            tryPeekReceivedMessage : unit -> ClmResult<Message option>
+            tryRemoveReceivedMessage : MessageId -> UnitResult
         }

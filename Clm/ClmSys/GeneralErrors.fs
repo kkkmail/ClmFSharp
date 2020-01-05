@@ -4,6 +4,8 @@ open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
+open ClmSys.VersionInfo
+
 
 /// Collection of general errors & related functionality.
 module GeneralErrors =
@@ -82,7 +84,52 @@ module GeneralErrors =
         | FailedToStart of exn
 
 
+    type VersionMismatchInfo =
+        {
+            localVersion : int
+            remoteVersion : int
+        }
+
+
+    type GetVersionError =
+        | GetVersionWcfError of WcfError
+        | VersionMismatchError of VersionMismatchInfo
+
+
+    type MessageDeliveryError =
+        | DataVersionMismatch of MessagingDataVersion
+        | MsgWcfError of WcfError
+        | ServerIsShuttingDown
+
+
+    type ConfigureServiceError =
+        | CfgSvcWcfError of WcfError
+
+
+    type TryPeekMessageError =
+        | TryPeekMsgWcfError of WcfError
+
+
+    type TryDeleteFromServerError =
+        | TryDeleteMsgWcfError of WcfError
+
+
+    type GetStateError =
+        | GetStateWcfError of WcfError
+
+
+    type MessagingServiceError =
+        | GetVersionErr of GetVersionError
+        | MessageDeliveryErr of MessageDeliveryError
+        | ConfigureServiceErr of ConfigureServiceError
+        | TryPeekMessageErr of TryPeekMessageError
+        | TryDeleteFromServerErr of TryDeleteFromServerError
+        | GetStateErr of GetStateError
+
+
+    /// All errors known in the system.
     type ClmError =
+        | AggregateErr of List<ClmError>
         | UnhandledExn of exn
         | UnknownErr of string
         | FileErr of FileError
@@ -90,6 +137,19 @@ module GeneralErrors =
         | WcfErr of WcfError
         | DbErr of DbError
         | ProcessStartedErr of ProcessStartedError
+        | MessagingServiceErr of MessagingServiceError
+
+        static member (+) (a, b) =
+            match a, b with
+            | AggregateErr x, AggregateErr y -> AggregateErr (x @ y)
+            | AggregateErr x, _ -> AggregateErr (x @ [b])
+            | _, AggregateErr y -> AggregateErr (a :: y)
+            | _ -> AggregateErr [ a; b ]
+
+
+    type UnitResult = Result<unit, ClmError>
+    type ClmResult<'T> = Result<'T, ClmError>
+    type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
 
 
     type ClmErrorInfo =

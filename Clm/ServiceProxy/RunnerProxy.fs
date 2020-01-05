@@ -65,16 +65,16 @@ module Runner =
 
     type RunnerProxy =
         {
-            tryLoadClmDefaultValue : ClmDefaultValueId -> Result<ClmDefaultValue, ClmError>
-            tryUpdateModelData : ModelData -> Result<unit, ClmError>
-            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> Result<RunQueueId, ClmError>
-            tryUpdateClmTask : ClmTask -> Result<unit, ClmError>
-            addClmTask : ClmTask -> Result<ClmTask, ClmError>
-            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId ->  Result<ClmTask, ClmError>
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> Result<ModelData, ClmError>
-            loadIncompleteClmTasks : SolverRunnerAccessInfo -> Result<list<Result<ClmTask, ClmError>>, ClmError>
-            loadRunQueue : SolverRunnerAccessInfo -> Result<list<RunQueue>, ClmError>
-            deleteRunQueueEntry : RunQueueId -> Result<unit, ClmError>
+            tryLoadClmDefaultValue : ClmDefaultValueId -> ClmResult<ClmDefaultValue>
+            tryUpdateModelData : ModelData -> UnitResult
+            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> ClmResult<RunQueueId>
+            tryUpdateClmTask : ClmTask -> UnitResult
+            addClmTask : ClmTask -> ClmResult<ClmTask>
+            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmResult<ClmTask>
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
+            loadRunQueue : SolverRunnerAccessInfo -> ListResult<RunQueue>
+            deleteRunQueueEntry : RunQueueId -> UnitResult
             runModel : RunModelParam -> ProcessStartedResult
         }
 

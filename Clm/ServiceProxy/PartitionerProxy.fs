@@ -28,20 +28,20 @@ module PartitionerProxy =
 
     type PartitionerProxy =
         {
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> Result<ModelData, ClmError>
-            saveResultData : ResultDataWithId -> Result<unit, ClmError>
-            tryLoadResultData : ResultDataId -> Result<ResultDataWithId, ClmError>
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            saveResultData : ResultDataWithId -> UnitResult
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
 
-            saveCharts : ChartInfo -> Result<unit, ClmError>
+            saveCharts : ChartInfo -> UnitResult
 
-            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> Result<unit, ClmError>
-            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> Result<RunModelParamWithRemoteId, ClmError>
-            loadAllRunModelParamWithRemoteId : unit -> Result<list<Result<RunModelParamWithRemoteId, ClmError>>, ClmError>
-            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> Result<unit, ClmError>
+            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
+            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
+            loadAllRunModelParamWithRemoteId : unit -> ListResult<RunModelParamWithRemoteId>
+            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
 
-            saveWorkerNodeState : WorkerNodeState -> Result<unit, ClmError>
-            loadAllWorkerNodeState : unit -> Result<list<Result<WorkerNodeState, ClmError>>, ClmError>
-            tryDeleteWorkerNodeState : WorkerNodeId -> Result<unit, ClmError>
+            saveWorkerNodeState : WorkerNodeState -> UnitResult
+            loadAllWorkerNodeState : unit -> ListResult<WorkerNodeState>
+            tryDeleteWorkerNodeState : WorkerNodeId -> UnitResult
         }
 
 

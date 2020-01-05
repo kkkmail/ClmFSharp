@@ -36,9 +36,9 @@ module SolverRunner =
 
     type SolverRunnerProxy =
         {
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> Result<ModelData, ClmError>
-            saveResultData : ResultDataWithId -> Result<unit, ClmError>
-            saveChartInfo : ChartInfo -> Result<unit, ClmError>
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            saveResultData : ResultDataWithId -> UnitResult
+            saveChartInfo : ChartInfo -> UnitResult
         }
 
         static member create (i : SolverRunnerProxyInfo) =

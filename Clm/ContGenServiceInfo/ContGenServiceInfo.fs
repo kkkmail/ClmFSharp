@@ -7,6 +7,7 @@ open System.Threading
 open Clm.ModelParams
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
+open ClmSys.GeneralErrors
 open System.Runtime.Remoting.Channels.Tcp
 
 module ServiceInfo =
@@ -191,10 +192,7 @@ module ServiceInfo =
             }
 
 
-    type ProcessStartedResult =
-        | StartedSuccessfully of ProcessStartedInfo
-        | AlreadyCompleted
-        | FailedToStart
+    type ProcessStartedResult = Result<ProcessStartedInfo, ProcessStartedError>
 
 
     type ProcessResult =
@@ -311,21 +309,9 @@ module ServiceInfo =
         p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
         p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
 
-        let started =
-            try
-                p.Start()
-            with
-                | ex ->
-                    ex.Data.Add("filename", filename)
-                    false
-
-        if not started
-        then
-            printfn "Failed to start process %s" filename
-            None
-        else
+        try
+            p.Start() |> ignore
             p.PriorityClass <- ProcessPriorityClass.Idle
-
             let processId = p.Id |> LocalProcessId
 
             printfn "Started %s with pid %A" p.ProcessName processId
@@ -334,7 +320,13 @@ module ServiceInfo =
                 localProcessId = processId
                 runningProcessData = c
             }
-            |> Some
+            |> Ok
+        with
+        | ex ->
+            printfn "Failed to start process %s" filename
+            ex.Data.["filename"] <- filename
+            ex.Data.["arguments"] <- args
+            FailedToStart ex |> Error
 
 
     type RunModelParam =

@@ -7,6 +7,7 @@ open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open ClmSys.GeneralErrors
+open ClmSys
 
 module Runner =
 
@@ -84,13 +85,10 @@ module Runner =
                 | LocalRunnerProxy c -> c.connectionString
                 | PartitionerRunnerProxy c -> c.connectionString
 
-            let runModelImpl (p : RunModelParam) : ProcessStartedResult =
+            let runModelImpl (p : RunModelParam) =
                 printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
                 match i with
-                | LocalRunnerProxy _ ->
-                    match runLocalModel p false with
-                    | Some e -> e.toProcessStartedInfo() |> StartedSuccessfully
-                    | None -> FailedToStart
+                | LocalRunnerProxy _ -> (runLocalModel p false) |> Rop.bind (fun e -> e.toProcessStartedInfo() |> Ok)
                 | PartitionerRunnerProxy c -> c.runModel p
 
             {

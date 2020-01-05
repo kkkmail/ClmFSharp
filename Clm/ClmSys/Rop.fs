@@ -57,9 +57,9 @@ module Rop =
 
 
     /// convert a one-track function into a switch with exception handling
-    let tryCatch f exnHandler x =
+    let tryCatch g exnHandler x =
         try
-            f x |> succeed
+            g x |> succeed
         with
         | ex -> exnHandler ex |> fail
 

@@ -36,7 +36,7 @@ module WorkerNodeProxy =
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> Result<unit, ClmError>
             tryLoadWorkerNodeRunModelData : RemoteProcessId ->  Result<WorkerNodeRunModelData, ClmError>
             tryDeleteWorkerNodeRunModelData : RemoteProcessId -> Result<unit, ClmError>
-            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ClmError>
+            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
             getCommandLine : RunModelParam -> string
             loadAllWorkerNodeRunModelData : unit -> Result<list<Result<WorkerNodeRunModelData, ClmError>>, ClmError>
 

@@ -77,6 +77,11 @@ module GeneralErrors =
         | DeleteRunQueueEntryError of Guid
 
 
+    type ProcessStartedError =
+        | AlreadyCompleted
+        | FailedToStart of exn
+
+
     type ClmError =
         | UnhandledExn of exn
         | UnknownErr of string
@@ -84,6 +89,7 @@ module GeneralErrors =
         | SerializationErr of SerializationError
         | WcfErr of WcfError
         | DbErr of DbError
+        | ProcessStartedErr of ProcessStartedError
 
 
     type ClmErrorInfo =

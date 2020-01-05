@@ -74,6 +74,7 @@ module GeneralErrors =
         | UpdateClmTaskError of Guid
         | UpdateModelDataError of Guid
         | ClmTaskTryCreatError of Guid
+        | DeleteRunQueueEntryError of Guid
 
 
     type ClmError =

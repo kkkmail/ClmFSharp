@@ -703,6 +703,10 @@ module DatabaseTypes =
                 DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let rowsAffected = cmd.Execute(runQueueId = runQueueId)
-            Ok rowsAffected
+            //Ok rowsAffected
+
+            match rowsAffected = 1 with
+            | true -> Ok ()
+            | false -> toDbError DeleteRunQueueEntryError runQueueId
 
         tryDbFun g

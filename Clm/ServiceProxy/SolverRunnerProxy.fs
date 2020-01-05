@@ -1,6 +1,5 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
 open ClmSys.GeneralData
 open ClmSys.Registry
 open DbData.Configuration
@@ -8,7 +7,7 @@ open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
 open Clm.CalculationData
 open Clm.ModelParams
-
+open ClmSys.GeneralErrors
 
 module SolverRunner =
 
@@ -37,36 +36,26 @@ module SolverRunner =
 
     type SolverRunnerProxy =
         {
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ModelData option
-            saveResultData : ResultDataWithId -> unit
-            saveChartInfo : ChartInfo -> unit
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> Result<ModelData, ClmError>
+            saveResultData : ResultDataWithId -> Result<unit, ClmError>
+            saveChartInfo : ChartInfo -> Result<unit, ClmError>
         }
 
-
         static member create (i : SolverRunnerProxyInfo) =
-            let logError e = printfn "Error: %A" e
-            let tryDbFun c f = tryDbFun logError c f
-            let tryFun f = tryFun logError f
-
             let tryLoadModelDataImpl a m =
                 match i with
-                | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
-                | RemoteSolverRunner _ -> tryFun (fun _ -> tryLoadModelDataFs solverRunnerName m)
-                |> Option.bind id
+                | LocalSolverRunner c -> tryLoadModelData c.connectionString a m
+                | RemoteSolverRunner _ -> tryLoadModelDataFs solverRunnerName m
 
             let saveResultDataImpl r =
                 match i with
-                | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r) |> ignore
-                | RemoteSolverRunner _ ->
-                    printfn "SolverRunnerProxy.saveResultDataImpl - saving results..."
-                    tryFun (fun () -> saveResultDataFs solverRunnerName r) |> ignore
+                | LocalSolverRunner c -> saveResultData c.connectionString r
+                | RemoteSolverRunner _ -> trySaveResultDataFs solverRunnerName r
 
             let saveChartInfoImpl r =
                 match i with
-                | LocalSolverRunner _ -> ignore()
-                | RemoteSolverRunner _ ->
-                    printfn "SolverRunnerProxy.saveChartsImpl - saving charts: %A" r
-                    tryFun (fun () -> saveChartInfoFs solverRunnerName r) |> ignore
+                | LocalSolverRunner _ -> Ok()
+                | RemoteSolverRunner _ -> trySaveChartInfoFs solverRunnerName r
 
             {
                 tryLoadModelData = tryLoadModelDataImpl

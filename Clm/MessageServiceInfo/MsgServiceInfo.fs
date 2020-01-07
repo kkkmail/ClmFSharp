@@ -251,11 +251,7 @@ module ServiceInfo =
     type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
 
 
-    type MessageDelivered =
-        | MessageDelivered
-
-
-    type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
+    type MessageDeliveryResult = Result<unit, MessageDeliveryError>
 
 
     type ServiceConfigured =

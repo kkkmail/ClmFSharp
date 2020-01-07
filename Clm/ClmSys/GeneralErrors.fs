@@ -117,6 +117,9 @@ module GeneralErrors =
     type GetStateError =
         | GetStateWcfError of WcfError
 
+    type MessageNotFoundError =
+        | MessageNotFoundError of Guid
+
 
     type MessagingServiceError =
         | GetVersionErr of GetVersionError
@@ -125,6 +128,10 @@ module GeneralErrors =
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError
         | GetStateErr of GetStateError
+
+
+    type MessagingClientError =
+        | MessageNotFoundErr of MessageNotFoundError
 
 
     /// All errors known in the system.
@@ -138,6 +145,7 @@ module GeneralErrors =
         | DbErr of DbError
         | ProcessStartedErr of ProcessStartedError
         | MessagingServiceErr of MessagingServiceError
+        | MessagingClientErr of MessagingClientError
 
         static member (+) (a, b) =
             match a, b with
@@ -145,6 +153,12 @@ module GeneralErrors =
             | AggregateErr x, _ -> AggregateErr (x @ [b])
             | _, AggregateErr y -> AggregateErr (a :: y)
             | _ -> AggregateErr [ a; b ]
+
+
+    let foldErrors (a : list<ClmError>) =
+        match a with
+        | [] -> None
+        | h :: t -> t |> List.fold (fun acc r -> r + acc) h |> Some
 
 
     type UnitResult = Result<unit, ClmError>

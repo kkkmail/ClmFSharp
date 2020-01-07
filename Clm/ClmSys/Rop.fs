@@ -105,3 +105,51 @@ module Rop =
             a f |> ignore
             []
         |> List.choose id
+
+
+    //let unwrapFailure a b r =
+    //    match r with
+    //    | Ok v ->
+    //        v
+    //        |> List.map (fun e ->
+    //                match e with
+    //                | Ok x -> Some x
+    //                | Error f ->
+    //                    b f |> ignore
+    //                    None)
+    //    | Error f ->
+    //        a f |> ignore
+    //        []
+    //    |> List.choose id
+
+
+    let unzip r =
+        let success e =
+            match e with
+            | Ok v -> Some v
+            | Error _ -> None
+
+        let failure e =
+            match e with
+            | Ok _ -> None
+            | Error e -> Some e
+
+        let sf e = success e, failure e
+        let s, f = r |> List.map sf |> List.unzip
+        s |> List.choose id, f |> List.choose id
+
+
+    /// Updates the state using success or failure.
+    let x successFunc failureFunc state twoTrackInput =
+        match twoTrackInput with
+        | Ok v -> successFunc state v
+        | Error f -> failureFunc state f
+
+
+    /// Updates the state if success and calls falure function (logger) in case of failure.
+    let y successFunc failureFunc state twoTrackInput =
+        match twoTrackInput with
+        | Ok v -> successFunc state v
+        | Error f ->
+            failureFunc f
+            state

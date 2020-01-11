@@ -499,12 +499,13 @@ module GeneralData =
     /// http://www.fssnip.net/iW/title/Oneliner-generic-timing-function
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
 
+
     let private timedImpl (l : Logger) name f =
         let (r, t) = time f ()
 
         if t.TotalSeconds <= 5.0
-        then l.logInfo (sprintf "%s: Execution time: %A" name t)
-        else l.logInfo (sprintf "%s: !!! LARGE Execution time: %A" name t)
+        then l.logInfo name (sprintf "Execution time: %A"t)
+        else l.logInfo name (sprintf "!!! LARGE Execution time: %A" t)
 
         r
 

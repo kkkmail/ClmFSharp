@@ -123,6 +123,7 @@ module Rop =
     //    |> List.choose id
 
 
+    /// Splits the list of results into list of successes and list of failures.
     let unzip r =
         let success e =
             match e with

@@ -109,6 +109,7 @@ module Client =
         {
             startTransmitting : unit -> unit
             removeExpiredMessages : unit -> unit
+            loadMessages : unit -> ListResult<MessageWithType>
         }
 
 
@@ -124,13 +125,13 @@ module Client =
 
 
     type MessagingClientMessage =
-        | Start of MessagingClientOnStartProxy
+        | Start of MessagingClientOnStartProxy * AsyncReplyChannel<ClmError option>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of MessageInfo
         | StartTransmitting
         | ConfigureClient of MessagingClientConfigParam
-        | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
-        | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<bool>
+        | TryPeekReceivedMessage of AsyncReplyChannel<ClmResult<Message option>>
+        | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<UnitResult>
         | RemoveExpiredMessages
 
 
@@ -334,32 +335,40 @@ module Client =
         | None -> m.value |> MessageNotFoundError |> MessageNotFoundErr |> MessagingClientErr |> failedToRemove
 
 
-    let onStart (s : MessagingClientStateData) (w : MessagingClientOnStartProxy) =
-        match s.messagingClientState with
-        | MsgCliNotStarted ->
-            let messages = s.proxy.loadMessages()
-            let incoming = messages |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
-            let outgoing = messages |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
+    let onStart (s : MessagingClientStateData) (w : MessagingClientOnStartProxy) (r : AsyncReplyChannel<ClmError option>) =
+        let w, f =
+            match s.messagingClientState with
+            | MsgCliNotStarted ->
+                match w.loadMessages() with
+                | Ok messages ->
+                    let m, e = messages |> Rop.unzip
+                    let incoming = m |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
+                    let outgoing = m |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
+                    let error = foldErrors e
 
-            let eventHandler _ =
-                printfn "%s: Transmitting messages..." onTransmittingName
-                w.startTransmitting()
+                    //let eventHandler _ =
+                    //    printfn "%s: Transmitting messages..." onTransmittingName
+                    //    w.startTransmitting()
 
-            let h = new EventHandler(EventHandlerInfo.defaultValue (s.logExn onTransmittingName) eventHandler)
-            do h.start()
+                    //let h = new EventHandler(EventHandlerInfo.defaultValue (s.logExn onTransmittingName) eventHandler)
+                    //do h.start()
 
-            let eventHandler1 _ =
-                w.removeExpiredMessages()
+                    //let eventHandler1 _ =
+                    //    w.removeExpiredMessages()
 
-            let h1 = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler1)
-            do h1.start()
+                    //let h1 = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler1)
+                    //do h1.start()
 
-            { s with
-                messagingClientState = MsgCliIdle
-                outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
-                incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
-            }
-        | MsgCliIdle -> s
+                    { s with
+                        messagingClientState = MsgCliIdle
+                        outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
+                        incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
+                    }, error
+                | Error e -> s, e |> Some
+            | MsgCliIdle -> s, None
+
+        r.Reply f
+        w
 
 
     let onStartTransmitting proxy s =
@@ -426,7 +435,7 @@ module Client =
                     async
                         {
                             match! u.Receive() with
-                            | Start w -> return! onStart s w |> (logErr loop)
+                            | Start (w, r) -> return! onStart s w r |> loop
                             | GetVersion r -> return! onGetVersion s r |> loop
                             | SendMessage m -> return! onSendMessage saveMsg msgClietnId s m |> (logErr loop)
                             | StartTransmitting -> return! onStartTransmitting s |> (logErr loop)
@@ -440,7 +449,7 @@ module Client =
                 )
 
 
-        member m.start() = Start m.messagingClientOnStartProxy |> messageLoop.Post
+        member m.start() = messageLoop.PostAndReply (fun reply -> Start (m.messagingClientOnStartProxy, reply))
         member _.getVersion() = GetVersion |> messageLoop.PostAndReply
         member _.sendMessage (m : MessageInfo) = SendMessage m |> messageLoop.Post
         member _.configureClient x = ConfigureClient x |> messageLoop.Post
@@ -448,6 +457,7 @@ module Client =
         member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
         member _.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (m, reply))
         member _.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post
+
 
         member m.messageProcessorProxy : MessageProcessorProxy =
             {
@@ -461,6 +471,7 @@ module Client =
             {
                 startTransmitting = m.startTransmitting
                 removeExpiredMessages = m.removeExpiredMessages
+                loadMessages = d.msgClientProxy.loadMessages
             }
 
 
@@ -469,7 +480,7 @@ module Client =
                 saveMessage = d.msgClientProxy.saveMessage
                 deleteMessage = d.msgClientProxy.deleteMessage
                 getVersion = d.messagingService.getVersion
-                sendMessage = d.messagingService.sendMessage d.msgAccessInfo.msgClientId
+                sendMessage = d.messagingService.sendMessage
                 tryPeekMessage = fun () -> d.messagingService.tryPeekMessage d.msgAccessInfo.msgClientId
                 tryDeleteFromServer = fun x -> d.messagingService.tryDeleteFromServer (d.msgAccessInfo.msgClientId, x)
             }
@@ -485,7 +496,7 @@ module Client =
             if Interlocked.Increment(&callCount) = 0
             then
                 match w.tryPeekReceivedMessage() with
-                | Some m ->
+                | Ok (Some m) ->
                     try
                         printfn "    %s: calling f m, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
                         let r = f x m

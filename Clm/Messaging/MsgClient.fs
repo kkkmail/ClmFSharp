@@ -29,7 +29,6 @@ module Client =
             largeMessages : int
         }
 
-        with
         static member defaultValue =
             {
                 smallMessages = 0
@@ -130,27 +129,9 @@ module Client =
         | SendMessage of MessageInfo
         | StartTransmitting
         | ConfigureClient of MessagingClientConfigParam
-        | TryPeekReceivedMessage of AsyncReplyChannel<ClmResult<Message option>>
+        | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
         | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<UnitResult>
         | RemoveExpiredMessages
-
-
-    let private className = "MessagingClient"
-    let private getMethodName n = className + "." + n
-    let private onSendMessageName = getMethodName "onSendMessage"
-    let private onGetVersionName = getMethodName "onGetVersion"
-    let private sendMessageImplName = getMethodName "sendMessageImpl"
-    let private tryReceiveSingleMessageName = getMethodName "tryReceiveSingleMessage"
-    let private receiveMessagesImplName = getMethodName "receiveMessagesImpl"
-    let private onFinishTransmittingName = getMethodName "onFinishTransmitting"
-    let private onConfigureClientName = getMethodName "onConfigureClient"
-    let private onTryPeekReceivedMessageName = getMethodName "onTryPeekReceivedMessage"
-    let private onTryRemoveReceivedMessageName = getMethodName "onTryRemoveReceivedMessage"
-    let private onStartName = getMethodName "onStart"
-    let private onTransmittingName = getMethodName "onTransmitting"
-    let private onStartTransmittingName = getMethodName "onStartTransmitting"
-    let private onTryProcessMessageName = getMethodName "onTryProcessMessage"
-    let private onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
 
 
     /// Outgoing messages are stored with the newest at the head.
@@ -259,7 +240,7 @@ module Client =
         }
 
 
-    let onSendMessageImpl saveMessage msgClientId (m : MessageInfo) =
+    let onSendMessage saveMessage msgClientId s m =
         let message = createMessage msgClientId m
 
         let err =
@@ -270,11 +251,6 @@ module Client =
                 | Error e -> Some e
             | NonGuaranteedDelivery -> None
 
-        message, err
-
-
-    let onSendMessage saveMessage  msgClientId s m =
-        let message, err = onSendMessageImpl saveMessage msgClientId m
         { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }, err
 
 
@@ -414,20 +390,10 @@ module Client =
         { s with outgoingMessages = fst o; incomingMessages = fst i }, e
 
 
-    let logError f g (s, e) =
-        match e with
-        | None -> ignore()
-        | Some err -> f err
-
-        g s
-
-
     type MessagingClient(d : MessagingClientData) =
         let saveMsg = d.msgClientProxy.saveMessage
         let deleteMsg = d.msgClientProxy.deleteMessage
         let msgClietnId = d.msgAccessInfo.msgClientId
-        let fail e = ignore()
-        let logErr = logError fail
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -437,12 +403,12 @@ module Client =
                             match! u.Receive() with
                             | Start (w, r) -> return! onStart s w r |> loop
                             | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage m -> return! onSendMessage saveMsg msgClietnId s m |> (logErr loop)
-                            | StartTransmitting -> return! onStartTransmitting s |> (logErr loop)
+                            | SendMessage m -> return! onSendMessage saveMsg msgClietnId s m |> loop
+                            | StartTransmitting -> return! onStartTransmitting s |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
-                            | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage deleteMsg s m r |> (logErr loop)
-                            | RemoveExpiredMessages -> return! onRemoveExpiredMessages deleteMsg s |> (logErr loop)
+                            | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage deleteMsg s m r |> loop
+                            | RemoveExpiredMessages -> return! onRemoveExpiredMessages deleteMsg s |> loop
                         }
 
                 MessagingClientStateData.defaultValue |> loop
@@ -486,36 +452,29 @@ module Client =
             }
 
 
-    let mutable private callCount = -1
-
-
-    let onTryProcessMessage (w : MessageProcessorProxy) x f =
-        printfn "%s: Starting..." onTryProcessMessageName
-
-        let retVal =
-            if Interlocked.Increment(&callCount) = 0
-            then
-                match w.tryPeekReceivedMessage() with
-                | Ok (Some m) ->
-                    try
-                        printfn "    %s: calling f m, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-                        let r = f x m
-                        printfn "    %s: calling tryRemoveReceivedMessage, messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-
-                        match w.tryRemoveReceivedMessage m.messageDataInfo.messageId with
-                        | true -> printfn "    %s: Successfully removed messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-                        | false -> printfn "    %s: !!! ERROR !!! removing messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
-
-                        printfn "    %s - completed." onTryProcessMessageName
-                        Some r
-                    with
-                    | ex ->
-                        w.logger.logExn onTryProcessMessageName ex
-                        None
-                | None -> None
-            else
-                printfn "%s: Not processing message at %A because callCount = %A." onTryProcessMessageName DateTime.Now callCount
-                None
-
-        Interlocked.Decrement(&callCount) |> ignore
-        retVal
+    //let mutable private callCount = -1
+    //
+    //
+    //let onTryProcessMessage (w : MessageProcessorProxy) x f =
+    //    let retVal =
+    //        if Interlocked.Increment(&callCount) = 0
+    //        then
+    //            match w.tryPeekReceivedMessage() with
+    //            | Ok (Some m) ->
+    //                try
+    //                    let r = f x m
+    //
+    //                    match w.tryRemoveReceivedMessage m.messageDataInfo.messageId with
+    //                    | true -> printfn "    %s: Successfully removed messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+    //                    | false -> printfn "    %s: !!! ERROR !!! removing messageId: %A, createdOn: %A" onTryProcessMessageName m.messageDataInfo.messageId m.messageDataInfo.createdOn
+    //                    Some r
+    //                with
+    //                | ex ->
+    //                    w.logger.logExn onTryProcessMessageName ex
+    //                    None
+    //            | None -> None
+    //        else
+    //            None
+    //
+    //    Interlocked.Decrement(&callCount) |> ignore
+    //    retVal

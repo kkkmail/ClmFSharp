@@ -8,6 +8,6 @@ module MsgProcessorProxy =
     type MessageProcessorProxy =
         {
             sendMessage : MessageInfo -> UnitResult
-            tryPeekReceivedMessage : unit -> ClmResult<Message option>
+            tryPeekReceivedMessage : unit -> Message option
             tryRemoveReceivedMessage : MessageId -> UnitResult
         }

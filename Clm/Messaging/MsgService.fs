@@ -13,22 +13,25 @@ open ClmSys.GeneralErrors
 
 module Service =
 
+    let private toError f = f |> MessagingServiceErr |> Error
+
+
     type MessagingServiceData =
         {
             messagingServiceProxy : MessagingServiceProxy
-            logger : Logger
+            //logger : Logger
         }
 
 
     type MessagingServiceState =
         {
             workState : MessagingWorkState
-            messageServiceData : MessagingServiceData
+            //messageServiceData : MessagingServiceData
             messages : Map<MessagingClientId, List<MessageWithOptionalData>>
             expirationTime : TimeSpan
         }
 
-        member s.proxy = s.messageServiceData.messagingServiceProxy
+        //member s.proxy = s.messageServiceData.messagingServiceProxy
 
         member s.getState() =
             {
@@ -37,37 +40,44 @@ module Service =
                 msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageDataInfo.messageId))
             }
 
-        static member defaultValue d =
+        static member defaultValue =
             {
                 workState = MsgSvcNotStarted
-                messageServiceData = d
+                //messageServiceData = d
                 messages = Map.empty
                 expirationTime = TimeSpan(6, 0, 0)
             }
 
 
-    let private className = "MessagingService"
-    let private getMethodName n = className + "." + n
-    let private updateMessagesName = getMethodName "updateMessages"
-    let private onStartName = getMethodName "onStart"
-    let private onGetVersionName = getMethodName "onGetVersion"
-    let private onSendMessageName = getMethodName "onSendMessage"
-    let private onTryPeekMessageName = getMethodName "onTryPeekMessage"
-    let private onTryDeleteFromServerName = getMethodName "onTryDeleteFromServer"
-    let private onConfigureName = getMethodName "onConfigure"
-    let private onGetStateName = getMethodName "onGetState"
-    let private onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
+    type OnStartProxy =
+        {
+            loadMessages : unit -> ListResult<Message>
+            updateMessages : MessagingServiceState -> Message -> MessagingServiceState
+        }
+
+
+    //let private className = "MessagingService"
+    //let private getMethodName n = className + "." + n
+    //let private updateMessagesName = getMethodName "updateMessages"
+    //let private onStartName = getMethodName "onStart"
+    //let private onGetVersionName = getMethodName "onGetVersion"
+    //let private onSendMessageName = getMethodName "onSendMessage"
+    //let private onTryPeekMessageName = getMethodName "onTryPeekMessage"
+    //let private onTryDeleteFromServerName = getMethodName "onTryDeleteFromServer"
+    //let private onConfigureName = getMethodName "onConfigure"
+    //let private onGetStateName = getMethodName "onGetState"
+    //let private onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
 
 
     type MessagingServiceMessage =
-        | Start of AsyncReplyChannel<ClmError option>
+        | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-        | SendMessage of Message * AsyncReplyChannel<MessageDeliveryResult>
+        | SendMessage of Message * AsyncReplyChannel<UnitResult>
         | ConfigureService of MessagingConfigParam
         | GetState of AsyncReplyChannel<MsgServiceState>
         | TryPeekMessage of MessagingClientId * AsyncReplyChannel<ClmResult<Message option>>
         | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<UnitResult>
-        | RemoveExpiredMessages
+        | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
 
 
     let updateMessages s (m : Message) =
@@ -78,44 +88,46 @@ module Service =
         x
 
 
-    let onStart (loadMessages : unit -> ListResult<Message>) (s : MessagingServiceState) (r : AsyncReplyChannel<ClmError option>) =
+    let onStart (proxy : OnStartProxy) (s : MessagingServiceState) (r : AsyncReplyChannel<UnitResult>) =
         let w, f =
             match s.workState with
             | MsgSvcNotStarted ->
-                match loadMessages() with
+                match proxy.loadMessages() with
                 | Ok q ->
                     let v, e = q |> Rop.unzip
 
                     let x =
                         v
                         |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
-                        |> List.fold (fun acc e -> updateMessages acc e) s
+                        |> List.fold (fun acc e -> proxy.updateMessages acc e) s
 
                 //let eventHandler _ = w.removeExpiredMessages()
                 //let h = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler)
                 //do h.start()
 
-                    { x with workState = CanTransmitMessages }, foldErrors e
-                | Error e -> s, Some e
-            | CanTransmitMessages | ShuttingDown -> s, None
+                    { x with workState = CanTransmitMessages }, foldToUnitResult e
+                | Error e -> s, Error e
+            | CanTransmitMessages | ShuttingDown -> s, Ok()
 
         r.Reply f
         w
 
 
     let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
-        printfn "%s" onGetVersionName
         r.Reply messagingDataVersion
         s
 
 
-    let onSendMessage saveMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<MessageDeliveryResult>) =
+    /// kk:20200120 - If it gets to the point that it is possible to handle some specific errors, then
+    /// create a proxy instead of saveMessage and then add an "error handler" to the proxy.
+    /// The "error handler" should be "responsible" for whatever it can when handling lower level errors.
+    let onSendMessage saveMessage (s : MessagingServiceState) (m : Message) (r : AsyncReplyChannel<UnitResult>) =
         let w, f =
             match m.messageDataInfo.dataVersion.value = messagingDataVersion.value with
             | true ->
                 match s.workState with
-                | MsgSvcNotStarted -> s, ServiceNotStarted |> Error
-                | ShuttingDown -> s, ServerIsShuttingDown |> Error
+                | MsgSvcNotStarted -> s, ServiceNotStarted |> MessageDeliveryErr |> toError
+                | ShuttingDown -> s, ServerIsShuttingDown |> MessageDeliveryErr |> toError
                 | CanTransmitMessages ->
                     let err =
                         match m.messageDataInfo.recipientInfo.deliveryType, m.messageData.keepInMemory() with
@@ -123,7 +135,7 @@ module Service =
                         | NonGuaranteedDelivery, true -> Ok()
 
                     updateMessages s m, err
-            | false -> s, messagingDataVersion |> DataVersionMismatch |> Error
+            | false -> s, messagingDataVersion |> DataVersionMismatch |> MessageDeliveryErr |> toError
 
         r.Reply f
         w
@@ -142,54 +154,80 @@ module Service =
 
 
     let onTryPeekMessage tryLoadMessage s n (r : AsyncReplyChannel<ClmResult<Message option>>) =
-        let reply, w =
-            match s.messages.TryFind n with
+        let w, f =
+            match s.messages |> Map.tryFind n with
             | Some v ->
                 // Note that we need to apply List.rev to get to the first message.
                 match List.rev v with
-                | [] -> Ok None, s
+                | [] -> s, Ok None
                 | h :: t ->
                     match h.toMessasge() with
-                    | Some m -> Ok(Some m), s
+                    | Some m -> s, Ok(Some m)
                     | None ->
+                        //match tryLoadMessage h.messageDataInfo.messageId with
+                        //| Ok(Some m) -> Ok(Some m), s
+                        //| Ok None ->
+                        //    let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> toError
+                        //    err, { s with messages = s.messages.Add(n, t |> List.rev) }
+                        //| Error e -> Error e, s
                         match tryLoadMessage h.messageDataInfo.messageId with
-                        | Ok(Some m) -> Ok(Some m), s
-                        | Ok None ->
-                            let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr |> Error
-                            err, { s with messages = s.messages.Add(n, t |> List.rev) }
-                        | Error e -> Error e, s
-            | None -> Ok None, s
+                        | Ok m -> s, Ok(Some m)
+                        | Error e ->
+                            let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr
+                            { s with messages = s.messages.Add(n, t |> List.rev) }, Error (err + e)
+            | None -> s, Ok None
 
-        r.Reply reply
+        r.Reply f
         w
 
 
-    let onTryDeleteFromServer deleteMessage s n m (r : AsyncReplyChannel<bool>) =
-        match s.messages.TryFind n with
-        | Some v ->
-            let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
-            r.Reply (x.Length <> v.Length)
-            deleteMessage m
-            { s with messages = s.messages.Add(n, x) }
-        | None ->
-            printfn "    %s: Cannot find client for ClientId %A." onTryDeleteFromServerName n
-            r.Reply false
-            s
+    let onTryDeleteFromServer deleteMessage s n m (r : AsyncReplyChannel<UnitResult>) =
+        let w, f =
+            match s.messages.TryFind n with
+            | Some v ->
+                let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
+                let z() = { s with messages = s.messages.Add(n, x) }
+                let f() = (n.value, m.value) |> UnableToDeleteMessageError |> TryDeleteFromServerErr |> MessagingServiceErr
+
+                match x.Length <> v.Length, deleteMessage m with
+                | true, Ok() -> z(), Ok()
+                | false, Ok() -> z(), f() |> Error
+                | true, Error e -> z(), Error e
+                | false, Error e -> z(), e + f() |> Error
+            | None -> s, n.value |> CannotFindClientError |> TryDeleteFromServerErr |> toError
+
+        r.Reply f
+        w
 
 
-    let onRemoveExpiredMessages (s : MessagingServiceState) =
-        let removeExpired (r : List<MessageWithOptionalData>) =
-            let expired, notExpired = r |> List.partition (fun e -> e.isExpired s.expirationTime)
-            expired |> List.map (fun e -> s.proxy.deleteMessage e.messageDataInfo.messageId) |> ignore
-            notExpired
+    let removeExpired deleteMessage expirationTime (r : List<MessageWithOptionalData>) =
+        let expired, notExpired = r |> List.partition (fun e -> e.isExpired expirationTime)
 
-        { s with messages = s.messages |> Map.toList |> List.map (fun (n, r) -> (n, removeExpired r)) |> Map.ofList}
+        let (_, f) =
+            expired
+            |> List.map (fun e -> deleteMessage e.messageDataInfo.messageId)
+            |> Rop.unzip
+
+        notExpired, f |> foldErrors
 
 
+    let onRemoveExpiredMessages deleteMessage (s : MessagingServiceState) (r : AsyncReplyChannel<UnitResult>) =
+        let m, fo =
+            s.messages
+            |> Map.toList
+            |> List.map (fun (n, r) -> (n, removeExpired deleteMessage s.expirationTime r))
+            |> List.map (fun (n, (m, f)) -> (n, m), f)
+            |> List.unzip
+
+        let f = fo |> List.choose id |> foldErrors |> Option.bind (fun e -> e |> Error |> Some) |> (Option.defaultValue (Ok()))
+        r.Reply f
+        { s with messages = m |> Map.ofList }
 
 
     type MessagingService(d : MessagingServiceData) =
-        let loadMsg = d.messagingServiceProxy.loadMessages
+        let deleteMsg = d.messagingServiceProxy.deleteMessage
+        let tryLoadMsg = d.messagingServiceProxy.tryLoadMessage
+        let saveMsg = d.messagingServiceProxy.saveMessage
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -197,28 +235,34 @@ module Service =
                     async
                         {
                             match! u.Receive() with
-                            | Start w -> return! (timed onStartName onStart s w |> loop)
-                            | GetVersion r -> return! (timed onGetVersionName onGetVersion s r |> loop)
-                            | SendMessage (m, r) -> return! (timed onSendMessageName onSendMessage s m r |> loop)
-                            | ConfigureService x -> return! (timed onConfigureName onConfigure s x |> loop)
-                            | GetState r -> return! (timed onGetStateName onGetState s r |> loop)
-                            | TryPeekMessage (n, r) -> return! (timed onTryPeekMessageName onTryPeekMessage s n r |> loop)
-                            | TryDeleteFromServer (n, m, r) -> return! (timed onTryDeleteFromServerName onTryDeleteFromServer s n m r |> loop)
-                            | RemoveExpiredMessages -> return! (timed onRemoveExpiredMessagesName onRemoveExpiredMessages s |> loop)
+                            | Start (p, r) -> return! onStart p s r |> loop
+                            | GetVersion r -> return! onGetVersion s r |> loop
+                            | SendMessage (m, r) -> return! onSendMessage saveMsg s m r |> loop
+                            | ConfigureService x -> return! onConfigure s x |> loop
+                            | GetState r -> return! onGetState s r |> loop
+                            | TryPeekMessage (n, r) -> return! onTryPeekMessage tryLoadMsg s n r |> loop
+                            | TryDeleteFromServer (n, m, r) -> return! onTryDeleteFromServer deleteMsg s n m r |> loop
+                            | RemoveExpiredMessages r -> return! onRemoveExpiredMessages deleteMsg s r |> loop
                         }
 
-                (MessagingServiceState.defaultValue d) |> loop
+                MessagingServiceState.defaultValue |> loop
                 )
 
-        member this.start() = Start this |> messageLoop.Post
-        member __.getVersion() = GetVersion |> messageLoop.PostAndReply |> Ok
-        member __.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+        member m.start() = messageLoop.PostAndReply (fun reply -> Start (m.onStartProxy, reply))
+        member _.getVersion() = GetVersion |> messageLoop.PostAndReply |> Ok
+        member _.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
 
-        member __.configureService x =
+        member _.configureService x =
             ConfigureService x |> messageLoop.Post
             Ok ServiceConfigured
 
-        member __.getState() = GetState |> messageLoop.PostAndReply |> Ok
-        member __.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok
-        member __.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply)) |> Ok
-        member private __.removeExpiredMessages() = RemoveExpiredMessages |> messageLoop.Post
+        member _.getState() = GetState |> messageLoop.PostAndReply |> Ok
+        member _.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok
+        member _.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply)) |> Ok
+        member _.removeExpiredMessages() = messageLoop.PostAndReply RemoveExpiredMessages
+
+        member _.onStartProxy =
+            {
+                loadMessages = d.messagingServiceProxy.loadMessages
+                updateMessages = updateMessages
+            }

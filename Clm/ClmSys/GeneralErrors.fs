@@ -98,9 +98,9 @@ module GeneralErrors =
 
     type MessageDeliveryError =
         | ServiceNotStarted
+        | ServerIsShuttingDown
         | DataVersionMismatch of MessagingDataVersion
         | MsgWcfError of WcfError
-        | ServerIsShuttingDown
 
 
     type ConfigureServiceError =
@@ -114,10 +114,13 @@ module GeneralErrors =
 
     type TryDeleteFromServerError =
         | TryDeleteMsgWcfError of WcfError
+        | CannotFindClientError of Guid
+        | UnableToDeleteMessageError of (Guid * Guid)
 
 
     type GetStateError =
         | GetStateWcfError of WcfError
+
 
     type MessageNotFoundError =
         | MessageNotFoundError of Guid
@@ -159,10 +162,21 @@ module GeneralErrors =
 
 
     /// Folds list<ClmError> in a single ClmError.
+    /// Note that we cannot elevate to Result here as it will broaden the scope.
     let foldErrors (a : list<ClmError>) =
         match a with
         | [] -> None
         | h :: t -> t |> List.fold (fun acc r -> r + acc) h |> Some
+
+
+    let toUnitResult fo =
+        match fo with
+        | None -> Ok()
+        | Some f -> Error f
+
+
+    /// Folds list<ClmError>, then converts to UnitResult.
+    let foldToUnitResult = foldErrors >> toUnitResult
 
 
     type UnitResult = Result<unit, ClmError>

@@ -57,7 +57,7 @@ module Client =
             msgAccessInfo : MessagingClientAccessInfo
             messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
-            logger : Logger
+            //logger : Logger
         }
 
 

@@ -97,6 +97,7 @@ module GeneralErrors =
 
 
     type MessageDeliveryError =
+        | ServiceNotStarted
         | DataVersionMismatch of MessagingDataVersion
         | MsgWcfError of WcfError
         | ServerIsShuttingDown
@@ -108,6 +109,7 @@ module GeneralErrors =
 
     type TryPeekMessageError =
         | TryPeekMsgWcfError of WcfError
+        | UnableToLoadMessageError of (Guid * Guid)
 
 
     type TryDeleteFromServerError =

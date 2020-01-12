@@ -4,11 +4,9 @@ open System
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
 open ClmSys.Logging
-open ClmSys.GeneralData
 open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
-open ClmSys.TimerEvents
 open System.Threading
 open ServiceProxy.MsgProcessorProxy
 open ClmSys
@@ -104,12 +102,16 @@ module Client =
             }
 
 
-    //type MessagingClientOnStartProxy =
-    //    {
-    //        //startTransmitting : unit -> unit
-    //        //removeExpiredMessages : unit -> unit
-    //        loadMessages : unit -> ListResult<MessageWithType>
-    //    }
+    type TrySaveMessageProxy =
+        {
+            saveMessage : MessageWithType -> UnitResult
+        }
+
+
+    type TryRemoveMessageProxy =
+        {
+            deleteMessage : MessageId -> UnitResult
+        }
 
 
     type TryReceiveSingleMessageProxy =
@@ -122,11 +124,21 @@ module Client =
             tryDeleteFromServer : MessageId -> TryDeleteFromServerResult
         }
 
+        member p.trySaveMessageProxy =
+            {
+                saveMessage = p.saveMessage
+            }
+
+        member p.tryRemoveMessageProxy =
+            {
+                deleteMessage = p.deleteMessage
+            }
+
 
     type MessagingClientMessage =
         | Start of AsyncReplyChannel<ClmError option>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-        | SendMessage of MessageInfo
+        | SendMessage of MessageInfo * AsyncReplyChannel<ClmError option>
         | TransmitMessages of TryReceiveSingleMessageProxy * AsyncReplyChannel<ClmError option>
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
@@ -142,7 +154,7 @@ module Client =
     let sortIncoming (m : List<Message>) = m |> List.sortBy (fun e -> e.messageDataInfo.createdOn)
 
 
-    let trySaveMessage (proxy : TryReceiveSingleMessageProxy) (m : Message) =
+    let trySaveMessage (proxy : TrySaveMessageProxy) (m : Message) =
         match m.messageDataInfo.recipientInfo.deliveryType with
         | GuaranteedDelivery ->
             {
@@ -153,7 +165,7 @@ module Client =
         | NonGuaranteedDelivery -> Ok()
 
 
-    let tryRemoveMessage (proxy : TryReceiveSingleMessageProxy) (m : Message) e =
+    let tryRemoveMessage (proxy : TryRemoveMessageProxy) (m : Message) e =
         let e1 = e |> TryDeleteFromServerErr |> MessagingServiceErr
 
         match proxy.deleteMessage m.messageDataInfo.messageId with
@@ -172,11 +184,11 @@ module Client =
     let tryReceiveSingleMessage (proxy : TryReceiveSingleMessageProxy) : MessageResult =
         match proxy.tryPeekMessage () with
         | Ok (Some m) ->
-            match trySaveMessage proxy m with
+            match trySaveMessage proxy.trySaveMessageProxy m with
             | Ok _ ->
                 match proxy.tryDeleteFromServer m.messageDataInfo.messageId with
                 | Ok _ -> toMessageWithSize m
-                | Error e -> tryRemoveMessage proxy m e
+                | Error e -> tryRemoveMessage proxy.tryRemoveMessageProxy m e
             | Error e -> Error e
         | Ok None -> Ok NoMessage
         | Error e -> e |> TryPeekMessageErr |> MessagingServiceErr |> Error
@@ -240,7 +252,7 @@ module Client =
         }
 
 
-    let onSendMessage saveMessage msgClientId s m =
+    let onSendMessage saveMessage msgClientId s m (r : AsyncReplyChannel<ClmError option>) =
         let message = createMessage msgClientId m
 
         let err =
@@ -251,7 +263,8 @@ module Client =
                 | Error e -> Some e
             | NonGuaranteedDelivery -> None
 
-        { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }, err
+        r.Reply err
+        { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }
 
 
     let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
@@ -410,7 +423,7 @@ module Client =
                             match! u.Receive() with
                             | Start r -> return! onStart s loadMsg r |> loop
                             | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage m -> return! onSendMessage saveMsg msgClietnId s m |> loop
+                            | SendMessage (m, r) -> return! onSendMessage saveMsg msgClietnId s m r |> loop
                             | TransmitMessages (p, r) -> return! onTransmitMessages p s r |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
@@ -424,7 +437,7 @@ module Client =
 
         member _.start() = messageLoop.PostAndReply Start
         member _.getVersion() = messageLoop.PostAndReply GetVersion
-        member _.sendMessage (m : MessageInfo) = SendMessage m |> messageLoop.Post
+        member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
         member _.configureClient x = ConfigureClient x |> messageLoop.Post
         member m.transmitMessages() = messageLoop.PostAndReply (fun reply -> TransmitMessages (m.tryReceiveSingleMessageProxy, reply))
         member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
@@ -434,18 +447,9 @@ module Client =
 
         member m.messageProcessorProxy : MessageProcessorProxy =
             {
-                //sendMessage = m.sendMessage
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
             }
-
-
-        //member m.messagingClientOnStartProxy : MessagingClientOnStartProxy =
-        //    {
-        //        startTransmitting = m.startTransmitting
-        //        //removeExpiredMessages = m.removeExpiredMessages
-        //        loadMessages = d.msgClientProxy.loadMessages
-        //    }
 
 
         member _.tryReceiveSingleMessageProxy : TryReceiveSingleMessageProxy =

@@ -132,6 +132,7 @@ module GeneralErrors =
 
     type MessagingClientError =
         | MessageNotFoundErr of MessageNotFoundError
+        | TryProcessMessageErr of exn
 
 
     /// All errors known in the system.
@@ -155,6 +156,7 @@ module GeneralErrors =
             | _ -> AggregateErr [ a; b ]
 
 
+    /// Folds list<ClmError> in a single ClmError.
     let foldErrors (a : list<ClmError>) =
         match a with
         | [] -> None

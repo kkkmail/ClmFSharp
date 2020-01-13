@@ -3,7 +3,6 @@
 open System
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
-open ClmSys.Logging
 open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
@@ -57,7 +56,6 @@ module Client =
             msgAccessInfo : MessagingClientAccessInfo
             messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
-            //logger : Logger
         }
 
 
@@ -136,14 +134,14 @@ module Client =
 
 
     type MessagingClientMessage =
-        | Start of AsyncReplyChannel<ClmError option>
+        | Start of AsyncReplyChannel<UnitResult>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-        | SendMessage of MessageInfo * AsyncReplyChannel<ClmError option>
-        | TransmitMessages of TryReceiveSingleMessageProxy * AsyncReplyChannel<ClmError option>
+        | SendMessage of MessageInfo * AsyncReplyChannel<UnitResult>
+        | TransmitMessages of TryReceiveSingleMessageProxy * AsyncReplyChannel<UnitResult>
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
         | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<TryRemoveReceivedMessageResult>
-        | RemoveExpiredMessages of AsyncReplyChannel<ClmError option>
+        | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
 
 
     /// Outgoing messages are stored with the newest at the head.
@@ -252,16 +250,13 @@ module Client =
         }
 
 
-    let onSendMessage saveMessage msgClientId s m (r : AsyncReplyChannel<ClmError option>) =
+    let onSendMessage saveMessage msgClientId s m (r : AsyncReplyChannel<UnitResult>) =
         let message = createMessage msgClientId m
 
         let err =
             match m.recipientInfo.deliveryType with
-            | GuaranteedDelivery ->
-                match saveMessage { messageType = OutgoingMessage; message = message } with
-                | Ok () -> None
-                | Error e -> Some e
-            | NonGuaranteedDelivery -> None
+            | GuaranteedDelivery -> saveMessage { messageType = OutgoingMessage; message = message }
+            | NonGuaranteedDelivery -> Ok()
 
         r.Reply err
         { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }
@@ -284,14 +279,14 @@ module Client =
         | Error e -> e |> MessageDeliveryErr |> MessagingServiceErr |> Error
 
 
-    let onFinishTransmitting (s : MessagingClientStateData) e (t : TransmissionData) =
+    let onFinishTransmitting (s : MessagingClientStateData) (t : TransmissionData) =
         let received = t.receivedMessages
-        let sent = t.sentMessages |> List.map (fun e -> e.messageDataInfo.messageId)
-        let outgoing = s.outgoingMessages |> List.map (fun e -> e.messageDataInfo.messageId) |> Set.ofList
+        let sent = t.sentMessages |> List.map (fun m -> m.messageDataInfo.messageId)
+        let outgoing = s.outgoingMessages |> List.map (fun m -> m.messageDataInfo.messageId) |> Set.ofList
         let notSent = Set.difference outgoing (sent |> Set.ofList)
-        let remaining = s.outgoingMessages |> List.filter (fun e -> notSent.Contains e.messageDataInfo.messageId) |> sortOutgoing
+        let remaining = s.outgoingMessages |> List.filter (fun m -> notSent.Contains m.messageDataInfo.messageId) |> sortOutgoing
         let x = { s with outgoingMessages = remaining; incomingMessages = (s.incomingMessages @ received) |> sortIncoming }
-        x, e
+        x
 
 
     let onConfigureClient s _ =
@@ -328,7 +323,7 @@ module Client =
         | None -> m.value |> MessageNotFoundError |> MessageNotFoundErr |> MessagingClientErr |> failedToRemove
 
 
-    let onStart (s : MessagingClientStateData) loadMessages (r : AsyncReplyChannel<ClmError option>) =
+    let onStart (s : MessagingClientStateData) loadMessages (r : AsyncReplyChannel<UnitResult>) =
         let w, f =
             match s.messagingClientState with
             | MsgCliNotStarted ->
@@ -337,7 +332,7 @@ module Client =
                     let m, e = messages |> Rop.unzip
                     let incoming = m |> List.choose (fun e -> match e.messageType with | IncomingMessage -> Some e.message | _ -> None)
                     let outgoing = m |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
-                    let error = foldErrors e
+                    let error = foldToUnitResult e
 
                     //let eventHandler _ =
                     //    printfn "%s: Transmitting messages..." onTransmittingName
@@ -357,17 +352,17 @@ module Client =
                         outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
                         incomingMessages = (s.incomingMessages @ incoming) |> sortIncoming
                     }, error
-                | Error e -> s, e |> Some
-            | MsgCliIdle -> s, None
+                | Error e -> s, Error e
+            | MsgCliIdle -> s, Ok()
 
         r.Reply f
         w
 
 
-    let onTransmitMessages proxy s (r : AsyncReplyChannel<ClmError option>) =
+    let onTransmitMessages proxy s (r : AsyncReplyChannel<UnitResult>) =
         let (w, f) =
             match s.messagingClientState with
-            | MsgCliNotStarted -> s, None
+            | MsgCliNotStarted -> s, Ok()
             | MsgCliIdle ->
                 // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
                 let sent, sentErrors =
@@ -381,8 +376,8 @@ module Client =
                     | Ok r -> r |> Rop.unzip
                     | Error e -> [], [ e ]
 
-                let e = sentErrors @ receivedErrors |> foldErrors
-                { receivedMessages = received; sentMessages = sent } |> (onFinishTransmitting s e)
+                let e = sentErrors @ receivedErrors |> foldToUnitResult
+                { receivedMessages = received; sentMessages = sent } |> (onFinishTransmitting s), e
 
         r.Reply f
         w
@@ -400,11 +395,11 @@ module Client =
         notExpired, err
 
 
-    let onRemoveExpiredMessages deleteMessage (s : MessagingClientStateData) (r :  AsyncReplyChannel<ClmError option>) =
+    let onRemoveExpiredMessages deleteMessage (s : MessagingClientStateData) (r :  AsyncReplyChannel<UnitResult>) =
         let removeExpired = removeExpired deleteMessage s.expirationTime
         let o = s.outgoingMessages |> removeExpired
         let i = s.incomingMessages |> removeExpired
-        let e = (snd o) @ (snd i) |> foldErrors
+        let e = (snd o) @ (snd i) |> foldToUnitResult
         r.Reply e
         { s with outgoingMessages = fst o; incomingMessages = fst i }
 

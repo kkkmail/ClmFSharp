@@ -7,8 +7,6 @@ open ClmSys.GeneralData
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
-open ClmSys.TimerEvents
-open ClmSys.Logging
 open ClmSys.GeneralErrors
 
 module Service =
@@ -19,19 +17,15 @@ module Service =
     type MessagingServiceData =
         {
             messagingServiceProxy : MessagingServiceProxy
-            //logger : Logger
         }
 
 
     type MessagingServiceState =
         {
             workState : MessagingWorkState
-            //messageServiceData : MessagingServiceData
             messages : Map<MessagingClientId, List<MessageWithOptionalData>>
             expirationTime : TimeSpan
         }
-
-        //member s.proxy = s.messageServiceData.messagingServiceProxy
 
         member s.getState() =
             {
@@ -43,7 +37,6 @@ module Service =
         static member defaultValue =
             {
                 workState = MsgSvcNotStarted
-                //messageServiceData = d
                 messages = Map.empty
                 expirationTime = TimeSpan(6, 0, 0)
             }
@@ -54,19 +47,6 @@ module Service =
             loadMessages : unit -> ListResult<Message>
             updateMessages : MessagingServiceState -> Message -> MessagingServiceState
         }
-
-
-    //let private className = "MessagingService"
-    //let private getMethodName n = className + "." + n
-    //let private updateMessagesName = getMethodName "updateMessages"
-    //let private onStartName = getMethodName "onStart"
-    //let private onGetVersionName = getMethodName "onGetVersion"
-    //let private onSendMessageName = getMethodName "onSendMessage"
-    //let private onTryPeekMessageName = getMethodName "onTryPeekMessage"
-    //let private onTryDeleteFromServerName = getMethodName "onTryDeleteFromServer"
-    //let private onConfigureName = getMethodName "onConfigure"
-    //let private onGetStateName = getMethodName "onGetState"
-    //let private onRemoveExpiredMessagesName = getMethodName "onRemoveExpiredMessages"
 
 
     type MessagingServiceMessage =
@@ -164,16 +144,11 @@ module Service =
                     match h.toMessasge() with
                     | Some m -> s, Ok(Some m)
                     | None ->
-                        //match tryLoadMessage h.messageDataInfo.messageId with
-                        //| Ok(Some m) -> Ok(Some m), s
-                        //| Ok None ->
-                        //    let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> toError
-                        //    err, { s with messages = s.messages.Add(n, t |> List.rev) }
-                        //| Error e -> Error e, s
                         match tryLoadMessage h.messageDataInfo.messageId with
                         | Ok m -> s, Ok(Some m)
                         | Error e ->
                             let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr
+                            // Remove the message as we cannot load it.
                             { s with messages = s.messages.Add(n, t |> List.rev) }, Error (err + e)
             | None -> s, Ok None
 

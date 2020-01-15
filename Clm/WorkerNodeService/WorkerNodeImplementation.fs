@@ -57,7 +57,7 @@ module ServiceImplementation =
         | Start
         | Register of AsyncReplyChannel<UnitResult>
         | Unregister of AsyncReplyChannel<UnitResult>
-        | UpdateProgress of LocalProgressUpdateInfo
+        | UpdateProgress of LocalProgressUpdateInfo * AsyncReplyChannel<UnitResult>
         | GetMessages
         //| RunModel of WorkerNodeRunModelData
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
@@ -87,6 +87,17 @@ module ServiceImplementation =
             partitionerId : PartitionerId
             workerNodeInfo : WorkerNodeInfo
             sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    type OnUpdateProgressProxy =
+        {
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+            onSaveResult : ResultDataId -> UnitResult
+            onSaveCharts : ResultDataId -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
+            tryDeleteModelData : ModelDataId -> UnitResult
         }
 
 
@@ -180,17 +191,6 @@ module ServiceImplementation =
         s
 
 
-    type OnUpdateProgressProxy =
-        {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
-            onSaveResult : ResultDataId -> UnitResult
-            onSaveCharts : ResultDataId -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
-            tryDeleteModelData : ModelDataId -> UnitResult
-        }
-
-
     let toDeliveryType progress =
         match progress with
         | NotStarted -> (NonGuaranteedDelivery, false)
@@ -199,13 +199,13 @@ module ServiceImplementation =
         | Failed _ -> (GuaranteedDelivery, true)
 
 
-    let getUpdateProgressResult (send : unit -> UnitResult) (proxy : OnUpdateProgressProxy) (p : LocalProgressUpdateInfo) (r : RunnerState) c =
+    let getUpdateProgressResult (send : unit -> UnitResult) (proxy : OnUpdateProgressProxy) (p : LocalProgressUpdateInfo) rid c =
         [
             send()
 
             if c
             then
-                proxy.tryDeleteWorkerNodeRunModelData r.runnerRemoteProcessId
+                proxy.tryDeleteWorkerNodeRunModelData rid
                 proxy.tryDeleteModelData p.runningProcessData.modelDataId
                 p.runningProcessData.toResultDataId() |> proxy.onSaveResult
                 p.runningProcessData.toResultDataId() |> proxy.onSaveCharts
@@ -213,21 +213,21 @@ module ServiceImplementation =
         |> foldUnitResults
 
 
-    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) =
+    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) (r : AsyncReplyChannel<UnitResult>) =
         let updateProgress t c =
             let rso, result =
                 match s.runningWorkers |> Map.tryFind p.localProcessId with
-                | Some r ->
+                | Some rs ->
                     let send() =
                         {
                             partitionerRecipient = proxy.partitionerId
                             deliveryType = t
-                            messageData = UpdateProgressPrtMsg { remoteProcessId = r.runnerRemoteProcessId; runningProcessData = p.runningProcessData; progress = p.progress }
+                            messageData = UpdateProgressPrtMsg { remoteProcessId = rs.runnerRemoteProcessId; runningProcessData = p.runningProcessData; progress = p.progress }
                         }.getMessageInfo()
                         |> proxy.sendMessage
 
-                    let result = getUpdateProgressResult send proxy p r c
-                    Some { r with progress = p.progress; lastUpdated = DateTime.Now }, result
+                    let result = getUpdateProgressResult send proxy p rs.runnerRemoteProcessId c
+                    Some { rs with progress = p.progress; lastUpdated = DateTime.Now }, result
                 | None -> None, p.localProcessId.value |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
             if c

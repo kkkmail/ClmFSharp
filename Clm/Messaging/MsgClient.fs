@@ -444,6 +444,7 @@ module Client =
             {
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
+                sendMessage = m.sendMessage
             }
 
 

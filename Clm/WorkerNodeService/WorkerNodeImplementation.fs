@@ -3,6 +3,8 @@
 open System
 open Argu
 open ClmSys.GeneralData
+open ClmSys.GeneralErrors
+open ClmSys
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
@@ -19,6 +21,7 @@ open ServiceProxy.WorkerNodeProxy
 open Clm.CommandLine
 open System.IO
 open ServiceProxy.MsgProcessorProxy
+open ClmSys.MessagingData
 
 module ServiceImplementation =
 
@@ -45,7 +48,6 @@ module ServiceImplementation =
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             workerNodeProxy : WorkerNodeProxy
             messageProcessorProxy : MessageProcessorProxy
-            logger : Logger
             exeName : string
             minUsefulEe : MinUsefulEe
         }
@@ -53,8 +55,8 @@ module ServiceImplementation =
 
     type WorkerNodeMessage =
         | Start
-        | Register
-        | Unregister
+        | Register of AsyncReplyChannel<UnitResult>
+        | Unregister of AsyncReplyChannel<UnitResult>
         | UpdateProgress of LocalProgressUpdateInfo
         | GetMessages
         //| RunModel of WorkerNodeRunModelData
@@ -62,19 +64,33 @@ module ServiceImplementation =
         | ConfigureWorker of WorkerNodeConfigParam
 
 
-    let private className = "WorkerNodeRunner"
-    let private getMethodName n = className + "." + n
-    let private onRunModelName = getMethodName "onRunModel"
-    let private onSaveResultName = getMethodName "onSaveResult"
-    let private onSaveChartsName = getMethodName "onSaveCharts"
-    let private onStartName = getMethodName "onStart"
-    let private onRegisterName = getMethodName "onRegister"
-    let private onUnregisterName = getMethodName "onUnregister"
-    let private onUpdateProgressName = getMethodName "onUpdateProgress"
-    let private onProcessMessageName = getMethodName "onProcessMessage"
-    let private onGetMessagesName = getMethodName "onGetMessages"
-    let private onGetStateName = getMethodName "onGetState"
-    let private onConfigureWorkerName = getMethodName "onConfigureWorker"
+    type OnSaveResultProxy =
+        {
+            partitionerId : PartitionerId
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryDeleteResultData : ResultDataId -> UnitResult
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    type OnSaveChartsProxy =
+        {
+            partitionerId : PartitionerId
+            tryLoadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            tryDeleteChartInfo : ResultDataId -> UnitResult
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    type OnRegisterProxy =
+        {
+            partitionerId : PartitionerId
+            workerNodeInfo : WorkerNodeInfo
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    let private toError e = e |> WorkerNodeErr |> Error
 
 
     let getSolverRunnerAccessInfo (i : WorkerNodeRunnerData) ee =
@@ -85,124 +101,146 @@ module ServiceImplementation =
         |> WorkerNodeSvcAccessInfo
 
 
-    let onSaveResult proxy (d : ResultDataId) =
-        printfn "%s: d = %A." onSaveResultName d
+    let onSaveResult (proxy : OnSaveResultProxy) (d : ResultDataId) =
+        let toError f e = ((f |> OnSaveResultErr |> WorkerNodeErr) + e) |> Error
+
         match proxy.tryLoadResultData d with
-        | Some r ->
+        | Ok r ->
+            let send() =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData = r |> SaveResultPrtMsg
+                }.getMessageInfo()
+                |> proxy.sendMessage
+
+            match send() with
+            | Ok() ->
+                match proxy.tryDeleteResultData d with
+                | Ok() -> Ok()
+                | Error e -> toError (DeleteResultDataError d.value) e
+            | Error e -> toError (SendResultMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
+        | Error e -> toError (LoadResultDataError d.value) e
+
+
+    let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =
+        let toError f e = ((f |> OnSaveChartsErr |> WorkerNodeErr) + e) |> Error
+
+        match proxy.tryLoadChartInfo d with
+        | Ok c ->
+            let send() =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData = c |> SaveChartsPrtMsg
+                }.getMessageInfo()
+                |> proxy.sendMessage
+
+            match send() with
+            | Ok() ->
+                let r() =
+                    try
+                        c.charts
+                        |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
+                        |> ignore
+                        Ok()
+                    with
+                    | ex -> ex |> DeleteChartError |> OnSaveChartsErr |> WorkerNodeErr |> Error
+
+                match (r(), proxy.tryDeleteChartInfo d) ||> combineUnitResults with
+                | Ok() -> Ok()
+                | Error e -> toError (DeleteChartInfoError d.value) e
+            | Error e -> toError (SendChartMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
+        | Error e -> toError (LoadChartInfoError d.value) e
+
+
+    let onRegister (proxy : OnRegisterProxy) s (r : AsyncReplyChannel<UnitResult>) =
+        let result =
             {
-                partitionerRecipient = partitioner
+                partitionerRecipient = proxy.partitionerId
                 deliveryType = GuaranteedDelivery
-                messageData = r |> SaveResultPrtMsg
+                messageData = proxy.workerNodeInfo |> RegisterWorkerNodePrtMsg
             }.getMessageInfo()
             |> proxy.sendMessage
 
-            proxy.tryDeleteResultData d |> ignore
-        | None -> logErr (sprintf "%s: Unable to find result with resultDataId: %A" onSaveResultName d)
+        r.Reply result
+        s
 
 
-    let onSaveCharts (d : ResultDataId) =
-        printfn "%s: d = %A." onSaveChartsName d
-        match proxy.tryLoadChartInfo d with
-        | Some c ->
+    let onUnregister (proxy : OnRegisterProxy) s (r : AsyncReplyChannel<UnitResult>) =
+        let result =
             {
-                partitionerRecipient = partitioner
+                partitionerRecipient = proxy.partitionerId
                 deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsPrtMsg
-                    //{
-                    //    c with charts = c.charts |> List.map (fun e -> { e with chartName = Path.GetFileNameWithoutExtension e.chartName })
-                    //} |> SaveChartsPrtMsg
+                messageData = proxy.workerNodeInfo.workerNodeId |> UnregisterWorkerNodePrtMsg
             }.getMessageInfo()
-            |> sendMessage
+            |> proxy.sendMessage
 
-            try
-                c.charts
-                |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
-                |> ignore
-            with
-            | ex -> logExn onSaveChartsName ex
-
-            proxy.tryDeleteChartInfo d |> ignore
-        | None -> logErr (sprintf "%s: Unable to find charts with resultDataId: %A" onSaveChartsName d)
-
-
-    let onRegister s =
-        printfn "%s" onRegisterName
-        {
-            partitionerRecipient = partitioner
-            deliveryType = GuaranteedDelivery
-            messageData = i.workerNodeAccessInfo.workerNodeInfo |> RegisterWorkerNodePrtMsg
-        }.getMessageInfo()
-        |> sendMessage
-
+        r.Reply result
         s
 
 
-    let onUnregister s =
-        printfn "%s" onUnregisterName
+    type OnUpdateProgressProxy =
         {
-            partitionerRecipient = partitioner
-            deliveryType = GuaranteedDelivery
-            messageData = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId |> UnregisterWorkerNodePrtMsg
-        }.getMessageInfo()
-        |> sendMessage
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+            onSaveResult : ResultDataId -> UnitResult
+            onSaveCharts : ResultDataId -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
+            tryDeleteModelData : ModelDataId -> UnitResult
+        }
 
-        s
+
+    let toDeliveryType progress =
+        match progress with
+        | NotStarted -> (NonGuaranteedDelivery, false)
+        | InProgress _ -> (NonGuaranteedDelivery, false)
+        | Completed -> (GuaranteedDelivery, true)
+        | Failed _ -> (GuaranteedDelivery, true)
 
 
-    let onUpdateProgress s (p : LocalProgressUpdateInfo) =
-        printfn "%s: p = %A." onUpdateProgressName p
-
-        let updateProgress t c =
-            let rso =
-                match s.runningWorkers.TryFind p.localProcessId with
-                | Some r ->
-                    let q =
-                        {
-                            remoteProcessId = r.runnerRemoteProcessId
-                            runningProcessData = p.runningProcessData
-                            progress = p.progress
-                        }
-                    {
-                        partitionerRecipient = partitioner
-                        deliveryType = t
-                        messageData = UpdateProgressPrtMsg q
-                    }.getMessageInfo()
-                    |> sendMessage
-
-                    if c
-                    then
-                        printfn "%s: Calling tryDeleteWorkerNodeRunModelData and tryDeleteModelData..." onUpdateProgressName
-                        proxy.tryDeleteWorkerNodeRunModelData r.runnerRemoteProcessId |> ignore
-                        proxy.tryDeleteModelData p.runningProcessData.modelDataId |> ignore
-                        p.runningProcessData.toResultDataId() |> onSaveResult
-                        p.runningProcessData.toResultDataId() |> onSaveCharts
-
-                    { r with
-                        progress = p.progress
-                        lastUpdated = DateTime.Now
-                    }
-                    |> Some
-
-                | None ->
-                    logErr (sprintf "%s: Unable to find mapping from local process %A." onUpdateProgressName p.localProcessId)
-                    None
+    let getUpdateProgressResult (send : unit -> UnitResult) (proxy : OnUpdateProgressProxy) (p : LocalProgressUpdateInfo) (r : RunnerState) c =
+        [
+            send()
 
             if c
-            then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }
+            then
+                proxy.tryDeleteWorkerNodeRunModelData r.runnerRemoteProcessId
+                proxy.tryDeleteModelData p.runningProcessData.modelDataId
+                p.runningProcessData.toResultDataId() |> proxy.onSaveResult
+                p.runningProcessData.toResultDataId() |> proxy.onSaveCharts
+        ]
+        |> foldUnitResults
+
+
+    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) =
+        let updateProgress t c =
+            let rso, result =
+                match s.runningWorkers |> Map.tryFind p.localProcessId with
+                | Some r ->
+                    let send() =
+                        {
+                            partitionerRecipient = proxy.partitionerId
+                            deliveryType = t
+                            messageData = UpdateProgressPrtMsg { remoteProcessId = r.runnerRemoteProcessId; runningProcessData = p.runningProcessData; progress = p.progress }
+                        }.getMessageInfo()
+                        |> proxy.sendMessage
+
+                    let result = getUpdateProgressResult send proxy p r c
+                    Some { r with progress = p.progress; lastUpdated = DateTime.Now }, result
+                | None -> None, p.localProcessId.value |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
+
+            if c
+            then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }, result
             else
                 match rso with
-                | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }
-                | None -> s
+                | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }, result
+                | None -> s, result
 
 
-        let (t, c) =
-            match p.progress with
-            | NotStarted -> (NonGuaranteedDelivery, false)
-            | InProgress _ -> (NonGuaranteedDelivery, false)
-            | Completed -> (GuaranteedDelivery, true)
-            | Failed _ -> (GuaranteedDelivery, true)
-
-        updateProgress t c
+        let (t, c) = toDeliveryType p.progress
+        let w, result = updateProgress t c
+        w
 
 
     let getRunModelParam (d : WorkerNodeRunModelData) =
@@ -375,8 +413,8 @@ module ServiceImplementation =
         let partitioner = i.workerNodeAccessInfo.partitionerId
         let sendMessage = i.messageProcessorProxy.sendMessage
         let tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-        let logErr = i.logger.logErr
-        let logExn = i.logger.logExn
+        //let logErr = i.logger.logErr
+        //let logExn = i.logger.logExn
         let proxy = i.workerNodeProxy
 
 

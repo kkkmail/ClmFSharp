@@ -140,6 +140,29 @@ module GeneralErrors =
         | TryProcessMessageErr of exn
 
 
+    type OnSaveResultError =
+        | LoadResultDataError of Guid
+        | SendResultMessageError of (Guid * Guid)
+        | DeleteResultDataError of Guid
+
+
+    type OnSaveChartsError =
+        | LoadChartInfoError of Guid
+        | SendChartMessageError of (Guid * Guid)
+        | DeleteChartError of exn
+        | DeleteChartInfoError of Guid
+
+
+    type OnUpdateProgressError =
+        | UnableToFindMappingError of int
+
+
+    type WorkerNodeError =
+        | OnSaveResultErr of OnSaveResultError
+        | OnSaveChartsErr of OnSaveChartsError
+        | OnUpdateProgressErr of OnUpdateProgressError
+
+
     /// All errors known in the system.
     type ClmError =
         | AggregateErr of List<ClmError>
@@ -152,6 +175,7 @@ module GeneralErrors =
         | ProcessStartedErr of ProcessStartedError
         | MessagingServiceErr of MessagingServiceError
         | MessagingClientErr of MessagingClientError
+        | WorkerNodeErr of WorkerNodeError
 
         static member (+) (a, b) =
             match a, b with
@@ -159,6 +183,8 @@ module GeneralErrors =
             | AggregateErr x, _ -> AggregateErr (x @ [b])
             | _, AggregateErr y -> AggregateErr (a :: y)
             | _ -> AggregateErr [ a; b ]
+
+        member a.add b = a + b
 
 
     /// Folds list<ClmError> in a single ClmError.
@@ -179,10 +205,32 @@ module GeneralErrors =
     let foldToUnitResult = foldErrors >> toUnitResult
 
 
+    let addError v (f : ClmError) =
+        match v with
+        | Ok r -> Ok r
+        | Error e -> Error (f + e)
+
+
     type UnitResult = Result<unit, ClmError>
     type ClmResult<'T> = Result<'T, ClmError>
     type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
 
+
+    let combineUnitResults (r1 : UnitResult) (r2 : UnitResult) =
+        match r1, r2 with
+        | Ok(), Ok() -> Ok()
+        | Error e1, Ok() -> Error e1
+        | Ok(), Error e2 -> Error e2
+        | Error e1, Error e2 -> Error (e1 + e2)
+
+
+    let foldUnitResults (r : list<UnitResult>) =
+        let rec fold acc w =
+            match w with
+            | [] -> acc
+            | h :: t -> fold (combineUnitResults h acc) t
+
+        fold (Ok()) r
 
     type ClmErrorInfo =
         {

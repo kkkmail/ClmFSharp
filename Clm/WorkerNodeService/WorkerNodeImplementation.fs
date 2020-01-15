@@ -256,14 +256,24 @@ module ServiceImplementation =
         }
 
 
-    let onRunModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        printfn "%s: d = %A." onRunModelName d
-        let a = getRunModelParam d
+    type OnRunModelProxy =
+        {
+            partitionerId : PartitionerId
+            getRunModelParam : WorkerNodeRunModelData -> RunModelParam
+            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
+            getCommandLine : RunModelParam -> string
+            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
+        let a = proxy.getRunModelParam d
 
         if s.numberOfCores > s.runningWorkers.Count
         then
             match proxy.runModel a with
-            | Some result ->
+            | Ok result ->
                 printfn "%s: Number of running models = %A." onRunModelName (s.runningWorkers.Count + 1)
                 proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId; commandLine = proxy.getCommandLine a }
         
@@ -276,7 +286,7 @@ module ServiceImplementation =
                     }
 
                 { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, rs) }
-            | None ->
+            | Error e ->
                 proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
                 s
         else
@@ -287,7 +297,7 @@ module ServiceImplementation =
                     progress = Failed (sprintf "Worker node: %A exceeded number of available cores." i.workerNodeAccessInfo.workerNodeInfo.workerNodeId)
                 }
             {
-                partitionerRecipient = partitioner
+                partitionerRecipient = proxy.partitionerId
                 deliveryType = GuaranteedDelivery
                 messageData = UpdateProgressPrtMsg q
             }.getMessageInfo()

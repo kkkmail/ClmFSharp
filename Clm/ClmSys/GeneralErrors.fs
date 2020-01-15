@@ -157,10 +157,16 @@ module GeneralErrors =
         | UnableToFindMappingError of int
 
 
+    type OnRunModelError =
+        | CannotSaveWorkerNodeRunModelData of string
+        | CannotRunModel of string
+
+
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError
         | OnUpdateProgressErr of OnUpdateProgressError
+        | OnRunModelErr of OnRunModelError
 
 
     /// All errors known in the system.

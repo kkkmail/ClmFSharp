@@ -237,9 +237,9 @@ module ServiceImplementation =
                 | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }, result
                 | None -> s, result
 
-
         let (t, c) = toDeliveryType p.progress
         let w, result = updateProgress t c
+        r.Reply result
         w
 
 
@@ -259,6 +259,7 @@ module ServiceImplementation =
     type OnRunModelProxy =
         {
             partitionerId : PartitionerId
+            workerNodeId : WorkerNodeId
             getRunModelParam : WorkerNodeRunModelData -> RunModelParam
             runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
             getCommandLine : RunModelParam -> string
@@ -267,47 +268,73 @@ module ServiceImplementation =
         }
 
 
-    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        let a = proxy.getRunModelParam d
+    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) (r : AsyncReplyChannel<UnitResult>) =
+        let toError f e = ((f |> OnRunModelErr |> WorkerNodeErr) + e) |> Error
 
-        if s.numberOfCores > s.runningWorkers.Count
-        then
-            match proxy.runModel a with
-            | Ok result ->
-                printfn "%s: Number of running models = %A." onRunModelName (s.runningWorkers.Count + 1)
-                proxy.saveWorkerNodeRunModelData { d with localProcessId = Some result.localProcessId; commandLine = proxy.getCommandLine a }
-        
-                let rs =
+        let w, result =
+            let a = proxy.getRunModelParam d
+
+            match s.numberOfCores > s.runningWorkers.Count with
+            | true ->
+                match proxy.runModel a with
+                | Ok lpsi ->
+                    let res =
+                        match proxy.saveWorkerNodeRunModelData { d with localProcessId = Some lpsi.localProcessId; commandLine = proxy.getCommandLine a } with
+                        | Ok() -> Ok()
+                        | Error e -> toError (proxy.getCommandLine a |> CannotSaveWorkerNodeRunModelData) e
+
+                    let rs =
+                        {
+                            runnerRemoteProcessId = d.remoteProcessId
+                            progress = TaskProgress.NotStarted
+                            started = DateTime.Now
+                            lastUpdated = DateTime.Now
+                        }
+
+                    { s with runningWorkers = s.runningWorkers.Add(lpsi.localProcessId, rs) }, res
+                | Error e ->
+                    let err = toError (proxy.getCommandLine a |> CannotRunModel) (ProcessStartedErr e)
+                    //proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
+                    s, err
+            | false ->
+                let q =
                     {
-                        runnerRemoteProcessId = d.remoteProcessId
-                        progress = TaskProgress.NotStarted
-                        started = DateTime.Now
-                        lastUpdated = DateTime.Now
+                        remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId()
+                        runningProcessData = a.callBackInfo
+                        progress = Failed (sprintf "Worker node: %A exceeded number of available cores." proxy.workerNodeId)
                     }
 
-                { s with runningWorkers = s.runningWorkers.Add(result.localProcessId, rs) }
-            | Error e ->
-                proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
-                s
-        else
-            let q =
-                {
-                    remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId()
-                    runningProcessData = a.callBackInfo
-                    progress = Failed (sprintf "Worker node: %A exceeded number of available cores." i.workerNodeAccessInfo.workerNodeInfo.workerNodeId)
-                }
-            {
-                partitionerRecipient = proxy.partitionerId
-                deliveryType = GuaranteedDelivery
-                messageData = UpdateProgressPrtMsg q
-            }.getMessageInfo()
-            |> sendMessage
+                let res =
+                    {
+                        partitionerRecipient = proxy.partitionerId
+                        deliveryType = GuaranteedDelivery
+                        messageData = UpdateProgressPrtMsg q
+                    }.getMessageInfo()
+                    |> proxy.sendMessage
 
-            s
+                s, res
+
+        r.Reply result
+        w
 
 
-    let onStart s =
-        printfn "%s" onStartName
+    // This is a no go. Or is it???
+    // let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) (r : AsyncReplyChannel<UnitResult>) : WorkerNodeRunnerState
+    type OnStartProxy =
+        {
+            partitionerId : PartitionerId
+            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
+            loadAllResultData : unit -> ListResult<ResultDataWithId>
+            sendMessage : MessageInfo -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
+            tryDeleteModelData : ModelDataId -> UnitResult
+            onSaveResult : ResultDataId -> UnitResult
+            onSaveCharts : ResultDataId -> UnitResult
+            onRunModel : int -> int
+        }
+
+
+    let onStart (proxy : OnStartProxy) s =
         let m = proxy.loadAllWorkerNodeRunModelData()
         let r = proxy.loadAllResultData()
 
@@ -327,14 +354,14 @@ module ServiceImplementation =
                         }
                         |> UpdateProgressPrtMsg
                 }.getMessageInfo()
-                |> sendMessage
+                |> proxy.sendMessage
 
                 proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
                 proxy.tryDeleteModelData w.runningProcessData.modelDataId |> ignore
-                onSaveResult d
-                onSaveCharts d
+                proxy.onSaveResult d
+                proxy.onSaveCharts d
                 g
-            | None -> onRunModel g w
+            | None -> proxy.onRunModel g w
 
         let tryRunModel g w =
             match w.localProcessId with

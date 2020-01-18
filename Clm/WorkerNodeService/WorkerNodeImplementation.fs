@@ -22,6 +22,7 @@ open Clm.CommandLine
 open System.IO
 open ServiceProxy.MsgProcessorProxy
 open ClmSys.MessagingData
+open Clm.CalculationData
 
 module ServiceImplementation =
 
@@ -317,11 +318,10 @@ module ServiceImplementation =
         w, result
 
 
-    // This is a no go. Or is it???
-    // let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) (r : AsyncReplyChannel<UnitResult>) : WorkerNodeRunnerState
     type OnStartProxy =
         {
             partitionerId : PartitionerId
+            noOfCores : int
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
             loadAllResultData : unit -> ListResult<ResultDataWithId>
             sendMessage : MessageInfo -> UnitResult
@@ -333,36 +333,38 @@ module ServiceImplementation =
         }
 
 
-    let onStart (proxy : OnStartProxy) s =
+    let onStart (proxy : OnStartProxy) s (r : AsyncReplyChannel<UnitResult>) =
         let doStart mi ri =
             let m, mf = mi |> Rop.unzip
             let (r : list<ResultDataWithId>), rf = ri |> Rop.unzip
-        //let m = proxy.loadAllWorkerNodeRunModelData()
-        //let r = proxy.loadAllResultData()
 
             let runIfNoResult g w =
                 let d = w.remoteProcessId.toResultDataId()
 
                 match r |> List.tryFind (fun e -> e.resultDataId = d) with
                 | Some _ ->
-                    {
-                        partitionerRecipient = proxy.partitionerId
-                        deliveryType = GuaranteedDelivery
-                        messageData =
+                    let result =
+                        [
                             {
-                                remoteProcessId = w.remoteProcessId
-                                runningProcessData = w.runningProcessData
-                                progress = Completed
-                            }
-                            |> UpdateProgressPrtMsg
-                    }.getMessageInfo()
-                    |> proxy.sendMessage
+                                partitionerRecipient = proxy.partitionerId
+                                deliveryType = GuaranteedDelivery
+                                messageData =
+                                    {
+                                        remoteProcessId = w.remoteProcessId
+                                        runningProcessData = w.runningProcessData
+                                        progress = Completed
+                                    }
+                                    |> UpdateProgressPrtMsg
+                            }.getMessageInfo()
+                            |> proxy.sendMessage
 
-                    proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
-                    proxy.tryDeleteModelData w.runningProcessData.modelDataId |> ignore
-                    proxy.onSaveResult d
-                    proxy.onSaveCharts d
-                    g
+                            proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
+                            proxy.tryDeleteModelData w.runningProcessData.modelDataId
+                            proxy.onSaveResult d
+                            proxy.onSaveCharts d
+                        ]
+                        |> foldUnitResults
+                    g, result
                 | None -> proxy.onRunModel g w
 
             let tryRunModel g w =
@@ -380,16 +382,27 @@ module ServiceImplementation =
                                     lastUpdated = DateTime.Now
                                 }
 
-                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }
+                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
                         | m -> runIfNoResult g w
                     | None -> runIfNoResult g w
                 | None -> proxy.onRunModel g w
 
-            //m |> List.fold (fun acc e -> tryRunModel acc e) { s with numberOfCores = i.workerNodeAccessInfo.workerNodeInfo.noOfCores }
-            m |> List.fold (fun acc e -> tryRunModel acc e) s
+            let run g e f =
+                let (x, z) = tryRunModel g e
+                x, combineUnitResults f z
 
-        let aaa = Rop.plus doStart (+) proxy.loadAllWorkerNodeRunModelData proxy.loadAllResultData ()
-        aaa
+            let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfCores = proxy.noOfCores }, Ok())
+            retVal
+
+        let g, result =
+            match proxy.loadAllWorkerNodeRunModelData(), proxy.loadAllResultData() with
+            | Ok mi, Ok ri -> doStart mi ri
+            | Ok _, Error e -> s, Error e
+            | Error e, Ok _ -> s, Error e
+            | Error e1, Error e2 -> s, Error (e1 + e2)
+
+        r.Reply result
+        g
 
 
     let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
@@ -399,22 +412,32 @@ module ServiceImplementation =
         |> List.tryFind (fun e -> e.runnerRemoteProcessId = d.remoteProcessId)
 
 
-    let onProcessMessage s (m : Message) =
-        printfn "%s: m.messageId = %A." onProcessMessageName m.messageDataInfo.messageId
-        match m.messageData with
-        | WorkerNodeMsg x ->
-            match x with
-            | RunModelWrkMsg (d, m) ->
-                match tryFindRunningModel s d with
-                | None ->
-                    proxy.saveModelData m
-                    onRunModel s d
-                | Some r ->
-                    logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.runnerRemoteProcessId.value)
-                    s
-        | _ ->
-            logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
-            s
+    //let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
+    type OnProcessMessageProxy =
+        {
+            saveModelData : ModelData -> UnitResult
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> (WorkerNodeRunnerState * UnitResult)
+            tryFindRunningModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> RunnerState option
+        }
+
+
+    let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
+        let g, r =
+            match m.messageData with
+            | WorkerNodeMsg x ->
+                match x with
+                | RunModelWrkMsg (d, m) ->
+                    match proxy.tryFindRunningModel s d with
+                    | None ->
+                        proxy.saveModelData m
+                        proxy.onRunModel s d
+                    | Some r ->
+                        //logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.runnerRemoteProcessId.value)
+                        s
+            | _ ->
+                //logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
+                s
+        g
 
 
     let onGetMessages s =

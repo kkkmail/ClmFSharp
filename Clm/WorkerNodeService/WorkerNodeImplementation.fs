@@ -268,7 +268,7 @@ module ServiceImplementation =
         }
 
 
-    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) (r : AsyncReplyChannel<UnitResult>) =
+    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
         let toError f e = ((f |> OnRunModelErr |> WorkerNodeErr) + e) |> Error
 
         let w, result =
@@ -314,8 +314,7 @@ module ServiceImplementation =
 
                 s, res
 
-        r.Reply result
-        w
+        w, result
 
 
     // This is a no go. Or is it???
@@ -330,66 +329,67 @@ module ServiceImplementation =
             tryDeleteModelData : ModelDataId -> UnitResult
             onSaveResult : ResultDataId -> UnitResult
             onSaveCharts : ResultDataId -> UnitResult
-            onRunModel : int -> int
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> (WorkerNodeRunnerState * UnitResult)
         }
 
 
     let onStart (proxy : OnStartProxy) s =
-        let m = proxy.loadAllWorkerNodeRunModelData()
-        let r = proxy.loadAllResultData()
+        let doStart mi ri =
+            let m, mf = mi |> Rop.unzip
+            let (r : list<ResultDataWithId>), rf = ri |> Rop.unzip
+        //let m = proxy.loadAllWorkerNodeRunModelData()
+        //let r = proxy.loadAllResultData()
 
-        let runIfNoResult g w =
-            let d = w.remoteProcessId.toResultDataId()
+            let runIfNoResult g w =
+                let d = w.remoteProcessId.toResultDataId()
 
-            match r |> List.tryFind (fun e -> e.resultDataId = d) with
-            | Some _ ->
-                {
-                    partitionerRecipient = partitioner
-                    deliveryType = GuaranteedDelivery
-                    messageData =
-                        {
-                            remoteProcessId = w.remoteProcessId
-                            runningProcessData = w.runningProcessData
-                            progress = Completed
-                        }
-                        |> UpdateProgressPrtMsg
-                }.getMessageInfo()
-                |> proxy.sendMessage
-
-                proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
-                proxy.tryDeleteModelData w.runningProcessData.modelDataId |> ignore
-                proxy.onSaveResult d
-                proxy.onSaveCharts d
-                g
-            | None -> proxy.onRunModel g w
-
-        let tryRunModel g w =
-            match w.localProcessId with
-            | Some v ->
-                match tryGetProcessById v with
-                | Some p ->
-                    printfn "%s: Found process with id: %A" onStartName v
-
-                    match tryGetProcessName p with
-                    | Some n when n = SolverRunnerProcessName ->
-                        printfn "%s: Found process with name: %s" onStartName n
-
-                        let rs =
+                match r |> List.tryFind (fun e -> e.resultDataId = d) with
+                | Some _ ->
+                    {
+                        partitionerRecipient = proxy.partitionerId
+                        deliveryType = GuaranteedDelivery
+                        messageData =
                             {
-                                runnerRemoteProcessId = w.remoteProcessId
-                                progress = TaskProgress.NotStarted
-                                started = DateTime.Now
-                                lastUpdated = DateTime.Now
+                                remoteProcessId = w.remoteProcessId
+                                runningProcessData = w.runningProcessData
+                                progress = Completed
                             }
+                            |> UpdateProgressPrtMsg
+                    }.getMessageInfo()
+                    |> proxy.sendMessage
 
-                        { g with runningWorkers = s.runningWorkers.Add(v, rs) }
-                    | m ->
-                        printfn "%s: CANNOT find process with name: %s, but found %A" onStartName SolverRunnerProcessName m
-                        runIfNoResult g w
-                | None -> runIfNoResult g w
-            | None -> onRunModel g w
+                    proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId |> ignore
+                    proxy.tryDeleteModelData w.runningProcessData.modelDataId |> ignore
+                    proxy.onSaveResult d
+                    proxy.onSaveCharts d
+                    g
+                | None -> proxy.onRunModel g w
 
-        m |> List.fold (fun acc e -> tryRunModel acc e) { s with numberOfCores = i.workerNodeAccessInfo.workerNodeInfo.noOfCores }
+            let tryRunModel g w =
+                match w.localProcessId with
+                | Some v ->
+                    match tryGetProcessById v with
+                    | Some p ->
+                        match tryGetProcessName p with
+                        | Some n when n = SolverRunnerProcessName ->
+                            let rs =
+                                {
+                                    runnerRemoteProcessId = w.remoteProcessId
+                                    progress = TaskProgress.NotStarted
+                                    started = DateTime.Now
+                                    lastUpdated = DateTime.Now
+                                }
+
+                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }
+                        | m -> runIfNoResult g w
+                    | None -> runIfNoResult g w
+                | None -> proxy.onRunModel g w
+
+            //m |> List.fold (fun acc e -> tryRunModel acc e) { s with numberOfCores = i.workerNodeAccessInfo.workerNodeInfo.noOfCores }
+            m |> List.fold (fun acc e -> tryRunModel acc e) s
+
+        let aaa = Rop.plus doStart (+) proxy.loadAllWorkerNodeRunModelData proxy.loadAllResultData ()
+        aaa
 
 
     let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =

@@ -58,12 +58,11 @@ module ServiceImplementation =
 
 
     type WorkerNodeMessage =
-        | Start
+        | Start of AsyncReplyChannel<UnitResult>
         | Register of AsyncReplyChannel<UnitResult>
         | Unregister of AsyncReplyChannel<UnitResult>
-        | UpdateProgress of LocalProgressUpdateInfo * AsyncReplyChannel<UnitResult>
-        | GetMessages
-        //| RunModel of WorkerNodeRunModelData
+        | UpdateProgress of AsyncReplyChannel<UnitResult> * LocalProgressUpdateInfo
+        | GetMessages of AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
         | ConfigureWorker of WorkerNodeConfigParam
 
@@ -169,7 +168,7 @@ module ServiceImplementation =
         | Error e -> toError (LoadChartInfoError d.value) e
 
 
-    let onRegister (proxy : OnRegisterProxy) s (r : AsyncReplyChannel<UnitResult>) =
+    let onRegister (proxy : OnRegisterProxy) s =
         let result =
             {
                 partitionerRecipient = proxy.partitionerId
@@ -178,11 +177,10 @@ module ServiceImplementation =
             }.getMessageInfo()
             |> proxy.sendMessage
 
-        r.Reply result
-        s
+        s, result
 
 
-    let onUnregister (proxy : OnRegisterProxy) s (r : AsyncReplyChannel<UnitResult>) =
+    let onUnregister (proxy : OnRegisterProxy) s =
         let result =
             {
                 partitionerRecipient = proxy.partitionerId
@@ -191,8 +189,7 @@ module ServiceImplementation =
             }.getMessageInfo()
             |> proxy.sendMessage
 
-        r.Reply result
-        s
+        s, result
 
 
     let toDeliveryType progress =
@@ -217,7 +214,7 @@ module ServiceImplementation =
         |> foldUnitResults
 
 
-    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) (r : AsyncReplyChannel<UnitResult>) =
+    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) =
         let updateProgress t c =
             let rso, result =
                 match s.runningWorkers |> Map.tryFind p.localProcessId with
@@ -243,8 +240,7 @@ module ServiceImplementation =
 
         let (t, c) = toDeliveryType p.progress
         let w, result = updateProgress t c
-        r.Reply result
-        w
+        w, result
 
 
     let getRunModelParam (i : WorkerNodeRunnerData) (d : WorkerNodeRunModelData) =
@@ -336,7 +332,7 @@ module ServiceImplementation =
         }
 
 
-    let onStart (proxy : OnStartProxy) s (r : AsyncReplyChannel<UnitResult>) =
+    let onStart (proxy : OnStartProxy) s =
         let doStart mi ri =
             let m, mf = mi |> Rop.unzip
             let (r : list<ResultDataWithId>), rf = ri |> Rop.unzip
@@ -404,8 +400,7 @@ module ServiceImplementation =
             | Error e, Ok _ -> s, Error e
             | Error e1, Error e2 -> s, Error (e1 + e2)
 
-        r.Reply result
-        g
+        g, result
 
 
     let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
@@ -415,7 +410,6 @@ module ServiceImplementation =
         |> List.tryFind (fun e -> e.runnerRemoteProcessId = d.remoteProcessId)
 
 
-    //let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
     type OnProcessMessageProxy =
         {
             saveModelData : ModelData -> UnitResult
@@ -448,19 +442,13 @@ module ServiceImplementation =
 
 
     type OnGetMessagesProxy =
-        //{
-        //    tryProcessMessage : WorkerNodeRunnerState -> (WorkerNodeRunnerState -> Message -> WorkerNodeRunnerState) -> WorkerNodeRunnerState option
-        //    //onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
-        //    onProcessMessage : WorkerNodeRunnerState -> Message -> WorkerNodeRunnerState
-        //}
         {
             tryProcessMessage : WorkerNodeRunnerState -> OnProcessMessageType -> WorkerNodeMessageResult
             onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
         }
 
 
-
-    let onGetMessages (proxy : OnGetMessagesProxy) (s : WorkerNodeRunnerState) (r : AsyncReplyChannel<UnitResult>) =
+    let onGetMessages (proxy : OnGetMessagesProxy) (s : WorkerNodeRunnerState) =
         let addError f e = ((f |> OnGetMessagesErr |> WorkerNodeErr) + e) |> Error
         let toError e = e |> OnGetMessagesErr |> WorkerNodeErr |> Error
 
@@ -480,8 +468,7 @@ module ServiceImplementation =
                 | BusyProcessing -> acc, toError BusyProcessingError
 
         let w, result = doFold WorkerNodeRunnerState.maxMessages s
-        r.Reply result
-        w
+        w, result
 
 
     let onGetState s (r : AsyncReplyChannel<WorkerNodeRunnerState>) =
@@ -565,17 +552,74 @@ module ServiceImplementation =
         }
 
 
+    let onRegisterProxy i : OnRegisterProxy =
+        {
+            partitionerId = i.workerNodeAccessInfo.partitionerId
+            workerNodeInfo = i.workerNodeAccessInfo.workerNodeInfo
+            sendMessage = i.messageProcessorProxy.sendMessage
+        }
+
+
+    let onSaveResultProxy i =
+        {
+            partitionerId= i.workerNodeAccessInfo.partitionerId
+            tryLoadResultData = i.workerNodeProxy.tryLoadResultData
+            tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
+            sendMessage = i.messageProcessorProxy.sendMessage
+        }
+
+
+    let onSaveChartsProxy i =
+        {
+            partitionerId= i.workerNodeAccessInfo.partitionerId
+            tryLoadChartInfo = i.workerNodeProxy.tryLoadChartInfo
+            tryDeleteChartInfo = i.workerNodeProxy.tryDeleteChartInfo
+            sendMessage = i.messageProcessorProxy.sendMessage
+        }
+
+
+    let onUpdateProgressProxy i =
+        {
+            partitionerId = i.workerNodeAccessInfo.partitionerId
+            sendMessage = i.messageProcessorProxy.sendMessage
+            onSaveResult = onSaveResult (onSaveResultProxy i)
+            onSaveCharts = onSaveCharts (onSaveChartsProxy i)
+            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
+            tryDeleteModelData = i.workerNodeProxy.tryDeleteModelData
+        }
+
+
+    let onProcessMessageProxy i =
+        {
+            saveModelData = i.workerNodeProxy.saveModelData
+            onRunModel = onRunModel (onRunModelProxy i)
+            tryFindRunningModel = tryFindRunningModel
+        }
+
+
+
+    let onGetMessagesProxy =
+        {
+            tryProcessMessage = onTryProcessMessage
+            onProcessMessage = 0
+        }
+
+//tryProcessMessage : WorkerNodeRunnerState -> OnProcessMessageType -> WorkerNodeMessageResult
+//onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
+
+
+    let withReply (r : AsyncReplyChannel<'T>) (s, result) =
+        r.Reply result
+        s
+
+
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        //let partitioner = i.workerNodeAccessInfo.partitionerId
-        //let sendMessage = i.messageProcessorProxy.sendMessage
-        //let tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-        ////let logErr = i.logger.logErr
-        ////let logExn = i.logger.logExn
-        //let proxy = i.workerNodeProxy
         let onSaveResultProxy = onSaveResultProxy i
         let onSaveChartsProxy = onSaveChartsProxy i
         let onRunModelProxy = onRunModelProxy i
         let onStartProxy = onStartProxy i
+        let onRegisterProxy = onRegisterProxy i
+        let onUpdateProgressProxy = onUpdateProgressProxy i
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -583,11 +627,11 @@ module ServiceImplementation =
                     async
                         {
                             match! u.Receive() with
-                            | Start -> return! onStart s |> loop
-                            | Register -> return! onRegister s |> loop
-                            | Unregister -> return!  onUnregister s |> loop
-                            | UpdateProgress p -> return!  onUpdateProgress s p |> loop
-                            | GetMessages -> return! onGetMessages s |> loop
+                            | Start r -> return! onStart onStartProxy s |> (withReply r) |> loop
+                            | Register r -> return! onRegister onRegisterProxy s |> (withReply r) |> loop
+                            | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
+                            | UpdateProgress (r, p) -> return! onUpdateProgress onUpdateProgressProxy s p |> (withReply r) |> loop
+                            | GetMessages r -> return! onGetMessages s |> loop
                             | GetState r -> return! t onGetState s r |> loop
                             | ConfigureWorker d -> return! onConfigureWorker s d |> loop
                         }
@@ -595,11 +639,11 @@ module ServiceImplementation =
                 WorkerNodeRunnerState.defaultValue |> loop
                 )
 
-        member _.start() = Start |> messageLoop.Post
-        member _.register() = Register |> messageLoop.Post
-        member _.unregister() = Unregister |> messageLoop.Post
-        member _.updateProgress p = UpdateProgress p |> messageLoop.Post
-        member _.getMessages() = GetMessages |> messageLoop.Post
+        member _.start() = messageLoop.PostAndReply Start
+        member _.register() = messageLoop.PostAndReply Register
+        member _.unregister() = messageLoop.PostAndReply Unregister
+        member _.updateProgress p = messageLoop.PostAndReply (fun r -> UpdateProgress (r, p))
+        member _.getMessages() = messageLoop.PostAndReply GetMessages
         member _.getState () = messageLoop.PostAndReply GetState
         member _.configure d = d |> ConfigureWorker |> messageLoop.Post
 

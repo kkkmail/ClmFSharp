@@ -79,6 +79,20 @@ module GeneralErrors =
         | DeleteRunQueueEntryError of Guid
 
 
+    type ServiceInstallerError =
+        | InstallServiceError of exn
+        | UninstallServiceError of exn
+        | StartServiceError of exn
+        | StopServiceError of exn
+
+
+    type RegistryError =
+        | CreateRegistrySubKeyError of string * exn
+        | SetRegistryValueError of string * exn
+        | GetRegistryValueError of string * exn
+        | GetMessagingClientPortError of string
+
+
     type ProcessStartedError =
         | AlreadyCompleted
         | FailedToStart of exn
@@ -146,7 +160,7 @@ module GeneralErrors =
 
 
     type OnSaveResultError =
-        | LoadResultDataError of Guid
+        | LoadResultDataErr of Guid
         | SendResultMessageError of (Guid * Guid)
         | DeleteResultDataError of Guid
 
@@ -205,6 +219,8 @@ module GeneralErrors =
         | UnhandledExn of exn
         | UnknownErr of string
         | ClmEventHandlerErr of ClmEventHandlerError
+        | ServiceInstallerErr of ServiceInstallerError
+        | RegistryErr of RegistryError
         | FileErr of FileError
         | SerializationErr of SerializationError
         | WcfErr of WcfError
@@ -223,7 +239,6 @@ module GeneralErrors =
             | _ -> AggregateErr [ a; b ]
 
         member a.add b = a + b
-
 
 
     let (>->) s1 s2 =

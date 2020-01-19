@@ -5,8 +5,11 @@ open VersionInfo
 open GeneralData
 open MessagingData
 open Fake.Windows
+open ClmSys
+open ClmSys.Rop
 open ClmSys.Logging
 open ClmSys.PartitionerData
+open ClmSys.GeneralErrors
 
 module Registry =
 
@@ -35,92 +38,86 @@ module Registry =
     let private getTopSubKey (VersionNumber v) = "SOFTWARE" + "\\" + SystemName + "\\" + v
     let private getMessagingClientSubKey v (MessagingClientName c) = (getTopSubKey v) + "\\" + c
 
+    let private toError e = e |> RegistryErr |> Error
 
-    let private tryCreateRegistrySubKey (logger : Logger) subKey =
+
+    let private tryCreateRegistrySubKey subKey =
         try
             Registry.createRegistrySubKey Registry.HKEYLocalMachine subKey
-            Some ()
+            Ok()
         with
-            | e ->
-                logger.logExn (formatSubKey subKey) e
-                None
+        | e -> ((formatSubKey subKey), e) |> CreateRegistrySubKeyError |> toError
 
 
-    let private trySetRegistryValue (logger : Logger) subKey key value =
+    let private trySetRegistryValue subKey key value =
         try
             Registry.setRegistryValue Registry.HKEYLocalMachine subKey key value
-            Some ()
+            Ok()
         with
-            | e ->
-                logger.logExn (formatSubKeyValue subKey value) e
-                None
+        | e -> ((formatSubKeyValue subKey value), e) |> SetRegistryValueError |> toError
 
 
-    let private tryGetRegistryValueNames (logger : Logger) subKey =
+    //let private tryGetRegistryValueNames (logger : Logger) subKey =
+    //    try
+    //        Registry.getRegistryValueNames Registry.HKEYLocalMachine subKey |> Some
+    //    with
+    //        | e ->
+    //            logger.logExn (formatSubKey subKey) e
+    //            None
+
+
+    let private tryGetRegistryValue subKey key =
         try
-            Registry.getRegistryValueNames Registry.HKEYLocalMachine subKey |> Some
+             Registry.getRegistryValue Registry.HKEYLocalMachine subKey key |> Ok
         with
-            | e ->
-                logger.logExn (formatSubKey subKey) e
-                None
+        | e -> ((formatSubKeyKey subKey key), e) |> GetRegistryValueError |> toError
 
 
-    let private tryGetRegistryValue (logger : Logger) subKey key =
-        try
-             Registry.getRegistryValue Registry.HKEYLocalMachine subKey key |> Some
-        with
-            | e ->
-                logger.logExn (formatSubKeyKey subKey key) e
-                None
+    //let private valueExistsForKey (logger : Logger) subKey key =
+    //    try
+    //        Registry.valueExistsForKey Registry.HKEYLocalMachine subKey key
+    //    with
+    //        | e ->
+    //            logger.logExn (formatSubKeyKey subKey key) e
+    //            false
 
 
-    let private valueExistsForKey (logger : Logger) subKey key =
-        try
-            Registry.valueExistsForKey Registry.HKEYLocalMachine subKey key
-        with
-            | e ->
-                logger.logExn (formatSubKeyKey subKey key) e
-                false
+    //let private tryDeleteRegistryValue (logger : Logger) subKey key =
+    //    try
+    //         Registry.deleteRegistryValue Registry.HKEYLocalMachine subKey key |> Some
+    //    with
+    //        | e ->
+    //            logger.logExn (formatSubKeyKey subKey key) e
+    //            None
 
 
-    let private tryDeleteRegistryValue (logger : Logger) subKey key =
-        try
-             Registry.deleteRegistryValue Registry.HKEYLocalMachine subKey key |> Some
-        with
-            | e ->
-                logger.logExn (formatSubKeyKey subKey key) e
-                None
-
-
-    let private tryDeleteRegistrySubKey (logger : Logger) subKey =
-        try
-             Registry.deleteRegistrySubKey Registry.HKEYLocalMachine subKey |> Some
-        with
-            | e ->
-                logger.logExn (formatSubKey subKey) e
-                None
+    //let private tryDeleteRegistrySubKey (logger : Logger) subKey =
+    //    try
+    //         Registry.deleteRegistrySubKey Registry.HKEYLocalMachine subKey |> Some
+    //    with
+    //        | e ->
+    //            logger.logExn (formatSubKey subKey) e
+    //            None
 
 
     // Messaging Client
-    let tryGetMessagingClientAddress (logger : Logger) v c =
-        match tryGetRegistryValue logger (getMessagingClientSubKey v c) serviceAddressKey with
-        | Some s -> ServiceAddress s |> Some
-        | None -> None
+    let tryGetMessagingClientAddress v c =
+        tryGetRegistryValue (getMessagingClientSubKey v c) serviceAddressKey |> Rop.bindSuccess ServiceAddress
 
 
-    let trySetMessagingClientAddress (logger : Logger) v c (ServiceAddress a) =
-        match tryCreateRegistrySubKey logger (getMessagingClientSubKey v c) with
-        | Some _ -> trySetRegistryValue logger (getMessagingClientSubKey v c) serviceAddressKey a
-        | None -> None
+    let trySetMessagingClientAddress v c (ServiceAddress a) =
+        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
+        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) serviceAddressKey a
+        | Error e -> Error e
 
 
-    let tryGetMessagingClientPort (logger : Logger) v c =
-        match tryGetRegistryValue logger (getMessagingClientSubKey v c) servicePortKey with
-        | Some s ->
+    let tryGetMessagingClientPort v c =
+        match tryGetRegistryValue (getMessagingClientSubKey v c) servicePortKey with
+        | Ok s ->
             match Int32.TryParse s with
-            | true, v -> ServicePort v |> Some
-            | false, _ -> None
-        | None -> None
+            | true, v -> ServicePort v |> Ok
+            | false, _ -> sprintf "Unable to parse '%s' for version number: %A, client name: %A" s v c |> GetMessagingClientPortError |> toError
+        | Error e -> Error e
 
 
     let trySetMessagingClientPort (logger : Logger) v c (ServicePort p) =

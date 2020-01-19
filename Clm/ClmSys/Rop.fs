@@ -22,6 +22,13 @@ module Rop =
     let bind g = either g fail
 
 
+    /// Converts a regular "success" function into a two-track function.
+    let bindSuccess g r =
+        match r with
+        | Ok s -> Ok (g s)
+        | Error e -> Error e
+
+
     let bindSuccessOption g w r =
         match r with
         | Ok (Some s) -> Ok (g s)

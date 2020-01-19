@@ -6,6 +6,7 @@ open System.Configuration.Install
 open System.ServiceProcess
 open Argu
 open ClmSys.Logging
+open ClmSys.GeneralErrors
 
 module ServiceInstaller =
 
@@ -49,6 +50,11 @@ module ServiceInstaller =
         static member fromArgu c a : list<SvcArguments<'A>> = a |> List.map (fun e -> c e)
 
 
+    let private toError logError e =
+        e |> ServiceInstallerErr |> logError
+        false
+
+
     /// https://stackoverflow.com/questions/31081879/writing-a-service-in-f
     let private getInstaller<'T> () =
         let installer = new AssemblyInstaller(typedefof<'T>.Assembly, null);
@@ -58,76 +64,64 @@ module ServiceInstaller =
 
     let private installService<'T> (l : Logger) (ServiceName serviceName) =
         try
-            l.logInfo (sprintf "Attempting to install service %s ..." serviceName)
+            l.logInfoString (sprintf "Attempting to install service %s ..." serviceName)
             let i = getInstaller<'T> ()
             let d = new System.Collections.Hashtable()
             i.Install(d)
             i.Commit(d)
-            l.logInfo "... services installed successfully.\n"
+            l.logInfoString "... services installed successfully.\n"
             true
         with
-            | e ->
-                l.logErr "FAILED to install services!"
-                l.logErr (sprintf "    Error message : %s\n" e.Message)
-                false
+        | e -> e |> InstallServiceError |> toError l.logError
 
 
     let private uninstallService<'T> (l : Logger) (ServiceName serviceName) =
         try
-            l.logInfo (sprintf "Attempting to uninstall service %s ..." serviceName)
+            l.logInfoString (sprintf "Attempting to uninstall service %s ..." serviceName)
             let i = getInstaller<'T> ()
             let d = new System.Collections.Hashtable()
             i.Uninstall(d)
-            l.logInfo "... services uninstalled successfully.\n"
+            l.logInfoString "... services uninstalled successfully.\n"
             true
         with
-            | e -> 
-                l.logErr "FAILED to uninstall services!"
-                l.logErr (sprintf "    Error message : %s\n" (e.Message))
-                false
+        | e -> e |> UninstallServiceError |> toError l.logError
 
 
     let private startService (i : ServiceInfo<'R, 'C>) =
         try
-            i.logger.logInfo (sprintf "Attempting to start service %s ..." i.serviceName.value)
+            i.logger.logInfoString (sprintf "Attempting to start service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
             service.Start ()
             service.WaitForStatus(ServiceControllerStatus.Running, i.timeout)
-            i.logger.logInfo (sprintf "... service %s started successfully.\n" i.serviceName.value)
+            i.logger.logInfoString (sprintf "... service %s started successfully.\n" i.serviceName.value)
             true
         with
-            | e ->
-                i.logger.logErr (sprintf "FAILED to start service %s!" i.serviceName.value)
-                i.logger.logErr (sprintf "    Error message : %s\n" (e.Message))
-                false
+        | e -> e |> StartServiceError |> toError i.logger.logError
 
 
     let private stopService (i : ServiceInfo<'R, 'C>) =
         try
-            i.logger.logInfo (sprintf "Attempting to stop service %s ..." i.serviceName.value)
+            i.logger.logInfoString (sprintf "Attempting to stop service %s ..." i.serviceName.value)
             let service = new ServiceController(i.serviceName.value)
             service.Stop ()
             service.WaitForStatus(ServiceControllerStatus.Stopped, i.timeout)
-            i.logger.logInfo (sprintf "... service %s stopped successfully.\n" i.serviceName.value)
+            i.logger.logInfoString (sprintf "... service %s stopped successfully.\n" i.serviceName.value)
             true
         with
-            | e ->
-                i.logger.logErr (sprintf "FAILED to stop service %s!" i.serviceName.value)
-                i.logger.logErr (sprintf "    Error message : %s\n" (e.Message))
-                false
+        | e -> e |> StopServiceError |> toError i.logger.logError
 
 
     let private runService (i : ServiceInfo<'R, 'C>) r =
-        i.logger.logInfo "Starting..."
+        i.logger.logInfoString "Starting..."
         let waitHandle = new ManualResetEvent(false)
         let c = i.runService i.logger r
 
         let cancelHandler() =
             match c with
             | Some v ->
-                i.logger.logInfo (sprintf "Performing cleanup for %s ..." i.serviceName.value)
+                i.logger.logInfoString (sprintf "Performing cleanup for %s ..." i.serviceName.value)
                 i.cleanup i.logger v
-            | None -> i.logger.logInfo (sprintf "NOT performing cleanup for %s beause the service was not created..." i.serviceName.value)
+            | None -> i.logger.logInfoString (sprintf "NOT performing cleanup for %s beause the service was not created..." i.serviceName.value)
 
             waitHandle.Set() |> ignore
 
@@ -149,8 +143,8 @@ module ServiceInstaller =
             | InstallServiceTask -> installService<'T> i.logger i.serviceName
             | UninstallServiceTask ->
                 match stopService i with
-                | true -> i.logger.logInfo (sprintf "Successfully stopped service %s." i.serviceName.value)
-                | false -> i.logger.logInfo (sprintf "Failed to stop service %s! Proceeding with uninstall anyway." i.serviceName.value)
+                | true -> i.logger.logInfoString (sprintf "Successfully stopped service %s." i.serviceName.value)
+                | false -> i.logger.logInfoString (sprintf "Failed to stop service %s! Proceeding with uninstall anyway." i.serviceName.value)
 
                 uninstallService<'T> i.logger i.serviceName
             | StartServiceTask -> startService i

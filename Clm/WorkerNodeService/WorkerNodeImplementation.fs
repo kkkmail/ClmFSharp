@@ -32,6 +32,9 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
+    type WorkerNodeMessageResult = MessageProcessorResult<WorkerNodeRunnerState * UnitResult>
+
+
     type WorkerNodeRunnerState
         with
 
@@ -270,7 +273,7 @@ module ServiceImplementation =
 
 
     let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        let toError f e = ((f |> OnRunModelErr |> WorkerNodeErr) + e) |> Error
+        let addError f e = ((f |> OnRunModelErr |> WorkerNodeErr) + e) |> Error
 
         let w, result =
             let a = proxy.getRunModelParam d
@@ -282,7 +285,7 @@ module ServiceImplementation =
                     let res =
                         match proxy.saveWorkerNodeRunModelData { d with localProcessId = Some lpsi.localProcessId; commandLine = proxy.getCommandLine a } with
                         | Ok() -> Ok()
-                        | Error e -> toError (proxy.getCommandLine a |> CannotSaveWorkerNodeRunModelData) e
+                        | Error e -> addError (proxy.getCommandLine a |> CannotSaveWorkerNodeRunModelData) e
 
                     let rs =
                         {
@@ -294,7 +297,7 @@ module ServiceImplementation =
 
                     { s with runningWorkers = s.runningWorkers.Add(lpsi.localProcessId, rs) }, res
                 | Error e ->
-                    let err = toError (proxy.getCommandLine a |> CannotRunModel) (ProcessStartedErr e)
+                    let err = addError (proxy.getCommandLine a |> CannotRunModel) (ProcessStartedErr e)
                     //proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
                     s, err
             | false ->
@@ -422,28 +425,63 @@ module ServiceImplementation =
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
-        let g, r =
+        let addError f e = ((f |> OnProcessMessageErr |> WorkerNodeErr) + e) |> Error
+        let toError e = e |> OnProcessMessageErr |> WorkerNodeErr |> Error
+
+        let w, result =
             match m.messageData with
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg (d, m) ->
                     match proxy.tryFindRunningModel s d with
                     | None ->
-                        proxy.saveModelData m
-                        proxy.onRunModel s d
-                    | Some r ->
-                        //logErr (sprintf "%s: !!! ERROR !!! - found running model for remoteProcessId = %A" onProcessMessageName r.runnerRemoteProcessId.value)
-                        s
-            | _ ->
-                //logErr (sprintf "%s: Invalid message type: %A." onProcessMessageName m.messageData)
-                s
-        g
+                        match proxy.saveModelData m with
+                        | Ok() -> proxy.onRunModel s d
+                        | Error e -> s, addError CannotSaveModelData e
+                    | Some r -> s, r.runnerRemoteProcessId.value |> ModelAlreadyRunning |> toError
+            | _ -> s, m.messageData.getInfo() |> InvalidMessage |> toError
+
+        w, result
 
 
-    let onGetMessages s =
-        printfn "%s" onGetMessagesName
-        printfn "%s: WorkerNodeRunnerState: %A" onGetMessagesName s
-        List.foldWhileSome (fun x () -> tryProcessMessage x onProcessMessage) WorkerNodeRunnerState.maxMessages s
+    type OnProcessMessageType = WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
+
+
+    type OnGetMessagesProxy =
+        //{
+        //    tryProcessMessage : WorkerNodeRunnerState -> (WorkerNodeRunnerState -> Message -> WorkerNodeRunnerState) -> WorkerNodeRunnerState option
+        //    //onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
+        //    onProcessMessage : WorkerNodeRunnerState -> Message -> WorkerNodeRunnerState
+        //}
+        {
+            tryProcessMessage : WorkerNodeRunnerState -> OnProcessMessageType -> WorkerNodeMessageResult
+            onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
+        }
+
+
+
+    let onGetMessages (proxy : OnGetMessagesProxy) (s : WorkerNodeRunnerState) (r : AsyncReplyChannel<UnitResult>) =
+        let addError f e = ((f |> OnGetMessagesErr |> WorkerNodeErr) + e) |> Error
+        let toError e = e |> OnGetMessagesErr |> WorkerNodeErr |> Error
+
+        let rec doFold x acc =
+            match x with
+            | [] -> acc, Ok()
+            | _ :: t ->
+                match proxy.tryProcessMessage acc proxy.onProcessMessage with
+                | ProcessedSucessfully (g, u) ->
+                    match u with
+                    | Ok() -> doFold t g
+                    | Error e -> g, addError ProcessedSucessfullyWithInnerError e
+                | ProcessedWithError ((g, u), e) -> g, (addError ProcessedWithErr e, u) ||> combineUnitResults
+                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveError e, u) ||> combineUnitResults
+                | FailedToProcess e -> acc, addError FailedToProcessError e
+                | NothingToDo -> acc, Ok()
+                | BusyProcessing -> acc, toError BusyProcessingError
+
+        let w, result = doFold WorkerNodeRunnerState.maxMessages s
+        r.Reply result
+        w
 
 
     let onGetState s (r : AsyncReplyChannel<WorkerNodeRunnerState>) =
@@ -451,22 +489,34 @@ module ServiceImplementation =
         s
 
 
-    let onConfigureWorker (s : WorkerNodeRunnerState) d =
+    type OnConfigureWorkerProxy =
+        {
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+            workerNodeInfo : WorkerNodeInfo
+        }
+
+
+    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d (r : AsyncReplyChannel<UnitResult>) =
         match d with
         | WorkerNumberOfSores c ->
-            printfn "%s" onConfigureWorkerName
             let cores = max 0 (min c Environment.ProcessorCount)
-            {
-                partitionerRecipient = partitioner
-                deliveryType = GuaranteedDelivery
-                messageData = { i.workerNodeAccessInfo.workerNodeInfo with noOfCores = cores} |> RegisterWorkerNodePrtMsg
-            }.getMessageInfo()
-            |> sendMessage
 
-            { s with numberOfCores = cores }
+            let send() =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData = { proxy.workerNodeInfo with noOfCores = cores} |> RegisterWorkerNodePrtMsg
+                }.getMessageInfo()
+                |> proxy.sendMessage
 
+            let w, result =
+                match send() with
+                | Ok() -> { s with numberOfCores = cores }, Ok()
+                | Error e -> s, Error e
 
-
+            r.Reply result
+            w
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =

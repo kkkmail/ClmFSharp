@@ -162,11 +162,27 @@ module GeneralErrors =
         | CannotRunModel of string
 
 
+    type OnProcessMessageError =
+        | CannotSaveModelData
+        | ModelAlreadyRunning of Guid
+        | InvalidMessage of string
+
+
+    type OnGetMessagesError =
+        | ProcessedSucessfullyWithInnerError
+        | ProcessedWithErr
+        | ProcessedWithFailedToRemoveError
+        | FailedToProcessError
+        | BusyProcessingError
+
+
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError
         | OnUpdateProgressErr of OnUpdateProgressError
         | OnRunModelErr of OnRunModelError
+        | OnProcessMessageErr of OnProcessMessageError
+        | OnGetMessagesErr of OnGetMessagesError
 
 
     /// All errors known in the system.
@@ -237,6 +253,7 @@ module GeneralErrors =
             | h :: t -> fold (combineUnitResults h acc) t
 
         fold (Ok()) r
+
 
     type ClmErrorInfo =
         {

@@ -101,6 +101,9 @@ module ServiceInfo =
             | MediumSize -> false
             | LargeSize -> false
 
+        /// TODO kk:20200119 - Implement a shorter version as some messages can be very large.
+        member this.getInfo() = sprintf "%A" this
+
 
     type MessageRecipientInfo =
         {

@@ -91,6 +91,11 @@ module GeneralErrors =
         }
 
 
+    type ClmEventHandlerError =
+        | UnhandledException of Guid * exn
+        | StillRunningError of Guid
+
+
     type GetVersionError =
         | GetVersionWcfError of WcfError
         | VersionMismatchError of VersionMismatchInfo
@@ -185,11 +190,21 @@ module GeneralErrors =
         | OnGetMessagesErr of OnGetMessagesError
 
 
+    type WorkerNodeServiceError =
+        | UnableToStartMessagingClientError
+        | UnableToCreateWorkerNodeServiceError
+        | ServiceUnavailable
+        | UpdateLocalProgressError of string
+        | ConfigureServiceError of string
+        | MonitorServiceError of string
+
+
     /// All errors known in the system.
     type ClmError =
         | AggregateErr of List<ClmError>
         | UnhandledExn of exn
         | UnknownErr of string
+        | ClmEventHandlerErr of ClmEventHandlerError
         | FileErr of FileError
         | SerializationErr of SerializationError
         | WcfErr of WcfError
@@ -198,6 +213,7 @@ module GeneralErrors =
         | MessagingServiceErr of MessagingServiceError
         | MessagingClientErr of MessagingClientError
         | WorkerNodeErr of WorkerNodeError
+        | WorkerNodeServiceErr of WorkerNodeServiceError
 
         static member (+) (a, b) =
             match a, b with
@@ -209,14 +225,37 @@ module GeneralErrors =
         member a.add b = a + b
 
 
+
+    let (>->) s1 s2 =
+        match s1() with
+        | Ok() -> s2
+        | Error e -> fun () -> Error e
+
+
+    let evaluate f = f()
+
+
+    /// Encapsulation of logging information
+    type ClmInfo =
+        | ClmInfo of string
+
+        static member create a = sprintf "%A" a |> ClmInfo
+
+
+    type UnitResult = Result<unit, ClmError>
+    type ClmResult<'T> = Result<'T, ClmError>
+    type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
+
+
+    /// ! Note that we cannot elevate to Result here as it will broaden the scope !
     /// Folds list<ClmError> in a single ClmError.
-    /// Note that we cannot elevate to Result here as it will broaden the scope.
     let foldErrors (a : list<ClmError>) =
         match a with
         | [] -> None
         | h :: t -> t |> List.fold (fun acc r -> r + acc) h |> Some
 
 
+    /// Converts and error option into a unit result.
     let toUnitResult fo =
         match fo with
         | None -> Ok()
@@ -231,11 +270,6 @@ module GeneralErrors =
         match v with
         | Ok r -> Ok r
         | Error e -> Error (f + e)
-
-
-    type UnitResult = Result<unit, ClmError>
-    type ClmResult<'T> = Result<'T, ClmError>
-    type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
 
 
     let combineUnitResults (r1 : UnitResult) (r2 : UnitResult) =

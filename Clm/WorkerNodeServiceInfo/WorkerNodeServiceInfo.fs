@@ -6,6 +6,7 @@ open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralData
 open System.Threading
 open System
+open ClmSys.GeneralErrors
 
 module ServiceInfo =
 
@@ -56,6 +57,7 @@ module ServiceInfo =
 
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
+        | ErrorOccurred of ClmError
         | WrkNodeState of WorkerNodeRunnerState
 
         override this.ToString() =
@@ -73,8 +75,8 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
-        abstract configure : WorkerNodeConfigParam -> unit
+        abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
+        abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 
         /// To check if service is working.

@@ -504,8 +504,8 @@ module GeneralData =
         let (r, t) = time f ()
 
         if t.TotalSeconds <= 5.0
-        then l.logInfo name (sprintf "Execution time: %A"t)
-        else l.logInfo name (sprintf "!!! LARGE Execution time: %A" t)
+        then l.logInfoString (sprintf "%s: Execution time: %A" name t)
+        else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name, t)
 
         r
 
@@ -579,3 +579,10 @@ module GeneralData =
         | e ->
             printfn "tryDeserialize: Exception: '%A'." e
             e |> DeserializationException |> Error
+
+
+    /// Replies with result and returns the state.
+    /// It is used by MailboxProcessor based classes to standardize approach for PostAndReply.
+    let withReply (r : AsyncReplyChannel<'T>) (s, result) =
+        r.Reply result
+        s

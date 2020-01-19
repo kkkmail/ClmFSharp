@@ -2,6 +2,7 @@
 
 open System.Threading
 open System
+open GeneralErrors
 
 module TimerEvents =
 
@@ -13,50 +14,48 @@ module TimerEvents =
     let OneHourRefreshInterval = 3_600_000
 
 
-    type EventHandlerInfo =
+    type ClmEventHandlerInfo =
         {
-            eventHandler : unit -> unit
+            handlerId : Guid option
+            eventHandler : unit -> UnitResult
             refreshInterfal : int option
-            logger : exn -> unit
+            logError : ClmError -> unit
         }
 
-        static member defaultValue logger h =
+        static member defaultValue logError h =
             {
+                handlerId = None
                 eventHandler = h
                 refreshInterfal = None
-                logger = logger
+                logError = logError
             }
 
-        static member oneHourValue logger h =
+        static member oneHourValue logError h =
             {
+                handlerId = None
                 eventHandler = h
                 refreshInterfal = Some OneHourRefreshInterval
-                logger = logger
+                logError = logError
             }
 
 
-    type EventHandler(i : EventHandlerInfo) =
-        let handlerId = Guid.NewGuid()
-
-        let refreshInterfal =
-            match i.refreshInterfal with
-            | Some r -> r
-            | None -> RefreshInterval
-            |> float
-
+    type ClmEventHandler(i : ClmEventHandlerInfo) =
         let mutable counter = -1
+        let handlerId = i.handlerId |> Option.defaultValue (Guid.NewGuid())
+        let refreshInterfal = i.refreshInterfal |> Option.defaultValue RefreshInterval |> float
+        let logError e = e |> ClmEventHandlerErr |> i.logError
 
         let eventHandler _ =
             try
                 if Interlocked.Increment(&counter) = 0
                 then
                     try
-                        i.eventHandler()
+                        match i.eventHandler() with
+                        | Ok() -> ignore()
+                        | Error e -> i.logError e
                     with
-                    | e -> i.logger e
-                else
-                    printfn "!!! ERROR - EventHandler: %A is still running !!!" handlerId
-                    ignore()
+                    | e -> (handlerId, e) |> UnhandledException |> logError
+                else handlerId |> StillRunningError |> logError
             finally
                 Interlocked.Decrement(&counter) |> ignore
 
@@ -65,4 +64,4 @@ module TimerEvents =
         do timer.AutoReset <- true
         do timer.Elapsed.Add eventHandler
 
-        member __.start() = do timer.Start()
+        member _.start() = do timer.Start()

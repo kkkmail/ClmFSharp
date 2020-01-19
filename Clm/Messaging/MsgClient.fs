@@ -9,6 +9,9 @@ open ServiceProxy.MsgServiceProxy
 open System.Threading
 open ServiceProxy.MsgProcessorProxy
 open ClmSys
+open ClmSys.GeneralData
+open ClmSys.TimerEvents
+open ClmSys.Logging
 
 module Client =
 
@@ -136,11 +139,11 @@ module Client =
     type MessagingClientMessage =
         | Start of AsyncReplyChannel<UnitResult>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-        | SendMessage of MessageInfo * AsyncReplyChannel<UnitResult>
-        | TransmitMessages of TryReceiveSingleMessageProxy * AsyncReplyChannel<UnitResult>
+        | SendMessage of AsyncReplyChannel<UnitResult> * MessageInfo
+        | TransmitMessages of AsyncReplyChannel<UnitResult> * TryReceiveSingleMessageProxy
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
-        | TryRemoveReceivedMessage of MessageId * AsyncReplyChannel<TryRemoveReceivedMessageResult>
+        | TryRemoveReceivedMessage of AsyncReplyChannel<TryRemoveReceivedMessageResult> * MessageId
         | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
 
 
@@ -250,21 +253,19 @@ module Client =
         }
 
 
-    let onSendMessage saveMessage msgClientId s m (r : AsyncReplyChannel<UnitResult>) =
+    let onSendMessage saveMessage msgClientId s m =
         let message = createMessage msgClientId m
 
-        let err =
+        let result =
             match m.recipientInfo.deliveryType with
             | GuaranteedDelivery -> saveMessage { messageType = OutgoingMessage; message = message }
             | NonGuaranteedDelivery -> Ok()
 
-        r.Reply err
-        { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }
+        { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }, result
 
 
-    let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
-        r.Reply messagingDataVersion
-        s
+    let onGetVersion s =
+        s, messagingDataVersion
 
 
     let sendMessageImpl sendMessage deleteMessage (m : Message) =
@@ -293,24 +294,21 @@ module Client =
         s
 
 
-    let onTryPeekReceivedMessage (s : MessagingClientStateData) (r : AsyncReplyChannel<Message option>) =
+    let onTryPeekReceivedMessage (s : MessagingClientStateData) =
         let x = s.incomingMessages |> List.tryHead
-        r.Reply x
-        s
+        s, x
 
 
-    let onTryRemoveReceivedMessage deleteMessage (s : MessagingClientStateData) m (r : AsyncReplyChannel<TryRemoveReceivedMessageResult>) =
+    let onTryRemoveReceivedMessage deleteMessage (s : MessagingClientStateData) m =
         let removedMessage e =
-            match e with
-            | None -> RemovedSucessfully
-            | Some e -> RemovedWithError e
-            |> r.Reply
+            let result =
+                match e with
+                | None -> RemovedSucessfully
+                | Some e -> RemovedWithError e
 
-            { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }
+            { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }, result
 
-        let failedToRemove e =
-            r.Reply (FailedToRemove e)
-            s
+        let failedToRemove e = s, FailedToRemove e
 
         match s.incomingMessages |> List.tryFind (fun e -> e.messageDataInfo.messageId = m) with
         | Some msg ->
@@ -323,8 +321,8 @@ module Client =
         | None -> m.value |> MessageNotFoundError |> MessageNotFoundErr |> MessagingClientErr |> failedToRemove
 
 
-    let onStart (s : MessagingClientStateData) loadMessages (r : AsyncReplyChannel<UnitResult>) =
-        let w, f =
+    let onStart (s : MessagingClientStateData) loadMessages =
+        let w, result =
             match s.messagingClientState with
             | MsgCliNotStarted ->
                 match loadMessages() with
@@ -334,19 +332,6 @@ module Client =
                     let outgoing = m |> List.choose (fun e -> match e.messageType with | OutgoingMessage -> Some e.message | _ -> None)
                     let error = foldToUnitResult e
 
-                    //let eventHandler _ =
-                    //    printfn "%s: Transmitting messages..." onTransmittingName
-                    //    w.startTransmitting()
-
-                    //let h = new EventHandler(EventHandlerInfo.defaultValue (s.logExn onTransmittingName) eventHandler)
-                    //do h.start()
-
-                    //let eventHandler1 _ =
-                    //    w.removeExpiredMessages()
-
-                    //let h1 = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler1)
-                    //do h1.start()
-
                     { s with
                         messagingClientState = MsgCliIdle
                         outgoingMessages = (s.outgoingMessages @ outgoing) |> sortOutgoing
@@ -355,12 +340,11 @@ module Client =
                 | Error e -> s, Error e
             | MsgCliIdle -> s, Ok()
 
-        r.Reply f
-        w
+        w, result
 
 
-    let onTransmitMessages proxy s (r : AsyncReplyChannel<UnitResult>) =
-        let (w, f) =
+    let onTransmitMessages proxy s =
+        let (w, result) =
             match s.messagingClientState with
             | MsgCliNotStarted -> s, Ok()
             | MsgCliIdle ->
@@ -379,8 +363,7 @@ module Client =
                 let e = sentErrors @ receivedErrors |> foldToUnitResult
                 { receivedMessages = received; sentMessages = sent } |> (onFinishTransmitting s), e
 
-        r.Reply f
-        w
+        w, result
 
 
     let removeExpired deleteMessage expirationTime (r : List<Message>) =
@@ -395,13 +378,12 @@ module Client =
         notExpired, err
 
 
-    let onRemoveExpiredMessages deleteMessage (s : MessagingClientStateData) (r :  AsyncReplyChannel<UnitResult>) =
+    let onRemoveExpiredMessages deleteMessage (s : MessagingClientStateData) =
         let removeExpired = removeExpired deleteMessage s.expirationTime
         let o = s.outgoingMessages |> removeExpired
         let i = s.incomingMessages |> removeExpired
-        let e = (snd o) @ (snd i) |> foldToUnitResult
-        r.Reply e
-        { s with outgoingMessages = fst o; incomingMessages = fst i }
+        let result = (snd o) @ (snd i) |> foldToUnitResult
+        { s with outgoingMessages = fst o; incomingMessages = fst i }, result
 
 
     type MessagingClient(d : MessagingClientData) =
@@ -416,14 +398,14 @@ module Client =
                     async
                         {
                             match! u.Receive() with
-                            | Start r -> return! onStart s loadMsg r |> loop
-                            | GetVersion r -> return! onGetVersion s r |> loop
-                            | SendMessage (m, r) -> return! onSendMessage saveMsg msgClietnId s m r |> loop
-                            | TransmitMessages (p, r) -> return! onTransmitMessages p s r |> loop
+                            | Start r -> return! onStart s loadMsg |> (withReply r) |> loop
+                            | GetVersion r -> return! onGetVersion s |> (withReply r) |> loop
+                            | SendMessage (r, m) -> return! onSendMessage saveMsg msgClietnId s m |> (withReply r) |> loop
+                            | TransmitMessages (r, p) -> return! onTransmitMessages p s |> (withReply r) |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
-                            | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s r |> loop
-                            | TryRemoveReceivedMessage (m, r) -> return! onTryRemoveReceivedMessage deleteMsg s m r |> loop
-                            | RemoveExpiredMessages r -> return! onRemoveExpiredMessages deleteMsg s r |> loop
+                            | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s |> (withReply r) |> loop
+                            | TryRemoveReceivedMessage (r, m) -> return! onTryRemoveReceivedMessage deleteMsg s m |> (withReply r) |> loop
+                            | RemoveExpiredMessages r -> return! onRemoveExpiredMessages deleteMsg s |> (withReply r) |> loop
                         }
 
                 MessagingClientStateData.defaultValue |> loop
@@ -432,11 +414,11 @@ module Client =
 
         member _.start() = messageLoop.PostAndReply Start
         member _.getVersion() = messageLoop.PostAndReply GetVersion
-        member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+        member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (reply, m))
         member _.configureClient x = ConfigureClient x |> messageLoop.Post
-        member m.transmitMessages() = messageLoop.PostAndReply (fun reply -> TransmitMessages (m.tryReceiveSingleMessageProxy, reply))
+        member m.transmitMessages() = messageLoop.PostAndReply (fun reply -> TransmitMessages (reply, m.tryReceiveSingleMessageProxy))
         member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
-        member _.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (m, reply))
+        member _.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (reply, m))
         member _.removeExpiredMessages() = messageLoop.PostAndReply RemoveExpiredMessages
 
 
@@ -482,3 +464,17 @@ module Client =
     
         Interlocked.Decrement(&callCount) |> ignore
         retVal
+
+
+    /// Call this function to create timer events necessary for automatic MessagingClient operation.
+    /// If you don't call it, then you have to operate MessagingClient by hands.
+    let createMessagingClientEventHandlers logError (w : MessagingClient) =
+        let eventHandler _ = w.transmitMessages()
+        let h = ClmEventHandlerInfo.defaultValue logError eventHandler |> ClmEventHandler
+        do h.start()
+
+        let eventHandler1 _ = w.removeExpiredMessages()
+        let h1 = ClmEventHandlerInfo.oneHourValue logError eventHandler1 |> ClmEventHandler
+        do h1.start()
+
+

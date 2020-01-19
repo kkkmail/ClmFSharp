@@ -64,7 +64,7 @@ module ServiceImplementation =
         | UpdateProgress of AsyncReplyChannel<UnitResult> * LocalProgressUpdateInfo
         | GetMessages of AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
-        | ConfigureWorker of WorkerNodeConfigParam
+        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
     type OnSaveResultProxy =
@@ -102,9 +102,6 @@ module ServiceImplementation =
             tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
             tryDeleteModelData : ModelDataId -> UnitResult
         }
-
-
-    let private toError e = e |> WorkerNodeErr |> Error
 
 
     let getSolverRunnerAccessInfo (i : WorkerNodeRunnerData) =
@@ -337,61 +334,64 @@ module ServiceImplementation =
             let m, mf = mi |> Rop.unzip
             let (r : list<ResultDataWithId>), rf = ri |> Rop.unzip
 
-            let runIfNoResult g w =
-                let d = w.remoteProcessId.toResultDataId()
+            match (mf @ rf) |> foldErrors with
+            | None ->
+                let runIfNoResult g w =
+                    let d = w.remoteProcessId.toResultDataId()
 
-                match r |> List.tryFind (fun e -> e.resultDataId = d) with
-                | Some _ ->
-                    let result =
-                        [
-                            {
-                                partitionerRecipient = proxy.partitionerId
-                                deliveryType = GuaranteedDelivery
-                                messageData =
-                                    {
-                                        remoteProcessId = w.remoteProcessId
-                                        runningProcessData = w.runningProcessData
-                                        progress = Completed
-                                    }
-                                    |> UpdateProgressPrtMsg
-                            }.getMessageInfo()
-                            |> proxy.sendMessage
-
-                            proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
-                            proxy.tryDeleteModelData w.runningProcessData.modelDataId
-                            proxy.onSaveResult d
-                            proxy.onSaveCharts d
-                        ]
-                        |> foldUnitResults
-                    g, result
-                | None -> proxy.onRunModel g w
-
-            let tryRunModel g w =
-                match w.localProcessId with
-                | Some v ->
-                    match tryGetProcessById v with
-                    | Some p ->
-                        match tryGetProcessName p with
-                        | Some n when n = SolverRunnerProcessName ->
-                            let rs =
+                    match r |> List.tryFind (fun e -> e.resultDataId = d) with
+                    | Some _ ->
+                        let result =
+                            [
                                 {
-                                    runnerRemoteProcessId = w.remoteProcessId
-                                    progress = TaskProgress.NotStarted
-                                    started = DateTime.Now
-                                    lastUpdated = DateTime.Now
-                                }
+                                    partitionerRecipient = proxy.partitionerId
+                                    deliveryType = GuaranteedDelivery
+                                    messageData =
+                                        {
+                                            remoteProcessId = w.remoteProcessId
+                                            runningProcessData = w.runningProcessData
+                                            progress = Completed
+                                        }
+                                        |> UpdateProgressPrtMsg
+                                }.getMessageInfo()
+                                |> proxy.sendMessage
 
-                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
-                        | _ -> runIfNoResult g w
-                    | None -> runIfNoResult g w
-                | None -> proxy.onRunModel g w
+                                proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
+                                proxy.tryDeleteModelData w.runningProcessData.modelDataId
+                                proxy.onSaveResult d
+                                proxy.onSaveCharts d
+                            ]
+                            |> foldUnitResults
+                        g, result
+                    | None -> proxy.onRunModel g w
 
-            let run g e f =
-                let (x, z) = tryRunModel g e
-                x, combineUnitResults f z
+                let tryRunModel g w =
+                    match w.localProcessId with
+                    | Some v ->
+                        match tryGetProcessById v with
+                        | Some p ->
+                            match tryGetProcessName p with
+                            | Some n when n = SolverRunnerProcessName ->
+                                let rs =
+                                    {
+                                        runnerRemoteProcessId = w.remoteProcessId
+                                        progress = TaskProgress.NotStarted
+                                        started = DateTime.Now
+                                        lastUpdated = DateTime.Now
+                                    }
 
-            let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfCores = proxy.noOfCores }, Ok())
-            retVal
+                                { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
+                            | _ -> runIfNoResult g w
+                        | None -> runIfNoResult g w
+                    | None -> proxy.onRunModel g w
+
+                let run g e f =
+                    let (x, z) = tryRunModel g e
+                    x, combineUnitResults f z
+
+                let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfCores = proxy.noOfCores }, Ok())
+                retVal
+            | Some e -> s, Error e
 
         let g, result =
             match proxy.loadAllWorkerNodeRunModelData(), proxy.loadAllResultData() with
@@ -471,20 +471,14 @@ module ServiceImplementation =
         w, result
 
 
-    let onGetState s (r : AsyncReplyChannel<WorkerNodeRunnerState>) =
-        r.Reply s
-        s
+    let onGetState s =
+        s, s
 
 
-    type OnConfigureWorkerProxy =
-        {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
-            workerNodeInfo : WorkerNodeInfo
-        }
+    type OnConfigureWorkerProxy = OnRegisterProxy
 
 
-    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d (r : AsyncReplyChannel<UnitResult>) =
+    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
         match d with
         | WorkerNumberOfSores c ->
             let cores = max 0 (min c Environment.ProcessorCount)
@@ -502,8 +496,7 @@ module ServiceImplementation =
                 | Ok() -> { s with numberOfCores = cores }, Ok()
                 | Error e -> s, Error e
 
-            r.Reply result
-            w
+            w, result
 
 
     let onSaveResultProxy i =
@@ -560,24 +553,6 @@ module ServiceImplementation =
         }
 
 
-    let onSaveResultProxy i =
-        {
-            partitionerId= i.workerNodeAccessInfo.partitionerId
-            tryLoadResultData = i.workerNodeProxy.tryLoadResultData
-            tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
-            sendMessage = i.messageProcessorProxy.sendMessage
-        }
-
-
-    let onSaveChartsProxy i =
-        {
-            partitionerId= i.workerNodeAccessInfo.partitionerId
-            tryLoadChartInfo = i.workerNodeProxy.tryLoadChartInfo
-            tryDeleteChartInfo = i.workerNodeProxy.tryDeleteChartInfo
-            sendMessage = i.messageProcessorProxy.sendMessage
-        }
-
-
     let onUpdateProgressProxy i =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
@@ -597,29 +572,19 @@ module ServiceImplementation =
         }
 
 
-
-    let onGetMessagesProxy =
+    let onGetMessagesProxy i =
         {
-            tryProcessMessage = onTryProcessMessage
-            onProcessMessage = 0
+            tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
+            onProcessMessage = onProcessMessage (onProcessMessageProxy i)
         }
-
-//tryProcessMessage : WorkerNodeRunnerState -> OnProcessMessageType -> WorkerNodeMessageResult
-//onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
-
-
-    let withReply (r : AsyncReplyChannel<'T>) (s, result) =
-        r.Reply result
-        s
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        let onSaveResultProxy = onSaveResultProxy i
-        let onSaveChartsProxy = onSaveChartsProxy i
-        let onRunModelProxy = onRunModelProxy i
         let onStartProxy = onStartProxy i
         let onRegisterProxy = onRegisterProxy i
         let onUpdateProgressProxy = onUpdateProgressProxy i
+        let onGetMessagesProxy = onGetMessagesProxy i
+        let onConfigureWorkerProxy = onRegisterProxy
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -631,9 +596,9 @@ module ServiceImplementation =
                             | Register r -> return! onRegister onRegisterProxy s |> (withReply r) |> loop
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
                             | UpdateProgress (r, p) -> return! onUpdateProgress onUpdateProgressProxy s p |> (withReply r) |> loop
-                            | GetMessages r -> return! onGetMessages s |> loop
-                            | GetState r -> return! t onGetState s r |> loop
-                            | ConfigureWorker d -> return! onConfigureWorker s d |> loop
+                            | GetMessages r -> return! onGetMessages onGetMessagesProxy s |> (withReply r) |> loop
+                            | GetState r -> return! onGetState s |> (withReply r) |> loop
+                            | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -645,58 +610,69 @@ module ServiceImplementation =
         member _.updateProgress p = messageLoop.PostAndReply (fun r -> UpdateProgress (r, p))
         member _.getMessages() = messageLoop.PostAndReply GetMessages
         member _.getState () = messageLoop.PostAndReply GetState
-        member _.configure d = d |> ConfigureWorker |> messageLoop.Post
+        member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
 
 
-    let createServiceImpl i =
-        i.logger.logInfo "createServiceImpl: Creating WorkerNodeRunner..."
+    let createServiceImpl (logger : Logger) (i : WorkerNodeRunnerData) =
+        logger.logInfoString "createServiceImpl: Creating WorkerNodeRunner..."
         let w = WorkerNodeRunner i
 
         match i.workerNodeAccessInfo.isInactive with
         | false ->
-            i.logger.logInfo "createServiceImpl: Registering..."
-            do w.register()
-            do w.start()
-            let h = new EventHandler(EventHandlerInfo.defaultValue (i.logger.logExn "WorkerNodeRunner") w.getMessages)
-            do h.start()
-            Some w
+            logger.logInfoString "createServiceImpl: Registering..."
+            match w.register >-> w.start |> evaluate with
+            | Ok() ->
+                let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError w.getMessages)
+                do h.start()
+                Ok (Some w)
+            | Error e -> Error e
         | true ->
-            i.logger.logInfo "createServiceImpl: Unregistering..."
-            do w.unregister()
-            do w.getState() |> ignore
-            None
+            logger.logInfoString "createServiceImpl: Unregistering..."
+            match w.unregister() with
+            | Ok() -> Ok None
+            | Error e -> Error e
 
 
     type WorkerNodeService () =
         inherit MarshalByRefObject()
         let logger = Logger.log4net
         let className = "WorkerNodeService"
+        let toError e = e |> WorkerNodeServiceErr |> Error
+        let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
         let w =
             let messagingClientAccessInfo = serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
             let h = MsgResponseHandler messagingClientAccessInfo
-            logger.logInfo (sprintf "%s: Created MsgResponseHandler: %A" className h)
+            logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
 
             let messagingClientData =
                 {
                     msgAccessInfo = messagingClientAccessInfo
                     messagingService = h
                     msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName }
-                    logger = logger
                 }
 
             let messagingClient = MessagingClient messagingClientData
-            do messagingClient.start()
 
-            {
-                workerNodeAccessInfo = serviceAccessInfo
-                workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
-                messageProcessorProxy = messagingClient.messageProcessorProxy
-                logger = logger
-                exeName = SolverRunnerName
-                minUsefulEe = MinUsefulEe.defaultValue
-            }
-            |> createServiceImpl
+            match messagingClient.start() with
+            | Ok() ->
+                let n =
+                    {
+                        workerNodeAccessInfo = serviceAccessInfo
+                        workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
+                        messageProcessorProxy = messagingClient.messageProcessorProxy
+                        exeName = SolverRunnerName
+                        minUsefulEe = MinUsefulEe.defaultValue
+                    }
+                    |> createServiceImpl logger
+
+                match n with
+                | Ok (Some v) ->
+                    createMessagingClientEventHandlers logger.logError messagingClient
+                    Ok (Some v)
+                | Ok None -> toError UnableToCreateWorkerNodeServiceError
+                | Error e -> addError UnableToCreateWorkerNodeServiceError e
+            | Error e -> addError UnableToStartMessagingClientError e
 
         let initService () = ()
         do initService ()
@@ -704,24 +680,23 @@ module ServiceImplementation =
 
         let updateLocalProgressImpl p =
             match w with
-            | Some r -> r.updateProgress p
-            | None -> logger.logErr (sprintf "%s: Failed to update progress: %A" className p)
+            | Ok (Some r) -> r.updateProgress p
+            | Ok None -> toError ServiceUnavailable
+            | Error e -> addError (UpdateLocalProgressError (sprintf "Failed to update progress: %A" p)) e
 
 
         let configureImpl d =
             match w with
-            | Some r -> r.configure d
-            | None -> logger.logErr (sprintf "%s: Failed to configure service: %A" className d)
+            | Ok (Some r) -> r.configure d
+            | Ok None -> toError ServiceUnavailable
+            | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
 
 
-        let monitorImpl p =
+        let monitorImpl _ =
             match w with
-            | Some r ->
-                let s = r.getState()
-                WrkNodeState s
-            | None ->
-                logger.logErr (sprintf "%s: Failed to monitor service: %A" className p)
-                CannotAccessWrkNode
+            | Ok (Some r) -> r.getState() |> WrkNodeState
+            | Ok None -> CannotAccessWrkNode
+            | Error e -> ErrorOccurred e
 
 
         interface IWorkerNodeService with

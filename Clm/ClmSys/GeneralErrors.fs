@@ -86,11 +86,26 @@ module GeneralErrors =
         | StopServiceError of exn
 
 
+    type RegistryErrorInfo =
+        {
+            version : string
+            client : string
+            data : string
+        }
+
+
     type RegistryError =
         | CreateRegistrySubKeyError of string * exn
         | SetRegistryValueError of string * exn
         | GetRegistryValueError of string * exn
-        | GetMessagingClientPortError of string
+        | GetMessagingClientPortError of RegistryErrorInfo
+        | GetMessagingClientIdError of RegistryErrorInfo
+        | GetPartitionerMessagingClientIdError of RegistryErrorInfo
+        | GetUsePartitionerError of RegistryErrorInfo
+        | GetNumberOfCoresError of RegistryErrorInfo
+        | GetWrkInactiveError of RegistryErrorInfo
+        | GetContGenServicePortError of RegistryErrorInfo
+        | GetContGenMinUsefulEeError of RegistryErrorInfo
 
 
     type ProcessStartedError =

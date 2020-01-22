@@ -30,7 +30,7 @@ module PartitionerProxy =
         {
             tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             saveResultData : ResultDataWithId -> UnitResult
-            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
 
             saveCharts : ChartInfo -> UnitResult
 

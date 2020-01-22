@@ -131,7 +131,7 @@ module ServiceImplementation =
                 | Ok() -> Ok()
                 | Error e -> toError (DeleteResultDataError d.value) e
             | Error e -> toError (SendResultMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
-        | Error e -> toError (LoadResultDataError d.value) e
+        | Error e -> toError (LoadResultDataErr d.value) e
 
 
     let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =

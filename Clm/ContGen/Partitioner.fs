@@ -15,19 +15,20 @@ open PartitionerServiceInfo.ServiceInfo
 open ClmSys.TimerEvents
 open Clm.CalculationData
 open ServiceProxy.MsgProcessorProxy
+open ClmSys.GeneralErrors
 
 module Partitioner =
 
     type PartitionerCallBackInfo =
         {
-            onUpdateProgress : ProgressUpdateInfo -> unit
-            setRunLimit : int -> unit
+            onUpdateProgress : ProgressUpdateInfo -> UnitResult
+            setRunLimit : int -> UnitResult
         }
 
         static member defaultValue =
             {
-                onUpdateProgress = fun _ -> ignore()
-                setRunLimit = fun _ -> ignore()
+                onUpdateProgress = fun _ -> Ok()
+                setRunLimit = fun _ -> Ok()
             }
 
 
@@ -36,22 +37,22 @@ module Partitioner =
             partitionerMsgAccessInfo : PartitionerMsgAccessInfo
             partitionerProxy : PartitionerProxy
             messageProcessorProxy : MessageProcessorProxy
-            logger : Logger
+            //logger : Logger
         }
 
 
     type PartitionerRunnerState =
         {
             workerNodes : Map<WorkerNodeId, WorkerNodeState>
-            partitionerCallBackInfo : PartitionerCallBackInfo
+            //partitionerCallBackInfo : PartitionerCallBackInfo
         }
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
-                partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
                 workerNodes = Map.empty
+                //partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
             }
 
 
@@ -62,82 +63,87 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
-    let private className = "PartitionerRunner"
-    let private getMethodName n = className + "." + n
-    let private sendMessageName = getMethodName "sendMessage"
-    let private setRunLimitName = getMethodName "setRunLimit"
-    let private onRegisterName = getMethodName "onRegister"
-    let private tryGetNodeName = getMethodName "tryGetNode"
-    let private onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
-    let private onUnregisterName = getMethodName "onUnregister"
-    let private onStartName = getMethodName "onStart"
-    let private onUpdateProgressName = getMethodName "onUpdateProgress"
-    let private onSaveResultName = getMethodName "onSaveResult"
-    let private onSaveChartsName = getMethodName "onSaveCharts"
-    let private onProcessMessageName = getMethodName "onProcessMessage"
-    let private onGetMessagesName = getMethodName "onGetMessages"
-    let private tryGetRunnerName = getMethodName "tryGetRunner"
-    let private onRunModelName = getMethodName "onRunModel"
-    let private onGetStateName = getMethodName "onGetState"
+    //let private className = "PartitionerRunner"
+    //let private getMethodName n = className + "." + n
+    //let private sendMessageName = getMethodName "sendMessage"
+    //let private setRunLimitName = getMethodName "setRunLimit"
+    //let private onRegisterName = getMethodName "onRegister"
+    //let private tryGetNodeName = getMethodName "tryGetNode"
+    //let private onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
+    //let private onUnregisterName = getMethodName "onUnregister"
+    //let private onStartName = getMethodName "onStart"
+    //let private onUpdateProgressName = getMethodName "onUpdateProgress"
+    //let private onSaveResultName = getMethodName "onSaveResult"
+    //let private onSaveChartsName = getMethodName "onSaveCharts"
+    //let private onProcessMessageName = getMethodName "onProcessMessage"
+    //let private onGetMessagesName = getMethodName "onGetMessages"
+    //let private tryGetRunnerName = getMethodName "tryGetRunner"
+    //let private onRunModelName = getMethodName "onRunModel"
+    //let private onGetStateName = getMethodName "onGetState"
 
 
-    let setRunLimit x =
-        printfn "%s: x: %A" setRunLimitName x
-        let c =
-            x.workerNodes
-            |> Map.toList
-            |> List.map snd
-            |> List.fold (fun acc r -> r.workerNodeInfo.noOfCores + acc) 0
-
-        x.partitionerCallBackInfo.setRunLimit c
-        printfn "%s: completed." setRunLimitName
-        x
+    type SetRunLimitProxy =
+        {
+            setRunLimit : int -> UnitResult
+        }
 
 
-    let onRegister (proxy : PartitionerProxy) s (r : WorkerNodeInfo) =
-        printfn "%s: r = %A." onRegisterName r
+    let setRunLimit (proxy : SetRunLimitProxy) workerNodes =
+        let c = workerNodes |> Map.fold (fun acc _ r -> r.workerNodeInfo.noOfCores + acc) 0
+        let result = proxy.setRunLimit c
+        result
 
+
+    type OnRegisterProxy =
+        {
+            setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
+            saveWorkerNodeState : WorkerNodeState -> UnitResult
+        }
+
+
+    let onRegister (proxy : OnRegisterProxy) s (r : WorkerNodeInfo) =
         let updated q =
             let newState = { workerNodeInfo = r; runningProcesses = q }
-            proxy.saveWorkerNodeState newState |> ignore
-            { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }
+            let result = proxy.saveWorkerNodeState newState
+            { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }, result
+
+        let w, result =
+            match s.workerNodes.TryFind r.workerNodeId with
+            | Some n -> n.runningProcesses
+            | None -> Map.empty
+            |> updated
+
+        w, proxy.setRunLimit w.workerNodes |> combineUnitResults result
 
 
-        match s.workerNodes.TryFind r.workerNodeId with
-        | Some n -> n.runningProcesses
-        | None -> Map.empty
-        |> updated
-        |> setRunLimit
+    let tryGetNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) =
+        workerNodes
+            |> Map.toList
+            |> List.map (fun (_, v) -> v)
+            |> List.sortBy (fun e -> e.priority)
+            |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
 
 
-    let tryGetNode s =
-        printfn "%s." tryGetNodeName
-
-        let x =
-            s.workerNodes
-                |> Map.toList
-                |> List.map (fun (_, v) -> v)
-                |> List.sortBy (fun e -> e.priority)
-                |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
-
-        printfn "%s: retVal = %A" tryGetNodeName x
-        x
+    let tryFindRunningNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) r =
+        workerNodes |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
 
 
-    let tryFindRunningNode s r =
-        s.workerNodes
-        |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
+    type OnCompletedProxy =
+        {
+            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
+            saveWorkerNodeState : WorkerNodeState -> UnitResult
+        }
 
 
-    let onCompleted (proxy : PartitionerProxy) r s =
+    let onCompleted (proxy : OnCompletedProxy) r (s : PartitionerRunnerState) =
         proxy.tryDeleteRunModelParamWithRemoteId r |> ignore
 
-        match tryFindRunningNode s r with
+        match tryFindRunningNode s.workerNodes r with
         | Some (w, n) ->
             let newNodeState = { n with runningProcesses = n.runningProcesses.tryRemove r }
-            proxy.saveWorkerNodeState newNodeState |> ignore
-            { s with workerNodes = s.workerNodes.Add (w, newNodeState) }
-        | None -> s
+            let result = proxy.saveWorkerNodeState newNodeState
+            { s with workerNodes = s.workerNodes.Add (w, newNodeState) }, result
+        | None -> s, Ok()
 
 
     let sendRunModelMessage sendMessage (e : RunModelParamWithRemoteId) n m =
@@ -161,23 +167,27 @@ module Partitioner =
         |> sendMessage
 
 
-    let onTryRunModelWithRemoteId sendMessage (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
-        printfn "%s: e = %A." onTryRunModelWithRemoteIdName e
-        let tryGetResult() = proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId())
+    type OnTryRunModelWithRemoteIdProxy =
+        {
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryGetNode : Map<WorkerNodeId, WorkerNodeState> -> WorkerNodeState option
+            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            saveWorkerNodeState : WorkerNodeState -> UnitResult
+            sendRunModelMessage : RunModelParamWithRemoteId -> WorkerNodeState -> ModelData -> UnitResult
+            onCompleted : RemoteProcessId -> PartitionerRunnerState -> PartitionerRunnerState * UnitResult
+        }
 
-        match tryGetResult() with
+
+    let onTryRunModelWithRemoteId sendMessage (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
+        match proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId()) with
         | None ->
             match tryGetNode s with
             | Some n ->
-                printfn "%s: Using Node: %A." onTryRunModelWithRemoteIdName n
-
                 match proxy.tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
                 | Some m ->
-                    printfn "%s: using modelDataId: %A." onTryRunModelWithRemoteIdName m.modelDataId
                     sendRunModelMessage sendMessage e n m
                     let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
-                    printfn "%s: newNodeState = %A" onTryRunModelWithRemoteIdName newNodeState
-                    proxy.saveWorkerNodeState newNodeState |> ignore
+                    proxy.saveWorkerNodeState newNodeState
 
                     let x =
                         {
@@ -188,11 +198,9 @@ module Partitioner =
 
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
                 | None ->
-                    printfn "%s: cannot find model." onTryRunModelWithRemoteIdName
                     logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
                     s, FailedToStart
             | None ->
-                printfn "%s: cannot find node to run." onTryRunModelWithRemoteIdName
                 s, FailedToStart
         | Some _ -> onCompleted proxy e.remoteProcessId s, AlreadyCompleted
 
@@ -371,6 +379,6 @@ module Partitioner =
     let createServiceImpl i =
         printfn "createServiceImpl: Creating PartitionerRunner..."
         let w = PartitionerRunner i
-        let h = new EventHandler(EventHandlerInfo.defaultValue (i.logger.logExn "PartitionerRunner.createServiceImpl") w.getMessages)
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (i.logger.logExn "PartitionerRunner.createServiceImpl") w.getMessages)
         do h.start()
         w

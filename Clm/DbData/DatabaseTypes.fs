@@ -637,7 +637,8 @@ module DatabaseTypes =
             t.Rows
             |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
             |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
-            |> mapDbError LoadResultDataError resultDataId
+            |> Ok
+            //|> mapDbError LoadResultDataError resultDataId
 
         tryDbFun g
 

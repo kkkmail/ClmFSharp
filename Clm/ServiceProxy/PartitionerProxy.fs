@@ -28,7 +28,7 @@ module PartitionerProxy =
 
     type PartitionerProxy =
         {
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             saveResultData : ResultDataWithId -> UnitResult
             tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
 
@@ -50,7 +50,7 @@ module PartitionerProxy =
             let connectionString = i.partitionerConnectionString
 
             {
-                tryLoadModelData = tryLoadModelData connectionString
+                loadModelData = loadModelData connectionString
                 saveResultData = saveResultData connectionString
                 tryLoadResultData = tryLoadResultData connectionString
 

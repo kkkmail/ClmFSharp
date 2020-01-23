@@ -6,6 +6,7 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.Logging
+open ClmSys.GeneralErrors
 
 module AsyncRun =
 
@@ -109,10 +110,10 @@ module AsyncRun =
                 printfn "%s: Starting modelId: %A - result: %A." onStartRunName e.processToStartInfo.modelDataId x
 
                 match x with
-                | StartedSuccessfully r ->
+                | Ok r ->
                     { g with running = g.running.Add(r.processId, r.toRunningProcessInfo())}
-                | FailedToStart -> g
-                | AlreadyCompleted ->
+                | Error (FailedToStart _) -> g
+                | Error AlreadyCompleted ->
                     generatorInfo.removeFromQueue e.processToStartInfo.runQueueId
                     g
 

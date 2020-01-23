@@ -16,6 +16,7 @@ open ClmSys.TimerEvents
 open Clm.CalculationData
 open ServiceProxy.MsgProcessorProxy
 open ClmSys.GeneralErrors
+open ClmSys
 
 module Partitioner =
 
@@ -57,7 +58,7 @@ module Partitioner =
 
 
     type PartitionerMessage =
-        | Start of PartitionerCallBackInfo
+        | Start of PartitionerCallBackInfo * AsyncReplyChannel<UnitResult>
         | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedResult>
         | GetMessages
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
@@ -169,22 +170,22 @@ module Partitioner =
 
     type OnTryRunModelWithRemoteIdProxy =
         {
-            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
             tryGetNode : Map<WorkerNodeId, WorkerNodeState> -> WorkerNodeState option
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             saveWorkerNodeState : WorkerNodeState -> UnitResult
             sendRunModelMessage : RunModelParamWithRemoteId -> WorkerNodeState -> ModelData -> UnitResult
             onCompleted : RemoteProcessId -> PartitionerRunnerState -> PartitionerRunnerState * UnitResult
         }
 
 
-    let onTryRunModelWithRemoteId sendMessage (proxy : PartitionerProxy) s (e : RunModelParamWithRemoteId) =
+    let onTryRunModelWithRemoteId sendMessage (proxy : OnTryRunModelWithRemoteIdProxy) s (e : RunModelParamWithRemoteId) =
         match proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId()) with
-        | None ->
-            match tryGetNode s with
+        | Ok None ->
+            match proxy.tryGetNode s.workerNodes with
             | Some n ->
-                match proxy.tryLoadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
-                | Some m ->
+                match proxy.loadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
+                | Ok m ->
                     sendRunModelMessage sendMessage e n m
                     let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
                     proxy.saveWorkerNodeState newNodeState
@@ -195,27 +196,38 @@ module Partitioner =
                             runningProcessData = e.runModelParam.callBackInfo
                         }
                         |> StartedSuccessfully
+                        |> Ok
 
                     { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
                 | None ->
-                    logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
+                    //logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
                     s, FailedToStart
             | None ->
                 s, FailedToStart
-        | Some _ -> onCompleted proxy e.remoteProcessId s, AlreadyCompleted
+        | Ok (Some _) -> proxy.onCompleted e.remoteProcessId s, Ok AlreadyCompleted
+        | Error e -> s, Error e
 
 
-    let onStart (proxy : PartitionerProxy) s q =
-        printfn "%s" onStartName
+    type OnStartProxy =
+        {
+            loadAllWorkerNodeState : unit -> ListResult<WorkerNodeState>
+            setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
+        }
 
+
+    let onStart (proxy : OnStartProxy) s =
         let onStartRun g r = { g with workerNodes = g.workerNodes.Add (r.workerNodeInfo.workerNodeId, r) }
-        let g = { s with partitionerCallBackInfo = q }
-        let workers = proxy.loadAllWorkerNodeState()
-        printfn "%s: workers = %A" onStartName workers
 
-        workers
-        |> List.fold (fun acc r -> onStartRun acc r) g
-        |> setRunLimit
+        match proxy.loadAllWorkerNodeState() with
+        | Ok w ->
+            let workers, e = w |> Rop.unzip
+            match e |> foldToUnitResult with
+            | Ok() ->
+                let w = workers |> List.fold (fun acc r -> onStartRun acc r) s
+                let result = proxy.setRunLimit w.workerNodes
+                w, result
+            | Error e -> s, Error e
+        | Error e -> s, Error e
 
 
     let onUpdateProgress proxy s (i : RemoteProgressUpdateInfo) =
@@ -343,34 +355,32 @@ module Partitioner =
             s
 
 
-    let onGetState s (r : AsyncReplyChannel<PartitionerRunnerState>) =
-        printfn "%s" onGetStateName
-        r.Reply s
-        s
+    let onGetState s = s, s
 
 
     type PartitionerRunner(w : PartitionerRunnerData) =
         let proxy = w.partitionerProxy
         let tryProcessMessage = onTryProcessMessage w.messageProcessorProxy
+        let onStartProxy : OnStartProxy = 0
 
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
-                let rec loop s =
+                let rec loop (s : PartitionerRunnerState, c : PartitionerCallBackInfo) =
                     async
                         {
                             match! u.Receive() with
-                            | Start q -> return! timed onStartName onStart proxy s q |> loop
-                            | RunModel (p, r) -> return! timed onRunModelName onRunModel w.messageProcessorProxy.sendMessage proxy s p r |> loop
-                            | GetMessages ->return! timed onGetMessagesName onGetMessages tryProcessMessage proxy s |> loop
-                            | GetState r -> return! timed onGetStateName onGetState s r |> loop
+                            | Start (q, r) -> return! (onStart onStartProxy s|> (withReply r), q) |> loop
+                            | RunModel (p, r) -> return! onRunModel w.messageProcessorProxy.sendMessage proxy s p r |> loop
+                            | GetMessages ->return! onGetMessages tryProcessMessage proxy s |> loop
+                            | GetState r -> return! (onGetState s|> (withReply r), c) |> loop
                         }
 
-                PartitionerRunnerState.defaultValue |> loop
+                (PartitionerRunnerState.defaultValue, PartitionerCallBackInfo.defaultValue) |> loop
                 )
 
 
-        member __.start q = Start q |> messageLoop.Post
+        member __.start q = messageLoop.PostAndReply (fun reply -> Start (q, reply))
         member __.runModel p = messageLoop.PostAndReply (fun reply -> RunModel (p, reply))
         member __.getMessages () = GetMessages |> messageLoop.Post
         member __.getState () = messageLoop.PostAndReply GetState

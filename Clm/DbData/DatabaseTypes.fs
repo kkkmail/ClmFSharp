@@ -501,7 +501,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadModelData (connectionString : ConnectionString) i (ModelDataId modelDataId) =
+    let loadModelData (connectionString : ConnectionString) i (ModelDataId modelDataId) =
         let g() =
             use conn = new SqlConnection(connectionString.value)
             openConnIfClosed conn
@@ -516,7 +516,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryUpdateModelData (ConnectionString connectionString) (m : ModelData) =
+    let updateModelData (ConnectionString connectionString) (m : ModelData) =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn
@@ -626,6 +626,7 @@ module DatabaseTypes =
 
         tryDbFun g
 
+
     let tryLoadResultData (ConnectionString connectionString) (ResultDataId resultDataId) =
         let g() =
             use conn = new SqlConnection(connectionString)
@@ -638,7 +639,6 @@ module DatabaseTypes =
             |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
             |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
             |> Ok
-            //|> mapDbError LoadResultDataError resultDataId
 
         tryDbFun g
 

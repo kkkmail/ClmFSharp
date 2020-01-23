@@ -109,7 +109,6 @@ module GeneralErrors =
 
 
     type ProcessStartedError =
-        | AlreadyCompleted
         | FailedToStart of exn
 
 
@@ -230,7 +229,7 @@ module GeneralErrors =
 
     /// All errors known in the system.
     type ClmError =
-        | AggregateErr of List<ClmError>
+        | AggregateErr of ClmError * List<ClmError>
         | UnhandledExn of exn
         | UnknownErr of string
         | ClmEventHandlerErr of ClmEventHandlerError
@@ -248,10 +247,10 @@ module GeneralErrors =
 
         static member (+) (a, b) =
             match a, b with
-            | AggregateErr x, AggregateErr y -> AggregateErr (x @ y)
-            | AggregateErr x, _ -> AggregateErr (x @ [b])
-            | _, AggregateErr y -> AggregateErr (a :: y)
-            | _ -> AggregateErr [ a; b ]
+            | AggregateErr (x, w), AggregateErr (y, z) -> AggregateErr (x, w @ (y :: z))
+            | AggregateErr (x, w), _ -> AggregateErr (x, w @ [b])
+            | _, AggregateErr (y, z) -> AggregateErr (a, y :: z)
+            | _ -> AggregateErr (a, [b])
 
         member a.add b = a + b
 

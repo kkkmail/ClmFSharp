@@ -147,16 +147,16 @@ module Partitioner =
         | None -> s, Ok()
 
 
-    let sendRunModelMessage sendMessage (e : RunModelParamWithRemoteId) n m =
+    let sendRunModelMessage sendMessage (e : RunModelParamWithRemoteId) workerNodeId m =
         {
-            workerNodeRecipient = n.workerNodeInfo.workerNodeId
+            workerNodeRecipient = workerNodeId
             deliveryType = GuaranteedDelivery
             messageData =
                 (
                     {
                         remoteProcessId = e.remoteProcessId
                         localProcessId = None
-                        runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = n.workerNodeInfo.workerNodeId }
+                        runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = workerNodeId }
                         taskParam = e.runModelParam.commandLineParam.taskParam
                         minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
                         commandLine = EmptyString
@@ -174,36 +174,38 @@ module Partitioner =
             tryGetNode : Map<WorkerNodeId, WorkerNodeState> -> WorkerNodeState option
             loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             saveWorkerNodeState : WorkerNodeState -> UnitResult
-            sendRunModelMessage : RunModelParamWithRemoteId -> WorkerNodeState -> ModelData -> UnitResult
+            sendRunModelMessage : RunModelParamWithRemoteId -> WorkerNodeId -> ModelData -> UnitResult
             onCompleted : RemoteProcessId -> PartitionerRunnerState -> PartitionerRunnerState * UnitResult
         }
 
 
-    let onTryRunModelWithRemoteId sendMessage (proxy : OnTryRunModelWithRemoteIdProxy) s (e : RunModelParamWithRemoteId) =
+    let onTryRunModelWithRemoteId (proxy : OnTryRunModelWithRemoteIdProxy) s (e : RunModelParamWithRemoteId) =
+        let addError f e = ((f |> OnTryRunModelWithRemoteIdErr |> PartitionerErr) + e) |> Error
+        let toClmError e = e |> OnTryRunModelWithRemoteIdErr |> PartitionerErr
+        let toError e = e |> toClmError |> Error
+
         match proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId()) with
         | Ok None ->
             match proxy.tryGetNode s.workerNodes with
             | Some n ->
                 match proxy.loadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
                 | Ok m ->
-                    sendRunModelMessage sendMessage e n m
+                    let a = proxy.sendRunModelMessage e n.workerNodeInfo.workerNodeId m
                     let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
-                    proxy.saveWorkerNodeState newNodeState
+                    let b = proxy.saveWorkerNodeState newNodeState
 
                     let x =
                         {
                             processId = e.remoteProcessId |> RemoteProcess
                             runningProcessData = e.runModelParam.callBackInfo
                         }
-                        |> StartedSuccessfully
-                        |> Ok
 
-                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, x
-                | None ->
+                    let result = (x, combineUnitResults a b |> toErrorOption (toClmError TryRunModelWithRemoteIdErr)) |> StartedSuccessfully |> Ok
+                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, result
+                | Error e ->
                     //logger.logErr (sprintf "%s: Unable to load model with id: %A" onTryRunModelWithRemoteIdName e.runModelParam.callBackInfo.modelDataId)
-                    s, FailedToStart
-            | None ->
-                s, FailedToStart
+                    s, Error e
+            | None -> s, UnableToGetWorkerNode |> toError
         | Ok (Some _) -> proxy.onCompleted e.remoteProcessId s, Ok AlreadyCompleted
         | Error e -> s, Error e
 
@@ -306,9 +308,14 @@ module Partitioner =
         |> Map.tryPick (fun _ b -> b.runningProcesses |> Map.tryPick (fun a b -> if b = q then Some a else None))
 
 
-    let onRunModel sendMessage proxy s (a: RunModelParam) (r : AsyncReplyChannel<ProcessStartedResult>) =
-        printfn "%s" onRunModelName
+    type OnRunModelProxy =
+        {
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
+            tryGetRunner : PartitionerRunnerState -> RunQueueId -> RemoteProcessId option
+        }
 
+
+    let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) = // (r : AsyncReplyChannel<ProcessStartedResult>) =
         let reply q =
             {
                 processId = q |> RemoteProcess

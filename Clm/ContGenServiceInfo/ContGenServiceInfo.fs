@@ -194,7 +194,7 @@ module ServiceInfo =
 
     type ProcessStartedOkResult =
         | AlreadyCompleted
-        | StartedSuccessfully of ProcessStartedInfo
+        | StartedSuccessfully of ProcessStartedInfo * ClmError option
 
 
     type ProcessStartedResult = ClmResult<ProcessStartedOkResult>

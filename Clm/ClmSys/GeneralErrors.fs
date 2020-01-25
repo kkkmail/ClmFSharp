@@ -227,6 +227,18 @@ module GeneralErrors =
         | MonitorServiceError of string
 
 
+    type OnTryRunModelWithRemoteIdError =
+        | UnableToGetWorkerNode
+        | TryRunModelWithRemoteIdErr
+
+        | UnableToSendRunModelMessage
+        | UnableToSaveWorkerNodeState
+
+
+    type PartitionerError =
+        | OnTryRunModelWithRemoteIdErr of OnTryRunModelWithRemoteIdError
+
+
     /// All errors known in the system.
     type ClmError =
         | AggregateErr of ClmError * List<ClmError>
@@ -244,6 +256,7 @@ module GeneralErrors =
         | MessagingClientErr of MessagingClientError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
+        | PartitionerErr of PartitionerError
 
         static member (+) (a, b) =
             match a, b with
@@ -307,6 +320,12 @@ module GeneralErrors =
         | Error e1, Ok() -> Error e1
         | Ok(), Error e2 -> Error e2
         | Error e1, Error e2 -> Error (e1 + e2)
+
+
+    let toErrorOption f (r : UnitResult) =
+        match r with
+        | Ok() -> None
+        | Error e -> Some (f + e)
 
 
     let foldUnitResults (r : list<UnitResult>) =

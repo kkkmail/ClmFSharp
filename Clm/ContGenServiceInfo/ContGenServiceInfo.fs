@@ -200,6 +200,18 @@ module ServiceInfo =
     type ProcessStartedResult = ClmResult<ProcessStartedOkResult>
 
 
+    let combineResult (result : ProcessStartedResult) (e : UnitResult) =
+        let addError f x = [ Some f ; x ] |> List.choose id |> foldErrors
+
+        match e with
+        | Ok() -> result
+        | Error f ->
+            match result with
+            | Ok (AlreadyCompleted x) -> addError f x |> AlreadyCompleted |> Ok
+            | Ok (StartedSuccessfully (i, x)) -> StartedSuccessfully (i, addError f x) |> Ok
+            | Error g -> Error (f + g)
+
+
     type ProcessResult =
         {
             startInfo : ProcessStartedInfo

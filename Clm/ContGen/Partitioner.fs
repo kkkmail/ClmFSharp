@@ -58,6 +58,7 @@ module Partitioner =
 
 
     type PartitionerRunnerResult = StateWithResult<PartitionerRunnerState>
+    type PartitionerRunnerProcessStartedResult = PartitionerRunnerState * ProcessStartedResult
 
 
     type PartitionerMessage =
@@ -65,25 +66,6 @@ module Partitioner =
         | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedResult>
         | GetMessages
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
-
-
-    //let private className = "PartitionerRunner"
-    //let private getMethodName n = className + "." + n
-    //let private sendMessageName = getMethodName "sendMessage"
-    //let private setRunLimitName = getMethodName "setRunLimit"
-    //let private onRegisterName = getMethodName "onRegister"
-    //let private tryGetNodeName = getMethodName "tryGetNode"
-    //let private onTryRunModelWithRemoteIdName = getMethodName "onTryRunModelWithRemoteId"
-    //let private onUnregisterName = getMethodName "onUnregister"
-    //let private onStartName = getMethodName "onStart"
-    //let private onUpdateProgressName = getMethodName "onUpdateProgress"
-    //let private onSaveResultName = getMethodName "onSaveResult"
-    //let private onSaveChartsName = getMethodName "onSaveCharts"
-    //let private onProcessMessageName = getMethodName "onProcessMessage"
-    //let private onGetMessagesName = getMethodName "onGetMessages"
-    //let private tryGetRunnerName = getMethodName "tryGetRunner"
-    //let private onRunModelName = getMethodName "onRunModel"
-    //let private onGetStateName = getMethodName "onGetState"
 
 
     type SetRunLimitProxy =
@@ -182,37 +164,42 @@ module Partitioner =
         }
 
 
-    let onTryRunModelWithRemoteId (proxy : OnTryRunModelWithRemoteIdProxy) s (e : RunModelParamWithRemoteId) =
+    let onTryRunModelWithRemoteId (proxy : OnTryRunModelWithRemoteIdProxy) s (i : RunModelParamWithRemoteId) : PartitionerRunnerProcessStartedResult =
         let addError f e = ((f |> OnTryRunModelWithRemoteIdErr |> PartitionerErr) + e) |> Error
         let toClmError e = e |> OnTryRunModelWithRemoteIdErr |> PartitionerErr
         let toError e = e |> toClmError |> Error
+        let modelDataId = i.runModelParam.callBackInfo.modelDataId
 
-        match proxy.tryLoadResultData (e.runModelParam.callBackInfo.runQueueId.toResultDataId()) with
-        | Ok None ->
-            match proxy.tryGetNode s.workerNodes with
-            | Some n ->
-                match proxy.loadModelData e.runModelParam.commandLineParam.serviceAccessInfo e.runModelParam.callBackInfo.modelDataId with
-                | Ok m ->
-                    let a = proxy.sendRunModelMessage e n.workerNodeInfo.workerNodeId m
-                    let newNodeState = { n with runningProcesses = n.runningProcesses.Add(e.remoteProcessId, e.runModelParam.callBackInfo.runQueueId) }
-                    let b = proxy.saveWorkerNodeState newNodeState
+        let w, result =
+            match proxy.tryLoadResultData (i.runModelParam.callBackInfo.runQueueId.toResultDataId()) with
+            | Ok None ->
+                match proxy.tryGetNode s.workerNodes with
+                | Some n ->
+                    match proxy.loadModelData i.runModelParam.commandLineParam.serviceAccessInfo modelDataId with
+                    | Ok m ->
+                        match proxy.sendRunModelMessage i n.workerNodeInfo.workerNodeId m with
+                        | Ok() ->
+                            let newNodeState = { n with runningProcesses = n.runningProcesses.Add(i.remoteProcessId, i.runModelParam.callBackInfo.runQueueId) }
+                            let b = proxy.saveWorkerNodeState newNodeState
 
-                    let x =
-                        {
-                            processId = e.remoteProcessId |> RemoteProcess
-                            runningProcessData = e.runModelParam.callBackInfo
-                        }
+                            let x =
+                                {
+                                    processId = i.remoteProcessId |> RemoteProcess
+                                    runningProcessData = i.runModelParam.callBackInfo
+                                }
 
-                    let result = (x, combineUnitResults a b |> toErrorOption toClmError TryRunModelWithRemoteIdErr) |> StartedSuccessfully |> Ok
-                    { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, result
-                | Error e ->
-                    s, Error e
-            | None -> s, UnableToGetWorkerNode e.runModelParam.callBackInfo.modelDataId.value |> toError
-        | Ok (Some _) ->
-            let w, r = proxy.onCompleted s e.remoteProcessId
-            let result = toErrorOption toClmError OnCompletedErr r
-            w, result |> AlreadyCompleted |> Ok
-        | Error e -> s, Error e
+                            let r = (x, b |> toErrorOption toClmError (TryRunModelWithRemoteIdErr modelDataId.value)) |> StartedSuccessfully |> Ok
+                            { s with workerNodes = s.workerNodes.Add(n.workerNodeInfo.workerNodeId, newNodeState) }, r
+                        | Error e -> s, addError (UnableToSendRunModelMessage modelDataId.value) e
+                    | Error e -> s, addError (UnableToLoadModelData modelDataId.value) e
+                | None -> s, UnableToGetWorkerNode modelDataId.value |> toError
+            | Ok (Some _) ->
+                let w, r = proxy.onCompleted s i.remoteProcessId
+                let result = toErrorOption toClmError (OnCompletedErr modelDataId.value) r
+                w, result |> AlreadyCompleted |> Ok
+            | Error e -> s,addError (UnableToLoadModelData i.runModelParam.callBackInfo.modelDataId.value) e
+
+        w, result
 
 
     type OnStartProxy =
@@ -359,16 +346,6 @@ module Partitioner =
         w, result
 
 
-    //type OnGetMessagesProxy =
-    //    {
-    //        onProcessMessage : PartitionerRunnerState -> Message -> PartitionerRunnerResult
-    //    }
-
-
-    //let onGetMessages tryProcessMessage proxy s : PartitionerRunnerResult =
-    //    let y = List.foldWhileSome (fun x () -> tryProcessMessage x proxy.onProcessMessage) PartitionerRunnerState.maxMessages s
-    //    y
-
     type OnProcessMessageType = OnProcessMessageType<PartitionerRunnerState>
     type OnGetMessagesProxy = OnGetMessagesProxy<PartitionerRunnerState>
     let onGetMessages = onGetMessages<PartitionerRunnerState>
@@ -381,56 +358,58 @@ module Partitioner =
 
     type OnRunModelProxy =
         {
-            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
+            //tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
             tryGetRunner : PartitionerRunnerState -> RunQueueId -> RemoteProcessId option
+            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
+            onTryRunModelWithRemoteId : PartitionerRunnerState -> RunModelParamWithRemoteId -> PartitionerRunnerProcessStartedResult
         }
 
 
-    let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) = // (r : AsyncReplyChannel<ProcessStartedResult>) =
-        let reply q =
-            {
-                processId = q |> RemoteProcess
-                runningProcessData = a.callBackInfo
-            }
-            |> StartedSuccessfully
-            |> r.Reply
+    //let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
+    //    let getReply q e = ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, e) |> StartedSuccessfully |> Ok
+    //    //let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
+    //
+    //    let w, result =
+    //        match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
+    //        | Some w, Ok None -> s, getReply w None
+    //        | None, Ok None ->
+    //            let q = a.callBackInfo.runQueueId.toRemoteProcessId()
+    //            let e = { remoteProcessId = q; runModelParam = a }
+    //            let r = proxy.saveRunModelParamWithRemoteId e
+    //            let (g, x) = proxy.onTryRunModelWithRemoteId s e
+    //            // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
+    //            g, combineResult x r
+    //        | None, Ok (Some d) ->
+    //            // This can happen when there are serveral unprocessed messages in different mailbox processors.
+    //            // Since we already have the result, we don't start the remote calculation again.
+    //            //printfn "%s: | None, Some %A" onRunModelName d.resultDataId
+    //            //r.Reply AlreadyCompleted
+    //            s
+    //        | Some w, Ok (Some d) ->
+    //            // This should not happen because we have the result and that means that
+    //            // the relevant message was processed and that that should've removed the runner from the list.
+    //            // Nevertless, we just let the duplicate calculation run.
+    //            //printfn "%s: Error - found running model: %A and result: %A." onRunModelName a.callBackInfo.runQueueId d.resultDataId
+    //            //printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
+    //            s
+    //        | _ -> 0
+    //
+    //    w, result
 
-        let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
+    let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
+        let getReply q e = ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, e) |> StartedSuccessfully |> Ok
 
-        match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
-        | Some w, None ->
-            printfn "%s: | Some %A, None" onRunModelName w
-            reply w
-            s
-        | None, None ->
-            printfn "%s: | None, None" onRunModelName
-            let q = a.callBackInfo.runQueueId.toRemoteProcessId()
+        let w, result =
+            match tryGetRunner s a.callBackInfo.runQueueId with
+            | Some w -> s, getReply w None
+            | None ->
+                let i = { remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId(); runModelParam = a }
 
-            let e =
-                {
-                    remoteProcessId = q
-                    runModelParam = a
-                }
+                match proxy.saveRunModelParamWithRemoteId i with
+                | Ok() -> proxy.onTryRunModelWithRemoteId s i
+                | Error e -> s, Error e
 
-            proxy.saveRunModelParamWithRemoteId e
-            let (g, x) = onTryRunModelWithRemoteId sendMessage proxy s e
-            // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
-            r.Reply x
-            g
-        | None, Some d ->
-            // This can happen when there are serveral unprocessed messages in different mailbox processors.
-            // Since we already have the result, we don't start the remote calculation again.
-            printfn "%s: | None, Some %A" onRunModelName d.resultDataId
-            r.Reply AlreadyCompleted
-            s
-        | Some w, Some d ->
-            // This should not happen because we have the result and that means that
-            // the relevant message was processed and that that should've removed the runner from the list.
-            // Nevertless, we just let the duplicate calculation run.
-            printfn "%s: Error - found running model: %A and result: %A." onRunModelName a.callBackInfo.runQueueId d.resultDataId
-            printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
-            reply w
-            s
+        w, result
 
 
     let onGetState s = s, s

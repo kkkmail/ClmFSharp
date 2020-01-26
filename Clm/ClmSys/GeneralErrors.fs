@@ -229,13 +229,19 @@ module GeneralErrors =
 
     type OnTryRunModelWithRemoteIdError =
         | UnableToGetWorkerNode of Guid
-        | TryRunModelWithRemoteIdErr
-        | OnCompletedErr
+        | UnableToLoadModelData of Guid
+        | UnableToSendRunModelMessage of Guid
+        | TryRunModelWithRemoteIdErr of Guid
+        | OnCompletedErr of Guid
 
 
     type OnProcessPartitionerMessageError =
         | ProcessedWithPartitionerErr
         | InvalidMessageTypeErr of Guid
+
+
+    type OnPartitionerRunModelError =
+        | X
 
 
     type PartitionerError =
@@ -303,7 +309,7 @@ module GeneralErrors =
         | h :: t -> t |> List.fold (fun acc r -> r + acc) h |> Some
 
 
-    /// Converts and error option into a unit result.
+    /// Converts an error option into a unit result.
     let toUnitResult fo =
         match fo with
         | None -> Ok()

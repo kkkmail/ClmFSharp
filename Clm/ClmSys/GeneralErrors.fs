@@ -228,15 +228,20 @@ module GeneralErrors =
 
 
     type OnTryRunModelWithRemoteIdError =
-        | UnableToGetWorkerNode
+        | UnableToGetWorkerNode of Guid
         | TryRunModelWithRemoteIdErr
+        | OnCompletedErr
 
-        | UnableToSendRunModelMessage
-        | UnableToSaveWorkerNodeState
+
+    type OnProcessPartitionerMessageError =
+        | ProcessedWithPartitionerErr
+        | InvalidMessageTypeErr of Guid
 
 
     type PartitionerError =
         | OnTryRunModelWithRemoteIdErr of OnTryRunModelWithRemoteIdError
+        | OnProcessPartitionerMessageErr of OnProcessPartitionerMessageError
+        | OnGetMessagesPartitionerErr of OnGetMessagesError
 
 
     /// All errors known in the system.
@@ -287,6 +292,7 @@ module GeneralErrors =
     type UnitResult = Result<unit, ClmError>
     type ClmResult<'T> = Result<'T, ClmError>
     type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
+    type StateWithResult<'T> = 'T * UnitResult
 
 
     /// ! Note that we cannot elevate to Result here as it will broaden the scope !
@@ -322,10 +328,10 @@ module GeneralErrors =
         | Error e1, Error e2 -> Error (e1 + e2)
 
 
-    let toErrorOption f (r : UnitResult) =
+    let toErrorOption f g (r : UnitResult) =
         match r with
         | Ok() -> None
-        | Error e -> Some (f + e)
+        | Error e -> Some ((f g) + e)
 
 
     let foldUnitResults (r : list<UnitResult>) =

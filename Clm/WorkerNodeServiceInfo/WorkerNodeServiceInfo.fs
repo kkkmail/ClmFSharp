@@ -50,6 +50,8 @@ module ServiceInfo =
             numberOfCores : int
         }
 
+    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
+
 
     type WorkerNodeMonitorParam =
         | DummyWrkMonitorParam of int

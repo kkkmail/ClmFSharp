@@ -294,11 +294,13 @@ module ServiceImplementation =
                     //proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
                     s, err
             | false ->
+                let r = a.callBackInfo.runQueueId.toRemoteProcessId()
+
                 let q =
                     {
-                        remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId()
+                        remoteProcessId = r
                         runningProcessData = a.callBackInfo
-                        progress = Failed (sprintf "Worker node: %A exceeded number of available cores." proxy.workerNodeId)
+                        progress = Failed (proxy.workerNodeId, r)
                     }
 
                 let res =
@@ -325,7 +327,7 @@ module ServiceImplementation =
             tryDeleteModelData : ModelDataId -> UnitResult
             onSaveResult : ResultDataId -> UnitResult
             onSaveCharts : ResultDataId -> UnitResult
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> (WorkerNodeRunnerState * UnitResult)
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
         }
 
 
@@ -413,7 +415,7 @@ module ServiceImplementation =
     type OnProcessMessageProxy =
         {
             saveModelData : ModelData -> UnitResult
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> (WorkerNodeRunnerState * UnitResult)
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
             tryFindRunningModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> RunnerState option
         }
 
@@ -438,41 +440,10 @@ module ServiceImplementation =
         w, result
 
 
-    type OnProcessMessageType = WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
-
-
-    type OnGetMessagesProxy =
-        {
-            tryProcessMessage : WorkerNodeRunnerState -> OnProcessMessageType -> WorkerNodeMessageResult
-            onProcessMessage : WorkerNodeRunnerState -> Message -> (WorkerNodeRunnerState * UnitResult)
-        }
-
-
-    let onGetMessages (proxy : OnGetMessagesProxy) (s : WorkerNodeRunnerState) =
-        let addError f e = ((f |> OnGetMessagesErr |> WorkerNodeErr) + e) |> Error
-        let toError e = e |> OnGetMessagesErr |> WorkerNodeErr |> Error
-
-        let rec doFold x acc =
-            match x with
-            | [] -> acc, Ok()
-            | _ :: t ->
-                match proxy.tryProcessMessage acc proxy.onProcessMessage with
-                | ProcessedSucessfully (g, u) ->
-                    match u with
-                    | Ok() -> doFold t g
-                    | Error e -> g, addError ProcessedSucessfullyWithInnerError e
-                | ProcessedWithError ((g, u), e) -> g, (addError ProcessedWithErr e, u) ||> combineUnitResults
-                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveError e, u) ||> combineUnitResults
-                | FailedToProcess e -> acc, addError FailedToProcessError e
-                | NothingToDo -> acc, Ok()
-                | BusyProcessing -> acc, toError BusyProcessingError
-
-        let w, result = doFold WorkerNodeRunnerState.maxMessages s
-        w, result
-
-
-    let onGetState s =
-        s, s
+    type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
+    type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
+    let onGetMessages = onGetMessages<WorkerNodeRunnerState>
+    let onGetState s = s, s
 
 
     type OnConfigureWorkerProxy = OnRegisterProxy
@@ -576,6 +547,8 @@ module ServiceImplementation =
         {
             tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
             onProcessMessage = onProcessMessage (onProcessMessageProxy i)
+            maxMessages = WorkerNodeRunnerState.maxMessages
+            onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
         }
 
 

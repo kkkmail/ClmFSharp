@@ -20,7 +20,7 @@ module ServiceInfo =
         | NotStarted
         | InProgress of decimal
         | Completed
-        | Failed of string
+        | Failed of WorkerNodeId * RemoteProcessId
 
         static member create d =
             match d with
@@ -193,7 +193,7 @@ module ServiceInfo =
 
 
     type ProcessStartedOkResult =
-        | AlreadyCompleted
+        | AlreadyCompleted of ClmError option
         | StartedSuccessfully of ProcessStartedInfo * ClmError option
 
 

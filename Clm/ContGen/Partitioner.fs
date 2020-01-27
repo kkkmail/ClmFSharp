@@ -64,7 +64,7 @@ module Partitioner =
     type PartitionerMessage =
         | Start of PartitionerCallBackInfo * AsyncReplyChannel<UnitResult>
         | RunModel of RunModelParam * AsyncReplyChannel<ProcessStartedResult>
-        | GetMessages
+        | GetMessages of AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
@@ -298,7 +298,6 @@ module Partitioner =
                 n.runningProcesses
                 |> Map.toList
                 |> List.map (fun (e, _) -> e)
-                //|> List.map proxy.tryLoadRunModelParamWithRemoteId
                 |> List.fold (fun (w, u) e -> failed w r e u) (removeNode())
             | None -> removeNode()
 
@@ -369,43 +368,11 @@ module Partitioner =
 
     type OnRunModelProxy =
         {
-            //tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
             tryGetRunner : PartitionerRunnerState -> RunQueueId -> RemoteProcessId option
             saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
             onTryRunModelWithRemoteId : PartitionerRunnerState -> RunModelParamWithRemoteId -> PartitionerRunnerProcessStartedResult
         }
 
-
-    //let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
-    //    let getReply q e = ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, e) |> StartedSuccessfully |> Ok
-    //    //let tryGetResult() = proxy.tryLoadResultData (a.callBackInfo.runQueueId.toResultDataId())
-    //
-    //    let w, result =
-    //        match tryGetRunner s a.callBackInfo.runQueueId, tryGetResult() with
-    //        | Some w, Ok None -> s, getReply w None
-    //        | None, Ok None ->
-    //            let q = a.callBackInfo.runQueueId.toRemoteProcessId()
-    //            let e = { remoteProcessId = q; runModelParam = a }
-    //            let r = proxy.saveRunModelParamWithRemoteId e
-    //            let (g, x) = proxy.onTryRunModelWithRemoteId s e
-    //            // TODO kk:20191227 - Shall we remove model if onTryRunModelWithRemoteId failed???
-    //            g, combineResult x r
-    //        | None, Ok (Some d) ->
-    //            // This can happen when there are serveral unprocessed messages in different mailbox processors.
-    //            // Since we already have the result, we don't start the remote calculation again.
-    //            //printfn "%s: | None, Some %A" onRunModelName d.resultDataId
-    //            //r.Reply AlreadyCompleted
-    //            s
-    //        | Some w, Ok (Some d) ->
-    //            // This should not happen because we have the result and that means that
-    //            // the relevant message was processed and that that should've removed the runner from the list.
-    //            // Nevertless, we just let the duplicate calculation run.
-    //            //printfn "%s: Error - found running model: %A and result: %A." onRunModelName a.callBackInfo.runQueueId d.resultDataId
-    //            //printfn "%s: | Some %A, Some %A" onRunModelName w d.resultDataId
-    //            s
-    //        | _ -> 0
-    //
-    //    w, result
 
     let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
         let w, result =
@@ -512,10 +479,10 @@ module Partitioner =
         }
 
 
-    let onGetMessagesProxy i =
+    let onGetMessagesProxy i c =
         {
             tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-            onProcessMessage = onProcessMessage (onProcessMessageProxy i)
+            onProcessMessage = onProcessMessage (onProcessMessageProxy i c)
             maxMessages = PartitionerRunnerState.maxMessages
             onError = fun f -> f |> OnGetMessagesPartitionerErr |> PartitionerErr
         }
@@ -529,11 +496,10 @@ module Partitioner =
         }
 
 
-    type PartitionerRunner(w : PartitionerRunnerData) =
-        let proxy = w.partitionerProxy
-        let tryProcessMessage = onTryProcessMessage w.messageProcessorProxy
-        let onStartProxy : OnStartProxy = 0
-
+    type PartitionerRunner(i : PartitionerRunnerData) =
+        let onStartProxy = onStartProxy i
+        let onRunModelProxy = onRunModelProxy i
+        let onGetMessagesProxy = onGetMessagesProxy i
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -541,9 +507,9 @@ module Partitioner =
                     async
                         {
                             match! u.Receive() with
-                            | Start (q, r) -> return! (onStart onStartProxy s|> (withReply r), q) |> loop
-                            | RunModel (p, r) -> return! onRunModel w.messageProcessorProxy.sendMessage proxy s p r |> loop
-                            | GetMessages ->return! onGetMessages tryProcessMessage proxy s |> loop
+                            | Start (q, r) -> return! (onStart (onStartProxy c) s |> (withReply r), q) |> loop
+                            | RunModel (p, r) -> return! (onRunModel onRunModelProxy s p |> (withReply r), c) |> loop
+                            | GetMessages r ->return! (onGetMessages (onGetMessagesProxy c) s |> (withReply r), c) |> loop
                             | GetState r -> return! (onGetState s|> (withReply r), c) |> loop
                         }
 
@@ -553,13 +519,13 @@ module Partitioner =
 
         member __.start q = messageLoop.PostAndReply (fun reply -> Start (q, reply))
         member __.runModel p = messageLoop.PostAndReply (fun reply -> RunModel (p, reply))
-        member __.getMessages () = GetMessages |> messageLoop.Post
+        member __.getMessages () = messageLoop.PostAndReply GetMessages
         member __.getState () = messageLoop.PostAndReply GetState
 
 
-    let createServiceImpl i =
-        printfn "createServiceImpl: Creating PartitionerRunner..."
+    let createServiceImpl (logger : Logger) (i : PartitionerRunnerData) =
+        logger.logInfoString "createServiceImpl: Creating PartitionerRunner..."
         let w = PartitionerRunner i
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (i.logger.logExn "PartitionerRunner.createServiceImpl") w.getMessages)
-        do h.start()
-        w
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError w.getMessages)
+        //do h.start()
+        w, h

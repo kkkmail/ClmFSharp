@@ -240,8 +240,8 @@ module GeneralErrors =
         | InvalidMessageTypeErr of Guid
 
 
-    type OnPartitionerRunModelError =
-        | X
+    //type OnPartitionerRunModelError =
+    //    | X
 
 
     type PartitionerError =

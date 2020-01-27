@@ -121,7 +121,7 @@ module Partitioner =
         }
 
 
-    let onCompleted (proxy : OnCompletedProxy) r (s : PartitionerRunnerState) =
+    let onCompleted (proxy : OnCompletedProxy) (s : PartitionerRunnerState) r =
         proxy.tryDeleteRunModelParamWithRemoteId r |> ignore
 
         match tryFindRunningNode s.workerNodes r with
@@ -132,7 +132,13 @@ module Partitioner =
         | None -> s, Ok()
 
 
-    let sendRunModelMessage sendMessage (e : RunModelParamWithRemoteId) workerNodeId m =
+    type SendRunModelMessageProxy =
+        {
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    let sendRunModelMessage (proxy : SendRunModelMessageProxy) (e : RunModelParamWithRemoteId) workerNodeId m =
         {
             workerNodeRecipient = workerNodeId
             deliveryType = GuaranteedDelivery
@@ -150,7 +156,7 @@ module Partitioner =
                 )
                 |> RunModelWrkMsg
         }.getMessageInfo()
-        |> sendMessage
+        |> proxy.sendMessage
 
 
     type OnTryRunModelWithRemoteIdProxy =
@@ -231,7 +237,7 @@ module Partitioner =
         }
 
 
-    let onUpdateProgress proxy s (i : RemoteProgressUpdateInfo) =
+    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (i : RemoteProgressUpdateInfo) =
         let u = i.toProgressUpdateInfo() |> proxy.onUpdateProgress
 
         let w, r =
@@ -245,21 +251,26 @@ module Partitioner =
 
     type OnFailedProxy =
         {
+            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
             onUpdateProgress : PartitionerRunnerState -> RemoteProgressUpdateInfo -> PartitionerRunnerResult
         }
 
 
-    let onFailed (proxy : OnFailedProxy) s r (e : RunModelParamWithRemoteId) =
-        let i = Failed (r, e.remoteProcessId) |> e.toRemoteProgressUpdateInfo
-        let w, r = proxy.onUpdateProgress s i
-        w, r
+    let onFailed (proxy : OnFailedProxy) s r (i : RemoteProcessId) =
+        let w, result =
+            match proxy.tryLoadRunModelParamWithRemoteId i with
+            | Ok m ->
+                let i = Failed (r, i) |> m.toRemoteProgressUpdateInfo
+                let w, r = proxy.onUpdateProgress s i
+                w, r
+            | Error e -> s, Error e
 
+        w, result
 
     type OnUnregisterProxy =
         {
             tryDeleteWorkerNodeState : WorkerNodeId -> UnitResult
-            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
-            onFailed : PartitionerRunnerState -> WorkerNodeId -> ClmResult<RunModelParamWithRemoteId> -> PartitionerRunnerResult
+            onFailed : PartitionerRunnerState -> WorkerNodeId -> RemoteProcessId -> PartitionerRunnerResult
             setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
         }
 
@@ -287,7 +298,7 @@ module Partitioner =
                 n.runningProcesses
                 |> Map.toList
                 |> List.map (fun (e, _) -> e)
-                |> List.map proxy.tryLoadRunModelParamWithRemoteId
+                //|> List.map proxy.tryLoadRunModelParamWithRemoteId
                 |> List.fold (fun (w, u) e -> failed w r e u) (removeNode())
             | None -> removeNode()
 
@@ -397,11 +408,9 @@ module Partitioner =
     //    w, result
 
     let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
-        let getReply q e = ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, e) |> StartedSuccessfully |> Ok
-
         let w, result =
             match tryGetRunner s a.callBackInfo.runQueueId with
-            | Some w -> s, getReply w None
+            | Some q -> s, ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, None) |> StartedSuccessfully |> Ok
             | None ->
                 let i = { remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId(); runModelParam = a }
 
@@ -413,6 +422,111 @@ module Partitioner =
 
 
     let onGetState s = s, s
+
+
+    let setRunLimitProxy (c : PartitionerCallBackInfo) =
+        {
+            setRunLimit = c.setRunLimit
+        }
+
+
+    let onRegisterProxy i c =
+        {
+            setRunLimit = setRunLimit (setRunLimitProxy c)
+            saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
+        }
+
+
+    let onCompletedProxy i =
+        {
+            tryDeleteRunModelParamWithRemoteId = i.partitionerProxy.tryDeleteRunModelParamWithRemoteId
+            saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
+        }
+
+
+    let sendRunModelMessageProxy i =
+        {
+            sendMessage = i.messageProcessorProxy.sendMessage
+        }
+
+
+    let onTryRunModelWithRemoteIdProxy i =
+        {
+            tryLoadResultData = i.partitionerProxy.tryLoadResultData
+            tryGetNode = tryGetNode
+            loadModelData = i.partitionerProxy.loadModelData
+            saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
+            sendRunModelMessage = sendRunModelMessage (sendRunModelMessageProxy i)
+            onCompleted = onCompleted (onCompletedProxy i)
+        }
+
+
+    let onStartProxy i c =
+        {
+            loadAllWorkerNodeState = i.partitionerProxy.loadAllWorkerNodeState
+            setRunLimit = setRunLimit (setRunLimitProxy c)
+        }
+
+
+    let onUpdateProgressProxy i (c : PartitionerCallBackInfo) =
+        {
+            onUpdateProgress = c.onUpdateProgress
+            onCompleted = onCompleted (onCompletedProxy i)
+        }
+
+
+    let onFailedProxy i c =
+        {
+            tryLoadRunModelParamWithRemoteId = i.partitionerProxy.tryLoadRunModelParamWithRemoteId
+            onUpdateProgress = onUpdateProgress (onUpdateProgressProxy i c)
+        }
+
+
+    let onUnregisterProxy i c =
+        {
+            tryDeleteWorkerNodeState = i.partitionerProxy.tryDeleteWorkerNodeState
+            onFailed = onFailed (onFailedProxy i c)
+            setRunLimit = setRunLimit (setRunLimitProxy c)
+        }
+
+
+    let onSaveResultProxy i =
+        {
+            saveResultData = i.partitionerProxy.saveResultData
+        }
+
+
+    let onSaveChartsProxy i =
+        {
+            saveCharts = i.partitionerProxy.saveCharts
+        }
+
+
+    let onProcessMessageProxy i c =
+        {
+            onUpdateProgress = onUpdateProgress (onUpdateProgressProxy i c)
+            onSaveResult = onSaveResult (onSaveResultProxy i)
+            onSaveCharts = onSaveCharts (onSaveChartsProxy i)
+            onRegister = onRegister (onRegisterProxy i c)
+            onUnregister = onUnregister (onUnregisterProxy i c)
+        }
+
+
+    let onGetMessagesProxy i =
+        {
+            tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
+            onProcessMessage = onProcessMessage (onProcessMessageProxy i)
+            maxMessages = PartitionerRunnerState.maxMessages
+            onError = fun f -> f |> OnGetMessagesPartitionerErr |> PartitionerErr
+        }
+
+
+    let onRunModelProxy i =
+        {
+            tryGetRunner = tryGetRunner
+            saveRunModelParamWithRemoteId = i.partitionerProxy.saveRunModelParamWithRemoteId
+            onTryRunModelWithRemoteId = onTryRunModelWithRemoteId (onTryRunModelWithRemoteIdProxy i)
+        }
 
 
     type PartitionerRunner(w : PartitionerRunnerData) =

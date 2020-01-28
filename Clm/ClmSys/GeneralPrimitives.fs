@@ -14,10 +14,6 @@ module GeneralPrimitives =
     let DefaultMessagingServerAddress = "localhost"
 
 
-    [<Literal>]
-    let DefaultMinEe = 0.000_1
-
-
     type ClmDefaultValueId =
         | ClmDefaultValueId of int64
 
@@ -43,23 +39,10 @@ module GeneralPrimitives =
         static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
-    type MinUsefulEe =
-        | MinUsefulEe of double
-
-        member this.value = let (MinUsefulEe v) = this in v
-        static member defaultValue = MinUsefulEe DefaultMinEe
-
-
     type ConnectionString =
         | ConnectionString of string
 
         member this.value = let (ConnectionString v) = this in v
-
-
-    type ModelDataId =
-        | ModelDataId of Guid
-
-        member this.value = let (ModelDataId v) = this in v
 
 
     type ResultDataId =

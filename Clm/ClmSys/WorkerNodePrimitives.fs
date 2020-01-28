@@ -1,5 +1,11 @@
 ﻿namespace ClmSys
 
-module WorkerNodePrimitives =
-    let x = 1
+open MessagingPrimitives
 
+module WorkerNodePrimitives =
+
+    type WorkerNodeId =
+        | WorkerNodeId of MessagingClientId
+
+        member this.value = let (WorkerNodeId v) = this in v
+        member this.messagingClientId = let (WorkerNodeId v) = this in v

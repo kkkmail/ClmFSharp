@@ -3,6 +3,7 @@
 open System.Threading
 open System
 open GeneralErrors
+open ClmErrors
 
 module TimerEvents =
 

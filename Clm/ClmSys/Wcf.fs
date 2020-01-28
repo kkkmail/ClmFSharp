@@ -2,8 +2,8 @@
 
 open System
 open System.ServiceModel
-open ClmSys.GeneralData
-open ClmSys.GeneralErrors
+open GeneralData
+open GeneralErrors
 
 /// See https://stackoverflow.com/questions/53536450/merging-discriminated-unions-in-f
 module Wcf =

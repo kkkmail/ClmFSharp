@@ -5,8 +5,9 @@ open System.Threading
 open System.Configuration.Install
 open System.ServiceProcess
 open Argu
-open ClmSys.Logging
-open ClmSys.GeneralErrors
+open Logging
+open GeneralErrors
+open ClmErrors
 
 module ServiceInstaller =
 

@@ -11,6 +11,10 @@ open Logging
 open PartitionerData
 open GeneralErrors
 open GeneralPrimitives
+open MessagingPrimitives
+open PartitionerPrimitives
+open ContGenPrimitives
+open ClmErrors
 
 module Registry =
 

@@ -3,15 +3,10 @@
 open GeneralData
 open MessagingPrimitives
 open MessagingData
+open WorkerNodePrimitives
+open PartitionerPrimitives
 
 module WorkerNodeData =
-
-    type WorkerNodePriority =
-        | WorkerNodePriority of int
-
-        member this.value = let (WorkerNodePriority v) = this in v
-        static member defaultValue = WorkerNodePriority 100
-
 
     type WorkerNodeInfo =
         {
@@ -19,6 +14,20 @@ module WorkerNodeData =
             noOfCores : int
             nodePriority : WorkerNodePriority
         }
+
+
+    /// Worker Node MessagingClientId + Messaging Server acces info.
+    type WorkNodeMsgAccessInfo =
+        {
+            workerNodeId : WorkerNodeId
+            msgSvcAccessInfo : ServiceAccessInfo
+        }
+
+        member this.messagingClientAccessInfo =
+            {
+                msgClientId = this.workerNodeId.messagingClientId
+                msgSvcAccessInfo = this.msgSvcAccessInfo
+            }
 
 
     type WorkerNodeServiceAccessInfo =

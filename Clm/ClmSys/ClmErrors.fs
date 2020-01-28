@@ -6,7 +6,7 @@ open System.Runtime.InteropServices
 open VersionInfo
 open GeneralErrors
 open ContGenErrors
-open AsynRunErrors
+open AsyncRunErrors
 open MessagingErrors
 open WorkerNodeErrors
 open PartitionerErrors

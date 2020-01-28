@@ -6,6 +6,7 @@ open log4net
 open log4net.Core
 open System.Reflection
 open GeneralErrors
+open ClmErrors
 
 module Logging =
 

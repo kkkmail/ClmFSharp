@@ -1,7 +1,8 @@
 ﻿namespace ClmSys
 
-open ClmSys.GeneralData
-open ClmSys.MessagingData
+open GeneralData
+open MessagingPrimitives
+open MessagingData
 
 module WorkerNodeData =
 

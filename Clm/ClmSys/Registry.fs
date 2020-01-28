@@ -6,10 +6,11 @@ open GeneralData
 open MessagingData
 open Fake.Windows
 open ClmSys
-open ClmSys.Rop
-open ClmSys.Logging
-open ClmSys.PartitionerData
-open ClmSys.GeneralErrors
+open Rop
+open Logging
+open PartitionerData
+open GeneralErrors
+open GeneralPrimitives
 
 module Registry =
 

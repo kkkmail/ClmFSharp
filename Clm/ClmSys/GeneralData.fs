@@ -9,6 +9,7 @@ open ClmSys.Logging
 open System.Diagnostics
 open MBrace.FsPickler
 open Newtonsoft.Json
+open GeneralPrimitives
 open GeneralErrors
 
 module GeneralData =
@@ -16,13 +17,6 @@ module GeneralData =
     [<Literal>]
     let DefaultRootDrive = "C"
 
-    let DefaultContGenServiceAddress = "localhost"
-
-    let DefaultWorkerNodeServicePort = 20000 + DefaultContGenServicePort
-    let DefaultWorkerNodeServiceAddress = "localhost"
-
-    let DefaultMessagingServerPort = 40000 + DefaultContGenServicePort
-    let DefaultMessagingServerAddress = "localhost"
 
     /// String.Empty is not a const.
     [<Literal>]
@@ -32,39 +26,11 @@ module GeneralData =
     [<Literal>]
     let Nl = "\r\n"
 
-    [<Literal>]
-    let DefaultMinEe = 0.000_1
-
-
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member df.value = let (ClmDefaultValueId v) = df in v
-        override df.ToString() = df.value.ToString().PadLeft(9, '0')
-
 
     let getVersionImpl getter p =
         match getter p with
         | Some x -> x
         | None -> versionNumberValue
-
-
-    type ServiceAddress =
-        | ServiceAddress of string
-
-        member this.value = let (ServiceAddress v) = this in v
-        static member defaultContGenServiceValue = ServiceAddress DefaultContGenServiceAddress
-        static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
-        static member defaultWorkerNodeServiceValue = ServiceAddress DefaultWorkerNodeServiceAddress
-
-
-    type ServicePort =
-        | ServicePort of int
-
-        member this.value = let (ServicePort v) = this in v
-        static member defaultContGenServiceValue = ServicePort DefaultContGenServicePort
-        static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
-        static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
     let toValidServiceName (serviceName : string) =
@@ -91,12 +57,6 @@ module GeneralData =
         member s.wcfServiceName = toValidServiceName s.inputServiceName
         member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
 
-
-    type MinUsefulEe =
-        | MinUsefulEe of double
-
-        member this.value = let (MinUsefulEe v) = this in v
-        static member defaultValue = MinUsefulEe DefaultMinEe
 
 
     type ContGenServiceAccessInfo =
@@ -170,45 +130,6 @@ module GeneralData =
     let toAsync (f : unit-> unit) = async { do f() }
 
 
-    type ConnectionString =
-        | ConnectionString of string
-
-        member this.value = let (ConnectionString v) = this in v
-
-
-    type ModelDataId =
-        | ModelDataId of Guid
-
-        member this.value = let (ModelDataId v) = this in v
-
-
-    type ResultDataId =
-        | ResultDataId of Guid
-
-        member this.value = let (ResultDataId v) = this in v
-
-
-    type LocalProcessId =
-        | LocalProcessId of int
-
-        member this.value = let (LocalProcessId v) = this in v
-
-
-    type RemoteProcessId =
-        | RemoteProcessId of Guid
-
-        member this.value = let (RemoteProcessId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
-
-
-    type RunQueueId =
-        | RunQueueId of Guid
-
-        member this.value = let (RunQueueId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
-        member this.toRemoteProcessId() = this.value |> RemoteProcessId
-
-
     type ResultDataId
         with
         member this.toRunQueueId() = this.value |> RunQueueId
@@ -221,11 +142,11 @@ module GeneralData =
 
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting
     type Part =
-        Days of int
-            | Hours of int
-            | Minutes of int
-            | Seconds of int
-            | Milliseconds of int
+        | Days of int
+        | Hours of int
+        | Minutes of int
+        | Seconds of int
+        | Milliseconds of int
 
 
     let bigPartString p =
@@ -308,8 +229,8 @@ module GeneralData =
 
           updater.init i |> loop)
 
-        member this.addContent p = AddContent p |> chat.Post
-        member this.getContent () = chat.PostAndReply GetContent
+        member _.addContent p = AddContent p |> chat.Post
+        member _.getContent () = chat.PostAndReply GetContent
 
 
     let estimateEndTime progress (started : DateTime) =

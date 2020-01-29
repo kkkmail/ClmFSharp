@@ -60,7 +60,18 @@ module ClmErrors =
         static member create a = sprintf "%A" a |> ClmInfo
 
 
+    /// Type to encapsulate the result of an action, which can only have success or failure.
+    /// For example, "save object", "delete object" fall into this category.
     type UnitResult = Result<unit, ClmError>
+
+
+    /// kk:20200129 - I am not sure if this is extremely useful. Let's see how it goes.
+    /// Type to encapsulate the result of an action, which may have success / no result / failure.
+    /// For example "try delete object" may return that object was deleted OR it does not exist OR it produced an exception.
+    /// This is a "reverse" for "try load", which should return Result<'T option, 'E>.
+    type TryResult = Result<unit option, ClmError>
+
+
     type ClmResult<'T> = Result<'T, ClmError>
     type ListResult<'T> = Result<list<Result<'T, ClmError>>, ClmError>
     type StateWithResult<'T> = 'T * UnitResult

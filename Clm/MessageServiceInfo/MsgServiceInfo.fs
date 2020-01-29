@@ -30,13 +30,6 @@ module ServiceInfo =
         | ShuttingDown
 
 
-    type MessageId =
-        | MessageId of Guid
-
-        member this.value = let (MessageId v) = this in v
-        static member create() = Guid.NewGuid() |> MessageId
-
-
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
@@ -237,7 +230,7 @@ module ServiceInfo =
         | LargeMessage of Message
 
 
-    type MessageResult = Result<MessageResultInfo, ClmError>
+    type MessageResult = ClmResult<MessageResultInfo>
 
 
     type MessageWithType =
@@ -255,23 +248,9 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
-
-
-    type MessageDeliveryResult = Result<unit, MessageDeliveryError>
-
-
-    type ServiceConfigured =
-        | ServiceConfigured
-
-
-    type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
-
-
-    type TryPeekMessageResult = Result<Message option, TryPeekMessageError>
-
-
-    type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
+    //type GetVersionResult = ClmResult<MessagingDataVersion>
+    //type TryPeekMessageResult = ClmResult<Message option>
+    //type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
 
 
     type MsgServiceState =
@@ -282,7 +261,7 @@ module ServiceInfo =
         }
 
 
-    type GetStateResult = Result<MsgServiceState, GetStateError>
+    //type GetStateResult = Result<MsgServiceState, GetStateError>
 
 
     type MsgSvcShutDownInfo =
@@ -298,12 +277,12 @@ module ServiceInfo =
 
 
     type IMessagingService =
-        abstract getVersion : unit -> GetVersionResult
-        abstract sendMessage : Message -> MessageDeliveryResult
-        abstract configureService : MessagingConfigParam -> ConfigureServiceResult
-        abstract tryPeekMessage : MessagingClientId -> TryPeekMessageResult
-        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> TryDeleteFromServerResult
-        abstract getState : unit -> GetStateResult
+        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
+        abstract sendMessage : Message -> UnitResult
+        abstract configureService : MessagingConfigParam -> UnitResult
+        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
+        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
+        abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656

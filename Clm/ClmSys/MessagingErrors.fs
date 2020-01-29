@@ -14,45 +14,46 @@ module MessagingErrors =
 
 
     type GetVersionError =
-        | GetVersionWcfError of WcfError
-        | VersionMismatchError of VersionMismatchInfo
+        | GetVersionWcfErr of WcfError
+        | VersionMismatchErr of VersionMismatchInfo
 
 
     type MessageDeliveryError =
-        | ServiceNotStarted
-        | ServerIsShuttingDown
-        | DataVersionMismatch of MessagingDataVersion
-        | MsgWcfError of WcfError
+        | ServiceNotStartedErr
+        | ServerIsShuttingDownErr
+        | DataVersionMismatchErr of MessagingDataVersion
+        | MsgWcfErr of WcfError
 
 
     type ConfigureServiceError =
-        | CfgSvcWcfError of WcfError
+        | CfgSvcWcfErr of WcfError
+
 
     type OnGetMessagesError =
-        | ProcessedSucessfullyWithInnerError
+        | ProcessedSucessfullyWithInnerErr
         | ProcessedWithErr
-        | ProcessedWithFailedToRemoveError
-        | FailedToProcessError
-        | BusyProcessingError
+        | ProcessedWithFailedToRemoveErr
+        | FailedToProcessErr
+        | BusyProcessingErr
 
 
     type TryPeekMessageError =
-        | TryPeekMsgWcfError of WcfError
+        | TryPeekMsgWcfErr of WcfError
         | UnableToLoadMessageError of (Guid * Guid)
 
 
     type TryDeleteFromServerError =
-        | TryDeleteMsgWcfError of WcfError
-        | CannotFindClientError of Guid
-        | UnableToDeleteMessageError of (Guid * Guid)
+        | TryDeleteMsgWcfErr of WcfError
+        | CannotFindClientErr of Guid
+        | UnableToDeleteMessageErr of (Guid * Guid)
 
 
     type GetStateError =
-        | GetStateWcfError of WcfError
+        | GetStateWcfErr of WcfError
 
 
     type MessageNotFoundError =
-        | MessageNotFoundError of Guid
+        | MessageNotFoundErr of Guid
 
 
     type MessagingServiceError =

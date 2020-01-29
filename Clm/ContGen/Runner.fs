@@ -12,6 +12,10 @@ open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.Runner
 open ClmSys.Logging
 open ClmSys.MessagingData
+open ClmSys.SolverRunnerData
+open ClmSys.ContGenPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.WorkerNodePrimitives
 
 module Runner =
 
@@ -54,7 +58,7 @@ module Runner =
 
 
         let tryLoadParams (c : ClmTask) : AllParams option =
-            fun d -> p.runnerProxy.tryLoadClmDefaultValue d
+            fun d -> p.runnerProxy.loadClmDefaultValue d
             |> AllParams.tryGetDefaultValue c
 
 
@@ -74,12 +78,12 @@ module Runner =
             model.getModelData
 
 
-        let saveModelData modelData = p.runnerProxy.tryUpdateModelData modelData
+        let saveModelData modelData = p.runnerProxy.updateModelData modelData
         let saveModel getModelData = getModelData() |> saveModelData
-        let updateTask (c : ClmTask) = p.runnerProxy.tryUpdateClmTask c |> ignore
-        let tryAddClmTask c = p.runnerProxy.addClmTask c
-        let tryLoadClmTask i t = p.runnerProxy.tryLoadClmTask i t
-        let tryLoadModelData i m = p.runnerProxy.tryLoadModelData i m
+        let updateTask (c : ClmTask) = p.runnerProxy.updateClmTask c |> ignore
+        let addClmTask c = p.runnerProxy.addClmTask c
+        let loadClmTask i t = p.runnerProxy.loadClmTask i t
+        let tryLoadModelData i m = p.runnerProxy.loadModelData i m
 
 
         let tryGetQueueId (c : ModelCommandLineParam) modelDataId d =
@@ -231,7 +235,7 @@ module Runner =
                 removeFromQueue = removeFromQueue
                 runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u
-                logger = Logger.log4net
+                //logger = Logger.log4net
             }
 
 

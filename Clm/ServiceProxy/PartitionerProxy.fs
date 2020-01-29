@@ -1,6 +1,5 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open DbData.Configuration
@@ -8,14 +7,11 @@ open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
 open ClmSys.Registry
 open PartitionerServiceInfo.ServiceInfo
-open ClmSys.MessagingData
-open ClmSys.GeneralErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
-open ClmSys.GeneralData
 
 module PartitionerProxy =
 
@@ -41,7 +37,7 @@ module PartitionerProxy =
             saveCharts : ChartInfo -> UnitResult
 
             saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
-            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
+            loadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
             loadAllRunModelParamWithRemoteId : unit -> ListResult<RunModelParamWithRemoteId>
             tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
 
@@ -60,14 +56,14 @@ module PartitionerProxy =
                 saveResultData = saveResultData connectionString
                 tryLoadResultData = tryLoadResultData connectionString
 
-                saveCharts = fun (c : ChartInfo) -> trySaveLocalChartInfo (Some (i.resultLocation, c.defaultValueId)) c
+                saveCharts = fun (c : ChartInfo) -> saveLocalChartInfo (Some (i.resultLocation, c.defaultValueId)) c
 
-                saveRunModelParamWithRemoteId = trySaveRunModelParamWithRemoteIdFs name
-                tryLoadRunModelParamWithRemoteId = tryLoadRunModelParamWithRemoteIdFs name
-                loadAllRunModelParamWithRemoteId = tryLoadeRunModelParamWithRemoteIdAllFs name
+                saveRunModelParamWithRemoteId = saveRunModelParamWithRemoteIdFs name
+                loadRunModelParamWithRemoteId = loadRunModelParamWithRemoteIdFs name
+                loadAllRunModelParamWithRemoteId = loadeRunModelParamWithRemoteIdAllFs name
                 tryDeleteRunModelParamWithRemoteId = tryDeleteRunModelParamWithRemoteIdFs name
 
-                saveWorkerNodeState = trySaveWorkerNodeStateFs name
-                loadAllWorkerNodeState = tryLoadWorkerNodeStateAllFs name
+                saveWorkerNodeState = saveWorkerNodeStateFs name
+                loadAllWorkerNodeState = loadWorkerNodeStateAllFs name
                 tryDeleteWorkerNodeState = tryDeleteWorkerNodeStateFs name
             }

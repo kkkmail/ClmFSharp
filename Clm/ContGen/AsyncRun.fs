@@ -7,6 +7,9 @@ open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.Logging
 open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.GeneralPrimitives
 
 module AsyncRun =
 

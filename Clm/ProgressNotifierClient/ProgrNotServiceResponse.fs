@@ -5,6 +5,7 @@ open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
+open ClmSys.SolverRunnerData
 
 module ServiceResponse =
 

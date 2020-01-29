@@ -3,7 +3,7 @@
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.Wcf
-open ClmSys.GeneralErrors
+open ClmSys.MessagingErrors
 
 
 module ServiceResponse =

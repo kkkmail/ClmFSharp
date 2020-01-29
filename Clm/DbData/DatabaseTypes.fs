@@ -30,6 +30,7 @@ module DatabaseTypes =
         | _ -> ignore ()
 
 
+    /// Maps missing value (None) to DbErr.
     let private mapDbError f i v =
         v
         |> Option.map Ok
@@ -342,7 +343,7 @@ module DatabaseTypes =
             newRow
 
 
-    let tryLoadClmDefaultValue (ConnectionString connectionString) (ClmDefaultValueId clmDefaultValueId) =
+    let loadClmDefaultValue (ConnectionString connectionString) (ClmDefaultValueId clmDefaultValueId) =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn
@@ -358,7 +359,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryUpsertClmDefaultValue (ConnectionString connectionString) (p : ClmDefaultValue) =
+    let upsertClmDefaultValue (ConnectionString connectionString) (p : ClmDefaultValue) =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn
@@ -415,7 +416,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadClmTask (connectionString : ConnectionString) i (ClmTaskId clmTaskId) =
+    let loadClmTask (connectionString : ConnectionString) i (ClmTaskId clmTaskId) =
         let g() =
             use conn = new SqlConnection(connectionString.value)
             openConnIfClosed conn
@@ -430,7 +431,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadClmTaskByDefault (connectionString : ConnectionString) i (ClmDefaultValueId clmDefaultValueId) =
+    let loadClmTaskByDefault (connectionString : ConnectionString) i (ClmDefaultValueId clmDefaultValueId) =
         let g() =
             use conn = new SqlConnection(connectionString.value)
             openConnIfClosed conn
@@ -480,7 +481,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryUpdateClmTask (ConnectionString connectionString) (clmTask : ClmTask) =
+    let updateClmTask (ConnectionString connectionString) (clmTask : ClmTask) =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn
@@ -513,7 +514,7 @@ module DatabaseTypes =
             d.Execute modelDataId |> t.Load
 
             match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) with
-            | Some v -> ModelData.tryCreate (tryLoadClmTask connectionString i) v
+            | Some v -> ModelData.tryCreate (loadClmTask connectionString i) v
             | None -> toDbError LoadModelDataError modelDataId
 
         tryDbFun g
@@ -708,7 +709,6 @@ module DatabaseTypes =
                 DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let rowsAffected = cmd.Execute(runQueueId = runQueueId)
-            //Ok rowsAffected
 
             match rowsAffected = 1 with
             | true -> Ok ()

@@ -22,6 +22,12 @@ open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
 open ClmSys.MessagingData
 open ClmSys.Retry
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ContGenData
+open ClmSys.WorkerNodeData
+open ClmSys.PartitionerData
 
 module SolverRunnerTasks =
 
@@ -257,7 +263,7 @@ module SolverRunnerTasks =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
-            match p.tryLoadModelData i (ModelDataId modelDataId) with
+            match p.loadModelData i (ModelDataId modelDataId) with
             | Some md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)

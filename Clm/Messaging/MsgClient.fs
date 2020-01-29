@@ -3,7 +3,6 @@
 open System
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
-open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open System.Threading
@@ -11,7 +10,8 @@ open ServiceProxy.MsgProcessorProxy
 open ClmSys
 open ClmSys.GeneralData
 open ClmSys.TimerEvents
-open ClmSys.Logging
+open ClmSys.ClmErrors
+open ClmSys.MessagingErrors
 
 module Client =
 

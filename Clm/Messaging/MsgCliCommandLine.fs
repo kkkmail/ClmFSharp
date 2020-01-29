@@ -6,9 +6,10 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.Registry
 open ClmSys.MessagingData
-open ClmSys.Logging
 open Messaging.ServiceResponse
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
 
 module MsgCliCommandLine =
 

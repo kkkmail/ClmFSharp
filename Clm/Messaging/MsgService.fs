@@ -4,10 +4,11 @@ open System
 open ClmSys
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
-open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
+open ClmSys.MessagingPrimitives
+open ClmSys.MessagingErrors
 
 module Service =
 

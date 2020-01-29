@@ -30,11 +30,13 @@ module WindowsService =
 
             try
                 logger.logInfoString "WindowsService.startServiceRun: Calling: service.ping()..."
-                service.ping()
+                match service.ping() with
+                | Ok() -> ignore()
+                | Error e -> logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
             with
-            | e -> logger.logExn "WindowsService.startServiceRun" e
+            | e -> logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
 
-            let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logExn "WorkerNodeService") service.ping)
+            let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError service.ping)
             do h.start()
 
             {
@@ -44,7 +46,7 @@ module WindowsService =
 
         with
         | e ->
-            logger.logExn "WindowsService.startServiceRun" e
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
             None
 
 

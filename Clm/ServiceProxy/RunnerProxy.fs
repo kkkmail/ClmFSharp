@@ -68,13 +68,13 @@ module Runner =
 
     type RunnerProxy =
         {
-            tryLoadClmDefaultValue : ClmDefaultValueId -> ClmResult<ClmDefaultValue>
-            tryUpdateModelData : ModelData -> UnitResult
+            loadClmDefaultValue : ClmDefaultValueId -> ClmResult<ClmDefaultValue>
+            updateModelData : ModelData -> UnitResult
             saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> ClmResult<RunQueueId>
-            tryUpdateClmTask : ClmTask -> UnitResult
+            updateClmTask : ClmTask -> UnitResult
             addClmTask : ClmTask -> ClmResult<ClmTask>
-            tryLoadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmResult<ClmTask>
-            tryLoadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            loadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmResult<ClmTask>
+            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
             loadRunQueue : SolverRunnerAccessInfo -> ListResult<RunQueue>
             deleteRunQueueEntry : RunQueueId -> UnitResult
@@ -88,20 +88,23 @@ module Runner =
                 | LocalRunnerProxy c -> c.connectionString
                 | PartitionerRunnerProxy c -> c.connectionString
 
-            let runModelImpl (p : RunModelParam) =
+            let runModelImpl (p : RunModelParam) : ProcessStartedResult =
                 printfn "RunnerProxy.runModelImpl: p = %A, i = %A" p i
                 match i with
-                | LocalRunnerProxy _ -> (runLocalModel p false) |> Rop.bind (fun e -> e.toProcessStartedInfo() |> Ok)
+                | LocalRunnerProxy _ ->
+                    match runLocalModel p false with
+                    | Ok r -> StartedSuccessfully(r.toProcessStartedInfo(), None) |> Ok
+                    | Error e -> e |> ProcessStartedErr |> Error
                 | PartitionerRunnerProxy c -> c.runModel p
 
             {
-                tryLoadClmDefaultValue = tryLoadClmDefaultValue connectionString
-                tryUpdateModelData = tryUpdateModelData connectionString
+                loadClmDefaultValue = loadClmDefaultValue connectionString
+                updateModelData = updateModelData connectionString
                 saveRunQueueEntry = saveRunQueueEntry connectionString
-                tryUpdateClmTask = tryUpdateClmTask connectionString
+                updateClmTask = updateClmTask connectionString
                 addClmTask = addClmTask connectionString
-                tryLoadClmTask = tryLoadClmTask connectionString
-                tryLoadModelData = tryLoadModelData connectionString
+                loadClmTask = loadClmTask connectionString
+                loadModelData = loadModelData connectionString
                 loadIncompleteClmTasks = loadIncompleteClmTasks connectionString
                 loadRunQueue = loadRunQueue connectionString
                 deleteRunQueueEntry = deleteRunQueueEntry connectionString

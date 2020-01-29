@@ -30,8 +30,8 @@ module MsgServiceProxy =
             let name = i.messagingClientName
 
             {
-                loadMessages = tryLoadMessageWithTypeAllFs name
-                saveMessage = trySaveMessageWithTypeFs name
+                loadMessages = loadMessageWithTypeAllFs name
+                saveMessage = saveMessageWithTypeFs name
                 deleteMessage = tryDeleteMessageWithTypeFs name
             }
 
@@ -49,8 +49,8 @@ module MsgServiceProxy =
             let name = messagingServiceName
 
             {
-                loadMessages = tryLoadMessageAllFs name
-                saveMessage = trySaveMessageFs name
+                loadMessages = loadMessageAllFs name
+                saveMessage = saveMessageFs name
                 deleteMessage = tryDeleteMessageFs name
-                tryLoadMessage = tryLoadMessageFs name
+                tryLoadMessage = loadMessageFs name
             }

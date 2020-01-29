@@ -1,12 +1,9 @@
 ﻿namespace ContGen
 
-open System
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ClmSys.Logging
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.MessagingData
-open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open ClmSys.WorkerNodeData
@@ -15,8 +12,14 @@ open PartitionerServiceInfo.ServiceInfo
 open ClmSys.TimerEvents
 open Clm.CalculationData
 open ServiceProxy.MsgProcessorProxy
-open ClmSys.GeneralErrors
 open ClmSys
+open ClmSys.ClmErrors
+open ClmSys.PartitionerData
+open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.PartitionerErrors
 
 module Partitioner =
 
@@ -251,14 +254,14 @@ module Partitioner =
 
     type OnFailedProxy =
         {
-            tryLoadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
+            loadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
             onUpdateProgress : PartitionerRunnerState -> RemoteProgressUpdateInfo -> PartitionerRunnerResult
         }
 
 
     let onFailed (proxy : OnFailedProxy) s r (i : RemoteProcessId) =
         let w, result =
-            match proxy.tryLoadRunModelParamWithRemoteId i with
+            match proxy.loadRunModelParamWithRemoteId i with
             | Ok m ->
                 let i = Failed (r, i) |> m.toRemoteProgressUpdateInfo
                 let w, r = proxy.onUpdateProgress s i
@@ -444,7 +447,7 @@ module Partitioner =
 
     let onFailedProxy i c =
         {
-            tryLoadRunModelParamWithRemoteId = i.partitionerProxy.tryLoadRunModelParamWithRemoteId
+            loadRunModelParamWithRemoteId = i.partitionerProxy.loadRunModelParamWithRemoteId
             onUpdateProgress = onUpdateProgress (onUpdateProgressProxy i c)
         }
 

@@ -12,6 +12,7 @@ open ClmSys.Rop
 open ClmSys.GeneralData
 open System.ServiceModel
 open ClmSys.Wcf
+open ClmSys.MessagingErrors
 
 module ServiceImplementation =
 

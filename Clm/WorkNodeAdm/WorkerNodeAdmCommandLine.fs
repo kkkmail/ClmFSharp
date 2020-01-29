@@ -10,6 +10,10 @@ open System
 open ClmSys.WorkerNodeData
 open MessagingServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.PartitionerPrimitives
 
 module AdmCommandLine =
 
@@ -83,9 +87,9 @@ module AdmCommandLine =
             match tryGetNoOfCores p with
             | Some n -> n
             | None ->
-                match tryGetNumberOfCores logger version name with
-                | Some x -> x
-                | None -> Environment.ProcessorCount / 2
+                match tryGetNumberOfCores version name with
+                | Ok x -> x
+                | Error e -> Environment.ProcessorCount / 2
         max 0 (min n Environment.ProcessorCount)
 
 
@@ -93,36 +97,36 @@ module AdmCommandLine =
         match tryGetServerAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress logger version name with
-            | Some a -> a
-            | None -> ServiceAddress.defaultWorkerNodeServiceValue
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> a
+            | Error e -> ServiceAddress.defaultWorkerNodeServiceValue
 
 
     let getServerPort logger version name p =
         match tryGetServerPort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort logger version name with
-            | Some a -> a
-            | None -> ServicePort.defaultWorkerNodeServiceValue
+            match tryGetContGenServicePort version name with
+            | Ok a -> a
+            | Error e -> ServicePort.defaultWorkerNodeServiceValue
 
 
     let getClientId logger version name p =
         match tryGetClientId p with
         | Some a -> a
         | None ->
-            match tryGetMessagingClientId logger version name with
-            | Some a -> a |> WorkerNodeId
-            | None -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
+            match tryGetMessagingClientId version name with
+            | Ok a -> a |> WorkerNodeId
+            | Error e -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
     let getInactive logger version name p =
         match tryGetInactive p with
         | Some a -> a
         | None ->
-            match tryGetWrkInactive logger version name with
-            | Some a -> a
-            | None -> false
+            match tryGetWrkInactive version name with
+            | Ok a -> a
+            | Error e -> false
 
 
     let getServiceAccessInfoImpl b p =
@@ -140,15 +144,15 @@ module AdmCommandLine =
         let inactive = getInactive logger version name p
 
         let saveSettings() =
-            trySetContGenServiceAddress logger versionNumberValue name address |> ignore
-            trySetContGenServicePort logger versionNumberValue name port |> ignore
-            trySetNumberOfCores logger versionNumberValue name noOfCores |> ignore
+            trySetContGenServiceAddress versionNumberValue name address |> ignore
+            trySetContGenServicePort versionNumberValue name port |> ignore
+            trySetNumberOfCores versionNumberValue name noOfCores |> ignore
 
-            trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
-            trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
-            trySetWrkInactive logger versionNumberValue name inactive |> ignore
+            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
+            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
+            trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
+            trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
+            trySetWrkInactive versionNumberValue name inactive |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()

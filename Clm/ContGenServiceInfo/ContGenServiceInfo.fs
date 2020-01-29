@@ -267,13 +267,13 @@ module ServiceInfo =
 
 
     type IContGenService =
-        abstract getState : unit -> ContGenRunnerState
-        abstract loadQueue : unit -> unit
-        abstract startGenerate : unit -> unit
-        abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
-        abstract updateRemoteProgress : RemoteProgressUpdateInfo -> unit
-        abstract configureService : ContGenConfigParam -> unit
-        abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
+        abstract getState : unit -> ClmResult<ContGenRunnerState>
+        abstract loadQueue : unit -> UnitResult
+        abstract startGenerate : unit -> UnitResult
+        abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
+        abstract updateRemoteProgress : RemoteProgressUpdateInfo -> UnitResult
+        abstract configureService : ContGenConfigParam -> UnitResult
+        abstract runModel : ModelDataId -> ModelCommandLineParam -> UnitResult
 
 
     type ContGenShutDownInfo =
@@ -291,9 +291,16 @@ module ServiceInfo =
         then
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
-                let state = service.getState()
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
-                if state.queue.Length = 0 then service.startGenerate()
+
+                match service.getState() with
+                | Ok state ->
+                    printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
+                    if state.queue.Length = 0
+                    then
+                        match service.startGenerate() with
+                        | Ok() -> printfn "Ok"
+                        | Error e -> printfn "Error occurred while trying to call service.startGenerate(): %A" e
+                | Error e -> printfn "Error occurred while trying to call service.getState(): %A" e
             with
             | e -> printfn "Exception occurred: %A" e
         else

@@ -76,6 +76,7 @@ module ServiceInfo =
                     | EmptyString -> "[]"
                     | s -> "\n    [\n" + s + "    ]"
                 sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfCores
+            | ErrorOccurred e -> "Error occurred: " + e.ToString()
 
 
     type IWorkerNodeService =
@@ -84,7 +85,7 @@ module ServiceInfo =
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 
         /// To check if service is working.
-        abstract ping : unit -> unit
+        abstract ping : unit -> UnitResult
 
 
     let mutable private callCount = -1

@@ -36,7 +36,7 @@ module WorkerNodeProxy =
     type WorkerNodeProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
-            tryLoadWorkerNodeRunModelData : RemoteProcessId -> ClmResult<WorkerNodeRunModelData>
+            loadWorkerNodeRunModelData : RemoteProcessId -> ClmResult<WorkerNodeRunModelData>
             tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
             runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
             getCommandLine : RunModelParam -> string
@@ -45,11 +45,11 @@ module WorkerNodeProxy =
             saveModelData : ModelData -> UnitResult
             tryDeleteModelData : ModelDataId -> UnitResult
 
-            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
             tryDeleteResultData : ResultDataId -> UnitResult
             loadAllResultData : unit -> ListResult<ResultDataWithId>
 
-            tryLoadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
             tryDeleteChartInfo : ResultDataId -> UnitResult
         }
 
@@ -57,22 +57,22 @@ module WorkerNodeProxy =
             let name = workerNodeServiceName
 
             {
-                saveWorkerNodeRunModelData = trySaveWorkerNodeRunModelDataFs name
-                tryLoadWorkerNodeRunModelData = tryLoadWorkerNodeRunModelDataFs name
+                saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
+                loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
                 runModel = fun p -> runLocalModel p true
                 getCommandLine = fun p -> getCommandLine p true
-                loadAllWorkerNodeRunModelData = tryLoadWorkerNodeRunModelDataAllFs name
+                loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
 
                 // These ones are needed for SolverRunner interop.
                 // Note that the "name" is different here.
-                saveModelData = trySaveModelDataFs solverRunnerName
+                saveModelData = saveModelDataFs solverRunnerName
                 tryDeleteModelData = tryDeleteModelDataFs solverRunnerName
 
-                tryLoadResultData = tryLoadResultDataFs solverRunnerName
+                loadResultData = loadResultDataFs solverRunnerName
                 tryDeleteResultData = tryDeleteResultDataFs solverRunnerName
-                loadAllResultData = tryLoadResultDataAllFs solverRunnerName
+                loadAllResultData = loadResultDataAllFs solverRunnerName
 
-                tryLoadChartInfo = tryLoadChartInfoFs solverRunnerName
+                loadChartInfo = loadChartInfoFs solverRunnerName
                 tryDeleteChartInfo = tryDeleteChartInfoFs solverRunnerName
             }

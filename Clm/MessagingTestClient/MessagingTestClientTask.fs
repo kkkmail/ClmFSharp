@@ -11,6 +11,7 @@ open ClmSys.Logging
 open ServiceProxy.MsgServiceProxy
 open ClmSys.GeneralData
 open ServiceProxy.MsgProcessorProxy
+open ClmSys.MessagingPrimitives
 
 module MessagingTestClientTask =
 
@@ -20,7 +21,7 @@ module MessagingTestClientTask =
                 msgAccessInfo = i
                 messagingService = h
                 msgClientProxy = MessagingClientProxy.create { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
-                logger = logger
+                //logger = logger
             }
 
         let a = MessagingClient d

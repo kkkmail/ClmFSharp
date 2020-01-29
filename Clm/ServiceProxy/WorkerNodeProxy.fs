@@ -1,15 +1,17 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
 open NoSql.FileSystemTypes
 open ServiceProxy.Runner
-open ClmSys.GeneralData
 open ClmSys.Registry
 open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.GeneralErrors
+open ClmSys.GeneralPrimitives
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.SolverRunnerData
 
 
 module WorkerNodeProxy =

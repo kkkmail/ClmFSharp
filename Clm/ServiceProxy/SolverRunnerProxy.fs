@@ -8,6 +8,10 @@ open NoSql.FileSystemTypes
 open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.GeneralErrors
+open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
 
 module SolverRunner =
 

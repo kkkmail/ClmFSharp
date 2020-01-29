@@ -6,8 +6,11 @@ open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
-open ClmSys.GeneralErrors
 open ClmSys
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
+open ClmSys.SolverRunnerData
 
 module Runner =
 

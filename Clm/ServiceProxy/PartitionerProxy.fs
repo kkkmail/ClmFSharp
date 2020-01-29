@@ -10,6 +10,12 @@ open ClmSys.Registry
 open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.GeneralErrors
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
+open ClmSys.SolverRunnerData
+open ClmSys.WorkerNodePrimitives
+open ClmSys.GeneralData
 
 module PartitionerProxy =
 

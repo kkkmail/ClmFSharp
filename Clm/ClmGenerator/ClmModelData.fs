@@ -4,6 +4,7 @@ open System
 open FSharp.Collections
 
 open ClmSys.VersionInfo
+open ClmSys.ContGenPrimitives
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes

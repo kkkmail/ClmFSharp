@@ -1,8 +1,8 @@
 ﻿namespace Analytics
+
 open System.IO
 open Microsoft.FSharp.Core
-
-open ClmSys.GeneralData
+open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
 open FSharp.Plotly

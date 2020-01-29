@@ -3,7 +3,7 @@ open ContGenAdm.ContGenServiceResponse
 open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
-open ClmSys.GeneralData
+open ClmSys.SolverRunnerData
 
 
 [<EntryPoint>]

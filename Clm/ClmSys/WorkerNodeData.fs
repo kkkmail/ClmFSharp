@@ -5,6 +5,7 @@ open MessagingPrimitives
 open MessagingData
 open WorkerNodePrimitives
 open PartitionerPrimitives
+open ContGenPrimitives
 
 module WorkerNodeData =
 
@@ -46,3 +47,10 @@ module WorkerNodeData =
                 noOfCores = w.noOfCores
                 nodePriority = w.nodePriority
             }
+
+
+    type WrkNodeServiceAccessInfo =
+        {
+            wrkNodeServiceAccessInfo : ServiceAccessInfo
+            minUsefulEe : MinUsefulEe
+        }

@@ -84,6 +84,7 @@
     <Compile Include="Logging.fs" />
     <Compile Include="Rop.fs" />
     <Compile Include="GeneralData.fs" />
+    <Compile Include="ContGenData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="WorkerNodeData.fs" />
     <Compile Include="PartitionerData.fs" />

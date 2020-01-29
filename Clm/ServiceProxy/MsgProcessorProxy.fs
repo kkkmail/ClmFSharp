@@ -1,7 +1,8 @@
 ﻿namespace ServiceProxy
 
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
+open ClmSys.MessagingErrors
 
 module MsgProcessorProxy =
 

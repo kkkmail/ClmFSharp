@@ -7,6 +7,8 @@ open ClmSys.GeneralData
 open System.Threading
 open System
 open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
+open ClmSys.GeneralPrimitives
 
 module ServiceInfo =
 

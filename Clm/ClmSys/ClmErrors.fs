@@ -10,6 +10,7 @@ open AsyncRunErrors
 open MessagingErrors
 open WorkerNodeErrors
 open PartitionerErrors
+open SolverRunnerErrors
 
 
 module ClmErrors =

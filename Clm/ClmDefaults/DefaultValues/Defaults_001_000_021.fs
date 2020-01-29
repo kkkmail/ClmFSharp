@@ -3,8 +3,8 @@
 open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
-open ClmSys.GeneralData
 open Clm.Distributions
+open ClmSys.ContGenPrimitives
 
 module Defaults_001_000_021 =
 

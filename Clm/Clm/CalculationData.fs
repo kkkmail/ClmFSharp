@@ -7,6 +7,7 @@ open Clm.ReactionRates
 open Clm.Reactions
 open Clm.ModelParams
 open Clm.ReactionTypes
+open ClmSys.ContGenPrimitives
 
 module CalculationData =
 

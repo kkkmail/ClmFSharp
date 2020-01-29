@@ -3,6 +3,7 @@
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
+open ClmSys.GeneralPrimitives
 
 module ServiceInfo =
 

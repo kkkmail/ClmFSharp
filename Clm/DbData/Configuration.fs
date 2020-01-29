@@ -1,6 +1,6 @@
 ﻿namespace DbData
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open ClmSys.GeneralPrimitives
 
 module Configuration =
 
@@ -25,7 +25,7 @@ module Configuration =
 
 
     let buildConnectionString (key : string) : string =
-        [ 
+        [
             Some (sprintf "Server=localhost;Database=%s;Integrated Security=SSPI" key) 
         ]
         |> List.pick (fun x -> x)

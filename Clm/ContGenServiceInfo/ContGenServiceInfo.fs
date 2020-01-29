@@ -9,6 +9,10 @@ open ClmSys.VersionInfo
 open ClmSys.MessagingData
 open ClmSys.GeneralErrors
 open System.Runtime.Remoting.Channels.Tcp
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
 
 module ServiceInfo =
 

@@ -13,6 +13,14 @@ open PartitionerServiceInfo.ServiceInfo
 open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ClmSys.Retry
+open ClmSys.MessagingPrimitives
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.ContGenData
+open ClmSys.WorkerNodePrimitives
 
 module FileSystemTypes =
 

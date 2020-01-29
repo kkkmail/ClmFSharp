@@ -14,13 +14,6 @@ module GeneralPrimitives =
     let DefaultMessagingServerAddress = "localhost"
 
 
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member df.value = let (ClmDefaultValueId v) = df in v
-        override df.ToString() = df.value.ToString().PadLeft(9, '0')
-
-
     type ServiceAddress =
         | ServiceAddress of string
 

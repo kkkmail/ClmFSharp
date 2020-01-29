@@ -6,6 +6,7 @@ open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.ReactionTypes
 open ClmSys.GeneralData
+open ClmSys.ContGenPrimitives
 
 module FSharpCodeExt = 
 

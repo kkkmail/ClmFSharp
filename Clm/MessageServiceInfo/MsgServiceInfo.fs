@@ -3,16 +3,20 @@
 open System
 open System.Runtime.Remoting.Channels.Tcp
 open System.ServiceModel
-open System.ServiceModel.Description
 
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
-open ClmSys.GeneralErrors
-open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
+open ClmSys.ContGenPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.ClmErrors
+open ClmSys.MessagingErrors
 
 module ServiceInfo =
 

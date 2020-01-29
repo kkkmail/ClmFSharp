@@ -58,41 +58,6 @@ module GeneralData =
         member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
 
 
-
-    type ContGenServiceAccessInfo =
-        {
-            contGenServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }
-
-
-    type WrkNodeServiceAccessInfo =
-        {
-            wrkNodeServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }
-
-
-    type SolverRunnerAccessInfo =
-        | ContGenSvcAccessInfo of ContGenServiceAccessInfo
-        | WorkerNodeSvcAccessInfo of WrkNodeServiceAccessInfo
-
-        member this.minUsefulEe =
-            match this with
-            | ContGenSvcAccessInfo c -> c.minUsefulEe
-            | WorkerNodeSvcAccessInfo w -> w.minUsefulEe
-
-        member this.serviceAddress =
-            match this with
-            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
-            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.serviceAddress
-
-        member this.servicePort =
-            match this with
-            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
-            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.servicePort
-
-
     let toVariableName (s : string) =
         match s.Length with
         | 0 -> s
@@ -282,32 +247,6 @@ module GeneralData =
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
         x + @"\" + exeName
-
-
-    type SingleChartInfo =
-        {
-            chartName : string
-            chartContent : string
-        }
-
-
-    type ChartInfo =
-        {
-            resultDataId : ResultDataId
-            defaultValueId : ClmDefaultValueId
-            charts : list<SingleChartInfo>
-        }
-
-        static member tryCreate r d c =
-            try
-                {
-                    resultDataId = r
-                    defaultValueId = d
-                    charts = c |> List.map (fun e -> { chartName = e; chartContent = File.ReadAllText e })
-                }
-                |> Ok
-            with
-            | e -> e |> CreateChartsException |> FileErr |> Error
 
 
     type Queue<'A> =

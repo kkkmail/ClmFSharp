@@ -2,14 +2,17 @@
 
 open System
 open FSharp.Collections
+open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
+open ClmSys.ContGenPrimitives
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.CommandLine
-open Argu
 
 module ModelParams =
 

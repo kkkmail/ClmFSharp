@@ -1,7 +1,7 @@
 ﻿namespace ClmSys
 
 open System
-open MessagingErrors
+open MessagingClientErrors
 
 module PartitionerErrors =
 

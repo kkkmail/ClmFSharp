@@ -3,7 +3,7 @@
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.Wcf
-open ClmSys.MessagingErrors
+open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
 
 

@@ -11,7 +11,7 @@ open ClmSys
 open ClmSys.GeneralData
 open ClmSys.TimerEvents
 open ClmSys.ClmErrors
-open ClmSys.MessagingErrors
+open ClmSys.MessagingClientErrors
 open ClmSys.MessagingPrimitives
 
 module Client =
@@ -221,6 +221,8 @@ module Client =
 
 
     let receiveMessagesImpl (proxy : TryReceiveSingleMessageProxy) =
+        let addError f e = ((f |> GetVersionErr |> MessagingClientErr) + e) |> Error
+
         match proxy.getVersion() with
         | Ok serverVersion ->
             match serverVersion = messagingDataVersion with
@@ -230,8 +232,8 @@ module Client =
                     localVersion = messagingDataVersion.value
                     remoteVersion = serverVersion.value
                 }
-                |> VersionMismatchError |> GetVersionErr |> MessagingServiceErr |> Error
-        | Error e -> e |> GetVersionErr |> MessagingServiceErr |> Error
+                |> VersionMismatchErr |> GetVersionErr |> MessagingClientErr |> Error
+        | Error e -> addError GetVersionWcfErr e
 
 
     let createMessage msgClientId (m : MessageInfo) =

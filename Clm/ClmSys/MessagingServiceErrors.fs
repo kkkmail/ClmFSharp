@@ -5,19 +5,7 @@ open VersionInfo
 open GeneralErrors
 open MessagingPrimitives
 
-module MessagingErrors =
-
-    type VersionMismatchInfo =
-        {
-            localVersion : int
-            remoteVersion : int
-        }
-
-
-    type GetVersionError =
-        | GetVersionWcfErr of WcfError
-        | VersionMismatchErr of VersionMismatchInfo
-
+module MessagingServiceErrors =
 
     type MessageDeliveryError =
         | ServiceNotStartedErr
@@ -28,14 +16,6 @@ module MessagingErrors =
 
     type ConfigureServiceError =
         | CfgSvcWcfErr of WcfError
-
-
-    type OnGetMessagesError =
-        | ProcessedSucessfullyWithInnerErr
-        | ProcessedWithErr
-        | ProcessedWithFailedToRemoveErr
-        | FailedToProcessErr
-        | BusyProcessingErr
 
 
     type TryPeekMessageError =
@@ -58,25 +38,8 @@ module MessagingErrors =
 
 
     type MessagingServiceError =
-        | GetVersionErr of GetVersionError
         | MessageDeliveryErr of MessageDeliveryError
         | ConfigureServiceErr of ConfigureServiceError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError
         | GetStateErr of GetStateError
-
-    // ======================================== //
-    // Messaging Client Errors
-    // ======================================== //
-
-    type TryReceiveSingleMessageError =
-        | TryPeekMessageErr
-        | SaveMessageErr
-        | TryDeleteFromServerErr
-
-
-
-    type MessagingClientError =
-        //| MessageNotFoundErr of MessageId
-        //| TryProcessMessageErr of exn
-        | TryReceiveSingleMessageErr of TryReceiveSingleMessageError

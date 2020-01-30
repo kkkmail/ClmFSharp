@@ -16,7 +16,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.MessagingErrors
+open ClmSys.MessagingClientErrors
 
 module ServiceInfo =
 

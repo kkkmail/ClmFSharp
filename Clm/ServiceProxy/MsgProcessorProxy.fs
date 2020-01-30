@@ -2,7 +2,7 @@
 
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
-open ClmSys.MessagingErrors
+open ClmSys.MessagingClientErrors
 open ClmSys.MessagingPrimitives
 
 module MsgProcessorProxy =

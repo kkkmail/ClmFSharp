@@ -7,11 +7,11 @@ open VersionInfo
 open GeneralErrors
 open ContGenErrors
 open AsyncRunErrors
-open MessagingErrors
+open MessagingServiceErrors
+open MessagingClientErrors
 open WorkerNodeErrors
 open PartitionerErrors
 open SolverRunnerErrors
-
 
 module ClmErrors =
 

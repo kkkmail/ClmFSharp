@@ -23,7 +23,7 @@ module MsgServiceProxy =
         {
             loadMessages : unit -> ListResult<MessageWithType>
             saveMessage : MessageWithType -> UnitResult
-            deleteMessage : MessageId -> UnitResult
+            tryDeleteMessage : MessageId -> UnitResult
         }
 
         static member create (i : MessagingClientProxyInfo) =
@@ -32,7 +32,7 @@ module MsgServiceProxy =
             {
                 loadMessages = loadMessageWithTypeAllFs name
                 saveMessage = saveMessageWithTypeFs name
-                deleteMessage = tryDeleteMessageWithTypeFs name
+                tryDeleteMessage = tryDeleteMessageWithTypeFs name
             }
 
 

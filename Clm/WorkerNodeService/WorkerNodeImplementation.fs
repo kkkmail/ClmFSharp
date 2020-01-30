@@ -23,6 +23,14 @@ open System.IO
 open ServiceProxy.MsgProcessorProxy
 open ClmSys.MessagingData
 open Clm.CalculationData
+open ClmSys.ClmErrors
+open ClmSys.ContGenData
+open ClmSys.ContGenPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.WorkerNodeErrors
+open ClmSys.WorkerNodePrimitives
 
 module ServiceImplementation =
 
@@ -70,7 +78,7 @@ module ServiceImplementation =
     type OnSaveResultProxy =
         {
             partitionerId : PartitionerId
-            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
             tryDeleteResultData : ResultDataId -> UnitResult
             sendMessage : MessageInfo -> UnitResult
         }
@@ -79,7 +87,7 @@ module ServiceImplementation =
     type OnSaveChartsProxy =
         {
             partitionerId : PartitionerId
-            tryLoadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
             tryDeleteChartInfo : ResultDataId -> UnitResult
             sendMessage : MessageInfo -> UnitResult
         }
@@ -113,9 +121,9 @@ module ServiceImplementation =
 
 
     let onSaveResult (proxy : OnSaveResultProxy) (d : ResultDataId) =
-        let toError f e = ((f |> OnSaveResultErr |> WorkerNodeErr) + e) |> Error
+        let addError f e = ((f |> OnSaveResultErr |> WorkerNodeErr) + e) |> Error
 
-        match proxy.tryLoadResultData d with
+        match proxy.loadResultData d with
         | Ok r ->
             let send() =
                 {
@@ -129,15 +137,15 @@ module ServiceImplementation =
             | Ok() ->
                 match proxy.tryDeleteResultData d with
                 | Ok() -> Ok()
-                | Error e -> toError (DeleteResultDataError d.value) e
-            | Error e -> toError (SendResultMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
-        | Error e -> toError (LoadResultDataErr d.value) e
+                | Error e -> addError (DeleteResultDataError d.value) e
+            | Error e -> addError (SendResultMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
+        | Error e -> addError (LoadResultDataErr d.value) e
 
 
     let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =
-        let toError f e = ((f |> OnSaveChartsErr |> WorkerNodeErr) + e) |> Error
+        let addError f e = ((f |> OnSaveChartsErr |> WorkerNodeErr) + e) |> Error
 
-        match proxy.tryLoadChartInfo d with
+        match proxy.loadChartInfo d with
         | Ok c ->
             let send() =
                 {
@@ -160,9 +168,9 @@ module ServiceImplementation =
 
                 match (r(), proxy.tryDeleteChartInfo d) ||> combineUnitResults with
                 | Ok() -> Ok()
-                | Error e -> toError (DeleteChartInfoError d.value) e
-            | Error e -> toError (SendChartMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
-        | Error e -> toError (LoadChartInfoError d.value) e
+                | Error e -> addError (DeleteChartInfoError d.value) e
+            | Error e -> addError (SendChartMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
+        | Error e -> addError (LoadChartInfoError d.value) e
 
 
     let onRegister (proxy : OnRegisterProxy) s =
@@ -473,7 +481,7 @@ module ServiceImplementation =
     let onSaveResultProxy i =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
-            tryLoadResultData = i.workerNodeProxy.tryLoadResultData
+            loadResultData = i.workerNodeProxy.loadResultData
             tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
             sendMessage = i.messageProcessorProxy.sendMessage
         }
@@ -482,7 +490,7 @@ module ServiceImplementation =
     let onSaveChartsProxy i =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
-            tryLoadChartInfo = i.workerNodeProxy.tryLoadChartInfo
+            loadChartInfo = i.workerNodeProxy.loadChartInfo
             tryDeleteChartInfo = i.workerNodeProxy.tryDeleteChartInfo
             sendMessage = i.messageProcessorProxy.sendMessage
         }
@@ -674,6 +682,6 @@ module ServiceImplementation =
 
         interface IWorkerNodeService with
             member __.updateLocalProgress p = updateLocalProgressImpl p
-            member __.ping() = ignore()
+            member __.ping() = Ok()
             member __.configure d = configureImpl d
             member __.monitor p = monitorImpl p

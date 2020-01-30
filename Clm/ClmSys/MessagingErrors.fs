@@ -3,6 +3,7 @@
 open System
 open VersionInfo
 open GeneralErrors
+open MessagingPrimitives
 
 module MessagingErrors =
 
@@ -52,8 +53,8 @@ module MessagingErrors =
         | GetStateWcfErr of WcfError
 
 
-    type MessageNotFoundError =
-        | MessageNotFoundErr of Guid
+    //type MessageNotFoundError =
+    //    | MessageNotFoundErr of Guid
 
 
     type MessagingServiceError =
@@ -64,7 +65,18 @@ module MessagingErrors =
         | TryDeleteFromServerErr of TryDeleteFromServerError
         | GetStateErr of GetStateError
 
+    // ======================================== //
+    // Messaging Client Errors
+    // ======================================== //
+
+    type TryReceiveSingleMessageError =
+        | TryPeekMessageErr
+        | SaveMessageErr
+        | TryDeleteFromServerErr
+
+
 
     type MessagingClientError =
-        | MessageNotFoundErr of MessageNotFoundError
-        | TryProcessMessageErr of exn
+        //| MessageNotFoundErr of MessageId
+        //| TryProcessMessageErr of exn
+        | TryReceiveSingleMessageErr of TryReceiveSingleMessageError

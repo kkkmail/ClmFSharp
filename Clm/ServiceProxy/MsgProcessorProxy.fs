@@ -3,6 +3,7 @@
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.MessagingErrors
+open ClmSys.MessagingPrimitives
 
 module MsgProcessorProxy =
 
@@ -54,12 +55,12 @@ module MsgProcessorProxy =
                 | ProcessedSucessfully (g, u) ->
                     match u with
                     | Ok() -> doFold t g
-                    | Error e -> g, addError ProcessedSucessfullyWithInnerError e
+                    | Error e -> g, addError ProcessedSucessfullyWithInnerErr e
                 | ProcessedWithError ((g, u), e) -> g, (addError ProcessedWithErr e, u) ||> combineUnitResults
-                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveError e, u) ||> combineUnitResults
-                | FailedToProcess e -> acc, addError FailedToProcessError e
+                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveErr e, u) ||> combineUnitResults
+                | FailedToProcess e -> acc, addError FailedToProcessErr e
                 | NothingToDo -> acc, Ok()
-                | BusyProcessing -> acc, toError BusyProcessingError
+                | BusyProcessing -> acc, toError BusyProcessingErr
 
         let w, result = doFold proxy.maxMessages s
         w, result

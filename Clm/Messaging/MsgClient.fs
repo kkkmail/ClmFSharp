@@ -12,6 +12,7 @@ open ClmSys.GeneralData
 open ClmSys.TimerEvents
 open ClmSys.ClmErrors
 open ClmSys.MessagingErrors
+open ClmSys.MessagingPrimitives
 
 module Client =
 
@@ -77,63 +78,53 @@ module Client =
     type MessagingClientStateData =
         {
             messagingClientState : MessagingClientState
-            //messageClientData : MessagingClientData
             incomingMessages : List<Message>
             outgoingMessages : List<Message>
             expirationTime : TimeSpan
         }
-
-        //member s.msgClientId = s.messageClientData.msgAccessInfo.msgClientId
-        //member s.messagingService = s.messageClientData.messagingService
-        //member s.proxy = s.messageClientData.msgClientProxy
-
-        //member s.logErr = s.messageClientData.logger.logErr
-        //member s.logExn = s.messageClientData.logger.logExn
-        //member s.logInfo = s.messageClientData.logger.logInfo
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
                 messagingClientState = MsgCliNotStarted
-                //messageClientData = d
                 incomingMessages = []
                 outgoingMessages = []
                 expirationTime = TimeSpan(6, 0, 0)
             }
 
 
-    type TrySaveMessageProxy =
-        {
-            saveMessage : MessageWithType -> UnitResult
-        }
+    //type TrySaveMessageProxy =
+    //    {
+    //        saveMessage : MessageWithType -> UnitResult
+    //    }
 
 
-    type TryRemoveMessageProxy =
-        {
-            deleteMessage : MessageId -> UnitResult
-        }
+    //type TryRemoveMessageProxy =
+    //    {
+    //        tryDeleteMessage : MessageId -> UnitResult
+    //    }
 
 
     type TryReceiveSingleMessageProxy =
         {
             saveMessage : MessageWithType -> UnitResult
-            deleteMessage : MessageId -> UnitResult
-            getVersion : unit -> GetVersionResult
-            sendMessage : Message -> MessageDeliveryResult
-            tryPeekMessage : unit -> TryPeekMessageResult
-            tryDeleteFromServer : MessageId -> TryDeleteFromServerResult
+            tryDeleteMessage : MessageId -> UnitResult
+            getVersion : unit -> ClmResult<MessagingDataVersion>
+            sendMessage : Message -> UnitResult
+            tryPeekMessage : unit -> ClmResult<Message option>
+            tryDeleteFromServer : MessageId -> UnitResult
         }
 
-        member p.trySaveMessageProxy =
-            {
-                saveMessage = p.saveMessage
-            }
+        //member p.trySaveMessageProxy =
+        //    {
+        //        saveMessage = p.saveMessage
+        //    }
 
-        member p.tryRemoveMessageProxy =
-            {
-                deleteMessage = p.deleteMessage
-            }
+        //member p.tryRemoveMessageProxy =
+        //    {
+        //        tryDeleteMessage = p.tryDeleteMessage
+        //    }
 
 
     type MessagingClientMessage =
@@ -155,23 +146,18 @@ module Client =
     let sortIncoming (m : List<Message>) = m |> List.sortBy (fun e -> e.messageDataInfo.createdOn)
 
 
-    let trySaveMessage (proxy : TrySaveMessageProxy) (m : Message) =
-        match m.messageDataInfo.recipientInfo.deliveryType with
-        | GuaranteedDelivery ->
-            {
-                message = m
-                messageType = IncomingMessage
-            }
-            |> proxy.saveMessage
-        | NonGuaranteedDelivery -> Ok()
+    //let trySaveMessage (proxy : TrySaveMessageProxy) (m : Message) =
+    //    match m.messageDataInfo.recipientInfo.deliveryType with
+    //    | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }
+    //    | NonGuaranteedDelivery -> Ok()
 
 
-    let tryRemoveMessage (proxy : TryRemoveMessageProxy) (m : Message) e =
-        let e1 = e |> TryDeleteFromServerErr |> MessagingServiceErr
+    //let tryRemoveMessage (proxy : TryRemoveMessageProxy) (m : Message) e =
+    //    let e1 = e |> TryDeleteFromServerErr |> MessagingServiceErr
 
-        match proxy.deleteMessage m.messageDataInfo.messageId with
-        | Ok _ -> Error e1
-        | Error e2 -> Error (e1 + e2)
+    //    match proxy.tryDeleteMessage m.messageDataInfo.messageId with
+    //    | Ok _ -> Error e1
+    //    | Error e2 -> Error (e1 + e2)
 
 
     let toMessageWithSize m =
@@ -183,16 +169,26 @@ module Client =
 
 
     let tryReceiveSingleMessage (proxy : TryReceiveSingleMessageProxy) : MessageResult =
+        let addError f e = ((f |> TryReceiveSingleMessageErr |> MessagingClientErr) + e) |> Error
+
         match proxy.tryPeekMessage () with
         | Ok (Some m) ->
-            match trySaveMessage proxy.trySaveMessageProxy m with
-            | Ok _ ->
+            let r =
+                match m.messageDataInfo.recipientInfo.deliveryType with
+                | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }
+                | NonGuaranteedDelivery -> Ok()
+
+            match r with
+            | Ok() ->
                 match proxy.tryDeleteFromServer m.messageDataInfo.messageId with
-                | Ok _ -> toMessageWithSize m
-                | Error e -> tryRemoveMessage proxy.tryRemoveMessageProxy m e
-            | Error e -> Error e
+                | Ok() -> toMessageWithSize m
+                | Error e ->
+                    match proxy.tryDeleteMessage m.messageDataInfo.messageId with
+                    | Ok() -> addError TryDeleteFromServerErr e
+                    | Error e1 -> addError TryDeleteFromServerErr (e1 + e)
+            | Error e -> addError SaveMessageErr e
         | Ok None -> Ok NoMessage
-        | Error e -> e |> TryPeekMessageErr |> MessagingServiceErr |> Error
+        | Error e -> addError TryPeekMessageErr e
 
 
     let mapper (proxy : TryReceiveSingleMessageProxy) (c : MessageCount) =
@@ -352,7 +348,7 @@ module Client =
                 let sent, sentErrors =
                     s.outgoingMessages
                     |> List.rev
-                    |> List.map (sendMessageImpl proxy.sendMessage proxy.deleteMessage)
+                    |> List.map (sendMessageImpl proxy.sendMessage proxy.tryDeleteMessage)
                     |> Rop.unzip
 
                 let received, receivedErrors =

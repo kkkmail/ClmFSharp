@@ -107,8 +107,8 @@ module Service =
             match m.messageDataInfo.dataVersion.value = messagingDataVersion.value with
             | true ->
                 match s.workState with
-                | MsgSvcNotStarted -> s, ServiceNotStarted |> MessageDeliveryErr |> toError
-                | ShuttingDown -> s, ServerIsShuttingDown |> MessageDeliveryErr |> toError
+                | MsgSvcNotStarted -> s, ServiceNotStartedErr |> MessageDeliveryErr |> toError
+                | ShuttingDown -> s, ServerIsShuttingDownErr |> MessageDeliveryErr |> toError
                 | CanTransmitMessages ->
                     let err =
                         match m.messageDataInfo.recipientInfo.deliveryType, m.messageData.keepInMemory() with
@@ -116,7 +116,7 @@ module Service =
                         | NonGuaranteedDelivery, true -> Ok()
 
                     updateMessages s m, err
-            | false -> s, messagingDataVersion |> DataVersionMismatch |> MessageDeliveryErr |> toError
+            | false -> s, messagingDataVersion |> DataVersionMismatchErr |> MessageDeliveryErr |> toError
 
         r.Reply f
         w
@@ -163,14 +163,14 @@ module Service =
             | Some v ->
                 let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
                 let z() = { s with messages = s.messages.Add(n, x) }
-                let f() = (n.value, m.value) |> UnableToDeleteMessageError |> TryDeleteFromServerErr |> MessagingServiceErr
+                let f() = (n.value, m.value) |> UnableToDeleteMessageErr |> TryDeleteFromServerErr |> MessagingServiceErr
 
                 match x.Length <> v.Length, deleteMessage m with
                 | true, Ok() -> z(), Ok()
                 | false, Ok() -> z(), f() |> Error
                 | true, Error e -> z(), Error e
                 | false, Error e -> z(), e + f() |> Error
-            | None -> s, n.value |> CannotFindClientError |> TryDeleteFromServerErr |> toError
+            | None -> s, n.value |> CannotFindClientErr |> TryDeleteFromServerErr |> toError
 
         r.Reply f
         w
@@ -230,7 +230,7 @@ module Service =
 
         member _.configureService x =
             ConfigureService x |> messageLoop.Post
-            Ok ServiceConfigured
+            Ok()
 
         member _.getState() = GetState |> messageLoop.PostAndReply |> Ok
         member _.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok

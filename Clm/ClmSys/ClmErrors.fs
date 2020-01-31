@@ -33,6 +33,7 @@ module ClmErrors =
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | PartitionerErr of PartitionerError
+        | AsyncRunErr of AsyncRunError
 
         static member (+) (a, b) =
             match a, b with

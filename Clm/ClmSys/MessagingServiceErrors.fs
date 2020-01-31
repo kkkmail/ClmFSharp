@@ -20,6 +20,13 @@ module MessagingServiceErrors =
         | UnableToLoadMessageError of (Guid * Guid)
 
 
+    type MessageDeliveryError =
+        | ServiceNotStartedErr
+        | ServerIsShuttingDownErr
+        | DataVersionMismatchErr of MessagingDataVersion
+        | MsgWcfErr of WcfError
+
+
     type TryDeleteFromServerError =
         | TryDeleteMsgWcfErr of WcfError
         | CannotFindClientErr of Guid
@@ -32,7 +39,7 @@ module MessagingServiceErrors =
 
     type MessagingServiceError =
         | GetVersionSvcErr of GetVersionSvcError
-        //| MessageDeliveryErr of MessageDeliveryError
+        | MessageDeliveryErr of MessageDeliveryError
         | ConfigureServiceErr of ConfigureServiceError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError

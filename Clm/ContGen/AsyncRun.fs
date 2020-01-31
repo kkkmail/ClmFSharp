@@ -6,12 +6,16 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.Logging
-open ClmSys.GeneralErrors
+open ClmSys.AsyncRunErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 
 module AsyncRun =
+
+    let private toError f = f |> AsyncRunErr |> Error
+    let private addError g f e = ((f |> g |> AsyncRunErr) + e) |> Error
+
 
     type AsyncRunnerData =
         {
@@ -95,15 +99,16 @@ module AsyncRun =
 
 
     let onStartRun (proxy : OnStartRunProxy) (s : AsyncRunnerState) : StateWithResult<AsyncRunnerState> =
-        let updateQueue t (g : AsyncRunnerState) = { g with queue = t }
+        let addError = addError OnStartRunErr
+        let updateQueue t ((g : AsyncRunnerState), f) = { g with queue = t }, f
 
-        let start (g : AsyncRunnerState) e =
+        let start (g : AsyncRunnerState) e f =
             let x = e.run e.processToStartInfo
 
             match x with
             | Ok (StartedSuccessfully (r, fo)) ->
                 { g with running = g.running.Add(r.processId, r.toRunningProcessInfo())}, toUnitResult fo
-            |Error e -> g
+            |Error e -> g, addError FailedToStartErr e
             | Ok (AlreadyCompleted fo) ->
                 let r = proxy.removeFromQueue e.processToStartInfo.runQueueId
                 g, toUnitResult fo |> combineUnitResults r
@@ -113,17 +118,19 @@ module AsyncRun =
             then
                 let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
 
-                run
-                |> List.fold (fun acc e -> start acc e) s
-                |> updateQueue queue
-            else s
+                let w, result =
+                    run
+                    |> List.fold (fun (acc, f) e -> start acc e f) (s, Ok())
+                    |> updateQueue queue
+                w, result
+            else s, Ok()
 
         match s.workState with
-        | NotInitialized -> s
+        | NotInitialized -> s, Ok()
         | Idle -> w()
         | CanGenerate -> w()
         | Generating -> w()
-        | ShuttingDown -> s
+        | ShuttingDown -> s, Ok()
 
 
     let onQueueObtained (s : AsyncRunnerState) p =
@@ -155,11 +162,17 @@ module AsyncRun =
         | _ -> false
 
 
-    let onConfigureService (s : AsyncRunnerState) (a : AsyncRunner) (p : ContGenConfigParam) =
+    type OnConfigureServiceProxy =
+        {
+            generationStarted : unit -> UnitResult
+        }
+
+
+    let onConfigureService (proxy : OnConfigureServiceProxy) (s : AsyncRunnerState) (p : ContGenConfigParam) =
         match p with
         | SetToIdle -> { s with workState = Idle }
         | SetToCanGenerate ->
-            a.generationStarted()
+            proxy.generationStarted()
             { s with workState = CanGenerate }
         | RequestShutDown b ->
             match b with

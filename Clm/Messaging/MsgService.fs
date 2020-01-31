@@ -8,11 +8,12 @@ open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives
-open ClmSys.MessagingErrors
+open ClmSys.MessagingServiceErrors
 
 module Service =
 
     let private toError f = f |> MessagingServiceErr |> Error
+    let private addError g f e = ((f |> g |> MessagingServiceErr) + e) |> Error
 
 
     type MessagingServiceData =

@@ -1,5 +1,10 @@
 ﻿namespace ClmSys
 
 module AsyncRunErrors =
-    let x = 1
+
+    type OnStartRunError =
+        | FailedToStartErr //of RunningProcessData
+
+    type AsyncRunError =
+        | OnStartRunErr of OnStartRunError
 

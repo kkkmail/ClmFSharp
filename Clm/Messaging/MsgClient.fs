@@ -275,7 +275,7 @@ module Client =
                 | Ok () -> Ok m
                 | Error e -> Error e
             | NonGuaranteedDelivery -> Ok m
-        | Error e -> e |> MessageDeliveryErr |> MessagingServiceErr |> Error
+        | Error e -> e |> MessageDeliveryErr |> MessagingClientErr |> Error
 
 
     let onFinishTransmitting (s : MessagingClientStateData) (t : TransmissionData) =

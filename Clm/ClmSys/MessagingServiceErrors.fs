@@ -7,6 +7,10 @@ open MessagingPrimitives
 
 module MessagingServiceErrors =
 
+    type GetVersionSvcError =
+        | GetVersionSvcWcfErr of WcfError
+
+
     type MessageDeliveryError =
         | ServiceNotStartedErr
         | ServerIsShuttingDownErr
@@ -38,6 +42,7 @@ module MessagingServiceErrors =
 
 
     type MessagingServiceError =
+        | GetVersionSvcErr of GetVersionSvcError
         | MessageDeliveryErr of MessageDeliveryError
         | ConfigureServiceErr of ConfigureServiceError
         | TryPeekMessageErr of TryPeekMessageError

@@ -4,15 +4,10 @@ open System
 open VersionInfo
 open GeneralErrors
 open MessagingPrimitives
+open MessagingCommonErrors
+open MessagingServiceErrors
 
 module MessagingClientErrors =
-
-    type VersionMismatchInfo =
-        {
-            localVersion : int
-            remoteVersion : int
-        }
-
 
     type GetVersionError =
         | GetVersionWcfErr

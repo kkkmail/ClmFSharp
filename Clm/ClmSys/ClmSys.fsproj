@@ -76,6 +76,7 @@
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="ContGenErrors.fs" />
     <Compile Include="AsyncRunErrors.fs" />
+    <Compile Include="MessagingCommonErrors.fs" />
     <Compile Include="MessagingServiceErrors.fs" />
     <Compile Include="MessagingClientErrors.fs" />
     <Compile Include="WorkerNodeErrors.fs" />

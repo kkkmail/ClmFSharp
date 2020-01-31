@@ -10,12 +10,12 @@ open ClmSys.ClmErrors
 module ServiceResponse =
 
     /// Low level WCF messaging client.
-    /// It seems imposible to bake in "tryCommunicate tryGetWcfService" into a function due to generics + type inference interplay.
-    /// It looks very simple. However, tryCommunicate is an implicit generic with 4 generic parameters. Thread carefully...
+    /// It seems nearly imposible to bake in "tryCommunicate tryGetWcfService" into a single function due to generics + type inference interplay.
+    /// It does look very simple. However, tryCommunicate is an implicit generics with 4 generic parameters. Thread carefully...
     type MsgResponseHandler private (url) =
         let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url
 
-        let getVersionWcfErr e = e |> GetVersionWcfErr |> GetVersionErr |> MessagingServiceErr
+        let getVersionWcfErr e = e |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
         let msgWcfErr e = e |> MsgWcfErr |> MessageDeliveryErr |> MessagingServiceErr
         let cfgSvcWcfErr e = e |> CfgSvcWcfErr |> ConfigureServiceErr |> MessagingServiceErr
         let tryPeekMsgWcfErr e = e |> TryPeekMsgWcfErr |> TryPeekMessageErr |> MessagingServiceErr

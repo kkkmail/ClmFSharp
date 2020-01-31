@@ -11,13 +11,6 @@ module MessagingServiceErrors =
         | GetVersionSvcWcfErr of WcfError
 
 
-    type MessageDeliveryError =
-        | ServiceNotStartedErr
-        | ServerIsShuttingDownErr
-        | DataVersionMismatchErr of MessagingDataVersion
-        | MsgWcfErr of WcfError
-
-
     type ConfigureServiceError =
         | CfgSvcWcfErr of WcfError
 
@@ -37,13 +30,9 @@ module MessagingServiceErrors =
         | GetStateWcfErr of WcfError
 
 
-    //type MessageNotFoundError =
-    //    | MessageNotFoundErr of Guid
-
-
     type MessagingServiceError =
         | GetVersionSvcErr of GetVersionSvcError
-        | MessageDeliveryErr of MessageDeliveryError
+        //| MessageDeliveryErr of MessageDeliveryError
         | ConfigureServiceErr of ConfigureServiceError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError

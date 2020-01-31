@@ -13,6 +13,7 @@ open ClmSys.TimerEvents
 open ClmSys.ClmErrors
 open ClmSys.MessagingClientErrors
 open ClmSys.MessagingPrimitives
+open ClmSys.MessagingCommonErrors
 
 module Client =
 
@@ -22,6 +23,9 @@ module Client =
     let maxNumberOfSmallMessages = 1_000
     let maxNumberOfMediumMessages = 20
     let maxNumberOfLargeMessages = 2
+
+    let private toError e = e |> MessagingClientErr |> Error
+    let private addError g f e = ((f |> g |> MessagingClientErr) + e) |> Error
 
     type MessageCount =
         {
@@ -94,18 +98,6 @@ module Client =
             }
 
 
-    //type TrySaveMessageProxy =
-    //    {
-    //        saveMessage : MessageWithType -> UnitResult
-    //    }
-
-
-    //type TryRemoveMessageProxy =
-    //    {
-    //        tryDeleteMessage : MessageId -> UnitResult
-    //    }
-
-
     type TryReceiveSingleMessageProxy =
         {
             saveMessage : MessageWithType -> UnitResult
@@ -115,16 +107,6 @@ module Client =
             tryPeekMessage : unit -> ClmResult<Message option>
             tryDeleteFromServer : MessageId -> UnitResult
         }
-
-        //member p.trySaveMessageProxy =
-        //    {
-        //        saveMessage = p.saveMessage
-        //    }
-
-        //member p.tryRemoveMessageProxy =
-        //    {
-        //        tryDeleteMessage = p.tryDeleteMessage
-        //    }
 
 
     type MessagingClientMessage =
@@ -146,20 +128,6 @@ module Client =
     let sortIncoming (m : List<Message>) = m |> List.sortBy (fun e -> e.messageDataInfo.createdOn)
 
 
-    //let trySaveMessage (proxy : TrySaveMessageProxy) (m : Message) =
-    //    match m.messageDataInfo.recipientInfo.deliveryType with
-    //    | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }
-    //    | NonGuaranteedDelivery -> Ok()
-
-
-    //let tryRemoveMessage (proxy : TryRemoveMessageProxy) (m : Message) e =
-    //    let e1 = e |> TryDeleteFromServerErr |> MessagingServiceErr
-
-    //    match proxy.tryDeleteMessage m.messageDataInfo.messageId with
-    //    | Ok _ -> Error e1
-    //    | Error e2 -> Error (e1 + e2)
-
-
     let toMessageWithSize m =
         match m.messageData.getMessageSize() with
         | SmallSize -> SmallMessage m
@@ -169,7 +137,7 @@ module Client =
 
 
     let tryReceiveSingleMessage (proxy : TryReceiveSingleMessageProxy) : MessageResult =
-        let addError f e = ((f |> TryReceiveSingleMessageErr |> MessagingClientErr) + e) |> Error
+        let addError = addError TryReceiveSingleMessageErr
 
         match proxy.tryPeekMessage () with
         | Ok (Some m) ->
@@ -221,7 +189,7 @@ module Client =
 
 
     let receiveMessagesImpl (proxy : TryReceiveSingleMessageProxy) =
-        let addError f e = ((f |> GetVersionErr |> MessagingClientErr) + e) |> Error
+        let addError = addError GetVersionErr
 
         match proxy.getVersion() with
         | Ok serverVersion ->
@@ -229,10 +197,10 @@ module Client =
             | true -> tryReceiveMessages proxy
             | false ->
                 {
-                    localVersion = messagingDataVersion.value
-                    remoteVersion = serverVersion.value
+                    localVersion = messagingDataVersion
+                    remoteVersion = serverVersion
                 }
-                |> VersionMismatchErr |> GetVersionErr |> MessagingClientErr |> Error
+                |> VersionMismatchErr |> GetVersionErr |> toError
         | Error e -> addError GetVersionWcfErr e
 
 
@@ -267,6 +235,8 @@ module Client =
 
 
     let sendMessageImpl sendMessage deleteMessage (m : Message) =
+        let addError = addError SendMessageErr
+
         match sendMessage m with
         | Ok () ->
             match m.messageDataInfo.recipientInfo.deliveryType with
@@ -275,7 +245,7 @@ module Client =
                 | Ok () -> Ok m
                 | Error e -> Error e
             | NonGuaranteedDelivery -> Ok m
-        | Error e -> e |> MessageDeliveryErr |> MessagingClientErr |> Error
+        | Error e -> addError SendMessageFaileErr e
 
 
     let onFinishTransmitting (s : MessagingClientStateData) (t : TransmissionData) =
@@ -316,7 +286,7 @@ module Client =
                 | Ok() -> removedMessage None
                 | Error e -> removedMessage (Some e)
             | NonGuaranteedDelivery -> removedMessage None
-        | None -> m.value |> MessageNotFoundError |> MessageNotFoundErr |> MessagingClientErr |> failedToRemove
+        | None -> m |> MessageNotFoundErr |> OnTryRemoveReceivedMessageErr |> MessagingClientErr |> failedToRemove
 
 
     let onStart (s : MessagingClientStateData) loadMessages =
@@ -387,7 +357,7 @@ module Client =
     type MessagingClient(d : MessagingClientData) =
         let loadMsg = d.msgClientProxy.loadMessages
         let saveMsg = d.msgClientProxy.saveMessage
-        let deleteMsg = d.msgClientProxy.deleteMessage
+        let deleteMsg = d.msgClientProxy.tryDeleteMessage
         let msgClietnId = d.msgAccessInfo.msgClientId
 
         let messageLoop =
@@ -431,7 +401,7 @@ module Client =
         member _.tryReceiveSingleMessageProxy : TryReceiveSingleMessageProxy =
             {
                 saveMessage = d.msgClientProxy.saveMessage
-                deleteMessage = d.msgClientProxy.deleteMessage
+                tryDeleteMessage = d.msgClientProxy.tryDeleteMessage
                 getVersion = d.messagingService.getVersion
                 sendMessage = d.messagingService.sendMessage
                 tryPeekMessage = fun () -> d.messagingService.tryPeekMessage d.msgAccessInfo.msgClientId
@@ -456,7 +426,7 @@ module Client =
                         | RemovedWithError e -> ProcessedWithError (r, e)
                         | FailedToRemove e -> ProcessedWithFailedToRemove (r, e)
                     with
-                    | e -> e |> TryProcessMessageErr |> MessagingClientErr |> FailedToProcess
+                    | e -> e |> OnTryProcessMessageExn |> OnTryProcessMessageErr |> MessagingClientErr |> FailedToProcess
                 | None -> NothingToDo
             else BusyProcessing
     

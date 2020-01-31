@@ -22,15 +22,37 @@ module MessagingClientErrors =
         | BusyProcessingErr
 
 
+    type SendMessageError =
+        | SendMessageFaileErr
+
+
     type TryReceiveSingleMessageError =
         | TryPeekMessageErr
         | SaveMessageErr
         | TryDeleteFromServerErr
 
 
+    type MessageDeliveryError =
+        | ServiceNotStartedErr
+        | ServerIsShuttingDownErr
+        | DataVersionMismatchErr of MessagingDataVersion
+        | MsgWcfErr of WcfError
+
+
+    type OnTryRemoveReceivedMessageError =
+        | MessageNotFoundErr of MessageId
+
+
+    type OnTryProcessMessageError =
+        | OnTryProcessMessageExn of exn
+
+
     type MessagingClientError =
         | GetVersionErr of GetVersionError
+        | SendMessageErr of SendMessageError
         //| MessageNotFoundErr of MessageId
         //| TryProcessMessageErr of exn
         | TryReceiveSingleMessageErr of TryReceiveSingleMessageError
-
+        | MessageDeliveryErr of MessageDeliveryError
+        | OnTryRemoveReceivedMessageErr of OnTryRemoveReceivedMessageError
+        | OnTryProcessMessageErr of OnTryProcessMessageError

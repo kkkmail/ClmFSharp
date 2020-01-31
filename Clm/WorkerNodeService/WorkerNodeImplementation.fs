@@ -34,6 +34,10 @@ open ClmSys.WorkerNodePrimitives
 
 module ServiceImplementation =
 
+    let private toError g f = f |> g |> WorkerNodeErr |> Error
+    let private addError g f e = ((f |> g |> WorkerNodeErr) + e) |> Error
+
+
     let mutable serviceAccessInfo =
         let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
         let results = (parser.Parse [||]).GetAllResults()
@@ -121,7 +125,7 @@ module ServiceImplementation =
 
 
     let onSaveResult (proxy : OnSaveResultProxy) (d : ResultDataId) =
-        let addError f e = ((f |> OnSaveResultErr |> WorkerNodeErr) + e) |> Error
+        let addError = addError OnSaveResultErr
 
         match proxy.loadResultData d with
         | Ok r ->
@@ -143,7 +147,7 @@ module ServiceImplementation =
 
 
     let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =
-        let addError f e = ((f |> OnSaveChartsErr |> WorkerNodeErr) + e) |> Error
+        let addError = addError OnSaveChartsErr
 
         match proxy.loadChartInfo d with
         | Ok c ->
@@ -274,7 +278,7 @@ module ServiceImplementation =
 
 
     let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        let addError f e = ((f |> OnRunModelErr |> WorkerNodeErr) + e) |> Error
+        let addError = addError OnRunModelErr
 
         let w, result =
             let a = proxy.getRunModelParam d
@@ -429,8 +433,8 @@ module ServiceImplementation =
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
-        let addError f e = ((f |> OnProcessMessageErr |> WorkerNodeErr) + e) |> Error
-        let toError e = e |> OnProcessMessageErr |> WorkerNodeErr |> Error
+        let addError = addError OnProcessMessageErr
+        let toError = toError OnProcessMessageErr
 
         let w, result =
             match m.messageData with

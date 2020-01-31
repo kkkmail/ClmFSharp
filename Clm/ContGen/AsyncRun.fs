@@ -13,7 +13,7 @@ open ClmSys.GeneralPrimitives
 
 module AsyncRun =
 
-    let private toError f = f |> AsyncRunErr |> Error
+    let private toError g f = f |> g |> AsyncRunErr |> Error
     let private addError g f e = ((f |> g |> AsyncRunErr) + e) |> Error
 
 
@@ -138,12 +138,15 @@ module AsyncRun =
         |> onStartRun
 
 
-    let onQueueStarting s =
-        printfn "%s..." onQueueStartingName
+    type OnQueueStartingProxy =
+        {
+            getQueue : unit -> ListResult<RunInfo>
+            onQueueObtained : int
+        }
 
+    let onQueueStarting (proxy : OnQueueStartingProxy) s =
         let w t =
-            let x = generatorInfo.getQueue()
-            printfn "%s: queue length: %A" onQueueStartingName x.Length
+            let x = proxy.getQueue()
             x |> onQueueObtained { s with workState = t }
 
         match s.workState with

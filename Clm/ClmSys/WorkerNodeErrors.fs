@@ -33,7 +33,6 @@ module WorkerNodeErrors =
         | InvalidMessage of string
 
 
-
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError

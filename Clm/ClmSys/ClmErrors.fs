@@ -12,6 +12,7 @@ open MessagingClientErrors
 open WorkerNodeErrors
 open PartitionerErrors
 open SolverRunnerErrors
+open ModelGeneratorErrors
 
 module ClmErrors =
 
@@ -30,6 +31,7 @@ module ClmErrors =
         | ProcessStartedErr of ProcessStartedError
         | MessagingServiceErr of MessagingServiceError
         | MessagingClientErr of MessagingClientError
+        | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | PartitionerErr of PartitionerError
@@ -95,6 +97,13 @@ module ClmErrors =
 
     /// Folds list<ClmError>, then converts to UnitResult.
     let foldToUnitResult = foldErrors >> toUnitResult
+
+
+    //let foldListResultErrors<'T> (results : ListResult<'T>) =
+    //    match results with
+    //    | Error e -> Error e
+    //    | Ok lst ->
+    //        0
 
 
     let addError v (f : ClmError) =

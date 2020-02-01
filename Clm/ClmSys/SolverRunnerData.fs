@@ -53,4 +53,4 @@ module SolverRunnerData =
                 }
                 |> Ok
             with
-            | e -> e |> CreateChartsException |> FileErr |> Error
+            | e -> e |> CreateChartsExn |> FileErr |> Error

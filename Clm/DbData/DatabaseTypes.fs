@@ -354,11 +354,12 @@ module DatabaseTypes =
                         y0 = r.modelCommandLineParam.taskParam.y0,
                         tEnd = r.modelCommandLineParam.taskParam.tEnd,
                         useAbundant = r.modelCommandLineParam.taskParam.useAbundant,
-                        progress = 0m
+                        workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
+                        progress = r.progress.value,
+                        modifiedOn = DateTime.Now
                         )
 
-            newRow.runQueueStatusId <- 0
-
+            newRow.runQueueStatusId <- r.runQueueStatus.value
             t.Rows.Add newRow
             newRow
 
@@ -713,7 +714,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadRunQueue (ConnectionString connectionString) i =
+    let tryLoadFirstRunQueue (ConnectionString connectionString) i =
         let g() =
             seq
                 {
@@ -726,11 +727,11 @@ module DatabaseTypes =
             |> List.ofSeq
             |> List.tryHead
             |> Ok
-    
+
         tryDbFun g
 
 
-    let saveRunQueueEntry (ConnectionString connectionString) modelDataId defaultValueId p =
+    let saveRunQueue (ConnectionString connectionString) modelDataId defaultValueId p =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn
@@ -743,7 +744,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let deleteRunQueueEntry (ConnectionString connectionString) (RunQueueId runQueueId) =
+    let deleteRunQueue (ConnectionString connectionString) (RunQueueId runQueueId) =
         let g() =
             use conn = new SqlConnection(connectionString)
             openConnIfClosed conn

@@ -9,6 +9,7 @@ open System
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
+open ClmSys.ContGenData
 
 module ServiceInfo =
 

@@ -27,6 +27,13 @@ module ContGenData =
             | Completed -> Some DateTime.Now
             | Failed _ -> None
 
+        member progress.value =
+            match progress with
+            | NotStarted -> 0m
+            | InProgress d -> max 0m (min d 1m)
+            | Completed -> 1.0m
+            | Failed _ -> -1000m
+
 
     type ContGenServiceAccessInfo =
         {

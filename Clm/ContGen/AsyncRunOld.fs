@@ -5,12 +5,13 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.Logging
 open ClmSys.AsyncRunErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 
-module AsyncRun =
+module AsyncRunOld =
 
     let private toError g f = f |> g |> AsyncRunErr |> Error
     let private addError g f e = ((f |> g |> AsyncRunErr) + e) |> Error
@@ -28,10 +29,10 @@ module AsyncRun =
 
     type AsyncRunnerState =
         {
-            //running : Map<ProcessId, RunningProcessInfo>
-            //queue : list<RunInfo>
-            //runLimit : int
-            //maxQueueLength : int
+            running : Map<ProcessId, RunningProcessInfo>
+            queue : list<RunInfo>
+            runLimit : int
+            maxQueueLength : int
             workState : WorkState
             messageCount : int64
             minUsefulEe : MinUsefulEe
@@ -39,15 +40,15 @@ module AsyncRun =
             lastRunError : ClmError option
         }
 
-        //member state.runningCount = state.running.Count
-        //member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.progressUpdateInfo.processStartedInfo.runningProcessData.runQueueId) |> Set.ofList
+        member state.runningCount = state.running.Count
+        member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.progressUpdateInfo.processStartedInfo.runningProcessData.runQueueId) |> Set.ofList
 
         static member defaultValue u =
             {
-                //running = Map.empty
-                //queue = []
-                //runLimit = if u then 0 else Environment.ProcessorCount
-                //maxQueueLength = 4
+                running = Map.empty
+                queue = []
+                runLimit = if u then 0 else Environment.ProcessorCount
+                maxQueueLength = 4
                 workState = NotInitialized
                 messageCount = 0L
                 minUsefulEe = MinUsefulEe DefaultMinEe

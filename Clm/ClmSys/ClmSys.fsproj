@@ -75,6 +75,7 @@
     <Compile Include="SolverRunnerPrimitives.fs" />
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="ContGenErrors.fs" />
+    <Compile Include="ModelGeneratorErrors.fs" />
     <Compile Include="AsyncRunErrors.fs" />
     <Compile Include="MessagingCommonErrors.fs" />
     <Compile Include="MessagingServiceErrors.fs" />

@@ -1,14 +1,90 @@
+IF OBJECT_ID('[dbo].[ClmTaskStatus]') IS NULL begin
+	print 'Creating table [dbo].[ClmTaskStatus] ...'
+
+	CREATE TABLE [dbo].[ClmTaskStatus](
+		[clmTaskStatusId] [int] NOT NULL,
+		[clmTaskStatusName] [nvarchar](50) NOT NULL,
+	 CONSTRAINT [PK_clmTaskStatus] PRIMARY KEY CLUSTERED 
+	(
+		[clmTaskStatusId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_clmTaskStatus] ON [dbo].[ClmTaskStatus]
+	(
+		[clmTaskStatusName] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+end else begin
+	print 'Table [dbo].[ClmTaskStatus] already exists ...'
+end
+go
+
+
+IF OBJECT_ID('[dbo].[RunQueueStatus]') IS NULL begin
+	print 'Creating table [dbo].[RunQueueStatus] ...'
+
+	CREATE TABLE [dbo].[RunQueueStatus](
+		[runQueueStatusId] [int] NOT NULL,
+		[runQueueStatusName] [nvarchar](50) NOT NULL,
+	 CONSTRAINT [PK_RunQueueStatus] PRIMARY KEY CLUSTERED 
+	(
+		[runQueueStatusId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_RunQueueStatus] ON [dbo].[RunQueueStatus]
+	(
+		[runQueueStatusName] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+end else begin
+	print 'Table [dbo].[RunQueueStatus] already exists ...'
+end
+go
+
+
+IF OBJECT_ID('[dbo].[WorkerNode]') IS NULL begin
+	print 'Creating table [dbo].[WorkerNode] ...'
+
+	CREATE TABLE [dbo].[WorkerNode](
+		[workerNodeId] [uniqueidentifier] NOT NULL,
+		[workerNodeOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[workerNodeName] [nvarchar](100) NOT NULL,
+		[description] [nvarchar](1000) NULL,
+		[isLocal] [bit] NOT NULL,
+		[isInactive] [bit] NOT NULL,
+		[createdOn] [datetime] NOT NULL,
+		[modifiedOn] [datetime] NOT NULL,
+	 CONSTRAINT [PK_WorkerNode] PRIMARY KEY CLUSTERED 
+	(
+		[workerNodeId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[WorkerNode] ADD  CONSTRAINT [DF_WorkerNode_isLocal]  DEFAULT ((0)) FOR [isLocal]
+	ALTER TABLE [dbo].[WorkerNode] ADD  CONSTRAINT [DF__WorkerNod__isIna__5FB337D6]  DEFAULT ((0)) FOR [isInactive]
+	ALTER TABLE [dbo].[WorkerNode] ADD  CONSTRAINT [DF__WorkerNod__creat__5DCAEF64]  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [dbo].[WorkerNode] ADD  CONSTRAINT [DF__WorkerNod__modif__5EBF139D]  DEFAULT (getdate()) FOR [modifiedOn]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_WorkerNode] ON [dbo].[WorkerNode]
+	(
+		[workerNodeName] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+end else begin
+	print 'Table [dbo].[WorkerNode] already exists ...'
+end
+go
+
 IF OBJECT_ID('[dbo].[ClmDefaultValue]') IS NULL begin
 	print 'Creating table [dbo].[ClmDefaultValue] ...'
 
 	CREATE TABLE [dbo].[ClmDefaultValue](
-		clmDefaultValueId [bigint] NOT NULL,
+		[clmDefaultValueId] [bigint] NOT NULL,
 		[defaultRateParams] [nvarchar](max) NOT NULL,
-		[description] nvarchar(2000) NULL,
-		[fileStructureVersion] money NOT NULL,
+		[description] [nvarchar](2000) NULL,
+		[fileStructureVersion] [money] NOT NULL,
 	 CONSTRAINT [PK_ClmDefaultValue] PRIMARY KEY CLUSTERED 
 	(
-		clmDefaultValueId ASC
+		[clmDefaultValueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 end else begin
@@ -22,18 +98,36 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 
 	CREATE TABLE [dbo].[ClmTask](
 		[clmTaskId] [uniqueidentifier] NOT NULL,
+		[clmTaskOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmDefaultValueId] [bigint] NOT NULL,
+		[clmTaskStatusId] [int] NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
-		[numberOfRepetitions] [int] NOT NULL DEFAULT ((1)),
-		[remainingRepetitions] [int] NOT NULL DEFAULT ((1)),
-		[statusId] [int] NOT NULL DEFAULT ((0)),
-		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
+		[numberOfRepetitions] [int] NOT NULL,
+		[remainingRepetitions] [int] NOT NULL,
+		[createdOn] [datetime] NOT NULL,
+		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_ClmTask] PRIMARY KEY CLUSTERED 
 	(
 		[clmTaskId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [numberOfRepetitions]
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [remainingRepetitions]
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((0)) FOR [clmTaskStatusId]
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+
+	ALTER TABLE [dbo].[ClmTask]  WITH CHECK ADD  CONSTRAINT [FK_ClmTask_ClmTaskStatus] FOREIGN KEY([clmTaskStatusId])
+	REFERENCES [dbo].[ClmTaskStatus] ([clmTaskStatusId])
+
+	ALTER TABLE [dbo].[ClmTask] CHECK CONSTRAINT [FK_ClmTask_ClmTaskStatus]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_ClmTask] ON [dbo].[ClmTask]
+	(
+		[clmTaskOrder] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
 	print 'Table [dbo].[ClmTask] already exists ...'
 end
@@ -45,22 +139,31 @@ IF OBJECT_ID('[dbo].[CommandLineParam]') IS NULL begin
 	print 'Creating table [dbo].[CommandLineParam] ...'
 
 	CREATE TABLE [dbo].[CommandLineParam](
-		commandLineParamId [uniqueidentifier] NOT NULL,
+		[commandLineParamId] [uniqueidentifier] NOT NULL,
+		[commandLineParamOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmTaskId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
-		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[createdOn] datetime not null default ((getdate())),
+		[useAbundant] [bit] NOT NULL,
+		[createdOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_TCommandLineParam] PRIMARY KEY CLUSTERED 
 	(
-		commandLineParamId ASC
+		[commandLineParamId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
+	ALTER TABLE [dbo].[CommandLineParam] ADD  CONSTRAINT [DF__CommandLi__useAb__403A8C7D]  DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [dbo].[CommandLineParam] ADD  CONSTRAINT [DF__CommandLi__creat__412EB0B6]  DEFAULT (getdate()) FOR [createdOn]
+
 	ALTER TABLE [dbo].[CommandLineParam]  WITH CHECK ADD  CONSTRAINT [FK_CommandLineParam_ClmTask] FOREIGN KEY([clmTaskId])
-	REFERENCES [dbo].ClmTask ([clmTaskId])
+	REFERENCES [dbo].[ClmTask] ([clmTaskId])
 
 	ALTER TABLE [dbo].[CommandLineParam] CHECK CONSTRAINT [FK_CommandLineParam_ClmTask]
+
+	CREATE NONCLUSTERED INDEX [UX_CommandLineParam] ON [dbo].[CommandLineParam]
+	(
+		[commandLineParamOrder] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
 	print 'Table [dbo].[CommandLineParam] already exists ...'
 end
@@ -73,28 +176,36 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 
 	CREATE TABLE [dbo].[ModelData](
 		[modelDataId] [uniqueidentifier] NOT NULL,
+		[modelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmTaskId] [uniqueidentifier] NOT NULL,
 		[parentModelDataId] [uniqueidentifier] NULL,
-		[fileStructureVersion] money NOT NULL,
+		[fileStructureVersion] [money] NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
 		[modelBinaryData] [varbinary](max) NOT NULL,
-		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
+		[createdOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_ModelData] PRIMARY KEY CLUSTERED 
 	(
 		[modelDataId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ClmTask] FOREIGN KEY([clmTaskId])
-	REFERENCES [dbo].ClmTask ([clmTaskId])
+	ALTER TABLE [dbo].[ModelData] ADD  DEFAULT (getdate()) FOR [createdOn]
+
+	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD  CONSTRAINT [FK_ModelData_ClmTask] FOREIGN KEY([clmTaskId])
+	REFERENCES [dbo].[ClmTask] ([clmTaskId])
 
 	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ClmTask]
 
-	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
+	ALTER TABLE [dbo].[ModelData]  WITH CHECK ADD  CONSTRAINT [FK_ModelData_ModelData] FOREIGN KEY([parentModelDataId])
 	REFERENCES [dbo].[ModelData] ([modelDataId])
 
 	ALTER TABLE [dbo].[ModelData] CHECK CONSTRAINT [FK_ModelData_ModelData]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_ModelData] ON [dbo].[ModelData]
+	(
+		[modelDataOrder] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
 	print 'Table [dbo].[ModelData] already exists ...'
 end
@@ -108,26 +219,45 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 
 	CREATE TABLE [dbo].[ResultData](
 		[resultDataId] [uniqueidentifier] NOT NULL,
+		[resultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[workerNodeId] [uniqueidentifier] NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
-		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[maxEe] [float] NOT NULL DEFAULT ((0)),
-		[maxAverageEe] [float] NOT NULL DEFAULT ((0)),
-		[maxWeightedAverageAbsEe] [float] NOT NULL DEFAULT ((0)),
-		[maxLastEe] [float] NOT NULL DEFAULT ((0)),
-		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
+		[useAbundant] [bit] NOT NULL,
+		[maxEe] [float] NOT NULL,
+		[maxAverageEe] [float] NOT NULL,
+		[maxWeightedAverageAbsEe] [float] NOT NULL,
+		[maxLastEe] [float] NOT NULL,
+		[createdOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
 	(
 		[resultDataId] ASC
-	)
-	)
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_ResultData] FOREIGN KEY([modelDataId])
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxLastEe]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
+
+	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_WorkerNode] FOREIGN KEY([workerNodeId])
+	REFERENCES [dbo].[WorkerNode] ([workerNodeId])
+
+	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultData_WorkerNode]
+
+	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultlData_ModelData] FOREIGN KEY([modelDataId])
 	REFERENCES [dbo].[ModelData] ([modelDataId])
 
-	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultData_ResultData]
+	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultlData_ModelData]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_ResultData] ON [dbo].[ResultData]
+	(
+		[resultDataOrder] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+
 end else begin
 	print 'Table [dbo].[ResultData] already exists ...'
 end
@@ -141,48 +271,41 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	CREATE TABLE [dbo].[RunQueue](
 		[runQueueId] [uniqueidentifier] NOT NULL,
+		[runQueueOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
+		[runQueueStatusId] [int] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
-		[useAbundant] [bit] NOT NULL DEFAULT ((0)),
-		[statusId] [int] NOT NULL DEFAULT ((0)),
-		[createdOn] [datetime] NOT NULL DEFAULT (getdate()),
+		[useAbundant] [bit] NOT NULL,
+		[createdOn] [datetime] NOT NULL,
+		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
 	(
 		[runQueueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [runQueueStatusId]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+
+	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_RunQueueStatus] FOREIGN KEY([runQueueStatusId])
+	REFERENCES [dbo].[RunQueueStatus] ([runQueueStatusId])
+
+	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_RunQueueStatus]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_RunQueue] ON [dbo].[RunQueue]
+	(
+		[runQueueOrder] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+
 end else begin
 	print 'Table [dbo].[RunQueue] already exists ...'
 end
 go
 
 
-
-IF OBJECT_ID('[dbo].[WorkerNode]') IS NULL begin
-	print 'Creating table [dbo].[WorkerNode] ...'
-
-	CREATE TABLE [dbo].[WorkerNode](
-		[workerNodeId] [uniqueidentifier] NOT NULL,
-		[workerNodeName] [nvarchar](100) NOT NULL,
-		[description] [nvarchar](1000) NULL,
-		[createdOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_WorkerNode] PRIMARY KEY CLUSTERED 
-	(
-		[workerNodeId] ASC
-	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
-
-	ALTER TABLE [dbo].[WorkerNode] ADD  CONSTRAINT [DF_WorkerNode_createdOn]  DEFAULT (getdate()) FOR [createdOn]
-
-	CREATE UNIQUE NONCLUSTERED INDEX [IX_WorkerNode] ON [dbo].[WorkerNode]
-	(
-		[workerNodeName] ASC
-	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-end else begin
-	print 'Table [dbo].[WorkerNode] already exists ...'
-end
-go
 
 drop function if exists dbo.getCatDestrScarcity
 go

@@ -1,0 +1,22 @@
+;with 
+	valTbl as
+	(
+		select * 
+		from 
+		( values
+			  (0, 'NotStarted')
+			, (1, 'Inactive')
+			, (2, 'InProgress')
+			, (3, 'Completed')
+			, (4, 'Failed')
+
+		) as a (runQueueStatusId, runQueueStatusName)
+	)
+insert into RunQueueStatus
+select valTbl.*
+from valTbl
+left outer join RunQueueStatus on valTbl.runQueueStatusId = RunQueueStatus.runQueueStatusId
+where RunQueueStatus.runQueueStatusId is null
+go
+
+

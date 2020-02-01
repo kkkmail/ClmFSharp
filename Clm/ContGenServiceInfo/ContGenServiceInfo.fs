@@ -6,7 +6,7 @@ open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
 open ClmSys.VersionInfo
-open ClmSys.MessagingData
+open ClmSys.ContGenData
 open ClmSys.GeneralErrors
 open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralPrimitives
@@ -18,26 +18,6 @@ module ServiceInfo =
 
     let ContGenServiceName = "ContGenService" + " - " + versionNumberValue.value
     let ContGenServiceProgramName = "ContGenService.exe"
-
-
-    type TaskProgress =
-        | NotStarted
-        | InProgress of decimal
-        | Completed
-        | Failed of WorkerNodeId * RemoteProcessId
-
-        static member create d =
-            match d with
-            | _ when d <= 0.0m -> NotStarted
-            | _ when d < 1.0m -> InProgress d
-            | _ -> InProgress 1.0m
-
-        member progress.estimateEndTime (started : DateTime) =
-            match progress with
-            | NotStarted -> None
-            | InProgress p -> estimateEndTime p started
-            | Completed -> Some DateTime.Now
-            | Failed _ -> None
 
 
     type WorkState =

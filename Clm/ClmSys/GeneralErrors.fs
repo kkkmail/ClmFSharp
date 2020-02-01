@@ -73,6 +73,7 @@ module GeneralErrors =
         | UpdateClmTaskErr of Guid
         | UpdateModelDataErr of Guid
         | ClmTaskTryCreatErr of Guid
+        | ModelDataTryCreateErr of Guid
         | DeleteRunQueueEntryErr of Guid
         | MapRunQueueErr of Guid
 

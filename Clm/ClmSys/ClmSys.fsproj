@@ -86,10 +86,10 @@
     <Compile Include="Logging.fs" />
     <Compile Include="Rop.fs" />
     <Compile Include="GeneralData.fs" />
-    <Compile Include="ContGenData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="WorkerNodeData.fs" />
     <Compile Include="PartitionerData.fs" />
+    <Compile Include="ContGenData.fs" />
     <Compile Include="SolverRunnerData.fs" />
     <Compile Include="Fake.fs" />
     <Compile Include="Retry.fs" />

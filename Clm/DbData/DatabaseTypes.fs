@@ -20,6 +20,7 @@ open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
+open ClmSys.ContGenData
 
 
 module DatabaseTypes =
@@ -28,7 +29,6 @@ module DatabaseTypes =
     let private addError g f e = ((f |> g |> DbErr) + e) |> Error
     let private mapException e = e |> DbExn |> DbErr
     let private mapExceptionToError e = e |> DbExn |> DbErr |> Error
-    //let private toDbError f i = i |> f |> DbErr |> Error
 
 
     let private openConnIfClosed (conn : SqlConnection) =
@@ -222,7 +222,7 @@ module DatabaseTypes =
                         createdOn = r.createdOn
                     }
                     |> Ok
-                | Error e -> Error e
+                | Error e -> addError ClmTaskTryCreatErr r.clmTaskId e
             | _ -> toError ClmTaskTryCreatErr r.clmTaskId
 
         member r.addRow (t : ClmTaskTable) =
@@ -267,7 +267,7 @@ module DatabaseTypes =
                         | None -> OwnData rawData
                 }
                 |> Ok
-            | Error e -> Error e
+            | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
 
 
     type ResultDataWithId
@@ -340,6 +340,8 @@ module DatabaseTypes =
                                 }
                         }
                     runQueueStatus = s
+                    workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                    progress = TaskProgress.create r.progress
                 }
                 |> Some
             | None -> None
@@ -351,7 +353,8 @@ module DatabaseTypes =
                         modelDataId = r.info.modelDataId.value,
                         y0 = r.modelCommandLineParam.taskParam.y0,
                         tEnd = r.modelCommandLineParam.taskParam.tEnd,
-                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant
+                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant,
+                        progress = 0m
                         )
 
             newRow.runQueueStatusId <- 0
@@ -687,6 +690,8 @@ module DatabaseTypes =
                             }
                     }
                 runQueueStatus = s
+                workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                progress = TaskProgress.create reader?progress
             }
             |> Ok
         | None -> toError MapRunQueueErr (reader?runQueueId)

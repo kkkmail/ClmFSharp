@@ -278,6 +278,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
+		[workerNodeId] [uniqueidentifier] NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
@@ -294,6 +295,9 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_RunQueueStatus] FOREIGN KEY([runQueueStatusId])
 	REFERENCES [dbo].[RunQueueStatus] ([runQueueStatusId])
+
+	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_WorkerNode] FOREIGN KEY([workerNodeId])
+	REFERENCES [dbo].[WorkerNode] ([workerNodeId])
 
 	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_RunQueueStatus]
 

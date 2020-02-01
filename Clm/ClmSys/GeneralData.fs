@@ -439,7 +439,7 @@ module GeneralData =
         with
         | e ->
             printfn "tryDeserialize: Exception: '%A'." e
-            e |> DeserializationException |> Error
+            e |> DeserializationExn |> Error
 
 
     /// Replies with result and returns the state.

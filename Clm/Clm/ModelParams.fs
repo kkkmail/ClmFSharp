@@ -9,6 +9,7 @@ open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.SolverRunnerData
+open ClmSys.ContGenData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
@@ -218,6 +219,8 @@ module ModelParams =
             runQueueId : RunQueueId
             info : RunQueueInfo
             runQueueStatus : RunQueueStatus
+            workerNodeIdOpt : WorkerNodeId option
+            progress : TaskProgress
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
@@ -234,6 +237,8 @@ module ModelParams =
                     }
 
                 runQueueStatus = NotStartedRunQueue
+                workerNodeIdOpt = None
+                progress = NotStarted
             }
 
 

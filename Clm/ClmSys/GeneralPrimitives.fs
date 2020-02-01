@@ -65,3 +65,26 @@ module GeneralPrimitives =
         member this.toRemoteProcessId() = this.value |> RemoteProcessId
 
 
+    type RunQueueStatus =
+        | NotStartedRunQueue
+        | InactiveRunQueue
+        | InProgressRunQueue
+        | CompletedRunQueue
+        | FailedRunQueue
+
+        member r.value =
+            match r with
+            | NotStartedRunQueue -> 0
+            | InactiveRunQueue -> 1
+            | InProgressRunQueue -> 2
+            | CompletedRunQueue -> 3
+            | FailedRunQueue -> 4
+
+        static member tryCreate i =
+            match i with
+            | 0 -> Some NotStartedRunQueue
+            | 1 -> Some InactiveRunQueue
+            | 2 -> Some InProgressRunQueue
+            | 3 -> Some CompletedRunQueue
+            | 4 -> Some FailedRunQueue
+            | _ -> None

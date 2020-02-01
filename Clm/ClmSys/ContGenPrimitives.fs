@@ -26,3 +26,19 @@ module ContGenPrimitives =
 
         member df.value = let (ClmDefaultValueId v) = df in v
         override df.ToString() = df.value.ToString().PadLeft(9, '0')
+
+
+    type ClmTaskStatus =
+        | ActiveClmTask
+        | InactiveClmTask
+
+        member s.value =
+            match s with
+            | ActiveClmTask -> 0
+            | InactiveClmTask -> 1
+
+        static member tryCreate i =
+            match i with
+            | 0 -> Some ActiveClmTask
+            | 1 -> Some InactiveClmTask
+            | _ -> None

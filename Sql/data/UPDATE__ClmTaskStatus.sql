@@ -9,10 +9,10 @@
 
 		) as a (clmTaskStatusId, clmTaskStatusName)
 	)
-insert into clmTaskStatus
+insert into ClmTaskStatus
 select valTbl.*
 from valTbl
-left outer join clmTaskStatus on valTbl.clmTaskStatusId = ClmTaskStatus.clmTaskStatusId
+left outer join ClmTaskStatus on valTbl.clmTaskStatusId = ClmTaskStatus.clmTaskStatusId
 where ClmTaskStatus.clmTaskStatusId is null
 go
 

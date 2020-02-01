@@ -217,7 +217,7 @@ module ModelParams =
         {
             runQueueId : RunQueueId
             info : RunQueueInfo
-            statusId : int
+            runQueueStatus : RunQueueStatus
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
@@ -233,7 +233,7 @@ module ModelParams =
                         modelCommandLineParam = p
                     }
 
-                statusId = 0
+                runQueueStatus = NotStartedRunQueue
             }
 
 

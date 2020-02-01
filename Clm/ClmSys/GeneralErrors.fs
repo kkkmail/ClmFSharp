@@ -35,45 +35,46 @@ module GeneralErrors =
 
 
     type FileError =
-        | GeneralFileException of exn
-        | GetFolderNameException of exn
-        | GetFileNameException of exn
-        | FileNotFound of string
-        | ReadFileException of exn
-        | WriteFileException of exn
-        | DeleteFileException of exn
-        | GetObjectIdsException of exn
-        | CreateChartsException of exn
-        | SaveChartsException of exn
+        | GeneralFileExn of exn
+        | GetFolderNameExn of exn
+        | GetFileNameExn of exn
+        | FileNotFoundErr of string
+        | ReadFileExn of exn
+        | WriteFileExn of exn
+        | DeleteFileExn of exn
+        | GetObjectIdsExn of exn
+        | CreateChartsExn of exn
+        | SaveChartsExn of exn
 
 
     type JsonParseError =
-        | InvalidStructure of string
+        | InvalidStructureErr of string
 
 
     type SerializationError =
-        | SerializationException of exn
-        | DeserializationException of exn
+        | SerializationExn of exn
+        | DeserializationExn of exn
 
 
     type WcfError =
-        | WcfException of exn
-        | WcfSerializationError of SerializationError
+        | WcfExn of exn
+        | WcfSerializationErr of SerializationError
 
 
     type DbError =
-        | DbException of exn
+        | DbExn of exn
         | LoadModelDataError of Guid
-        | SaveResultDataError of Guid
-        | LoadResultDataError of Guid
-        | LoadClmDefaultValueError of Int64
-        | UpsertClmDefaultValueError of Int64
-        | LoadClmTaskByDefaultError of Int64
-        | LoadClmTaskError of Guid
-        | UpdateClmTaskError of Guid
-        | UpdateModelDataError of Guid
-        | ClmTaskTryCreatError of Guid
-        | DeleteRunQueueEntryError of Guid
+        | SaveResultDataErr of Guid
+        | LoadResultDataErr of Guid
+        | LoadClmDefaultValueErr of Int64
+        | UpsertClmDefaultValueErr of Int64
+        | LoadClmTaskByDefaultErr of Int64
+        | LoadClmTaskErr of Guid
+        | UpdateClmTaskErr of Guid
+        | UpdateModelDataErr of Guid
+        | ClmTaskTryCreatErr of Guid
+        | DeleteRunQueueEntryErr of Guid
+        | MapRunQueueErr of Guid
 
 
     type ServiceInstallerError =

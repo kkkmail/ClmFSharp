@@ -6,6 +6,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[runQueueOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[runQueueStatusId] [int] NOT NULL,
+		[progress] [money] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
@@ -21,6 +22,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [runQueueStatusId]
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [progress]
 
 	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_RunQueueStatus] FOREIGN KEY([runQueueStatusId])
 	REFERENCES [dbo].[RunQueueStatus] ([runQueueStatusId])

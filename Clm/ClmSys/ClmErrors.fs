@@ -14,6 +14,7 @@ open PartitionerErrors
 open SolverRunnerErrors
 open ModelGeneratorErrors
 open RunnerErrors
+open Rop
 
 module ClmErrors =
 

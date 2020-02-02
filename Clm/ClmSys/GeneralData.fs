@@ -415,7 +415,7 @@ module GeneralData =
         with
         | e ->
             printfn "trySerialize: Exception: '%A'." e
-            e |> SerializationException |> Error
+            e |> SerializationExn |> Error
 
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword

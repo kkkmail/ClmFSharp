@@ -52,7 +52,7 @@ module FileSystemTypes =
             Directory.CreateDirectory(folder) |> ignore
             Ok folder
         with
-        | e -> e |> GetFolderNameException |> FileErr |> Error
+        | e -> e |> GetFolderNameExn |> FileErr |> Error
 
 
     let getFileName<'A> serviceName tableName (objectId : 'A) =
@@ -63,7 +63,7 @@ module FileSystemTypes =
                 Ok file
             | Error e -> Error e
         with
-        | e -> e |> GetFileNameException |> FileErr |> Error
+        | e -> e |> GetFileNameExn |> FileErr |> Error
 
 
     /// Tries to load data.
@@ -85,8 +85,8 @@ module FileSystemTypes =
                     x
                 | Error e -> Error e
             with
-            | e -> e |> ReadFileException |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+            | e -> e |> ReadFileExn |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     /// Loads the data if successfull and returns an error if an object is not found OR any error occurs.
@@ -95,7 +95,7 @@ module FileSystemTypes =
         | Ok (Some r) -> Ok r
         | Ok None ->
             match getFileName<'A> serviceName tableName objectId with
-            | Ok f -> f |> FileNotFound |> FileErr |> Error
+            | Ok f -> f |> FileNotFoundErr |> FileErr |> Error
             | Error e -> Error e
         | Error e -> Error e
 
@@ -110,8 +110,8 @@ module FileSystemTypes =
                     Ok ()
                 | Error e -> Error e
             with
-            | e -> e |> WriteFileException |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+            | e -> e |> WriteFileExn |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     /// Tries to delete object if it exists.
@@ -124,8 +124,8 @@ module FileSystemTypes =
                     Ok ()
                 | Error e -> Error e
             with
-            | e -> e |> DeleteFileException |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+            | e -> e |> DeleteFileExn |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     let getObjectIds<'A> serviceName tableName (creator : string -> 'A) =
@@ -140,8 +140,8 @@ module FileSystemTypes =
                     |> Ok
                 | Error e -> Error e
             with
-            | e -> e |> GetObjectIdsException |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+            | e -> e |> GetObjectIdsExn |> FileErr |> Error
+        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     let loadObjects<'T, 'A> serviceName tableName (creator : string -> 'A) =
@@ -226,9 +226,9 @@ module FileSystemTypes =
                 |> ignore
                 Ok ()
             with
-            | e -> e |> SaveChartsException |> FileErr |> Error
+            | e -> e |> SaveChartsExn |> FileErr |> Error
 
-        tryRopFun (fun e -> e |> GeneralFileException |> FileErr) w
+        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     let saveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = saveData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName r.workerNodeId.value.value r

@@ -161,3 +161,15 @@ module Rop =
         | Error f ->
             failureFunc f
             state
+
+
+    let mapListResult g r =
+        match r with
+        | Ok v -> v |> List.map (fun e -> bindSuccess g e) |> Ok
+        | Error e -> Error e
+
+
+    let unzipListResult r =
+        match r with
+        | Ok v -> v |> unzip
+        | Error e -> [], [e]

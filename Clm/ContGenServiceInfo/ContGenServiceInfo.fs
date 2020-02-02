@@ -219,7 +219,7 @@ module ServiceInfo =
             running : RunningProcessInfo[]
             queue : ModelDataId[]
             runningCount : int
-            workState : WorkState
+            //workState : WorkState
             messageCount : int64
             minUsefulEe : MinUsefulEe
             lastRunError : string Option
@@ -234,7 +234,8 @@ module ServiceInfo =
 
             let r0 = s.running |> Array.sortBy (fun e -> e.progressUpdateInfo.progress) |> Array.map (fun e -> "      " + e.ToString()) |> String.concat Nl
             let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
-            sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A; lastRunError = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value s.lastRunError
+            //sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A; lastRunError = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value s.lastRunError
+            sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; minUsefulEe = %A; lastRunError = %A\n }" r q s.runLimit s.runningCount s.messageCount s.minUsefulEe.value s.lastRunError
 
 
     type ContGenConfigParam =

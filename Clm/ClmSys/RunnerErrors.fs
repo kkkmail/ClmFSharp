@@ -5,7 +5,10 @@ open ContGenPrimitives
 module RunnerErrors =
 
     type GenerateImplError =
-        | GenerateModelErr of ModelDataId
+        | SaveModelErr of ModelDataId
+        | LoadParametersErr of ModelDataId
+        | GetQueueIdErr of ModelDataId
+        | GenerateModelExn of exn
 
 
     type RunnerError =

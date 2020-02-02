@@ -67,6 +67,7 @@
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ExitErrorCodes.fs" />
+    <Compile Include="Rop.fs" />
     <Compile Include="GeneralPrimitives.fs" />
     <Compile Include="ContGenPrimitives.fs" />
     <Compile Include="MessagingPrimitives.fs" />
@@ -86,7 +87,6 @@
     <Compile Include="SolverRunnerErrors.fs" />
     <Compile Include="ClmErrors.fs" />
     <Compile Include="Logging.fs" />
-    <Compile Include="Rop.fs" />
     <Compile Include="GeneralData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="WorkerNodeData.fs" />

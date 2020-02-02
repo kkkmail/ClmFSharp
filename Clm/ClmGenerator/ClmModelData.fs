@@ -47,7 +47,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member tryGetDefaultValue g (c : ClmTask) = // (c : ClmTask) (d : ClmDefaultValueId -> ClmDefaultValue option) =
+        static member getDefaultValue g (c : ClmTask) = // (c : ClmTask) (d : ClmDefaultValueId -> ClmDefaultValue option) =
             match g c.clmTaskInfo.clmDefaultValueId with
             | Ok v ->
                 {

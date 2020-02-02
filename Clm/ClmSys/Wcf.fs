@@ -32,11 +32,11 @@ module Wcf =
             let service = channelFactory.CreateChannel()
             Ok (service, fun () -> channelFactory.Close())
         with
-        | e -> e |> WcfException |> Error
+        | e -> e |> WcfExn |> Error
 
 
-    let toWcfError f e = e |> WcfException |> f |> Error
-    let toWcfSerializationError f e = e |> WcfSerializationError |> f |> Error
+    let toWcfError f e = e |> WcfExn |> f |> Error
+    let toWcfSerializationError f e = e |> WcfSerializationErr |> f |> Error
 
 
     /// Client communication with the server.
@@ -61,7 +61,7 @@ module Wcf =
 
                         d
                         |> tryDeserialize
-                        |> Result.mapError WcfSerializationError
+                        |> Result.mapError WcfSerializationErr
                         |> Result.mapError f
                         |> Result.bind id
                     | Error e -> toWcfSerializationError f e

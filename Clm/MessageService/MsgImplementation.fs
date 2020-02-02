@@ -12,7 +12,7 @@ open ClmSys.Rop
 open ClmSys.GeneralData
 open System.ServiceModel
 open ClmSys.Wcf
-open ClmSys.MessagingErrors
+open ClmSys.MessagingServiceErrors
 
 module ServiceImplementation =
 
@@ -53,9 +53,9 @@ module ServiceImplementation =
         let a = createServiceImpl serviceAccessInfo
 
         interface IMessagingWcfService with
-            member __.getVersion b = tryReply a.getVersion GetVersionWcfError b
-            member __.sendMessage b = tryReply a.sendMessage MsgWcfError b
-            member __.configureService b = tryReply a.configureService CfgSvcWcfError b
-            member __.tryPeekMessage b = tryReply a.tryPeekMessage TryPeekMsgWcfError b
-            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError b
-            member __.getState b = tryReply a.getState GetStateWcfError b
+            member __.getVersion b = tryReply a.getVersion GetVersionSvcWcfErr b
+            member __.sendMessage b = tryReply a.sendMessage MsgWcfErr b
+            member __.configureService b = tryReply a.configureService CfgSvcWcfErr b
+            member __.tryPeekMessage b = tryReply a.tryPeekMessage TryPeekMsgWcfErr b
+            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer TryDeleteMsgWcfErr b
+            member __.getState b = tryReply a.getState GetStateWcfErr b

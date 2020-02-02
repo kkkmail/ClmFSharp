@@ -76,7 +76,7 @@ module Runner =
 
     type ModelRunner (p : ModelRunnerData) =
 
-        let tryLoadParams = AllParams.tryGetDefaultValue p.runnerProxy.loadClmDefaultValue
+        let loadParams = AllParams.getDefaultValue p.runnerProxy.loadClmDefaultValue
         let saveModelData = p.runnerProxy.updateModelData
         let saveModel getModelData = getModelData() |> saveModelData
         let updateTask = p.runnerProxy.updateClmTask
@@ -87,21 +87,14 @@ module Runner =
         let runModel = runModel p
         let generateModel = generateModel p
 
-        //let tryGetQueueId (c : ModelCommandLineParam) modelDataId d =
-        //     match p.runnerProxy.saveRunQueue modelDataId d c with
-        //     | Some q -> Some q
-        //     | None ->
-        //        logger.logErr (sprintf "%s: Unable to get run queue id for modelDataId = %A" tryGetQueueIdName modelDataId)
-        //        None
-
-
         let generateImpl (c : ClmTask) =
             let addError = addError GenerateImplErr
+            let toError = toError GenerateImplErr
 
             try
                 let modelDataId = getModelDataId()
 
-                match tryLoadParams c with
+                match loadParams c with
                 | Ok a ->
                     match generateModel a.modelGenerationParams modelDataId c.clmTaskInfo.clmTaskId |> saveModel with
                     | Ok() ->
@@ -131,57 +124,50 @@ module Runner =
                             |> Rop.unzip
                         let e = f |> foldErrors |> toUnitResult |> combineUnitResults r1
                         r, e
-                    | Error e -> [], addError (GenerateModelErr modelDataId) e //logError (sprintf "Cannot save modelId: %A." modelDataId)
-                    //| None ->
-                    //    logError (sprintf "Exception occurred while saving modelId: %A." modelDataId)
-                    //    []
-                | None ->
-                    logError (sprintf "Cannot load parameters for modelId: %A." modelDataId)
-                    []
+                    | Error e -> [], addError (SaveModelErr modelDataId) e
+                | Error e -> [], addError (LoadParametersErr modelDataId) e
             with
-                | e ->
-                    logError (sprintf "Exception: %A" e)
-                    []
+            | e -> [], toError (GenerateModelExn e)
 
 
         let generateAll i () =
-            match p.runnerProxy.loadIncompleteClmTasks i with
-            | Some c -> c |> List.map generateImpl |> List.concat
-            | None -> []
+            let a, f =
+                p.runnerProxy.loadIncompleteClmTasks i
+                |> Rop.mapListResult generateImpl
+                |> Rop.unzipListResult
+
+            let s, e = a |> List.unzip
+            let err = foldUnitResults (e @ [foldToUnitResult f])
+            s |> List.concat, err
 
 
-        let getQueue i () =
-            printfn "ModelRunner.getQueue"
-            match p.runnerProxy.loadRunQueue i with
-            | Some q -> q |> List.map (fun e ->
-                                        {
-                                            run = e.modelCommandLineParam |> runModel
+        //let getQueue i () =
+        //    printfn "ModelRunner.getQueue"
+        //    match p.runnerProxy.loadRunQueue i with
+        //    | Some q -> q |> List.map (fun e ->
+        //                                {
+        //                                    run = e.modelCommandLineParam |> runModel
+        //
+        //                                    processToStartInfo =
+        //                                        {
+        //                                            modelDataId = e.info.modelDataId
+        //                                            defaultValueId = e.info.defaultValueId
+        //                                            runQueueId = e.runQueueId
+        //                                            workerNodeId = localWorkerNodeId
+        //                                            commandLineParams = e.modelCommandLineParam
+        //                                        }
+        //                                })
+        //    | None -> []
 
-                                            processToStartInfo =
-                                                {
-                                                    modelDataId = e.info.modelDataId
-                                                    defaultValueId = e.info.defaultValueId
-                                                    runQueueId = e.runQueueId
-                                                    workerNodeId = localWorkerNodeId
-                                                    commandLineParams = e.modelCommandLineParam
-                                                }
-                                        })
-            | None -> []
 
-
-        let removeFromQueue runQueueId =
-            match p.runnerProxy.deleteRunQueueEntry runQueueId with
-            | Some _ -> ignore()
-            | None ->
-                logError (sprintf "Cannot delete runQueueId = %A" runQueueId)
-                ignore()
+        let removeFromQueue runQueueId = p.runnerProxy.deleteRunQueue runQueueId
 
 
         let runRunnerModel j (m : ModelDataId) p =
-            match tryLoadModelData j m with
-            | Some parent ->
-                match tryLoadClmTask j parent.clmTaskInfo.clmTaskId |> Option.bind tryLoadParams, parent.data with
-                | Some a, OwnData d ->
+            match loadModelData j m with
+            | Ok parent ->
+                match loadClmTask j parent.clmTaskInfo.clmTaskId |> Rop.bind loadParams, parent.data with
+                | Ok a, OwnData d ->
                     let t =
                         {
                             clmTaskInfo =
@@ -197,7 +183,7 @@ module Runner =
                             createdOn = DateTime.Now
                         }
 
-                    match tryAddClmTask t with
+                    match addClmTask t with
                     | Some t1 ->
                         let modelDataId = getModelDataId()
 
@@ -234,8 +220,8 @@ module Runner =
 
         let createGeneratorImpl u =
             {
-                generate = generateAll p.serviceAccessInfo
-                getQueue = getQueue p.serviceAccessInfo
+                //generate = generateAll p.serviceAccessInfo
+                //getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
                 runModel = runRunnerModel p.serviceAccessInfo
                 usePartitioner = u

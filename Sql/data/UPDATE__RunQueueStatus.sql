@@ -9,6 +9,7 @@
 			, (2, 'InProgress')
 			, (3, 'Completed')
 			, (4, 'Failed')
+			, (5, 'Modifying')
 
 		) as a (runQueueStatusId, runQueueStatusName)
 	)

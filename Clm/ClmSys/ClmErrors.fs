@@ -13,6 +13,7 @@ open WorkerNodeErrors
 open PartitionerErrors
 open SolverRunnerErrors
 open ModelGeneratorErrors
+open RunnerErrors
 
 module ClmErrors =
 
@@ -36,6 +37,7 @@ module ClmErrors =
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | PartitionerErr of PartitionerError
         | AsyncRunErr of AsyncRunError
+        | RunnerErr of RunnerError
 
         static member (+) (a, b) =
             match a, b with

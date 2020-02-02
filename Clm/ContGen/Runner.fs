@@ -1,6 +1,7 @@
 ﻿namespace ContGen
 
 open System
+open ClmSys
 open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.Generator.ClmModelData
@@ -16,10 +17,16 @@ open ClmSys.SolverRunnerData
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
+open ClmSys.ClmErrors
+open ClmSys.RunnerErrors
 
 module Runner =
 
-    type ModelRunnerParam =
+    let private toError g f = f |> g |> RunnerErr |> Error
+    let private addError g f e = ((f |> g |> RunnerErr) + e) |> Error
+
+
+    type ModelRunnerData =
         {
             exeName : string
             saveModelCode : bool
@@ -38,75 +45,71 @@ module Runner =
             }
 
 
-    type ModelRunner (p : ModelRunnerParam) =
-        let logger = Logger.log4net
-        let logError e = logger.logErr (sprintf "Error: %A" e)
-        let getModelDataId() = Guid.NewGuid() |> ModelDataId
-        let className = "ModelRunner"
-        let getMethodName n = className + "." + n
-        let tryGetQueueIdName = getMethodName "tryGetQueueId"
-        let localWorkerNodeId = Guid.Empty |> MessagingClientId |> WorkerNodeId
+    let getModelDataId() = Guid.NewGuid() |> ModelDataId
+    let localWorkerNodeId = Guid.Empty |> MessagingClientId |> WorkerNodeId
 
 
-        let runModel e c =
-            {
-                exeName = p.exeName
-                commandLineParam = e
-                callBackInfo = c
-            }
-            |> p.runnerProxy.runModel
+    let runModel p e c =
+        {
+            exeName = p.exeName
+            commandLineParam = e
+            callBackInfo = c
+        }
+        |> p.runnerProxy.runModel
 
 
-        let tryLoadParams (c : ClmTask) : AllParams option =
-            fun d -> p.runnerProxy.loadClmDefaultValue d
-            |> AllParams.tryGetDefaultValue c
+    let generateModel p (modelGenerationParams : ModelGenerationParams) modelDataId clmTaskId =
+        printfn "Creating model..."
+        printfn "Starting at: %A" DateTime.Now
+
+        let model = ClmModel (modelGenerationParams, modelDataId, clmTaskId)
+
+        match p.saveModelCode with
+        | true ->
+            printfn "Saving model code..."
+            model.generateCode() |> ignore
+            printfn "... completed."
+        | false -> printfn "NOT saving model code."
+
+        model.getModelData
 
 
-        let generateModel (modelGenerationParams : ModelGenerationParams) modelDataId clmTaskId =
-            printfn "Creating model..."
-            printfn "Starting at: %A" DateTime.Now
+    type ModelRunner (p : ModelRunnerData) =
 
-            let model = ClmModel (modelGenerationParams, modelDataId, clmTaskId)
-
-            match p.saveModelCode with
-            | true ->
-                printfn "Saving model code..."
-                model.generateCode() |> ignore
-                printfn "... completed."
-            | false -> printfn "NOT saving model code."
-
-            model.getModelData
-
-
-        let saveModelData modelData = p.runnerProxy.updateModelData modelData
+        let tryLoadParams = AllParams.tryGetDefaultValue p.runnerProxy.loadClmDefaultValue
+        let saveModelData = p.runnerProxy.updateModelData
         let saveModel getModelData = getModelData() |> saveModelData
-        let updateTask (c : ClmTask) = p.runnerProxy.updateClmTask c |> ignore
-        let addClmTask c = p.runnerProxy.addClmTask c
-        let loadClmTask i t = p.runnerProxy.loadClmTask i t
-        let tryLoadModelData i m = p.runnerProxy.loadModelData i m
+        let updateTask = p.runnerProxy.updateClmTask
+        let addClmTask = p.runnerProxy.addClmTask
+        let loadClmTask = p.runnerProxy.loadClmTask
+        let loadModelData = p.runnerProxy.loadModelData
+        let tryGetQueueId = p.runnerProxy.saveRunQueue
+        let runModel = runModel p
+        let generateModel = generateModel p
 
-
-        let tryGetQueueId (c : ModelCommandLineParam) modelDataId d =
-             match p.runnerProxy.saveRunQueueEntry modelDataId d c with
-             | Some q -> Some q
-             | None ->
-                logger.logErr (sprintf "%s: Unable to get run queue id for modelDataId = %A" tryGetQueueIdName modelDataId)
-                None
+        //let tryGetQueueId (c : ModelCommandLineParam) modelDataId d =
+        //     match p.runnerProxy.saveRunQueue modelDataId d c with
+        //     | Some q -> Some q
+        //     | None ->
+        //        logger.logErr (sprintf "%s: Unable to get run queue id for modelDataId = %A" tryGetQueueIdName modelDataId)
+        //        None
 
 
         let generateImpl (c : ClmTask) =
+            let addError = addError GenerateImplErr
+
             try
                 let modelDataId = getModelDataId()
 
                 match tryLoadParams c with
-                | Some a ->
+                | Ok a ->
                     match generateModel a.modelGenerationParams modelDataId c.clmTaskInfo.clmTaskId |> saveModel with
-                    | Some true ->
-                        updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
+                    | Ok() ->
+                        let r1 = updateTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
 
                         let tryCreate e =
-                            match tryGetQueueId e modelDataId c.clmTaskInfo.clmDefaultValueId with
-                            | Some q ->
+                            match tryGetQueueId modelDataId c.clmTaskInfo.clmDefaultValueId e with
+                            | Ok q ->
                                 {
                                     run = runModel e
 
@@ -119,18 +122,19 @@ module Runner =
                                             commandLineParams = e
                                         }
                                 }
-                                |> Some
-                            | None -> None
+                                |> Ok
+                            | Error e -> Error e
 
-                        a.modelCommandLineParams
-                        |> List.map tryCreate
-                        |> List.choose id
-                    | Some false ->
-                        logError (sprintf "Cannot save modelId: %A." modelDataId)
-                        []
-                    | None ->
-                        logError (sprintf "Exception occurred while saving modelId: %A." modelDataId)
-                        []
+                        let (r, f) =
+                            a.modelCommandLineParams
+                            |> List.map tryCreate
+                            |> Rop.unzip
+                        let e = f |> foldErrors |> toUnitResult |> combineUnitResults r1
+                        r, e
+                    | Error e -> [], addError (GenerateModelErr modelDataId) e //logError (sprintf "Cannot save modelId: %A." modelDataId)
+                    //| None ->
+                    //    logError (sprintf "Exception occurred while saving modelId: %A." modelDataId)
+                    //    []
                 | None ->
                     logError (sprintf "Cannot load parameters for modelId: %A." modelDataId)
                     []

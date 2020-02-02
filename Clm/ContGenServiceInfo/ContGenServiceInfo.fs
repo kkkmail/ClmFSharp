@@ -20,12 +20,12 @@ module ServiceInfo =
     let ContGenServiceProgramName = "ContGenService.exe"
 
 
-    type WorkState =
-        | NotInitialized
-        | Idle
-        | CanGenerate
-        | Generating
-        | ShuttingDown
+    //type WorkState =
+    //    | NotInitialized
+    //    | Idle
+    //    | CanGenerate
+    //    | Generating
+    //    | ShuttingDown
 
 
     type ProcessId =

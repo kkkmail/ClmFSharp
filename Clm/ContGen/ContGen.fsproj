@@ -76,7 +76,6 @@
     <Compile Include="Partitioner.fs" />
     <Compile Include="ModelGeneration.fs" />
     <Compile Include="AsyncRun.fs" />
-    <Compile Include="AsyncRunOld.fs" />
     <Compile Include="Runner.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

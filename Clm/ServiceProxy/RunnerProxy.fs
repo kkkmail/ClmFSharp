@@ -70,14 +70,14 @@ module Runner =
         {
             loadClmDefaultValue : ClmDefaultValueId -> ClmResult<ClmDefaultValue>
             updateModelData : ModelData -> UnitResult
-            saveRunQueueEntry : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> ClmResult<RunQueueId>
+            saveRunQueue : ModelDataId -> ClmDefaultValueId -> ModelCommandLineParam -> ClmResult<RunQueueId>
             updateClmTask : ClmTask -> UnitResult
             addClmTask : ClmTask -> ClmResult<ClmTask>
             loadClmTask : SolverRunnerAccessInfo -> ClmTaskId -> ClmResult<ClmTask>
             loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
             loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
             loadRunQueue : SolverRunnerAccessInfo -> ListResult<RunQueue>
-            deleteRunQueueEntry : RunQueueId -> UnitResult
+            deleteRunQueue : RunQueueId -> UnitResult
             runModel : RunModelParam -> ProcessStartedResult
         }
 
@@ -100,13 +100,13 @@ module Runner =
             {
                 loadClmDefaultValue = loadClmDefaultValue connectionString
                 updateModelData = updateModelData connectionString
-                saveRunQueueEntry = saveRunQueueEntry connectionString
+                saveRunQueue = saveRunQueue connectionString
                 updateClmTask = updateClmTask connectionString
                 addClmTask = addClmTask connectionString
                 loadClmTask = loadClmTask connectionString
                 loadModelData = loadModelData connectionString
                 loadIncompleteClmTasks = loadIncompleteClmTasks connectionString
                 loadRunQueue = loadRunQueue connectionString
-                deleteRunQueueEntry = deleteRunQueueEntry connectionString
+                deleteRunQueue = deleteRunQueue connectionString
                 runModel = runModelImpl
             }

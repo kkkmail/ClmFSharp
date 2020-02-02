@@ -57,12 +57,21 @@ module ModelGeneration =
         //| NotGeneratingModels ->
         //    s, Ok()
         //| GeneratingModels -> s, Ok()
-        let results = proxy.generate()
-        s, proxy.generate()
+        let results =
+            match proxy.generate() with
+            | Ok r -> Ok()
+            | Error e -> addError OnGenerateModelsErr GenerationFailedErr e
+        s, results
+
+
+    let onGenerateModelsProxy (i : ModelGeneratorData) =
+        {
+            generate = i.modelGeneratorProxy.generate
+        }
 
 
     type ModelGenerator (i : ModelGeneratorData) =
-        let onGenerateModelsProxy : OnGenerateModelsProxy = 0
+        let onGenerateModelsProxy = onGenerateModelsProxy i
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->

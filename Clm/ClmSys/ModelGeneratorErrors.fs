@@ -4,7 +4,7 @@ module ModelGeneratorErrors =
 
 
     type OnGenerateModelsError =
-        | X
+        | GenerationFailedErr
 
 
     type ModelGeneratorError =

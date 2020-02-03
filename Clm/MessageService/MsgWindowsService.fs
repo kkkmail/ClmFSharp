@@ -77,14 +77,14 @@ module WindowsService =
         let tryDispose() =
             match shutDownInfo with
             | Some i ->
-                logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
+                logger.logInfoString "MessagingWindowsService: Unregistering TCP channel."
                 ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
                 shutDownInfo <- None
             | None -> ignore()
 
             match shutDownWcfInfo with
             | Some i ->
-                logger.logInfo "MessagingWindowsService: Closing WCF service host."
+                logger.logInfoString "MessagingWindowsService: Closing WCF service host."
                 i.serviceHost.Close()
                 shutDownInfo <- None
             | None -> ignore()

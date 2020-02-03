@@ -103,11 +103,13 @@ module Logging =
         }
 
         member this.logInfoString s = ClmInfo.create s |> this.logInfo
+        member this.logExn s e = this.logError (UnhandledExn (s, e))
 
         member this.logIfError v =
             match v with
             | Ok _ -> ignore()
             | Error e -> this.logError e
+
 
         static member defaultValue =
             {

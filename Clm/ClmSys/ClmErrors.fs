@@ -21,7 +21,7 @@ module ClmErrors =
     /// All errors known in the system.
     type ClmError =
         | AggregateErr of ClmError * List<ClmError>
-        //| UnhandledExn of exn
+        | UnhandledExn of string * exn
         //| UnknownErr of string
         | ClmEventHandlerErr of ClmEventHandlerError
         | ServiceInstallerErr of ServiceInstallerError

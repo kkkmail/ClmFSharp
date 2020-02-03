@@ -29,8 +29,8 @@ module ServiceTasks =
     //    ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
 
 
-    let cleanupService logger i =
-        logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
+    let cleanupService (logger : Logger) i =
+        logger.logInfoString "MessagingWindowsService: Unregistering TCP channel."
         //ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
         printfn "cleanupService is not yet implemented."
 

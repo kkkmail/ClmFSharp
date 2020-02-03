@@ -234,8 +234,8 @@ module Service =
             Ok()
 
         member _.getState() = GetState |> messageLoop.PostAndReply |> Ok
-        member _.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply)) |> Ok
-        member _.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply)) |> Ok
+        member _.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
+        member _.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
         member _.removeExpiredMessages() = messageLoop.PostAndReply RemoveExpiredMessages
 
         member _.onStartProxy =

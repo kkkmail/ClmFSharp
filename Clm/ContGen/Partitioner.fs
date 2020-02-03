@@ -20,6 +20,7 @@ open ClmSys.SolverRunnerData
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.PartitionerErrors
+open ClmSys.ContGenData
 
 module Partitioner =
 

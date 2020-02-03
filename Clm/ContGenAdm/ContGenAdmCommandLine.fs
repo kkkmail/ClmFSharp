@@ -5,6 +5,9 @@ open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ModelParams
 open System
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ContGenData
 
 module AdmCommandLine =
 

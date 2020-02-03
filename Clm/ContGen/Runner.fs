@@ -184,7 +184,7 @@ module Runner =
                         }
 
                     match addClmTask t with
-                    | Some t1 ->
+                    | Ok t1 ->
                         let modelDataId = getModelDataId()
 
                         let m1 =
@@ -195,9 +195,9 @@ module Runner =
                             }
 
                         match saveModelData m1 with
-                        | Some true ->
-                            match tryGetQueueId p modelDataId t1.clmTaskInfo.clmDefaultValueId with
-                            | Some q ->
+                        | Ok() ->
+                            match tryGetQueueId modelDataId t1.clmTaskInfo.clmDefaultValueId p with
+                            | Ok q ->
                                 {
                                     run = runModel p
 
@@ -210,12 +210,12 @@ module Runner =
                                             commandLineParams = p
                                         }
                                 }
-                                |> Some
-                            |None -> None
-                        | _ -> None
-                    | None -> None
-                | _ -> None
-            | None -> None
+                                |> Ok
+                            |Error e -> Error e
+                        | Error e -> Error e
+                    | Error e -> Error e
+                | _ -> toError RunRunnerModelErr (InvalidDataErr m)
+            | Error e -> Error e
 
 
         let createGeneratorImpl u =
@@ -224,7 +224,7 @@ module Runner =
                 //getQueue = getQueue p.serviceAccessInfo
                 removeFromQueue = removeFromQueue
                 runModel = runRunnerModel p.serviceAccessInfo
-                usePartitioner = u
+                //usePartitioner = u
                 //logger = Logger.log4net
             }
 
@@ -236,7 +236,7 @@ module Runner =
     let createRunner p u =
         let r = ModelRunner p
         let a = r.createGenerator u |> AsyncRunner
-        a.queueStarting()
+        //a.queueStarting()
         a
 
 

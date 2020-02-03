@@ -28,7 +28,8 @@ module AsyncRun =
 
     type AsyncRunnerData =
         {
-            x : int
+            removeFromQueue : RunQueueId -> UnitResult
+            runModel : ModelDataId -> ModelCommandLineParam -> ClmResult<RunInfo>
         }
 
 

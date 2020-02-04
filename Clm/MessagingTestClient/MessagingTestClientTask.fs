@@ -25,7 +25,7 @@ module MessagingTestClientTask =
             }
 
         let a = MessagingClient d
-        do a.start()
+        do a.start() |> ignore
 
         let tryProcessMessage = onTryProcessMessage a.messageProcessorProxy
 
@@ -47,14 +47,19 @@ module MessagingTestClientTask =
                     messageData = sprintf "Message sent at %A." DateTime.Now |> TextData
                 }
 
-            a.sendMessage m
+            a.sendMessage m |> ignore
             printfn "Checking messages."
+
+
 
             let checkMessage() =
                 match tryProcessMessage () (fun _ m -> m) with
-                | Some m ->
-                    printfn "    Received message: %A" m
-                | None -> ignore()
+                | ProcessedSucessfully m -> printfn "    Received message: %A" m
+                | ProcessedWithError (m, e) -> printfn "    Received message: %A with error e: %A" m e
+                | ProcessedWithFailedToRemove (m, e) -> printfn "    Received message: %A with error e: %A" m e
+                | FailedToProcess e -> printfn "    Error e: %A" e
+                | NothingToDo -> ignore()
+                | BusyProcessing -> ignore()
 
             let t = [for _ in 1..20 -> ()] |> List.map checkMessage
             Thread.Sleep 30_000

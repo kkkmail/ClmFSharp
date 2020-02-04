@@ -14,12 +14,13 @@ open ClmSys.Logging
 open ContGenService.SvcCommandLine
 open ContGenAdm.ContGenServiceResponse
 open ClmSys.TimerEvents
+open ClmSys.ContGenData
 
 module WindowsService =
 
     let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) : ContGenShutDownInfo option =
         try
-            logger.logInfo ("startServiceRun: registering ContGenService...")
+            logger.logInfoString ("startServiceRun: registering ContGenService...")
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
@@ -28,7 +29,7 @@ module WindowsService =
                 ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
 
             let service = (new ContGenResponseHandler(i)).contGenService
-            let h = new EventHandler(EventHandlerInfo.defaultValue (logger.logExn "ContGenService") (fun () -> getServiceState service))
+            let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))
             do h.start()
 
             {
@@ -54,7 +55,7 @@ module WindowsService =
         let tryDispose() =
             match shutDownInfo with
             | Some i ->
-                logger.logInfo "ContGenWindowsService: Unregistering TCP channel."
+                logger.logInfoString "ContGenWindowsService: Unregistering TCP channel."
                 ChannelServices.UnregisterChannel(i.contGenTcpChannel)
                 shutDownInfo <- None
             | None -> ignore()

@@ -8,6 +8,7 @@ open ContGenService.SvcCommandLine
 open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open System.Runtime.Remoting.Channels
+open ClmSys.ContGenData
 
 module ContGenServiceTasks =
 
@@ -33,8 +34,8 @@ module ContGenServiceTasks =
         s
 
 
-    let cleanupService logger i =
-        logger.logInfo "ContGenWindowsService: Unregistering TCP channel."
+    let cleanupService (logger : Logger) i =
+        logger.logInfoString "ContGenWindowsService: Unregistering TCP channel."
         ChannelServices.UnregisterChannel(i.contGenTcpChannel)
 
 

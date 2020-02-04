@@ -28,6 +28,8 @@ open ClmSys.ContGenPrimitives
 open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
+open ClmSys.MessagingPrimitives
+open ClmSys.WorkerNodePrimitives
 
 module SolverRunnerTasks =
 
@@ -37,7 +39,12 @@ module SolverRunnerTasks =
     let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
         try
             printfn "Notifying of progress: %A." p
-            tryFun (fun e -> printfn "Exception occurred: %A. Retrying..." e) (fun () -> r.updateLocalProgress p) |> ignore
+
+            match tryFun (fun () -> r.updateLocalProgress p) with
+            | Ok (Ok()) -> ignore()
+            | Ok (Error e) -> printfn "Internal error occurred: %A" e
+            | Error e -> printfn "Error occurred: %A" e
+
             printfn "...completed."
         with
         | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
@@ -167,7 +174,7 @@ module SolverRunnerTasks =
 
                 onFailed =
                     match n with
-                    | Some svc -> fun e -> notify r svc (Failed e)
+                    | Some svc -> fun e -> notify r svc (Failed (w, d.toRemoteProcessId()))
                     | None -> ignore
 
                 chartInitData = chartInitData
@@ -249,13 +256,15 @@ module SolverRunnerTasks =
                 ]
 
             match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
-            | Some c -> i.sovlerRunnerProxy.saveChartInfo c
-            | None -> printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A" i.resultDataWithId.resultDataId plots
+            | Ok c -> i.sovlerRunnerProxy.saveChartInfo c
+            | Error e ->
+                printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A, error: %A" i.resultDataWithId.resultDataId plots e
+                Error e
 
         if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then
             printfn "Generating plots..."
-            plotAll false
+            plotAll false |> ignore
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
@@ -264,7 +273,7 @@ module SolverRunnerTasks =
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
             match p.loadModelData i (ModelDataId modelDataId) with
-            | Some md ->
+            | Ok md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
                 let c =

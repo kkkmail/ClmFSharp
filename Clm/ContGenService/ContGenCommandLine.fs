@@ -16,6 +16,13 @@ open ServiceProxy.MsgServiceProxy
 open ContGenServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.ContGenData
+open ClmSys.PartitionerData
+open ClmSys.MessagingData
 
 module SvcCommandLine =
 
@@ -111,27 +118,27 @@ module SvcCommandLine =
         match tryGetServerAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress logger version name with
-            | Some a -> a
-            | None -> ServiceAddress.defaultContGenServiceValue
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> ServiceAddress.defaultContGenServiceValue
 
 
     let getServerPort logger version name p =
         match tryGetServerPort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort logger version name with
-            | Some a -> a
-            | None -> ServicePort.defaultContGenServiceValue
+            match tryGetContGenServicePort version name with
+            | Ok a -> a
+            | Error _ -> ServicePort.defaultContGenServiceValue
 
 
     let geMinUsefulEe logger version name p =
         match tryGeMinUsefulEe p with
         | Some e -> e
         | None ->
-            match tryGetContGenMinUsefulEe logger version name with
-            | Some e -> e
-            | None -> MinUsefulEe DefaultMinEe
+            match tryGetContGenMinUsefulEe version name with
+            | Ok e -> e
+            | Error _ -> MinUsefulEe DefaultMinEe
 
 
     let getVersion = getVersionImpl tryGetVersion
@@ -157,16 +164,16 @@ module SvcCommandLine =
         let usePartitioner = getUsePartitioner logger version name p
 
         let saveSettings() =
-            trySetContGenServiceAddress logger versionNumberValue name address |> ignore
-            trySetContGenServicePort logger versionNumberValue name port |> ignore
+            trySetContGenServiceAddress versionNumberValue name address |> ignore
+            trySetContGenServicePort versionNumberValue name port |> ignore
 
-            trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
+            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
+            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
 
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
-            trySetUsePartitioner logger versionNumberValue name usePartitioner |> ignore
+            trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
+            trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
 
-            trySetContGenMinUsefulEe logger versionNumberValue name ee |> ignore
+            trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()
@@ -186,7 +193,7 @@ module SvcCommandLine =
 
 
     /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
-    let getServiceProxy p =
+    let getServiceProxy logger p =
         let name = contGenServiceName
         let version = getVersion p
 
@@ -218,7 +225,7 @@ module SvcCommandLine =
                     msgAccessInfo = w.messagingClientAccessInfo
                     messagingService = m
                     msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
-                    logger = logger
+                    //logger = logger
                 }
 
             let messagingClient = MessagingClient messagingClientData
@@ -229,11 +236,11 @@ module SvcCommandLine =
                     partitionerMsgAccessInfo = w
                     partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
                     messageProcessorProxy = messagingClient.messageProcessorProxy
-                    logger = logger
+                    //logger = logger
                 }
 
-            let r = createServiceImpl q
-            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some r
+            let (r, t) = createServiceImpl logger q
+            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some (r, t)
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

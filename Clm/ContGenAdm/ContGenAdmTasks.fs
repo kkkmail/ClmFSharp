@@ -12,12 +12,15 @@ open Clm.ModelParams
 open System
 open ContGenAdm.AdmCommandLine
 open ServiceProxy.Runner
+open ClmSys.ContGenData
+open ClmSys.ContGenPrimitives
 
 module ContGenAdmTasks =
 
     let logError e = printfn "Error: %A" e
-    let tryDbFun f = tryDbFun logError clmConnectionString f
-    let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (tryLoadClmDefaultValue clmDefaultValueId) |> Option.bind id
+    //let tryDbFun f = tryDbFun clmConnectionString f
+    //let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (loadClmDefaultValue clmDefaultValueId) |> Option.bind id
+    let loadClmDefaultValue = loadClmDefaultValue clmConnectionString
 
 
     let addClmTask s (p :list<AddClmTaskArgs>) =
@@ -29,8 +32,8 @@ module ContGenAdmTasks =
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
             printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
-            match tryLoadClmDefaultValue i with
-            | Some _ ->
+            match loadClmDefaultValue i with
+            | Ok _ ->
                 let r = getNumberOrRepetitions p
 
                 let t =
@@ -48,27 +51,30 @@ module ContGenAdmTasks =
                         createdOn = DateTime.Now
                     }
 
-                let nt = addClmTask t clmConnectionString
+                match addClmTask clmConnectionString t with
+                | Ok nt ->
+                    match getGenerateModelCode p with
+                    | true ->
+                        printfn "Genetrating model..."
+                        match c with
+                        | [] ->
+                            printfn "Cannot get service address and/or port."
+                            ignore()
+                        | h :: _ ->
+                            let g =
+                                createOneTimeGenerator
+                                    {
+                                        ModelRunnerData.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
+                                        with saveModelCode = true
+                                    }
+                            g nt |> ignore
+                    | false -> ignore()
 
-                match getGenerateModelCode p with
-                | true ->
-                    printfn "Genetrating model..."
-                    match c with
-                    | [] ->
-                        printfn "Cannot get service address and/or port."
-                        ignore()
-                    | h :: _ ->
-                        let g =
-                            createOneTimeGenerator
-                                {
-                                    ModelRunnerParam.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
-                                    with saveModelCode = true
-                                }
-                        g nt |> ignore
-                | false -> ignore()
-
-                CompletedSuccessfully
-            | None ->
+                    CompletedSuccessfully
+                | Error e ->
+                    printfn "Erro occurred: %A" e
+                    UnknownException
+            | Error e ->
                 printfn "updateParameters: Cannot find data for default set index %A." i
                 InvalidCommandLineArgs
         | _ ->
@@ -106,9 +112,9 @@ module ContGenAdmTasks =
 
         while true do
             try
-                getServiceState service
+                getServiceState service |> ignore
             with
-                | e -> printfn "Exception: %A\n" e.Message
+            | e -> printfn "Exception: %A\n" e.Message
 
             Thread.Sleep(i)
         0

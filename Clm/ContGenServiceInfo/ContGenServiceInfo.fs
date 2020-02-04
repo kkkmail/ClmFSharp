@@ -289,6 +289,7 @@ module ServiceInfo =
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
+        Ok()
 
 
     type RunProcArgs =

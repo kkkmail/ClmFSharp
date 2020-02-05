@@ -48,16 +48,18 @@ module Partitioner =
 
     type PartitionerRunnerState =
         {
-            workerNodes : Map<WorkerNodeId, WorkerNodeState>
+            //workerNodes : Map<WorkerNodeId, WorkerNodeState>
             //partitionerCallBackInfo : PartitionerCallBackInfo
+            dummy : int
         }
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
             {
-                workerNodes = Map.empty
+                //workerNodes = Map.empty
                 //partitionerCallBackInfo = PartitionerCallBackInfo.defaultValue
+                dummy = 0
             }
 
 

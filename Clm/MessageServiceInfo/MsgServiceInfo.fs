@@ -47,6 +47,7 @@ module ServiceInfo =
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
+        | RequestWork of WorkerNodeRequestInfo
 
         member this.messageSize =
             match this with
@@ -55,6 +56,7 @@ module ServiceInfo =
             | SaveChartsPrtMsg _ -> MediumSize
             | RegisterWorkerNodePrtMsg _ -> SmallSize
             | UnregisterWorkerNodePrtMsg _ -> SmallSize
+            | RequestWork _ -> SmallSize
 
 
     type WorkerNodeRunModelData =

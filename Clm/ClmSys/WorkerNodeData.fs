@@ -17,6 +17,13 @@ module WorkerNodeData =
         }
 
 
+    type WorkerNodeRequestInfo =
+        {
+            workerNodeId : WorkerNodeId
+            requestedWorkItems : int
+        }
+
+
     /// Worker Node MessagingClientId + Messaging Server acces info.
     type WorkNodeMsgAccessInfo =
         {

@@ -45,12 +45,20 @@ module ServiceInfo =
 
             sprintf "RP: %A; T: %s;%s %A" r.runnerRemoteProcessId.value s estCompl r.progress
 
+        static member defaultValue r =
+            {
+                runnerRemoteProcessId = r
+                progress = TaskProgress.NotStarted
+                started = DateTime.Now
+                lastUpdated = DateTime.Now
+            }
 
 
     type WorkerNodeRunnerState =
         {
             runningWorkers : Map<LocalProcessId, RunnerState>
-            numberOfCores : int
+            numberOfWorkerCores : int
+            requestedWorkItems : int
         }
 
     type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
@@ -71,12 +79,12 @@ module ServiceInfo =
             | WrkNodeState s ->
                 let toString acc ((LocalProcessId k), (v : RunnerState)) =
                     acc + (sprintf "        LP: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-
+        
                 let x =
                     match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"
                     | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfCores
+                sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfWorkerCores
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
 
 

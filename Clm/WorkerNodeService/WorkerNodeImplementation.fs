@@ -49,13 +49,14 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState
         with
-
+    
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
-
+    
         static member defaultValue =
             {
                 runningWorkers = Map.empty
-                numberOfCores = 0
+                numberOfWorkerCores = 0
+                requestedWorkItems = 0
             }
 
 
@@ -283,7 +284,7 @@ module ServiceImplementation =
         let w, result =
             let a = proxy.getRunModelParam d
 
-            match s.numberOfCores > s.runningWorkers.Count with
+            match s.numberOfWorkerCores > s.runningWorkers.Count with
             | true ->
                 match proxy.runModel a with
                 | Ok lpsi ->
@@ -332,6 +333,7 @@ module ServiceImplementation =
         {
             partitionerId : PartitionerId
             noOfCores : int
+            workerNodeId : WorkerNodeId
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
             loadAllResultData : unit -> ListResult<ResultDataWithId>
             sendMessage : MessageInfo -> UnitResult
@@ -343,6 +345,60 @@ module ServiceImplementation =
         }
 
 
+    let runIfNoResult (proxy : OnStartProxy) (r : list<ResultDataWithId>) g w =
+        let d = w.remoteProcessId.toResultDataId()
+
+        match r |> List.tryFind (fun e -> e.resultDataId = d) with
+        | Some _ ->
+            let result =
+                [
+                    {
+                        partitionerRecipient = proxy.partitionerId
+                        deliveryType = GuaranteedDelivery
+                        messageData =
+                            {
+                                remoteProcessId = w.remoteProcessId
+                                runningProcessData = w.runningProcessData
+                                progress = Completed
+                            }
+                            |> UpdateProgressPrtMsg
+                    }.getMessageInfo()
+                    |> proxy.sendMessage
+
+                    proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
+                    proxy.tryDeleteModelData w.runningProcessData.modelDataId
+                    proxy.onSaveResult d
+                    proxy.onSaveCharts d
+                ]
+                |> foldUnitResults
+            g, result
+        | None -> proxy.onRunModel g w
+
+
+    let requestWork (proxy : OnStartProxy) s r =
+        let a = s.numberOfWorkerCores - (s.runningWorkers.Count + s.requestedWorkItems)
+
+        match a > 0 with
+        | true ->
+            let result =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData =
+                        {
+                            workerNodeId = proxy.workerNodeId
+                            requestedWorkItems = a
+                        }
+                        |> RequestWork
+                }.getMessageInfo()
+                |> proxy.sendMessage
+
+            match result with
+            | Ok() -> { s with requestedWorkItems = s.requestedWorkItems + a }, r
+            | Error e -> s, combineUnitResults (Error e) r
+        | false -> s, r
+
+
     let onStart (proxy : OnStartProxy) s =
         let doStart mi ri =
             let m, mf = mi |> Rop.unzip
@@ -350,60 +406,23 @@ module ServiceImplementation =
 
             match (mf @ rf) |> foldErrors with
             | None ->
-                let runIfNoResult g w =
-                    let d = w.remoteProcessId.toResultDataId()
-
-                    match r |> List.tryFind (fun e -> e.resultDataId = d) with
-                    | Some _ ->
-                        let result =
-                            [
-                                {
-                                    partitionerRecipient = proxy.partitionerId
-                                    deliveryType = GuaranteedDelivery
-                                    messageData =
-                                        {
-                                            remoteProcessId = w.remoteProcessId
-                                            runningProcessData = w.runningProcessData
-                                            progress = Completed
-                                        }
-                                        |> UpdateProgressPrtMsg
-                                }.getMessageInfo()
-                                |> proxy.sendMessage
-
-                                proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
-                                proxy.tryDeleteModelData w.runningProcessData.modelDataId
-                                proxy.onSaveResult d
-                                proxy.onSaveCharts d
-                            ]
-                            |> foldUnitResults
-                        g, result
-                    | None -> proxy.onRunModel g w
+                let runIfNoResult = runIfNoResult proxy r
 
                 let tryRunModel g w =
                     match w.localProcessId with
                     | Some v ->
-                        match tryGetProcessById v with
-                        | Some p ->
-                            match tryGetProcessName p with
-                            | Some n when n = SolverRunnerProcessName ->
-                                let rs =
-                                    {
-                                        runnerRemoteProcessId = w.remoteProcessId
-                                        progress = TaskProgress.NotStarted
-                                        started = DateTime.Now
-                                        lastUpdated = DateTime.Now
-                                    }
-
-                                { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
-                            | _ -> runIfNoResult g w
-                        | None -> runIfNoResult g w
+                        match tryGetProcessById v |> Option.bind tryGetProcessName with
+                        | Some n when n = SolverRunnerProcessName ->
+                            let rs = RunnerState.defaultValue w.remoteProcessId
+                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
+                        | _ -> runIfNoResult g w
                     | None -> proxy.onRunModel g w
 
                 let run g e f =
                     let (x, z) = tryRunModel g e
                     x, combineUnitResults f z
 
-                let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfCores = proxy.noOfCores }, Ok())
+                let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfWorkerCores = proxy.noOfCores }, Ok())
                 retVal
             | Some e -> s, Error e
 
@@ -414,7 +433,8 @@ module ServiceImplementation =
             | Error e, Ok _ -> s, Error e
             | Error e1, Error e2 -> s, Error (e1 + e2)
 
-        g, result
+        let g1, result1 = requestWork proxy g result
+        g1, result1
 
 
     let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
@@ -444,7 +464,9 @@ module ServiceImplementation =
                     match proxy.tryFindRunningModel s d with
                     | None ->
                         match proxy.saveModelData m with
-                        | Ok() -> proxy.onRunModel s d
+                        | Ok() ->
+                            let w1, r1 = proxy.onRunModel s d
+                            { w1 with requestedWorkItems = max (w1.requestedWorkItems - 1) 0 }, r1
                         | Error e -> s, addError CannotSaveModelData e
                     | Some r -> s, r.runnerRemoteProcessId.value |> ModelAlreadyRunning |> toError
             | _ -> s, m.messageData.getInfo() |> InvalidMessage |> toError
@@ -476,7 +498,7 @@ module ServiceImplementation =
 
             let w, result =
                 match send() with
-                | Ok() -> { s with numberOfCores = cores }, Ok()
+                | Ok() -> { s with numberOfWorkerCores = cores }, Ok()
                 | Error e -> s, Error e
 
             w, result
@@ -517,6 +539,7 @@ module ServiceImplementation =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
             noOfCores = i.workerNodeAccessInfo.noOfCores
+            workerNodeId = i.workerNodeAccessInfo.workNodeMsgAccessInfo.workerNodeId
             loadAllWorkerNodeRunModelData = proxy.loadAllWorkerNodeRunModelData
             loadAllResultData = proxy.loadAllResultData
             sendMessage = i.messageProcessorProxy.sendMessage

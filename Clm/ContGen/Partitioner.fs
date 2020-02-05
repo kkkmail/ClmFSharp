@@ -271,6 +271,7 @@ module Partitioner =
 
         w, result
 
+
     type OnUnregisterProxy =
         {
             tryDeleteWorkerNodeState : WorkerNodeId -> UnitResult
@@ -309,6 +310,16 @@ module Partitioner =
         w, result
 
 
+    type OnRequestWorkProxy =
+        {
+            x : int
+        }
+
+
+    let onRequestWork (proxy : OnRequestWorkProxy) s (w : WorkerNodeRequestInfo) =
+        s, Ok()
+
+
     type OnSaveResultProxy =
         {
             saveResultData : ResultDataWithId -> UnitResult
@@ -338,10 +349,11 @@ module Partitioner =
             onSaveCharts : ChartInfo -> UnitResult
             onRegister : PartitionerRunnerState -> WorkerNodeInfo -> PartitionerRunnerResult
             onUnregister : PartitionerRunnerState -> WorkerNodeId -> PartitionerRunnerResult
+            onRequestWork : PartitionerRunnerState -> WorkerNodeRequestInfo -> PartitionerRunnerResult
         }
 
 
-    let onProcessMessage proxy (s : PartitionerRunnerState) (m : Message) =
+    let onProcessMessage (proxy : OnProcessMessageProxy) (s : PartitionerRunnerState) (m : Message) =
         let addError f e = ((f |> OnProcessPartitionerMessageErr |> PartitionerErr) + e) |> Error
         let toClmError e = e |> OnProcessPartitionerMessageErr |> PartitionerErr
         let toError e = e |> toClmError |> Error
@@ -355,6 +367,7 @@ module Partitioner =
                 | SaveChartsPrtMsg c -> s, proxy.onSaveCharts c
                 | RegisterWorkerNodePrtMsg r -> proxy.onRegister s r
                 | UnregisterWorkerNodePrtMsg r -> proxy.onUnregister s r
+                | RequestWork w -> proxy.onRequestWork s w
             | _ -> s, InvalidMessageTypeErr m.messageDataInfo.messageId.value |> toError
 
         w, result
@@ -473,6 +486,12 @@ module Partitioner =
         }
 
 
+    let onRequestWorkProxy i =
+        {
+            x = 0
+        }
+
+
     let onProcessMessageProxy i c =
         {
             onUpdateProgress = onUpdateProgress (onUpdateProgressProxy i c)
@@ -480,6 +499,7 @@ module Partitioner =
             onSaveCharts = onSaveCharts (onSaveChartsProxy i)
             onRegister = onRegister (onRegisterProxy i c)
             onUnregister = onUnregister (onUnregisterProxy i c)
+            onRequestWork = onRequestWork (onRequestWorkProxy i)
         }
 
 

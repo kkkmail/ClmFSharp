@@ -74,21 +74,21 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
-    type SetRunLimitProxy =
-        {
-            setRunLimit : int -> UnitResult
-        }
+    //type SetRunLimitProxy =
+    //    {
+    //        setRunLimit : int -> UnitResult
+    //    }
 
 
-    let setRunLimit (proxy : SetRunLimitProxy) workerNodes =
-        let c = workerNodes |> Map.fold (fun acc _ r -> r.workerNodeInfo.noOfCores + acc) 0
-        let result = proxy.setRunLimit c
-        result
+    //let setRunLimit (proxy : SetRunLimitProxy) workerNodes =
+    //    let c = workerNodes |> Map.fold (fun acc _ r -> r.workerNodeInfo.noOfCores + acc) 0
+    //    let result = proxy.setRunLimit c
+    //    result
 
 
     type OnRegisterProxy =
         {
-            setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
+            //setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
             saveWorkerNodeState : WorkerNodeState -> UnitResult
         }
 

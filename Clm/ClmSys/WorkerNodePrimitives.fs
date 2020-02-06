@@ -16,3 +16,9 @@ module WorkerNodePrimitives =
 
         member this.value = let (WorkerNodePriority v) = this in v
         static member defaultValue = WorkerNodePriority 100
+
+
+    type WorkerNodeName =
+        | WorkerNodeName of string
+
+        member this.value = let (WorkerNodeName v) = this in v

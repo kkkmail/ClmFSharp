@@ -12,6 +12,7 @@ module WorkerNodeData =
     type WorkerNodeInfo =
         {
             workerNodeId : WorkerNodeId
+            workerNodeName : WorkerNodeName
             noOfCores : int
             nodePriority : WorkerNodePriority
         }
@@ -41,6 +42,7 @@ module WorkerNodeData =
     type WorkerNodeServiceAccessInfo =
         {
             workerNodeServiceAccessInfo : ServiceAccessInfo
+            workerNodeName : WorkerNodeName
             noOfCores : int
             isInactive : bool
             workNodeMsgAccessInfo : WorkNodeMsgAccessInfo
@@ -51,6 +53,7 @@ module WorkerNodeData =
         member w.workerNodeInfo =
             {
                 workerNodeId = w.workNodeMsgAccessInfo.workerNodeId
+                workerNodeName = w.workerNodeName
                 noOfCores = w.noOfCores
                 nodePriority = w.nodePriority
             }

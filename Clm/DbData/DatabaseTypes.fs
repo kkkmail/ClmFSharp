@@ -21,6 +21,7 @@ open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ContGenData
+open ClmSys.WorkerNodeData
 
 
 module DatabaseTypes =
@@ -35,6 +36,12 @@ module DatabaseTypes =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
         | _ -> ignore ()
+
+
+    let private getOpenConn (ConnectionString connectionString) =
+        let conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        conn
 
 
     /// Maps missing value (None) to DbErr.
@@ -137,6 +144,12 @@ module DatabaseTypes =
 
 
     type RunQueueTableData = SqlCommandProvider<"
+        select * 
+        from dbo.RunQueue
+        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    type RunQueueAllTableData = SqlCommandProvider<"
         select
             r.*,
             t.clmDefaultValueId
@@ -156,6 +169,16 @@ module DatabaseTypes =
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
+    type WorkerNodeTableRow = WorkerNodeTable.Row
+
+
+    type WorkerNodeTableData = SqlCommandProvider<"
+        select *
+        from dbo.WorkerNode
+        where workerNodeId = @workerNodeId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ClmDefaultValue
@@ -363,11 +386,44 @@ module DatabaseTypes =
             t.Rows.Add newRow
             newRow
 
+        member q.tryUpdateRow (r : RunQueueTableRow) =
+            Ok()
 
-    let loadClmDefaultValue (ConnectionString connectionString) (ClmDefaultValueId clmDefaultValueId) =
+
+    type WorkerNodeInfo
+        with
+
+        static member tryCreate (r : WorkerNodeTableRow) =
+            {
+                workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
+                workerNodeName = r.workerNodeName |> WorkerNodeName
+                noOfCores = r.numberOfCores
+                nodePriority = r.nodePriority |> WorkerNodePriority
+            }
+
+        member w.addRow (t : WorkerNodeTable) =
+            let newRow =
+                t.NewRow(
+                        workerNodeId = w.workerNodeId.value.value,
+                        workerNodeName = w.workerNodeName.value,
+                        numberOfCores = w.noOfCores,
+                        nodePriority = w.nodePriority.value
+                        )
+
+            newRow.modifiedOn <- DateTime.Now
+            t.Rows.Add newRow
+            newRow
+
+        member w.updateRow (r : WorkerNodeTableRow) =
+            r.workerNodeName <- w.workerNodeName.value
+            r.numberOfCores <- w.noOfCores
+            r.nodePriority <- w.nodePriority.value
+            r.modifiedOn <- DateTime.Now
+
+
+    let loadClmDefaultValue connectionString (ClmDefaultValueId clmDefaultValueId) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ClmDefaultValueData(conn)
             let t = new ClmDefaultValueTable()
             d.Execute clmDefaultValueId |> t.Load
@@ -382,9 +438,9 @@ module DatabaseTypes =
 
     let upsertClmDefaultValue (ConnectionString connectionString) (p : ClmDefaultValue) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
-            let connectionString = conn.ConnectionString
+            //use conn = new SqlConnection(connectionString)
+            //openConnIfClosed conn
+            //let connectionString = conn.ConnectionString
 
             use cmd = new SqlCommandProvider<"
                 merge ClmDefaultValue as target
@@ -409,10 +465,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadCommandLineParams (ConnectionString connectionString) i (ClmTaskId clmTaskId) =
+    let loadCommandLineParams connectionString i (ClmTaskId clmTaskId) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new CommandLineParamData(conn)
             let t = new CommandLineParamTable()
             d.Execute clmTaskId |> t.Load
@@ -425,10 +480,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let addCommandLineParams (ConnectionString connectionString) clmTaskId (p : ModelCommandLineParam) =
+    let addCommandLineParams connectionString clmTaskId (p : ModelCommandLineParam) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use t = new CommandLineParamTable()
             p.addRow clmTaskId t |> ignore
             t.Update conn |> ignore
@@ -437,10 +491,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadClmTask (connectionString : ConnectionString) i (ClmTaskId clmTaskId) =
+    let loadClmTask connectionString i (ClmTaskId clmTaskId) =
         let g() =
-            use conn = new SqlConnection(connectionString.value)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ClmTaskData(conn)
             let t = new ClmTaskTable()
             d.Execute clmTaskId |> t.Load
@@ -452,10 +505,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadClmTaskByDefault (connectionString : ConnectionString) i (ClmDefaultValueId clmDefaultValueId) =
+    let loadClmTaskByDefault connectionString i (ClmDefaultValueId clmDefaultValueId) =
         let g() =
-            use conn = new SqlConnection(connectionString.value)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ClmTaskByDefaultData(conn)
             let t = new ClmTaskTable()
             d.Execute clmDefaultValueId |> t.Load
@@ -467,10 +519,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadIncompleteClmTasks (connectionString : ConnectionString) i =
+    let loadIncompleteClmTasks connectionString i =
         let g() =
-            use conn = new SqlConnection(connectionString.value)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ClmTaskAllIncompleteData(conn)
             let t = new ClmTaskTable()
             d.Execute() |> t.Load
@@ -483,10 +534,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let addClmTask (connectionString : ConnectionString) (clmTask : ClmTask) =
+    let addClmTask connectionString (clmTask : ClmTask) =
         let g() =
-            use conn = new SqlConnection(connectionString.value)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use t = new ClmTaskTable()
             let row = clmTask.addRow t
             t.Update conn |> ignore
@@ -502,10 +552,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let updateClmTask (ConnectionString connectionString) (clmTask : ClmTask) =
+    let updateClmTask connectionString (clmTask : ClmTask) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString
 
             use cmd = new SqlCommandProvider<"
@@ -526,10 +575,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadModelData (connectionString : ConnectionString) i (ModelDataId modelDataId) =
+    let loadModelData connectionString i (ModelDataId modelDataId) =
         let g() =
-            use conn = new SqlConnection(connectionString.value)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ModelDataTableData(conn)
             let t = new ModelDataTable()
             d.Execute modelDataId |> t.Load
@@ -541,10 +589,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let updateModelData (ConnectionString connectionString) (m : ModelData) =
+    let updateModelData connectionString (m : ModelData) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString
 
             let recordsUpdated =
@@ -596,10 +643,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let saveResultData (ConnectionString connectionString) (r : ResultDataWithId) =
+    let saveResultData connectionString (r : ResultDataWithId) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString
 
             use cmd = new SqlCommandProvider<"
@@ -652,10 +698,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadResultData (ConnectionString connectionString) (ResultDataId resultDataId) =
+    let tryLoadResultData connectionString (ResultDataId resultDataId) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use d = new ResultDataTableData(conn)
             let t = new ResultDataTable()
             d.Execute(resultDataId = resultDataId) |> t.Load
@@ -698,13 +743,12 @@ module DatabaseTypes =
         | None -> toError MapRunQueueErr (reader?runQueueId)
 
 
-    let loadRunQueue (ConnectionString connectionString) i =
+    let loadRunQueue connectionString i =
         let g() =
             seq
                 {
-                    use conn = new SqlConnection(connectionString)
-                    openConnIfClosed conn
-                    use data = new RunQueueTableData(conn)
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueAllTableData(conn)
                     use reader= new DynamicSqlDataReader(data.Execute())
                     while (reader.Read()) do yield mapRunQueue i reader
                         }
@@ -714,12 +758,11 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let tryLoadFirstRunQueue (ConnectionString connectionString) i =
+    let tryLoadFirstRunQueue connectionString i =
         let g() =
             seq
                 {
-                    use conn = new SqlConnection(connectionString)
-                    openConnIfClosed conn
+                    use conn = getOpenConn connectionString
                     use data = new RunQueueSingleTableData(conn)
                     use reader= new DynamicSqlDataReader(data.Execute())
                     while (reader.Read()) do yield mapRunQueue i reader
@@ -731,10 +774,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let saveRunQueue (ConnectionString connectionString) modelDataId defaultValueId p =
+    let saveRunQueue connectionString modelDataId defaultValueId p =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
+            use conn = getOpenConn connectionString
             use t = new RunQueueTable()
             let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
             let row = r.addRow t
@@ -746,11 +788,8 @@ module DatabaseTypes =
 
     let deleteRunQueue (ConnectionString connectionString) (RunQueueId runQueueId) =
         let g() =
-            use conn = new SqlConnection(connectionString)
-            openConnIfClosed conn
-
             use cmd = new SqlCommandProvider<"
-                DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let rowsAffected = cmd.Execute(runQueueId = runQueueId)
 
@@ -761,8 +800,49 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    //let tryGetRunQueue (ConnectionString connectionString) =
-    //    let g() =
-    //        0
+    let upsertRunQueue connectionString (w : RunQueue) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new RunQueueTableData(conn)
+            let t = new RunQueueTable()
+            d.Execute w.runQueueId.value |> t.Load
 
-    //    tryDbFun g
+            match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = w.runQueueId.value) with
+            | Some r -> w.tryUpdateRow r
+            | None -> w.addRow t |> ignore
+
+            t.Update conn |> ignore
+            Ok()
+
+        tryDbFun g
+
+
+    let loadWorkerNodeInfo connectionString (i : WorkerNodeId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new WorkerNodeTableData(conn)
+            let t = new WorkerNodeTable()
+            d.Execute i.value.value |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.workerNodeId = i.value.value) with
+            | Some v -> v |> WorkerNodeInfo.tryCreate |> Ok
+            | None -> toError LoadWorkerNodeInfoErr i.value.value
+
+        tryDbFun g
+
+
+    let upsertWorkerNodeInfo connectionString (w : WorkerNodeInfo) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new WorkerNodeTableData(conn)
+            let t = new WorkerNodeTable()
+            d.Execute w.workerNodeId.value.value |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.workerNodeId = w.workerNodeId.value.value) with
+            | Some r -> w.updateRow r
+            | None -> w.addRow t |> ignore
+
+            t.Update conn |> ignore
+            Ok()
+
+        tryDbFun g

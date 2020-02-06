@@ -28,6 +28,7 @@ go
 			, (2, 'InProgress')
 			, (3, 'Completed')
 			, (4, 'Failed')
+			, (5, 'Modifying')
 
 		) as a (runQueueStatusId, runQueueStatusName)
 	)
@@ -55,7 +56,4 @@ from valTbl
 left outer join WorkerNode on valTbl.workerNodeId = WorkerNode.workerNodeId
 where WorkerNode.workerNodeId is null
 go
-
-
-
 

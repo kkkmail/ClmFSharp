@@ -28,14 +28,14 @@ module ServiceInfo =
         }
 
 
-    type WorkerNodeState =
-        {
-            workerNodeInfo : WorkerNodeInfo
-            runningProcesses : Map<RemoteProcessId, RunQueueId>
-        }
+    //type WorkerNodeState =
+    //    {
+    //        workerNodeInfo : WorkerNodeInfo
+    //        runningProcesses : Map<RemoteProcessId, RunQueueId>
+    //    }
 
-        member e.priority =
-            (
-                e.workerNodeInfo.nodePriority.value,
-                (decimal e.runningProcesses.Count) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
-            )
+    //    member e.priority =
+    //        (
+    //            e.workerNodeInfo.nodePriority.value,
+    //            (decimal e.runningProcesses.Count) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
+    //        )

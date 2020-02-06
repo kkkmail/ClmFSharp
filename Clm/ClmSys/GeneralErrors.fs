@@ -76,6 +76,7 @@ module GeneralErrors =
         | ModelDataTryCreateErr of Guid
         | DeleteRunQueueEntryErr of Guid
         | MapRunQueueErr of Guid
+        | LoadWorkerNodeInfoErr of Guid
 
 
     type ServiceInstallerError =

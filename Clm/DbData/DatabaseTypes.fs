@@ -22,6 +22,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
+open ClmSys
 
 
 module DatabaseTypes =
@@ -386,14 +387,44 @@ module DatabaseTypes =
             t.Rows.Add newRow
             newRow
 
+        /// The following status transitions are allowed here:
+        ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
+        ///
+        ///     NotStartedRunQueue -> InProgressRunQueue
+        ///     InProgressRunQueue -> CompletedRunQueue
+        ///     InProgressRunQueue -> FailedRunQueue
+        ///
+        /// All others are out of scope of this method.
         member q.tryUpdateRow (r : RunQueueTableRow) =
-            Ok()
+            let g() =
+                r.runQueueId <- q.runQueueId.value
+                //r.modelDataId <- q.info.modelDataId.value
+                //r.y0 <- q.modelCommandLineParam.taskParam.y0
+                //r.tEnd <- q.modelCommandLineParam.taskParam.tEnd
+                //r.useAbundant <- q.modelCommandLineParam.taskParam.useAbundant
+                r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
+                r.progress <- q.progress.value
+                r.modifiedOn <- DateTime.Now
+                r.runQueueStatusId <- q.runQueueStatus.value
+                Ok()
+
+            let f1 e = e |> InvalidStatusTransitionErr |> RunQueueTryUpdateRowErr |> DbErr |> Error
+            let f2 e = e |> InvalidDataErr |> RunQueueTryUpdateRowErr |> DbErr |> Error
+
+            match RunQueueStatus.tryCreate r.runQueueStatusId with
+            | Some s ->
+                match s, q.runQueueStatus with
+                | NotStartedRunQueue, InProgressRunQueue -> g()
+                | InProgressRunQueue, CompletedRunQueue -> g()
+                | InProgressRunQueue, FailedRunQueue -> g()
+                | _ -> f1(q.runQueueId.value, s.value, q.runQueueStatus.value)
+            | None -> f2 q.runQueueId.value
 
 
     type WorkerNodeInfo
         with
 
-        static member tryCreate (r : WorkerNodeTableRow) =
+        static member create (r : WorkerNodeTableRow) =
             {
                 workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
                 workerNodeName = r.workerNodeName |> WorkerNodeName
@@ -807,12 +838,13 @@ module DatabaseTypes =
             let t = new RunQueueTable()
             d.Execute w.runQueueId.value |> t.Load
 
-            match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = w.runQueueId.value) with
-            | Some r -> w.tryUpdateRow r
-            | None -> w.addRow t |> ignore
+            let result =
+                match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = w.runQueueId.value) with
+                | Some r -> w.tryUpdateRow r
+                | None -> w.addRow t |> ignore; Ok()
+                |> Rop.bind (fun () -> t.Update conn |> ignore; Ok())
 
-            t.Update conn |> ignore
-            Ok()
+            result
 
         tryDbFun g
 
@@ -825,7 +857,7 @@ module DatabaseTypes =
             d.Execute i.value.value |> t.Load
 
             match t.Rows |> Seq.tryFind (fun e -> e.workerNodeId = i.value.value) with
-            | Some v -> v |> WorkerNodeInfo.tryCreate |> Ok
+            | Some v -> v |> WorkerNodeInfo.create |> Ok
             | None -> toError LoadWorkerNodeInfoErr i.value.value
 
         tryDbFun g

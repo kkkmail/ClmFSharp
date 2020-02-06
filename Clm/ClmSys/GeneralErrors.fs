@@ -61,6 +61,11 @@ module GeneralErrors =
         | WcfSerializationErr of SerializationError
 
 
+    type RunQueueTryUpdateRowError =
+        | InvalidStatusTransitionErr of (Guid * int * int)
+        | InvalidDataErr of Guid
+
+
     type DbError =
         | DbExn of exn
         | LoadModelDataError of Guid
@@ -77,6 +82,7 @@ module GeneralErrors =
         | DeleteRunQueueEntryErr of Guid
         | MapRunQueueErr of Guid
         | LoadWorkerNodeInfoErr of Guid
+        | RunQueueTryUpdateRowErr of RunQueueTryUpdateRowError
 
 
     type ServiceInstallerError =

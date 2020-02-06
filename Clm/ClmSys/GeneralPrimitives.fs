@@ -71,6 +71,7 @@ module GeneralPrimitives =
         | InProgressRunQueue
         | CompletedRunQueue
         | FailedRunQueue
+        | ModifyingRunQueue
 
         member r.value =
             match r with
@@ -79,6 +80,7 @@ module GeneralPrimitives =
             | InProgressRunQueue -> 2
             | CompletedRunQueue -> 3
             | FailedRunQueue -> 4
+            | ModifyingRunQueue -> 5
 
         static member tryCreate i =
             match i with
@@ -87,4 +89,5 @@ module GeneralPrimitives =
             | 2 -> Some InProgressRunQueue
             | 3 -> Some CompletedRunQueue
             | 4 -> Some FailedRunQueue
+            | 5 -> Some ModifyingRunQueue
             | _ -> None

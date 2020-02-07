@@ -887,6 +887,7 @@ module DatabaseTypes =
 //from WorkerNode w
 //where workerNodeId = @workerNodeId
 
+
     [<Literal>]
     let availablbeWorkerNodeSql = @"
         ; with q as
@@ -907,7 +908,7 @@ module DatabaseTypes =
     type AvailableWorkerNodeTableData = SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
 
 
-    let tryGetWorkerNode connectionString =
+    let tryGetAvailableWorkerNode connectionString =
         let g() =
             use conn = getOpenConn connectionString
             use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)

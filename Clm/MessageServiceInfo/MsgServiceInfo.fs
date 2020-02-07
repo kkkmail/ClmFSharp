@@ -47,7 +47,7 @@ module ServiceInfo =
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
-        | RequestWork of WorkerNodeRequestInfo
+        //| RequestWork of WorkerNodeRequestInfo
 
         member this.messageSize =
             match this with

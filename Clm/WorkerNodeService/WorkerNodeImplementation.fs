@@ -56,7 +56,7 @@ module ServiceImplementation =
             {
                 runningWorkers = Map.empty
                 numberOfWorkerCores = 0
-                requestedWorkItems = 0
+                //requestedWorkItems = 0
             }
 
 
@@ -375,28 +375,28 @@ module ServiceImplementation =
         | None -> proxy.onRunModel g w
 
 
-    let requestWork (proxy : OnStartProxy) s r =
-        let a = s.numberOfWorkerCores - (s.runningWorkers.Count + s.requestedWorkItems)
+    //let requestWork (proxy : OnStartProxy) s r =
+    //    let a = s.numberOfWorkerCores - (s.runningWorkers.Count + s.requestedWorkItems)
 
-        match a > 0 with
-        | true ->
-            let result =
-                {
-                    partitionerRecipient = proxy.partitionerId
-                    deliveryType = GuaranteedDelivery
-                    messageData =
-                        {
-                            workerNodeId = proxy.workerNodeId
-                            requestedWorkItems = a
-                        }
-                        |> RequestWork
-                }.getMessageInfo()
-                |> proxy.sendMessage
+    //    match a > 0 with
+    //    | true ->
+    //        let result =
+    //            {
+    //                partitionerRecipient = proxy.partitionerId
+    //                deliveryType = GuaranteedDelivery
+    //                messageData =
+    //                    {
+    //                        workerNodeId = proxy.workerNodeId
+    //                        requestedWorkItems = a
+    //                    }
+    //                    |> RequestWork
+    //            }.getMessageInfo()
+    //            |> proxy.sendMessage
 
-            match result with
-            | Ok() -> { s with requestedWorkItems = s.requestedWorkItems + a }, r
-            | Error e -> s, combineUnitResults (Error e) r
-        | false -> s, r
+    //        match result with
+    //        | Ok() -> { s with requestedWorkItems = s.requestedWorkItems + a }, r
+    //        | Error e -> s, combineUnitResults (Error e) r
+    //    | false -> s, r
 
 
     let onStart (proxy : OnStartProxy) s =
@@ -433,8 +433,8 @@ module ServiceImplementation =
             | Error e, Ok _ -> s, Error e
             | Error e1, Error e2 -> s, Error (e1 + e2)
 
-        let g1, result1 = requestWork proxy g result
-        g1, result1
+        //let g1, result1 = requestWork proxy g result
+        g, result
 
 
     let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =

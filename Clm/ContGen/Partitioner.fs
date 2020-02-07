@@ -74,50 +74,27 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
-    //type SetRunLimitProxy =
-    //    {
-    //        setRunLimit : int -> UnitResult
-    //    }
-
-
-    //let setRunLimit (proxy : SetRunLimitProxy) workerNodes =
-    //    let c = workerNodes |> Map.fold (fun acc _ r -> r.workerNodeInfo.noOfCores + acc) 0
-    //    let result = proxy.setRunLimit c
-    //    result
-
-
     type OnRegisterProxy =
         {
-            //setRunLimit : Map<WorkerNodeId, WorkerNodeState> -> UnitResult
-            saveWorkerNodeState : WorkerNodeState -> UnitResult
+            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
 
 
     let onRegister (proxy : OnRegisterProxy) s (r : WorkerNodeInfo) =
-        let updated q =
-            let newState = { workerNodeInfo = r; runningProcesses = q }
-            let result = proxy.saveWorkerNodeState newState
-            { s with workerNodes = s.workerNodes.Add (r.workerNodeId, newState) }, result
-
-        let w, result =
-            match s.workerNodes.TryFind r.workerNodeId with
-            | Some n -> n.runningProcesses
-            | None -> Map.empty
-            |> updated
-
-        w, proxy.setRunLimit w.workerNodes |> combineUnitResults result
+        let result = proxy.upsertWorkerNodeInfo r
+        s, result
 
 
-    let tryGetNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) =
-        workerNodes
-            |> Map.toList
-            |> List.map (fun (_, v) -> v)
-            |> List.sortBy (fun e -> e.priority)
-            |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
+    //let tryGetNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) =
+    //    workerNodes
+    //        |> Map.toList
+    //        |> List.map (fun (_, v) -> v)
+    //        |> List.sortBy (fun e -> e.priority)
+    //        |> List.tryFind (fun e -> e.runningProcesses.Count < e.workerNodeInfo.noOfCores)
 
 
-    let tryFindRunningNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) r =
-        workerNodes |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
+    //let tryFindRunningNode (workerNodes : Map<WorkerNodeId, WorkerNodeState>) r =
+    //    workerNodes |> Map.tryPick (fun a b -> b.runningProcesses |> Map.tryFind r |> Option.bind (fun _ -> Some (a, b)))
 
 
     type OnCompletedProxy =

@@ -58,7 +58,7 @@ module ServiceInfo =
         {
             runningWorkers : Map<LocalProcessId, RunnerState>
             numberOfWorkerCores : int
-            requestedWorkItems : int
+            //requestedWorkItems : int
         }
 
     type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>

@@ -878,3 +878,27 @@ module DatabaseTypes =
             Ok()
 
         tryDbFun g
+
+
+//select
+//    workerNodeId
+//    ,nodePriority
+//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 1) / (cast(numberOfCores as money)) end as money) as workLoad
+//from WorkerNode w
+//where workerNodeId = @workerNodeId
+
+
+//; with q as
+//(
+//select
+//    workerNodeId
+//    ,nodePriority
+//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 1) / (cast(numberOfCores as money)) end as money) as workLoad
+//from WorkerNode w
+//)
+//select top 1
+//workerNodeId
+//from q
+//where workLoad < 1
+//order by nodePriority desc, workLoad, newid()
+

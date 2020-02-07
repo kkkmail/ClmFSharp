@@ -887,18 +887,34 @@ module DatabaseTypes =
 //from WorkerNode w
 //where workerNodeId = @workerNodeId
 
+    [<Literal>]
+    let availablbeWorkerNodeSql = @"
+        ; with q as
+        (
+        select
+            workerNodeId
+            ,nodePriority
+            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 1) / (cast(numberOfCores as money)) end as money) as workLoad
+        from WorkerNode w
+        )
+        select top 1
+        workerNodeId
+        from q
+        where workLoad < 1
+        order by nodePriority desc, workLoad, newid()"
 
-//; with q as
-//(
-//select
-//    workerNodeId
-//    ,nodePriority
-//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 1) / (cast(numberOfCores as money)) end as money) as workLoad
-//from WorkerNode w
-//)
-//select top 1
-//workerNodeId
-//from q
-//where workLoad < 1
-//order by nodePriority desc, workLoad, newid()
 
+    type AvailableWorkerNodeTableData = SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
+
+
+    let tryGetWorkerNode connectionString =
+        let g() =
+            use conn = getOpenConn connectionString
+            use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
+            let table = cmd.Execute()
+            
+            match table.Rows |> Seq.tryHead with
+            | None -> Ok None
+            | Some r -> r.workerNodeId |> Some |> Ok
+
+        tryDbFun g

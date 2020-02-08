@@ -620,7 +620,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let updateModelData connectionString (m : ModelData) =
+    let upsertModelData connectionString (m : ModelData) =
         let g() =
             use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString

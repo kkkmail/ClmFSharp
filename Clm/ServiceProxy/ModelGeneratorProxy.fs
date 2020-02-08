@@ -17,5 +17,6 @@ module ModelGeneratorProxy =
 
     type ModelGeneratorProxy =
         {
-            generate : unit -> ListResult<RunQueueId>
+            //generate : unit -> ListResult<RunQueueId>
+            dummy : int
         }

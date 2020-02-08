@@ -73,10 +73,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Partitioner.fs" />
-    <Compile Include="ModelGeneration.fs" />
-    <Compile Include="AsyncRun.fs" />
-    <Compile Include="Runner.fs" />
+    <Compile Include="ModelGenerator.fs" />
+    <Compile Include="ModelRunner.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <None Include="ContGenTest.fsx" />

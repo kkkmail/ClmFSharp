@@ -153,12 +153,11 @@ module Partitioner =
                                 }
 
                             let r = (x, None) |> StartedSuccessfully |> Ok
-                            //b |> toErrorOption toClmError (TryRunModelWithRemoteIdErr modelDataId.value)
                             r
                         | Error e -> addError (UnableToSendRunModelMessage modelDataId.value) e
                     | Error e -> addError (UnableToLoadModelData modelDataId.value) e
                 | Ok None -> Ok()
-                | Error e -> UnableToGetWorkerNode modelDataId.value |> toError
+                | Error e -> addError (UnableToGetWorkerNode modelDataId.value) e
             | Ok (Some _) ->
                 let r = proxy.onCompleted i.remoteProcessId
                 let result = toErrorOption toClmError (OnCompletedErr modelDataId.value) r
@@ -230,19 +229,21 @@ module Partitioner =
 
     type OnUnregisterProxy =
         {
+            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
 
 
-    /// TODO - Set numbere of cores to 0
     let onUnregister (proxy : OnUnregisterProxy) (r : WorkerNodeId) =
-        Ok()
+        let addError f e = ((f |> OnUnregisterErr |> PartitionerErr) + e) |> Error
+        let toError e = e |> OnUnregisterErr |> PartitionerErr |> Error
 
-
-    type OnRequestWorkProxy =
-        {
-            x : int
-        }
+        match proxy.loadWorkerNodeInfo r with
+        | Ok w ->
+            match proxy.upsertWorkerNodeInfo w with
+            | Ok() -> Ok()
+            | Error e -> addError CannotUpsertWorkerNodeInfo e
+        | Error e -> addError CannotLoadWorkerNodeInfo e
 
 
     type OnSaveResultProxy =
@@ -296,20 +297,20 @@ module Partitioner =
         result
 
 
-    type OnProcessMessageType = OnProcessMessageType<PartitionerRunnerState>
-    type OnGetMessagesProxy = OnGetMessagesProxy<PartitionerRunnerState>
-    let onGetMessages = onGetMessages<PartitionerRunnerState>
+    type OnProcessMessageType = OnProcessMessageType<unit>
+    type OnGetMessagesProxy = OnGetMessagesProxy<unit>
+    let onGetMessages = onGetMessages<unit>
 
 
     type OnRunModelProxy =
         {
-            tryGetRunner : PartitionerRunnerState -> RunQueueId -> RemoteProcessId option
+            tryGetRunner : RunQueueId -> RemoteProcessId option
             saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
-            onTryRunModelWithRemoteId : PartitionerRunnerState -> RunModelParamWithRemoteId -> PartitionerRunnerProcessStartedResult
+            onTryRunModelWithRemoteId : RunModelParamWithRemoteId -> ProcessStartedResult
         }
 
 
-    let onRunModel (proxy : OnRunModelProxy) s (a: RunModelParam) : PartitionerRunnerProcessStartedResult =
+    let onRunModel (proxy : OnRunModelProxy) (a: RunModelParam) : ProcessStartedResult =
         let w, result =
             match tryGetRunner s a.callBackInfo.runQueueId with
             | Some q -> s, ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, None) |> StartedSuccessfully |> Ok
@@ -324,12 +325,6 @@ module Partitioner =
 
 
     let onGetState s = s, s
-
-
-    let setRunLimitProxy (c : PartitionerCallBackInfo) =
-        {
-            setRunLimit = c.setRunLimit
-        }
 
 
     let onRegisterProxy i c =
@@ -417,7 +412,6 @@ module Partitioner =
             onSaveCharts = onSaveCharts (onSaveChartsProxy i)
             onRegister = onRegister (onRegisterProxy i c)
             onUnregister = onUnregister (onUnregisterProxy i c)
-            onRequestWork = onRequestWork (onRequestWorkProxy i)
         }
 
 

@@ -19,6 +19,7 @@ module ContGenPrimitives =
         | ModelDataId of Guid
 
         member this.value = let (ModelDataId v) = this in v
+        static member getNewId() = Guid.NewGuid() |> ModelDataId
 
 
     type ClmDefaultValueId =

@@ -21,8 +21,13 @@ module PartitionerErrors =
     //type OnPartitionerRunModelError =
     //    | X
 
+    type OnUnregisterError =
+        | CannotLoadWorkerNodeInfo
+        | CannotUpsertWorkerNodeInfo
+
 
     type PartitionerError =
         | OnTryRunModelWithRemoteIdErr of OnTryRunModelWithRemoteIdError
         | OnProcessPartitionerMessageErr of OnProcessPartitionerMessageError
         | OnGetMessagesPartitionerErr of OnGetMessagesError
+        | OnUnregisterErr of OnUnregisterError

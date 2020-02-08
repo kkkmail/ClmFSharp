@@ -63,6 +63,7 @@ module GeneralPrimitives =
         member this.value = let (RunQueueId v) = this in v
         member this.toResultDataId() = this.value |> ResultDataId
         member this.toRemoteProcessId() = this.value |> RemoteProcessId
+        static member getNewId() = Guid.NewGuid() |> RunQueueId
 
 
     type RunQueueStatus =

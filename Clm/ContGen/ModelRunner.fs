@@ -22,6 +22,7 @@ open ServiceProxy.ModelRunnerProxy
 open ClmSys.ModelRunnerErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
+open ServiceProxy.ModelRunnerProxy
 
 module ModelRunner =
 
@@ -29,34 +30,11 @@ module ModelRunner =
     let private addError g f e = ((f |> g |> ModelRunnerErr) + e) |> Error
 
 
-    type RunModelProxy =
-        {
-            minUsefulEe : MinUsefulEe
-            sendRunModelMessage : MessageInfo -> UnitResult
-            loadModelData : ModelDataId -> ClmResult<ModelData>
-        }
-
-
     let runModel (proxy : RunModelProxy) (q : RunQueue) =
         match q.toMessageInfoOpt proxy.loadModelData proxy.minUsefulEe with
         | Ok (Some m) -> proxy.sendRunModelMessage m
         | Ok None -> q.runQueueId |> MissingWorkerNodeErr |> toError RunModelErr
         | Error e -> (addError RunModelErr) (UnableToLoadModelDataErr (q.runQueueId, q.info.modelDataId )) e
-
-
-    type TryRunFirstModelProxy =
-        {
-            tryLoadFirstRunQueue : unit -> ClmResult<RunQueue option>
-            tryGetAvailableWorkerNode : unit -> ClmResult<WorkerNodeId option>
-            runModel : RunQueue -> UnitResult
-            upsertRunQueue : RunQueue -> UnitResult
-        }
-
-
-    type TryRunModelResult =
-        | WorkScheduled
-        | NoWork
-        | NoAvailableWorkerNodes
 
 
     /// Tries to run the first not scheduled run queue entry using the first available worker node.
@@ -81,14 +59,14 @@ module ModelRunner =
         | Error e -> addError TryLoadFirstRunQueueErr e
 
 
-    type TryRunModelsProxy =
+    type TryRunAllModelsProxy =
         {
             tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
         }
 
 
     /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
-    let tryRunAllModels (proxy : TryRunModelsProxy) =
+    let tryRunAllModels (proxy : TryRunAllModelsProxy) =
         let rec doWork() =
             match proxy.tryRunFirstModel() with
             | Ok r ->

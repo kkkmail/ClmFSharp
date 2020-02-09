@@ -25,4 +25,3 @@ module ModelRunnerErrors =
         | RunModelErr of RunModelError
         | TryRunFirstModelErr of TryRunFirstModelError
         | TryRunAllModelsErr of TryRunAllModelsError
-

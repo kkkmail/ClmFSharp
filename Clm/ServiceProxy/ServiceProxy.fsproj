@@ -71,13 +71,13 @@
     <Compile Include="MsgServiceProxy.fs" />
     <Compile Include="MsgProcessorProxy.fs" />
     <Compile Include="ModelGeneratorProxy.fs" />
+    <Compile Include="ModelRunnerProxy.fs" />
     <Compile Include="AsyncRunProxy.fs" />
     <Compile Include="PartitionerProxy.fs" />
     <Compile Include="RunnerProxy.fs" />
     <Compile Include="SolverRunnerProxy.fs" />
     <Compile Include="WorkerNodeProxy.fs" />
     <Content Include="packages.config" />
-    <Compile Include="ModelRunnerProxy.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

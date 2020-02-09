@@ -13,8 +13,28 @@ open ClmSys.ClmErrors
 open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
 open Clm.Generator.ClmModelData
+open MessagingServiceInfo.ServiceInfo
 
 module ModelRunnerProxy =
 
-    let x = 1
+    type RunModelProxy =
+        {
+            minUsefulEe : MinUsefulEe
+            sendRunModelMessage : MessageInfo -> UnitResult
+            loadModelData : ModelDataId -> ClmResult<ModelData>
+        }
 
+
+    type TryRunFirstModelProxy =
+        {
+            tryLoadFirstRunQueue : unit -> ClmResult<RunQueue option>
+            tryGetAvailableWorkerNode : unit -> ClmResult<WorkerNodeId option>
+            runModel : RunQueue -> UnitResult
+            upsertRunQueue : RunQueue -> UnitResult
+        }
+
+
+    type TryRunModelResult =
+        | WorkScheduled
+        | NoWork
+        | NoAvailableWorkerNodes

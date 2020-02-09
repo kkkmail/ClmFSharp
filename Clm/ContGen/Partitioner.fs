@@ -100,25 +100,25 @@ module Partitioner =
         }
 
 
-    let sendRunModelMessage (proxy : SendRunModelMessageProxy) (e : RunModelParamWithRemoteId) workerNodeId m =
-        {
-            workerNodeRecipient = workerNodeId
-            deliveryType = GuaranteedDelivery
-            messageData =
-                (
-                    {
-                        remoteProcessId = e.remoteProcessId
-                        localProcessId = None
-                        runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = workerNodeId }
-                        taskParam = e.runModelParam.commandLineParam.taskParam
-                        minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
-                        commandLine = EmptyString
-                    },
-                    m
-                )
-                |> RunModelWrkMsg
-        }.getMessageInfo()
-        |> proxy.sendMessage
+    //let sendRunModelMessage (proxy : SendRunModelMessageProxy) (e : RunModelParamWithRemoteId) workerNodeId m =
+    //    {
+    //        workerNodeRecipient = workerNodeId
+    //        deliveryType = GuaranteedDelivery
+    //        messageData =
+    //            (
+    //                {
+    //                    remoteProcessId = e.remoteProcessId
+    //                    localProcessId = None
+    //                    runningProcessData = { e.runModelParam.callBackInfo with workerNodeId = workerNodeId }
+    //                    taskParam = e.runModelParam.commandLineParam.taskParam
+    //                    minUsefulEe = e.runModelParam.commandLineParam.serviceAccessInfo.minUsefulEe
+    //                    commandLine = EmptyString
+    //                },
+    //                m
+    //            )
+    //            |> RunModelWrkMsg
+    //    }.getMessageInfo()
+    //    |> proxy.sendMessage
 
 
     type OnTryRunModelWithRemoteIdProxy =

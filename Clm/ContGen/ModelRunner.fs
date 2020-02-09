@@ -41,19 +41,61 @@ module ModelRunner =
         match q.toMessageInfoOpt proxy.loadModelData proxy.minUsefulEe with
         | Ok (Some m) -> proxy.sendRunModelMessage m
         | Ok None -> q.runQueueId |> MissingWorkerNodeErr |> toError RunModelErr
-        | Error e -> (addError RunModelErr) (UnableToLoadModeldata (q.runQueueId, q.info.modelDataId )) e
+        | Error e -> (addError RunModelErr) (UnableToLoadModelDataErr (q.runQueueId, q.info.modelDataId )) e
 
 
     type TryRunFirstModelProxy =
         {
             tryLoadFirstRunQueue : unit -> ClmResult<RunQueue option>
             tryGetAvailableWorkerNode : unit -> ClmResult<WorkerNodeId option>
+            runModel : RunQueue -> UnitResult
+            upsertRunQueue : RunQueue -> UnitResult
         }
 
 
+    type TryRunModelResult =
+        | WorkScheduled
+        | NoWork
+        | NoAvailableWorkerNodes
+
+
+    /// Tries to run the first not scheduled run queue entry using the first available worker node.
     let tryRunFirstModel (proxy : TryRunFirstModelProxy) =
+        let addError = addError TryRunFirstModelErr
+
         match proxy.tryLoadFirstRunQueue() with
         | Ok (Some q) ->
-            Ok()
-        | Ok None -> Ok()
-        | Error e -> Error e
+            match proxy.tryGetAvailableWorkerNode() with
+            | Ok (Some n) ->
+                let q1 = { q with workerNodeIdOpt = Some n; runQueueStatus = InProgressRunQueue }
+
+                match proxy.upsertRunQueue q1 with
+                | Ok() ->
+                    match proxy.runModel q1 with
+                    | Ok() -> Ok WorkScheduled
+                    | Error e -> addError UnableToRunModelErr e
+                | Error e -> addError UpsertRunQueueErr e
+            | Ok None -> Ok NoAvailableWorkerNodes
+            | Error e -> addError TryGetAvailableWorkerNodeErr e
+        | Ok None -> Ok NoWork
+        | Error e -> addError TryLoadFirstRunQueueErr e
+
+
+    type TryRunModelsProxy =
+        {
+            tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
+        }
+
+
+    /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
+    let tryRunAllModels (proxy : TryRunModelsProxy) =
+        let rec doWork() =
+            match proxy.tryRunFirstModel() with
+            | Ok r ->
+                match r with
+                | WorkScheduled -> doWork()
+                | NoWork -> Ok()
+                | NoAvailableWorkerNodes -> Ok()
+            | Error e -> addError TryRunAllModelsErr UnableTotryRunFirstModelErr e
+
+        doWork()

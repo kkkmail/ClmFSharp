@@ -162,6 +162,17 @@ module DatabaseTypes =
 
 
     type RunQueueSingleTableData = SqlCommandProvider<"
+        select
+            r.*,
+            t.clmDefaultValueId
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
+        where runQueueId = @runQueueId and r.runQueueStatusId = 0 and t.clmTaskStatusId = 0
+        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    type RunQueueFirstTableData = SqlCommandProvider<"
         select top 1
             r.*,
             t.clmDefaultValueId
@@ -195,16 +206,11 @@ module DatabaseTypes =
     type ModelCommandLineParam
         with
 
-        static member create i (r : CommandLineParamTableRow) =
+        static member create (r : CommandLineParamTableRow) =
             {
-                taskParam =
-                    {
-                        y0 = r.y0
-                        tEnd = r.tEnd
-                        useAbundant = r.useAbundant
-                    }
-
-                serviceAccessInfo = i
+                y0 = r.y0
+                tEnd = r.tEnd
+                useAbundant = r.useAbundant
             }
 
         /// TODO kk:20190531 - Perhaps it is worth assigning commandLineParamId on the client OR by database.
@@ -213,9 +219,9 @@ module DatabaseTypes =
                 t.NewRow(
                         commandLineParamId = Guid.NewGuid(),
                         clmTaskId = clmTaskId,
-                        y0 = r.taskParam.y0,
-                        tEnd = r.taskParam.tEnd,
-                        useAbundant = r.taskParam.useAbundant
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant
                         )
 
             t.Rows.Add newRow
@@ -353,14 +359,9 @@ module DatabaseTypes =
 
                             modelCommandLineParam =
                                 {
-                                    taskParam =
-                                        {
-                                            y0 = r.y0
-                                            tEnd = r.tEnd
-                                            useAbundant = r.useAbundant
-                                        }
-
-                                    serviceAccessInfo = i
+                                    y0 = r.y0
+                                    tEnd = r.tEnd
+                                    useAbundant = r.useAbundant
                                 }
                         }
                     runQueueStatus = s
@@ -375,9 +376,9 @@ module DatabaseTypes =
                 t.NewRow(
                         runQueueId = r.runQueueId.value,
                         modelDataId = r.info.modelDataId.value,
-                        y0 = r.modelCommandLineParam.taskParam.y0,
-                        tEnd = r.modelCommandLineParam.taskParam.tEnd,
-                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant,
+                        y0 = r.modelCommandLineParam.y0,
+                        tEnd = r.modelCommandLineParam.tEnd,
+                        useAbundant = r.modelCommandLineParam.useAbundant,
                         workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                         progress = r.progress.value,
                         modifiedOn = DateTime.Now
@@ -496,7 +497,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadCommandLineParams connectionString i (ClmTaskId clmTaskId) =
+    let loadCommandLineParams connectionString (ClmTaskId clmTaskId) =
         let g() =
             use conn = getOpenConn connectionString
             use d = new CommandLineParamData(conn)
@@ -505,7 +506,7 @@ module DatabaseTypes =
 
             t.Rows
             |> Seq.toList
-            |> List.map (fun r -> ModelCommandLineParam.create i r)
+            |> List.map (fun r -> ModelCommandLineParam.create r)
             |> Ok
 
         tryDbFun g
@@ -522,7 +523,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadClmTask connectionString i (ClmTaskId clmTaskId) =
+    let loadClmTask connectionString (ClmTaskId clmTaskId) =
         let g() =
             use conn = getOpenConn connectionString
             use d = new ClmTaskData(conn)
@@ -530,13 +531,13 @@ module DatabaseTypes =
             d.Execute clmTaskId |> t.Load
 
             match t.Rows |> Seq.tryFind (fun e -> e.clmTaskId = clmTaskId) with
-            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString i) v
+            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString) v
             | None -> toError LoadClmTaskErr clmTaskId
 
         tryDbFun g
 
 
-    let loadClmTaskByDefault connectionString i (ClmDefaultValueId clmDefaultValueId) =
+    let loadClmTaskByDefault connectionString (ClmDefaultValueId clmDefaultValueId) =
         let g() =
             use conn = getOpenConn connectionString
             use d = new ClmTaskByDefaultData(conn)
@@ -544,13 +545,13 @@ module DatabaseTypes =
             d.Execute clmDefaultValueId |> t.Load
 
             match t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) with
-            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString i) v
+            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString) v
             | None -> toError LoadClmTaskByDefaultErr clmDefaultValueId
 
         tryDbFun g
 
 
-    let loadIncompleteClmTasks connectionString i =
+    let loadIncompleteClmTasks connectionString =
         let g() =
             use conn = getOpenConn connectionString
             use d = new ClmTaskAllIncompleteData(conn)
@@ -559,7 +560,7 @@ module DatabaseTypes =
 
             t.Rows
             |> Seq.toList
-            |> List.map (fun r -> ClmTask.tryCreate (loadCommandLineParams connectionString i) r)
+            |> List.map (fun r -> ClmTask.tryCreate (loadCommandLineParams connectionString) r)
             |> Ok
 
         tryDbFun g
@@ -606,7 +607,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let loadModelData connectionString i (ModelDataId modelDataId) =
+    let loadModelData connectionString (ModelDataId modelDataId) =
         let g() =
             use conn = getOpenConn connectionString
             use d = new ModelDataTableData(conn)
@@ -614,7 +615,7 @@ module DatabaseTypes =
             d.Execute modelDataId |> t.Load
 
             match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) with
-            | Some v -> ModelData.tryCreate (loadClmTask connectionString i) v
+            | Some v -> ModelData.tryCreate (loadClmTask connectionString) v
             | None -> toError LoadModelDataError modelDataId
 
         tryDbFun g
@@ -744,7 +745,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let private mapRunQueue i (reader : DynamicSqlDataReader) =
+    let private mapRunQueue (reader : DynamicSqlDataReader) =
         match RunQueueStatus.tryCreate reader?runQueueStatusId with
         | Some s ->
             {
@@ -753,17 +754,12 @@ module DatabaseTypes =
                     {
                         modelDataId = ModelDataId reader?modelDataId
                         defaultValueId = ClmDefaultValueId reader?clmDefaultValueId
-    
+
                         modelCommandLineParam =
                             {
-                                taskParam =
-                                    {
-                                        y0 = reader?y0
-                                        tEnd = reader?tEnd
-                                        useAbundant = reader?useAbundant
-                                    }
-    
-                                serviceAccessInfo = i
+                                y0 = reader?y0
+                                tEnd = reader?tEnd
+                                useAbundant = reader?useAbundant
                             }
                     }
                 runQueueStatus = s
@@ -774,35 +770,51 @@ module DatabaseTypes =
         | None -> toError MapRunQueueErr (reader?runQueueId)
 
 
-    let loadRunQueue connectionString i =
+    let loadRunQueue connectionString =
         let g() =
             seq
                 {
                     use conn = getOpenConn connectionString
                     use data = new RunQueueAllTableData(conn)
                     use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapRunQueue i reader
+                    while (reader.Read()) do yield mapRunQueue reader
                         }
             |> List.ofSeq
             |> Ok
-    
+
         tryDbFun g
 
 
-    let tryLoadFirstRunQueue connectionString i =
+    let tryLoadFirstRunQueue connectionString =
         let g() =
             seq
                 {
                     use conn = getOpenConn connectionString
-                    use data = new RunQueueSingleTableData(conn)
+                    use data = new RunQueueFirstTableData(conn)
                     use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapRunQueue i reader
+                    while (reader.Read()) do yield mapRunQueue reader
                         }
             |> List.ofSeq
             |> List.tryHead
             |> Ok
 
-        tryDbFun g
+        tryDbFun g |> Rop.unwrapResultOption
+
+
+    let tryLoadRunQueue connectionString (q : RunQueueId) =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueSingleTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute q.value)
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Ok
+
+        tryDbFun g |> Rop.unwrapResultOption
 
 
     let saveRunQueue connectionString modelDataId defaultValueId p =
@@ -916,6 +928,6 @@ module DatabaseTypes =
             
             match table.Rows |> Seq.tryHead with
             | None -> Ok None
-            | Some r -> r.workerNodeId |> Some |> Ok
+            | Some r -> r.workerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok
 
         tryDbFun g

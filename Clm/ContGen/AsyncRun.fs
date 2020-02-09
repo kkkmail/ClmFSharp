@@ -26,6 +26,7 @@ module AsyncRun =
     //        usePartitioner : bool
     //    }
 
+
     type AsyncRunnerData =
         {
             removeFromQueue : RunQueueId -> UnitResult
@@ -55,7 +56,7 @@ module AsyncRun =
 
     //    //member state.runningCount = state.running.Count
     //    //member state.runningQueue = state.running |> Map.toList |> List.map (fun (_, v) -> v.progressUpdateInfo.processStartedInfo.runningProcessData.runQueueId) |> Set.ofList
-
+    //
     //    static member defaultValue u =
     //        {
     //            //running = Map.empty
@@ -68,7 +69,7 @@ module AsyncRun =
     //            usePartitioner = u
     //            lastRunError = None
     //        }
-
+    //
     //    override s.ToString() =
     //        let q = s.queue |> List.map (fun e -> e.processToStartInfo.modelDataId.ToString()) |> String.concat ", "
     //        let r =
@@ -76,7 +77,7 @@ module AsyncRun =
     //            |> Map.toList
     //            |> List.map (fun (_, e) -> sprintf "(modelId: %A, processId: %A, started: %A, %A)" e.progressUpdateInfo.processStartedInfo.runningProcessData.modelDataId e.progressUpdateInfo.processStartedInfo.processId e.started e.progressUpdateInfo.progress) |> String.concat ", "
     //        sprintf "{ running: [%s]; queue: [%s]; runLimit = %A; runningCount: %A; workState: %A; minUsefulEe: %A; lastRunError = %A }" r q s.runLimit s.runningCount s.workState s.minUsefulEe s.lastRunError
-
+    //
     //    member s.isShuttingDown =
     //        match s.workState with
     //        | NotInitialized | Idle | CanGenerate | Generating -> false
@@ -91,10 +92,10 @@ module AsyncRun =
     //    | GenerationStarted of AsyncRunner
     //    | GenerationCompleted of list<RunInfo>
     //    | RunModel of ModelDataId * ModelCommandLineParam
-
+    //
     //    override m.ToString() =
     //        let toStr (r : list<RunInfo>) = "[" + (r |> List.map (fun e -> e.processToStartInfo.modelDataId.ToString()) |> String.concat ", ") + "]"
-
+    //
     //        match m with
     //        | QueueStarting _ -> "QueueStarting"
     //        | ConfigureService _ -> "ConfigureService"
@@ -105,8 +106,8 @@ module AsyncRun =
     //        | RunModel _ -> "RunModel"
 
 
-    type AsyncRunnerMessage =
-        | X
+    //type AsyncRunnerMessage =
+    //    | X
 
 
     //type OnStartRunProxy =
@@ -118,10 +119,10 @@ module AsyncRun =
     //let onStartRun (proxy : OnStartRunProxy) (s : AsyncRunnerState) : StateWithResult<AsyncRunnerState> =
     //    let addError = addError OnStartRunErr
     //    let updateQueue t ((g : AsyncRunnerState), f) = { g with queue = t }, f
-
+    //
     //    let start (g : AsyncRunnerState) e f =
     //        let x = e.run e.processToStartInfo
-
+    //
     //        match x with
     //        | Ok (StartedSuccessfully (r, fo)) ->
     //            { g with running = g.running.Add(r.processId, r.toRunningProcessInfo())}, toUnitResult fo
@@ -129,19 +130,19 @@ module AsyncRun =
     //        | Ok (AlreadyCompleted fo) ->
     //            let r = proxy.removeFromQueue e.processToStartInfo.runQueueId
     //            g, toUnitResult fo |> combineUnitResults r
-
+    //
     //    let w() =
     //        if s.runningCount < s.runLimit
     //        then
     //            let run, queue = s.queue |> List.splitAt (min s.queue.Length (max 0 (s.runLimit - s.runningCount)))
-
+    //
     //            let w, result =
     //                run
     //                |> List.fold (fun (acc, f) e -> start acc e f) (s, Ok())
     //                |> updateQueue queue
     //            w, result
     //        else s, Ok()
-
+    //
     //    match s.workState with
     //    | NotInitialized -> s, Ok()
     //    | Idle -> w()
@@ -165,7 +166,7 @@ module AsyncRun =
     //    let w t =
     //        let x = proxy.getQueue()
     //        x |> onQueueObtained { s with workState = t }
-
+    //
     //    match s.workState with
     //    | NotInitialized -> w CanGenerate
     //    | Idle | CanGenerate | Generating -> w s.workState
@@ -201,7 +202,7 @@ module AsyncRun =
     //            |> Map.toList
     //            |> List.map (fun (i, _) -> a.configureService (CancelTask i))
     //            |> ignore
-
+    //
     //            { s with workState = ShuttingDown; queue = [] }
     //        | true -> { s with workState = ShuttingDown }
     //    | SetRunLimit v ->

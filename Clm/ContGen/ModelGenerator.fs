@@ -17,19 +17,12 @@ open Clm.CalculationData
 open ClmSys.WorkerNodeData
 open ClmSys.ContGenData
 open ClmSys.SolverRunnerData
+open ClmSys.Rop
 
 module ModelGenerator =
 
     let private toError g f = f |> g |> ModelGeneratorErr |> Error
     let private addError g f e = ((f |> g |> ModelGeneratorErr) + e) |> Error
-
-
-    type GenerateModelProxy =
-        {
-            loadParams : ClmTask -> ClmResult<AllParams>
-            upsertModelData : ModelData -> UnitResult
-            upsertRunQueue : RunQueue -> UnitResult
-        }
 
 
     let generateModel (proxy : GenerateModelProxy) (c : ClmTask) =
@@ -64,11 +57,7 @@ module ModelGenerator =
         | Error e -> Error e
 
 
-    type GenerateAllProxy =
-        {
-            loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
-        }
-
-
-    let generateAll =
-        0
+    let generateAll (proxy : GenerateAllProxy) i =
+        let (r, f) = proxy.loadIncompleteClmTasks i |> unzipListResult
+        let e = r |> List.map proxy.generateModel |> foldUnitResults
+        f |> foldToUnitResult |> combineUnitResults e

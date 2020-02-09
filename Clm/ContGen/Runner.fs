@@ -130,15 +130,15 @@ module Runner =
         //    | e -> [], toError (GenerateModelExn e)
 
 
-        let generateAll i () =
-            let a, f =
-                p.runnerProxy.loadIncompleteClmTasks i
-                |> Rop.mapListResult generateImpl
-                |> Rop.unzipListResult
-
-            let s, e = a |> List.unzip
-            let err = foldUnitResults (e @ [foldToUnitResult f])
-            s |> List.concat, err
+        //let generateAll i () =
+        //    let a, f =
+        //        p.runnerProxy.loadIncompleteClmTasks i
+        //        |> Rop.mapListResult generateImpl
+        //        |> Rop.unzipListResult
+        //
+        //    let s, e = a |> List.unzip
+        //    let err = foldUnitResults (e @ [foldToUnitResult f])
+        //    s |> List.concat, err
 
 
         //let getQueue i () =

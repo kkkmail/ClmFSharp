@@ -12,11 +12,20 @@ open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
+open Clm.Generator.ClmModelData
 
 module ModelGeneratorProxy =
 
-    type ModelGeneratorProxy =
+    type GenerateModelProxy =
         {
-            //generate : unit -> ListResult<RunQueueId>
-            dummy : int
+            loadParams : ClmTask -> ClmResult<AllParams>
+            upsertModelData : ModelData -> UnitResult
+            upsertRunQueue : RunQueue -> UnitResult
+        }
+
+
+    type GenerateAllProxy =
+        {
+            loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
+            generateModel : ClmTask -> UnitResult
         }

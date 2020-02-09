@@ -14,6 +14,7 @@ open PartitionerErrors
 open SolverRunnerErrors
 open ModelGeneratorErrors
 open RunnerErrors
+open ModelRunnerErrors
 open Rop
 
 module ClmErrors =
@@ -37,8 +38,9 @@ module ClmErrors =
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | PartitionerErr of PartitionerError
-        | AsyncRunErr of AsyncRunError
-        | RunnerErr of RunnerError
+        //| AsyncRunErr of AsyncRunError
+        //| RunnerErr of RunnerError
+        | ModelRunnerErr of ModelRunnerError
 
         static member (+) (a, b) =
             match a, b with
@@ -115,12 +117,15 @@ module ClmErrors =
         | Error e -> Error (f + e)
 
 
+    /// The first result r1 is an earlier result and r2 is a later result
+    /// and we want to sum up errors as (e2 + e1), so that to keep
+    /// the latest error at the begining.
     let combineUnitResults (r1 : UnitResult) (r2 : UnitResult) =
         match r1, r2 with
         | Ok(), Ok() -> Ok()
         | Error e1, Ok() -> Error e1
         | Ok(), Error e2 -> Error e2
-        | Error e1, Error e2 -> Error (e1 + e2)
+        | Error e1, Error e2 -> Error (e2 + e1)
 
 
     let toErrorOption f g (r : UnitResult) =

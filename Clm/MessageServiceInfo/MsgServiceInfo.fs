@@ -17,6 +17,7 @@ open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.MessagingClientErrors
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -47,7 +48,6 @@ module ServiceInfo =
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
-        //| RequestWork of WorkerNodeRequestInfo
 
         member this.messageSize =
             match this with
@@ -56,7 +56,6 @@ module ServiceInfo =
             | SaveChartsPrtMsg _ -> MediumSize
             | RegisterWorkerNodePrtMsg _ -> SmallSize
             | UnregisterWorkerNodePrtMsg _ -> SmallSize
-            | RequestWork _ -> SmallSize
 
 
     type WorkerNodeRunModelData =
@@ -64,7 +63,6 @@ module ServiceInfo =
             remoteProcessId : RemoteProcessId
             localProcessId : LocalProcessId option
             runningProcessData : RunningProcessData
-            taskParam : ModelCommandLineTaskParam
             minUsefulEe : MinUsefulEe
             commandLine : string
         }
@@ -250,20 +248,12 @@ module ServiceInfo =
         | DummyConfig
 
 
-    //type GetVersionResult = ClmResult<MessagingDataVersion>
-    //type TryPeekMessageResult = ClmResult<Message option>
-    //type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
-
-
     type MsgServiceState =
         {
             msgVersion : MessagingDataVersion
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
         }
-
-
-    //type GetStateResult = Result<MsgServiceState, GetStateError>
 
 
     type MsgSvcShutDownInfo =
@@ -276,6 +266,49 @@ module ServiceInfo =
         {
             serviceHost : ServiceHost
         }
+
+
+    type RunQueue
+        with
+
+        member q.toRunningProcessDataOpt() =
+            q.workerNodeIdOpt
+            |> Option.bind (fun w ->
+                            {
+                                modelDataId = q.info.modelDataId
+                                defaultValueId = q.info.defaultValueId
+                                runQueueId = q.runQueueId
+                                workerNodeId = w
+                                commandLineParams = q.modelCommandLineParam
+                            }
+                            |> Some)
+
+
+        member q.toMessageInfoOpt getModelData minUsefulEe =
+            match q.toRunningProcessDataOpt() with
+            | Some d ->
+                match getModelData q.info.modelDataId with
+                | Ok m ->
+                    {
+                        workerNodeRecipient = d.workerNodeId
+                        deliveryType = GuaranteedDelivery
+                        messageData =
+                            (
+                                {
+                                    remoteProcessId = q.runQueueId.toRemoteProcessId()
+                                    localProcessId = None
+                                    runningProcessData = d
+                                    minUsefulEe = minUsefulEe
+                                    commandLine = EmptyString
+                                },
+                                m
+                            )
+                            |> RunModelWrkMsg
+                    }.getMessageInfo()
+                    |> Some |> Ok
+                | Error e -> Error e
+            | None -> Ok None
+
 
 
     type IMessagingService =

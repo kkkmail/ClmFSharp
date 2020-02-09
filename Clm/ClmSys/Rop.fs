@@ -173,3 +173,17 @@ module Rop =
         match r with
         | Ok v -> v |> unzip
         | Error e -> [], [e]
+
+
+    /// Unwraps things like Result<Result<RunQueue, ClmError> option, ClmError>
+    /// into Result<RunQueue option, ClmError>
+    let unwrapResultOption r =
+        match r with
+        | Ok w ->
+            match w with
+            | Some x ->
+                match x with
+                | Ok a -> a |> Some |> Ok
+                | Error e -> Error e
+            | None -> Ok None
+        | Error e -> Error e

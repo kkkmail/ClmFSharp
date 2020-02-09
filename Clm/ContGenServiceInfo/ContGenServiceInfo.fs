@@ -342,6 +342,6 @@ module ServiceInfo =
     type RunModelParam =
         {
             exeName : string
-            commandLineParam : ModelCommandLineParam
+            //commandLineParam : ModelCommandLineParam
             callBackInfo : RunningProcessData
         }

@@ -246,55 +246,55 @@ module Partitioner =
     //    | Error e -> addError CannotLoadWorkerNodeInfo e
 
 
-    type OnSaveResultProxy =
-        {
-            saveResultData : ResultDataWithId -> UnitResult
-        }
+    //type OnSaveResultProxy =
+    //    {
+    //        saveResultData : ResultDataWithId -> UnitResult
+    //    }
+    //
+    //
+    //let onSaveResult (proxy : OnSaveResultProxy) r =
+    //    let result = proxy.saveResultData r
+    //    result
+    //
+    //
+    //type OnSaveChartsProxy =
+    //    {
+    //        saveCharts : ChartInfo -> UnitResult
+    //    }
+    //
+    //
+    //let onSaveCharts (proxy : OnSaveChartsProxy) (c : ChartInfo) =
+    //    let result = proxy.saveCharts c
+    //    result
 
 
-    let onSaveResult (proxy : OnSaveResultProxy) r =
-        let result = proxy.saveResultData r
-        result
-
-
-    type OnSaveChartsProxy =
-        {
-            saveCharts : ChartInfo -> UnitResult
-        }
-
-
-    let onSaveCharts (proxy : OnSaveChartsProxy) (c : ChartInfo) =
-        let result = proxy.saveCharts c
-        result
-
-
-    type OnProcessMessageProxy =
-        {
-            onUpdateProgress : RemoteProgressUpdateInfo -> UnitResult
-            onSaveResult : ResultDataWithId -> UnitResult
-            onSaveCharts : ChartInfo -> UnitResult
-            onRegister : WorkerNodeInfo -> UnitResult
-            onUnregister : WorkerNodeId -> UnitResult
-        }
-
-
-    let onProcessMessage (proxy : OnProcessMessageProxy) (m : Message) =
-        let addError f e = ((f |> OnProcessPartitionerMessageErr |> PartitionerErr) + e) |> Error
-        let toClmError e = e |> OnProcessPartitionerMessageErr |> PartitionerErr
-        let toError e = e |> toClmError |> Error
-
-        let result =
-            match m.messageData with
-            | PartitionerMsg x ->
-                match x with
-                | UpdateProgressPrtMsg i -> proxy.onUpdateProgress i
-                | SaveResultPrtMsg r -> proxy.onSaveResult r
-                | SaveChartsPrtMsg c -> proxy.onSaveCharts c
-                | RegisterWorkerNodePrtMsg r -> proxy.onRegister r
-                | UnregisterWorkerNodePrtMsg r -> proxy.onUnregister r
-            | _ -> InvalidMessageTypeErr m.messageDataInfo.messageId.value |> toError
-
-        result
+    //type OnProcessMessageProxy =
+    //    {
+    //        onUpdateProgress : RemoteProgressUpdateInfo -> UnitResult
+    //        onSaveResult : ResultDataWithId -> UnitResult
+    //        onSaveCharts : ChartInfo -> UnitResult
+    //        onRegister : WorkerNodeInfo -> UnitResult
+    //        onUnregister : WorkerNodeId -> UnitResult
+    //    }
+    //
+    //
+    //let onProcessMessage (proxy : OnProcessMessageProxy) (m : Message) =
+    //    let addError f e = ((f |> OnProcessPartitionerMessageErr |> PartitionerErr) + e) |> Error
+    //    let toClmError e = e |> OnProcessPartitionerMessageErr |> PartitionerErr
+    //    let toError e = e |> toClmError |> Error
+    //
+    //    let result =
+    //        match m.messageData with
+    //        | PartitionerMsg x ->
+    //            match x with
+    //            | UpdateProgressPrtMsg i -> proxy.onUpdateProgress i
+    //            | SaveResultPrtMsg r -> proxy.onSaveResult r
+    //            | SaveChartsPrtMsg c -> proxy.onSaveCharts c
+    //            | RegisterWorkerNodePrtMsg r -> proxy.onRegister r
+    //            | UnregisterWorkerNodePrtMsg r -> proxy.onUnregister r
+    //        | _ -> InvalidMessageTypeErr m.messageDataInfo.messageId.value |> toError
+    //
+    //    result
 
 
     type OnProcessMessageType = OnProcessMessageType<unit>

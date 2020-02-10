@@ -65,3 +65,16 @@ module ModelRunnerProxy =
             loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
+
+
+    type SaveResultProxy =
+        {
+            saveResultData : ResultDataWithId -> UnitResult
+        }
+
+
+    type SaveChartsProxy =
+        {
+            saveCharts : ChartInfo -> UnitResult
+        }
+

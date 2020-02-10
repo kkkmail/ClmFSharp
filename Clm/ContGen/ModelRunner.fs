@@ -61,7 +61,6 @@ module ModelRunner =
         | Error e -> addError TryLoadFirstRunQueueErr e
 
 
-
     /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
     let tryRunAllModels (proxy : TryRunAllModelsProxy) =
         let rec doWork() =
@@ -103,17 +102,44 @@ module ModelRunner =
 
 
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
-        match proxy.upsertWorkerNodeInfo r with
-        | Ok() -> Ok()
-        | Error e -> addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId) e
+        proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId))
 
 
     let unregister (proxy : UnregisterProxy) (r : WorkerNodeId) =
         let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
-        | Ok w ->
-            match proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } with
-            | Ok() -> Ok()
-            | Error e -> addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r) e
+        | Ok w -> proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
+
+
+
+    let saveResult (proxy : SaveResultProxy) r =
+        proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
+
+
+    let saveCharts (proxy : SaveChartsProxy) c =
+        proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
+
+
+    type ProcessMessageProxy =
+        {
+            updateProgress : RemoteProgressUpdateInfo -> UnitResult
+            saveResult : ResultDataWithId -> UnitResult
+            saveCharts : ChartInfo -> UnitResult
+            register : WorkerNodeInfo -> UnitResult
+            unregister : WorkerNodeId -> UnitResult
+        }
+
+
+    let processMessage (proxy : ProcessMessageProxy) (m : Message) =
+        match m.messageData with
+        | PartitionerMsg x ->
+            match x with
+            | UpdateProgressPrtMsg i -> proxy.updateProgress i
+            | SaveResultPrtMsg r -> proxy.saveResult r
+            | SaveChartsPrtMsg c -> proxy.saveCharts c
+            | RegisterWorkerNodePrtMsg r -> proxy.register r
+            | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
+            |> bindError (addError ProcessMessageErr (ErrorWhenProcessingMessageErr m.messageDataInfo.messageId))
+        | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)

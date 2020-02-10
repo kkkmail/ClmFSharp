@@ -3,6 +3,7 @@
 open GeneralPrimitives
 open ContGenPrimitives
 open WorkerNodePrimitives
+open MessagingPrimitives
 
 module ModelRunnerErrors =
 
@@ -38,6 +39,19 @@ module ModelRunnerErrors =
         | UnableToUpsertWorkerNodeInfoOnUnregisterErr of WorkerNodeId
 
 
+    type SaveResultError =
+        | UnableToSaveResultDataErr of ResultDataId
+
+
+    type SaveChartsError =
+        | UnableToSaveCharts of ResultDataId
+
+
+    type ProcessMessageError =
+        | ErrorWhenProcessingMessageErr of MessageId
+        | InvalidMessageTypeErr of MessageId
+
+
     type ModelRunnerError =
         | RunModelErr of RunModelError
         | TryRunFirstModelErr of TryRunFirstModelError
@@ -45,3 +59,6 @@ module ModelRunnerErrors =
         | UpdateProgressErr of UpdateProgressError
         | RegisterErr of RegisterError
         | UnregisterErr of UnregisterError
+        | SaveResultErr of SaveResultError
+        | SaveChartsErr of SaveChartsError
+        | ProcessMessageErr of ProcessMessageError

@@ -43,10 +43,11 @@ module Rop =
         | Error e -> Error e
 
 
-    //let bindErr f r =
-    //    match r with
-    //    | Ok s -> Ok s
-    //    | Error e -> Error (f e)
+    /// Calls a continuation function in case of an error.
+    let bindError f r =
+        match r with
+        | Ok s -> Ok s
+        | Error e -> f e
 
 
     /// pipe a two-track value into a switch function

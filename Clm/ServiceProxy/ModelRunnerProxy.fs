@@ -15,6 +15,7 @@ open ClmSys.WorkerNodePrimitives
 open Clm.Generator.ClmModelData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
+open ContGenServiceInfo.ServiceInfo
 
 module ModelRunnerProxy =
 
@@ -78,3 +79,18 @@ module ModelRunnerProxy =
             saveCharts : ChartInfo -> UnitResult
         }
 
+
+    type ProcessMessageProxy =
+        {
+            updateProgress : RemoteProgressUpdateInfo -> UnitResult
+            saveResult : ResultDataWithId -> UnitResult
+            saveCharts : ChartInfo -> UnitResult
+            register : WorkerNodeInfo -> UnitResult
+            unregister : WorkerNodeId -> UnitResult
+        }
+
+
+    type GetRunStateProxy =
+        {
+            loadRunQueueProgress : unit -> ListResult<RunQueue>
+        }

@@ -144,6 +144,7 @@ module DatabaseTypes =
     type RunQueueTableRow = RunQueueTable.Row
 
 
+    /// SQL to upsert RunQueue.
     type RunQueueTableData = SqlCommandProvider<"
         select * 
         from dbo.RunQueue
@@ -173,7 +174,7 @@ module DatabaseTypes =
         where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
 
-    /// Sql to load first not started RunQueue.
+    /// SQL to load first not started RunQueue.
     type RunQueueFirstTableData = SqlCommandProvider<"
         select top 1
             r.*,
@@ -182,6 +183,19 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    /// SQL to load all currently running models == total progress.
+    /// runQueueStatusId = 2 is InProgressRunQueue.
+    type RunQueueProgressTableData = SqlCommandProvider<"
+        select
+            r.*,
+            t.clmDefaultValueId
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
+        where r.runQueueStatusId = 2 and t.clmTaskStatusId = 0 and r.workerNodeId is not null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -778,6 +792,21 @@ module DatabaseTypes =
                 {
                     use conn = getOpenConn connectionString
                     use data = new RunQueueAllTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> Ok
+
+        tryDbFun g
+
+
+    let loadRunQueueProgress connectionString =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueProgressTableData(conn)
                     use reader= new DynamicSqlDataReader(data.Execute())
                     while (reader.Read()) do yield mapRunQueue reader
                         }

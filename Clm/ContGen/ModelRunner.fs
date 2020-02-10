@@ -113,23 +113,12 @@ module ModelRunner =
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 
-
     let saveResult (proxy : SaveResultProxy) r =
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
     let saveCharts (proxy : SaveChartsProxy) c =
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
-
-
-    type ProcessMessageProxy =
-        {
-            updateProgress : RemoteProgressUpdateInfo -> UnitResult
-            saveResult : ResultDataWithId -> UnitResult
-            saveCharts : ChartInfo -> UnitResult
-            register : WorkerNodeInfo -> UnitResult
-            unregister : WorkerNodeId -> UnitResult
-        }
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
@@ -143,3 +132,6 @@ module ModelRunner =
             | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
             |> bindError (addError ProcessMessageErr (ErrorWhenProcessingMessageErr m.messageDataInfo.messageId))
         | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)
+
+
+    let getRunState (proxy : GetRunStateProxy) = proxy.loadRunQueueProgress() |> unzipListResult

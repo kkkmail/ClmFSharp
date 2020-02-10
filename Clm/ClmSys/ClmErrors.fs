@@ -6,14 +6,12 @@ open System.Runtime.InteropServices
 open VersionInfo
 open GeneralErrors
 open ContGenErrors
-open AsyncRunErrors
 open MessagingServiceErrors
 open MessagingClientErrors
 open WorkerNodeErrors
 open PartitionerErrors
 open SolverRunnerErrors
 open ModelGeneratorErrors
-open RunnerErrors
 open ModelRunnerErrors
 open Rop
 

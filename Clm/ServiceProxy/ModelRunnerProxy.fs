@@ -59,3 +59,9 @@ module ModelRunnerProxy =
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
 
+
+    type UnregisterProxy =
+        {
+            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
+            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+        }

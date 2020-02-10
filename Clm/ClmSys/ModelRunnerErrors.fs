@@ -33,9 +33,15 @@ module ModelRunnerErrors =
         | UnableToUpsertWorkerNodeInfoErr of WorkerNodeId
 
 
+    type UnregisterError =
+        | UnableToLoadWorkerNodeInfoErr of WorkerNodeId
+        | UnableToUpsertWorkerNodeInfoOnUnregisterErr of WorkerNodeId
+
+
     type ModelRunnerError =
         | RunModelErr of RunModelError
         | TryRunFirstModelErr of TryRunFirstModelError
         | TryRunAllModelsErr of TryRunAllModelsError
         | UpdateProgressErr of UpdateProgressError
         | RegisterErr of RegisterError
+        | UnregisterErr of UnregisterError

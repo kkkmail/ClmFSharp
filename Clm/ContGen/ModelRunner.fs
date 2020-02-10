@@ -108,20 +108,12 @@ module ModelRunner =
         | Error e -> addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId) e
 
 
-    type OnUnregisterProxy =
-        {
-            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
-            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
-        }
-
-
-    let onUnregister (proxy : OnUnregisterProxy) (r : WorkerNodeId) =
-        let addError f e = ((f |> OnUnregisterErr |> PartitionerErr) + e) |> Error
-        let toError e = e |> OnUnregisterErr |> PartitionerErr |> Error
+    let unregister (proxy : UnregisterProxy) (r : WorkerNodeId) =
+        let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
         | Ok w ->
-            match proxy.upsertWorkerNodeInfo w with
+            match proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } with
             | Ok() -> Ok()
-            | Error e -> addError CannotUpsertWorkerNodeInfo e
-        | Error e -> addError CannotLoadWorkerNodeInfo e
+            | Error e -> addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r) e
+        | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e

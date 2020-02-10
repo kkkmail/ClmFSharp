@@ -43,6 +43,12 @@ module Rop =
         | Error e -> Error e
 
 
+    //let bindErr f r =
+    //    match r with
+    //    | Ok s -> Ok s
+    //    | Error e -> Error (f e)
+
+
     /// pipe a two-track value into a switch function
     let (>>=) x f = bind f x
 

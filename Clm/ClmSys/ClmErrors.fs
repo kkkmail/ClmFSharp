@@ -117,6 +117,9 @@ module ClmErrors =
         | Error e -> Error (f + e)
 
 
+    let bindError (f : ClmError) v = addError v f
+
+
     /// The first result r1 is an earlier result and r2 is a later result
     /// and we want to sum up errors as (e2 + e1), so that to keep
     /// the latest error at the begining.

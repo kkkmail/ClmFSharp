@@ -1,11 +1,14 @@
 ﻿namespace ClmSys
 
+open ClmSys.ContGenPrimitives
+
 module ModelGeneratorErrors =
 
 
-    type OnGenerateModelsError =
-        | GenerationFailedErr
+    type GenerateModelError =
+        | UnableLoadParamsErr of ClmTaskId
+        | UnableUpsertModelData of ClmTaskId
 
 
     type ModelGeneratorError =
-        | OnGenerateModelsErr of OnGenerateModelsError
+        | GenerateModelErr of GenerateModelError

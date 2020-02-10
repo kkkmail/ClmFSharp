@@ -74,32 +74,32 @@ module Partitioner =
         | GetState of AsyncReplyChannel<PartitionerRunnerState>
 
 
-    type OnRegisterProxy =
-        {
-            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
-        }
+    //type OnRegisterProxy =
+    //    {
+    //        upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+    //    }
+    //
+    //
+    //let onRegister (proxy : OnRegisterProxy) (r : WorkerNodeInfo) = proxy.upsertWorkerNodeInfo r
 
 
-    let onRegister (proxy : OnRegisterProxy) (r : WorkerNodeInfo) = proxy.upsertWorkerNodeInfo r
+    //type OnCompletedProxy =
+    //    {
+    //        tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
+    //    }
+    //
+    //
+    //let onCompleted (proxy : OnCompletedProxy) r =
+    //    let result = proxy.tryDeleteRunModelParamWithRemoteId r
+    //    result
 
 
-    type OnCompletedProxy =
-        {
-            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
-        }
-
-
-    let onCompleted (proxy : OnCompletedProxy) r =
-        let result = proxy.tryDeleteRunModelParamWithRemoteId r
-        result
-
-
-    type SendRunModelMessageProxy =
-        {
-            sendMessage : MessageInfo -> UnitResult
-        }
-
-
+    //type SendRunModelMessageProxy =
+    //    {
+    //        sendMessage : MessageInfo -> UnitResult
+    //    }
+    //
+    //
     //let sendRunModelMessage (proxy : SendRunModelMessageProxy) (e : RunModelParamWithRemoteId) workerNodeId m =
     //    {
     //        workerNodeRecipient = workerNodeId
@@ -189,61 +189,61 @@ module Partitioner =
     //    | Error e -> s, Error e
 
 
-    type OnUpdateProgressProxy =
-        {
-            onUpdateProgress : ProgressUpdateInfo -> UnitResult
-            onCompleted : RemoteProcessId -> UnitResult
-        }
+    //type OnUpdateProgressProxy =
+    //    {
+    //        onUpdateProgress : ProgressUpdateInfo -> UnitResult
+    //        onCompleted : RemoteProcessId -> UnitResult
+    //    }
+    //
+    //
+    //let onUpdateProgress (proxy : OnUpdateProgressProxy) (i : RemoteProgressUpdateInfo) =
+    //    let u = i.toProgressUpdateInfo() |> proxy.onUpdateProgress
+    //
+    //    let r =
+    //        match i.progress with
+    //        | NotStarted | InProgress _ -> Ok()
+    //        | Completed -> proxy.onCompleted i.remoteProcessId
+    //        | Failed _ -> proxy.onCompleted i.remoteProcessId
+    //
+    //    combineUnitResults r u
 
 
-    let onUpdateProgress (proxy : OnUpdateProgressProxy) (i : RemoteProgressUpdateInfo) =
-        let u = i.toProgressUpdateInfo() |> proxy.onUpdateProgress
-
-        let r =
-            match i.progress with
-            | NotStarted | InProgress _ -> Ok()
-            | Completed -> proxy.onCompleted i.remoteProcessId
-            | Failed _ -> proxy.onCompleted i.remoteProcessId
-
-        combineUnitResults r u
-
-
-    type OnFailedProxy =
-        {
-            loadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
-            onUpdateProgress : RemoteProgressUpdateInfo -> UnitResult
-        }
-
-
-    let onFailed (proxy : OnFailedProxy) r (i : RemoteProcessId) =
-        let result =
-            match proxy.loadRunModelParamWithRemoteId i with
-            | Ok m ->
-                let i = Failed (r, i) |> m.toRemoteProgressUpdateInfo
-                let r = proxy.onUpdateProgress i
-                r
-            | Error e -> Error e
-
-        result
+    //type OnFailedProxy =
+    //    {
+    //        loadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
+    //        onUpdateProgress : RemoteProgressUpdateInfo -> UnitResult
+    //    }
+    //
+    //
+    //let onFailed (proxy : OnFailedProxy) r (i : RemoteProcessId) =
+    //    let result =
+    //        match proxy.loadRunModelParamWithRemoteId i with
+    //        | Ok m ->
+    //            let i = Failed (r, i) |> m.toRemoteProgressUpdateInfo
+    //            let r = proxy.onUpdateProgress i
+    //            r
+    //        | Error e -> Error e
+    //
+    //    result
 
 
-    type OnUnregisterProxy =
-        {
-            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
-            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
-        }
-
-
-    let onUnregister (proxy : OnUnregisterProxy) (r : WorkerNodeId) =
-        let addError f e = ((f |> OnUnregisterErr |> PartitionerErr) + e) |> Error
-        let toError e = e |> OnUnregisterErr |> PartitionerErr |> Error
-
-        match proxy.loadWorkerNodeInfo r with
-        | Ok w ->
-            match proxy.upsertWorkerNodeInfo w with
-            | Ok() -> Ok()
-            | Error e -> addError CannotUpsertWorkerNodeInfo e
-        | Error e -> addError CannotLoadWorkerNodeInfo e
+    //type OnUnregisterProxy =
+    //    {
+    //        loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
+    //        upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+    //    }
+    //
+    //
+    //let onUnregister (proxy : OnUnregisterProxy) (r : WorkerNodeId) =
+    //    let addError f e = ((f |> OnUnregisterErr |> PartitionerErr) + e) |> Error
+    //    let toError e = e |> OnUnregisterErr |> PartitionerErr |> Error
+    //
+    //    match proxy.loadWorkerNodeInfo r with
+    //    | Ok w ->
+    //        match proxy.upsertWorkerNodeInfo w with
+    //        | Ok() -> Ok()
+    //        | Error e -> addError CannotUpsertWorkerNodeInfo e
+    //    | Error e -> addError CannotLoadWorkerNodeInfo e
 
 
     type OnSaveResultProxy =

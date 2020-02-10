@@ -43,3 +43,9 @@ module ContGenPrimitives =
             | 0 -> Some ActiveClmTask
             | 1 -> Some InactiveClmTask
             | _ -> None
+
+
+    type ClmTaskId =
+        | ClmTaskId of Guid
+
+        member this.value = let (ClmTaskId v) = this in v

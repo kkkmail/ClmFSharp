@@ -2,6 +2,7 @@
 
 open GeneralPrimitives
 open ContGenPrimitives
+open WorkerNodePrimitives
 
 module ModelRunnerErrors =
 
@@ -15,13 +16,26 @@ module ModelRunnerErrors =
         | TryGetAvailableWorkerNodeErr
         | UpsertRunQueueErr
         | UnableToRunModelErr
+        | UnableToRunModelAndUpsertStatusErr
 
 
     type TryRunAllModelsError =
-        | UnableTotryRunFirstModelErr
+        | UnableToTryRunFirstModelErr
+
+
+    type UpdateProgressError =
+        | UnableToLoadRunQueueErr of RunQueueId
+        | UnableToFindLoadRunQueueErr of RunQueueId
+        | InvalidRunQueueStatusErr of RunQueueId
+
+
+    type RegisterError =
+        | UnableToUpsertWorkerNodeInfoErr of WorkerNodeId
 
 
     type ModelRunnerError =
         | RunModelErr of RunModelError
         | TryRunFirstModelErr of TryRunFirstModelError
         | TryRunAllModelsErr of TryRunAllModelsError
+        | UpdateProgressErr of UpdateProgressError
+        | RegisterErr of RegisterError

@@ -26,6 +26,7 @@ module ModelGenerator =
 
 
     let generateModel (proxy : GenerateModelProxy) (c : ClmTask) =
+        let addError = addError GenerateModelErr
         let modelDataId = ModelDataId.getNewId()
 
         match proxy.loadParams c with
@@ -53,8 +54,8 @@ module ModelGenerator =
                     |> foldUnitResults
 
                 result
-            | Error e -> Error e
-        | Error e -> Error e
+            | Error e -> addError (UnableUpsertModelData c.clmTaskInfo.clmTaskId) e
+        | Error e -> addError (UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
 
 
     let generateAll (proxy : GenerateAllProxy) i =

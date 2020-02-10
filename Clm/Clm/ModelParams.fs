@@ -148,12 +148,6 @@ module ModelParams =
             }
 
 
-    type ClmTaskId =
-        | ClmTaskId of Guid
-
-        member this.value = let (ClmTaskId v) = this in v
-
-
     type ClmDefaultValue =
         {
             clmDefaultValueId : ClmDefaultValueId

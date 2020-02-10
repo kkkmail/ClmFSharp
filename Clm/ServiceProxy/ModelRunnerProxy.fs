@@ -14,6 +14,7 @@ open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
 open Clm.Generator.ClmModelData
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.WorkerNodeData
 
 module ModelRunnerProxy =
 
@@ -38,3 +39,23 @@ module ModelRunnerProxy =
         | WorkScheduled
         | NoWork
         | NoAvailableWorkerNodes
+
+
+    type TryRunAllModelsProxy =
+        {
+            tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
+        }
+
+
+    type UpdateProgressProxy =
+        {
+            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+            upsertRunQueue : RunQueue -> UnitResult
+        }
+
+
+    type RegisterProxy =
+        {
+            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+        }
+

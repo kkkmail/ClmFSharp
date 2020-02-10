@@ -5,7 +5,6 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.AsyncRunErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
@@ -51,18 +50,16 @@ module ModelRunner =
                 | Ok() ->
                     match proxy.runModel q1 with
                     | Ok() -> Ok WorkScheduled
-                    | Error e -> addError UnableToRunModelErr e
+                    | Error e ->
+                        match proxy.upsertRunQueue { q1 with runQueueStatus = FailedRunQueue } with
+                        | Ok() -> addError UnableToRunModelErr e
+                        | Error f -> addError UnableToRunModelAndUpsertStatusErr (f + e)
                 | Error e -> addError UpsertRunQueueErr e
             | Ok None -> Ok NoAvailableWorkerNodes
             | Error e -> addError TryGetAvailableWorkerNodeErr e
         | Ok None -> Ok NoWork
         | Error e -> addError TryLoadFirstRunQueueErr e
 
-
-    type TryRunAllModelsProxy =
-        {
-            tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
-        }
 
 
     /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
@@ -74,6 +71,57 @@ module ModelRunner =
                 | WorkScheduled -> doWork()
                 | NoWork -> Ok()
                 | NoAvailableWorkerNodes -> Ok()
-            | Error e -> addError TryRunAllModelsErr UnableTotryRunFirstModelErr e
+            | Error e -> addError TryRunAllModelsErr UnableToTryRunFirstModelErr e
 
         doWork()
+
+
+    let updateProgress (proxy : UpdateProgressProxy) (i : RemoteProgressUpdateInfo) =
+        let addError = addError UpdateProgressErr
+        let toError = toError UpdateProgressErr
+
+        match proxy.tryLoadRunQueue i.runningProcessData.runQueueId with
+        | Ok (Some q) ->
+            match q.runQueueStatus with
+            | InProgressRunQueue ->
+                let q1 = { q with progress = i.progress }
+
+                let q2 =
+                    match i.progress with
+                    | NotStarted | InProgress _ -> q1
+                    | Completed -> { q1 with runQueueStatus = CompletedRunQueue }
+                    | Failed _ -> { q1 with runQueueStatus = FailedRunQueue }
+
+                match proxy.upsertRunQueue q2 with
+                | Ok() -> Ok()
+                | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
+            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue ->
+                toError (InvalidRunQueueStatusErr i.runningProcessData.runQueueId)
+        | Ok None -> toError (UnableToFindLoadRunQueueErr i.runningProcessData.runQueueId)
+        | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
+
+
+
+    let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
+        match proxy.upsertWorkerNodeInfo r with
+        | Ok() -> Ok()
+        | Error e -> addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId) e
+
+
+    type OnUnregisterProxy =
+        {
+            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
+            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+        }
+
+
+    let onUnregister (proxy : OnUnregisterProxy) (r : WorkerNodeId) =
+        let addError f e = ((f |> OnUnregisterErr |> PartitionerErr) + e) |> Error
+        let toError e = e |> OnUnregisterErr |> PartitionerErr |> Error
+
+        match proxy.loadWorkerNodeInfo r with
+        | Ok w ->
+            match proxy.upsertWorkerNodeInfo w with
+            | Ok() -> Ok()
+            | Error e -> addError CannotUpsertWorkerNodeInfo e
+        | Error e -> addError CannotLoadWorkerNodeInfo e

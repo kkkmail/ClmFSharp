@@ -78,8 +78,6 @@
     <Compile Include="ContGenErrors.fs" />
     <Compile Include="ModelGeneratorErrors.fs" />
     <Compile Include="ModelRunnerErrors.fs" />
-    <Compile Include="RunnerErrors.fs" />
-    <Compile Include="AsyncRunErrors.fs" />
     <Compile Include="MessagingCommonErrors.fs" />
     <Compile Include="MessagingServiceErrors.fs" />
     <Compile Include="MessagingClientErrors.fs" />

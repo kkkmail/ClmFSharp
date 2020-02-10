@@ -150,6 +150,7 @@ module DatabaseTypes =
         where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
 
+    /// SQL to load all not started RunQueue.
     type RunQueueAllTableData = SqlCommandProvider<"
         select
             r.*,
@@ -157,10 +158,11 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0
+        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
+    /// SQL to load RunQueue by runQueueId.
     type RunQueueSingleTableData = SqlCommandProvider<"
         select
             r.*,
@@ -168,10 +170,10 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where runQueueId = @runQueueId and r.runQueueStatusId = 0 and t.clmTaskStatusId = 0
-        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
 
+    /// Sql to load first not started RunQueue.
     type RunQueueFirstTableData = SqlCommandProvider<"
         select top 1
             r.*,
@@ -179,7 +181,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0
+        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 

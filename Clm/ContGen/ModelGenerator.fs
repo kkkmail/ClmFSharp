@@ -5,7 +5,6 @@ open System.Diagnostics
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.AsyncRunErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
@@ -18,6 +17,9 @@ open ClmSys.WorkerNodeData
 open ClmSys.ContGenData
 open ClmSys.SolverRunnerData
 open ClmSys.Rop
+open DbData.DatabaseTypes
+open ClmSys.Logging
+open ClmSys.TimerEvents
 
 module ModelGenerator =
 
@@ -58,7 +60,25 @@ module ModelGenerator =
         | Error e -> addError (UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
 
 
-    let generateAll (proxy : GenerateAllProxy) i =
-        let (r, f) = proxy.loadIncompleteClmTasks i |> unzipListResult
+    let generateAll (proxy : GenerateAllProxy) =
+        let (r, f) = proxy.loadIncompleteClmTasks() |> unzipListResult
         let e = r |> List.map proxy.generateModel |> foldUnitResults
         f |> foldToUnitResult |> combineUnitResults e
+
+
+    type GenerateAllProxy
+        with
+
+        static member create c =
+            {
+                loadIncompleteClmTasks = fun () -> loadIncompleteClmTasks c
+                generateModel = generateModel (GenerateModelProxy.create c)
+            }
+
+
+    let createModelGenerator (logger : Logger) c =
+        logger.logInfoString "createModelGenerator: Creating model generator..."
+        let proxy = GenerateAllProxy.create c
+        let e = fun () -> generateAll proxy
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
+        h

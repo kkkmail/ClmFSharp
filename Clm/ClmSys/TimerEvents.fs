@@ -57,8 +57,7 @@ module TimerEvents =
                     with
                     | e -> (handlerId, e) |> UnhandledException |> logError
                 else handlerId |> StillRunningError |> logError
-            finally
-                Interlocked.Decrement(&counter) |> ignore
+            finally Interlocked.Decrement(&counter) |> ignore
 
 
         let timer = new System.Timers.Timer(refreshInterfal)
@@ -66,3 +65,4 @@ module TimerEvents =
         do timer.Elapsed.Add eventHandler
 
         member _.start() = do timer.Start()
+        member _.stop() = do timer.Stop()

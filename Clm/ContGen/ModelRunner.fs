@@ -22,6 +22,9 @@ open ClmSys.ModelRunnerErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 open ServiceProxy.ModelRunnerProxy
+open ClmSys.Logging
+open ClmSys.TimerEvents
+open DbData.DatabaseTypes
 
 module ModelRunner =
 
@@ -100,7 +103,6 @@ module ModelRunner =
         | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
 
 
-
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
         proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId))
 
@@ -135,3 +137,45 @@ module ModelRunner =
 
 
     let getRunState (proxy : GetRunStateProxy) = proxy.loadRunQueueProgress() |> unzipListResult
+
+
+    type ProcessMessageProxy
+        with
+
+        static member create c resultLocation =
+            {
+                updateProgress = updateProgress (UpdateProgressProxy.create c)
+                saveResult = saveResult (SaveResultProxy.create c)
+                saveCharts = saveCharts (SaveChartsProxy.create resultLocation)
+                register = register (RegisterProxy.create c)
+                unregister = unregister (UnregisterProxy.create c)
+            }
+
+
+    type TryRunFirstModelProxy
+        with
+
+        static member create c r =
+            {
+                tryLoadFirstRunQueue = fun () -> tryLoadFirstRunQueue c
+                tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c
+                runModel = r
+                upsertRunQueue = upsertRunQueue c
+            }
+
+
+    type TryRunAllModelsProxy
+        with
+
+        static member create c r =
+            {
+                tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r)
+            }
+
+
+    let createModelRunner (logger : Logger) c =
+        logger.logInfoString "createModelRunner: Creating model runner..."
+        let proxy = GenerateAllProxy.create c
+        let e = fun () -> generateAll proxy
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
+        h

@@ -243,8 +243,8 @@ module FileSystemTypes =
     let getRunModelParamWithRemoteIdIdsFs serviceName () = getObjectIds<RemoteProcessId> serviceName runModelParamWithRemoteIdTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
     let loadeRunModelParamWithRemoteIdAllFs serviceName () = loadObjects<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName Guid.Parse
 
-    let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
-    let loadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = loadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    let getWorkerNodeStateIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeStateTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
-    let loadWorkerNodeStateAllFs serviceName () = loadObjects<WorkerNodeState, Guid> serviceName workerNodeStateTblName Guid.Parse
+    //let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
+    //let loadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = loadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
+    //let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
+    //let getWorkerNodeStateIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeStateTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
+    //let loadWorkerNodeStateAllFs serviceName () = loadObjects<WorkerNodeState, Guid> serviceName workerNodeStateTblName Guid.Parse

@@ -23,9 +23,16 @@ module ModelGeneratorProxy =
             upsertRunQueue : RunQueue -> UnitResult
         }
 
+        static member create c =
+            {
+                loadParams = AllParams.create (loadClmDefaultValue c)
+                upsertModelData = upsertModelData c
+                upsertRunQueue = upsertRunQueue c
+            }
+
 
     type GenerateAllProxy =
         {
-            loadIncompleteClmTasks : SolverRunnerAccessInfo -> ListResult<ClmTask>
+            loadIncompleteClmTasks : unit -> ListResult<ClmTask>
             generateModel : ClmTask -> UnitResult
         }

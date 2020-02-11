@@ -50,7 +50,7 @@ module MsgProcessorProxy =
         let rec doFold x acc =
             match x with
             | [] -> acc, Ok()
-            | _ :: t ->
+            | () :: t ->
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
                 | ProcessedSucessfully (g, u) ->
                     match u with

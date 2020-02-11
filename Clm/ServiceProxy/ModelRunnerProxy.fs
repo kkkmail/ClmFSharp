@@ -26,6 +26,13 @@ module ModelRunnerProxy =
             loadModelData : ModelDataId -> ClmResult<ModelData>
         }
 
+        static member create c e s =
+            {
+                minUsefulEe = e
+                sendRunModelMessage = s
+                loadModelData = loadModelData c
+            }
+
 
     type TryRunFirstModelProxy =
         {
@@ -54,11 +61,22 @@ module ModelRunnerProxy =
             upsertRunQueue : RunQueue -> UnitResult
         }
 
+        static member create c =
+            {
+                tryLoadRunQueue = tryLoadRunQueue c
+                upsertRunQueue = upsertRunQueue c
+            }
+
 
     type RegisterProxy =
         {
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
+
+        static member create c =
+            {
+                upsertWorkerNodeInfo = upsertWorkerNodeInfo c
+            }
 
 
     type UnregisterProxy =
@@ -66,6 +84,11 @@ module ModelRunnerProxy =
             loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
+        static member create c =
+            {
+                loadWorkerNodeInfo = loadWorkerNodeInfo c
+                upsertWorkerNodeInfo = upsertWorkerNodeInfo c
+            }
 
 
     type SaveResultProxy =
@@ -73,11 +96,21 @@ module ModelRunnerProxy =
             saveResultData : ResultDataWithId -> UnitResult
         }
 
+        static member create c =
+            {
+                saveResultData = saveResultData c
+            }
+
 
     type SaveChartsProxy =
         {
             saveCharts : ChartInfo -> UnitResult
         }
+
+        static member create resultLocation =
+            {
+                saveCharts = fun (c : ChartInfo) -> saveLocalChartInfo (Some (resultLocation, c.defaultValueId)) c
+            }
 
 
     type ProcessMessageProxy =
@@ -94,3 +127,8 @@ module ModelRunnerProxy =
         {
             loadRunQueueProgress : unit -> ListResult<RunQueue>
         }
+
+        static member create c =
+            {
+                loadRunQueueProgress = fun () -> loadRunQueueProgress c
+            }

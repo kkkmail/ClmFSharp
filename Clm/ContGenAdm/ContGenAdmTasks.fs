@@ -125,16 +125,16 @@ module ContGenAdmTasks =
         0
 
 
-    let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
-        try
-            p
-            |> List.map (fun e -> e.configParam |> service.configureService)
-            |> ignore
-            0
-        with
-            | e ->
-                printfn "Exception: %A\n" e.Message
-                -1
+    //let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
+    //    try
+    //        p
+    //        |> List.map (fun e -> e.configParam |> service.configureService)
+    //        |> ignore
+    //        0
+    //    with
+    //    | e ->
+    //        printfn "Exception: %A\n" e.Message
+    //        -1
 
 
     //let startGenerate (service : IContGenService) =
@@ -151,14 +151,14 @@ module ContGenAdmTasks =
         | AddClmTaskTask of list<AddClmTaskArgs>
         //| RunModelTask of service : IContGenService * list<RunModelArgs>
         | MonitorTask of service : IContGenService * arguments : list<MonitorArgs>
-        | ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
+        //| ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
 
         member task.run i =
             match task with
             | AddClmTaskTask p -> addClmTask i p
             //| RunModelTask (s, p) -> runModel s i p
             | MonitorTask (s, p) -> monitor s p
-            | ConfigureServiceTask (s, p) -> configureService s p
+            //| ConfigureServiceTask (s, p) -> configureService s p
 
         static member private tryCreateUpdateParametersTask s p =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
@@ -169,14 +169,14 @@ module ContGenAdmTasks =
         static member private tryCreateMonitorTask s p =
             p |> List.tryPick (fun e -> match e with | Monitor q -> (s, q.GetAllResults()) |> MonitorTask |> Some | _ -> None)
 
-        static member private tryCreatConfigureServiceTask s p =
-            p |> List.tryPick (fun e -> match e with | ConfigureService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
+        //static member private tryCreatConfigureServiceTask s p =
+        //    p |> List.tryPick (fun e -> match e with | ConfigureService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
 
         static member tryCreate s p =
             [
                 ContGenAdmTask.tryCreateUpdateParametersTask
                 //ContGenAdmTask.tryCreateRunModelTask
-                ContGenAdmTask.tryCreatConfigureServiceTask
+                //ContGenAdmTask.tryCreatConfigureServiceTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]
             |> List.tryPick (fun e -> e s p)

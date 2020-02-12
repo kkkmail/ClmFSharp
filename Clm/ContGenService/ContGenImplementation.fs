@@ -17,11 +17,11 @@ open ClmSys.SolverRunnerData
 
 module ServiceImplementation =
 
-    let createServiceImpl i p u =
-        let a = createRunner (ModelRunnerData.defaultValue i p) u
-        //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue Logger.log4net.logError a.generationStarted)
-        //do h.start()
-        a
+    //let createServiceImpl i p u =
+    //    let a = createRunner (ModelRunnerData.defaultValue i p) u
+    //    //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue Logger.log4net.logError a.generationStarted)
+    //    //do h.start()
+    //    a
 
 
     //type AsyncRunnerState
@@ -51,9 +51,11 @@ module ServiceImplementation =
     type ContGenService () =
         inherit MarshalByRefObject()
 
-        let serviceProxy, r = getServiceProxy logger parserResults
-        let u = match r with | Some _ -> true | None -> false
-        let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy u
+        let modelRunner = createModelRunner logger parserResults
+
+        //let serviceProxy, r = getServiceProxy logger parserResults
+        //let u = match r with | Some _ -> true | None -> false
+        //let a = createServiceImpl (ContGenSvcAccessInfo serviceAccessInfo) serviceProxy u
 
         //let initService () =
         //    match r with
@@ -68,12 +70,13 @@ module ServiceImplementation =
         //do initService ()
 
         interface IContGenService with
-            member __.getState() = a.getState().runnerState
+            //member __.getState() = a.getState().runnerState
+            member __.getState() = modelRunner.getRunState()
             //member __.loadQueue() = a.queueStarting()
             //member __.startGenerate() = a.generationStarted()
             //member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 
             //member __.updateRemoteProgress p = p.toProgressUpdateInfo() |> a.progressUpdated
-            member __.configureService (p : ContGenConfigParam) = a.configureService p
+            ////member __.configureService (p : ContGenConfigParam) = a.configureService p
             //member __.runModel m p = a.runModel (m, p)
 
         member x.y = 0

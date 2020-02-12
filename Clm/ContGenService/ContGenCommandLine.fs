@@ -23,6 +23,7 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
 open ClmSys.MessagingData
+open ContGen.ModelRunner
 
 module SvcCommandLine =
 
@@ -161,7 +162,8 @@ module SvcCommandLine =
         let msgPort = getMsgServerPort logger version name p
 
         let partitioner = getPartitioner logger version name p
-        let usePartitioner = getUsePartitioner logger version name p
+        // let usePartitioner = getUsePartitioner logger version name p
+        let usePartitioner = true
 
         let saveSettings() =
             trySetContGenServiceAddress versionNumberValue name address |> ignore
@@ -193,7 +195,7 @@ module SvcCommandLine =
 
 
     /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
-    let getServiceProxy logger p =
+    let private getServiceProxy logger p =
         let name = contGenServiceName
         let version = getVersion p
 
@@ -247,3 +249,6 @@ module SvcCommandLine =
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore
+
+    let createModelRunner (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
+        failwith ""

@@ -26,11 +26,11 @@ module ContGenServiceTasks =
     let runService l (p, i) : ContGenShutDownInfo option =
         let s = startServiceRun l i
 
-        match s with
-        | Some svc ->
-            let service = svc.service
-            p |> List.map (fun e -> service.configureService e) |> ignore
-        | None -> ignore()
+        //match s with
+        //| Some svc ->
+        //    let service = svc.service
+        //    p |> List.map (fun e -> service.configureService e) |> ignore
+        //| None -> ignore()
         s
 
 

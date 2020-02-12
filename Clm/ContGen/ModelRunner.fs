@@ -26,11 +26,14 @@ open ClmSys.Logging
 open ClmSys.TimerEvents
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
+open Messaging.Client
+open ClmSys.MessagingClientErrors
 
 module ModelRunner =
 
     let private toError g f = f |> g |> ModelRunnerErr |> Error
     let private addError g f e = ((f |> g |> ModelRunnerErr) + e) |> Error
+    let private maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
     type OnProcessMessageType = OnProcessMessageType<unit>
     type OnGetMessagesProxy = OnGetMessagesProxy<unit>
@@ -178,6 +181,18 @@ module ModelRunner =
             }
 
 
+    let onGetMessagesProxy c resultLocation w =
+        let proxy = ProcessMessageProxy.create c resultLocation
+        let p () m = (), processMessage proxy m
+
+        {
+            tryProcessMessage = onTryProcessMessage w
+            onProcessMessage = p
+            maxMessages = maxMessages
+            onError = fun f -> f |> OnGetMessagesErr |> ProcessMessageErr |> ModelRunnerErr
+        }
+
+
     let createModelRunner (logger : Logger) c rmp =
         logger.logInfoString "createModelRunner: Creating model runner..."
         let proxy = TryRunAllModelsProxy.create c rmp
@@ -186,9 +201,21 @@ module ModelRunner =
         h
 
 
-    let createModelRunnerMessageProcessor (logger : Logger) c resultLocation =
+    let createModelRunnerMessageProcessor (logger : Logger) c resultLocation w =
         logger.logInfoString "createModelRunner: Creating model runner..."
-        let proxy = ProcessMessageProxy.create c resultLocation
-        let e = fun () -> tryRunAllModels proxy
+        let proxy = onGetMessagesProxy c resultLocation w
+        let e = fun () -> onGetMessages proxy () |> snd
         let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
         h
+
+
+    type ModelRunnerProxy =
+        {
+            x : int
+        }
+
+        static member create (m : MessagingClient) =
+            {
+                x = 1
+            }
+

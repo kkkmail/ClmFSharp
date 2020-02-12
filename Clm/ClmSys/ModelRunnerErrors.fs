@@ -4,6 +4,7 @@ open GeneralPrimitives
 open ContGenPrimitives
 open WorkerNodePrimitives
 open MessagingPrimitives
+open MessagingClientErrors
 
 module ModelRunnerErrors =
 
@@ -50,6 +51,7 @@ module ModelRunnerErrors =
     type ProcessMessageError =
         | ErrorWhenProcessingMessageErr of MessageId
         | InvalidMessageTypeErr of MessageId
+        | OnGetMessagesErr of OnGetMessagesError
 
 
     type ModelRunnerError =

@@ -302,43 +302,43 @@ module Partitioner =
     let onGetMessages = onGetMessages<unit>
 
 
-    type OnRunModelProxy =
-        {
-            tryGetRunner : RunQueueId -> RemoteProcessId option
-            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
-            onTryRunModelWithRemoteId : RunModelParamWithRemoteId -> ProcessStartedResult
-        }
-
-
-    let onRunModel (proxy : OnRunModelProxy) (a: RunModelParam) : ProcessStartedResult =
-        let w, result =
-            match tryGetRunner s a.callBackInfo.runQueueId with
-            | Some q -> s, ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, None) |> StartedSuccessfully |> Ok
-            | None ->
-                let i = { remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId(); runModelParam = a }
-
-                match proxy.saveRunModelParamWithRemoteId i with
-                | Ok() -> proxy.onTryRunModelWithRemoteId s i
-                | Error e -> s, Error e
-
-        w, result
-
-
-    let onGetState s = s, s
-
-
-    let onRegisterProxy i c =
-        {
-            setRunLimit = setRunLimit (setRunLimitProxy c)
-            saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
-        }
-
-
-    let onCompletedProxy i =
-        {
-            tryDeleteRunModelParamWithRemoteId = i.partitionerProxy.tryDeleteRunModelParamWithRemoteId
-            saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
-        }
+    //type OnRunModelProxy =
+    //    {
+    //        tryGetRunner : RunQueueId -> RemoteProcessId option
+    //        saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
+    //        onTryRunModelWithRemoteId : RunModelParamWithRemoteId -> ProcessStartedResult
+    //    }
+    //
+    //
+    //let onRunModel (proxy : OnRunModelProxy) (a: RunModelParam) : ProcessStartedResult =
+    //    let w, result =
+    //        match tryGetRunner s a.callBackInfo.runQueueId with
+    //        | Some q -> s, ({ processId = RemoteProcess q; runningProcessData = a.callBackInfo }, None) |> StartedSuccessfully |> Ok
+    //        | None ->
+    //            let i = { remoteProcessId = a.callBackInfo.runQueueId.toRemoteProcessId(); runModelParam = a }
+    //
+    //            match proxy.saveRunModelParamWithRemoteId i with
+    //            | Ok() -> proxy.onTryRunModelWithRemoteId s i
+    //            | Error e -> s, Error e
+    //
+    //    w, result
+    //
+    //
+    //let onGetState s = s, s
+    //
+    //
+    //let onRegisterProxy i c =
+    //    {
+    //        setRunLimit = setRunLimit (setRunLimitProxy c)
+    //        saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
+    //    }
+    //
+    //
+    //let onCompletedProxy i =
+    //    {
+    //        tryDeleteRunModelParamWithRemoteId = i.partitionerProxy.tryDeleteRunModelParamWithRemoteId
+    //        saveWorkerNodeState = i.partitionerProxy.saveWorkerNodeState
+    //    }
 
 
     let sendRunModelMessageProxy i =
@@ -396,12 +396,6 @@ module Partitioner =
     let onSaveChartsProxy i =
         {
             saveCharts = i.partitionerProxy.saveCharts
-        }
-
-
-    let onRequestWorkProxy i =
-        {
-            x = 0
         }
 
 

@@ -24,6 +24,8 @@ open ClmSys.ContGenData
 open ClmSys.PartitionerData
 open ClmSys.MessagingData
 open ContGen.ModelRunner
+open DbData.Configuration
+open Clm.ModelParams
 
 module SvcCommandLine =
 
@@ -146,14 +148,14 @@ module SvcCommandLine =
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
-    let getUsePartitioner = getUsePartitionerImpl tryGetUsePartitioner
+    //let getUsePartitioner = getUsePartitionerImpl tryGetUsePartitioner
 
 
     /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
-    let getServiceAccessInfoImpl b p =
+    let private getServiceAccessInfoImpl b p =
         let name = contGenServiceName
-
         let version = getVersion p
+
         let address = getServerAddress logger version name p
         let port = getServerPort logger version name p
         let ee = geMinUsefulEe logger version name p
@@ -194,61 +196,108 @@ module SvcCommandLine =
         }
 
 
-    /// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
-    let private getServiceProxy logger p =
-        let name = contGenServiceName
-        let version = getVersion p
-
-        let msgAddress = getMsgServerAddress logger version name p
-        let msgPort = getMsgServerPort logger version name p
-        let partitioner = getPartitioner logger version name p
-        let usePartitioner = getUsePartitioner logger version name p
-
-        //let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create, None
-        let localRunner() = failwith "Local runner is not implemented!"
-
-        match usePartitioner with
-        | false -> localRunner()
-        | true ->
-            let w =
-                {
-                    partitionerId = partitioner
-                    msgSvcAccessInfo =
-                        {
-                            serviceAddress = msgAddress
-                            servicePort = msgPort
-                            inputServiceName = MessagingServiceName
-                        }
-                }
-
-            let m = MsgResponseHandler (w.messagingClientAccessInfo)
-
-            let messagingClientData =
-                {
-                    msgAccessInfo = w.messagingClientAccessInfo
-                    messagingService = m
-                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
-                }
-
-            let messagingClient = MessagingClient messagingClientData
-
-            match messagingClient.start() with
-            | Ok() -> ignore()
-            | Error e -> logger.logError e
-
-            //let q =
-            //    {
-            //        partitionerMsgAccessInfo = w
-            //        partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
-            //        messageProcessorProxy = messagingClient.messageProcessorProxy
-            //    }
-            //
-            //let (r, t) = createServiceImpl logger q
-            //PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some (r, t)
+    ///// TODO kk:20190816 - Refactor getServiceAccessInfo + getServiceProxy into one function.
+    //let private getServiceProxy logger p =
+    //    let name = contGenServiceName
+    //    let version = getVersion p
+    //
+    //    let msgAddress = getMsgServerAddress logger version name p
+    //    let msgPort = getMsgServerPort logger version name p
+    //
+    //    let partitioner = getPartitioner logger version name p
+    //    //let usePartitioner = getUsePartitioner logger version name p
+    //    let usePartitioner = true
+    //
+    //    //let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create, None
+    //    let localRunner() = failwith "Local runner is not implemented!"
+    //
+    //    match usePartitioner with
+    //    | false -> localRunner()
+    //    | true ->
+    //        let w =
+    //            {
+    //                partitionerId = partitioner
+    //                msgSvcAccessInfo =
+    //                    {
+    //                        serviceAddress = msgAddress
+    //                        servicePort = msgPort
+    //                        inputServiceName = MessagingServiceName
+    //                    }
+    //            }
+    //
+    //        let m = MsgResponseHandler (w.messagingClientAccessInfo)
+    //
+    //        let messagingClientData =
+    //            {
+    //                msgAccessInfo = w.messagingClientAccessInfo
+    //                messagingService = m
+    //                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
+    //            }
+    //
+    //        let messagingClient = MessagingClient messagingClientData
+    //
+    //        match messagingClient.start() with
+    //        | Ok() -> ignore()
+    //        | Error e -> logger.logError e
+    //
+    //        //let q =
+    //        //    {
+    //        //        partitionerMsgAccessInfo = w
+    //        //        partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
+    //        //        messageProcessorProxy = messagingClient.messageProcessorProxy
+    //        //    }
+    //        //
+    //        //let (r, t) = createServiceImpl logger q
+    //        //PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some (r, t)
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore
 
+
     let createModelRunner (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
-        failwith ""
+        let name = contGenServiceName
+        let version = getVersion p
+
+        let msgAddress = getMsgServerAddress logger version name p
+        let msgPort = getMsgServerPort logger version name p
+
+        let partitioner = getPartitioner logger version name p
+        //let usePartitioner = getUsePartitioner logger version name p
+        //let usePartitioner = true
+
+        let w =
+            {
+                partitionerId = partitioner
+                msgSvcAccessInfo =
+                    {
+                        serviceAddress = msgAddress
+                        servicePort = msgPort
+                        inputServiceName = MessagingServiceName
+                    }
+            }
+
+        let m = MsgResponseHandler (w.messagingClientAccessInfo)
+
+        let messagingClientData =
+            {
+                msgAccessInfo = w.messagingClientAccessInfo
+                messagingService = m
+                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
+            }
+
+        let messagingClient = MessagingClient messagingClientData
+
+        match messagingClient.start() with
+        | Ok() -> ignore()
+        | Error e -> logger.logError e
+
+        let data =
+            {
+                connectionString = clmConnectionString
+                minUsefulEe = MinUsefulEe.defaultValue
+                resultLocation = DefaultResultLocationFolder
+            }
+
+        let modelRunner = ModelRunner.create logger data messagingClient.messageProcessorProxy
+        modelRunner

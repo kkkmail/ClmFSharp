@@ -52,6 +52,7 @@ module ServiceImplementation =
         inherit MarshalByRefObject()
 
         let modelRunner = createModelRunner logger parserResults
+        do modelRunner.stop()
 
         //let serviceProxy, r = getServiceProxy logger parserResults
         //let u = match r with | Some _ -> true | None -> false

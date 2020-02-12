@@ -176,4 +176,4 @@ module Logging =
         static member log4net = Logger.log4netImpl
 
 
-    let logger = Logger.log4netImpl
+    let logger = Logger.defaultValue

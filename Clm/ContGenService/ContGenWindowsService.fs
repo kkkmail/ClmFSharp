@@ -26,7 +26,7 @@ module WindowsService =
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
+                (typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton)
 
             let service = (new ContGenResponseHandler(i)).contGenService
             let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))

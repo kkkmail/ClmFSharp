@@ -9,7 +9,7 @@ open ContGenErrors
 open MessagingServiceErrors
 open MessagingClientErrors
 open WorkerNodeErrors
-open PartitionerErrors
+//open PartitionerErrors
 open SolverRunnerErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
@@ -35,7 +35,7 @@ module ClmErrors =
         | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
-        | PartitionerErr of PartitionerError
+        //| PartitionerErr of PartitionerError
         //| AsyncRunErr of AsyncRunError
         //| RunnerErr of RunnerError
         | ModelRunnerErr of ModelRunnerError

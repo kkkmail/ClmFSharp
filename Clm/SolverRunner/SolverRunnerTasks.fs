@@ -126,7 +126,7 @@ module SolverRunnerTasks =
         }
 
 
-        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineTaskParam) (d : RunQueueId) w =
+        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineParam) (d : RunQueueId) w =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -141,11 +141,11 @@ module SolverRunnerTasks =
                     defaultValueId = defaultValueId
                     runQueueId = d
                     workerNodeId = w
-                    commandLineParams =
-                        {
-                            taskParam = c
-                            serviceAccessInfo = i
-                        }
+                    commandLineParams = c
+                        //{
+                        //    taskParam = c
+                        //    serviceAccessInfo = i
+                        //}
                 }
 
             let chartInitData =

@@ -27,6 +27,7 @@ module AdmCommandLine =
 
         | [<Unique>] [<AltCommandLine("-address")>] WrkAdmSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] WrkAdmSvcPort of int
+        | [<Unique>] [<AltCommandLine("-n")>] WrkAdmName of string
         | [<Unique>] [<AltCommandLine("-c")>] WrkAdmNoOfCores of int
 
         | [<Unique>] [<AltCommandLine("-save")>] WrkAdmSaveSettings
@@ -48,6 +49,7 @@ module AdmCommandLine =
 
                 | WrkAdmSvcAddress _ -> "worker node service ip address / name."
                 | WrkAdmSvcPort _ -> "worker node service port."
+                | WrkAdmName _ -> "worker node name."
                 | WrkAdmNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
                 | WrkAdmSaveSettings -> "saves settings to the Registry."
@@ -63,6 +65,7 @@ module AdmCommandLine =
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkAdmSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkAdmSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkAdmName p -> Some p | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkAdmNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkAdmSaveSettings -> Some () | _ -> None)
@@ -120,6 +123,15 @@ module AdmCommandLine =
             | Error e -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
+    let tryGetNodeNameImpl logger version name p =
+        match tryGetNodeName p with
+        | Some a -> Some a
+        | None ->
+            match tryGetWorkerNodeName version name with
+            | Ok a -> Some a
+            | Error e -> None
+
+
     let getInactive logger version name p =
         match tryGetInactive p with
         | Some a -> a
@@ -143,47 +155,53 @@ module AdmCommandLine =
         let clientId = getClientId logger version name p
         let inactive = getInactive logger version name p
 
-        let saveSettings() =
-            trySetContGenServiceAddress versionNumberValue name address |> ignore
-            trySetContGenServicePort versionNumberValue name port |> ignore
-            trySetNumberOfCores versionNumberValue name noOfCores |> ignore
+        match tryGetNodeNameImpl logger version name p with
+        | Some nodeName ->
+            let saveSettings() =
+                trySetContGenServiceAddress versionNumberValue name address |> ignore
+                trySetContGenServicePort versionNumberValue name port |> ignore
+                trySetWorkerNodeName versionNumberValue name nodeName |> ignore
+                trySetNumberOfCores versionNumberValue name noOfCores |> ignore
 
-            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
-            trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
-            trySetWrkInactive versionNumberValue name inactive |> ignore
+                trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
+                trySetMessagingClientPort versionNumberValue name msgPort |> ignore
+                trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
+                trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
+                trySetWrkInactive versionNumberValue name inactive |> ignore
 
-        match tryGetSaveSettings p, b with
-        | Some _, _ -> saveSettings()
-        | _, true -> saveSettings()
-        | _ -> ignore()
+            match tryGetSaveSettings p, b with
+            | Some _, _ -> saveSettings()
+            | _, true -> saveSettings()
+            | _ -> ignore()
 
-        {
-            workNodeMsgAccessInfo =
-                {
-                    workerNodeId = clientId
+            {
+                workNodeMsgAccessInfo =
+                    {
+                        workerNodeId = clientId
 
-                    msgSvcAccessInfo =
-                        {
-                            serviceAddress = msgAddress
-                            servicePort = msgPort
-                            inputServiceName = MessagingServiceName
-                        }
-                }
+                        msgSvcAccessInfo =
+                            {
+                                serviceAddress = msgAddress
+                                servicePort = msgPort
+                                inputServiceName = MessagingServiceName
+                            }
+                    }
 
-            noOfCores = noOfCores
-            isInactive = inactive
-            nodePriority = WorkerNodePriority.defaultValue
-            partitionerId = partitioner
+                workerNodeName = WorkerNodeName nodeName
+                noOfCores = noOfCores
+                isInactive = inactive
+                nodePriority = WorkerNodePriority.defaultValue
+                partitionerId = partitioner
 
-            workerNodeServiceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                    inputServiceName = WorkerNodeServiceName
-                }
-        }
+                workerNodeServiceAccessInfo =
+                    {
+                        serviceAddress = address
+                        servicePort = port
+                        inputServiceName = WorkerNodeServiceName
+                    }
+            }
+            |> Some
+        | None -> None
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

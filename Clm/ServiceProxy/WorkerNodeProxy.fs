@@ -1,7 +1,6 @@
 ﻿namespace ServiceProxy
 
 open NoSql.FileSystemTypes
-open ServiceProxy.Runner
 open ClmSys.Registry
 open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
@@ -12,25 +11,45 @@ open ClmSys.GeneralPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerData
+open ClmSys.GeneralData
 
 
 module WorkerNodeProxy =
+
+    let getCommandLine (p : RunModelParam) r e =
+        let data =
+            {
+                modelDataId = p.callBackInfo.modelDataId
+                resultDataId = p.callBackInfo.runQueueId.toResultDataId()
+                workerNodeId = p.callBackInfo.workerNodeId
+                minUsefulEe = e
+                remote = r
+            }
+
+        let commandLineParams = p.callBackInfo.commandLineParams.toCommandLine data
+        commandLineParams
+
+
+    let runLocalModel (p : RunModelParam) r e =
+        let fullExeName = getExeName p.exeName
+        let commandLineParams = getCommandLine p r e
+        printfn "runModel::commandLineParams = %A\n" commandLineParams
+        runProc p.callBackInfo fullExeName commandLineParams None
+
 
     type StorageType =
         | LocalStorage of ConnectionString
         | RemoteStorage
 
 
-    type WorkerNodeProxyInfo =
+    type WorkerNodeProxyData =
         {
-            //storageType : StorageType
-            dummy : int
+            minUsefulEe : MinUsefulEe
         }
 
         static member defaultValue =
             {
-                //storageType = RemoteStorage
-                dummy = 0
+                minUsefulEe = MinUsefulEe.defaultValue
             }
 
     type WorkerNodeProxy =
@@ -53,15 +72,15 @@ module WorkerNodeProxy =
             tryDeleteChartInfo : ResultDataId -> UnitResult
         }
 
-        static member create (i : WorkerNodeProxyInfo) =
+        static member create (i : WorkerNodeProxyData) =
             let name = workerNodeServiceName
 
             {
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
                 loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-                runModel = fun p -> runLocalModel p true
-                getCommandLine = fun p -> getCommandLine p true
+                runModel = fun p -> runLocalModel p true i.minUsefulEe
+                getCommandLine = fun p -> getCommandLine p true i.minUsefulEe
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
 
                 // These ones are needed for SolverRunner interop.

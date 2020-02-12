@@ -29,7 +29,7 @@ module ServiceImplementation =
             }
 
         let service = MessagingService d
-        do service.start()
+        do service.start() |> ignore
         service
 
 

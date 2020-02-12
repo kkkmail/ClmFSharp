@@ -256,11 +256,11 @@ module ServiceImplementation =
     let getRunModelParam (i : WorkerNodeRunnerData) (d : WorkerNodeRunModelData) =
         {
             exeName = i.exeName
-            commandLineParam =
-                {
-                    taskParam = d.taskParam
-                    serviceAccessInfo = getSolverRunnerAccessInfo i
-                }
+            //commandLineParam =
+            //    {
+            //        taskParam = d.taskParam
+            //        serviceAccessInfo = getSolverRunnerAccessInfo i
+            //    }
 
             callBackInfo = { d.runningProcessData with workerNodeId = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId }
         }
@@ -466,7 +466,7 @@ module ServiceImplementation =
                         match proxy.saveModelData m with
                         | Ok() ->
                             let w1, r1 = proxy.onRunModel s d
-                            { w1 with requestedWorkItems = max (w1.requestedWorkItems - 1) 0 }, r1
+                            w1, r1
                         | Error e -> s, addError CannotSaveModelData e
                     | Some r -> s, r.runnerRemoteProcessId.value |> ModelAlreadyRunning |> toError
             | _ -> s, m.messageData.getInfo() |> InvalidMessage |> toError
@@ -667,7 +667,7 @@ module ServiceImplementation =
                 let n =
                     {
                         workerNodeAccessInfo = serviceAccessInfo
-                        workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyInfo.defaultValue
+                        workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
                         messageProcessorProxy = messagingClient.messageProcessorProxy
                         exeName = SolverRunnerName
                         minUsefulEe = MinUsefulEe.defaultValue

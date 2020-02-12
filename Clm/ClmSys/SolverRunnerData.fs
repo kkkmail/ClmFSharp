@@ -10,24 +10,24 @@ open ContGenPrimitives
 
 module SolverRunnerData =
 
-    //type SolverRunnerAccessInfo =
-    //    | ContGenSvcAccessInfo of ContGenServiceAccessInfo
-    //    | WorkerNodeSvcAccessInfo of WrkNodeServiceAccessInfo
+    type SolverRunnerAccessInfo =
+        | ContGenSvcAccessInfo of ContGenServiceAccessInfo
+        | WorkerNodeSvcAccessInfo of WrkNodeServiceAccessInfo
 
-    //    member this.minUsefulEe =
-    //        match this with
-    //        | ContGenSvcAccessInfo c -> c.minUsefulEe
-    //        | WorkerNodeSvcAccessInfo w -> w.minUsefulEe
+        member this.minUsefulEe =
+            match this with
+            | ContGenSvcAccessInfo c -> c.minUsefulEe
+            | WorkerNodeSvcAccessInfo w -> w.minUsefulEe
 
-    //    member this.serviceAddress =
-    //        match this with
-    //        | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
-    //        | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.serviceAddress
+        member this.serviceAddress =
+            match this with
+            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
+            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.serviceAddress
 
-    //    member this.servicePort =
-    //        match this with
-    //        | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
-    //        | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.servicePort
+        member this.servicePort =
+            match this with
+            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
+            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.servicePort
 
 
     type SingleChartInfo =

@@ -48,7 +48,7 @@ module SolverRunner =
         static member create (i : SolverRunnerProxyInfo) =
             let loadModelDataImpl a m =
                 match i with
-                | LocalSolverRunner c -> loadModelData c.connectionString a m
+                | LocalSolverRunner c -> loadModelData c.connectionString m
                 | RemoteSolverRunner _ -> loadModelDataFs solverRunnerName m
 
             let saveResultDataImpl r =

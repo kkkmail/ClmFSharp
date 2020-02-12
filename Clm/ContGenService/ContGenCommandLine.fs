@@ -8,9 +8,9 @@ open ClmSys.VersionInfo
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.MessagingData
-open ServiceProxy.Runner
-open ContGen.Partitioner
-open ServiceProxy.PartitionerProxy
+//open ServiceProxy.Runner
+//open ContGen.Partitioner
+//open ServiceProxy.PartitionerProxy
 open Messaging.ServiceResponse
 open ServiceProxy.MsgServiceProxy
 open ContGenServiceInfo.ServiceInfo
@@ -202,7 +202,8 @@ module SvcCommandLine =
         let partitioner = getPartitioner logger version name p
         let usePartitioner = getUsePartitioner logger version name p
 
-        let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create, None
+        //let localRunner() = LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create, None
+        let localRunner() = failwith "Local runner is not implemented!"
 
         match usePartitioner with
         | false -> localRunner()
@@ -225,22 +226,23 @@ module SvcCommandLine =
                     msgAccessInfo = w.messagingClientAccessInfo
                     messagingService = m
                     msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
-                    //logger = logger
                 }
 
             let messagingClient = MessagingClient messagingClientData
-            do messagingClient.start()
 
-            let q =
-                {
-                    partitionerMsgAccessInfo = w
-                    partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
-                    messageProcessorProxy = messagingClient.messageProcessorProxy
-                    //logger = logger
-                }
+            match messagingClient.start() with
+            | Ok() -> ignore()
+            | Error e -> logger.logError e
 
-            let (r, t) = createServiceImpl logger q
-            PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some (r, t)
+            //let q =
+            //    {
+            //        partitionerMsgAccessInfo = w
+            //        partitionerProxy = PartitionerProxy.create PartitionerProxyInfo.defaultValue
+            //        messageProcessorProxy = messagingClient.messageProcessorProxy
+            //    }
+            //
+            //let (r, t) = createServiceImpl logger q
+            //PartitionerRunnerConfig.defaultValue r.runModel |> PartitionerRunnerProxy |> RunnerProxy.create, Some (r, t)
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

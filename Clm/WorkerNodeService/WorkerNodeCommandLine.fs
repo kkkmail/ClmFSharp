@@ -23,6 +23,7 @@ module SvcCommandLine =
     type WorkerNodeServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-address")>] WrkSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] WrkSvcPort of int
+        | [<Unique>] [<AltCommandLine("-n")>] WrkName of string
         | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
 
         | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
@@ -41,6 +42,7 @@ module SvcCommandLine =
                 match this with
                 | WrkSvcAddress _ -> "worker node service ip address / name."
                 | WrkSvcPort _ -> "worker node service port."
+                | WrkName _ -> "worker node name."
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
                 | WrkSaveSettings -> "saves settings to the Registry."
@@ -90,6 +92,7 @@ module SvcCommandLine =
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkName p -> Some p | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
@@ -147,6 +150,15 @@ module SvcCommandLine =
             | Error _ -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
 
 
+    let tryGetNodeNameImpl logger version name p =
+        match tryGetNodeName p with
+        | Some a -> Some a
+        | None ->
+            match tryGetWorkerNodeName version name with
+            | Ok a -> Some a
+            | Error e -> None
+
+
     let getInactive logger version name p =
         match tryGetInactive p with
         | Some a -> a
@@ -170,9 +182,12 @@ module SvcCommandLine =
         let clientId = getClientId logger version name p
         let inactive = getInactive logger version name p
 
+        let nodeName = tryGetNodeNameImpl logger version name p |> Option.defaultValue (clientId.value.value.ToString("N"))
+
         let saveSettings() =
             trySetContGenServiceAddress versionNumberValue name address |> ignore
             trySetContGenServicePort versionNumberValue name port |> ignore
+            trySetWorkerNodeName versionNumberValue name nodeName |> ignore
             trySetNumberOfCores versionNumberValue name noOfCores |> ignore
 
             trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
@@ -199,6 +214,7 @@ module SvcCommandLine =
                         }
                 }
 
+            workerNodeName = WorkerNodeName nodeName
             noOfCores = noOfCores
             isInactive = inactive
             nodePriority = WorkerNodePriority.defaultValue

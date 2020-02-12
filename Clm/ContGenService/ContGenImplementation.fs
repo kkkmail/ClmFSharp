@@ -4,11 +4,11 @@ open System
 open Argu
 open ClmSys.GeneralData
 open ClmSys.TimerEvents
-open ContGen.AsyncRun
-open ContGen.Runner
+//open ContGen.AsyncRun
+//open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
 open SvcCommandLine
-open ContGen.Partitioner
+//open ContGen.Partitioner
 open ClmSys.Logging
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
@@ -67,13 +67,13 @@ module ServiceImplementation =
 
         //do initService ()
 
-        //interface IContGenService with
-        //    member __.getState() = a.getState().runnerState
-        //    member __.loadQueue() = a.queueStarting()
-        //    member __.startGenerate() = a.generationStarted()
-        //    member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 
-        //    member __.updateRemoteProgress p = p.toProgressUpdateInfo() |> a.progressUpdated
-        //    member __.configureService (p : ContGenConfigParam) = a.configureService p
-        //    member __.runModel m p = a.runModel (m, p)
+        interface IContGenService with
+            member __.getState() = a.getState().runnerState
+            //member __.loadQueue() = a.queueStarting()
+            //member __.startGenerate() = a.generationStarted()
+            //member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 
+            //member __.updateRemoteProgress p = p.toProgressUpdateInfo() |> a.progressUpdated
+            member __.configureService (p : ContGenConfigParam) = a.configureService p
+            //member __.runModel m p = a.runModel (m, p)
 
         member x.y = 0

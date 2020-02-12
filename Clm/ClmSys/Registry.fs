@@ -23,6 +23,7 @@ module Registry =
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let private usePartitionerKey = "UsePartitioner"
+    let private workerNodeNameKey = "WorkerNodeName"
     let private numberOfCoresKey = "NumberOfCores"
     let private wrkInactiveKey = "IsInactive"
     let private contGenServiceAddressKey = "ContGenServiceAddress"
@@ -177,6 +178,16 @@ module Registry =
     let trySetUsePartitioner v c (u : bool) =
         match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
         | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) usePartitionerKey (u.ToString())
+        | Error e -> Error e
+
+
+    let tryGetWorkerNodeName v c =
+        tryGetRegistryValue (getMessagingClientSubKey v c) workerNodeNameKey
+
+
+    let trySetWorkerNodeName v c n =
+        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
+        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) workerNodeNameKey n
         | Error e -> Error e
 
 

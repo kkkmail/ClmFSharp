@@ -28,6 +28,7 @@ open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
 open ClmSys.MessagingClientErrors
+open ModelGenerator
 
 module ModelRunner =
 
@@ -144,7 +145,9 @@ module ModelRunner =
         | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)
 
 
-    let getRunState (proxy : GetRunStateProxy) = proxy.loadRunQueueProgress() |> unzipListResult
+    let getRunState (proxy : GetRunStateProxy) =
+        let w, e = proxy.loadRunQueueProgress() |> unzipListResult
+        w, e |> foldToUnitResult
 
 
     type ProcessMessageProxy
@@ -209,13 +212,43 @@ module ModelRunner =
         h
 
 
-    type ModelRunnerProxy =
+    type ModelRunnerData =
         {
-            x : int
+            connectionString : ConnectionString
+            minUsefulEe : MinUsefulEe
+            resultLocation : string
         }
 
-        static member create (m : MessagingClient) =
+
+    type ModelRunner =
+        {
+            modelGenerator : ClmEventHandler
+            modelRunner : ClmEventHandler
+            messageProcessor : ClmEventHandler
+            getRunState : unit -> (list<RunQueue> * UnitResult)
+        }
+
+        member p.start() =
+            do
+                p.modelGenerator.start()
+                p.modelRunner.start()
+                p.messageProcessor.start()
+
+        member p.stop() =
+            do
+                p.modelGenerator.stop()
+                p.modelRunner.stop()
+                p.messageProcessor.stop()
+
+        static member create (logger : Logger) (d : ModelRunnerData) (w : MessageProcessorProxy) =
+            let rmp = RunModelProxy.create d.connectionString d.minUsefulEe w.sendMessage
+            let proxy = GetRunStateProxy.create d.connectionString
+            let g() = getRunState proxy
+
             {
-                x = 1
+                modelGenerator = createModelGenerator logger d.connectionString
+                modelRunner = createModelRunner logger d.connectionString rmp
+                messageProcessor = createModelRunnerMessageProcessor logger d.connectionString d.resultLocation w
+                getRunState = g
             }
 

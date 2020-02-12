@@ -6,12 +6,12 @@ open ClmSys.ExitErrorCodes
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGen
-open Runner
+//open Runner
 open ClmSys.Retry
 open Clm.ModelParams
 open System
 open ContGenAdm.AdmCommandLine
-open ServiceProxy.Runner
+//open ServiceProxy.Runner
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
 
@@ -21,6 +21,11 @@ module ContGenAdmTasks =
     //let tryDbFun f = tryDbFun clmConnectionString f
     //let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (loadClmDefaultValue clmDefaultValueId) |> Option.bind id
     let loadClmDefaultValue = loadClmDefaultValue clmConnectionString
+
+
+    //let createOneTimeGenerator p =
+    //    let r = ModelRunner p
+    //    r.generate
 
 
     let addClmTask s (p :list<AddClmTaskArgs>) =
@@ -53,22 +58,22 @@ module ContGenAdmTasks =
 
                 match addClmTask clmConnectionString t with
                 | Ok nt ->
-                    match getGenerateModelCode p with
-                    | true ->
-                        printfn "Genetrating model..."
-                        match c with
-                        | [] ->
-                            printfn "Cannot get service address and/or port."
-                            ignore()
-                        | h :: _ ->
-                            let g =
-                                createOneTimeGenerator
-                                    {
-                                        ModelRunnerData.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
-                                        with saveModelCode = true
-                                    }
-                            g nt |> ignore
-                    | false -> ignore()
+                    //match getGenerateModelCode p with
+                    //| true ->
+                    //    printfn "Genetrating model..."
+                    //    match c with
+                    //    | [] ->
+                    //        printfn "Cannot get service address and/or port."
+                    //        ignore()
+                    //    | h :: _ ->
+                    //        let g =
+                    //            createOneTimeGenerator
+                    //                {
+                    //                    ModelRunnerData.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
+                    //                    with saveModelCode = true
+                    //                }
+                    //        g nt |> ignore
+                    //| false -> ignore()
 
                     CompletedSuccessfully
                 | Error e ->
@@ -82,26 +87,26 @@ module ContGenAdmTasks =
             InvalidCommandLineArgs
 
 
-    let runModel (service : IContGenService) i (p :list<RunModelArgs>) =
-        match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
-        | Some m, Some y, Some t ->
-            let c =
-                {
-                    taskParam =
-                        {
-                            tEnd = t
-                            y0 = y
-                            useAbundant = false
-                        }
-
-                    serviceAccessInfo = i
-                }
-
-            service.runModel m c
-            CompletedSuccessfully
-        | _ ->
-            printfn "Missing some command line arguments!"
-            InvalidCommandLineArgs
+    //let runModel (service : IContGenService) i (p :list<RunModelArgs>) =
+    //    match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
+    //    | Some m, Some y, Some t ->
+    //        let c =
+    //            {
+    //                taskParam =
+    //                    {
+    //                        tEnd = t
+    //                        y0 = y
+    //                        useAbundant = false
+    //                    }
+    //
+    //                serviceAccessInfo = i
+    //            }
+    //
+    //        service.runModel m c
+    //        CompletedSuccessfully
+    //    | _ ->
+    //        printfn "Missing some command line arguments!"
+    //        InvalidCommandLineArgs
 
 
     let monitor (service : IContGenService) (p :list<MonitorArgs>) =
@@ -132,34 +137,34 @@ module ContGenAdmTasks =
                 -1
 
 
-    let startGenerate (service : IContGenService) =
-        try
-            service.startGenerate()
-            0
-        with
-            | e ->
-                printfn "Exception: %A" e.Message
-                -1
+    //let startGenerate (service : IContGenService) =
+    //    try
+    //        service.startGenerate()
+    //        0
+    //    with
+    //    | e ->
+    //        printfn "Exception: %A" e.Message
+    //        -1
 
 
     type ContGenAdmTask =
         | AddClmTaskTask of list<AddClmTaskArgs>
-        | RunModelTask of service : IContGenService * list<RunModelArgs>
+        //| RunModelTask of service : IContGenService * list<RunModelArgs>
         | MonitorTask of service : IContGenService * arguments : list<MonitorArgs>
         | ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
 
         member task.run i =
             match task with
             | AddClmTaskTask p -> addClmTask i p
-            | RunModelTask (s, p) -> runModel s i p
+            //| RunModelTask (s, p) -> runModel s i p
             | MonitorTask (s, p) -> monitor s p
             | ConfigureServiceTask (s, p) -> configureService s p
 
         static member private tryCreateUpdateParametersTask s p =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
-        static member private tryCreateRunModelTask s p =
-            p |> List.tryPick (fun e -> match e with | RunModel q -> (s, q.GetAllResults()) |> RunModelTask |> Some | _ -> None)
+        //static member private tryCreateRunModelTask s p =
+        //    p |> List.tryPick (fun e -> match e with | RunModel q -> (s, q.GetAllResults()) |> RunModelTask |> Some | _ -> None)
 
         static member private tryCreateMonitorTask s p =
             p |> List.tryPick (fun e -> match e with | Monitor q -> (s, q.GetAllResults()) |> MonitorTask |> Some | _ -> None)
@@ -170,7 +175,7 @@ module ContGenAdmTasks =
         static member tryCreate s p =
             [
                 ContGenAdmTask.tryCreateUpdateParametersTask
-                ContGenAdmTask.tryCreateRunModelTask
+                //ContGenAdmTask.tryCreateRunModelTask
                 ContGenAdmTask.tryCreatConfigureServiceTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]

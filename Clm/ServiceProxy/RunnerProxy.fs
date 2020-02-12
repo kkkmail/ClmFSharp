@@ -14,25 +14,25 @@ open ClmSys.SolverRunnerData
 
 module Runner =
 
-    let getCommandLine (p : RunModelParam) r =
-        let data =
-            {
-                modelDataId = p.callBackInfo.modelDataId
-                resultDataId = p.callBackInfo.runQueueId.toResultDataId()
-                workerNodeId = p.callBackInfo.workerNodeId
-                minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
-                remote = r
-            }
-
-        let commandLineParams = p.commandLineParam.toCommandLine data
-        commandLineParams
-
-
-    let runLocalModel (p : RunModelParam) r =
-        let fullExeName = getExeName p.exeName
-        let commandLineParams = getCommandLine p r
-        printfn "runModel::commandLineParams = %A\n" commandLineParams
-        runProc p.callBackInfo fullExeName commandLineParams None
+    //let getCommandLine (p : RunModelParam) r =
+    //    let data =
+    //        {
+    //            modelDataId = p.callBackInfo.modelDataId
+    //            resultDataId = p.callBackInfo.runQueueId.toResultDataId()
+    //            workerNodeId = p.callBackInfo.workerNodeId
+    //            minUsefulEe = p.commandLineParam.serviceAccessInfo.minUsefulEe
+    //            remote = r
+    //        }
+    //
+    //    let commandLineParams = p.commandLineParam.toCommandLine data
+    //    commandLineParams
+    //
+    //
+    //let runLocalModel (p : RunModelParam) r =
+    //    let fullExeName = getExeName p.exeName
+    //    let commandLineParams = getCommandLine p r
+    //    printfn "runModel::commandLineParams = %A\n" commandLineParams
+    //    runProc p.callBackInfo fullExeName commandLineParams None
 
 
     type LocalRunnerConfig =

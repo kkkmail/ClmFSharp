@@ -6,7 +6,6 @@ open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open System.Runtime.Remoting.Channels.Tcp
 open Argu
-
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
@@ -29,8 +28,14 @@ module WindowsService =
                 (typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton)
 
             let service = (new ContGenResponseHandler(i)).contGenService
-            let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))
-            do h.start()
+            //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))
+            //do h.start()
+
+            let modelRunner =
+                createModelRunnerImpl logger parserResults
+
+            do
+                modelRunner.start()
 
             {
                 contGenTcpChannel = channel
@@ -47,9 +52,12 @@ module WindowsService =
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 
-        let logger = Logger.log4net
+        let logger =
+            Logger.log4net
+
         let initService () = ()
         do initService ()
+
         let mutable shutDownInfo : ContGenShutDownInfo option = None
 
         let tryDispose() =

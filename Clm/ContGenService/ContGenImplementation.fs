@@ -51,8 +51,13 @@ module ServiceImplementation =
     type ContGenService () =
         inherit MarshalByRefObject()
 
-        let modelRunner = createModelRunner logger parserResults
-        do modelRunner.stop()
+        do printfn "Initializing ContGenService..."
+
+        //let modelRunner =
+        //    createModelRunner logger parserResults
+
+        //do
+        //    modelRunner.start()
 
         //let serviceProxy, r = getServiceProxy logger parserResults
         //let u = match r with | Some _ -> true | None -> false
@@ -72,12 +77,10 @@ module ServiceImplementation =
 
         interface IContGenService with
             //member __.getState() = a.getState().runnerState
-            member __.getState() = modelRunner.getRunState()
+            member __.getState() = [], Ok() // modelRunner.getRunState()
             //member __.loadQueue() = a.queueStarting()
             //member __.startGenerate() = a.generationStarted()
             //member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 
             //member __.updateRemoteProgress p = p.toProgressUpdateInfo() |> a.progressUpdated
             ////member __.configureService (p : ContGenConfigParam) = a.configureService p
             //member __.runModel m p = a.runModel (m, p)
-
-        member x.y = 0

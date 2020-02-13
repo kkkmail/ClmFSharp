@@ -205,7 +205,7 @@ module ModelRunner =
 
 
     let createModelRunnerMessageProcessor (logger : Logger) c resultLocation w =
-        logger.logInfoString "createModelRunner: Creating model runner..."
+        logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
         let proxy = onGetMessagesProxy c resultLocation w
         let e = fun () -> onGetMessages proxy () |> snd
         let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
@@ -225,7 +225,7 @@ module ModelRunner =
             modelGenerator : ClmEventHandler
             modelRunner : ClmEventHandler
             messageProcessor : ClmEventHandler
-            getRunState : unit -> (list<RunQueue> * UnitResult)
+            //getRunState : unit -> (list<RunQueue> * UnitResult)
         }
 
         member p.start() =
@@ -242,13 +242,13 @@ module ModelRunner =
 
         static member create (logger : Logger) (d : ModelRunnerData) (w : MessageProcessorProxy) =
             let rmp = RunModelProxy.create d.connectionString d.minUsefulEe w.sendMessage
-            let proxy = GetRunStateProxy.create d.connectionString
-            let g() = getRunState proxy
+            //let proxy = GetRunStateProxy.create d.connectionString
+            //let g() = getRunState proxy
 
             {
                 modelGenerator = createModelGenerator logger d.connectionString
                 modelRunner = createModelRunner logger d.connectionString rmp
                 messageProcessor = createModelRunnerMessageProcessor logger d.connectionString d.resultLocation w
-                getRunState = g
+                //getRunState = g
             }
 

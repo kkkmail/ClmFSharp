@@ -2,16 +2,8 @@
 
 open Clm.ModelParams
 open Clm.CalculationData
-open DbData.Configuration
 open DbData.DatabaseTypes
-open NoSql.FileSystemTypes
-open ClmSys.Registry
-open PartitionerServiceInfo.ServiceInfo
-open ClmSys.GeneralPrimitives
-open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
-open ClmSys.SolverRunnerData
-open ClmSys.WorkerNodePrimitives
 open Clm.Generator.ClmModelData
 
 module ModelGeneratorProxy =
@@ -21,6 +13,7 @@ module ModelGeneratorProxy =
             loadParams : ClmTask -> ClmResult<AllParams>
             upsertModelData : ModelData -> UnitResult
             upsertRunQueue : RunQueue -> UnitResult
+            updateClmTask : ClmTask -> UnitResult
         }
 
         static member create c =
@@ -28,6 +21,7 @@ module ModelGeneratorProxy =
                 loadParams = AllParams.create (loadClmDefaultValue c)
                 upsertModelData = upsertModelData c
                 upsertRunQueue = upsertRunQueue c
+                updateClmTask = updateClmTask c
             }
 
 

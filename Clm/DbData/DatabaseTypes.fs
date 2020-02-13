@@ -486,10 +486,6 @@ module DatabaseTypes =
 
     let upsertClmDefaultValue (ConnectionString connectionString) (p : ClmDefaultValue) =
         let g() =
-            //use conn = new SqlConnection(connectionString)
-            //openConnIfClosed conn
-            //let connectionString = conn.ConnectionString
-
             use cmd = new SqlCommandProvider<"
                 merge ClmDefaultValue as target
                 using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
@@ -600,6 +596,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
+    /// Updates remainingRepetitions of ClmTask.
     let updateClmTask connectionString (clmTask : ClmTask) =
         let g() =
             use conn = getOpenConn connectionString

@@ -255,7 +255,7 @@ module SvcCommandLine =
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore
 
 
-    let createModelRunner (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
+    let createModelRunnerImpl (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
         let name = contGenServiceName
         let version = getVersion p
 

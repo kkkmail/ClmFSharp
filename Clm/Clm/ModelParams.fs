@@ -156,6 +156,9 @@ module ModelParams =
         }
 
 
+    /// TODO kk:20200214 - Possibly add NotifyAddress DefaultWorkerNodeServiceAddress
+    /// and NotifyPort DefaultWorkerNodeServicePort here.
+    /// Currently it is hard coded below in ModelCommandLineParam.
     /// Additional information needed to produce command line params for solver runner.
     type ModelCommandLineData =
         {
@@ -176,12 +179,6 @@ module ModelParams =
         }
 
 
-    //type ModelCommandLineParam =
-    //    {
-    //        taskParam : ModelCommandLineTaskParam
-    //        commandLineData : ModelCommandLineData
-    //    }
-
         member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
 
@@ -194,6 +191,10 @@ module ModelParams =
                 Remote d.remote
                 ResultId d.resultDataId.value
                 WrkNodeId d.workerNodeId.messagingClientId.value
+
+                // TODO kk:20200214 - Currently hard coded to use worker node.
+                NotifyAddress DefaultWorkerNodeServiceAddress
+                NotifyPort DefaultWorkerNodeServicePort
             ]
             |> parser.PrintCommandLineArgumentsFlat
 

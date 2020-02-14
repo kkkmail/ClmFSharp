@@ -44,6 +44,7 @@ module MsgProcessorProxy =
 
 
     let onGetMessages<'S> (proxy : OnGetMessagesProxy<'S>) (s : 'S) =
+        printfn "onGetMessages: Getting messages..."
         let addError f e = ((proxy.onError f) + e) |> Error
         let toError e = e |> proxy.onError |> Error
 
@@ -63,4 +64,5 @@ module MsgProcessorProxy =
                 | BusyProcessing -> acc, toError BusyProcessingErr
 
         let w, result = doFold proxy.maxMessages s
+        printfn "onGetMessages: result = %A" result
         w, result

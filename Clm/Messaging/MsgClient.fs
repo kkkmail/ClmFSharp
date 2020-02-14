@@ -312,6 +312,7 @@ module Client =
 
 
     let onTransmitMessages proxy s =
+        printfn "onTransmitMessages: Starting..."
         let (w, result) =
             match s.messagingClientState with
             | MsgCliNotStarted -> s, Ok()
@@ -331,6 +332,7 @@ module Client =
                 let e = sentErrors @ receivedErrors |> foldToUnitResult
                 { receivedMessages = received; sentMessages = sent } |> (onFinishTransmitting s), e
 
+        printfn "onTransmitMessages: result = %A" result
         w, result
 
 

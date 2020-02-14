@@ -289,7 +289,7 @@ module SvcCommandLine =
         let messagingClient = MessagingClient messagingClientData
 
         match messagingClient.start() with
-        | Ok() -> ignore()
+        | Ok() -> createMessagingClientEventHandlers logger.logError messagingClient
         | Error e -> logger.logError e
 
         let data =

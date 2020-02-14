@@ -20,14 +20,12 @@ open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
-open ClmSys.MessagingData
 open ClmSys.Retry
 open ClmSys.SolverRunnerData
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
-open ClmSys.PartitionerData
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
 

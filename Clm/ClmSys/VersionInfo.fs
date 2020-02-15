@@ -11,7 +11,7 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 58
+    let messagingDataVersion = MessagingDataVersion 60
 
 
     /// This is an overall system version.
@@ -42,7 +42,7 @@ module VersionInfo =
 
 
     [<Literal>]
-    let CopyrightInfo = "GPL v3 - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2020."
+    let CopyrightInfo = "GPL v3 (or later vesion) - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2020+."
 
 
     type VersionNumber =

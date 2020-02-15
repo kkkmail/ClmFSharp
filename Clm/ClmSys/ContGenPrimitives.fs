@@ -1,6 +1,8 @@
 ﻿namespace ClmSys
 
 open System
+open GeneralPrimitives
+open WorkerNodePrimitives
 
 module ContGenPrimitives =
 
@@ -49,3 +51,25 @@ module ContGenPrimitives =
         | ClmTaskId of Guid
 
         member this.value = let (ClmTaskId v) = this in v
+
+
+    type TaskProgress =
+        | NotStarted
+        | InProgress of decimal
+        | Completed
+        | Failed of WorkerNodeId * RemoteProcessId
+
+        static member failedValue = -1000m
+
+        static member create d =
+            match d with
+            | _ when d <= 0.0m -> NotStarted
+            | _ when d < 1.0m -> InProgress d
+            | _ -> InProgress 1.0m
+
+        member progress.value =
+            match progress with
+            | NotStarted -> 0m
+            | InProgress d -> max 0m (min d 1m)
+            | Completed -> 1.0m
+            | Failed _ -> TaskProgress.failedValue

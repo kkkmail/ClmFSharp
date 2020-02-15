@@ -4,6 +4,10 @@ open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
+open GeneralPrimitives
+open WorkerNodePrimitives
+open ContGenPrimitives
+
 /// Collection of general errors & related functionality.
 module GeneralErrors =
 
@@ -61,9 +65,21 @@ module GeneralErrors =
         | WcfSerializationErr of SerializationError
 
 
+    type InvalidStatusTransitionErrData =
+        {
+            runQueueId : RunQueueId
+            runQueueStatusFrom : RunQueueStatus
+            runQueueStatusTo : RunQueueStatus
+            workerNodeIdOptFrom : WorkerNodeId option
+            workerNodeIdOptTo : WorkerNodeId option
+            progressFrom : TaskProgress
+            progressTo : TaskProgress
+        }
+
+
     type RunQueueTryUpdateRowError =
-        | InvalidStatusTransitionErr of (Guid * int * int)
-        | InvalidDataErr of Guid
+        | InvalidStatusTransitionErr of InvalidStatusTransitionErrData
+        | InvalidDataErr of RunQueueId
 
 
     type DbError =

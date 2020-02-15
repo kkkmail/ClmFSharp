@@ -432,8 +432,18 @@ module DatabaseTypes =
                 | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value > r.progress -> g q.progress.value
                 | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
                 | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
-                | _ -> f1(q.runQueueId.value, s.value, q.runQueueStatus.value)
-            | None -> f2 q.runQueueId.value
+                | _ ->
+                    {
+                        runQueueId = q.runQueueId
+                        runQueueStatusFrom = s
+                        runQueueStatusTo = q.runQueueStatus
+                        workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                        workerNodeIdOptTo = q.workerNodeIdOpt
+                        progressFrom = r.progress |> TaskProgress.create
+                        progressTo = q.progress
+                    }
+                    |> f1
+            | None -> f2 q.runQueueId
 
 
     type WorkerNodeInfo

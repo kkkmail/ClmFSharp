@@ -69,10 +69,10 @@
     <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="Rop.fs" />
     <Compile Include="GeneralPrimitives.fs" />
-    <Compile Include="ContGenPrimitives.fs" />
     <Compile Include="MessagingPrimitives.fs" />
     <Compile Include="WorkerNodePrimitives.fs" />
     <Compile Include="PartitionerPrimitives.fs" />
+    <Compile Include="ContGenPrimitives.fs" />
     <Compile Include="SolverRunnerPrimitives.fs" />
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="ContGenErrors.fs" />

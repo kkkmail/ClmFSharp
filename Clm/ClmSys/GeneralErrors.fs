@@ -119,5 +119,5 @@ module GeneralErrors =
 
 
     type ClmEventHandlerError =
-        | UnhandledException of Guid * exn
-        | StillRunningError of Guid
+        | UnhandledException of string * Guid * exn
+        | StillRunningError of string * Guid * DateTime

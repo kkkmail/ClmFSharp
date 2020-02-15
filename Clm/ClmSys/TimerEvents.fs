@@ -18,22 +18,25 @@ module TimerEvents =
     type ClmEventHandlerInfo =
         {
             handlerId : Guid option
+            handlerName : string
             eventHandler : unit -> UnitResult
             refreshInterfal : int option
             logError : ClmError -> unit
         }
 
-        static member defaultValue logError h =
+        static member defaultValue logError h n =
             {
                 handlerId = None
+                handlerName = n
                 eventHandler = h
                 refreshInterfal = None
                 logError = logError
             }
 
-        static member oneHourValue logError h =
+        static member oneHourValue logError h n =
             {
                 handlerId = None
+                handlerName = n
                 eventHandler = h
                 refreshInterfal = Some OneHourRefreshInterval
                 logError = logError
@@ -45,6 +48,7 @@ module TimerEvents =
         let handlerId = i.handlerId |> Option.defaultValue (Guid.NewGuid())
         let refreshInterfal = i.refreshInterfal |> Option.defaultValue RefreshInterval |> float
         let logError e = e |> ClmEventHandlerErr |> i.logError
+        do printfn "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
 
         let eventHandler _ =
             try
@@ -55,8 +59,8 @@ module TimerEvents =
                         | Ok() -> ignore()
                         | Error e -> i.logError e
                     with
-                    | e -> (handlerId, e) |> UnhandledException |> logError
-                else handlerId |> StillRunningError |> logError
+                    | e -> (i.handlerName, handlerId, e) |> UnhandledException |> logError
+                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningError |> logError
             finally Interlocked.Decrement(&counter) |> ignore
 
 

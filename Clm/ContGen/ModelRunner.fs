@@ -88,6 +88,7 @@ module ModelRunner =
 
 
     let updateProgress (proxy : UpdateProgressProxy) (i : RemoteProgressUpdateInfo) =
+        printfn "updateProgress: i = %A" i
         let addError = addError UpdateProgressErr
         let toError = toError UpdateProgressErr
 
@@ -113,10 +114,12 @@ module ModelRunner =
 
 
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
+        printfn "register: r = %A" r
         proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId))
 
 
     let unregister (proxy : UnregisterProxy) (r : WorkerNodeId) =
+        printfn "unregister: r = %A" r
         let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
@@ -125,14 +128,17 @@ module ModelRunner =
 
 
     let saveResult (proxy : SaveResultProxy) r =
+        printfn "updateProgress: r= %A" r
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
     let saveCharts (proxy : SaveChartsProxy) c =
+        printfn "saveResult: c.resultDataId = %A" c.resultDataId
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
+        printfn "processMessage: messageId = %A" m.messageDataInfo.messageId
         match m.messageData with
         | PartitionerMsg x ->
             match x with
@@ -200,7 +206,7 @@ module ModelRunner =
         logger.logInfoString "createModelRunner: Creating model runner..."
         let proxy = TryRunAllModelsProxy.create c rmp
         let e = fun () -> tryRunAllModels proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelRunner - tryRunAllModels")
         h
 
 
@@ -208,7 +214,7 @@ module ModelRunner =
         logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
         let proxy = onGetMessagesProxy c resultLocation w
         let e = fun () -> onGetMessages proxy () |> snd
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelRunnerMessageProcessor - onGetMessages")
         h
 
 

@@ -85,5 +85,5 @@ module ModelGenerator =
         logger.logInfoString "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create c
         let e = fun () -> generateAll proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e)
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelGenerator - generateAll")
         h

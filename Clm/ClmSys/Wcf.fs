@@ -48,13 +48,13 @@ module Wcf =
             match t() with
             | Ok (service, factoryCloser) ->
                 try
-                    printfn "tryCommunicate: Checking channel state..."
+                    //printfn "tryCommunicate: Checking channel state..."
                     let channel = (box service) :?> IClientChannel
-                    printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
+                    //printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
 
                     match a |> trySerialize with
                     | Ok b ->
-                        printfn "tryCommunicate: Calling service at %A..." DateTime.Now
+                        //printfn "tryCommunicate: Calling service at %A..." DateTime.Now
                         let d = c service b
                         channel.Close()
                         factoryCloser()

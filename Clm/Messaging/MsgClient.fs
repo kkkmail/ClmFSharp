@@ -137,26 +137,31 @@ module Client =
 
 
     let tryReceiveSingleMessage (proxy : TryReceiveSingleMessageProxy) : MessageResult =
+        printfn "tryReceiveSingleMessage: Starting..."
         let addError = addError TryReceiveSingleMessageErr
 
-        match proxy.tryPeekMessage () with
-        | Ok (Some m) ->
-            let r =
-                match m.messageDataInfo.recipientInfo.deliveryType with
-                | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }
-                | NonGuaranteedDelivery -> Ok()
+        let result =
+            match proxy.tryPeekMessage () with
+            | Ok (Some m) ->
+                let r =
+                    match m.messageDataInfo.recipientInfo.deliveryType with
+                    | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }
+                    | NonGuaranteedDelivery -> Ok()
 
-            match r with
-            | Ok() ->
-                match proxy.tryDeleteFromServer m.messageDataInfo.messageId with
-                | Ok() -> toMessageWithSize m
-                | Error e ->
-                    match proxy.tryDeleteMessage m.messageDataInfo.messageId with
-                    | Ok() -> addError TryDeleteFromServerErr e
-                    | Error e1 -> addError TryDeleteFromServerErr (e1 + e)
-            | Error e -> addError SaveMessageErr e
-        | Ok None -> Ok NoMessage
-        | Error e -> addError TryPeekMessageErr e
+                match r with
+                | Ok() ->
+                    match proxy.tryDeleteFromServer m.messageDataInfo.messageId with
+                    | Ok() -> toMessageWithSize m
+                    | Error e ->
+                        match proxy.tryDeleteMessage m.messageDataInfo.messageId with
+                        | Ok() -> addError TryDeleteFromServerErr e
+                        | Error e1 -> addError TryDeleteFromServerErr (e1 + e)
+                | Error e -> addError SaveMessageErr e
+            | Ok None -> Ok NoMessage
+            | Error e -> addError TryPeekMessageErr e
+
+        printfn "tryReceiveSingleMessage: result = %A" result
+        result
 
 
     let mapper (proxy : TryReceiveSingleMessageProxy) (c : MessageCount) =
@@ -263,11 +268,13 @@ module Client =
 
 
     let onTryPeekReceivedMessage (s : MessagingClientStateData) =
+        printfn "onTryPeekReceivedMessage: Starting..."
         let x = s.incomingMessages |> List.tryHead
         s, x
 
 
     let onTryRemoveReceivedMessage deleteMessage (s : MessagingClientStateData) m =
+        printfn "onTryRemoveReceivedMessage: Starting..."
         let removedMessage e =
             let result =
                 match e with
@@ -317,6 +324,7 @@ module Client =
             match s.messagingClientState with
             | MsgCliNotStarted -> s, Ok()
             | MsgCliIdle ->
+                printfn "onTransmitMessages: Sending..."
                 // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
                 let sent, sentErrors =
                     s.outgoingMessages
@@ -324,6 +332,7 @@ module Client =
                     |> List.map (sendMessageImpl proxy.sendMessage proxy.tryDeleteMessage)
                     |> Rop.unzip
 
+                printfn "onTransmitMessages: Receiving..."
                 let received, receivedErrors =
                     match receiveMessagesImpl proxy with
                     | Ok r -> r |> Rop.unzip
@@ -440,11 +449,11 @@ module Client =
     /// If you don't call it, then you have to operate MessagingClient by hands.
     let createMessagingClientEventHandlers logError (w : MessagingClient) =
         let eventHandler _ = w.transmitMessages()
-        let h = ClmEventHandlerInfo.defaultValue logError eventHandler |> ClmEventHandler
+        let h = ClmEventHandlerInfo.defaultValue logError eventHandler "MessagingClient - transmitMessages" |> ClmEventHandler
         do h.start()
 
         let eventHandler1 _ = w.removeExpiredMessages()
-        let h1 = ClmEventHandlerInfo.oneHourValue logError eventHandler1 |> ClmEventHandler
+        let h1 = ClmEventHandlerInfo.oneHourValue logError eventHandler1 "MessagingClient - removeExpiredMessages" |> ClmEventHandler
         do h1.start()
 
 

@@ -405,7 +405,7 @@ module GeneralData =
 
     let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
         try
-            printfn "trySerialize: Serializing type %A..." typeof<'A>
+            //printfn "trySerialize: Serializing type %A..." typeof<'A>
             //printfn "trySerialize: a = '%A'." a
             let b = a |> serialize
             //printfn "trySerialize: b = '%A'." b
@@ -432,7 +432,7 @@ module GeneralData =
             let x = b |> unZip
             //printfn "tryDeserialize: x = %A" x
 
-            printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
+            //printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
             let (y : 'A) = deserialize x
             //printfn "tryDeserialize: y = %A" y
             Ok y

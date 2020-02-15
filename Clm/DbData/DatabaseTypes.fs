@@ -407,20 +407,17 @@ module DatabaseTypes =
         /// The following status transitions are allowed here:
         ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
         ///
-        ///     NotStartedRunQueue -> InProgressRunQueue
-        ///     InProgressRunQueue -> CompletedRunQueue
-        ///     InProgressRunQueue -> FailedRunQueue
+        ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + increasing progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId.
+        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
-        /// All others are out of scope of this method.
+        /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
-            let g() =
+            let g p =
                 r.runQueueId <- q.runQueueId.value
-                //r.modelDataId <- q.info.modelDataId.value
-                //r.y0 <- q.modelCommandLineParam.taskParam.y0
-                //r.tEnd <- q.modelCommandLineParam.taskParam.tEnd
-                //r.useAbundant <- q.modelCommandLineParam.taskParam.useAbundant
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
-                r.progress <- q.progress.value
+                r.progress <- p
                 r.modifiedOn <- DateTime.Now
                 r.runQueueStatusId <- q.runQueueStatus.value
                 Ok()
@@ -430,10 +427,11 @@ module DatabaseTypes =
 
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
-                match s, q.runQueueStatus with
-                | NotStartedRunQueue, InProgressRunQueue -> g()
-                | InProgressRunQueue, CompletedRunQueue -> g()
-                | InProgressRunQueue, FailedRunQueue -> g()
+                match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
+                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value
+                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value > r.progress -> g q.progress.value
+                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
+                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
                 | _ -> f1(q.runQueueId.value, s.value, q.runQueueStatus.value)
             | None -> f2 q.runQueueId.value
 

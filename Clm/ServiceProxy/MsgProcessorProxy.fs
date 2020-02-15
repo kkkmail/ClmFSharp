@@ -52,6 +52,7 @@ module MsgProcessorProxy =
             match x with
             | [] -> acc, Ok()
             | () :: t ->
+                printfn "onGetMessages: Calling proxy.tryProcessMessage..."
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
                 | ProcessedSucessfully (g, u) ->
                     match u with

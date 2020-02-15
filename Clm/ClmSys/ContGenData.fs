@@ -14,6 +14,8 @@ module ContGenData =
         | Completed
         | Failed of WorkerNodeId * RemoteProcessId
 
+        static member failedValue = -1000m
+
         static member create d =
             match d with
             | _ when d <= 0.0m -> NotStarted
@@ -32,7 +34,7 @@ module ContGenData =
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
             | Completed -> 1.0m
-            | Failed _ -> -1000m
+            | Failed _ -> TaskProgress.failedValue
 
 
     type ContGenServiceAccessInfo =

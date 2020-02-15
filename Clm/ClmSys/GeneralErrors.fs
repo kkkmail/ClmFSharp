@@ -65,7 +65,7 @@ module GeneralErrors =
         | WcfSerializationErr of SerializationError
 
 
-    type InvalidStatusTransitionErrData =
+    type InvalidRunQueueData =
         {
             runQueueId : RunQueueId
             runQueueStatusFrom : RunQueueStatus
@@ -78,8 +78,8 @@ module GeneralErrors =
 
 
     type RunQueueTryUpdateRowError =
-        | InvalidStatusTransitionErr of InvalidStatusTransitionErrData
-        | InvalidDataErr of RunQueueId
+        | InvalidStatusTransitionErr of InvalidRunQueueData
+        | InvalidDataErr of InvalidRunQueueData
 
 
     type DbError =

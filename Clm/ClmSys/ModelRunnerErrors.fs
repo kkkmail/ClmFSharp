@@ -29,6 +29,7 @@ module ModelRunnerErrors =
         | UnableToLoadRunQueueErr of RunQueueId
         | UnableToFindLoadRunQueueErr of RunQueueId
         | InvalidRunQueueStatusErr of RunQueueId
+        | CompleteyInvalidRunQueueStatusErr of RunQueueId // This should never happen but we still have to account for it. It if does, then we are in a BIG trouble.
 
 
     type RegisterError =

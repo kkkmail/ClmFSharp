@@ -414,6 +414,8 @@ module DatabaseTypes =
         ///
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
+            let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
+
             let g p =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
@@ -422,8 +424,19 @@ module DatabaseTypes =
                 r.runQueueStatusId <- q.runQueueStatus.value
                 Ok()
 
-            let f1 e = e |> InvalidStatusTransitionErr |> RunQueueTryUpdateRowErr |> DbErr |> Error
-            let f2 e = e |> InvalidDataErr |> RunQueueTryUpdateRowErr |> DbErr |> Error
+            let f s =
+                {
+                    runQueueId = q.runQueueId
+                    runQueueStatusFrom = s
+                    runQueueStatusTo = q.runQueueStatus
+                    workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                    workerNodeIdOptTo = q.workerNodeIdOpt
+                    progressFrom = r.progress |> TaskProgress.create
+                    progressTo = q.progress
+                }
+
+            let f1 e = e |> InvalidStatusTransitionErr |> toError
+            let f2 e = e |> InvalidDataErr |> toError
 
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
@@ -432,18 +445,8 @@ module DatabaseTypes =
                 | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value > r.progress -> g q.progress.value
                 | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
                 | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
-                | _ ->
-                    {
-                        runQueueId = q.runQueueId
-                        runQueueStatusFrom = s
-                        runQueueStatusTo = q.runQueueStatus
-                        workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-                        workerNodeIdOptTo = q.workerNodeIdOpt
-                        progressFrom = r.progress |> TaskProgress.create
-                        progressTo = q.progress
-                    }
-                    |> f1
-            | None -> f2 q.runQueueId
+                | _ -> s |> f |> f1
+            | None -> InvalidRunQueue |> f |> f2
 
 
     type WorkerNodeInfo

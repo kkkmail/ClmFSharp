@@ -109,6 +109,7 @@ module ModelRunner =
                 | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
             | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue ->
                 toError (InvalidRunQueueStatusErr i.runningProcessData.runQueueId)
+            | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runningProcessData.runQueueId)
         | Ok None -> toError (UnableToFindLoadRunQueueErr i.runningProcessData.runQueueId)
         | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
 

@@ -73,6 +73,7 @@ module GeneralPrimitives =
         | CompletedRunQueue
         | FailedRunQueue
         | ModifyingRunQueue
+        | InvalidRunQueue // It does not exist in DB, so it it not possible to insert it due to FK constraint.
 
         member r.value =
             match r with
@@ -82,6 +83,7 @@ module GeneralPrimitives =
             | CompletedRunQueue -> 3
             | FailedRunQueue -> 4
             | ModifyingRunQueue -> 5
+            | InvalidRunQueue -> -1000
 
         static member tryCreate i =
             match i with

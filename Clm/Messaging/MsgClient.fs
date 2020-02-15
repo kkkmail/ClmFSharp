@@ -160,7 +160,7 @@ module Client =
             | Ok None -> Ok NoMessage
             | Error e -> addError TryPeekMessageErr e
 
-        printfn "tryReceiveSingleMessage: result = %A" result
+        printfn "tryReceiveSingleMessage: Comleted."
         result
 
 

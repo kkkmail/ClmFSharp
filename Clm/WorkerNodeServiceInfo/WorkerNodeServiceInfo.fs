@@ -10,6 +10,7 @@ open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
+open ClmSys.ContGenPrimitives
 
 module ServiceInfo =
 

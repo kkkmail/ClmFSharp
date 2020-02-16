@@ -42,7 +42,7 @@ module VersionInfo =
 
 
     [<Literal>]
-    let CopyrightInfo = "GPL v3 (or later vesion) - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2020+."
+    let CopyrightInfo = "GPL v3 (or later vesion) - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2020."
 
 
     type VersionNumber =

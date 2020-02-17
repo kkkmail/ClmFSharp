@@ -12,17 +12,54 @@ open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open Clm.ReactionRates
-open ClmSys.MessagingData
 open DynamicSql
+open ClmSys.GeneralErrors
+open ClmSys.Retry
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.ContGenData
+open ClmSys.WorkerNodeData
+open ClmSys
 
 
-/// You must add reference to System.Configuration !
 module DatabaseTypes =
 
-    let openConnIfClosed (conn : SqlConnection) =
+    let private toError g f = f |> g |> DbErr |> Error
+    let private addError g f e = ((f |> g |> DbErr) + e) |> Error
+    let private mapException e = e |> DbExn |> DbErr
+    let private mapExceptionToError e = e |> DbExn |> DbErr |> Error
+
+
+    let private openConnIfClosed (conn : SqlConnection) =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
         | _ -> ignore ()
+
+
+    let private getOpenConn (ConnectionString connectionString) =
+        let conn = new SqlConnection(connectionString)
+        openConnIfClosed conn
+        conn
+
+
+    /// Maps missing value (None) to DbErr.
+    let private mapDbError f i v =
+        v
+        |> Option.map Ok
+        |> Option.defaultValue (i |> f |> DbErr |> Error)
+
+
+    let private tryDbFun g =
+        let w() =
+            try
+                g()
+            with
+            | e -> mapExceptionToError e
+
+        tryRopFun mapException w
 
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
@@ -30,6 +67,7 @@ module DatabaseTypes =
 
     type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
     type ClmDefaultValueTableRow = ClmDefaultValueTable.Row
+
 
     type ClmDefaultValueData = SqlCommandProvider<"
         select * 
@@ -40,10 +78,12 @@ module DatabaseTypes =
     type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
     type ClmTaskTableRow = ClmTaskTable.Row
 
+
     type ClmTaskData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
         where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+
 
     type ClmTaskByDefaultData = SqlCommandProvider<"
         select top 1 *
@@ -51,15 +91,17 @@ module DatabaseTypes =
         where clmDefaultValueId = @clmDefaultValueId
         order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
 
+
     type ClmTaskAllIncompleteData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
-        where remainingRepetitions > 0 and statusId = 0
-        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
+        where remainingRepetitions > 0 and clmTaskStatusId = 0
+        order by clmTaskOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
     type CommandLineParamTableRow = CommandLineParamTable.Row
+
 
     type CommandLineParamData = SqlCommandProvider<"
         select *
@@ -70,6 +112,7 @@ module DatabaseTypes =
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
     type ModelDataTableRow = ModelDataTable.Row
+
 
     type ModelDataTableData = SqlCommandProvider<"
         select
@@ -101,15 +144,69 @@ module DatabaseTypes =
     type RunQueueTableRow = RunQueueTable.Row
 
 
+    /// SQL to upsert RunQueue.
     type RunQueueTableData = SqlCommandProvider<"
+        select * 
+        from dbo.RunQueue
+        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    /// SQL to load all not started RunQueue.
+    type RunQueueAllTableData = SqlCommandProvider<"
         select
             r.*,
             t.clmDefaultValueId
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.statusId = 0 and t.statusId = 0
-        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
+        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    /// SQL to load RunQueue by runQueueId.
+    type RunQueueSingleTableData = SqlCommandProvider<"
+        select
+            r.*,
+            t.clmDefaultValueId
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
+        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    /// SQL to load first not started RunQueue.
+    type RunQueueFirstTableData = SqlCommandProvider<"
+        select top 1
+            r.*,
+            t.clmDefaultValueId
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
+        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    /// SQL to load all currently running models == total progress.
+    /// runQueueStatusId = 2 is InProgressRunQueue.
+    type RunQueueProgressTableData = SqlCommandProvider<"
+        select
+            r.*,
+            t.clmDefaultValueId
+        from dbo.RunQueue r
+        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
+        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
+        where r.runQueueStatusId = 2 and t.clmTaskStatusId = 0 and r.workerNodeId is not null
+        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+
+
+    type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
+    type WorkerNodeTableRow = WorkerNodeTable.Row
+
+
+    type WorkerNodeTableData = SqlCommandProvider<"
+        select *
+        from dbo.WorkerNode
+        where workerNodeId = @workerNodeId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ClmDefaultValue
@@ -125,16 +222,11 @@ module DatabaseTypes =
     type ModelCommandLineParam
         with
 
-        static member create i (r : CommandLineParamTableRow) =
+        static member create (r : CommandLineParamTableRow) =
             {
-                taskParam =
-                    {
-                        y0 = r.y0
-                        tEnd = r.tEnd
-                        useAbundant = r.useAbundant
-                    }
-
-                serviceAccessInfo = i
+                y0 = r.y0
+                tEnd = r.tEnd
+                useAbundant = r.useAbundant
             }
 
         /// TODO kk:20190531 - Perhaps it is worth assigning commandLineParamId on the client OR by database.
@@ -143,9 +235,9 @@ module DatabaseTypes =
                 t.NewRow(
                         commandLineParamId = Guid.NewGuid(),
                         clmTaskId = clmTaskId,
-                        y0 = r.taskParam.y0,
-                        tEnd = r.taskParam.tEnd,
-                        useAbundant = r.taskParam.useAbundant
+                        y0 = r.y0,
+                        tEnd = r.tEnd,
+                        useAbundant = r.useAbundant
                         )
 
             t.Rows.Add newRow
@@ -155,26 +247,29 @@ module DatabaseTypes =
     type ClmTask
         with
 
-        static member tryCreate (r : ClmTaskTableRow) (c : ClmTaskId -> list<ModelCommandLineParam>) =
+        static member tryCreate c (r : ClmTaskTableRow) =
             match r.numberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.maxPeptideLength |> MaxPeptideLength.tryCreate with
             | Some n, Some m ->
                 let clmTaskId = r.clmTaskId |> ClmTaskId
 
-                {
-                    clmTaskInfo =
-                        {
-                            clmTaskId = clmTaskId
-                            clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
-                            numberOfAminoAcids = n
-                            maxPeptideLength = m
-                        }
-                    commandLineParams = c clmTaskId
-                    numberOfRepetitions = r.numberOfRepetitions
-                    remainingRepetitions = r.remainingRepetitions
-                    createdOn = r.createdOn
-                }
-                |> Some
-            | _ -> None
+                match c clmTaskId with
+                | Ok p ->
+                    {
+                        clmTaskInfo =
+                            {
+                                clmTaskId = clmTaskId
+                                clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
+                                numberOfAminoAcids = n
+                                maxPeptideLength = m
+                            }
+                        commandLineParams = p
+                        numberOfRepetitions = r.numberOfRepetitions
+                        remainingRepetitions = r.remainingRepetitions
+                        createdOn = r.createdOn
+                    }
+                    |> Ok
+                | Error e -> addError ClmTaskTryCreatErr r.clmTaskId e
+            | _ -> toError ClmTaskTryCreatErr r.clmTaskId
 
         member r.addRow (t : ClmTaskTable) =
             let newRow =
@@ -195,9 +290,9 @@ module DatabaseTypes =
     type ModelData
         with
 
-        static member tryCreate (c : ClmTaskId -> ClmTask option) (r : ModelDataTableRow) =
+        static member tryCreate (c : ClmTaskId -> Result<ClmTask, ClmError>) (r : ModelDataTableRow) =
             match r.clmTaskId |> ClmTaskId |> c with
-            | Some i ->
+            | Ok i ->
                 let rawData =
                     {
                         seedValue = r.seedValue
@@ -217,8 +312,8 @@ module DatabaseTypes =
                         | Some p -> ParentProvided (ModelDataId p, rawData)
                         | None -> OwnData rawData
                 }
-                |> Some
-            | None -> None
+                |> Ok
+            | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
 
 
     type ResultDataWithId
@@ -268,355 +363,612 @@ module DatabaseTypes =
     type RunQueue
         with
 
-        static member create i d (r : RunQueueTableRow) =
-            {
-                runQueueId = RunQueueId r.runQueueId
-                info =
-                    {
-                        modelDataId = ModelDataId r.modelDataId
-                        defaultValueId = d
+        static member tryCreate i d (r : RunQueueTableRow) =
+            match RunQueueStatus.tryCreate r.runQueueStatusId with
+            | Some s ->
+                {
+                    runQueueId = RunQueueId r.runQueueId
+                    info =
+                        {
+                            modelDataId = ModelDataId r.modelDataId
+                            defaultValueId = d
 
-                        modelCommandLineParam =
-                            {
-                                taskParam =
-                                    {
-                                        y0 = r.y0
-                                        tEnd = r.tEnd
-                                        useAbundant = r.useAbundant
-                                    }
-
-                                serviceAccessInfo = i
-                            }
-                    }
-                statusId = r.statusId
-            }
+                            modelCommandLineParam =
+                                {
+                                    y0 = r.y0
+                                    tEnd = r.tEnd
+                                    useAbundant = r.useAbundant
+                                }
+                        }
+                    runQueueStatus = s
+                    workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                    progress = TaskProgress.create r.progress
+                    createdOn = r.createdOn
+                }
+                |> Some
+            | None -> None
 
         member r.addRow (t : RunQueueTable) =
             let newRow =
                 t.NewRow(
                         runQueueId = r.runQueueId.value,
                         modelDataId = r.info.modelDataId.value,
-                        y0 = r.modelCommandLineParam.taskParam.y0,
-                        tEnd = r.modelCommandLineParam.taskParam.tEnd,
-                        useAbundant = r.modelCommandLineParam.taskParam.useAbundant
+                        y0 = r.modelCommandLineParam.y0,
+                        tEnd = r.modelCommandLineParam.tEnd,
+                        useAbundant = r.modelCommandLineParam.useAbundant,
+                        workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
+                        progress = r.progress.value,
+                        modifiedOn = DateTime.Now
                         )
 
-            newRow.statusId <- 0
-
+            newRow.runQueueStatusId <- r.runQueueStatus.value
             t.Rows.Add newRow
             newRow
 
+        /// The following status transitions are allowed here:
+        ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
+        ///
+        ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId.
+        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
+        ///
+        /// All others are not allowed and / or out of scope of this function.
+        member q.tryUpdateRow (r : RunQueueTableRow) =
+            let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-    let tryLoadClmDefaultValue (ClmDefaultValueId clmDefaultValueId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use d = new ClmDefaultValueData(conn)
-        let t = new ClmDefaultValueTable()
-        d.Execute clmDefaultValueId |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
+            let g p =
+                r.runQueueId <- q.runQueueId.value
+                r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
+                r.progress <- p
+                r.modifiedOn <- DateTime.Now
+                r.runQueueStatusId <- q.runQueueStatus.value
+                Ok()
 
+            let f s =
+                {
+                    runQueueId = q.runQueueId
+                    runQueueStatusFrom = s
+                    runQueueStatusTo = q.runQueueStatus
+                    workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                    workerNodeIdOptTo = q.workerNodeIdOpt
+                    progressFrom = r.progress |> TaskProgress.create
+                    progressTo = q.progress
+                }
 
-    let tryUpsertClmDefaultValue (p : ClmDefaultValue) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
+            let f1 e = e |> InvalidStatusTransitionErr |> toError
+            let f2 e = e |> InvalidDataErr |> toError
 
-        use cmd = new SqlCommandProvider<"
-            merge ClmDefaultValue as target
-            using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
-            on (target.clmDefaultValueId = source.clmDefaultValueId)
-            when not matched then
-                insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
-                values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
-            when matched then
-                update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-        cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
-                    , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
-                    , description = match p.description with | Some d -> d | None -> null
-                    , fileStructureVersion = FileStructureVersion)
-
-
-    let loadCommandLineParams i (ClmTaskId clmTaskId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use d = new CommandLineParamData(conn)
-        let t = new CommandLineParamTable()
-        d.Execute clmTaskId |> t.Load
-
-        t.Rows
-        |> Seq.toList
-        |> List.map (fun r -> ModelCommandLineParam.create i r)
-
-
-    let addCommandLineParams clmTaskId (p : ModelCommandLineParam) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use t = new CommandLineParamTable()
-        p.addRow clmTaskId t |> ignore
-        t.Update conn |> ignore
+            match RunQueueStatus.tryCreate r.runQueueStatusId with
+            | Some s ->
+                match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
+                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value
+                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value
+                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
+                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
+                | _ -> s |> f |> f1
+            | None -> InvalidRunQueue |> f |> f2
 
 
-    let tryLoadClmTask i (ClmTaskId clmTaskId) (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use d = new ClmTaskData(conn)
-        let t = new ClmTaskTable()
-        d.Execute clmTaskId |> t.Load
+    type WorkerNodeInfo
+        with
 
-        t.Rows
-        |> Seq.tryFind (fun e -> e.clmTaskId = clmTaskId)
-        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams i c connectionString))
-
-
-    let tryLoadClmTaskByDefault i (ClmDefaultValueId clmDefaultValueId) (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use d = new ClmTaskByDefaultData(conn)
-        let t = new ClmTaskTable()
-        d.Execute clmDefaultValueId |> t.Load
-
-        t.Rows
-        |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId)
-        |> Option.bind (fun v -> ClmTask.tryCreate v (fun c -> loadCommandLineParams i c connectionString))
-
-
-    let loadIncompleteClmTasks i (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use d = new ClmTaskAllIncompleteData(conn)
-        let t = new ClmTaskTable()
-        d.Execute() |> t.Load
-
-        t.Rows
-        |> Seq.toList
-        |> List.map (fun r -> ClmTask.tryCreate r (fun c -> loadCommandLineParams i c connectionString))
-        |> List.choose id
-
-
-    let addClmTask (clmTask : ClmTask) (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use t = new ClmTaskTable()
-        let row = clmTask.addRow t
-        t.Update conn |> ignore
-        let clmTaskId = row.clmTaskId |> ClmTaskId
-        let newClmTask = { clmTask with clmTaskInfo = { clmTask.clmTaskInfo with clmTaskId = clmTaskId } }
-
-        newClmTask.commandLineParams
-        |> List.map (fun e -> addCommandLineParams clmTaskId e connectionString)
-        |> ignore
-
-        newClmTask
-
-
-    let tryUpdateClmTask (clmTask : ClmTask) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
-
-        use cmd = new SqlCommandProvider<"
-            UPDATE dbo.ClmTask
-            SET remainingRepetitions = @remainingRepetitions
-            WHERE clmTaskId = @clmTaskId
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-        let recordsUpdated =
-            cmd.Execute(
-                clmTaskId = clmTask.clmTaskInfo.clmTaskId.value,
-                remainingRepetitions = clmTask.remainingRepetitions)
-
-        recordsUpdated = 1
-
-
-    let tryLoadModelData i (ModelDataId modelDataId) (connectionString : ConnectionString) =
-        use conn = new SqlConnection(connectionString.value)
-        openConnIfClosed conn
-        use d = new ModelDataTableData(conn)
-        let t = new ModelDataTable()
-        d.Execute modelDataId |> t.Load
-
-        t.Rows
-        |> Seq.tryFind (fun e -> e.modelDataId = modelDataId)
-        |> Option.bind (fun v -> ModelData.tryCreate (fun c -> tryLoadClmTask i c connectionString) v)
-
-
-    let tryUpdateModelData (m : ModelData) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
-
-        let recordsUpdated =
-            match m.data with
-            | OwnData d ->
-                use cmdWithBinaryData = new SqlCommandProvider<"
-                    merge ModelData as target
-                    using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
-                    as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                    on (target.modelDataId = source.modelDataId)
-                    when not matched then
-                        insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                        values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
-                    when matched then
-                        update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
-                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-                cmdWithBinaryData.Execute(
-                    modelDataId = m.modelDataId.value,
-                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                    fileStructureVersion = d.fileStructureVersion,
-                    seedValue = (match d.seedValue with | Some s -> s | None -> -1),
-                    modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
-                    modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                    createdOn = DateTime.Now)
-            | ParentProvided (ModelDataId parentModelDataId, _) ->
-                use cmdWithoutBinaryData = new SqlCommandProvider<"
-                    merge ModelData as target
-                    using (select @modelDataId, @clmTaskId, @parentModelDataId, @createdOn)
-                    as source (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                    on (target.modelDataId = source.modelDataId)
-                    when not matched then
-                        insert (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                        values (source.modelDataId, source.clmTaskId, source.parentModelDataId, source.createdOn)
-                    when matched then
-                        update set clmTaskId = source.clmTaskId, parentModelDataId = source.parentModelDataId, createdOn = source.createdOn;
-                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-                cmdWithoutBinaryData.Execute(
-                    modelDataId = m.modelDataId.value,
-                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                    parentModelDataId = parentModelDataId,
-                    createdOn = DateTime.Now)
-        recordsUpdated = 1
-
-
-    let saveResultData (r : ResultDataWithId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        let connectionString = conn.ConnectionString
-
-        use cmd = new SqlCommandProvider<"
-            INSERT INTO dbo.ResultData
-                       (resultDataId
-                       ,modelDataId
-                       ,workerNodeId
-                       ,y0
-                       ,tEnd
-                       ,useAbundant
-                       ,maxEe
-                       ,maxAverageEe
-                       ,maxWeightedAverageAbsEe
-                       ,maxLastEe
-                       ,createdOn)
-                 OUTPUT Inserted.resultDataId
-                 VALUES
-                       (@resultDataId
-                       ,@modelDataId
-                       ,@workerNodeId
-                       ,@y0
-                       ,@tEnd
-                       ,@useAbundant
-                       ,@maxEe
-                       ,@maxAverageEe
-                       ,@maxWeightedAverageAbsEe
-                       ,@maxLastEe
-                       ,@createdOn)
-        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-        let _result =
-            cmd.Execute(
-                    resultDataId = r.resultDataId.value
-                    ,modelDataId = r.resultData.modelDataId.value
-                    ,workerNodeId = r.workerNodeId.messagingClientId.value
-                    ,y0 = r.resultData.y0
-                    ,tEnd = r.resultData.tEnd
-                    ,useAbundant = r.resultData.useAbundant
-                    ,maxEe = r.resultData.maxEe
-                    ,maxAverageEe = r.resultData.maxAverageEe
-                    ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
-                    ,maxLastEe = r.resultData.maxLastEe
-                    ,createdOn = DateTime.Now)
-            |> Seq.toList
-
-        //printfn "saveResultData::result = %A" _result
-        ignore()
-
-
-    let tryLoadResultData (ResultDataId resultDataId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use d = new ResultDataTableData(conn)
-        let t = new ResultDataTable()
-        d.Execute(resultDataId = resultDataId) |> t.Load
-        t.Rows |> Seq.tryFind (fun e -> e.resultDataId = resultDataId) |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
-
-
-    let loadRunQueue i (ConnectionString connectionString) =
-        //printfn "loadRunQueue: Starting..."
-
-        seq
+        static member create (r : WorkerNodeTableRow) =
             {
-                use conn = new SqlConnection(connectionString)
-                openConnIfClosed conn
-                use data = new RunQueueTableData(conn)
-                use reader= new DynamicSqlDataReader(data.Execute())
+                workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
+                workerNodeName = r.workerNodeName |> WorkerNodeName
+                noOfCores = r.numberOfCores
+                nodePriority = r.nodePriority |> WorkerNodePriority
+            }
 
-                while (reader.Read()) do
-                    yield
-                        {
-                            runQueueId = RunQueueId reader?runQueueId
-                            info =
-                                {
-                                    modelDataId = ModelDataId reader?modelDataId
-                                    defaultValueId = ClmDefaultValueId reader?clmDefaultValueId
+        member w.addRow (t : WorkerNodeTable) =
+            let newRow =
+                t.NewRow(
+                        workerNodeId = w.workerNodeId.value.value,
+                        workerNodeName = w.workerNodeName.value,
+                        numberOfCores = w.noOfCores,
+                        nodePriority = w.nodePriority.value
+                        )
 
-                                    modelCommandLineParam =
-                                        {
-                                            taskParam =
-                                                {
-                                                    y0 = reader?y0
-                                                    tEnd = reader?tEnd
-                                                    useAbundant = reader?useAbundant
-                                                }
+            newRow.modifiedOn <- DateTime.Now
+            t.Rows.Add newRow
+            newRow
 
-                                            serviceAccessInfo = i
-                                        }
-                                }
-                            statusId = reader?statusId
-                        }
+        member w.updateRow (r : WorkerNodeTableRow) =
+            r.workerNodeName <- w.workerNodeName.value
+            r.numberOfCores <- w.noOfCores
+            r.nodePriority <- w.nodePriority.value
+            r.modifiedOn <- DateTime.Now
+
+
+    let loadClmDefaultValue connectionString (ClmDefaultValueId clmDefaultValueId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ClmDefaultValueData(conn)
+            let t = new ClmDefaultValueTable()
+            d.Execute clmDefaultValueId |> t.Load
+
+            t.Rows
+            |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId)
+            |> Option.bind (fun v -> ClmDefaultValue.create v |> Some)
+            |> mapDbError LoadClmDefaultValueErr clmDefaultValueId
+
+        tryDbFun g
+
+
+    let upsertClmDefaultValue (ConnectionString connectionString) (p : ClmDefaultValue) =
+        let g() =
+            use cmd = new SqlCommandProvider<"
+                merge ClmDefaultValue as target
+                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+                on (target.clmDefaultValueId = source.clmDefaultValueId)
+                when not matched then
+                    insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
+                    values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
+                when matched then
+                    update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let result = cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
+                                    , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
+                                    , description = match p.description with | Some d -> d | None -> null
+                                    , fileStructureVersion = FileStructureVersion)
+
+            match result = 1 with
+            | true -> Ok ()
+            | false -> toError UpsertClmDefaultValueErr p.clmDefaultValueId.value
+
+        tryDbFun g
+
+
+    let loadCommandLineParams connectionString (ClmTaskId clmTaskId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new CommandLineParamData(conn)
+            let t = new CommandLineParamTable()
+            d.Execute clmTaskId |> t.Load
+
+            t.Rows
+            |> Seq.toList
+            |> List.map (fun r -> ModelCommandLineParam.create r)
+            |> Ok
+
+        tryDbFun g
+
+
+    let addCommandLineParams connectionString clmTaskId (p : ModelCommandLineParam) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use t = new CommandLineParamTable()
+            p.addRow clmTaskId t |> ignore
+            t.Update conn |> ignore
+            Ok ()
+
+        tryDbFun g
+
+
+    let loadClmTask connectionString (ClmTaskId clmTaskId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ClmTaskData(conn)
+            let t = new ClmTaskTable()
+            d.Execute clmTaskId |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.clmTaskId = clmTaskId) with
+            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString) v
+            | None -> toError LoadClmTaskErr clmTaskId
+
+        tryDbFun g
+
+
+    let loadClmTaskByDefault connectionString (ClmDefaultValueId clmDefaultValueId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ClmTaskByDefaultData(conn)
+            let t = new ClmTaskTable()
+            d.Execute clmDefaultValueId |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.clmDefaultValueId = clmDefaultValueId) with
+            | Some v -> ClmTask.tryCreate (loadCommandLineParams connectionString) v
+            | None -> toError LoadClmTaskByDefaultErr clmDefaultValueId
+
+        tryDbFun g
+
+
+    let loadIncompleteClmTasks connectionString =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ClmTaskAllIncompleteData(conn)
+            let t = new ClmTaskTable()
+            d.Execute() |> t.Load
+
+            t.Rows
+            |> Seq.toList
+            |> List.map (fun r -> ClmTask.tryCreate (loadCommandLineParams connectionString) r)
+            |> Ok
+
+        tryDbFun g
+
+
+    let addClmTask connectionString (clmTask : ClmTask) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use t = new ClmTaskTable()
+            let row = clmTask.addRow t
+            t.Update conn |> ignore
+            let clmTaskId = row.clmTaskId |> ClmTaskId
+            let newClmTask = { clmTask with clmTaskInfo = { clmTask.clmTaskInfo with clmTaskId = clmTaskId } }
+
+            newClmTask.commandLineParams
+            |> List.map (addCommandLineParams connectionString clmTaskId)
+            |> ignore
+
+            Ok newClmTask
+
+        tryDbFun g
+
+
+    /// Updates remainingRepetitions of ClmTask.
+    let updateClmTask connectionString (clmTask : ClmTask) =
+        let g() =
+            use conn = getOpenConn connectionString
+            let connectionString = conn.ConnectionString
+
+            use cmd = new SqlCommandProvider<"
+                    UPDATE dbo.ClmTask
+                    SET remainingRepetitions = @remainingRepetitions
+                    WHERE clmTaskId = @clmTaskId
+                ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let recordsUpdated =
+                cmd.Execute(
+                    clmTaskId = clmTask.clmTaskInfo.clmTaskId.value,
+                    remainingRepetitions = clmTask.remainingRepetitions)
+
+            match recordsUpdated = 1 with
+            | true -> Ok ()
+            | false -> toError UpdateClmTaskErr clmTask.clmTaskInfo.clmTaskId.value
+
+        tryDbFun g
+
+
+    let loadModelData connectionString (ModelDataId modelDataId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ModelDataTableData(conn)
+            let t = new ModelDataTable()
+            d.Execute modelDataId |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.modelDataId = modelDataId) with
+            | Some v -> ModelData.tryCreate (loadClmTask connectionString) v
+            | None -> toError LoadModelDataError modelDataId
+
+        tryDbFun g
+
+
+    let upsertModelData connectionString (m : ModelData) =
+        let g() =
+            use conn = getOpenConn connectionString
+            let connectionString = conn.ConnectionString
+
+            let recordsUpdated =
+                match m.data with
+                | OwnData d ->
+                    use cmdWithBinaryData = new SqlCommandProvider<"
+                        merge ModelData as target
+                        using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+                        as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                        on (target.modelDataId = source.modelDataId)
+                        when not matched then
+                            insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                            values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+                        when matched then
+                            update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+                    cmdWithBinaryData.Execute(
+                        modelDataId = m.modelDataId.value,
+                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                        fileStructureVersion = d.fileStructureVersion,
+                        seedValue = (match d.seedValue with | Some s -> s | None -> -1),
+                        modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
+                        modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
+                        createdOn = DateTime.Now)
+                | ParentProvided (ModelDataId parentModelDataId, _) ->
+                    use cmdWithoutBinaryData = new SqlCommandProvider<"
+                        merge ModelData as target
+                        using (select @modelDataId, @clmTaskId, @parentModelDataId, @createdOn)
+                        as source (modelDataId, clmTaskId, parentModelDataId, createdOn)
+                        on (target.modelDataId = source.modelDataId)
+                        when not matched then
+                            insert (modelDataId, clmTaskId, parentModelDataId, createdOn)
+                            values (source.modelDataId, source.clmTaskId, source.parentModelDataId, source.createdOn)
+                        when matched then
+                            update set clmTaskId = source.clmTaskId, parentModelDataId = source.parentModelDataId, createdOn = source.createdOn;
+                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+                    cmdWithoutBinaryData.Execute(
+                        modelDataId = m.modelDataId.value,
+                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                        parentModelDataId = parentModelDataId,
+                        createdOn = DateTime.Now)
+
+            match recordsUpdated = 1 with
+            | true -> Ok ()
+            | false -> toError UpdateModelDataErr m.modelDataId.value
+
+        tryDbFun g
+
+
+    let saveResultData connectionString (r : ResultDataWithId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            let connectionString = conn.ConnectionString
+
+            use cmd = new SqlCommandProvider<"
+                INSERT INTO dbo.ResultData
+                            (resultDataId
+                            ,modelDataId
+                            ,workerNodeId
+                            ,y0
+                            ,tEnd
+                            ,useAbundant
+                            ,maxEe
+                            ,maxAverageEe
+                            ,maxWeightedAverageAbsEe
+                            ,maxLastEe
+                            ,createdOn)
+                        OUTPUT Inserted.resultDataId
+                        VALUES
+                            (@resultDataId
+                            ,@modelDataId
+                            ,@workerNodeId
+                            ,@y0
+                            ,@tEnd
+                            ,@useAbundant
+                            ,@maxEe
+                            ,@maxAverageEe
+                            ,@maxWeightedAverageAbsEe
+                            ,@maxLastEe
+                            ,@createdOn)
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let result =
+                cmd.Execute(
+                        resultDataId = r.resultDataId.value
+                        ,modelDataId = r.resultData.modelDataId.value
+                        ,workerNodeId = r.workerNodeId.messagingClientId.value
+                        ,y0 = r.resultData.y0
+                        ,tEnd = r.resultData.tEnd
+                        ,useAbundant = r.resultData.useAbundant
+                        ,maxEe = r.resultData.maxEe
+                        ,maxAverageEe = r.resultData.maxAverageEe
+                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+                        ,maxLastEe = r.resultData.maxLastEe
+                        ,createdOn = DateTime.Now)
+                |> Seq.toList
+
+            match result.Length = 1 with
+            | true -> Ok ()
+            | false -> toError SaveResultDataErr r.resultDataId.value
+
+        tryDbFun g
+
+
+    let tryLoadResultData connectionString (ResultDataId resultDataId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new ResultDataTableData(conn)
+            let t = new ResultDataTable()
+            d.Execute(resultDataId = resultDataId) |> t.Load
+
+            t.Rows
+            |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
+            |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
+            |> Ok
+
+        tryDbFun g
+
+
+    let private mapRunQueue (reader : DynamicSqlDataReader) =
+        match RunQueueStatus.tryCreate reader?runQueueStatusId with
+        | Some s ->
+            {
+                runQueueId = RunQueueId reader?runQueueId
+                info =
+                    {
+                        modelDataId = ModelDataId reader?modelDataId
+                        defaultValueId = ClmDefaultValueId reader?clmDefaultValueId
+
+                        modelCommandLineParam =
+                            {
+                                y0 = reader?y0
+                                tEnd = reader?tEnd
+                                useAbundant = reader?useAbundant
+                            }
                     }
-        |> List.ofSeq
+                runQueueStatus = s
+                workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                progress = TaskProgress.create reader?progress
+                createdOn = reader?createdOn
+            }
+            |> Ok
+        | None -> toError MapRunQueueErr (reader?runQueueId)
 
 
-    // kk:20190914 - Keeping previous version for reference. Delete after 90 days.
-    //let loadRunQueue i (ConnectionString connectionString) =
-    //    use conn = new SqlConnection(connectionString)
-    //    openConnIfClosed conn
-    //    let runQueueTable = new RunQueueTable()
-    //    (new RunQueueTableData(conn)).Execute() |> runQueueTable.Load
-    //
-    //    runQueueTable.Rows
-    //    |> List.ofSeq
-    //    |> List.map (fun e -> RunQueue.create i e)
+    let loadRunQueue connectionString =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueAllTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> Ok
+
+        tryDbFun g
 
 
-    let saveRunQueueEntry modelDataId defaultValueId p (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        use t = new RunQueueTable()
-        let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
-        let row = r.addRow t
-        t.Update conn |> ignore
-        row.runQueueId |> RunQueueId
+    let loadRunQueueProgress connectionString =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueProgressTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> Ok
+
+        tryDbFun g
 
 
-    let deleteRunQueueEntry (RunQueueId runQueueId) (ConnectionString connectionString) =
-        use conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
+    let tryLoadFirstRunQueue connectionString =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueFirstTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Ok
 
-        use cmd = new SqlCommandProvider<"
-            DELETE FROM dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+        tryDbFun g |> Rop.unwrapResultOption
 
-        let rowsAffected = cmd.Execute(runQueueId = runQueueId)
-        rowsAffected
+
+    let tryLoadRunQueue connectionString (q : RunQueueId) =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn connectionString
+                    use data = new RunQueueSingleTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute q.value)
+                    while (reader.Read()) do yield mapRunQueue reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Ok
+
+        tryDbFun g |> Rop.unwrapResultOption
+
+
+    let saveRunQueue connectionString modelDataId defaultValueId p =
+        let g() =
+            use conn = getOpenConn connectionString
+            use t = new RunQueueTable()
+            let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
+            let row = r.addRow t
+            t.Update conn |> ignore
+            row.runQueueId |> RunQueueId |> Ok
+
+        tryDbFun g
+
+
+    let deleteRunQueue (ConnectionString connectionString) (RunQueueId runQueueId) =
+        let g() =
+            use cmd = new SqlCommandProvider<"
+                delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let rowsAffected = cmd.Execute(runQueueId = runQueueId)
+
+            match rowsAffected = 1 with
+            | true -> Ok ()
+            | false -> toError DeleteRunQueueEntryErr runQueueId
+
+        tryDbFun g
+
+
+    let upsertRunQueue connectionString (w : RunQueue) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new RunQueueTableData(conn)
+            let t = new RunQueueTable()
+            d.Execute w.runQueueId.value |> t.Load
+
+            let result =
+                match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = w.runQueueId.value) with
+                | Some r -> w.tryUpdateRow r
+                | None -> w.addRow t |> ignore; Ok()
+                |> Rop.bind (fun () -> t.Update conn |> ignore; Ok())
+
+            result
+
+        tryDbFun g
+
+
+    let loadWorkerNodeInfo connectionString (i : WorkerNodeId) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new WorkerNodeTableData(conn)
+            let t = new WorkerNodeTable()
+            d.Execute i.value.value |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.workerNodeId = i.value.value) with
+            | Some v -> v |> WorkerNodeInfo.create |> Ok
+            | None -> toError LoadWorkerNodeInfoErr i.value.value
+
+        tryDbFun g
+
+
+    let upsertWorkerNodeInfo connectionString (w : WorkerNodeInfo) =
+        let g() =
+            use conn = getOpenConn connectionString
+            use d = new WorkerNodeTableData(conn)
+            let t = new WorkerNodeTable()
+            d.Execute w.workerNodeId.value.value |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.workerNodeId = w.workerNodeId.value.value) with
+            | Some r -> w.updateRow r
+            | None -> w.addRow t |> ignore
+
+            t.Update conn |> ignore
+            Ok()
+
+        tryDbFun g
+
+
+//select
+//    workerNodeId
+//    ,nodePriority
+//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
+//from WorkerNode w
+//where workerNodeId = @workerNodeId
+
+
+    [<Literal>]
+    let availablbeWorkerNodeSql = @"
+        ; with q as
+        (
+        select
+            workerNodeId
+            ,nodePriority
+            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
+        from WorkerNode w
+        )
+        select top 1
+        workerNodeId
+        from q
+        where workLoad < 1
+        order by nodePriority desc, workLoad, newid()"
+
+
+    type AvailableWorkerNodeTableData = SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
+
+
+    let tryGetAvailableWorkerNode connectionString =
+        let g() =
+            use conn = getOpenConn connectionString
+            use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
+            let table = cmd.Execute()
+            
+            match table.Rows |> Seq.tryHead with
+            | None -> Ok None
+            | Some r -> r.workerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok
+
+        tryDbFun g

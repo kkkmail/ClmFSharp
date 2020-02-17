@@ -6,10 +6,10 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
-open ClmSys.Rop
 open System.Diagnostics
 open MBrace.FsPickler
 open Newtonsoft.Json
+open GeneralPrimitives
 open GeneralErrors
 
 module GeneralData =
@@ -17,55 +17,21 @@ module GeneralData =
     [<Literal>]
     let DefaultRootDrive = "C"
 
-    let DefaultContGenServiceAddress = "localhost"
-
-    let DefaultWorkerNodeServicePort = 20000 + DefaultContGenServicePort
-    let DefaultWorkerNodeServiceAddress = "localhost"
-
-    let DefaultMessagingServerPort = 40000 + DefaultContGenServicePort
-    let DefaultMessagingServerAddress = "localhost"
 
     /// String.Empty is not a const.
     [<Literal>]
     let EmptyString = ""
 
+
     /// Environment.NewLine is too long and it is not a const.
     [<Literal>]
     let Nl = "\r\n"
-
-    [<Literal>]
-    let DefaultMinEe = 0.000_1
-
-
-    type ClmDefaultValueId =
-        | ClmDefaultValueId of int64
-
-        member df.value = let (ClmDefaultValueId v) = df in v
-        override df.ToString() = df.value.ToString().PadLeft(9, '0')
 
 
     let getVersionImpl getter p =
         match getter p with
         | Some x -> x
         | None -> versionNumberValue
-
-
-    type ServiceAddress =
-        | ServiceAddress of string
-
-        member this.value = let (ServiceAddress v) = this in v
-        static member defaultContGenServiceValue = ServiceAddress DefaultContGenServiceAddress
-        static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
-        static member defaultWorkerNodeServiceValue = ServiceAddress DefaultWorkerNodeServiceAddress
-
-
-    type ServicePort =
-        | ServicePort of int
-
-        member this.value = let (ServicePort v) = this in v
-        static member defaultContGenServiceValue = ServicePort DefaultContGenServicePort
-        static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
-        static member defaultWorkerNodeServiceValue = ServicePort DefaultWorkerNodeServicePort
 
 
     let toValidServiceName (serviceName : string) =
@@ -91,47 +57,6 @@ module GeneralData =
         member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
         member s.wcfServiceName = toValidServiceName s.inputServiceName
         member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
-
-
-    type MinUsefulEe =
-        | MinUsefulEe of double
-
-        member this.value = let (MinUsefulEe v) = this in v
-        static member defaultValue = MinUsefulEe DefaultMinEe
-
-
-    type ContGenServiceAccessInfo =
-        {
-            contGenServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }
-
-
-    type WrkNodeServiceAccessInfo =
-        {
-            wrkNodeServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }
-
-
-    type SolverRunnerAccessInfo =
-        | ContGenSvcAccessInfo of ContGenServiceAccessInfo
-        | WorkerNodeSvcAccessInfo of WrkNodeServiceAccessInfo
-
-        member this.minUsefulEe =
-            match this with
-            | ContGenSvcAccessInfo c -> c.minUsefulEe
-            | WorkerNodeSvcAccessInfo w -> w.minUsefulEe
-
-        member this.serviceAddress =
-            match this with
-            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.serviceAddress
-            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.serviceAddress
-
-        member this.servicePort =
-            match this with
-            | ContGenSvcAccessInfo c -> c.contGenServiceAccessInfo.servicePort
-            | WorkerNodeSvcAccessInfo w -> w.wrkNodeServiceAccessInfo.servicePort
 
 
     let toVariableName (s : string) =
@@ -171,45 +96,6 @@ module GeneralData =
     let toAsync (f : unit-> unit) = async { do f() }
 
 
-    type ConnectionString =
-        | ConnectionString of string
-
-        member this.value = let (ConnectionString v) = this in v
-
-
-    type ModelDataId =
-        | ModelDataId of Guid
-
-        member this.value = let (ModelDataId v) = this in v
-
-
-    type ResultDataId =
-        | ResultDataId of Guid
-
-        member this.value = let (ResultDataId v) = this in v
-
-
-    type LocalProcessId =
-        | LocalProcessId of int
-
-        member this.value = let (LocalProcessId v) = this in v
-
-
-    type RemoteProcessId =
-        | RemoteProcessId of Guid
-
-        member this.value = let (RemoteProcessId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
-
-
-    type RunQueueId =
-        | RunQueueId of Guid
-
-        member this.value = let (RunQueueId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
-        member this.toRemoteProcessId() = this.value |> RemoteProcessId
-
-
     type ResultDataId
         with
         member this.toRunQueueId() = this.value |> RunQueueId
@@ -222,11 +108,11 @@ module GeneralData =
 
     /// http://www.fssnip.net/q0/title/SystemTimeSpan-userfriendly-formatting
     type Part =
-        Days of int
-            | Hours of int
-            | Minutes of int
-            | Seconds of int
-            | Milliseconds of int
+        | Days of int
+        | Hours of int
+        | Minutes of int
+        | Seconds of int
+        | Milliseconds of int
 
 
     let bigPartString p =
@@ -309,8 +195,8 @@ module GeneralData =
 
           updater.init i |> loop)
 
-        member this.addContent p = AddContent p |> chat.Post
-        member this.getContent () = chat.PostAndReply GetContent
+        member _.addContent p = AddContent p |> chat.Post
+        member _.getContent () = chat.PostAndReply GetContent
 
 
     let estimateEndTime progress (started : DateTime) =
@@ -330,16 +216,20 @@ module GeneralData =
         (a |> List.map snd, b |> List.map snd)
 
 
-    /// Tries to remove a given key from the map.
-    /// If found, then returns a new map with the key removed.
-    /// If not found, then returns the orignial map.
     type Map<'k, 'v when 'k : comparison>
         with
 
+        /// Tries to remove a given key from the map.
+        /// If found, then returns a new map with the key removed.
+        /// If not found, then returns the orignial map.
         member m.tryRemove k =
             match m.ContainsKey k with
             | true -> m.Remove k
             | false -> m
+
+
+        /// Tries to get value out of the map OR returns a given default value if there is none.
+        member m.getValueorDefault k v = m |> Map.tryFind k |> Option.defaultValue v
 
 
     /// http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list.
@@ -358,56 +248,6 @@ module GeneralData =
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
         x + @"\" + exeName
-
-
-    type SingleChartInfo =
-        {
-            chartName : string
-            chartContent : string
-        }
-
-
-    type ChartInfo =
-        {
-            resultDataId : ResultDataId
-            defaultValueId : ClmDefaultValueId
-            charts : list<SingleChartInfo>
-        }
-
-        static member tryCreate r d c =
-            try
-                {
-                    resultDataId = r
-                    defaultValueId = d
-                    charts = c |> List.map (fun e -> { chartName = e; chartContent = File.ReadAllText e })
-                }
-                |> Some
-            with
-                | ex ->
-                    printfn "Exception: %A" ex
-                    None
-
-        member i.trySave (logger : Logger) d =
-            try
-                let getFileName name =
-                    match d with
-                    | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
-                    | None -> name
-
-                let trySaveChart f c =
-                    let folder = Path.GetDirectoryName f
-                    printfn "ChartInfo.trySave: Creating folder = %A" folder
-                    Directory.CreateDirectory(folder) |> ignore
-                    File.WriteAllText(f, c)
-
-                i.charts
-                |> List.map (fun e -> trySaveChart (getFileName e.chartName) e.chartContent)
-                |> ignore
-                Some ()
-            with
-            | ex ->
-                logger.logExn (sprintf "ChartInfo: Exception saving chart with resultDataId: %A" i.resultDataId) ex
-                None
 
 
     type Queue<'A> =
@@ -520,12 +360,13 @@ module GeneralData =
     /// http://www.fssnip.net/iW/title/Oneliner-generic-timing-function
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
 
-    let private timedImpl (l : Logger) name f =
+
+    let timedImpl (l : Logger) name f =
         let (r, t) = time f ()
 
         if t.TotalSeconds <= 5.0
-        then l.logInfo (sprintf "%s: Execution time: %A" name t)
-        else l.logInfo (sprintf "%s: !!! LARGE Execution time: %A" name t)
+        then l.logInfoString (sprintf "%s: Execution time: %A" name t)
+        else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name t)
 
         r
 
@@ -564,7 +405,7 @@ module GeneralData =
 
     let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
         try
-            printfn "trySerialize: Serializing type %A..." typeof<'A>
+            //printfn "trySerialize: Serializing type %A..." typeof<'A>
             //printfn "trySerialize: a = '%A'." a
             let b = a |> serialize
             //printfn "trySerialize: b = '%A'." b
@@ -574,7 +415,7 @@ module GeneralData =
         with
         | e ->
             printfn "trySerialize: Exception: '%A'." e
-            e |> SerializationException |> Error
+            e |> SerializationExn |> Error
 
 
     /// https://stackoverflow.com/questions/2361851/c-sharp-and-f-casting-specifically-the-as-keyword
@@ -591,11 +432,18 @@ module GeneralData =
             let x = b |> unZip
             //printfn "tryDeserialize: x = %A" x
 
-            printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
+            //printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
             let (y : 'A) = deserialize x
             //printfn "tryDeserialize: y = %A" y
             Ok y
         with
         | e ->
             printfn "tryDeserialize: Exception: '%A'." e
-            e |> DeserializationException |> Error
+            e |> DeserializationExn |> Error
+
+
+    /// Replies with result and returns the state.
+    /// It is used by MailboxProcessor based classes to standardize approach for PostAndReply.
+    let withReply (r : AsyncReplyChannel<'T>) (s, result) =
+        r.Reply result
+        s

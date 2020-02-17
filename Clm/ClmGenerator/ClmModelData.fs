@@ -4,6 +4,7 @@ open System
 open FSharp.Collections
 
 open ClmSys.VersionInfo
+open ClmSys.ContGenPrimitives
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
@@ -21,7 +22,7 @@ module ClmModelData =
     let newSeed() = (new Random()).Next()
 
 
-    type UpdateFuncType = 
+    type UpdateFuncType =
         | UseArray
         | UseVariables
         | UseFunctions
@@ -46,9 +47,9 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member tryGetDefaultValue (c : ClmTask) (d : ClmDefaultValueId -> ClmDefaultValue option) =
-            match d c.clmTaskInfo.clmDefaultValueId with
-            | Some v ->
+        static member create g (c : ClmTask) =
+            match g c.clmTaskInfo.clmDefaultValueId with
+            | Ok v ->
                 {
                     modelGenerationParams =
                         {
@@ -64,8 +65,8 @@ module ClmModelData =
 
                     modelCommandLineParams = c.commandLineParams
                 }
-                |> Some
-            | None -> None
+                |> Ok
+            | Error e -> Error e
 
     let reactionShift updateFuncType =
         match updateFuncType with

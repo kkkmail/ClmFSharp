@@ -12,6 +12,10 @@ open System
 open ClmSys.WorkerNodeData
 open MessagingServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.WorkerNodePrimitives
 
 module SvcCommandLine =
 
@@ -19,6 +23,7 @@ module SvcCommandLine =
     type WorkerNodeServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-address")>] WrkSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] WrkSvcPort of int
+        | [<Unique>] [<AltCommandLine("-n")>] WrkName of string
         | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
 
         | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
@@ -37,6 +42,7 @@ module SvcCommandLine =
                 match this with
                 | WrkSvcAddress _ -> "worker node service ip address / name."
                 | WrkSvcPort _ -> "worker node service port."
+                | WrkName _ -> "worker node name."
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
                 | WrkSaveSettings -> "saves settings to the Registry."
@@ -86,6 +92,7 @@ module SvcCommandLine =
 
     let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkName p -> Some p | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
@@ -110,9 +117,9 @@ module SvcCommandLine =
             match tryGetNoOfCores p with
             | Some n -> n
             | None ->
-                match tryGetNumberOfCores logger version name with
-                | Some x -> x
-                | None -> Environment.ProcessorCount / 2
+                match tryGetNumberOfCores version name with
+                | Ok x -> x
+                | Error _ -> Environment.ProcessorCount / 2
         max 0 (min n Environment.ProcessorCount)
 
 
@@ -120,36 +127,45 @@ module SvcCommandLine =
         match tryGetServerAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress logger version name with
-            | Some a -> a
-            | None -> ServiceAddress.defaultWorkerNodeServiceValue
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> ServiceAddress.defaultWorkerNodeServiceValue
 
 
     let getServerPort logger version name p =
         match tryGetServerPort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort logger version name with
-            | Some a -> a
-            | None -> ServicePort.defaultWorkerNodeServiceValue
+            match tryGetContGenServicePort version name with
+            | Ok a -> a
+            | Error _ -> ServicePort.defaultWorkerNodeServiceValue
 
 
     let getClientId logger version name p =
         match tryGetClientId p with
         | Some a -> a
         | None ->
-            match tryGetMessagingClientId logger version name with
-            | Some a -> a |> WorkerNodeId
-            | None -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
+            match tryGetMessagingClientId version name with
+            | Ok a -> a |> WorkerNodeId
+            | Error _ -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
+
+
+    let tryGetNodeNameImpl logger version name p =
+        match tryGetNodeName p with
+        | Some a -> Some a
+        | None ->
+            match tryGetWorkerNodeName version name with
+            | Ok a -> Some a
+            | Error e -> None
 
 
     let getInactive logger version name p =
         match tryGetInactive p with
         | Some a -> a
         | None ->
-            match tryGetWrkInactive logger version name with
-            | Some a -> a
-            | None -> false
+            match tryGetWrkInactive version name with
+            | Ok a -> a
+            | Error _ -> false
 
 
     let getServiceAccessInfoImpl b p =
@@ -166,16 +182,19 @@ module SvcCommandLine =
         let clientId = getClientId logger version name p
         let inactive = getInactive logger version name p
 
-        let saveSettings() =
-            trySetContGenServiceAddress logger versionNumberValue name address |> ignore
-            trySetContGenServicePort logger versionNumberValue name port |> ignore
-            trySetNumberOfCores logger versionNumberValue name noOfCores |> ignore
+        let nodeName = tryGetNodeNameImpl logger version name p |> Option.defaultValue (clientId.value.value.ToString("N"))
 
-            trySetMessagingClientAddress logger versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort logger versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId logger versionNumberValue name partitioner |> ignore
-            trySetMessagingClientId logger versionNumberValue name clientId.messagingClientId |> ignore
-            trySetWrkInactive logger versionNumberValue name inactive |> ignore
+        let saveSettings() =
+            trySetContGenServiceAddress versionNumberValue name address |> ignore
+            trySetContGenServicePort versionNumberValue name port |> ignore
+            trySetWorkerNodeName versionNumberValue name nodeName |> ignore
+            trySetNumberOfCores versionNumberValue name noOfCores |> ignore
+
+            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
+            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
+            trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
+            trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
+            trySetWrkInactive versionNumberValue name inactive |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()
@@ -195,6 +214,7 @@ module SvcCommandLine =
                         }
                 }
 
+            workerNodeName = WorkerNodeName nodeName
             noOfCores = noOfCores
             isInactive = inactive
             nodePriority = WorkerNodePriority.defaultValue

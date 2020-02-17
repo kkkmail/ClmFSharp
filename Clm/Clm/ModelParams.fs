@@ -2,14 +2,18 @@
 
 open System
 open FSharp.Collections
+open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
+open ClmSys.ContGenPrimitives
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.ContGenData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.CommandLine
-open Argu
 
 module ModelParams =
 
@@ -144,12 +148,6 @@ module ModelParams =
             }
 
 
-    type ClmTaskId =
-        | ClmTaskId of Guid
-
-        member this.value = let (ClmTaskId v) = this in v
-
-
     type ClmDefaultValue =
         {
             clmDefaultValueId : ClmDefaultValueId
@@ -158,6 +156,9 @@ module ModelParams =
         }
 
 
+    /// TODO kk:20200214 - Possibly add NotifyAddress DefaultWorkerNodeServiceAddress
+    /// and NotifyPort DefaultWorkerNodeServicePort here.
+    /// Currently it is hard coded below in ModelCommandLineParam.
     /// Additional information needed to produce command line params for solver runner.
     type ModelCommandLineData =
         {
@@ -170,7 +171,7 @@ module ModelParams =
 
 
     /// Parameters, which come from ClmTask & related data.
-    type ModelCommandLineTaskParam =
+    type ModelCommandLineParam =
         {
             tEnd : decimal
             y0 : decimal
@@ -178,26 +179,22 @@ module ModelParams =
         }
 
 
-    type ModelCommandLineParam =
-        {
-            taskParam : ModelCommandLineTaskParam
-            serviceAccessInfo : SolverRunnerAccessInfo
-        }
-
         member this.toCommandLine (d : ModelCommandLineData) =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
 
             [
-                EndTime this.taskParam.tEnd
-                TotalAmount this.taskParam.y0
-                UseAbundant this.taskParam.useAbundant
+                EndTime this.tEnd
+                TotalAmount this.y0
+                UseAbundant this.useAbundant
                 ModelId d.modelDataId.value
-                NotifyAddress this.serviceAccessInfo.serviceAddress.value
-                NotifyPort this.serviceAccessInfo.servicePort.value
                 MinimumUsefulEe d.minUsefulEe.value
                 Remote d.remote
                 ResultId d.resultDataId.value
                 WrkNodeId d.workerNodeId.messagingClientId.value
+
+                // TODO kk:20200214 - Currently hard coded to use worker node.
+                NotifyAddress DefaultWorkerNodeServiceAddress
+                NotifyPort DefaultWorkerNodeServicePort
             ]
             |> parser.PrintCommandLineArgumentsFlat
 
@@ -214,7 +211,10 @@ module ModelParams =
         {
             runQueueId : RunQueueId
             info : RunQueueInfo
-            statusId : int
+            runQueueStatus : RunQueueStatus
+            workerNodeIdOpt : WorkerNodeId option
+            progress : TaskProgress
+            createdOn : DateTime
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
@@ -230,8 +230,24 @@ module ModelParams =
                         modelCommandLineParam = p
                     }
 
-                statusId = 0
+                runQueueStatus = NotStartedRunQueue
+                workerNodeIdOpt = None
+                progress = NotStarted
+                createdOn = DateTime.Now
             }
+
+        override r.ToString() =
+            let (ModelDataId modelDataId) = r.info.modelDataId
+            let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
+            let (RunQueueId runQueueId) = r.runQueueId
+            let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
+
+            let estCompl =
+                match r.runQueueStatus, r.progress.estimateEndTime r.createdOn with
+                | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
+                | _ -> EmptyString
+
+            sprintf "{ T: %s;%s DF: %A; MDID: %A; PID: %A; %A }" s estCompl defaultValueId modelDataId runQueueId r.progress
 
 
     type ResultInfo =

@@ -5,6 +5,8 @@ open System.Diagnostics
 open log4net
 open log4net.Core
 open System.Reflection
+open GeneralErrors
+open ClmErrors
 
 module Logging =
 
@@ -93,44 +95,86 @@ module Logging =
 
     type Logger =
         {
-            logInfo : string -> unit
-            logErr : string -> unit
-            logExn : string -> exn -> unit
+            //logInfo : string -> string -> unit
+            //logErr : string -> string -> unit
+            //logExn : string -> exn -> unit
+            logError : ClmError -> unit
+            logWarn : ClmError -> unit
+            logInfo : ClmInfo -> unit
         }
+
+        member this.logInfoString (s : string) = ClmInfo.create s |> this.logInfo
+        member this.logExn s e = this.logError (UnhandledExn (s, e))
+
+        member this.logIfError v =
+            match v with
+            | Ok _ -> ignore()
+            | Error e -> this.logError e
+
 
         static member defaultValue =
             {
-                logInfo = fun s -> printfn "%s" s
-                logErr = fun s -> printfn "%s" s
-                logExn = fun s e -> printfn "%s, exception occurred: %A." s e
+                //logInfo = fun s m -> printfn "INFO - %s: %s" s m
+                //logErr = fun s m -> printfn "ERROR - %s: %s" s m
+                //logExn = fun s e -> printfn "EXCEPTION - %s: %A." s e
+                logError = printfn "ERROR: %A"
+                logWarn = printfn "WARN: %A"
+                logInfo = printfn "INFO: %A"
             }
 
         /// The real log4net logger.
         /// If you are on the edge, e.g. SolverRunner, and printfn is absolutely unavailalbe then use this.
         static member log4netImpl =
             {
+                //logInfo =
+                //    fun s m ->
+                //        {
+                //            Message = sprintf "%s: %s" s m
+                //            Date = DateTime.Now
+                //        }
+                //        |> InfoMessage
+                //        |> logAgent.Post
+
+                //logErr =
+                //    fun s m ->
+                //        {
+                //            Message = sprintf "%s: %s" s m
+                //            Date = DateTime.Now
+                //        }
+                //        |> InfoMessage
+                //        |> logAgent.Post
+
+                //logExn =
+                //    fun s e ->
+                //        {
+                //            Message = sprintf "%s: %A" s e
+                //            Date = DateTime.Now
+                //        }
+                //        |> InfoMessage
+                //        |> logAgent.Post
+
+                logError =
+                    fun e ->
+                        {
+                            Message = sprintf "ERROR: %A" e
+                            Date = DateTime.Now
+                        }
+                        |> InfoMessage
+                        |> logAgent.Post
+
+                logWarn =
+                    fun e ->
+                        {
+                            Message = sprintf "WARN: %A" e
+                            Date = DateTime.Now
+                        }
+                        |> InfoMessage
+                        |> logAgent.Post
+
                 logInfo =
-                    fun s ->
+                    fun e ->
                         {
-                            Message = s
-                            Date = DateTime.Now
-                        }
-                        |> InfoMessage
-                        |> logAgent.Post
-
-                logErr =
-                    fun s ->
-                        {
-                            Message = s
-                            Date = DateTime.Now
-                        }
-                        |> InfoMessage
-                        |> logAgent.Post
-
-                logExn =
-                    fun s e ->
-                        {
-                            Message = s + ", exception: " + e.ToString()
+                            Message = sprintf "INFO: %A" e
                             Date = DateTime.Now
                         }
                         |> InfoMessage
@@ -143,4 +187,4 @@ module Logging =
         static member log4net = Logger.log4netImpl
 
 
-    let logger = Logger.log4netImpl
+    let logger = Logger.defaultValue

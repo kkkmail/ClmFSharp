@@ -3,16 +3,21 @@
 open System
 open System.Runtime.Remoting.Channels.Tcp
 open System.ServiceModel
-open System.ServiceModel.Description
 
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
-open ClmSys.GeneralErrors
-open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
+open ClmSys.ContGenPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.ClmErrors
+open ClmSys.MessagingClientErrors
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -24,13 +29,6 @@ module ServiceInfo =
         | MsgSvcNotStarted
         | CanTransmitMessages
         | ShuttingDown
-
-
-    type MessageId =
-        | MessageId of Guid
-
-        member this.value = let (MessageId v) = this in v
-        static member create() = Guid.NewGuid() |> MessageId
 
 
     type MessageDeliveryType =
@@ -65,8 +63,8 @@ module ServiceInfo =
             remoteProcessId : RemoteProcessId
             localProcessId : LocalProcessId option
             runningProcessData : RunningProcessData
-            taskParam : ModelCommandLineTaskParam
             minUsefulEe : MinUsefulEe
+            commandLine : string
         }
 
 
@@ -99,6 +97,9 @@ module ServiceInfo =
             | SmallSize -> true
             | MediumSize -> false
             | LargeSize -> false
+
+        /// TODO kk:20200119 - Implement a shorter version as some messages can be very large.
+        member this.getInfo() = sprintf "%A" this
 
 
     type MessageRecipientInfo =
@@ -222,11 +223,14 @@ module ServiceInfo =
                 }
 
 
-    type MessageResult =
+    type MessageResultInfo =
         | NoMessage
         | SmallMessage of Message
         | MediumMessage of Message
         | LargeMessage of Message
+
+
+    type MessageResult = ClmResult<MessageResultInfo>
 
 
     type MessageWithType =
@@ -244,64 +248,12 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type GetVersionError =
-        | GetVersionWcfError of WcfError
-
-
-    type GetVersionResult = Result<MessagingDataVersion, GetVersionError>
-
-
-    type MessageDelivered =
-        | MessageDelivered
-
-
-    type MessageDeliveryError =
-        | DataVersionMismatch of MessagingDataVersion
-        | MsgWcfError of WcfError
-        | ServerIsShuttingDown
-
-
-    type MessageDeliveryResult = Result<MessageDelivered, MessageDeliveryError>
-
-
-    type ServiceConfigured =
-        | ServiceConfigured
-
-
-    type ConfigureServiceError =
-        | CfgSvcWcfError of WcfError
-
-
-    type ConfigureServiceResult = Result<ServiceConfigured, ConfigureServiceError>
-
-
-    type TryPeekMessageError =
-        | TryPeekMsgWcfError of WcfError
-
-
-    type TryPeekMessageResult = Result<Message option, TryPeekMessageError>
-
-
-    type TryDeleteFromServerError =
-        | TryDeleteMsgWcfError of WcfError
-
-
-    type TryDeleteFromServerResult = Result<bool, TryDeleteFromServerError>
-
-
     type MsgServiceState =
         {
             msgVersion : MessagingDataVersion
             msgWorkState : MessagingWorkState
             msgInfo : list<(MessagingClientId * list<MessageId>)>
         }
-
-
-    type GetStateError =
-        | GetStateWcfError of WcfError
-
-
-    type GetStateResult = Result<MsgServiceState, GetStateError>
 
 
     type MsgSvcShutDownInfo =
@@ -316,13 +268,56 @@ module ServiceInfo =
         }
 
 
+    type RunQueue
+        with
+
+        member q.toRunningProcessDataOpt() =
+            q.workerNodeIdOpt
+            |> Option.bind (fun w ->
+                            {
+                                modelDataId = q.info.modelDataId
+                                defaultValueId = q.info.defaultValueId
+                                runQueueId = q.runQueueId
+                                workerNodeId = w
+                                commandLineParams = q.modelCommandLineParam
+                            }
+                            |> Some)
+
+
+        member q.toMessageInfoOpt getModelData minUsefulEe =
+            match q.toRunningProcessDataOpt() with
+            | Some d ->
+                match getModelData q.info.modelDataId with
+                | Ok m ->
+                    {
+                        workerNodeRecipient = d.workerNodeId
+                        deliveryType = GuaranteedDelivery
+                        messageData =
+                            (
+                                {
+                                    remoteProcessId = q.runQueueId.toRemoteProcessId()
+                                    localProcessId = None
+                                    runningProcessData = d
+                                    minUsefulEe = minUsefulEe
+                                    commandLine = EmptyString
+                                },
+                                m
+                            )
+                            |> RunModelWrkMsg
+                    }.getMessageInfo()
+                    |> Some |> Ok
+                | Error e -> Error e
+            | None -> Ok None
+
+
+
     type IMessagingService =
-        abstract getVersion : unit -> GetVersionResult
-        abstract sendMessage : Message -> MessageDeliveryResult
-        abstract configureService : MessagingConfigParam -> ConfigureServiceResult
-        abstract tryPeekMessage : MessagingClientId -> TryPeekMessageResult
-        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> TryDeleteFromServerResult
-        abstract getState : unit -> GetStateResult
+        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
+        abstract sendMessage : Message -> UnitResult
+        abstract configureService : MessagingConfigParam -> UnitResult
+        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
+        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
+        abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656

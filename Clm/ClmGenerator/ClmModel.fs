@@ -15,6 +15,7 @@ open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
 open Clm.Generator.ClmModelData
 open ClmImpure.RateProvider
+open ClmSys.ContGenPrimitives
 
 module ClmModel =
 

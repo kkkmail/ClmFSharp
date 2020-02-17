@@ -66,14 +66,31 @@
   <ItemGroup>
     <Compile Include="VersionInfo.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="GeneralErrors.fs" />
-    <Compile Include="Logging.fs" />
-    <Compile Include="Rop.fs" />
-    <Compile Include="GeneralData.fs" />
     <Compile Include="ExitErrorCodes.fs" />
+    <Compile Include="Rop.fs" />
+    <Compile Include="GeneralPrimitives.fs" />
+    <Compile Include="MessagingPrimitives.fs" />
+    <Compile Include="WorkerNodePrimitives.fs" />
+    <Compile Include="PartitionerPrimitives.fs" />
+    <Compile Include="ContGenPrimitives.fs" />
+    <Compile Include="SolverRunnerPrimitives.fs" />
+    <Compile Include="GeneralErrors.fs" />
+    <Compile Include="ContGenErrors.fs" />
+    <Compile Include="ModelGeneratorErrors.fs" />
+    <Compile Include="MessagingCommonErrors.fs" />
+    <Compile Include="MessagingServiceErrors.fs" />
+    <Compile Include="MessagingClientErrors.fs" />
+    <Compile Include="ModelRunnerErrors.fs" />
+    <Compile Include="WorkerNodeErrors.fs" />
+    <Compile Include="SolverRunnerErrors.fs" />
+    <Compile Include="ClmErrors.fs" />
+    <Compile Include="Logging.fs" />
+    <Compile Include="GeneralData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="WorkerNodeData.fs" />
     <Compile Include="PartitionerData.fs" />
+    <Compile Include="ContGenData.fs" />
+    <Compile Include="SolverRunnerData.fs" />
     <Compile Include="Fake.fs" />
     <Compile Include="Retry.fs" />
     <Compile Include="Registry.fs" />
@@ -82,13 +99,14 @@
     <Compile Include="Wcf.fs" />
     <Content Include="packages.config" />
     <None Include="TimeSpanFormat.fsx" />
+    <None Include="TryGetProcessTest.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">
       <HintPath>..\packages\Argu.6.0.0\lib\netstandard2.0\Argu.dll</HintPath>
     </Reference>
     <Reference Include="Fake.Windows.Registry">
-      <HintPath>..\packages\Fake.Windows.Registry.5.18.3\lib\net462\Fake.Windows.Registry.dll</HintPath>
+      <HintPath>..\packages\Fake.Windows.Registry.5.19.0\lib\net462\Fake.Windows.Registry.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>

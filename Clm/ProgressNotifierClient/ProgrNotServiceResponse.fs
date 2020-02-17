@@ -5,6 +5,7 @@ open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
+open ClmSys.SolverRunnerData
 
 module ServiceResponse =
 
@@ -31,7 +32,9 @@ module ServiceResponse =
 
         let updateLocalProgressImpl p =
             match service with
-            | ContGenNotifier s -> s.updateLocalProgress p
+            | ContGenNotifier s ->
+                //s.updateLocalProgress p
+                failwith "ContGenNotifier.updateLocalProgress is not implemented."
             | WorkerNodeNotifier w -> w.updateLocalProgress p
 
         member __.updateLocalProgress p = updateLocalProgressImpl p

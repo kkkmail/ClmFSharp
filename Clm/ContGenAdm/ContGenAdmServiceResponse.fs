@@ -3,6 +3,7 @@
 open System
 open ClmSys.GeneralData
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.ContGenData
 
 module ContGenServiceResponse =
 

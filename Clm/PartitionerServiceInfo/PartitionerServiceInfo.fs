@@ -3,14 +3,9 @@
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
+open ClmSys.GeneralPrimitives
 
 module ServiceInfo =
-
-    type PartitionerQueueElement =
-        {
-            queuedRemoteProcessId : RemoteProcessId
-        }
-
 
     type RunModelParamWithRemoteId =
         {
@@ -18,9 +13,11 @@ module ServiceInfo =
             runModelParam : RunModelParam
         }
 
-        member this.queueElement =
+        member this.toRemoteProgressUpdateInfo p =
             {
-                queuedRemoteProcessId = this.remoteProcessId
+                remoteProcessId = this.remoteProcessId
+                runningProcessData = this.runModelParam.callBackInfo
+                progress = p
             }
 
 
@@ -31,14 +28,14 @@ module ServiceInfo =
         }
 
 
-    type WorkerNodeState =
-        {
-            workerNodeInfo : WorkerNodeInfo
-            runningProcesses : list<RunningProcessInfo>
-        }
+    //type WorkerNodeState =
+    //    {
+    //        workerNodeInfo : WorkerNodeInfo
+    //        runningProcesses : Map<RemoteProcessId, RunQueueId>
+    //    }
 
-        member e.priority =
-            (
-                e.workerNodeInfo.nodePriority.value,
-                (decimal e.runningProcesses.Length) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
-            )
+    //    member e.priority =
+    //        (
+    //            e.workerNodeInfo.nodePriority.value,
+    //            (decimal e.runningProcesses.Count) / (max 1.0m (decimal e.workerNodeInfo.noOfCores))
+    //        )

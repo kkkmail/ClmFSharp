@@ -1,13 +1,17 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
-open ClmSys.GeneralData
 open Clm.ModelParams
+open Clm.CalculationData
 open DbData.Configuration
 open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
 open ClmSys.Registry
-open ClmSys.Logging
+open PartitionerServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
+open ClmSys.SolverRunnerData
+open ClmSys.WorkerNodePrimitives
 
 module PartitionerProxy =
 
@@ -15,51 +19,51 @@ module PartitionerProxy =
         {
             partitionerConnectionString : ConnectionString
             resultLocation : string
-            logger : Logger
         }
 
         static member defaultValue =
             {
                 partitionerConnectionString = clmConnectionString
                 resultLocation = DefaultResultLocationFolder
-                logger = logger
             }
 
 
-    type PartitionerProxy(i : PartitionerProxyInfo) =
-        let name = partitionerServiceName
-        let logError e = printfn "Error: %A" e
-        let tryDbFun c f = tryDbFun logError c f
-        let tryFun f = tryFun logError f
-        let connectionString = i.partitionerConnectionString
+    type PartitionerProxy =
+        {
+            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            saveResultData : ResultDataWithId -> UnitResult
+            tryLoadResultData : ResultDataId -> ClmResult<ResultDataWithId option>
+
+            saveCharts : ChartInfo -> UnitResult
+
+            saveRunModelParamWithRemoteId : RunModelParamWithRemoteId -> UnitResult
+            loadRunModelParamWithRemoteId : RemoteProcessId -> ClmResult<RunModelParamWithRemoteId>
+            loadAllRunModelParamWithRemoteId : unit -> ListResult<RunModelParamWithRemoteId>
+            tryDeleteRunModelParamWithRemoteId : RemoteProcessId -> UnitResult
+
+            saveWorkerNodeState : WorkerNodeState -> UnitResult
+            loadAllWorkerNodeState : unit -> ListResult<WorkerNodeState>
+            tryDeleteWorkerNodeState : WorkerNodeId -> UnitResult
+        }
 
 
-        let loadAll getIds tryLoad name =
-            match tryFun (getIds name) with
-            | Some i ->
-                i
-                |> List.map (fun e -> tryFun (fun _ -> tryLoad name e) |> Option.bind id)
-                |> List.choose id
-            | None -> []
+        static member create (i : PartitionerProxyInfo) =
+            let name = partitionerServiceName
+            let connectionString = i.partitionerConnectionString
 
+            {
+                loadModelData = loadModelData connectionString
+                saveResultData = saveResultData connectionString
+                tryLoadResultData = tryLoadResultData connectionString
 
-        member __.tryLoadModelData a m = tryDbFun connectionString (tryLoadModelData a m) |> Option.bind id
+                saveCharts = fun (c : ChartInfo) -> saveLocalChartInfo (Some (i.resultLocation, c.defaultValueId)) c
 
-        member __.saveResultData r = tryDbFun connectionString (saveResultData r) |> ignore
-        member __.tryLoadResultData r = tryDbFun connectionString (tryLoadResultData r) |> Option.bind id
+                saveRunModelParamWithRemoteId = saveRunModelParamWithRemoteIdFs name
+                loadRunModelParamWithRemoteId = loadRunModelParamWithRemoteIdFs name
+                loadAllRunModelParamWithRemoteId = loadeRunModelParamWithRemoteIdAllFs name
+                tryDeleteRunModelParamWithRemoteId = tryDeleteRunModelParamWithRemoteIdFs name
 
-        member __.saveCharts (c : ChartInfo) = c.trySave logger (Some (i.resultLocation, c.defaultValueId)) |> ignore
-
-        member __.saveRunModelParamWithRemoteId q = tryFun (fun () -> saveRunModelParamWithRemoteIdFs name q) |> ignore
-        member __.tryLoadRunModelParamWithRemoteId q = tryFun (fun () -> tryLoadRunModelParamWithRemoteIdFs name q) |> Option.bind id
-        member __.loadAllRunModelParamWithRemoteId () = loadAll getRunModelParamWithRemoteIdsFs tryLoadRunModelParamWithRemoteIdFs name
-        member __.tryDeleteRunModelParamWithRemoteId m = tryFun (fun _ -> tryDeleteRunModelParamWithRemoteIdFs name m)
-
-        member __.saveWorkerNodeState s = tryFun (fun _ -> saveWorkerNodeStateFs name s)
-        member __.loadAllWorkerNodeState () = loadAll getWorkerNodeStateIdsFs tryLoadWorkerNodeStateFs name
-        member __.tryDeleteWorkerNodeState s = tryFun (fun _ -> tryDeleteWorkerNodeStateFs name s)
-
-        member __.savePartitionerQueueElement q = tryFun (fun () -> savePartitionerQueueElementFs name q) |> ignore
-        member __.tryLoadPartitionerQueueElement q = tryFun (fun () -> tryLoadPartitionerQueueElementFs name q) |> Option.bind id
-        member __.loadAllPartitionerQueueElement () = loadAll getPartitionerQueueElementIdsFs tryLoadPartitionerQueueElementFs name
-        member __.tryDeletePartitionerQueueElement m = tryFun (fun _ -> tryDeletePartitionerQueueElementFs name m)
+                saveWorkerNodeState = saveWorkerNodeStateFs name
+                loadAllWorkerNodeState = loadWorkerNodeStateAllFs name
+                tryDeleteWorkerNodeState = tryDeleteWorkerNodeStateFs name
+            }

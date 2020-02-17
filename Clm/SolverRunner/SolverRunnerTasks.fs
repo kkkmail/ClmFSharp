@@ -20,7 +20,14 @@ open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
-open ClmSys.MessagingData
+open ClmSys.Retry
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ContGenData
+open ClmSys.WorkerNodeData
+open ClmSys.MessagingPrimitives
+open ClmSys.WorkerNodePrimitives
 
 module SolverRunnerTasks =
 
@@ -30,23 +37,18 @@ module SolverRunnerTasks =
     let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
         try
             printfn "Notifying of progress: %A." p
-            r.updateLocalProgress p
+
+            match tryFun (fun () -> r.updateLocalProgress p) with
+            | Ok (Ok()) -> ignore()
+            | Ok (Error e) -> printfn "Internal error occurred: %A" e
+            | Error e -> printfn "Error occurred: %A" e
+
             printfn "...completed."
         with
         | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
 
 
-    type RunProgress =
-        | Running of decimal
-        | Completed
-
-
-    let notify (r : RunningProcessData) (svc : ResponseHandler) (p : RunProgress) =
-        let t =
-            match p with
-            | Running d -> TaskProgress.create d
-            | Completed -> TaskProgress.Completed
-
+    let notify (r : RunningProcessData) (svc : ResponseHandler) (t : TaskProgress) =
         progressNotifier svc
             {
                 localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
@@ -114,6 +116,7 @@ module SolverRunnerTasks =
             y0 : double
             useAbundant : bool
             onCompleted : unit -> unit
+            onFailed : (string -> unit)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> unit) option
@@ -121,7 +124,7 @@ module SolverRunnerTasks =
         }
 
 
-        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineTaskParam) (d : RunQueueId) w =
+        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineParam) (d : RunQueueId) w =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -136,6 +139,11 @@ module SolverRunnerTasks =
                     defaultValueId = defaultValueId
                     runQueueId = d
                     workerNodeId = w
+                    commandLineParams = c
+                        //{
+                        //    taskParam = c
+                        //    serviceAccessInfo = i
+                        //}
                 }
 
             let chartInitData =
@@ -162,10 +170,15 @@ module SolverRunnerTasks =
                     | Some svc -> fun () -> notify r svc Completed
                     | None -> ignore
 
+                onFailed =
+                    match n with
+                    | Some svc -> fun e -> notify r svc (Failed (w, d.toRemoteProcessId()))
+                    | None -> ignore
+
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (Running p)) |> Some)
+                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (TaskProgress.create p)) |> Some)
             }
 
 
@@ -241,22 +254,24 @@ module SolverRunnerTasks =
                 ]
 
             match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
-            | Some c -> i.sovlerRunnerProxy.saveChartInfo c
-            | None -> printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A" i.resultDataWithId.resultDataId plots
+            | Ok c -> i.sovlerRunnerProxy.saveChartInfo c
+            | Error e ->
+                printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A, error: %A" i.resultDataWithId.resultDataId plots e
+                Error e
 
         if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then
             printfn "Generating plots..."
-            plotAll false
+            plotAll false |> ignore
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
     let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
-            let p = SolverRunnerProxy(getSolverRunnerProxy results)
-            match p.tryLoadModelData i (ModelDataId modelDataId) with
-            | Some md ->
+            let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
+            match p.loadModelData i (ModelDataId modelDataId) with
+            | Ok md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
                 let c =
@@ -268,27 +283,34 @@ module SolverRunnerTasks =
 
                 let w = g |> MessagingClientId |> WorkerNodeId
                 let runSolverData = RunSolverData.create md i c (RunQueueId d) w
-                let nSolveParam = getNSolveParam runSolverData
-                let data = nSolveParam 0.0 (double tEnd)
-                nSolve data |> ignore
 
-                printfn "Saving."
-                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
+                try
+                    let nSolveParam = getNSolveParam runSolverData
+                    let data = nSolveParam 0.0 (double tEnd)
+                    nSolve data |> ignore
 
-                {
-                    runSolverData = runSolverData
-                    serviceAccessInfo = i
-                    resultDataWithId = r
-                    chartData = chartData
-                    sovlerRunnerProxy = p
-                }
-                |> plotAllResults
+                    printfn "Saving."
+                    let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
 
-                r |> p.saveResultData |> ignore
-                printfn "Completed."
-                runSolverData.onCompleted()
+                    {
+                        runSolverData = runSolverData
+                        serviceAccessInfo = i
+                        resultDataWithId = r
+                        chartData = chartData
+                        sovlerRunnerProxy = p
+                    }
+                    |> plotAllResults
 
-                CompletedSuccessfully
+                    r |> p.saveResultData |> ignore
+                    printfn "Completed."
+                    runSolverData.onCompleted()
+
+                    CompletedSuccessfully
+                with
+                | e ->
+                    printfn "Failed!"
+                    runSolverData.onFailed (e.ToString())
+                    UnknownException
             | _ ->
                 printfn "Unable to load model with id: %A" modelDataId
                 UnknownException

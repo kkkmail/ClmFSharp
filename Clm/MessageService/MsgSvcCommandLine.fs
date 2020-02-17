@@ -8,6 +8,7 @@ open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
 
 module SvcCommandLine =
 
@@ -82,8 +83,8 @@ module SvcCommandLine =
         printfn "address: %A, port: %A" address port
 
         let saveSettings() =
-            trySetMessagingClientAddress logger versionNumberValue name address |> ignore
-            trySetMessagingClientPort logger versionNumberValue name port |> ignore
+            trySetMessagingClientAddress versionNumberValue name address |> ignore
+            trySetMessagingClientPort versionNumberValue name port |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()

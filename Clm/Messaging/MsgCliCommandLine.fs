@@ -6,9 +6,10 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.Registry
 open ClmSys.MessagingData
-open ClmSys.Logging
 open Messaging.ServiceResponse
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
 
 module MsgCliCommandLine =
 
@@ -84,33 +85,33 @@ module MsgCliCommandLine =
                 match tryGetServerAddress p with
                 | Some a -> a
                 | None ->
-                    match tryGetMessagingClientAddress logger version name with
-                    | Some a -> a
-                    | None -> ServiceAddress.defaultMessagingServerValue
+                    match tryGetMessagingClientAddress version name with
+                    | Ok a -> a
+                    | Error _ -> ServiceAddress.defaultMessagingServerValue
 
             let port =
                 match tryGetServerPort p with
                 | Some a -> a
                 | None ->
-                    match tryGetMessagingClientPort logger version name with
-                    | Some a -> a
-                    | None -> ServicePort.defaultMessagingServerValue
+                    match tryGetMessagingClientPort version name with
+                    | Ok a -> a
+                    | Error _ -> ServicePort.defaultMessagingServerValue
 
             let trySaveSettings c =
                 match tryGetSaveSettings p with
                 | Some _ ->
-                    trySetMessagingClientAddress logger versionNumberValue name address |> ignore
-                    trySetMessagingClientPort logger versionNumberValue name port |> ignore
-                    trySetMessagingClientId logger versionNumberValue name c |> ignore
+                    trySetMessagingClientAddress versionNumberValue name address |> ignore
+                    trySetMessagingClientPort versionNumberValue name port |> ignore
+                    trySetMessagingClientId versionNumberValue name c |> ignore
                 | None -> ignore()
 
             let co =
                 match tryGetClientId p with
-                | Some c -> Some c
-                | None -> tryGetMessagingClientId logger version name
+                | Some c -> Ok c
+                | None -> tryGetMessagingClientId version name
 
             match co with
-            | Some c ->
+            | Ok c ->
                 trySaveSettings c
 
                 {
@@ -124,7 +125,7 @@ module MsgCliCommandLine =
                         }
                 }
                 |> Some
-            | None -> None
+            | Error _ -> None
         | None -> None
 
 

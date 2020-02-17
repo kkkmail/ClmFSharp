@@ -1,66 +1,97 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
 open NoSql.FileSystemTypes
-open ServiceProxy.Runner
-open ClmSys.GeneralData
 open ClmSys.Registry
+open MessagingServiceInfo.ServiceInfo
+open ContGenServiceInfo.ServiceInfo
+open Clm.CalculationData
+open Clm.ModelParams
+open ClmSys.GeneralErrors
+open ClmSys.GeneralPrimitives
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.GeneralData
+
 
 module WorkerNodeProxy =
+
+    let getCommandLine (p : RunModelParam) r e =
+        let data =
+            {
+                modelDataId = p.callBackInfo.modelDataId
+                resultDataId = p.callBackInfo.runQueueId.toResultDataId()
+                workerNodeId = p.callBackInfo.workerNodeId
+                minUsefulEe = e
+                remote = r
+            }
+
+        let commandLineParams = p.callBackInfo.commandLineParams.toCommandLine data
+        commandLineParams
+
+
+    let runLocalModel (p : RunModelParam) r e =
+        let fullExeName = getExeName p.exeName
+        let commandLineParams = getCommandLine p r e
+        printfn "runModel::commandLineParams = %A\n" commandLineParams
+        runProc p.callBackInfo fullExeName commandLineParams None
+
 
     type StorageType =
         | LocalStorage of ConnectionString
         | RemoteStorage
 
 
-    type WorkerNodeProxyInfo =
+    type WorkerNodeProxyData =
         {
-            //storageType : StorageType
-            dummy : int
+            minUsefulEe : MinUsefulEe
         }
 
         static member defaultValue =
             {
-                //storageType = RemoteStorage
-                dummy = 0
+                minUsefulEe = MinUsefulEe.defaultValue
             }
 
+    type WorkerNodeProxy =
+        {
+            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            loadWorkerNodeRunModelData : RemoteProcessId -> ClmResult<WorkerNodeRunModelData>
+            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
+            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
+            getCommandLine : RunModelParam -> string
+            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
 
-    type WorkerNodeProxy(i : WorkerNodeProxyInfo) =
-        let name = workerNodeServiceName
-        let logError e = printfn "Error: %A" e
-        let tryFun f = tryFun logError f
+            saveModelData : ModelData -> UnitResult
+            tryDeleteModelData : ModelDataId -> UnitResult
 
-        let loadAllWorkerNodeRunModelDataImpl () =
-            match tryFun (getWorkerNodeRunModelDataIdsFs name) with
-            | Some i ->
-                i
-                |> List.map (fun e -> tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs name e) |> Option.bind id)
-                |> List.choose id
-            | None -> []
+            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            tryDeleteResultData : ResultDataId -> UnitResult
+            loadAllResultData : unit -> ListResult<ResultDataWithId>
 
-        let loadAllResultDataImpl () =
-            match tryFun (getResultDataIdsFs name) with
-            | Some i ->
-                i
-                |> List.map (fun e -> tryFun (fun _ -> tryLoadResultDataFs name e) |> Option.bind id)
-                |> List.choose id
-            | None -> []
+            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            tryDeleteChartInfo : ResultDataId -> UnitResult
+        }
 
-        member __.saveWorkerNodeRunModelData m = tryFun (fun _ -> saveWorkerNodeRunModelDataFs name m) |> ignore
-        member __.tryLoadWorkerNodeRunModelData m = tryFun (fun _ -> tryLoadWorkerNodeRunModelDataFs name m) |> Option.bind id
-        member __.tryDeleteWorkerNodeRunModelData m = tryFun (fun _ -> tryDeleteWorkerNodeRunModelDataFs name m)
-        member __.runModel p = runLocalModel p true
-        member __.loadAllWorkerNodeRunModelData() = loadAllWorkerNodeRunModelDataImpl()
+        static member create (i : WorkerNodeProxyData) =
+            let name = workerNodeServiceName
 
-        // These ones are needed for SolverRunner interop.
-        // Note that the "name" is different here.
-        member __.saveModelData m = tryFun (fun _ -> saveModelDataFs solverRunnerName m) |> ignore
-        member __.tryDeleteModelData m = tryFun (fun _ -> tryDeleteModelDataFs solverRunnerName m)
+            {
+                saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
+                loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
+                tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
+                runModel = fun p -> runLocalModel p true i.minUsefulEe
+                getCommandLine = fun p -> getCommandLine p true i.minUsefulEe
+                loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
 
-        member __.tryLoadResultData r = tryFun (fun _ -> tryLoadResultDataFs solverRunnerName r) |> Option.bind id
-        member __.tryDeleteResultData r = tryFun (fun _ -> tryDeleteResultDataFs solverRunnerName r)
-        member __.loadAllResultData() = loadAllResultDataImpl()
+                // These ones are needed for SolverRunner interop.
+                // Note that the "name" is different here.
+                saveModelData = saveModelDataFs solverRunnerName
+                tryDeleteModelData = tryDeleteModelDataFs solverRunnerName
 
-        member __.tryLoadChartInfo r = tryFun (fun _ -> tryLoadChartInfoFs solverRunnerName r) |> Option.bind id
-        member __.tryDeleteChartInfo r = tryFun (fun _ -> tryDeleteChartInfoFs solverRunnerName r)
+                loadResultData = loadResultDataFs solverRunnerName
+                tryDeleteResultData = tryDeleteResultDataFs solverRunnerName
+                loadAllResultData = loadResultDataAllFs solverRunnerName
+
+                loadChartInfo = loadChartInfoFs solverRunnerName
+                tryDeleteChartInfo = tryDeleteChartInfoFs solverRunnerName
+            }

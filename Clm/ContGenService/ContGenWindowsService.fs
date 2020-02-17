@@ -6,7 +6,6 @@ open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open System.Runtime.Remoting.Channels.Tcp
 open Argu
-
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
@@ -14,27 +13,33 @@ open ClmSys.Logging
 open ContGenService.SvcCommandLine
 open ContGenAdm.ContGenServiceResponse
 open ClmSys.TimerEvents
+open ClmSys.ContGenData
 
 module WindowsService =
 
     let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) : ContGenShutDownInfo option =
         try
-            logger.logInfo ("startServiceRun: registering ContGenService...")
+            logger.logInfoString ("startServiceRun: registering ContGenService...")
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
 
             RemotingConfiguration.RegisterWellKnownServiceType
-                ( typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton )
+                (typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton)
 
             let service = (new ContGenResponseHandler(i)).contGenService
-            //p |> List.map (fun e -> service.configureService e) |> ignore
-            service.loadQueue()
-            let h = new EventHandler(EventHandlerInfo.defaultValue (logger.logExn "ContGenService") (fun () -> getServiceState service))
-            do h.start()
+            //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))
+            //do h.start()
+
+            let modelRunner =
+                createModelRunnerImpl logger parserResults
+
+            do
+                modelRunner.start()
 
             {
                 contGenTcpChannel = channel
+                service = service
             }
             |> Some
 
@@ -47,15 +52,18 @@ module WindowsService =
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 
-        let logger = Logger.log4net
+        let logger =
+            Logger.log4net
+
         let initService () = ()
         do initService ()
+
         let mutable shutDownInfo : ContGenShutDownInfo option = None
 
         let tryDispose() =
             match shutDownInfo with
             | Some i ->
-                logger.logInfo "ContGenWindowsService: Unregistering TCP channel."
+                logger.logInfoString "ContGenWindowsService: Unregistering TCP channel."
                 ChannelServices.UnregisterChannel(i.contGenTcpChannel)
                 shutDownInfo <- None
             | None -> ignore()

@@ -12,18 +12,24 @@ open ClmSys.Rop
 open ClmSys.GeneralData
 open System.ServiceModel
 open ClmSys.Wcf
+open ClmSys.MessagingServiceErrors
+open ClmSys.ClmErrors
 
 module ServiceImplementation =
+
+    let private toMessagingServiceErr g f = f |> g |> MessagingServiceErr
+    let private toError g f = f |> g |> MessagingServiceErr |> Error
+    let private addError g f e = ((f |> g |> MessagingServiceErr) + e) |> Error
 
     let createServiceImpl (i : MessagingServiceAccessInfo) : MessagingService =
         let d : MessagingServiceData =
             {
-                messagingServiceProxy = MessagingServiceProxy.defaultValue
-                logger = Logger.log4net
+                messagingServiceProxy = MessagingServiceProxy.create()
+                //logger = Logger.log4net
             }
 
         let service = MessagingService d
-        do service.start()
+        do service.start() |> ignore
         service
 
 
@@ -50,11 +56,17 @@ module ServiceImplementation =
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type MessagingWcfService() =
         let a = createServiceImpl serviceAccessInfo
+        let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
+        let toSendMessageError f = f |> MsgWcfErr |> MessageDeliveryErr |> MessagingServiceErr
+        let toConfigureServiceError f = f |> CfgSvcWcfErr |> ConfigureServiceErr |> MessagingServiceErr
+        let toTryPickMessageError f = f |> TryPeekMsgWcfErr |> TryPeekMessageErr |> MessagingServiceErr
+        let toTryDeleteFromServerError f = f |> TryDeleteMsgWcfErr |> TryDeleteFromServerErr |> MessagingServiceErr
+        let toGetStateError f = f |> GetStateWcfErr |> GetStateErr |> MessagingServiceErr
 
         interface IMessagingWcfService with
-            member __.getVersion b = tryReply a.getVersion GetVersionWcfError b
-            member __.sendMessage b = tryReply a.sendMessage MsgWcfError b
-            member __.configureService b = tryReply a.configureService CfgSvcWcfError b
-            member __.tryPeekMessage b = tryReply a.tryPeekMessage TryPeekMsgWcfError b
-            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer TryDeleteMsgWcfError b
-            member __.getState b = tryReply a.getState GetStateWcfError b
+            member __.getVersion b = tryReply a.getVersion toGetVersionError b
+            member __.sendMessage b = tryReply a.sendMessage toSendMessageError b
+            member __.configureService b = tryReply a.configureService toConfigureServiceError b
+            member __.tryPeekMessage b = tryReply a.tryPeekMessage toTryPickMessageError b
+            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer toTryDeleteFromServerError b
+            member __.getState b = tryReply a.getState toGetStateError b

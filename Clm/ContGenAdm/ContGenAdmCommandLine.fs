@@ -5,6 +5,9 @@ open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ModelParams
 open System
+open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ContGenData
 
 module AdmCommandLine =
 
@@ -169,13 +172,16 @@ module AdmCommandLine =
                 List.zip tl yl
                 |> List.map (fun (tEnd, y0) ->
                                 {
-                                    taskParam =
-                                        {
-                                            tEnd = tEnd
-                                            y0 = y0
-                                            useAbundant = false
-                                        }
-                                    serviceAccessInfo = i
+                                    tEnd = tEnd
+                                    y0 = y0
+                                    useAbundant = false
+                                    //taskParam =
+                                    //    {
+                                    //        tEnd = tEnd
+                                    //        y0 = y0
+                                    //        useAbundant = false
+                                    //    }
+                                    //serviceAccessInfo = i
                                 }
                             )
                 |> Some

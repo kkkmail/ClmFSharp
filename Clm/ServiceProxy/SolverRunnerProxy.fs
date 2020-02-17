@@ -1,11 +1,17 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.Retry
 open ClmSys.GeneralData
 open ClmSys.Registry
 open DbData.Configuration
 open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
+open Clm.CalculationData
+open Clm.ModelParams
+open ClmSys.GeneralErrors
+open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerData
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
 
 module SolverRunner =
 
@@ -32,35 +38,31 @@ module SolverRunner =
         static member defaultRemoteValue = RemoteSolverRunner RemoteSolverRunnerConfig
 
 
-    type SolverRunnerProxy(i : SolverRunnerProxyInfo) =
-        let logError e = printfn "Error: %A" e
-        let tryDbFun c f = tryDbFun logError c f
-        let tryFun f = tryFun logError f
+    type SolverRunnerProxy =
+        {
+            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            saveResultData : ResultDataWithId -> UnitResult
+            saveChartInfo : ChartInfo -> UnitResult
+        }
 
+        static member create (i : SolverRunnerProxyInfo) =
+            let loadModelDataImpl a m =
+                match i with
+                | LocalSolverRunner c -> loadModelData c.connectionString m
+                | RemoteSolverRunner _ -> loadModelDataFs solverRunnerName m
 
-        let tryLoadModelDataImpl a m =
-            match i with
-            | LocalSolverRunner c -> tryDbFun c.connectionString (tryLoadModelData a m)
-            | RemoteSolverRunner _ -> tryFun (fun _ -> tryLoadModelDataFs solverRunnerName m)
-            |> Option.bind id
+            let saveResultDataImpl r =
+                match i with
+                | LocalSolverRunner c -> saveResultData c.connectionString r
+                | RemoteSolverRunner _ -> saveResultDataFs solverRunnerName r
 
+            let saveChartInfoImpl r =
+                match i with
+                | LocalSolverRunner _ -> Ok()
+                | RemoteSolverRunner _ -> saveChartInfoFs solverRunnerName r
 
-        let saveResultDataImpl r =
-            match i with
-            | LocalSolverRunner c -> tryDbFun c.connectionString (saveResultData r) |> ignore
-            | RemoteSolverRunner _ ->
-                printfn "SolverRunnerProxy.saveResultDataImpl - saving results..."
-                tryFun (fun () -> saveResultDataFs solverRunnerName r) |> ignore
-
-
-        let saveChartInfoImpl r =
-            match i with
-            | LocalSolverRunner _ -> ignore()
-            | RemoteSolverRunner _ ->
-                printfn "SolverRunnerProxy.saveChartsImpl - saving charts: %A" r
-                tryFun (fun () -> saveChartInfoFs solverRunnerName r) |> ignore
-
-
-        member __.tryLoadModelData i m = tryLoadModelDataImpl i m
-        member __.saveResultData r = saveResultDataImpl r
-        member __.saveChartInfo c = saveChartInfoImpl c
+            {
+                loadModelData = loadModelDataImpl
+                saveResultData = saveResultDataImpl
+                saveChartInfo = saveChartInfoImpl
+            }

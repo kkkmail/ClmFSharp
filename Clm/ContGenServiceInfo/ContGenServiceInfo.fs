@@ -6,8 +6,13 @@ open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
 open ClmSys.VersionInfo
-open ClmSys.MessagingData
+open ClmSys.ContGenData
+open ClmSys.GeneralErrors
 open System.Runtime.Remoting.Channels.Tcp
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.ContGenPrimitives
+open ClmSys.ClmErrors
 
 module ServiceInfo =
 
@@ -15,30 +20,12 @@ module ServiceInfo =
     let ContGenServiceProgramName = "ContGenService.exe"
 
 
-    type TaskProgress =
-        | NotStarted
-        | InProgress of decimal
-        | Completed
-
-        static member create d =
-            match d with
-            | _ when d <= 0.0m -> NotStarted
-            | _ when d < 1.0m -> InProgress d
-            | _ -> InProgress 1.0m
-
-        member progress.estimateEndTime (started : DateTime) =
-            match progress with
-            | NotStarted -> None
-            | InProgress p -> estimateEndTime p started
-            | Completed -> Some DateTime.Now
-
-
-    type WorkState =
-        | NotInitialized
-        | Idle
-        | CanGenerate
-        | Generating
-        | ShuttingDown
+    //type WorkState =
+    //    | NotInitialized
+    //    | Idle
+    //    | CanGenerate
+    //    | Generating
+    //    | ShuttingDown
 
 
     type ProcessId =
@@ -57,6 +44,7 @@ module ServiceInfo =
             defaultValueId : ClmDefaultValueId
             runQueueId : RunQueueId
             workerNodeId : WorkerNodeId
+            commandLineParams : ModelCommandLineParam
         }
 
         member this.toResultDataId() = this.runQueueId.toResultDataId()
@@ -188,10 +176,24 @@ module ServiceInfo =
             }
 
 
-    type ProcessStartedResult =
-        | StartedSuccessfully of ProcessStartedInfo
-        | AlreadyCompleted
-        | FailedToStart
+    type ProcessStartedOkResult =
+        | AlreadyCompleted of ClmError option
+        | StartedSuccessfully of ProcessStartedInfo * ClmError option
+
+
+    type ProcessStartedResult = ClmResult<ProcessStartedOkResult>
+
+
+    let combineResult (result : ProcessStartedResult) (e : UnitResult) =
+        let addError f x = [ Some f ; x ] |> List.choose id |> foldErrors
+
+        match e with
+        | Ok() -> result
+        | Error f ->
+            match result with
+            | Ok (AlreadyCompleted x) -> addError f x |> AlreadyCompleted |> Ok
+            | Ok (StartedSuccessfully (i, x)) -> StartedSuccessfully (i, addError f x) |> Ok
+            | Error g -> Error (f + g)
 
 
     type ProcessResult =
@@ -211,29 +213,6 @@ module ServiceInfo =
         }
 
 
-    type ContGenRunnerState =
-        {
-            runLimit : int
-            running : RunningProcessInfo[]
-            queue : ModelDataId[]
-            runningCount : int
-            workState : WorkState
-            messageCount : int64
-            minUsefulEe : MinUsefulEe
-        }
-
-        override s.ToString() =
-            let q0 = (s.queue |> Array.map (fun e -> e.value.ToString()) |> String.concat "; ")
-
-            let q =
-                let x = "length: " + (s.queue.Length.ToString()) + ", "
-                if q0 = EmptyString then x + "[]" else x + "[ " + q0 + " ]"
-
-            let r0 = s.running |> Array.sortBy (fun e -> e.progressUpdateInfo.progress) |> Array.map (fun e -> "      " + e.ToString()) |> String.concat Nl
-            let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
-            sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value
-
-
     type ContGenConfigParam =
         | SetToIdle
         | SetToCanGenerate
@@ -243,33 +222,37 @@ module ServiceInfo =
         | SetMinUsefulEe of ee : double
 
 
+    type IContGenService =
+        //abstract getState : unit -> ClmResult<ContGenRunnerState>
+        abstract getState : unit -> (list<RunQueue> * UnitResult)
+        //abstract loadQueue : unit -> UnitResult
+        //abstract startGenerate : unit -> UnitResult
+        //abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
+        //abstract updateRemoteProgress : RemoteProgressUpdateInfo -> UnitResult
+        //abstract configureService : ContGenConfigParam -> UnitResult
+        //abstract runModel : ModelDataId -> ModelCommandLineParam -> UnitResult
+
+
     type ContGenShutDownInfo =
         {
             contGenTcpChannel : TcpChannel
+            service : IContGenService
         }
-
-
-    type IContGenService =
-        abstract getState : unit -> ContGenRunnerState
-        abstract loadQueue : unit -> unit
-        abstract startGenerate : unit -> unit
-        abstract updateLocalProgress : LocalProgressUpdateInfo -> unit
-        abstract updateRemoteProgress : RemoteProgressUpdateInfo -> unit
-        abstract configureService : ContGenConfigParam -> unit
-        abstract runModel : ModelDataId -> ModelCommandLineParam -> unit
 
 
     let mutable private callCount = -1
 
 
-    let getServiceState (service : IContGenService) =
+    //let getServiceState (service : IContGenService) =
+    let getServiceState (getState : unit -> (list<RunQueue> * UnitResult)) =
         if Interlocked.Increment(&callCount) = 0
         then
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
-                let state = service.getState()
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
-                if state.queue.Length = 0 then service.startGenerate()
+                let (q, e) = getState()
+                let r0 = q |> List.sortBy (fun e -> e.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+                let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
+                printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with
             | e -> printfn "Exception occurred: %A" e
         else
@@ -277,6 +260,7 @@ module ServiceInfo =
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
+        Ok()
 
 
     type RunProcArgs =
@@ -306,21 +290,9 @@ module ServiceInfo =
         p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
         p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
 
-        let started =
-            try
-                p.Start()
-            with
-                | ex ->
-                    ex.Data.Add("filename", filename)
-                    false
-
-        if not started
-        then
-            printfn "Failed to start process %s" filename
-            None
-        else
+        try
+            p.Start() |> ignore
             p.PriorityClass <- ProcessPriorityClass.Idle
-
             let processId = p.Id |> LocalProcessId
 
             printfn "Started %s with pid %A" p.ProcessName processId
@@ -329,12 +301,18 @@ module ServiceInfo =
                 localProcessId = processId
                 runningProcessData = c
             }
-            |> Some
+            |> Ok
+        with
+        | ex ->
+            printfn "Failed to start process %s" filename
+            ex.Data.["filename"] <- filename
+            ex.Data.["arguments"] <- args
+            FailedToStart ex |> Error
 
 
     type RunModelParam =
         {
             exeName : string
-            commandLineParam : ModelCommandLineParam
+            //commandLineParam : ModelCommandLineParam
             callBackInfo : RunningProcessData
         }

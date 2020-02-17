@@ -12,8 +12,8 @@ open System.Runtime.Remoting.Channels
 
 module ServiceTasks =
 
-    let cleanupService logger i =
-        logger.logInfo "WorkerNodeWindowsService: Unregistering TCP channel."
+    let cleanupService (logger : Logger) i =
+        logger.logInfoString "WorkerNodeWindowsService: Unregistering TCP channel."
         ChannelServices.UnregisterChannel(i.wrkNodeTcpChannel)
 
 

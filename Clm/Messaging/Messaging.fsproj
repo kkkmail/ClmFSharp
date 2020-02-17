@@ -123,6 +123,16 @@
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">
+      <Name>ContGenServiceInfo</Name>
+      <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
       <Name>MessagingServiceInfo</Name>
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>

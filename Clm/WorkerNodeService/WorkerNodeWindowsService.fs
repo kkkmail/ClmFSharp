@@ -20,21 +20,23 @@ module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) : WrkNodeShutDownInfo option =
         try
-            logger.logInfo (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName)
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
-            logger.logInfo (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
             ChannelServices.RegisterChannel (channel, false)
             RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName, WellKnownObjectMode.Singleton)
             let service = (new WorkerNodeResponseHandler(i)).workerNodeService
 
             try
-                logger.logInfo "WindowsService.startServiceRun: Calling: service.ping()..."
-                service.ping()
+                logger.logInfoString "WindowsService.startServiceRun: Calling: service.ping()..."
+                match service.ping() with
+                | Ok() -> ignore()
+                | Error e -> logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
             with
-            | e -> logger.logExn "WindowsService.startServiceRun" e
+            | e -> logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
 
-            let h = new EventHandler(EventHandlerInfo.defaultValue (logger.logExn "WorkerNodeService") service.ping)
+            let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger service.ping "WorkerNodeServiceAccess - ping")
             do h.start()
 
             {
@@ -44,7 +46,7 @@ module WindowsService =
 
         with
         | e ->
-            logger.logExn "WindowsService.startServiceRun" e
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: %A" e)
             None
 
 
@@ -59,7 +61,7 @@ module WindowsService =
         let tryDispose() =
             match shutDownInfo with
             | Some i ->
-                logger.logInfo "WorkerNodeWindowsService: Unregistering TCP channel."
+                logger.logInfoString "WorkerNodeWindowsService: Unregistering TCP channel."
                 ChannelServices.UnregisterChannel(i.wrkNodeTcpChannel)
                 shutDownInfo <- None
             | None -> ignore()

@@ -2,8 +2,8 @@
 
 open System
 open System.ServiceModel
-open ClmSys.GeneralData
-open ClmSys.GeneralErrors
+open GeneralData
+open GeneralErrors
 
 /// See https://stackoverflow.com/questions/53536450/merging-discriminated-unions-in-f
 module Wcf =
@@ -32,36 +32,36 @@ module Wcf =
             let service = channelFactory.CreateChannel()
             Ok (service, fun () -> channelFactory.Close())
         with
-        | e -> e |> WcfException |> Error
+        | e -> e |> WcfExn |> Error
 
 
-    let toWcfError f e = e |> WcfException |> f |> Error
-    let toWcfSerializationError f e = e |> WcfSerializationError |> f |> Error
+    let toWcfError f e = e |> WcfExn |> f |> Error
+    let toWcfSerializationError f e = e |> WcfSerializationErr |> f |> Error
 
 
     /// Client communication with the server.
     /// Note that this is a generic with 4 implicit parameters.
     /// We can bake in the first one into t at the caller.
-    /// However, to do that here required assigning and using all 4.
+    /// However, to do that here requires assigning and using all 4.
     let tryCommunicate t c f a =
         try
             match t() with
             | Ok (service, factoryCloser) ->
                 try
-                    printfn "tryCommunicate: Checking channel state..."
+                    //printfn "tryCommunicate: Checking channel state..."
                     let channel = (box service) :?> IClientChannel
-                    printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
+                    //printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
 
                     match a |> trySerialize with
                     | Ok b ->
-                        printfn "tryCommunicate: Calling service at %A..." DateTime.Now
+                        //printfn "tryCommunicate: Calling service at %A..." DateTime.Now
                         let d = c service b
                         channel.Close()
                         factoryCloser()
 
                         d
                         |> tryDeserialize
-                        |> Result.mapError WcfSerializationError
+                        |> Result.mapError WcfSerializationErr
                         |> Result.mapError f
                         |> Result.bind id
                     | Error e -> toWcfSerializationError f e
@@ -84,7 +84,7 @@ module Wcf =
 
     /// Server reply.
     let tryReply p f a =
-        printfn "tryReply: Replying..."
+        //printfn "tryReply: Replying..."
 
         let reply =
             match a |> tryDeserialize with

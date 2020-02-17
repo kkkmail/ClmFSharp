@@ -69,8 +69,9 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="MsgServiceProxy.fs" />
-    <Compile Include="PartitionerProxy.fs" />
-    <Compile Include="RunnerProxy.fs" />
+    <Compile Include="MsgProcessorProxy.fs" />
+    <Compile Include="ModelGeneratorProxy.fs" />
+    <Compile Include="ModelRunnerProxy.fs" />
     <Compile Include="SolverRunnerProxy.fs" />
     <Compile Include="WorkerNodeProxy.fs" />
     <Content Include="packages.config" />
@@ -96,6 +97,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
+      <Name>ClmGenerator</Name>
+      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ClmImpure\ClmImpure.fsproj">
+      <Name>ClmImpure</Name>
+      <Project>{c516437d-00b2-4d8f-8b5f-ec867cc8d277}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>

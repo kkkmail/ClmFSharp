@@ -10,21 +10,24 @@ open ClmSys.MessagingData
 open ClmSys.Logging
 open ServiceProxy.MsgServiceProxy
 open ClmSys.GeneralData
+open ServiceProxy.MsgProcessorProxy
+open ClmSys.MessagingPrimitives
 
 module MessagingTestClientTask =
 
     let runTestClient i h r =
-
         let d =
             {
                 msgAccessInfo = i
                 messagingService = h
-                msgClientProxy = MessagingClientProxy { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
-                logger = logger
+                msgClientProxy = MessagingClientProxy.create { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
+                //logger = logger
             }
 
         let a = MessagingClient d
-        do a.start()
+        do a.start() |> ignore
+
+        let tryProcessMessage = onTryProcessMessage a.messageProcessorProxy
 
         while true do
             printfn "Getting version number for: %A" r
@@ -44,19 +47,21 @@ module MessagingTestClientTask =
                     messageData = sprintf "Message sent at %A." DateTime.Now |> TextData
                 }
 
-            a.sendMessage m
+            a.sendMessage m |> ignore
             printfn "Checking messages."
 
-            let checkMessage() =
-                async {
-                    match! a.tryProcessMessage () (fun _ m -> m) with
-                    | Some m ->
-                        printfn "    Received message: %A" m
-                    | None -> ignore()
-                }
 
-            let t = [for _ in 1..20 -> ()] |> List.mapAsync checkMessage
-            t |> Async.RunSynchronously |> ignore
+
+            let checkMessage() =
+                match tryProcessMessage () (fun _ m -> m) with
+                | ProcessedSucessfully m -> printfn "    Received message: %A" m
+                | ProcessedWithError (m, e) -> printfn "    Received message: %A with error e: %A" m e
+                | ProcessedWithFailedToRemove (m, e) -> printfn "    Received message: %A with error e: %A" m e
+                | FailedToProcess e -> printfn "    Error e: %A" e
+                | NothingToDo -> ignore()
+                | BusyProcessing -> ignore()
+
+            let t = [for _ in 1..20 -> ()] |> List.map checkMessage
             Thread.Sleep 30_000
 
 

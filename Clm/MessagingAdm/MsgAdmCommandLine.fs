@@ -7,6 +7,7 @@ open ClmSys.MessagingData
 open ClmSys.VersionInfo
 open ClmSys.Registry
 open ClmSys.Logging
+open ClmSys.GeneralPrimitives
 
 module AdmCommandLine =
 
@@ -56,8 +57,8 @@ module AdmCommandLine =
         printfn "address: %A, port: %A" address port
 
         let saveSettings() =
-            trySetMessagingClientAddress logger versionNumberValue name address |> ignore
-            trySetMessagingClientPort logger versionNumberValue name port |> ignore
+            trySetMessagingClientAddress versionNumberValue name address |> ignore
+            trySetMessagingClientPort versionNumberValue name port |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()

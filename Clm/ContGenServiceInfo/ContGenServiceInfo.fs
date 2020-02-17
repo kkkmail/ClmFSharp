@@ -243,12 +243,13 @@ module ServiceInfo =
     let mutable private callCount = -1
 
 
-    let getServiceState (service : IContGenService) =
+    //let getServiceState (service : IContGenService) =
+    let getServiceState (getState : unit -> (list<RunQueue> * UnitResult)) =
         if Interlocked.Increment(&callCount) = 0
         then
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
-                let (q, e) = service.getState()
+                let (q, e) = getState()
                 let r0 = q |> List.sortBy (fun e -> e.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
                 printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length

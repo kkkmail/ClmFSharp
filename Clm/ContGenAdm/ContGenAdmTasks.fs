@@ -14,6 +14,7 @@ open ContGenAdm.AdmCommandLine
 //open ServiceProxy.Runner
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
+open ContGen.ModelRunner
 
 module ContGenAdmTasks =
 
@@ -115,9 +116,11 @@ module ContGenAdmTasks =
             | Some i -> i * 1_000
             | None -> 30_000
 
+        let modelMonitor = ModelMonitor.create clmConnectionString
+
         while true do
             try
-                getServiceState service |> ignore
+                getServiceState modelMonitor.getRunState |> ignore
             with
             | e -> printfn "Exception: %A\n" e.Message
 

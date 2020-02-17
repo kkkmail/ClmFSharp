@@ -366,7 +366,7 @@ module GeneralData =
 
         if t.TotalSeconds <= 5.0
         then l.logInfoString (sprintf "%s: Execution time: %A" name t)
-        else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name, t)
+        else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name t)
 
         r
 

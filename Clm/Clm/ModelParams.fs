@@ -214,6 +214,7 @@ module ModelParams =
             runQueueStatus : RunQueueStatus
             workerNodeIdOpt : WorkerNodeId option
             progress : TaskProgress
+            createdOn : DateTime
         }
 
         member q.modelCommandLineParam = q.info.modelCommandLineParam
@@ -232,7 +233,21 @@ module ModelParams =
                 runQueueStatus = NotStartedRunQueue
                 workerNodeIdOpt = None
                 progress = NotStarted
+                createdOn = DateTime.Now
             }
+
+        override r.ToString() =
+            let (ModelDataId modelDataId) = r.info.modelDataId
+            let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
+            let (RunQueueId runQueueId) = r.runQueueId
+            let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
+
+            let estCompl =
+                match r.runQueueStatus, r.progress.estimateEndTime r.createdOn with
+                | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
+                | _ -> EmptyString
+
+            sprintf "{ T: %s;%s DF: %A; MDID: %A; PID: %A; %A }" s estCompl defaultValueId modelDataId runQueueId r.progress
 
 
     type ResultInfo =

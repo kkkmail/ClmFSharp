@@ -207,7 +207,7 @@ module ModelRunner =
         logger.logInfoString "createModelRunner: Creating model runner..."
         let proxy = TryRunAllModelsProxy.create c rmp
         let e = fun () -> tryRunAllModels proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelRunner - tryRunAllModels")
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunner - tryRunAllModels")
         h
 
 
@@ -215,7 +215,7 @@ module ModelRunner =
         logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
         let proxy = onGetMessagesProxy c resultLocation w
         let e = fun () -> onGetMessages proxy () |> snd
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelRunnerMessageProcessor - onGetMessages")
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
         h
 
 

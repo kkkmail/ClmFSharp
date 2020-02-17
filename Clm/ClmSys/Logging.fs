@@ -99,6 +99,7 @@ module Logging =
             //logErr : string -> string -> unit
             //logExn : string -> exn -> unit
             logError : ClmError -> unit
+            logWarn : ClmError -> unit
             logInfo : ClmInfo -> unit
         }
 
@@ -116,8 +117,9 @@ module Logging =
                 //logInfo = fun s m -> printfn "INFO - %s: %s" s m
                 //logErr = fun s m -> printfn "ERROR - %s: %s" s m
                 //logExn = fun s e -> printfn "EXCEPTION - %s: %A." s e
-                logError = printfn "%A"
-                logInfo = printfn "%A"
+                logError = printfn "ERROR: %A"
+                logWarn = printfn "WARN: %A"
+                logInfo = printfn "INFO: %A"
             }
 
         /// The real log4net logger.
@@ -154,7 +156,16 @@ module Logging =
                 logError =
                     fun e ->
                         {
-                            Message = sprintf "%A" e
+                            Message = sprintf "ERROR: %A" e
+                            Date = DateTime.Now
+                        }
+                        |> InfoMessage
+                        |> logAgent.Post
+
+                logWarn =
+                    fun e ->
+                        {
+                            Message = sprintf "WARN: %A" e
                             Date = DateTime.Now
                         }
                         |> InfoMessage
@@ -163,7 +174,7 @@ module Logging =
                 logInfo =
                     fun e ->
                         {
-                            Message = sprintf "%A" e
+                            Message = sprintf "INFO: %A" e
                             Date = DateTime.Now
                         }
                         |> InfoMessage

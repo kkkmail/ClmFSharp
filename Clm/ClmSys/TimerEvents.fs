@@ -4,6 +4,8 @@ open System.Threading
 open System
 open GeneralErrors
 open ClmErrors
+open Logging
+open GeneralData
 
 module TimerEvents =
 
@@ -21,25 +23,25 @@ module TimerEvents =
             handlerName : string
             eventHandler : unit -> UnitResult
             refreshInterfal : int option
-            logError : ClmError -> unit
+            logger : Logger
         }
 
-        static member defaultValue logError h n =
+        static member defaultValue logger h n =
             {
                 handlerId = None
                 handlerName = n
                 eventHandler = h
                 refreshInterfal = None
-                logError = logError
+                logger = logger
             }
 
-        static member oneHourValue logError h n =
+        static member oneHourValue logger h n =
             {
                 handlerId = None
                 handlerName = n
                 eventHandler = h
                 refreshInterfal = Some OneHourRefreshInterval
-                logError = logError
+                logger = logger
             }
 
 
@@ -47,20 +49,24 @@ module TimerEvents =
         let mutable counter = -1
         let handlerId = i.handlerId |> Option.defaultValue (Guid.NewGuid())
         let refreshInterfal = i.refreshInterfal |> Option.defaultValue RefreshInterval |> float
-        let logError e = e |> ClmEventHandlerErr |> i.logError
-        do printfn "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
+        let logError e = e |> ClmEventHandlerErr |> i.logger.logError
+        let logWarn e = e |> ClmEventHandlerErr |> i.logger.logWarn
+        let info = sprintf "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
+        do info |> ClmInfo |> i.logger.logInfo
+
+        let g() =
+            try
+                match i.eventHandler() with
+                | Ok() -> ignore()
+                | Error e -> i.logger.logError e
+            with
+            | e -> (i.handlerName, handlerId, e) |> UnhandledException |> logError
 
         let eventHandler _ =
             try
                 if Interlocked.Increment(&counter) = 0
-                then
-                    try
-                        match i.eventHandler() with
-                        | Ok() -> ignore()
-                        | Error e -> i.logError e
-                    with
-                    | e -> (i.handlerName, handlerId, e) |> UnhandledException |> logError
-                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningError |> logError
+                then timedImpl logger info g
+                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningError |> logWarn
             finally Interlocked.Decrement(&counter) |> ignore
 
 

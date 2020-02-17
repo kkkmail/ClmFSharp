@@ -383,6 +383,7 @@ module DatabaseTypes =
                     runQueueStatus = s
                     workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                     progress = TaskProgress.create r.progress
+                    createdOn = r.createdOn
                 }
                 |> Some
             | None -> None
@@ -408,7 +409,7 @@ module DatabaseTypes =
         ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
         ///
         ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
-        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + increasing progress.
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
         ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId.
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
@@ -442,7 +443,7 @@ module DatabaseTypes =
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
                 | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value
-                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value > r.progress -> g q.progress.value
+                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value
                 | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
                 | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
                 | _ -> s |> f |> f1
@@ -789,6 +790,7 @@ module DatabaseTypes =
                 runQueueStatus = s
                 workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                 progress = TaskProgress.create reader?progress
+                createdOn = reader?createdOn
             }
             |> Ok
         | None -> toError MapRunQueueErr (reader?runQueueId)

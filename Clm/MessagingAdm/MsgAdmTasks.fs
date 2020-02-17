@@ -17,9 +17,13 @@ module MsgAdmTasks =
             try
                 printfn "Getting messaging service state..."
                 let state = service.getState()
-                printfn "State at %A is: %A\n" DateTime.Now state
+                let n =
+                    match state with
+                    | Ok s -> s.msgInfo.Length
+                    | Error _-> 0
+                printfn "State at %A is: %A\nNumber of messages: %i.\n" DateTime.Now state n
             with
-                | e -> printfn "Exception: %A\n" e.Message
+            | e -> printfn "Exception: %A\n" e.Message
 
             Thread.Sleep(i)
 

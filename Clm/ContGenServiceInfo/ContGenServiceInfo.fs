@@ -213,31 +213,6 @@ module ServiceInfo =
         }
 
 
-    //type ContGenRunnerState =
-    //    {
-    //        //runLimit : int
-    //        running : RunningProcessInfo[]
-    //        //queue : ModelDataId[]
-    //        runningCount : int
-    //        messageCount : int64
-    //        minUsefulEe : MinUsefulEe
-    //        lastRunError : string Option
-    //    }
-    //
-    //    override s.ToString() =
-    //        //let q0 = (s.queue |> Array.map (fun e -> e.value.ToString()) |> String.concat "; ")
-    //
-    //        //let q =
-    //        //    let x = "length: " + (s.queue.Length.ToString()) + ", "
-    //        //    if q0 = EmptyString then x + "[]" else x + "[ " + q0 + " ]"
-    //
-    //        let r0 = s.running |> Array.sortBy (fun e -> e.progressUpdateInfo.progress) |> Array.map (fun e -> "      " + e.ToString()) |> String.concat Nl
-    //        let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
-    //        //sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; workState = %A; minUsefulEe = %A; lastRunError = %A\n }" r q s.runLimit s.runningCount s.messageCount s.workState s.minUsefulEe.value s.lastRunError
-    //        //sprintf "{\n  running = %s\n  queue = %s\n  runLimit = %A; runningCount = %A; messageCount = %A; minUsefulEe = %A; lastRunError = %A\n }" r q s.runLimit s.runningCount s.messageCount s.minUsefulEe.value s.lastRunError
-    //        sprintf "{\n  running = %s\n  runningCount = %A; messageCount = %A; minUsefulEe = %A; lastRunError = %A\n }" r s.runningCount s.messageCount s.minUsefulEe.value s.lastRunError
-
-
     type ContGenConfigParam =
         | SetToIdle
         | SetToCanGenerate
@@ -274,17 +249,9 @@ module ServiceInfo =
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let (q, e) = service.getState()
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (q.ToString())
-
-                //match service.getState() with
-                //| Ok state ->
-                //    printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
-                //    //if state.queue.Length = 0
-                //    //then
-                //    //    match service.startGenerate() with
-                //    //    | Ok() -> printfn "Ok"
-                //    //    | Error e -> printfn "Error occurred while trying to call service.startGenerate(): %A" e
-                //| Error e -> printfn "Error occurred while trying to call service.getState(): %A" e
+                let r0 = q |> List.sortBy (fun e -> e.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+                let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
+                printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with
             | e -> printfn "Exception occurred: %A" e
         else

@@ -54,6 +54,7 @@ module ModelGenerator =
                                             runQueueStatus = NotStartedRunQueue
                                             workerNodeIdOpt = None
                                             progress = NotStarted
+                                            createdOn = DateTime.Now
                                         })
                         |> List.map (fun e -> proxy.upsertRunQueue e)
                         |> foldUnitResults
@@ -85,5 +86,5 @@ module ModelGenerator =
         logger.logInfoString "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create c
         let e = fun () -> generateAll proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError e "ModelGenerator - generateAll")
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
         h

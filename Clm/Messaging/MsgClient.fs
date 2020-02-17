@@ -447,13 +447,13 @@ module Client =
 
     /// Call this function to create timer events necessary for automatic MessagingClient operation.
     /// If you don't call it, then you have to operate MessagingClient by hands.
-    let createMessagingClientEventHandlers logError (w : MessagingClient) =
+    let createMessagingClientEventHandlers logger (w : MessagingClient) =
         let eventHandler _ = w.transmitMessages()
-        let h = ClmEventHandlerInfo.defaultValue logError eventHandler "MessagingClient - transmitMessages" |> ClmEventHandler
+        let h = ClmEventHandlerInfo.defaultValue logger eventHandler "MessagingClient - transmitMessages" |> ClmEventHandler
         do h.start()
 
         let eventHandler1 _ = w.removeExpiredMessages()
-        let h1 = ClmEventHandlerInfo.oneHourValue logError eventHandler1 "MessagingClient - removeExpiredMessages" |> ClmEventHandler
+        let h1 = ClmEventHandlerInfo.oneHourValue logger eventHandler1 "MessagingClient - removeExpiredMessages" |> ClmEventHandler
         do h1.start()
 
 

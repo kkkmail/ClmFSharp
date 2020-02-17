@@ -630,7 +630,7 @@ module ServiceImplementation =
             logger.logInfoString "createServiceImpl: Registering..."
             match w.register >-> w.start |> evaluate with
             | Ok() ->
-                let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger.logError w.getMessages "WorkerNodeRunner - getMessages")
+                let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
                 do h.start()
                 Ok (Some w)
             | Error e -> Error e
@@ -676,7 +676,7 @@ module ServiceImplementation =
 
                 match n with
                 | Ok (Some v) ->
-                    createMessagingClientEventHandlers logger.logError messagingClient
+                    createMessagingClientEventHandlers logger messagingClient
                     Ok (Some v)
                 | Ok None -> toError UnableToCreateWorkerNodeServiceError
                 | Error e -> addError UnableToCreateWorkerNodeServiceError e

@@ -361,7 +361,7 @@ module GeneralData =
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
 
 
-    let private timedImpl (l : Logger) name f =
+    let timedImpl (l : Logger) name f =
         let (r, t) = time f ()
 
         if t.TotalSeconds <= 5.0

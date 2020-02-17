@@ -13,6 +13,8 @@ open ClmSys.Logging
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
 open ClmSys.SolverRunnerData
+open ContGen.ModelRunner
+open DbData.Configuration
 
 
 module ServiceImplementation =
@@ -53,8 +55,8 @@ module ServiceImplementation =
 
         do printfn "Initializing ContGenService..."
 
-        //let modelRunner =
-        //    createModelRunner logger parserResults
+        //let modelRunner = createModelRunner logger parserResults
+        let modelMonitor = ModelMonitor.create clmConnectionString
 
         //do
         //    modelRunner.start()
@@ -77,7 +79,7 @@ module ServiceImplementation =
 
         interface IContGenService with
             //member __.getState() = a.getState().runnerState
-            member __.getState() = [], Ok() // modelRunner.getRunState()
+            member __.getState() = modelMonitor.getRunState()
             //member __.loadQueue() = a.queueStarting()
             //member __.startGenerate() = a.generationStarted()
             //member __.updateLocalProgress p = p.toProgressUpdateInfo() |> a.progressUpdated 

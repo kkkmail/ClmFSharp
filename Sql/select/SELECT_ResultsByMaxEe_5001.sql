@@ -21,8 +21,7 @@ a as
 		sum(
 			case
 				when q.RunQueueStatusId = 0 then 1.0 
-				when q.RunQueueStatusId = 2 and q.workerNodeId is not null then 0.5 
-				when q.RunQueueStatusId = 2 and q.workerNodeId is null then 1.0 
+				when q.RunQueueStatusId = 2 then (1.0 - q.progress) 
 				else 0 
 		end) as remainingRepetitions
 	from

@@ -17,10 +17,19 @@ a as
 	select
 		d.clmDefaultValueId as defaultSetIndex,
 		t.numberOfAminoAcids,
-		sum(case when t.clmTaskStatusId = 0 then t.remainingRepetitions else 0 end) as remainingRepetitions
+		--sum(case when t.clmTaskStatusId = 0 then t.remainingRepetitions else 0 end) as remainingRepetitions
+		sum(
+			case
+				when q.RunQueueStatusId = 0 then 1.0 
+				when q.RunQueueStatusId = 2 and q.workerNodeId is not null then 0.5 
+				when q.RunQueueStatusId = 2 and q.workerNodeId is null then 1.0 
+				else 0 
+		end) as remainingRepetitions
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
+		inner join ModelData m on m.clmTaskId = t.clmTaskId
+		inner join RunQueue q on q.modelDataId = m.modelDataId
 	group by d.clmDefaultValueId, t.numberOfAminoAcids
 ),
 b as

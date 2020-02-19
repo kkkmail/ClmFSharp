@@ -2,29 +2,25 @@
 
 open Newtonsoft.Json
 open System
-open ClmSys.Logging
 open ClmSys.GeneralData
 open ClmSys.GeneralErrors
 open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
-open PartitionerServiceInfo.ServiceInfo
-open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ClmSys.Retry
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerPrimitives
 open ClmSys.SolverRunnerData
-open ClmSys.ContGenData
 open ClmSys.WorkerNodePrimitives
 
 module FileSystemTypes =
 
     let fileStorageFolder = DefaultFileStorageFolder
+
 
     type TableName =
         | TableName of string
@@ -46,7 +42,6 @@ module FileSystemTypes =
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
         let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
-        //logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
 
         try
             Directory.CreateDirectory(folder) |> ignore
@@ -236,15 +231,3 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
-
-    let saveRunModelParamWithRemoteIdFs serviceName (r : RunModelParamWithRemoteId) = saveData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName r.remoteProcessId.value r
-    let loadRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = loadData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
-    let tryDeleteRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryDeleteData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
-    let getRunModelParamWithRemoteIdIdsFs serviceName () = getObjectIds<RemoteProcessId> serviceName runModelParamWithRemoteIdTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
-    let loadeRunModelParamWithRemoteIdAllFs serviceName () = loadObjects<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName Guid.Parse
-
-    //let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
-    //let loadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = loadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    //let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    //let getWorkerNodeStateIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeStateTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
-    //let loadWorkerNodeStateAllFs serviceName () = loadObjects<WorkerNodeState, Guid> serviceName workerNodeStateTblName Guid.Parse

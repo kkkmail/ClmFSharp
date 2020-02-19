@@ -109,11 +109,6 @@
       <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\PartitionerServiceInfo\PartitionerServiceInfo.fsproj">
-      <Name>PartitionerServiceInfo</Name>
-      <Project>{0a5ff8d1-cc98-4eac-a1e7-2ee689c9c507}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
       <Name>ServiceProxy</Name>
       <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>

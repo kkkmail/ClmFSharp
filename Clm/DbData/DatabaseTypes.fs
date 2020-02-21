@@ -417,10 +417,15 @@ module DatabaseTypes =
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-            let g p =
+            let g p s =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
                 r.progress <- p
+
+                match s with
+                | Some v -> r.startedOn <- Some v
+                | None -> ignore()
+
                 r.modifiedOn <- DateTime.Now
                 r.runQueueStatusId <- q.runQueueStatus.value
                 Ok()
@@ -442,10 +447,10 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value
-                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value
-                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
-                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
+                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
+                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
+                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value None
+                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 

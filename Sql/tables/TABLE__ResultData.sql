@@ -37,6 +37,11 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 
 	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultlData_ModelData]
 
+	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_RunQueue] FOREIGN KEY([resultDataId])
+	REFERENCES [dbo].[RunQueue] ([runQueueId])
+
+	ALTER TABLE [dbo].[ResultData] CHECK CONSTRAINT [FK_ResultData_RunQueue]
+
 	CREATE UNIQUE NONCLUSTERED INDEX [UX_ResultData] ON [dbo].[ResultData]
 	(
 		[resultDataOrder] ASC

@@ -41,12 +41,13 @@ b as
 			when r.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or r.maxLastEe > @maxLastEe then 1 
 			else 0 
 		end as isSymmetryBroken,
-		cast(datediff(minute, m.createdOn, r.createdOn) as float) / 1440.0 as runTime
+		cast(datediff(minute, isnull(q.startedOn, m.createdOn), r.createdOn) as float) / 1440.0 as runTime
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
 		inner join ModelData m on t.clmTaskId = m.clmTaskId
 		inner join ResultData r on m.modelDataId = r.modelDataId
+		inner join RunQueue q on r.resultDataId = q.runQueueId
 	where r.maxEe <= 1
 ),
 c as

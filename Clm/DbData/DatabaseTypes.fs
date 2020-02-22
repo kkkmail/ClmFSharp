@@ -116,18 +116,15 @@ module DatabaseTypes =
 
     type ModelDataTableData = SqlCommandProvider<"
         select
-            m.modelDataId,
-            m.clmTaskId,
-            m.parentModelDataId,
-            isnull(p.fileStructureVersion, m.fileStructureVersion) as fileStructureVersion,
-            isnull(p.seedValue, m.seedValue) as seedValue,
-            isnull(p.modelDataParams, m.modelDataParams) as modelDataParams,
-            isnull(p.modelBinaryData, m.modelBinaryData) as modelBinaryData,
-            m.createdOn
-        from
-            dbo.ModelData m
-            left outer join dbo.ModelData p on m.parentModelDataId = p.modelDataId
-        where m.modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
+            modelDataId,
+            clmTaskId,
+            fileStructureVersion,
+            seedValue,
+            modelDataParams,
+            modelBinaryData,
+            createdOn
+        from dbo.ModelData
+        where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
@@ -307,10 +304,7 @@ module DatabaseTypes =
                 {
                     modelDataId = r.modelDataId |> ModelDataId
                     clmTaskInfo = i.clmTaskInfo
-                    data =
-                        match r.parentModelDataId with
-                        | Some p -> ParentProvided (ModelDataId p, rawData)
-                        | None -> OwnData rawData
+                    data = rawData
                 }
                 |> Ok
             | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
@@ -657,46 +651,26 @@ module DatabaseTypes =
             let connectionString = conn.ConnectionString
 
             let recordsUpdated =
-                match m.data with
-                | OwnData d ->
-                    use cmdWithBinaryData = new SqlCommandProvider<"
-                        merge ModelData as target
-                        using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
-                        as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                        on (target.modelDataId = source.modelDataId)
-                        when not matched then
-                            insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                            values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
-                        when matched then
-                            update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
-                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                use cmdWithBinaryData = new SqlCommandProvider<"
+                    merge ModelData as target
+                    using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+                    as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                    on (target.modelDataId = source.modelDataId)
+                    when not matched then
+                        insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                        values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+                    when matched then
+                        update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-                    cmdWithBinaryData.Execute(
-                        modelDataId = m.modelDataId.value,
-                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                        fileStructureVersion = d.fileStructureVersion,
-                        seedValue = (match d.seedValue with | Some s -> s | None -> -1),
-                        modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
-                        modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                        createdOn = DateTime.Now)
-                | ParentProvided (ModelDataId parentModelDataId, _) ->
-                    use cmdWithoutBinaryData = new SqlCommandProvider<"
-                        merge ModelData as target
-                        using (select @modelDataId, @clmTaskId, @parentModelDataId, @createdOn)
-                        as source (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                        on (target.modelDataId = source.modelDataId)
-                        when not matched then
-                            insert (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                            values (source.modelDataId, source.clmTaskId, source.parentModelDataId, source.createdOn)
-                        when matched then
-                            update set clmTaskId = source.clmTaskId, parentModelDataId = source.parentModelDataId, createdOn = source.createdOn;
-                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-                    cmdWithoutBinaryData.Execute(
-                        modelDataId = m.modelDataId.value,
-                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                        parentModelDataId = parentModelDataId,
-                        createdOn = DateTime.Now)
+                cmdWithBinaryData.Execute(
+                    modelDataId = m.modelDataId.value,
+                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                    fileStructureVersion = m.data.fileStructureVersion,
+                    seedValue = (match m.data.seedValue with | Some s -> s | None -> -1),
+                    modelDataParams = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
+                    modelBinaryData = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
+                    createdOn = DateTime.Now)
 
             match recordsUpdated = 1 with
             | true -> Ok ()

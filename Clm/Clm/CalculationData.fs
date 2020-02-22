@@ -428,29 +428,13 @@ module CalculationData =
         }
 
 
-    type ModelDataSrc =
-        | OwnData of ModelDataRaw
-        | ParentProvided of ModelDataId * ModelDataRaw
-
-
     type ModelData =
         {
             modelDataId : ModelDataId
             clmTaskInfo : ClmTaskInfo
-            data : ModelDataSrc
+            data : ModelDataRaw
         }
 
-        member this.seedValue =
-            match this.data with
-            | OwnData e -> e.seedValue
-            | ParentProvided (_, e)-> e.seedValue
-
-        member this.fileStructureVersion =
-            match this.data with
-            | OwnData e -> e.fileStructureVersion
-            | ParentProvided (_, e)-> e.fileStructureVersion
-
-        member this.modelData =
-            match this.data with
-            | OwnData e -> e.modelData
-            | ParentProvided (_, e)-> e.modelData
+        member this.seedValue = this.data.seedValue
+        member this.fileStructureVersion = this.data.fileStructureVersion
+        member this.modelData = this.data.modelData

@@ -447,7 +447,6 @@ module ClmModel =
                                 }
                         }
                 }
-                |> OwnData
             }
 
         member model.allSubstances = si.allSubst

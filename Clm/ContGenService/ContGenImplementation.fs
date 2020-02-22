@@ -4,11 +4,8 @@ open System
 open Argu
 open ClmSys.GeneralData
 open ClmSys.TimerEvents
-//open ContGen.AsyncRun
-//open ContGen.Runner
 open ContGenServiceInfo.ServiceInfo
 open SvcCommandLine
-//open ContGen.Partitioner
 open ClmSys.Logging
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
@@ -18,29 +15,6 @@ open DbData.Configuration
 
 
 module ServiceImplementation =
-
-    //let createServiceImpl i p u =
-    //    let a = createRunner (ModelRunnerData.defaultValue i p) u
-    //    //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue Logger.log4net.logError a.generationStarted)
-    //    //do h.start()
-    //    a
-
-
-    //type AsyncRunnerState
-    //    with
-    //    member s.runnerState =
-    //        {
-    //            runLimit = s.runLimit
-    //            //maxQueueLength = s.maxQueueLength
-    //            runningCount = s.runningCount
-    //            running = s.running |> Map.toArray |> Array.map (fun (_, e) -> e)
-    //            queue = s.queue |> List.map (fun e -> e.processToStartInfo.modelDataId) |> Array.ofList
-    //            workState = s.workState
-    //            messageCount = s.messageCount
-    //            minUsefulEe = s.minUsefulEe
-    //            lastRunError = s.lastRunError
-    //        }
-
 
     let parserResults =
         let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)

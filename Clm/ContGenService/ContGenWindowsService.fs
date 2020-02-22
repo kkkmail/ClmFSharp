@@ -4,7 +4,6 @@ open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
-open System.Runtime.Remoting.Channels.Tcp
 open Argu
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
@@ -12,7 +11,6 @@ open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
 open ContGenAdm.ContGenServiceResponse
-open ClmSys.TimerEvents
 open ClmSys.ContGenData
 
 module WindowsService =
@@ -28,14 +26,8 @@ module WindowsService =
                 (typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton)
 
             let service = (new ContGenResponseHandler(i)).contGenService
-            //let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue (logger.logError) (fun () -> getServiceState service))
-            //do h.start()
-
-            let modelRunner =
-                createModelRunnerImpl logger parserResults
-
-            do
-                modelRunner.start()
+            let modelRunner = createModelRunnerImpl logger parserResults
+            do modelRunner.start()
 
             {
                 contGenTcpChannel = channel
@@ -45,15 +37,14 @@ module WindowsService =
 
         with
         | e ->
-            logger.logExn "Starting service" e
+            logger.logExn "startServiceRun: Starting service failed." e
             None
 
 
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 
-        let logger =
-            Logger.log4net
+        let logger = Logger.log4net
 
         let initService () = ()
         do initService ()

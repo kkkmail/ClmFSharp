@@ -1,22 +1,23 @@
 ﻿namespace ClmSys
 
 open System
+open GeneralPrimitives
 open MessagingClientErrors
 open MessagingPrimitives
 
 module WorkerNodeErrors =
 
     type OnSaveResultError =
-        | LoadResultDataErr of Guid
-        | SendResultMessageError of (Guid * MessageId)
-        | DeleteResultDataError of Guid
+        | LoadResultDataErr of ResultDataId
+        | SendResultMessageError of (MessagingClientId * ResultDataId)
+        | DeleteResultDataError of ResultDataId
 
 
     type OnSaveChartsError =
         | LoadChartInfoError of Guid
-        | SendChartMessageError of (Guid * Guid)
-        | DeleteChartError of exn
-        | DeleteChartInfoError of Guid
+        | SendChartMessageError of (MessagingClientId * ResultDataId)
+        | DeleteChartError of (MessagingClientId * ResultDataId * exn)
+        | DeleteChartInfoError of ResultDataId
 
 
     type OnUpdateProgressError =
@@ -30,8 +31,8 @@ module WorkerNodeErrors =
 
     type OnProcessMessageError =
         | CannotSaveModelData
-        | ModelAlreadyRunning of Guid
-        | InvalidMessage of string
+        | ModelAlreadyRunning of RemoteProcessId
+        | InvalidMessage of (MessageId * string)
 
 
     type WorkerNodeError =

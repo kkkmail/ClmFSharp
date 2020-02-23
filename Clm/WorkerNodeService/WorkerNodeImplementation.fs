@@ -131,9 +131,9 @@ module ServiceImplementation =
             | Ok() ->
                 match proxy.tryDeleteResultData d with
                 | Ok() -> Ok()
-                | Error e -> addError (DeleteResultDataError d.value) e
-            | Error e -> addError (SendResultMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
-        | Error e -> addError (LoadResultDataErr d.value) e
+                | Error e -> addError (DeleteResultDataError d) e
+            | Error e -> addError (SendResultMessageError (proxy.partitionerId.messagingClientId, d)) e
+        | Error e -> addError (LoadResultDataErr d) e
 
 
     let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =
@@ -158,12 +158,12 @@ module ServiceImplementation =
                         |> ignore
                         Ok()
                     with
-                    | ex -> ex |> DeleteChartError |> OnSaveChartsErr |> WorkerNodeErr |> Error
+                    | ex -> (proxy.partitionerId.messagingClientId, d, ex) |> DeleteChartError |> OnSaveChartsErr |> WorkerNodeErr |> Error
 
                 match (r(), proxy.tryDeleteChartInfo d) ||> combineUnitResults with
                 | Ok() -> Ok()
-                | Error e -> addError (DeleteChartInfoError d.value) e
-            | Error e -> addError (SendChartMessageError (proxy.partitionerId.messagingClientId.value, d.value)) e
+                | Error e -> addError (DeleteChartInfoError d) e
+            | Error e -> addError (SendChartMessageError (proxy.partitionerId.messagingClientId, d)) e
         | Error e -> addError (LoadChartInfoError d.value) e
 
 
@@ -425,8 +425,8 @@ module ServiceImplementation =
                             let w1, r1 = proxy.onRunModel s d
                             w1, r1
                         | Error e -> s, addError CannotSaveModelData e
-                    | Some r -> s, r.runnerRemoteProcessId.value |> ModelAlreadyRunning |> toError
-            | _ -> s, m.messageData.getInfo() |> InvalidMessage |> toError
+                    | Some r -> s, r.runnerRemoteProcessId |> ModelAlreadyRunning |> toError
+            | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessage |> toError
 
         w, result
 

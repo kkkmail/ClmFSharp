@@ -27,6 +27,18 @@ module ModelGenerator =
     let private addError g f e = ((f |> g |> ModelGeneratorErr) + e) |> Error
 
 
+    let generateModelCode (proxy : GenerateModelCodeProxy) modelDataId (c : ClmTask) =
+        let addError = addError GenerateModelCodeErr
+
+        match proxy.loadParams c with
+        | Ok a ->
+            let model = ClmModel (a.modelGenerationParams, modelDataId, c.clmTaskInfo.clmTaskId)
+            match model.generateCode() with
+            | Ok r -> Ok r
+            | Error e -> addError (UnableSaveModelCodeErr c.clmTaskInfo.clmTaskId) e
+        | Error e -> addError (GenerateModelCodeError.UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
+
+
     let generateModel (proxy : GenerateModelProxy) (c : ClmTask) =
         let addError = addError GenerateModelErr
         let toError = toError GenerateModelErr
@@ -60,9 +72,9 @@ module ModelGenerator =
                         |> foldUnitResults
 
                     let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
-                    combineUnitResults r r1
+                    combineUnitResults r r1 |> mapSuccessValue modelDataId
                 | Error e -> addError (UnableUpsertModelDataErr c.clmTaskInfo.clmTaskId) e
-            | Error e -> addError (UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
+            | Error e -> addError (GenerateModelError.UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
         else toError (TaskCompletedErr c.clmTaskInfo.clmTaskId)
 
 
@@ -78,7 +90,7 @@ module ModelGenerator =
         static member create c =
             {
                 loadIncompleteClmTasks = fun () -> loadIncompleteClmTasks c
-                generateModel = generateModel (GenerateModelProxy.create c)
+                generateModel = (generateModel (GenerateModelProxy.create c)) >> (mapSuccessValue ())
             }
 
 

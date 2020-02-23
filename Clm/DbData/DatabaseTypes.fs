@@ -399,15 +399,16 @@ module DatabaseTypes =
             t.Rows.Add newRow
             newRow
 
-        /// The following status transitions are allowed here:
-        ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
-        ///
+        /// The following transitions are allowed here:
         ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
         ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
         /// All others are not allowed and / or out of scope of this function.
+        ///
+        ///     TODO kk:20200222 - I am not sure that this is needed, so it is not yet implemented:
+        ///         ... -> ModifyingRunQueue -> ...
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
@@ -593,16 +594,14 @@ module DatabaseTypes =
         let g() =
             use conn = getOpenConn connectionString
             use t = new ClmTaskTable()
-            let row = clmTask.addRow t
+            clmTask.addRow t |> ignore
             t.Update conn |> ignore
-            let clmTaskId = row.clmTaskId |> ClmTaskId
-            let newClmTask = { clmTask with clmTaskInfo = { clmTask.clmTaskInfo with clmTaskId = clmTaskId } }
 
-            newClmTask.commandLineParams
-            |> List.map (addCommandLineParams connectionString clmTaskId)
+            clmTask.commandLineParams
+            |> List.map (addCommandLineParams connectionString clmTask.clmTaskInfo.clmTaskId)
             |> ignore
 
-            Ok newClmTask
+            Ok()
 
         tryDbFun g
 

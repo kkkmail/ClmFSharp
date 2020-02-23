@@ -109,6 +109,8 @@ module ClmErrors =
     //        0
 
 
+    /// Adds error f if the result is (Error e).
+    /// Otherwise returns then same (Ok r).
     let addError v (f : ClmError) =
         match v with
         | Ok r -> Ok r

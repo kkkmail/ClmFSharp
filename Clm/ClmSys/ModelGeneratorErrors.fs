@@ -4,6 +4,10 @@ open ClmSys.ContGenPrimitives
 
 module ModelGeneratorErrors =
 
+    type GenerateModelCodeError =
+        | UnableLoadParamsErr of ClmTaskId
+        | UnableSaveModelCodeErr of ClmTaskId
+
 
     type GenerateModelError =
         | UnableLoadParamsErr of ClmTaskId
@@ -12,4 +16,5 @@ module ModelGeneratorErrors =
 
 
     type ModelGeneratorError =
+        | GenerateModelCodeErr of GenerateModelCodeError
         | GenerateModelErr of GenerateModelError

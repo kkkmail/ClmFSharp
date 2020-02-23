@@ -6,27 +6,24 @@ open ClmSys.ExitErrorCodes
 open DbData.Configuration
 open DbData.DatabaseTypes
 open ContGen
-//open Runner
 open ClmSys.Retry
 open Clm.ModelParams
 open System
 open ContGenAdm.AdmCommandLine
-//open ServiceProxy.Runner
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
 open ContGen.ModelRunner
+open ContGen.ModelGenerator
+open ServiceProxy.ModelGeneratorProxy
 
 module ContGenAdmTasks =
 
-    let logError e = printfn "Error: %A" e
-    //let tryDbFun f = tryDbFun clmConnectionString f
-    //let tryLoadClmDefaultValue clmDefaultValueId = tryDbFun (loadClmDefaultValue clmDefaultValueId) |> Option.bind id
+    let logError e =
+        printfn "Error occurred: %A" e
+        UnknownException
+
+
     let loadClmDefaultValue = loadClmDefaultValue clmConnectionString
-
-
-    //let createOneTimeGenerator p =
-    //    let r = ModelRunner p
-    //    r.generate
 
 
     let addClmTask s (p :list<AddClmTaskArgs>) =
@@ -46,7 +43,7 @@ module ContGenAdmTasks =
                     {
                         clmTaskInfo =
                             {
-                                clmTaskId = Guid.NewGuid() |> ClmTaskId
+                                clmTaskId = ClmTaskId.getNewId()
                                 clmDefaultValueId = i
                                 numberOfAminoAcids = n
                                 maxPeptideLength = m
@@ -58,30 +55,22 @@ module ContGenAdmTasks =
                     }
 
                 match addClmTask clmConnectionString t with
-                | Ok nt ->
-                    //match getGenerateModelCode p with
-                    //| true ->
-                    //    printfn "Genetrating model..."
-                    //    match c with
-                    //    | [] ->
-                    //        printfn "Cannot get service address and/or port."
-                    //        ignore()
-                    //    | h :: _ ->
-                    //        let g =
-                    //            createOneTimeGenerator
-                    //                {
-                    //                    ModelRunnerData.defaultValue h.serviceAccessInfo (LocalRunnerConfig.defaultValue |> LocalRunnerProxy |> RunnerProxy.create)
-                    //                    with saveModelCode = true
-                    //                }
-                    //        g nt |> ignore
-                    //| false -> ignore()
+                | Ok() ->
+                    match getGenerateModelCode p with
+                    | true ->
+                        printfn "Genetrating model..."
+                        let proxy = GenerateModelProxy.create clmConnectionString
 
-                    CompletedSuccessfully
-                | Error e ->
-                    printfn "Erro occurred: %A" e
-                    UnknownException
+                        match generateModel proxy t with
+                        | Ok modelDataId ->
+                            match generateModelCode proxy.generateModelCodeProxy modelDataId t with
+                            | Ok _ -> CompletedSuccessfully
+                            | Error e -> logError e
+                        | Error e -> logError e
+                    | false -> CompletedSuccessfully
+                | Error e -> logError e
             | Error e ->
-                printfn "updateParameters: Cannot find data for default set index %A." i
+                printfn "updateParameters: Cannot find data for default set index %A, Error: %A" i e
                 InvalidCommandLineArgs
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."

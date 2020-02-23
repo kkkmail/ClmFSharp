@@ -2,7 +2,6 @@
 
 open System
 open System.ServiceProcess
-open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open Argu
 open ContGenService.ServiceImplementation
@@ -10,7 +9,6 @@ open ContGenServiceInfo.ServiceInfo
 open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
-open ContGenAdm.ContGenServiceResponse
 open ClmSys.ContGenData
 
 module WindowsService =
@@ -21,17 +19,11 @@ module WindowsService =
             serviceAccessInfo <- i
             let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
             ChannelServices.RegisterChannel (channel, false)
-
-            RemotingConfiguration.RegisterWellKnownServiceType
-                (typeof<ContGenService>, ContGenServiceName, WellKnownObjectMode.Singleton)
-
-            let service = (new ContGenResponseHandler(i)).contGenService
             let modelRunner = createModelRunnerImpl logger parserResults
             do modelRunner.start()
 
             {
                 contGenTcpChannel = channel
-                service = service
             }
             |> Some
 
@@ -44,12 +36,11 @@ module WindowsService =
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = ContGenServiceName)
 
+        let mutable shutDownInfo : ContGenShutDownInfo option = None
         let logger = Logger.log4net
-
         let initService () = ()
         do initService ()
 
-        let mutable shutDownInfo : ContGenShutDownInfo option = None
 
         let tryDispose() =
             match shutDownInfo with
@@ -59,6 +50,7 @@ module WindowsService =
                 shutDownInfo <- None
             | None -> ignore()
 
+
         override __.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
@@ -66,9 +58,11 @@ module WindowsService =
             let i = getServiceAccessInfo results
             shutDownInfo <- startServiceRun logger i
 
+
         override __.OnStop () =
             tryDispose()
             base.OnStop()
+
 
         interface IDisposable with
             member __.Dispose() = tryDispose()

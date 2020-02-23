@@ -9,9 +9,10 @@ let main argv =
     try
         let parser = ArgumentParser.Create<WorkerNodeAdmArgs>(programName = WrkAdmAppName)
         let results = (parser.Parse argv).GetAllResults()
+
         match getServiceAccessInfo results with
         | Some i ->
-            let service = new WorkerNodeResponseHandler(i)
+            let service = new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)
 
             match WrkAdmTask.tryCreateTask service.workerNodeService i results with
             | Some task -> task.run()

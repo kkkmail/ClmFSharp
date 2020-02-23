@@ -74,7 +74,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ContGenAdmCommandLine.fs" />
-    <Compile Include="ContGenAdmServiceResponse.fs" />
     <Compile Include="ContGenAdmTasks.fs" />
     <Compile Include="ContGenAdmProgram.fs" />
     <None Include="App.config" />

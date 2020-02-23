@@ -2,9 +2,7 @@
 
 open MessagingServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
-open ClmSys.MessagingData
 open ClmSys.Registry
-open ClmSys.GeneralErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 

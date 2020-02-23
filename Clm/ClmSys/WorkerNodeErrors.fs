@@ -2,12 +2,13 @@
 
 open System
 open MessagingClientErrors
+open MessagingPrimitives
 
 module WorkerNodeErrors =
 
     type OnSaveResultError =
         | LoadResultDataErr of Guid
-        | SendResultMessageError of (Guid * Guid)
+        | SendResultMessageError of (Guid * MessageId)
         | DeleteResultDataError of Guid
 
 

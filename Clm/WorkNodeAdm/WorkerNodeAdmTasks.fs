@@ -33,7 +33,7 @@ module WorkerNodeAdmTasks =
             | MonitorWorkerNodeTask (s, p)-> monitor s p |> ignore
 
         static member private tryCreateConfigureTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
-            p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
+            p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.nodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
 
         static member private tryCreateMonitorTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
             p |> List.tryPick (fun e -> match e with | MonitorWrkService -> (s, DummyWrkMonitorParam 0) |> MonitorWorkerNodeTask |> Some | _ -> None)

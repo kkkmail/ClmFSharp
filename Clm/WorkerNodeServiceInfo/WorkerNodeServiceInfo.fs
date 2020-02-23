@@ -6,7 +6,6 @@ open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralData
 open System.Threading
 open System
-open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
@@ -59,7 +58,6 @@ module ServiceInfo =
         {
             runningWorkers : Map<LocalProcessId, RunnerState>
             numberOfWorkerCores : int
-            //requestedWorkItems : int
         }
 
     type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>

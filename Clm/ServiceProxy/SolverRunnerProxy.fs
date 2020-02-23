@@ -1,17 +1,16 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.GeneralData
 open ClmSys.Registry
 open DbData.Configuration
 open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
 open Clm.CalculationData
 open Clm.ModelParams
-open ClmSys.GeneralErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerData
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
+open ClmSys.WorkerNodeData
 
 module SolverRunner =
 
@@ -40,7 +39,7 @@ module SolverRunner =
 
     type SolverRunnerProxy =
         {
-            loadModelData : SolverRunnerAccessInfo -> ModelDataId -> ClmResult<ModelData>
+            loadModelData : NodeServiceAccessInfo -> ModelDataId -> ClmResult<ModelData>
             saveResultData : ResultDataWithId -> UnitResult
             saveChartInfo : ChartInfo -> UnitResult
         }

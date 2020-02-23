@@ -24,7 +24,6 @@ open ClmSys.Retry
 open ClmSys.SolverRunnerData
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
@@ -34,7 +33,7 @@ module SolverRunnerTasks =
     let logError e = printfn "Error: %A." e
 
 
-    let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
+    let progressNotifier (r : WorkerNodeResponseHandler) (p : LocalProgressUpdateInfo) =
         try
             printfn "Notifying of progress: %A." p
 
@@ -48,7 +47,7 @@ module SolverRunnerTasks =
         | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
 
 
-    let notify (r : RunningProcessData) (svc : ResponseHandler) (t : TaskProgress) =
+    let notify (r : RunningProcessData) (svc : WorkerNodeResponseHandler) (t : TaskProgress) =
         progressNotifier svc
             {
                 localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
@@ -68,36 +67,21 @@ module SolverRunnerTasks =
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
 
-            match results.TryGetResult Remote with
-            | None | Some false ->
-                {
-                    contGenServiceAccessInfo =
-                        {
-                            serviceAddress = ServiceAddress address
-                            servicePort = ServicePort port
-                            inputServiceName = ContGenServiceName
-                        }
+            {
+                nodeServiceAccessInfo =
+                    {
+                        serviceAddress = ServiceAddress address
+                        servicePort = ServicePort port
+                        inputServiceName = WorkerNodeServiceName
+                    }
 
-                    minUsefulEe = ee
-                }
-                |> ContGenSvcAccessInfo
-            | Some true ->
-                {
-                    wrkNodeServiceAccessInfo =
-                        {
-                            serviceAddress = ServiceAddress address
-                            servicePort = ServicePort port
-                            inputServiceName = WorkerNodeServiceName
-                        }
-
-                    minUsefulEe = ee
-                }
-                |> WorkerNodeSvcAccessInfo
+                minUsefulEe = ee
+            }
             |> Some
         | _ -> None
 
 
-    let getResponseHandler i = ResponseHandler.tryCreate i
+    let getResponseHandler i = WorkerNodeResponseHandler.tryCreate i
 
 
     let getPlotDataInfo (df : ClmDefaultValueId) =
@@ -124,7 +108,7 @@ module SolverRunnerTasks =
         }
 
 
-        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineParam) (d : RunQueueId) w =
+        static member create (md : ModelData) i (c : ModelCommandLineParam) (d : RunQueueId) w =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -140,10 +124,6 @@ module SolverRunnerTasks =
                     runQueueId = d
                     workerNodeId = w
                     commandLineParams = c
-                        //{
-                        //    taskParam = c
-                        //    serviceAccessInfo = i
-                        //}
                 }
 
             let chartInitData =
@@ -234,7 +214,7 @@ module SolverRunnerTasks =
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            serviceAccessInfo : SolverRunnerAccessInfo
+            serviceAccessInfo : NodeServiceAccessInfo
             resultDataWithId : ResultDataWithId
             chartData : ChartData
             sovlerRunnerProxy : SolverRunnerProxy

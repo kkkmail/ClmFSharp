@@ -1,7 +1,6 @@
 ﻿namespace ContGenService
 
 open Argu
-open ClmSys.GeneralData
 open ClmSys.ServiceInstaller
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
@@ -25,12 +24,6 @@ module ContGenServiceTasks =
 
     let runService l (p, i) : ContGenShutDownInfo option =
         let s = startServiceRun l i
-
-        //match s with
-        //| Some svc ->
-        //    let service = svc.service
-        //    p |> List.map (fun e -> service.configureService e) |> ignore
-        //| None -> ignore()
         s
 
 

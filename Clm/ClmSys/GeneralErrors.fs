@@ -3,7 +3,6 @@
 open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-
 open GeneralPrimitives
 open WorkerNodePrimitives
 open ContGenPrimitives

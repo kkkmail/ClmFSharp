@@ -1,10 +1,7 @@
 ﻿namespace ContGen
 
 open System
-open System.Diagnostics
-open ClmSys.GeneralData
 open Clm.ModelParams
-open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
@@ -12,10 +9,6 @@ open ClmSys.ModelGeneratorErrors
 open ServiceProxy.ModelGeneratorProxy
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
-open Clm.CalculationData
-open ClmSys.WorkerNodeData
-open ClmSys.ContGenData
-open ClmSys.SolverRunnerData
 open ClmSys.Rop
 open DbData.DatabaseTypes
 open ClmSys.Logging

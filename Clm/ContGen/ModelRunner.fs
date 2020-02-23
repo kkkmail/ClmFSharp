@@ -1,33 +1,22 @@
 ﻿namespace ContGen
 
-open System
-open System.Diagnostics
-open ClmSys.GeneralData
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.ModelGeneratorErrors
-open ServiceProxy.ModelGeneratorProxy
-open Clm.Generator.ClmModelData
-open Clm.Generator.ClmModel
-open Clm.CalculationData
 open ClmSys.WorkerNodeData
-open ClmSys.ContGenData
 open ClmSys.SolverRunnerData
 open ClmSys.Rop
 open ServiceProxy.ModelRunnerProxy
 open ClmSys.ModelRunnerErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
-open ServiceProxy.ModelRunnerProxy
 open ClmSys.Logging
 open ClmSys.TimerEvents
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
-open ClmSys.MessagingClientErrors
 open ModelGenerator
 
 module ModelRunner =
@@ -124,7 +113,7 @@ module ModelRunner =
         let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
-        | Ok w -> proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
+        | Ok w -> proxy.upsertWorkerNodeInfo { w with nodeInfo = { w.nodeInfo with noOfCores = 0 } } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 

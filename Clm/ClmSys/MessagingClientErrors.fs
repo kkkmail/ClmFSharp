@@ -1,11 +1,9 @@
 ﻿namespace ClmSys
 
-open System
 open VersionInfo
 open GeneralErrors
 open MessagingPrimitives
 open MessagingCommonErrors
-open MessagingServiceErrors
 
 module MessagingClientErrors =
 
@@ -50,8 +48,6 @@ module MessagingClientErrors =
     type MessagingClientError =
         | GetVersionErr of GetVersionError
         | SendMessageErr of SendMessageError
-        //| MessageNotFoundErr of MessageId
-        //| TryProcessMessageErr of exn
         | TryReceiveSingleMessageErr of TryReceiveSingleMessageError
         | MessageDeliveryErr of MessageDeliveryError
         | OnTryRemoveReceivedMessageErr of OnTryRemoveReceivedMessageError

@@ -21,7 +21,6 @@ module ClmErrors =
     type ClmError =
         | AggregateErr of ClmError * List<ClmError>
         | UnhandledExn of string * exn
-        //| UnknownErr of string
         | ClmEventHandlerErr of ClmEventHandlerError
         | ServiceInstallerErr of ServiceInstallerError
         | RegistryErr of RegistryError
@@ -35,9 +34,6 @@ module ClmErrors =
         | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
-        //| PartitionerErr of PartitionerError
-        //| AsyncRunErr of AsyncRunError
-        //| RunnerErr of RunnerError
         | ModelRunnerErr of ModelRunnerError
 
         static member (+) (a, b) =
@@ -100,13 +96,6 @@ module ClmErrors =
 
     /// Folds list<ClmError>, then converts to UnitResult.
     let foldToUnitResult = foldErrors >> toUnitResult
-
-
-    //let foldListResultErrors<'T> (results : ListResult<'T>) =
-    //    match results with
-    //    | Error e -> Error e
-    //    | Ok lst ->
-    //        0
 
 
     /// Adds error f if the result is (Error e).

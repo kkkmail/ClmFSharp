@@ -3,11 +3,8 @@
 open System
 open VersionInfo
 open GeneralData
-open MessagingData
 open Fake.Windows
 open ClmSys
-open Rop
-open Logging
 open PartitionerData
 open GeneralErrors
 open GeneralPrimitives

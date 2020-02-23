@@ -21,10 +21,8 @@ open ServiceProxy.WorkerNodeProxy
 open Clm.CommandLine
 open System.IO
 open ServiceProxy.MsgProcessorProxy
-open ClmSys.MessagingData
 open Clm.CalculationData
 open ClmSys.ClmErrors
-open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralPrimitives
@@ -56,7 +54,6 @@ module ServiceImplementation =
             {
                 runningWorkers = Map.empty
                 numberOfWorkerCores = 0
-                //requestedWorkItems = 0
             }
 
 
@@ -115,14 +112,6 @@ module ServiceImplementation =
             tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
             tryDeleteModelData : ModelDataId -> UnitResult
         }
-
-
-    let getSolverRunnerAccessInfo (i : WorkerNodeRunnerData) =
-        {
-            wrkNodeServiceAccessInfo = i.workerNodeAccessInfo.workerNodeServiceAccessInfo
-            minUsefulEe = i.minUsefulEe
-        }
-        |> WorkerNodeSvcAccessInfo
 
 
     let onSaveResult (proxy : OnSaveResultProxy) (d : ResultDataId) =
@@ -256,12 +245,6 @@ module ServiceImplementation =
     let getRunModelParam (i : WorkerNodeRunnerData) (d : WorkerNodeRunModelData) =
         {
             exeName = i.exeName
-            //commandLineParam =
-            //    {
-            //        taskParam = d.taskParam
-            //        serviceAccessInfo = getSolverRunnerAccessInfo i
-            //    }
-
             callBackInfo = { d.runningProcessData with workerNodeId = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId }
         }
 
@@ -304,7 +287,6 @@ module ServiceImplementation =
                     { s with runningWorkers = s.runningWorkers.Add(lpsi.localProcessId, rs) }, res
                 | Error e ->
                     let err = addError (proxy.getCommandLine a |> CannotRunModel) (ProcessStartedErr e)
-                    //proxy.saveWorkerNodeRunModelData { d with localProcessId = None; commandLine = proxy.getCommandLine a }
                     s, err
             | false ->
                 let r = a.callBackInfo.runQueueId.toRemoteProcessId()
@@ -375,30 +357,6 @@ module ServiceImplementation =
         | None -> proxy.onRunModel g w
 
 
-    //let requestWork (proxy : OnStartProxy) s r =
-    //    let a = s.numberOfWorkerCores - (s.runningWorkers.Count + s.requestedWorkItems)
-
-    //    match a > 0 with
-    //    | true ->
-    //        let result =
-    //            {
-    //                partitionerRecipient = proxy.partitionerId
-    //                deliveryType = GuaranteedDelivery
-    //                messageData =
-    //                    {
-    //                        workerNodeId = proxy.workerNodeId
-    //                        requestedWorkItems = a
-    //                    }
-    //                    |> RequestWork
-    //            }.getMessageInfo()
-    //            |> proxy.sendMessage
-
-    //        match result with
-    //        | Ok() -> { s with requestedWorkItems = s.requestedWorkItems + a }, r
-    //        | Error e -> s, combineUnitResults (Error e) r
-    //    | false -> s, r
-
-
     let onStart (proxy : OnStartProxy) s =
         let doStart mi ri =
             let m, mf = mi |> Rop.unzip
@@ -433,7 +391,6 @@ module ServiceImplementation =
             | Error e, Ok _ -> s, Error e
             | Error e1, Error e2 -> s, Error (e1 + e2)
 
-        //let g1, result1 = requestWork proxy g result
         g, result
 
 
@@ -492,7 +449,7 @@ module ServiceImplementation =
                 {
                     partitionerRecipient = proxy.partitionerId
                     deliveryType = GuaranteedDelivery
-                    messageData = { proxy.workerNodeInfo with noOfCores = cores} |> RegisterWorkerNodePrtMsg
+                    messageData = { proxy.workerNodeInfo with nodeInfo = { proxy.workerNodeInfo.nodeInfo with noOfCores = cores } } |> RegisterWorkerNodePrtMsg
                 }.getMessageInfo()
                 |> proxy.sendMessage
 
@@ -538,7 +495,7 @@ module ServiceImplementation =
 
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
-            noOfCores = i.workerNodeAccessInfo.noOfCores
+            noOfCores = i.workerNodeAccessInfo.nodeInfo.noOfCores
             workerNodeId = i.workerNodeAccessInfo.workNodeMsgAccessInfo.workerNodeId
             loadAllWorkerNodeRunModelData = proxy.loadAllWorkerNodeRunModelData
             loadAllResultData = proxy.loadAllResultData

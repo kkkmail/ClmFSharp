@@ -5,7 +5,6 @@ open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open Argu
-
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open WorkerNodeServiceInfo.ServiceInfo
@@ -22,11 +21,11 @@ module WindowsService =
         try
             logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName)
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.servicePort.value)
-            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.servicePort)
+            let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.nodeServiceAccessInfo.servicePort.value)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.nodeServiceAccessInfo.servicePort)
             ChannelServices.RegisterChannel (channel, false)
             RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName, WellKnownObjectMode.Singleton)
-            let service = (new WorkerNodeResponseHandler(i)).workerNodeService
+            let service = (new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)).workerNodeService
 
             try
                 logger.logInfoString "WindowsService.startServiceRun: Calling: service.ping()..."

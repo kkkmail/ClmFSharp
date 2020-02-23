@@ -161,7 +161,7 @@ module AdmCommandLine =
         }
 
 
-    let tryGetCommandLineParams i (p :list<AddClmTaskArgs>) =
+    let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
         let t = p |> List.tryPick (fun e -> match e with | TaskTEnd i -> Some i | _ -> None)
         let y = p |> List.tryPick (fun e -> match e with | TaskY0 i -> Some i | _ -> None)
 
@@ -175,13 +175,6 @@ module AdmCommandLine =
                                     tEnd = tEnd
                                     y0 = y0
                                     useAbundant = false
-                                    //taskParam =
-                                    //    {
-                                    //        tEnd = tEnd
-                                    //        y0 = y0
-                                    //        useAbundant = false
-                                    //    }
-                                    //serviceAccessInfo = i
                                 }
                             )
                 |> Some

@@ -1,6 +1,5 @@
 ﻿namespace Clm
 
-open ClmSys.GeneralData
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRates

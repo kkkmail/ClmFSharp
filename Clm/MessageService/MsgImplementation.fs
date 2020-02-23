@@ -1,15 +1,11 @@
 ﻿namespace MessagingService
 
 open System
-open ClmSys.Logging
 open ClmSys.MessagingData
-open ClmSys.GeneralErrors
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
 open ServiceProxy.MsgServiceProxy
-open ClmSys.Rop
-open ClmSys.GeneralData
 open System.ServiceModel
 open ClmSys.Wcf
 open ClmSys.MessagingServiceErrors
@@ -25,7 +21,6 @@ module ServiceImplementation =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.create()
-                //logger = Logger.log4net
             }
 
         let service = MessagingService d

@@ -5,8 +5,6 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingAdm.AdmCommandLine
 open System
 
-open ClmSys.GeneralData
-
 module MsgAdmTasks =
 
     let monitorService (service : IMessagingService) =

@@ -915,14 +915,6 @@ module DatabaseTypes =
         tryDbFun g
 
 
-//select
-//    workerNodeId
-//    ,nodePriority
-//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
-//from WorkerNode w
-//where workerNodeId = @workerNodeId
-
-
     [<Literal>]
     let availablbeWorkerNodeSql = @"
         ; with q as

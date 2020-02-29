@@ -4,12 +4,15 @@ open System
 open System.ServiceModel
 open GeneralData
 open GeneralErrors
+open GeneralPrimitives
+
 
 /// See https://stackoverflow.com/questions/53536450/merging-discriminated-unions-in-f
 module Wcf =
 
     let connectionTimeOut = TimeSpan(0, 10, 0)
     let dataTimeOut = TimeSpan(1, 0, 0)
+    let wcfSerializationFormat = BinaryFormat
 
 
     let getBinding() =
@@ -52,7 +55,7 @@ module Wcf =
                     let channel = (box service) :?> IClientChannel
                     //printfn "tryCommunicate: Channel State: %A, Via: %A, RemoteAddress: %A." channel.State channel.Via channel.RemoteAddress
 
-                    match a |> trySerialize with
+                    match trySerialize wcfSerializationFormat a with
                     | Ok b ->
                         //printfn "tryCommunicate: Calling service at %A..." DateTime.Now
                         let d = c service b
@@ -60,7 +63,7 @@ module Wcf =
                         factoryCloser()
 
                         d
-                        |> tryDeserialize
+                        |> tryDeserialize wcfSerializationFormat
                         |> Result.mapError WcfSerializationErr
                         |> Result.mapError f
                         |> Result.bind id
@@ -87,10 +90,10 @@ module Wcf =
         //printfn "tryReply: Replying..."
 
         let reply =
-            match a |> tryDeserialize with
+            match tryDeserialize wcfSerializationFormat a with
             | Ok m -> p m
             | Error e -> toWcfSerializationError f e
 
-        match reply |> trySerialize with
+        match trySerialize wcfSerializationFormat reply with
         | Ok r -> r
         | Error _ -> [||]

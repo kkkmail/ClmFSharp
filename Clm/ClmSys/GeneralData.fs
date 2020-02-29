@@ -387,31 +387,38 @@ module GeneralData =
         | _ -> None
 
 
-    let xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
+    let private xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
     let xmlSerialize t = xmlSerializer.PickleToString t
     let xmlDeserialize s = xmlSerializer.UnPickleOfString s
+
+
+    let private binSerializer = FsPickler.CreateBinarySerializer()
+    let binSerialize t = binSerializer.Pickle t
+    let binDeserialize b = binSerializer.UnPickle b
 
 
     let jsonSerialize t = JsonConvert.SerializeObject t
     let jsonDeserialize<'T> s = JsonConvert.DeserializeObject<'T> s
 
 
-    let serializer = xmlSerializer
-    let serialize t = serializer.PickleToString t
-    let deserialize s = serializer.UnPickleOfString s
-    //let serialize t = jsonSerialize t
-    //let deserialize s = jsonDeserialize s
+    let serialize f t =
+        match f with
+        | BinaryFormat -> t |> binSerialize
+        | JSonFormat ->  t |> jsonSerialize |> zip
+        | XmlFormat -> t |> xmlSerialize |> zip
 
 
-    let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
+    let deserialize f b =
+        match f with
+        | BinaryFormat -> b |> binDeserialize
+        | JSonFormat -> b |> unZip |> jsonDeserialize
+        | XmlFormat -> b |> unZip |> xmlDeserialize
+
+
+    let trySerialize<'A> f (a : 'A) : Result<byte[], SerializationError> =
         try
-            //printfn "trySerialize: Serializing type %A..." typeof<'A>
-            //printfn "trySerialize: a = '%A'." a
-            let b = a |> serialize
-            //printfn "trySerialize: b = '%A'." b
-            let c = b |> zip
-            //printfn "trySerialize: c = '%A'." c
-            c |> Ok
+            let b = serialize f a
+            Ok b
         with
         | e ->
             printfn "trySerialize: Exception: '%A'." e
@@ -426,15 +433,9 @@ module GeneralData =
         | _ -> None
 
 
-    let tryDeserialize<'A> (b : byte[]) : Result<'A, SerializationError> =
+    let tryDeserialize<'A> f (b : byte[]) : Result<'A, SerializationError> =
         try
-            //printfn "tryDeserialize: Unzipping..."
-            let x = b |> unZip
-            //printfn "tryDeserialize: x = %A" x
-
-            //printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
-            let (y : 'A) = deserialize x
-            //printfn "tryDeserialize: y = %A" y
+            let (y : 'A) = deserialize f b
             Ok y
         with
         | e ->

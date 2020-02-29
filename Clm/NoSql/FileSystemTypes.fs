@@ -19,6 +19,7 @@ open ClmSys.WorkerNodePrimitives
 
 module FileSystemTypes =
 
+    let serializationFormat = BinaryFormat
     let fileStorageFolder = DefaultFileStorageFolder
 
 
@@ -37,7 +38,7 @@ module FileSystemTypes =
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
 
-    let storageExt = "xml"
+    let storageExt = serializationFormat.fileExtension
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
@@ -73,8 +74,8 @@ module FileSystemTypes =
                     let x =
                         if File.Exists f
                         then
-                            let data = File.ReadAllText(f)
-                            let retVal = data |> deserialize |> Some |> Ok
+                            let data = File.ReadAllBytes (f)
+                            let retVal = data |> deserialize serializationFormat |> Some |> Ok
                             retVal
                         else Ok None
                     x
@@ -100,8 +101,8 @@ module FileSystemTypes =
             try
                 match getFileName serviceName tableName objectId with
                 | Ok f ->
-                    let d = t |> serialize
-                    File.WriteAllText(f, d)
+                    let d = t |> serialize serializationFormat
+                    File.WriteAllBytes (f, d)
                     Ok ()
                 | Error e -> Error e
             with

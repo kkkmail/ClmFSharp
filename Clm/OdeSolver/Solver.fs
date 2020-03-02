@@ -3,9 +3,11 @@
 open Microsoft.FSharp.Core
 open System
 open ClmSys.GeneralData
+open ClmSys.SolverRunnerPrimitives
 
 
 module Solver =
+
 
     type EeData =
         {
@@ -26,14 +28,14 @@ module Solver =
             noOfProgressPoints : int option
         }
 
-        static member defaultValue startTime endTime =
+        static member defaultValue startTime endTime op pp =
             {
                 startTime = startTime
                 endTime = endTime
                 stepSize = 0.01
                 eps = 0.00001
-                noOfOutputPoints = Some 1000
-                noOfProgressPoints = Some 100
+                noOfOutputPoints = op |> Option.defaultValue defaultNoOfOutputPoints |> Some
+                noOfProgressPoints = pp |> Option.defaultValue defaultNoOfProgressPoints |> Some
             }
 
 
@@ -55,6 +57,8 @@ module Solver =
             progressCallBack : (decimal -> unit) option
             chartCallBack : (double -> double[] -> unit) option
             getEeData : (unit -> EeData) option
+            noOfOutputPoints : int option
+            noOfProgressPoints : int option
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -75,7 +79,7 @@ module Solver =
         let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
-        let p = OdeParams.defaultValue n.tStart n.tEnd
+        let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notify t r m =
             match n.progressCallBack with

@@ -1,5 +1,6 @@
 ﻿namespace ClmSys
 
 module SolverRunnerPrimitives =
-    let x = 1
 
+    let defaultNoOfOutputPoints = 1000
+    let defaultNoOfProgressPoints = 100

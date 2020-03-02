@@ -105,10 +105,11 @@ module SolverRunnerTasks =
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> unit) option
             updateChart : double -> double[] -> unit
+            noOfProgressPoints : int option
         }
 
 
-        static member create (md : ModelData) i (c : ModelCommandLineParam) (d : RunQueueId) w =
+        static member create (md : ModelData) i (c : ModelCommandLineParam) (d : RunQueueId) w pp =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -159,6 +160,7 @@ module SolverRunnerTasks =
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
                 progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (TaskProgress.create p)) |> Some)
+                noOfProgressPoints = pp
             }
 
 
@@ -183,6 +185,8 @@ module SolverRunnerTasks =
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
+            noOfOutputPoints = None
+            noOfProgressPoints = d.noOfProgressPoints
         }
 
 
@@ -262,7 +266,8 @@ module SolverRunnerTasks =
                     }
 
                 let w = g |> MessagingClientId |> WorkerNodeId
-                let runSolverData = RunSolverData.create md i c (RunQueueId d) w
+                let pp = results.TryGetResult ProgrNotifPoints
+                let runSolverData = RunSolverData.create md i c (RunQueueId d) w pp
 
                 try
                     let nSolveParam = getNSolveParam runSolverData

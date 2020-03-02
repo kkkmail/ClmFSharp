@@ -16,7 +16,7 @@ open ClmSys.GeneralData
 
 module WorkerNodeProxy =
 
-    let getCommandLine (p : RunModelParam) r e =
+    let getCommandLine (p : RunModelParam) r e pp =
         let data =
             {
                 modelDataId = p.callBackInfo.modelDataId
@@ -24,15 +24,16 @@ module WorkerNodeProxy =
                 workerNodeId = p.callBackInfo.workerNodeId
                 minUsefulEe = e
                 remote = r
+                noOfProgressPoints = pp
             }
 
         let commandLineParams = p.callBackInfo.commandLineParams.toCommandLine data
         commandLineParams
 
 
-    let runLocalModel (p : RunModelParam) r e =
+    let runLocalModel (p : RunModelParam) r e pp =
         let fullExeName = getExeName p.exeName
-        let commandLineParams = getCommandLine p r e
+        let commandLineParams = getCommandLine p r e pp
         printfn "runModel::commandLineParams = %A\n" commandLineParams
         runProc p.callBackInfo fullExeName commandLineParams None
 
@@ -45,11 +46,13 @@ module WorkerNodeProxy =
     type WorkerNodeProxyData =
         {
             minUsefulEe : MinUsefulEe
+            noOfProgressPoints : int option
         }
 
         static member defaultValue =
             {
                 minUsefulEe = MinUsefulEe.defaultValue
+                noOfProgressPoints = None
             }
 
     type WorkerNodeProxy =
@@ -79,8 +82,8 @@ module WorkerNodeProxy =
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
                 loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-                runModel = fun p -> runLocalModel p true i.minUsefulEe
-                getCommandLine = fun p -> getCommandLine p true i.minUsefulEe
+                runModel = fun p -> runLocalModel p true i.minUsefulEe i.noOfProgressPoints
+                getCommandLine = fun p -> getCommandLine p true i.minUsefulEe i.noOfProgressPoints
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
 
                 // These ones are needed for SolverRunner interop.

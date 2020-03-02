@@ -14,6 +14,8 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open Clm.CommandLine
+open ClmSys.SolverRunnerPrimitives
+
 
 module ModelParams =
 
@@ -167,6 +169,7 @@ module ModelParams =
             workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool
+            noOfProgressPoints : int option
         }
 
 
@@ -191,6 +194,7 @@ module ModelParams =
                 Remote d.remote
                 ResultId d.resultDataId.value
                 WrkNodeId d.workerNodeId.messagingClientId.value
+                ProgrNotifPoints (d.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints)
 
                 // TODO kk:20200214 - Currently hard coded to use worker node.
                 NotifyAddress DefaultWorkerNodeServiceAddress

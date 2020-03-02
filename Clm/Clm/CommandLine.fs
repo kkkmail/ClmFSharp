@@ -24,6 +24,7 @@ module CommandLine =
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
         | [<Unique>] [<AltCommandLine("-r")>]  Remote of bool
         | [<Unique>] [<AltCommandLine("-i")>]  ResultId of Guid
+        | [<Unique>] [<AltCommandLine("-f")>]  ProgrNotifPoints of int
 
 
     with
@@ -39,4 +40,5 @@ module CommandLine =
                 | NotifyPort _ -> "notify specified port of that web address about progress. Default will be used if value is not provided."
                 | MinimumUsefulEe _ -> "minimum value of max ee to generate plots (usually we don't want to generate all plots to save space)."
                 | Remote _ -> "the solver is running remotely on a machine which does not have SQL server installed."
-                | ResultId _ -> "if specified use that as ResultDataId, oterwise assign automatically."
+                | ResultId _ -> "if specified use that as ResultDataId, otherwise assign automatically."
+                | ProgrNotifPoints _ -> "if specified, then use a given number of notification points coerced to allowed values, otherwise assign automatically."

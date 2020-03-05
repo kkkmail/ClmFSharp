@@ -10,6 +10,7 @@ module SolverRunnerErrors =
             errorId : ErrorId
             commandLine : string[]
             result : int
+            errorMessageOpt : string option
             exceptionOpt : exn option
         }
 
@@ -18,6 +19,7 @@ module SolverRunnerErrors =
                 errorId = ErrorId.getNewId()
                 commandLine = c
                 result = e
+                errorMessageOpt = None
                 exceptionOpt = None
             }
 
@@ -26,5 +28,16 @@ module SolverRunnerErrors =
                 errorId = ErrorId.getNewId()
                 commandLine = c
                 result = UnknownException
+                errorMessageOpt = None
                 exceptionOpt = Some e
+            }
+
+
+        static member fromErrMessage c e =
+            {
+                errorId = ErrorId.getNewId()
+                commandLine = c
+                result = UnknownException
+                errorMessageOpt = Some e
+                exceptionOpt = None
             }

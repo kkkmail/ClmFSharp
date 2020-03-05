@@ -33,26 +33,32 @@ open ClmSys.ClmErrors
 
 module SolverRunnerTasks =
 
+    let getErrName processId =
+        "SolverRunnerErr\\" + processId.ToString().PadLeft(6, '0') |> MessagingClientName
+
     let logError e = printfn "Error: %A." e
-    let logCriticalError = saveSolverRunnerErrFs solverRunnerName
+    let logCriticalError processId = saveSolverRunnerErrFs (getErrName processId)
 
 
     let progressNotifier (r : WorkerNodeResponseHandler) (p : LocalProgressUpdateInfo) =
-        try
-            printfn "Notifying of progress: %A." p
+        let result =
+            try
+                printfn "Notifying of progress: %A." p
 
-            match tryFun (fun () -> r.updateLocalProgress p) with
-            | Ok (Ok()) -> Ok()
-            | Ok (Error e) ->
-                printfn "Internal error occurred: %A" e
-                Error e
-            | Error ex ->
-                printfn "Error occurred: %A" ex
-                ("SolverRunnerTasks.progressNotifier", ex) |> UnhandledExn |> Error
-        with
-        | e ->
-            printfn "Exception occurred: %A, progress: %A." e.Message p
-            ("SolverRunnerTasks.progressNotifier", e) |> UnhandledExn |> Error
+                match tryFun (fun () -> r.updateLocalProgress p) with
+                | Ok (Ok()) -> Ok()
+                | Ok (Error e) ->
+                    printfn "Internal error occurred: %A" e
+                    Error e
+                | Error ex ->
+                    printfn "Error occurred: %A" ex
+                    ("SolverRunnerTasks.progressNotifier", ex) |> UnhandledExn |> Error
+            with
+            | e ->
+                printfn "Exception occurred: %A, progress: %A." e.Message p
+                ("SolverRunnerTasks.progressNotifier", e) |> UnhandledExn |> Error
+
+        result
 
 
     let notify (r : RunningProcessData) (svc : WorkerNodeResponseHandler) (t : TaskProgress) =
@@ -258,13 +264,16 @@ module SolverRunnerTasks =
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
-    let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
+    let runSolver (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
             match p.loadModelData i (ModelDataId modelDataId) with
             | Ok md ->
                 printfn "Starting at: %A" DateTime.Now
+
+                failwith "SolverRunner crashed deliberately..."
+
                 let a = results.GetResult (UseAbundant, defaultValue = false)
                 let c =
                     {
@@ -296,17 +305,27 @@ module SolverRunnerTasks =
 
                     r |> p.saveResultData |> ignore
                     printfn "Completed."
-                    runSolverData.onCompleted()
+
+                    match runSolverData.onCompleted() with
+                    | Ok() -> ignore()
+                    | Error e -> logCrit (sprintf "%A" e)
 
                     CompletedSuccessfully
                 with
                 | e ->
                     printfn "Failed!"
-                    runSolverData.onFailed (e.ToString())
+
+                    match runSolverData.onFailed (e.ToString()) with
+                    | Ok() -> ignore()
+                    | Error e -> logCrit (sprintf "%A" e)
+
                     UnknownException
             | _ ->
-                printfn "Unable to load model with id: %A" modelDataId
+                let msg = sprintf "Unable to load model with id: %A" modelDataId
+                printfn "%s" msg
+                logCrit msg
                 UnknownException
         | _ ->
             printfn "%s" usage
+            logCrit usage
             InvalidCommandLineArgs

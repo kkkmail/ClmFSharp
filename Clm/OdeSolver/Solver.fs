@@ -4,6 +4,7 @@ open Microsoft.FSharp.Core
 open System
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
+open ClmSys.ClmErrors
 
 
 module Solver =
@@ -54,7 +55,7 @@ module Solver =
             tEnd : double
             derivative : double[] -> double[]
             initialValues : double[]
-            progressCallBack : (decimal -> unit) option
+            progressCallBack : (decimal -> UnitResult) option
             chartCallBack : (double -> double[] -> unit) option
             getEeData : (unit -> EeData) option
             noOfOutputPoints : int option
@@ -84,7 +85,7 @@ module Solver =
         let notify t r m =
             match n.progressCallBack with
             | Some c -> calculateProgress r m |> c
-            | None -> ignore()
+            | None -> Ok()
 
         let notifyChart t x =
             match n.chartCallBack with
@@ -98,7 +99,7 @@ module Solver =
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
                     printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
-                    notify t progressCount k
+                    notify t progressCount k |> ignore
             | _ -> ignore()
 
             match p.noOfOutputPoints with

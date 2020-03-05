@@ -27,10 +27,14 @@ open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodeData
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
+open NoSql.FileSystemTypes
+open ClmSys.Registry
+open ClmSys.ClmErrors
 
 module SolverRunnerTasks =
 
     let logError e = printfn "Error: %A." e
+    let logCriticalError = saveSolverRunnerErrFs solverRunnerName
 
 
     let progressNotifier (r : WorkerNodeResponseHandler) (p : LocalProgressUpdateInfo) =
@@ -38,13 +42,17 @@ module SolverRunnerTasks =
             printfn "Notifying of progress: %A." p
 
             match tryFun (fun () -> r.updateLocalProgress p) with
-            | Ok (Ok()) -> ignore()
-            | Ok (Error e) -> printfn "Internal error occurred: %A" e
-            | Error e -> printfn "Error occurred: %A" e
-
-            printfn "...completed."
+            | Ok (Ok()) -> Ok()
+            | Ok (Error e) ->
+                printfn "Internal error occurred: %A" e
+                Error e
+            | Error ex ->
+                printfn "Error occurred: %A" ex
+                ("SolverRunnerTasks.progressNotifier", ex) |> UnhandledExn |> Error
         with
-        | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
+        | e ->
+            printfn "Exception occurred: %A, progress: %A." e.Message p
+            ("SolverRunnerTasks.progressNotifier", e) |> UnhandledExn |> Error
 
 
     let notify (r : RunningProcessData) (svc : WorkerNodeResponseHandler) (t : TaskProgress) =
@@ -99,11 +107,11 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : unit -> unit
-            onFailed : (string -> unit)
+            onCompleted : unit -> UnitResult
+            onFailed : (string -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
-            progressCallBack : (decimal -> unit) option
+            progressCallBack : (decimal -> UnitResult) option
             updateChart : double -> double[] -> unit
             noOfProgressPoints : int option
         }
@@ -149,12 +157,12 @@ module SolverRunnerTasks =
                 onCompleted =
                     match n with
                     | Some svc -> fun () -> notify r svc Completed
-                    | None -> ignore
+                    | None ->  fun () -> Ok()
 
                 onFailed =
                     match n with
                     | Some svc -> fun e -> notify r svc (Failed (w, d.toRemoteProcessId()))
-                    | None -> ignore
+                    | None -> fun _ -> Ok()
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater

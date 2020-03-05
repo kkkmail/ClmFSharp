@@ -16,10 +16,12 @@ open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerErrors
 
 module FileSystemTypes =
 
     let serializationFormat = BinaryZippedFormat
+    let serializationErrFormat = XmlFormat
     let fileStorageFolder = DefaultFileStorageFolder
 
 
@@ -37,8 +39,7 @@ module FileSystemTypes =
     let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
-
-    let storageExt = serializationFormat.fileExtension
+    let solverRunnerErrTblName = TableName "solverRunnerErr"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
@@ -51,11 +52,11 @@ module FileSystemTypes =
         | e -> e |> GetFolderNameExn |> FileErr |> Error
 
 
-    let getFileName<'A> serviceName tableName (objectId : 'A) =
+    let getFileName<'A> (fmt : SerializationFormat) serviceName tableName (objectId : 'A) =
         try
             match getFolderName serviceName tableName with
             | Ok folder ->
-                let file = Path.Combine(folder, objectId.ToString() + "." + storageExt)
+                let file = Path.Combine(folder, objectId.ToString() + "." + fmt.fileExtension)
                 Ok file
             | Error e -> Error e
         with
@@ -69,7 +70,7 @@ module FileSystemTypes =
     let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T option, ClmError>) =
         let w () =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName serializationFormat serviceName tableName objectId with
                 | Ok f ->
                     let x =
                         if File.Exists f
@@ -90,18 +91,18 @@ module FileSystemTypes =
         match tryLoadData<'T, 'A> serviceName tableName objectId with
         | Ok (Some r) -> Ok r
         | Ok None ->
-            match getFileName<'A> serviceName tableName objectId with
+            match getFileName<'A> serializationFormat serviceName tableName objectId with
             | Ok f -> f |> FileNotFoundErr |> FileErr |> Error
             | Error e -> Error e
         | Error e -> Error e
 
 
-    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+    let saveDataImpl<'T, 'A> fmt serviceName tableName (objectId : 'A) (t : 'T) =
         let w() =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName fmt serviceName tableName objectId with
                 | Ok f ->
-                    let d = t |> serialize serializationFormat
+                    let d = t |> serialize fmt
                     File.WriteAllBytes (f, d)
                     Ok ()
                 | Error e -> Error e
@@ -110,11 +111,20 @@ module FileSystemTypes =
         tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
+    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        saveDataImpl<'T, 'A> serializationFormat serviceName tableName objectId t
+
+
+    /// Write-once error objects.
+    let saveErrData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        saveDataImpl<'T, 'A> serializationErrFormat serviceName tableName objectId t
+
+
     /// Tries to delete object if it exists.
     let tryDeleteData<'T, 'A> serviceName tableName (objectId : 'A) =
         let w() =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName serializationFormat serviceName tableName objectId with
                 | Ok f ->
                     if File.Exists f then File.Delete f
                     Ok ()
@@ -129,7 +139,7 @@ module FileSystemTypes =
             try
                 match getFolderName serviceName tableName with
                 | Ok folder ->
-                    Directory.GetFiles(folder, "*." + storageExt)
+                    Directory.GetFiles(folder, "*." + serializationFormat.fileExtension)
                     |> List.ofArray
                     |> List.map (fun e -> Path.GetFileNameWithoutExtension e)
                     |> List.map creator
@@ -232,3 +242,5 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
+
+    let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r

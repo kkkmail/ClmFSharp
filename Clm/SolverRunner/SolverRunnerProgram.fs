@@ -3,18 +3,25 @@ open Clm.CommandLine
 open ClmSys
 open Argu
 open SolverRunner.SolverRunnerTasks
-open System
-open ClmSys.GeneralData
-
+open ClmSys.SolverRunnerErrors
+open ClmSys.ExitErrorCodes
 
 [<EntryPoint>]
 let main argv =
-    try
+    let run() =
         let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
         let results = parser.Parse argv
         let usage = parser.PrintUsage()
         runSolver results usage
+
+    try
+        match run() with
+        | CompletedSuccessfully -> CompletedSuccessfully
+        | e ->
+            SolverRunnerCriticalError.fromErrorCode argv e |> logCriticalError |> ignore
+            e
     with
-        | exn ->
-            printfn "%s" exn.Message
-            ExitErrorCodes.UnknownException
+    | exn ->
+        printfn "%s" exn.Message
+        SolverRunnerCriticalError.fromExn argv exn |> logCriticalError |> ignore
+        ExitErrorCodes.UnknownException

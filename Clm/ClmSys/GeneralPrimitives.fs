@@ -98,11 +98,13 @@ module GeneralPrimitives =
 
     type SerializationFormat =
         | BinaryFormat
+        | BinaryZippedFormat
         | JSonFormat
         | XmlFormat
 
         member format.fileExtension =
             match format with
             | BinaryFormat -> "bin"
+            | BinaryZippedFormat -> "binz"
             | JSonFormat -> "json"
             | XmlFormat -> "xml"

@@ -19,7 +19,7 @@ open ClmSys.WorkerNodePrimitives
 
 module FileSystemTypes =
 
-    let serializationFormat = BinaryFormat
+    let serializationFormat = BinaryZippedFormat
     let fileStorageFolder = DefaultFileStorageFolder
 
 

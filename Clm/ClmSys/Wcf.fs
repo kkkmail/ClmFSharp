@@ -6,13 +6,12 @@ open GeneralData
 open GeneralErrors
 open GeneralPrimitives
 
-
 /// See https://stackoverflow.com/questions/53536450/merging-discriminated-unions-in-f
 module Wcf =
 
     let connectionTimeOut = TimeSpan(0, 10, 0)
     let dataTimeOut = TimeSpan(1, 0, 0)
-    let wcfSerializationFormat = BinaryFormat
+    let wcfSerializationFormat = BinaryZippedFormat
 
 
     let getBinding() =

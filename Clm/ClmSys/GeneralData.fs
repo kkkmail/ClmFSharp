@@ -66,8 +66,7 @@ module GeneralData =
         | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
 
 
-    let zip (s : string) =
-        let b = Encoding.UTF8.GetBytes(s)
+    let zipBytes (b : byte[]) =
         use i = new MemoryStream(b)
         use o = new MemoryStream()
         use g = new GZipStream(o, CompressionMode.Compress)
@@ -78,7 +77,7 @@ module GeneralData =
         o.ToArray()
 
 
-    let unZip (b : byte[]) =
+    let unZipBytes (b : byte[]) =
         use i = new MemoryStream(b)
         use g = new GZipStream(i, CompressionMode.Decompress)
         use o = new MemoryStream()
@@ -86,8 +85,12 @@ module GeneralData =
         g.Close()
         i.Close()
         o.Close()
-        let s = Encoding.UTF8.GetString(o.ToArray())
-        s
+        let b = o.ToArray()
+        b
+
+
+    let zip (s : string) = s |> Encoding.UTF8.GetBytes |> zipBytes
+    let unZip (b : byte[]) = b |> unZipBytes |> Encoding.UTF8.GetString
 
 
     //let doAsyncTask (f : unit-> 'a) =
@@ -404,6 +407,7 @@ module GeneralData =
     let serialize f t =
         match f with
         | BinaryFormat -> t |> binSerialize
+        | BinaryZippedFormat -> t |> binSerialize |> zipBytes
         | JSonFormat ->  t |> jsonSerialize |> zip
         | XmlFormat -> t |> xmlSerialize |> zip
 
@@ -411,6 +415,7 @@ module GeneralData =
     let deserialize f b =
         match f with
         | BinaryFormat -> b |> binDeserialize
+        | BinaryZippedFormat -> b |> unZipBytes |> binDeserialize
         | JSonFormat -> b |> unZip |> jsonDeserialize
         | XmlFormat -> b |> unZip |> xmlDeserialize
 

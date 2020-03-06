@@ -164,7 +164,7 @@ module ServiceImplementation =
                 | Ok() -> Ok()
                 | Error e -> addError (DeleteChartInfoError d) e
             | Error e -> addError (SendChartMessageError (proxy.partitionerId.messagingClientId, d)) e
-        | Error e -> addError (LoadChartInfoError d.value) e
+        | Error e -> addError (LoadChartInfoError d) e
 
 
     let onRegister (proxy : OnRegisterProxy) s =

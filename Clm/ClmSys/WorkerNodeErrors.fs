@@ -14,7 +14,7 @@ module WorkerNodeErrors =
 
 
     type OnSaveChartsError =
-        | LoadChartInfoError of Guid
+        | LoadChartInfoError of ResultDataId
         | SendChartMessageError of (MessagingClientId * ResultDataId)
         | DeleteChartError of (MessagingClientId * ResultDataId * exn)
         | DeleteChartInfoError of ResultDataId

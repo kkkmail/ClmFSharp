@@ -5,9 +5,16 @@ open ExitErrorCodes
 
 module SolverRunnerErrors =
 
+    type CriticalErrorType =
+        | ErrorCodeBased
+        | ExceptionBased
+        | ErrroMessageBased
+
+
     type SolverRunnerCriticalError =
         {
             errorId : ErrorId
+            errorType : CriticalErrorType
             commandLine : string[]
             result : int
             errorMessageOpt : string option
@@ -17,6 +24,7 @@ module SolverRunnerErrors =
         static member fromErrorCode c e =
             {
                 errorId = ErrorId.getNewId()
+                errorType = ErrorCodeBased
                 commandLine = c
                 result = e
                 errorMessageOpt = None
@@ -26,6 +34,7 @@ module SolverRunnerErrors =
         static member fromExn c e =
             {
                 errorId = ErrorId.getNewId()
+                errorType = ExceptionBased
                 commandLine = c
                 result = UnknownException
                 errorMessageOpt = None
@@ -36,6 +45,7 @@ module SolverRunnerErrors =
         static member fromErrMessage c e =
             {
                 errorId = ErrorId.getNewId()
+                errorType = ErrroMessageBased
                 commandLine = c
                 result = UnknownException
                 errorMessageOpt = Some e

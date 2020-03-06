@@ -88,9 +88,10 @@ module GeneralData =
         let b = o.ToArray()
         b
 
-
-    let zip (s : string) = s |> Encoding.UTF8.GetBytes |> zipBytes
-    let unZip (b : byte[]) = b |> unZipBytes |> Encoding.UTF8.GetString
+    let toByteArray (s : string) = s |> Encoding.UTF8.GetBytes
+    let fromByteArray (b : byte[]) = b |> Encoding.UTF8.GetString
+    let zip (s : string) = s |> toByteArray |> zipBytes
+    let unZip (b : byte[]) = b |> unZipBytes |> fromByteArray
 
 
     //let doAsyncTask (f : unit-> 'a) =
@@ -408,16 +409,16 @@ module GeneralData =
         match f with
         | BinaryFormat -> t |> binSerialize
         | BinaryZippedFormat -> t |> binSerialize |> zipBytes
-        | JSonFormat ->  t |> jsonSerialize |> zip
-        | XmlFormat -> t |> xmlSerialize |> zip
+        | JSonFormat -> t |> jsonSerialize |> toByteArray
+        | XmlFormat -> t |> xmlSerialize |> toByteArray
 
 
     let deserialize f b =
         match f with
         | BinaryFormat -> b |> binDeserialize
         | BinaryZippedFormat -> b |> unZipBytes |> binDeserialize
-        | JSonFormat -> b |> unZip |> jsonDeserialize
-        | XmlFormat -> b |> unZip |> xmlDeserialize
+        | JSonFormat -> b |> fromByteArray |> jsonDeserialize
+        | XmlFormat -> b |> fromByteArray |> xmlDeserialize
 
 
     let trySerialize<'A> f (a : 'A) : Result<byte[], SerializationError> =

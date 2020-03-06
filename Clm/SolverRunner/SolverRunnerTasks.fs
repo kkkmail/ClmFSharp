@@ -271,10 +271,8 @@ module SolverRunnerTasks =
             match p.loadModelData i (ModelDataId modelDataId) with
             | Ok md ->
                 printfn "Starting at: %A" DateTime.Now
-
-                failwith "SolverRunner crashed deliberately..."
-
                 let a = results.GetResult (UseAbundant, defaultValue = false)
+
                 let c =
                     {
                         tEnd = tEnd
@@ -312,12 +310,12 @@ module SolverRunnerTasks =
 
                     CompletedSuccessfully
                 with
-                | e ->
+                | ex ->
                     printfn "Failed!"
 
-                    match runSolverData.onFailed (e.ToString()) with
+                    match runSolverData.onFailed (ex.ToString()) with
                     | Ok() -> ignore()
-                    | Error e -> logCrit (sprintf "%A" e)
+                    | Error e -> logCrit (sprintf "ERROR: %A, EXCEPTION: %A" e ex)
 
                     UnknownException
             | _ ->

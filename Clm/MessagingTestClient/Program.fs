@@ -1,9 +1,7 @@
 ﻿namespace MessagingServer
 
 open Argu
-open MessagingServiceInfo.ServiceInfo
 open Messaging.MsgCliCommandLine
-open Messaging.Client
 open MessagingTestClient.MessagingTestClientTask
 open ClmSys.ExitErrorCodes
 
@@ -24,6 +22,6 @@ module Program =
                 CompletedSuccessfully
 
         with
-            | exn ->
-                printfn "%s" exn.Message
-                UnknownException
+        | e ->
+            printfn "%s" e.Message
+            UnknownException

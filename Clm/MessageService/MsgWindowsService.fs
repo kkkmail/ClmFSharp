@@ -4,9 +4,7 @@ open System
 open System.ServiceProcess
 open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
-open System.Runtime.Remoting.Channels.Tcp
 open Argu
-
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.Wcf
@@ -14,7 +12,6 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open MessagingService.SvcCommandLine
 open System.ServiceModel
-open System.ServiceModel.Description
 
 module WindowsService =
 

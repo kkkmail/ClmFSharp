@@ -24,31 +24,44 @@ open ClmSys.Retry
 open ClmSys.SolverRunnerData
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
+open NoSql.FileSystemTypes
+open ClmSys.Registry
+open ClmSys.ClmErrors
 
 module SolverRunnerTasks =
 
+    let getErrName processId =
+        "SolverRunnerErr\\" + processId.ToString().PadLeft(6, '0') |> MessagingClientName
+
     let logError e = printfn "Error: %A." e
+    let logCriticalError processId = saveSolverRunnerErrFs (getErrName processId)
 
 
-    let progressNotifier (r : ResponseHandler) (p : LocalProgressUpdateInfo) =
-        try
-            printfn "Notifying of progress: %A." p
+    let progressNotifier (r : WorkerNodeResponseHandler) (p : LocalProgressUpdateInfo) =
+        let result =
+            try
+                printfn "Notifying of progress: %A." p
 
-            match tryFun (fun () -> r.updateLocalProgress p) with
-            | Ok (Ok()) -> ignore()
-            | Ok (Error e) -> printfn "Internal error occurred: %A" e
-            | Error e -> printfn "Error occurred: %A" e
+                match tryFun (fun () -> r.updateLocalProgress p) with
+                | Ok (Ok()) -> Ok()
+                | Ok (Error e) ->
+                    printfn "Internal error occurred: %A" e
+                    Error e
+                | Error ex ->
+                    printfn "Error occurred: %A" ex
+                    ("SolverRunnerTasks.progressNotifier", ex) |> UnhandledExn |> Error
+            with
+            | e ->
+                printfn "Exception occurred: %A, progress: %A." e.Message p
+                ("SolverRunnerTasks.progressNotifier", e) |> UnhandledExn |> Error
 
-            printfn "...completed."
-        with
-        | e -> printfn "Exception occurred: %A, progress: %A." e.Message p
+        result
 
 
-    let notify (r : RunningProcessData) (svc : ResponseHandler) (t : TaskProgress) =
+    let notify (r : RunningProcessData) (svc : WorkerNodeResponseHandler) (t : TaskProgress) =
         progressNotifier svc
             {
                 localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
@@ -68,36 +81,21 @@ module SolverRunnerTasks =
         | Some address, Some port ->
             let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
 
-            match results.TryGetResult Remote with
-            | None | Some false ->
-                {
-                    contGenServiceAccessInfo =
-                        {
-                            serviceAddress = ServiceAddress address
-                            servicePort = ServicePort port
-                            inputServiceName = ContGenServiceName
-                        }
+            {
+                nodeServiceAccessInfo =
+                    {
+                        serviceAddress = ServiceAddress address
+                        servicePort = ServicePort port
+                        inputServiceName = WorkerNodeServiceName
+                    }
 
-                    minUsefulEe = ee
-                }
-                |> ContGenSvcAccessInfo
-            | Some true ->
-                {
-                    wrkNodeServiceAccessInfo =
-                        {
-                            serviceAddress = ServiceAddress address
-                            servicePort = ServicePort port
-                            inputServiceName = WorkerNodeServiceName
-                        }
-
-                    minUsefulEe = ee
-                }
-                |> WorkerNodeSvcAccessInfo
+                minUsefulEe = ee
+            }
             |> Some
         | _ -> None
 
 
-    let getResponseHandler i = ResponseHandler.tryCreate i
+    let getResponseHandler i = WorkerNodeResponseHandler.tryCreate i
 
 
     let getPlotDataInfo (df : ClmDefaultValueId) =
@@ -115,16 +113,17 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : unit -> unit
-            onFailed : (string -> unit)
+            onCompleted : unit -> UnitResult
+            onFailed : (string -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
-            progressCallBack : (decimal -> unit) option
+            progressCallBack : (decimal -> UnitResult) option
             updateChart : double -> double[] -> unit
+            noOfProgressPoints : int option
         }
 
 
-        static member create (md : ModelData) (i : SolverRunnerAccessInfo) (c : ModelCommandLineParam) (d : RunQueueId) w =
+        static member create (md : ModelData) i (c : ModelCommandLineParam) (d : RunQueueId) w pp =
             let n = getResponseHandler i
             let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
@@ -140,10 +139,6 @@ module SolverRunnerTasks =
                     runQueueId = d
                     workerNodeId = w
                     commandLineParams = c
-                        //{
-                        //    taskParam = c
-                        //    serviceAccessInfo = i
-                        //}
                 }
 
             let chartInitData =
@@ -168,17 +163,18 @@ module SolverRunnerTasks =
                 onCompleted =
                     match n with
                     | Some svc -> fun () -> notify r svc Completed
-                    | None -> ignore
+                    | None ->  fun () -> Ok()
 
                 onFailed =
                     match n with
                     | Some svc -> fun e -> notify r svc (Failed (w, d.toRemoteProcessId()))
-                    | None -> ignore
+                    | None -> fun _ -> Ok()
 
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
                 progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (TaskProgress.create p)) |> Some)
+                noOfProgressPoints = pp
             }
 
 
@@ -203,6 +199,8 @@ module SolverRunnerTasks =
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
+            noOfOutputPoints = None
+            noOfProgressPoints = d.noOfProgressPoints
         }
 
 
@@ -234,7 +232,7 @@ module SolverRunnerTasks =
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            serviceAccessInfo : SolverRunnerAccessInfo
+            serviceAccessInfo : NodeServiceAccessInfo
             resultDataWithId : ResultDataWithId
             chartData : ChartData
             sovlerRunnerProxy : SolverRunnerProxy
@@ -266,7 +264,7 @@ module SolverRunnerTasks =
         else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
 
 
-    let runSolver (results : ParseResults<SolverRunnerArguments>) usage =
+    let runSolver (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
@@ -274,6 +272,7 @@ module SolverRunnerTasks =
             | Ok md ->
                 printfn "Starting at: %A" DateTime.Now
                 let a = results.GetResult (UseAbundant, defaultValue = false)
+
                 let c =
                     {
                         tEnd = tEnd
@@ -282,7 +281,8 @@ module SolverRunnerTasks =
                     }
 
                 let w = g |> MessagingClientId |> WorkerNodeId
-                let runSolverData = RunSolverData.create md i c (RunQueueId d) w
+                let pp = results.TryGetResult ProgrNotifPoints
+                let runSolverData = RunSolverData.create md i c (RunQueueId d) w pp
 
                 try
                     let nSolveParam = getNSolveParam runSolverData
@@ -303,17 +303,27 @@ module SolverRunnerTasks =
 
                     r |> p.saveResultData |> ignore
                     printfn "Completed."
-                    runSolverData.onCompleted()
+
+                    match runSolverData.onCompleted() with
+                    | Ok() -> ignore()
+                    | Error e -> logCrit (sprintf "%A" e)
 
                     CompletedSuccessfully
                 with
-                | e ->
+                | ex ->
                     printfn "Failed!"
-                    runSolverData.onFailed (e.ToString())
+
+                    match runSolverData.onFailed (ex.ToString()) with
+                    | Ok() -> ignore()
+                    | Error e -> logCrit (sprintf "ERROR: %A, EXCEPTION: %A" e ex)
+
                     UnknownException
             | _ ->
-                printfn "Unable to load model with id: %A" modelDataId
+                let msg = sprintf "Unable to load model with id: %A" modelDataId
+                printfn "%s" msg
+                logCrit msg
                 UnknownException
         | _ ->
             printfn "%s" usage
+            logCrit usage
             InvalidCommandLineArgs

@@ -23,6 +23,6 @@ module Program =
             CompletedSuccessfully
 
         with
-        | exn ->
-            printfn "%s" exn.Message
+        | e ->
+            printfn "%s" e.Message
             UnknownException

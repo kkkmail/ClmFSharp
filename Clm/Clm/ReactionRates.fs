@@ -1,7 +1,6 @@
 ﻿namespace Clm
 
 open FSharp.Collections
-
 open Clm.Distributions
 open Clm.ReactionTypes
 open Clm.Substances
@@ -17,7 +16,7 @@ module ReactionRates =
 
     /// Specifies how to apply similarity
     /// DistrBased uses distribution threshold to determine if an amino acid should / should not be included.
-    /// This results in some spread inthe number of amino acids.
+    /// This results in some spread in the number of amino acids.
     /// FixedVal - fixes the number of amin of acids, but the choice of them is still random.
     type CatRatesSimGenType =
         | DistrBased

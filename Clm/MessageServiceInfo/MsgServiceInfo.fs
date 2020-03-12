@@ -16,7 +16,6 @@ open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.MessagingClientErrors
 open ClmSys.GeneralData
 
 module ServiceInfo =
@@ -83,6 +82,8 @@ module ServiceInfo =
         | PartitionerMsg of PartitionerMessage
         | WorkerNodeMsg of WorkerNodeMessage
 
+        static member maxInfoLength = 500
+
         member this.getMessageSize() =
             match this with
             | TextData s ->
@@ -98,8 +99,9 @@ module ServiceInfo =
             | MediumSize -> false
             | LargeSize -> false
 
-        /// TODO kk:20200119 - Implement a shorter version as some messages can be very large.
-        member this.getInfo() = sprintf "%A" this
+        member this.getInfo() =
+            let s = (sprintf "%A" this)
+            s.Substring(0, min s.Length MessageData.maxInfoLength)
 
 
     type MessageRecipientInfo =

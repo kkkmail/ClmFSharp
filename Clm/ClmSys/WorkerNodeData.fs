@@ -1,7 +1,6 @@
 ﻿namespace ClmSys
 
 open GeneralData
-open MessagingPrimitives
 open MessagingData
 open WorkerNodePrimitives
 open PartitionerPrimitives
@@ -9,20 +8,19 @@ open ContGenPrimitives
 
 module WorkerNodeData =
 
-    type WorkerNodeInfo =
+    type NodeInfo =
         {
-            workerNodeId : WorkerNodeId
             workerNodeName : WorkerNodeName
             noOfCores : int
             nodePriority : WorkerNodePriority
         }
 
 
-    //type WorkerNodeRequestInfo =
-    //    {
-    //        workerNodeId : WorkerNodeId
-    //        requestedWorkItems : int
-    //    }
+    type WorkerNodeInfo =
+        {
+            workerNodeId : WorkerNodeId
+            nodeInfo : NodeInfo
+        }
 
 
     /// Worker Node MessagingClientId + Messaging Server acces info.
@@ -39,28 +37,24 @@ module WorkerNodeData =
             }
 
 
+    type NodeServiceAccessInfo =
+        {
+            nodeServiceAccessInfo : ServiceAccessInfo
+            minUsefulEe : MinUsefulEe
+        }
+
+
     type WorkerNodeServiceAccessInfo =
         {
-            workerNodeServiceAccessInfo : ServiceAccessInfo
-            workerNodeName : WorkerNodeName
-            noOfCores : int
-            isInactive : bool
+            workerNodeServiceAccessInfo : NodeServiceAccessInfo
+            nodeInfo : NodeInfo
             workNodeMsgAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId
-            nodePriority : WorkerNodePriority
+            isInactive : bool
         }
 
         member w.workerNodeInfo =
             {
                 workerNodeId = w.workNodeMsgAccessInfo.workerNodeId
-                workerNodeName = w.workerNodeName
-                noOfCores = w.noOfCores
-                nodePriority = w.nodePriority
+                nodeInfo = w.nodeInfo
             }
-
-
-    type WrkNodeServiceAccessInfo =
-        {
-            wrkNodeServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }

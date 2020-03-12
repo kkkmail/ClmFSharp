@@ -51,6 +51,7 @@ module ContGenPrimitives =
         | ClmTaskId of Guid
 
         member this.value = let (ClmTaskId v) = this in v
+        static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
     type TaskProgress =

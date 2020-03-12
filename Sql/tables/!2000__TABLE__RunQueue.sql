@@ -12,6 +12,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[useAbundant] [bit] NOT NULL,
 		[workerNodeId] [uniqueidentifier] NULL,
 		[createdOn] [datetime] NOT NULL,
+		[startedOn] [datetime] NULL,
 		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_RunQueue] PRIMARY KEY CLUSTERED 
 	(

@@ -66,6 +66,14 @@ module Rop =
     let map g = either (g >> succeed) fail
 
 
+    /// Changes success value into another success value.
+    /// This is useful when remapping UnitResult into something else.
+    let mapSuccessValue x v =
+        match v with
+        | Ok _ -> Ok x
+        | Error e -> Error e
+
+
     let mapFailure f = either succeed (f >> fail)
 
     /// convert a dead-end function into a one-track function

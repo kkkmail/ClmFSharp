@@ -2,29 +2,28 @@
 
 open Newtonsoft.Json
 open System
-open ClmSys.Logging
 open ClmSys.GeneralData
 open ClmSys.GeneralErrors
 open Clm.ModelParams
 open Clm.CalculationData
 open System.IO
 open MessagingServiceInfo.ServiceInfo
-open PartitionerServiceInfo.ServiceInfo
-open ClmSys.MessagingData
 open ClmSys.WorkerNodeData
 open ClmSys.Retry
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerPrimitives
 open ClmSys.SolverRunnerData
-open ClmSys.ContGenData
 open ClmSys.WorkerNodePrimitives
+open ClmSys.SolverRunnerErrors
 
 module FileSystemTypes =
 
+    let serializationFormat = BinaryZippedFormat
+    let serializationErrFormat = XmlFormat
     let fileStorageFolder = DefaultFileStorageFolder
+
 
     type TableName =
         | TableName of string
@@ -40,13 +39,11 @@ module FileSystemTypes =
     let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
-
-    let storageExt = "xml"
+    let solverRunnerErrTblName = TableName "solverRunnerErr"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
         let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
-        //logger.logInfo (sprintf "getFolderName: Attempting to create folder: %A" folder)
 
         try
             Directory.CreateDirectory(folder) |> ignore
@@ -55,11 +52,11 @@ module FileSystemTypes =
         | e -> e |> GetFolderNameExn |> FileErr |> Error
 
 
-    let getFileName<'A> serviceName tableName (objectId : 'A) =
+    let getFileName<'A> (fmt : SerializationFormat) serviceName tableName (objectId : 'A) =
         try
             match getFolderName serviceName tableName with
             | Ok folder ->
-                let file = Path.Combine(folder, objectId.ToString() + "." + storageExt)
+                let file = Path.Combine(folder, objectId.ToString() + "." + fmt.fileExtension)
                 Ok file
             | Error e -> Error e
         with
@@ -73,13 +70,13 @@ module FileSystemTypes =
     let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T option, ClmError>) =
         let w () =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName serializationFormat serviceName tableName objectId with
                 | Ok f ->
                     let x =
                         if File.Exists f
                         then
-                            let data = File.ReadAllText(f)
-                            let retVal = data |> deserialize |> Some |> Ok
+                            let data = File.ReadAllBytes (f)
+                            let retVal = data |> deserialize serializationFormat |> Some |> Ok
                             retVal
                         else Ok None
                     x
@@ -94,19 +91,19 @@ module FileSystemTypes =
         match tryLoadData<'T, 'A> serviceName tableName objectId with
         | Ok (Some r) -> Ok r
         | Ok None ->
-            match getFileName<'A> serviceName tableName objectId with
+            match getFileName<'A> serializationFormat serviceName tableName objectId with
             | Ok f -> f |> FileNotFoundErr |> FileErr |> Error
             | Error e -> Error e
         | Error e -> Error e
 
 
-    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+    let saveDataImpl<'T, 'A> fmt serviceName tableName (objectId : 'A) (t : 'T) =
         let w() =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName fmt serviceName tableName objectId with
                 | Ok f ->
-                    let d = t |> serialize
-                    File.WriteAllText(f, d)
+                    let d = t |> serialize fmt
+                    File.WriteAllBytes (f, d)
                     Ok ()
                 | Error e -> Error e
             with
@@ -114,11 +111,20 @@ module FileSystemTypes =
         tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
+    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        saveDataImpl<'T, 'A> serializationFormat serviceName tableName objectId t
+
+
+    /// Write-once error objects.
+    let saveErrData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+        saveDataImpl<'T, 'A> serializationErrFormat serviceName tableName objectId t
+
+
     /// Tries to delete object if it exists.
     let tryDeleteData<'T, 'A> serviceName tableName (objectId : 'A) =
         let w() =
             try
-                match getFileName serviceName tableName objectId with
+                match getFileName serializationFormat serviceName tableName objectId with
                 | Ok f ->
                     if File.Exists f then File.Delete f
                     Ok ()
@@ -133,7 +139,7 @@ module FileSystemTypes =
             try
                 match getFolderName serviceName tableName with
                 | Ok folder ->
-                    Directory.GetFiles(folder, "*." + storageExt)
+                    Directory.GetFiles(folder, "*." + serializationFormat.fileExtension)
                     |> List.ofArray
                     |> List.map (fun e -> Path.GetFileNameWithoutExtension e)
                     |> List.map creator
@@ -237,14 +243,4 @@ module FileSystemTypes =
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
 
-    let saveRunModelParamWithRemoteIdFs serviceName (r : RunModelParamWithRemoteId) = saveData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName r.remoteProcessId.value r
-    let loadRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = loadData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
-    let tryDeleteRunModelParamWithRemoteIdFs serviceName (RemoteProcessId processId) = tryDeleteData<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName processId
-    let getRunModelParamWithRemoteIdIdsFs serviceName () = getObjectIds<RemoteProcessId> serviceName runModelParamWithRemoteIdTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
-    let loadeRunModelParamWithRemoteIdAllFs serviceName () = loadObjects<RunModelParamWithRemoteId, Guid> serviceName runModelParamWithRemoteIdTblName Guid.Parse
-
-    //let saveWorkerNodeStateFs serviceName (r : WorkerNodeState) = saveData<WorkerNodeState, Guid> serviceName workerNodeStateTblName r.workerNodeInfo.workerNodeId.value.value r
-    //let loadWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = loadData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    //let tryDeleteWorkerNodeStateFs serviceName (WorkerNodeId (MessagingClientId nodeId)) = tryDeleteData<WorkerNodeState, Guid> serviceName workerNodeStateTblName nodeId
-    //let getWorkerNodeStateIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeStateTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
-    //let loadWorkerNodeStateAllFs serviceName () = loadObjects<WorkerNodeState, Guid> serviceName workerNodeStateTblName Guid.Parse
+    let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r

@@ -94,3 +94,17 @@ module GeneralPrimitives =
             | 4 -> Some FailedRunQueue
             | 5 -> Some ModifyingRunQueue
             | _ -> None
+
+
+    type SerializationFormat =
+        | BinaryFormat
+        | BinaryZippedFormat
+        | JSonFormat
+        | XmlFormat
+
+        member format.fileExtension =
+            match format with
+            | BinaryFormat -> "bin"
+            | BinaryZippedFormat -> "binz"
+            | JSonFormat -> "json"
+            | XmlFormat -> "xml"

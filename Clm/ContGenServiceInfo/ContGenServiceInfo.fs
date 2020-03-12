@@ -20,14 +20,6 @@ module ServiceInfo =
     let ContGenServiceProgramName = "ContGenService.exe"
 
 
-    //type WorkState =
-    //    | NotInitialized
-    //    | Idle
-    //    | CanGenerate
-    //    | Generating
-    //    | ShuttingDown
-
-
     type ProcessId =
         | LocalProcess of LocalProcessId
         | RemoteProcess of RemoteProcessId
@@ -222,28 +214,15 @@ module ServiceInfo =
         | SetMinUsefulEe of ee : double
 
 
-    type IContGenService =
-        //abstract getState : unit -> ClmResult<ContGenRunnerState>
-        abstract getState : unit -> (list<RunQueue> * UnitResult)
-        //abstract loadQueue : unit -> UnitResult
-        //abstract startGenerate : unit -> UnitResult
-        //abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
-        //abstract updateRemoteProgress : RemoteProgressUpdateInfo -> UnitResult
-        //abstract configureService : ContGenConfigParam -> UnitResult
-        //abstract runModel : ModelDataId -> ModelCommandLineParam -> UnitResult
-
-
     type ContGenShutDownInfo =
         {
             contGenTcpChannel : TcpChannel
-            service : IContGenService
         }
 
 
     let mutable private callCount = -1
 
 
-    //let getServiceState (service : IContGenService) =
     let getServiceState (getState : unit -> (list<RunQueue> * UnitResult)) =
         if Interlocked.Increment(&callCount) = 0
         then
@@ -313,6 +292,5 @@ module ServiceInfo =
     type RunModelParam =
         {
             exeName : string
-            //commandLineParam : ModelCommandLineParam
             callBackInfo : RunningProcessData
         }

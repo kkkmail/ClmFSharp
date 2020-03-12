@@ -17,7 +17,7 @@ module MessagingServiceErrors =
 
     type TryPeekMessageError =
         | TryPeekMsgWcfErr of WcfError
-        | UnableToLoadMessageError of (Guid * Guid)
+        | UnableToLoadMessageError of (MessagingClientId * MessageId)
 
 
     type MessageDeliveryError =
@@ -30,7 +30,7 @@ module MessagingServiceErrors =
     type TryDeleteFromServerError =
         | TryDeleteMsgWcfErr of WcfError
         | CannotFindClientErr of Guid
-        | UnableToDeleteMessageErr of (Guid * Guid)
+        | UnableToDeleteMessageErr of (MessagingClientId * MessageId)
 
 
     type GetStateError =

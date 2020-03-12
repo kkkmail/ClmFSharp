@@ -3,7 +3,6 @@
 open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
 open ClmSys.Registry
 open ClmSys.Logging
 open System
@@ -14,6 +13,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
+open ClmSys.ContGenPrimitives
 
 module AdmCommandLine =
 
@@ -175,6 +175,25 @@ module AdmCommandLine =
             | _ -> ignore()
 
             {
+                workerNodeServiceAccessInfo =
+                    {
+                        nodeServiceAccessInfo =
+                            {
+                                serviceAddress = address
+                                servicePort = port
+                                inputServiceName = WorkerNodeServiceName
+                            }
+
+                        minUsefulEe = MinUsefulEe.defaultValue
+                    }
+
+                nodeInfo =
+                    {
+                        workerNodeName = WorkerNodeName nodeName
+                        noOfCores = noOfCores
+                        nodePriority = WorkerNodePriority.defaultValue
+                    }
+
                 workNodeMsgAccessInfo =
                     {
                         workerNodeId = clientId
@@ -187,18 +206,8 @@ module AdmCommandLine =
                             }
                     }
 
-                workerNodeName = WorkerNodeName nodeName
-                noOfCores = noOfCores
-                isInactive = inactive
-                nodePriority = WorkerNodePriority.defaultValue
                 partitionerId = partitioner
-
-                workerNodeServiceAccessInfo =
-                    {
-                        serviceAddress = address
-                        servicePort = port
-                        inputServiceName = WorkerNodeServiceName
-                    }
+                isInactive = inactive
             }
             |> Some
         | None -> None

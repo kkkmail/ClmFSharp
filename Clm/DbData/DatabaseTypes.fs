@@ -116,18 +116,15 @@ module DatabaseTypes =
 
     type ModelDataTableData = SqlCommandProvider<"
         select
-            m.modelDataId,
-            m.clmTaskId,
-            m.parentModelDataId,
-            isnull(p.fileStructureVersion, m.fileStructureVersion) as fileStructureVersion,
-            isnull(p.seedValue, m.seedValue) as seedValue,
-            isnull(p.modelDataParams, m.modelDataParams) as modelDataParams,
-            isnull(p.modelBinaryData, m.modelBinaryData) as modelBinaryData,
-            m.createdOn
-        from
-            dbo.ModelData m
-            left outer join dbo.ModelData p on m.parentModelDataId = p.modelDataId
-        where m.modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
+            modelDataId,
+            clmTaskId,
+            fileStructureVersion,
+            seedValue,
+            modelDataParams,
+            modelBinaryData,
+            createdOn
+        from dbo.ModelData
+        where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
 
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
@@ -307,10 +304,7 @@ module DatabaseTypes =
                 {
                     modelDataId = r.modelDataId |> ModelDataId
                     clmTaskInfo = i.clmTaskInfo
-                    data =
-                        match r.parentModelDataId with
-                        | Some p -> ParentProvided (ModelDataId p, rawData)
-                        | None -> OwnData rawData
+                    data = rawData
                 }
                 |> Ok
             | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
@@ -405,22 +399,28 @@ module DatabaseTypes =
             t.Rows.Add newRow
             newRow
 
-        /// The following status transitions are allowed here:
-        ///     ModifyingRunQueue -> NotStartedRunQueue - TODO kk:20200206 - I am not sure that this is needed.
-        ///
+        /// The following transitions are allowed here:
         ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
         ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
         /// All others are not allowed and / or out of scope of this function.
+        ///
+        ///     TODO kk:20200222 - I am not sure that this is needed, so it is not yet implemented:
+        ///         ... -> ModifyingRunQueue -> ...
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-            let g p =
+            let g p s =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
                 r.progress <- p
+
+                match s with
+                | Some v -> r.startedOn <- Some v
+                | None -> ignore()
+
                 r.modifiedOn <- DateTime.Now
                 r.runQueueStatusId <- q.runQueueStatus.value
                 Ok()
@@ -442,10 +442,10 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value
-                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value
-                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value
-                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue
+                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
+                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
+                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value None
+                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 
@@ -456,18 +456,22 @@ module DatabaseTypes =
         static member create (r : WorkerNodeTableRow) =
             {
                 workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
-                workerNodeName = r.workerNodeName |> WorkerNodeName
-                noOfCores = r.numberOfCores
-                nodePriority = r.nodePriority |> WorkerNodePriority
+
+                nodeInfo =
+                    {
+                        workerNodeName = r.workerNodeName |> WorkerNodeName
+                        noOfCores = r.numberOfCores
+                        nodePriority = r.nodePriority |> WorkerNodePriority
+                    }
             }
 
         member w.addRow (t : WorkerNodeTable) =
             let newRow =
                 t.NewRow(
                         workerNodeId = w.workerNodeId.value.value,
-                        workerNodeName = w.workerNodeName.value,
-                        numberOfCores = w.noOfCores,
-                        nodePriority = w.nodePriority.value
+                        workerNodeName = w.nodeInfo.workerNodeName.value,
+                        numberOfCores = w.nodeInfo.noOfCores,
+                        nodePriority = w.nodeInfo.nodePriority.value
                         )
 
             newRow.modifiedOn <- DateTime.Now
@@ -475,9 +479,9 @@ module DatabaseTypes =
             newRow
 
         member w.updateRow (r : WorkerNodeTableRow) =
-            r.workerNodeName <- w.workerNodeName.value
-            r.numberOfCores <- w.noOfCores
-            r.nodePriority <- w.nodePriority.value
+            r.workerNodeName <- w.nodeInfo.workerNodeName.value
+            r.numberOfCores <- w.nodeInfo.noOfCores
+            r.nodePriority <- w.nodeInfo.nodePriority.value
             r.modifiedOn <- DateTime.Now
 
 
@@ -594,16 +598,14 @@ module DatabaseTypes =
         let g() =
             use conn = getOpenConn connectionString
             use t = new ClmTaskTable()
-            let row = clmTask.addRow t
+            clmTask.addRow t |> ignore
             t.Update conn |> ignore
-            let clmTaskId = row.clmTaskId |> ClmTaskId
-            let newClmTask = { clmTask with clmTaskInfo = { clmTask.clmTaskInfo with clmTaskId = clmTaskId } }
 
-            newClmTask.commandLineParams
-            |> List.map (addCommandLineParams connectionString clmTaskId)
+            clmTask.commandLineParams
+            |> List.map (addCommandLineParams connectionString clmTask.clmTaskInfo.clmTaskId)
             |> ignore
 
-            Ok newClmTask
+            Ok()
 
         tryDbFun g
 
@@ -652,46 +654,26 @@ module DatabaseTypes =
             let connectionString = conn.ConnectionString
 
             let recordsUpdated =
-                match m.data with
-                | OwnData d ->
-                    use cmdWithBinaryData = new SqlCommandProvider<"
-                        merge ModelData as target
-                        using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
-                        as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                        on (target.modelDataId = source.modelDataId)
-                        when not matched then
-                            insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                            values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
-                        when matched then
-                            update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
-                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                use cmdWithBinaryData = new SqlCommandProvider<"
+                    merge ModelData as target
+                    using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+                    as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                    on (target.modelDataId = source.modelDataId)
+                    when not matched then
+                        insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                        values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+                    when matched then
+                        update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-                    cmdWithBinaryData.Execute(
-                        modelDataId = m.modelDataId.value,
-                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                        fileStructureVersion = d.fileStructureVersion,
-                        seedValue = (match d.seedValue with | Some s -> s | None -> -1),
-                        modelDataParams = (d.modelData.modelDataParams |> JsonConvert.SerializeObject),
-                        modelBinaryData = (d.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                        createdOn = DateTime.Now)
-                | ParentProvided (ModelDataId parentModelDataId, _) ->
-                    use cmdWithoutBinaryData = new SqlCommandProvider<"
-                        merge ModelData as target
-                        using (select @modelDataId, @clmTaskId, @parentModelDataId, @createdOn)
-                        as source (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                        on (target.modelDataId = source.modelDataId)
-                        when not matched then
-                            insert (modelDataId, clmTaskId, parentModelDataId, createdOn)
-                            values (source.modelDataId, source.clmTaskId, source.parentModelDataId, source.createdOn)
-                        when matched then
-                            update set clmTaskId = source.clmTaskId, parentModelDataId = source.parentModelDataId, createdOn = source.createdOn;
-                        ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-                    cmdWithoutBinaryData.Execute(
-                        modelDataId = m.modelDataId.value,
-                        clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                        parentModelDataId = parentModelDataId,
-                        createdOn = DateTime.Now)
+                cmdWithBinaryData.Execute(
+                    modelDataId = m.modelDataId.value,
+                    clmTaskId = m.clmTaskInfo.clmTaskId.value,
+                    fileStructureVersion = m.data.fileStructureVersion,
+                    seedValue = (match m.data.seedValue with | Some s -> s | None -> -1),
+                    modelDataParams = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
+                    modelBinaryData = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
+                    createdOn = DateTime.Now)
 
             match recordsUpdated = 1 with
             | true -> Ok ()
@@ -931,14 +913,6 @@ module DatabaseTypes =
             Ok()
 
         tryDbFun g
-
-
-//select
-//    workerNodeId
-//    ,nodePriority
-//    ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
-//from WorkerNode w
-//where workerNodeId = @workerNodeId
 
 
     [<Literal>]

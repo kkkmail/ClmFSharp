@@ -137,11 +137,6 @@
       <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\PartitionerServiceInfo\PartitionerServiceInfo.fsproj">
-      <Name>PartitionerServiceInfo</Name>
-      <Project>{0a5ff8d1-cc98-4eac-a1e7-2ee689c9c507}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,7 +3,6 @@
 open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-
 open GeneralPrimitives
 open WorkerNodePrimitives
 open ContGenPrimitives
@@ -13,6 +12,9 @@ module GeneralErrors =
 
     type ErrorId =
         | ErrorId of Guid
+
+        static member getNewId() = Guid.NewGuid() |> ErrorId
+        member this.value = let (ErrorId v) = this in v
 
 
     type TraceInfo =

@@ -156,7 +156,7 @@ module ReactionTypes =
     type SynthCatalyst =
         | SynthCatalyst of Peptide
 
-        member c.enantiomer = 
+        member c.enantiomer =
             let (SynthCatalyst a) = c
             a.enantiomer |> SynthCatalyst
 

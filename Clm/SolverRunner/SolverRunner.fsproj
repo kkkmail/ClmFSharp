@@ -160,6 +160,11 @@
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\NoSql\NoSql.fsproj">
+      <Name>NoSql</Name>
+      <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
       <Name>OdeSolver</Name>
       <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>

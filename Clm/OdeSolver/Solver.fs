@@ -3,9 +3,12 @@
 open Microsoft.FSharp.Core
 open System
 open ClmSys.GeneralData
+open ClmSys.SolverRunnerPrimitives
+open ClmSys.ClmErrors
 
 
 module Solver =
+
 
     type EeData =
         {
@@ -26,14 +29,14 @@ module Solver =
             noOfProgressPoints : int option
         }
 
-        static member defaultValue startTime endTime =
+        static member defaultValue startTime endTime op pp =
             {
                 startTime = startTime
                 endTime = endTime
                 stepSize = 0.01
                 eps = 0.00001
-                noOfOutputPoints = Some 1000
-                noOfProgressPoints = Some 100
+                noOfOutputPoints = op |> Option.defaultValue defaultNoOfOutputPoints |> Some
+                noOfProgressPoints = pp |> Option.defaultValue defaultNoOfProgressPoints |> Some
             }
 
 
@@ -52,9 +55,11 @@ module Solver =
             tEnd : double
             derivative : double[] -> double[]
             initialValues : double[]
-            progressCallBack : (decimal -> unit) option
+            progressCallBack : (decimal -> UnitResult) option
             chartCallBack : (double -> double[] -> unit) option
             getEeData : (unit -> EeData) option
+            noOfOutputPoints : int option
+            noOfProgressPoints : int option
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -75,12 +80,12 @@ module Solver =
         let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
-        let p = OdeParams.defaultValue n.tStart n.tEnd
+        let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notify t r m =
             match n.progressCallBack with
             | Some c -> calculateProgress r m |> c
-            | None -> ignore()
+            | None -> Ok()
 
         let notifyChart t x =
             match n.chartCallBack with
@@ -94,7 +99,7 @@ module Solver =
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
                     printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
-                    notify t progressCount k
+                    notify t progressCount k |> ignore
             | _ -> ignore()
 
             match p.noOfOutputPoints with

@@ -3,8 +3,6 @@
 open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.MessagingData
-open ClmSys.PartitionerData
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
@@ -16,6 +14,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
+open ClmSys.ContGenPrimitives
 
 module SvcCommandLine =
 
@@ -202,6 +201,25 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
+            workerNodeServiceAccessInfo =
+                {
+                    nodeServiceAccessInfo =
+                        {
+                            serviceAddress = address
+                            servicePort = port
+                            inputServiceName = WorkerNodeServiceName
+                        }
+
+                    minUsefulEe = MinUsefulEe.defaultValue
+                }
+
+            nodeInfo =
+                {
+                    workerNodeName = WorkerNodeName nodeName
+                    noOfCores = noOfCores
+                    nodePriority = WorkerNodePriority.defaultValue
+                }
+
             workNodeMsgAccessInfo =
                 {
                     workerNodeId = clientId
@@ -214,18 +232,8 @@ module SvcCommandLine =
                         }
                 }
 
-            workerNodeName = WorkerNodeName nodeName
-            noOfCores = noOfCores
-            isInactive = inactive
-            nodePriority = WorkerNodePriority.defaultValue
             partitionerId = partitioner
-
-            workerNodeServiceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                    inputServiceName = WorkerNodeServiceName
-                }
+            isInactive = inactive
         }
 
 

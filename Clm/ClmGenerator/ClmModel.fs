@@ -16,6 +16,8 @@ open Clm.Generator.FSharpCodeExt
 open Clm.Generator.ClmModelData
 open ClmImpure.RateProvider
 open ClmSys.ContGenPrimitives
+open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
 
 module ClmModel =
 
@@ -67,24 +69,6 @@ module ClmModel =
 
         let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates rnd generationType).forwardRate
 
-        //let allReactionsData =
-        //    let shift = "                            "
-
-        //    (
-        //        allReac
-        //        |> List.groupBy (fun r -> r.name)
-        //        |> List.map (fun (n, l) -> (n, l.Length))
-        //        |> List.map (fun (n, c) -> shift + "(" + n.ToString() + ", " + c.ToString() + ")")
-        //    )
-        //    @
-        //    (
-        //        // TODO kk:20181130 A little hack. Do it properly.
-        //        match kW with
-        //        | Some _ -> [ shift + "(" + ReactionName.SedimentationAllName.ToString() + ", " + (2 * modelParams.numberOfAminoAcids.length).ToString() + ")" ]
-        //        | None -> []
-        //    )
-        //    |> String.concat Nl
-
         let allReacMap =
             allReac
             |> List.map (fun e -> e, e.fullName)
@@ -106,7 +90,6 @@ module ClmModel =
         let coeffSedAllName = "kW"
 
         let substComment (s : Substance) shift = shift + "    // " + (si.allInd.[s]).ToString() + " - " + (substToString s) + Nl
-        //let reactionComment (r : Reaction) = " // " + (reactToString r) + Nl
         let x (s : Substance) = xName + ".[" + (si.allInd.[s]).ToString() + "]"
         let d (s : Substance) = dName + "" + (si.allInd.[s]).ToString()
 
@@ -118,7 +101,7 @@ module ClmModel =
                 | _ -> "(pown " + (x s) + " " + n.ToString() + ")"
 
             let a = l |> List.fold(fun acc (s, n) -> acc + (if acc <> "" then " * " else "") + (toPown s n)) ""
-            (r.ToString() |> toFloat) + " * " + a + " // " + (lstToString l) // + Nl
+            (r.ToString() |> toFloat) + " * " + a + " // " + (lstToString l)
 
         let toMult i =
             match i with
@@ -229,15 +212,12 @@ module ClmModel =
         let generate () =
             let t0 = DateTime.Now
             printfn "t0 = %A" t0
-
-            let r0 =
-                allReac
-                |> List.map (fun r -> processReaction r)
-
+            let r0 = allReac |> List.map (fun r -> processReaction r)
             printfn "r0.Length = %A" r0.Length
             let t11 = DateTime.Now
             printfn "t11 = %A" t11
             printfn "t11 - t0 = %A" (t11 - t0).TotalSeconds
+
 
             let reactions =
                 r0
@@ -245,14 +225,17 @@ module ClmModel =
                 |> List.groupBy (fun (s, _) -> s)
                 |> Map.ofList
 
+
             let t1 = DateTime.Now
             printfn "t1 = %A" t1
             printfn "t1 - t11 = %A" (t1 - t11).TotalSeconds
+
 
             let getReaction s =
                 match reactions.TryFind s with 
                 | Some r -> r |> List.rev |> List.map (fun (_, e) -> e) |> String.concat String.Empty
                 | None -> String.Empty
+
 
             let getTotalSedReac (s : Substance) shift =
                 match kW with
@@ -266,15 +249,18 @@ module ClmModel =
                     | _ -> Nl + shift + "            " + "-" + coeffSedAllName + " * (2.0 * " + xSumName + " - " + (x s) + ") * " + (x s)
                 | None -> String.Empty
 
+
             let coeffSedAllCode =
                 match kW with
                 | Some (ReactionRate k) ->
                     "    let " + coeffSedAllName + " = " + k.ToString() + " / " + (si.allSubst.Length - 1).ToString() + ".0" + Nl
                 | None -> String.Empty
 
+
             let a =
                 si.allSubst
                 |> List.map (fun s -> Nl + "    " + (substComment s "    ") +  "            [|" + Nl + (getTotalSedReac s "    ") + Nl + (getReaction s) + "            |]" + Nl + "            |> Array.sum" + Nl)
+
 
             let dInitCode xPar =
                 let shift, g =
@@ -287,6 +273,7 @@ module ClmModel =
 
                 si.allSubst
                 |> List.map (fun s -> Nl + (substComment s shift) + shift + "    let " + (g s) + " = " + Nl + shift + "        [|" + (getTotalSedReac s shift) + Nl + (getReaction s) + shift + "        |]" + Nl + shift + "        |> Array.sum" + Nl)
+
 
             let dArrayCode xPar =
                 let shift, g =
@@ -302,9 +289,9 @@ module ClmModel =
             let t2 = DateTime.Now
             printfn "t2 = %A" t2
             printfn "t2 - t1 = %A" (t2 - t1).TotalSeconds
-
             let totalCode = generateTotals()
             let totalSubstCode = generateTotalSubst()
+
 
             let sc =
                 si.allSubst
@@ -312,18 +299,20 @@ module ClmModel =
                 |> List.map (fun s -> "                " + (s.atoms.ToString()) + ".0 * " + (x s) + " // " + (substToString s))
                 |> String.concat Nl
 
+
             let sc2 =
                 si.allSubst
                 |> List.filter (fun s -> not s.isSimple)
                 |> List.map (fun s -> "                " + (s.atoms.ToString()) + ".0 * " + (x s) + " * " + (x s) + " // " + (substToString s))
                 |> String.concat Nl
 
+
             let sumCode = "        let " + xSumName + " = (" + xName + " |> Array.sum) - (" + (x Substance.food) + " + " + (x Substance.waste) + " + " + (x Substance.abundant) + ")" + Nl + Nl
             let sumCodeN = "        let " + xSumNameN + " = " + Nl + "            [|" + Nl + sc + Nl + "            |]" + Nl + "            |> Array.sum" + Nl + Nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + Nl + "            [|" + Nl + sc2 + Nl + "            |]" + Nl + "            |> Array.sum" + Nl
-
             let shift = "                    "
             let modelDataParamsCode = "    let modelDataParamsWithExtraData =" + Nl + (modelDataParamsWithExtraData.toFSharpCode shift) + Nl
+
 
             let updateOuterCode =
                 match modelParams.updateFuncType with
@@ -360,6 +349,7 @@ module ClmModel =
                     @
                     [ "        |]" + Nl ]
 
+
             let updateCode =
                 updateOuterCode
                 @
@@ -375,6 +365,7 @@ module ClmModel =
                 @
                 updateInnerCode
 
+
             let paramCode =
                 "    let seedValue = " + seedValue.ToString() + Nl +
                 "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl +
@@ -382,6 +373,7 @@ module ClmModel =
                 "    let numberOfSubstances = " + (si.allSubst.Length).ToString() + Nl +
                 generateSubst() +
                 coeffSedAllCode
+
 
             [
                 "namespace Clm.Model" + Nl
@@ -399,15 +391,22 @@ module ClmModel =
             @ updateCode
             @ [ modelDataParamsCode ]
 
+
         let generateAndSave() =
-            printfn "Generating..."
-            let s = generate()
+            try
+                printfn "Generating..."
+                let s = generate()
 
-            printfn "Writing..."
-            File.WriteAllLines(DefaultModelDataFile, s)
-            printfn "Done."
+                printfn "Writing..."
+                File.WriteAllLines(DefaultModelDataFile, s)
+                printfn "Done."
 
-            s
+                Ok s
+            with
+            | e ->
+                printfn "Exception occurred: %A" e
+                e |> WriteFileExn |> FileErr |> Error
+
 
         let getModelDataImpl clmTaskId =
             {
@@ -447,8 +446,8 @@ module ClmModel =
                                 }
                         }
                 }
-                |> OwnData
             }
+
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac

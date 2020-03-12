@@ -66,8 +66,7 @@ module GeneralData =
         | _ -> s.Substring(0, 1).ToLower() + s.Substring(1)
 
 
-    let zip (s : string) =
-        let b = Encoding.UTF8.GetBytes(s)
+    let zipBytes (b : byte[]) =
         use i = new MemoryStream(b)
         use o = new MemoryStream()
         use g = new GZipStream(o, CompressionMode.Compress)
@@ -78,7 +77,7 @@ module GeneralData =
         o.ToArray()
 
 
-    let unZip (b : byte[]) =
+    let unZipBytes (b : byte[]) =
         use i = new MemoryStream(b)
         use g = new GZipStream(i, CompressionMode.Decompress)
         use o = new MemoryStream()
@@ -86,8 +85,13 @@ module GeneralData =
         g.Close()
         i.Close()
         o.Close()
-        let s = Encoding.UTF8.GetString(o.ToArray())
-        s
+        let b = o.ToArray()
+        b
+
+    let toByteArray (s : string) = s |> Encoding.UTF8.GetBytes
+    let fromByteArray (b : byte[]) = b |> Encoding.UTF8.GetString
+    let zip (s : string) = s |> toByteArray |> zipBytes
+    let unZip (b : byte[]) = b |> unZipBytes |> fromByteArray
 
 
     //let doAsyncTask (f : unit-> 'a) =
@@ -387,31 +391,40 @@ module GeneralData =
         | _ -> None
 
 
-    let xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
+    let private xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
     let xmlSerialize t = xmlSerializer.PickleToString t
     let xmlDeserialize s = xmlSerializer.UnPickleOfString s
+
+
+    let private binSerializer = FsPickler.CreateBinarySerializer()
+    let binSerialize t = binSerializer.Pickle t
+    let binDeserialize b = binSerializer.UnPickle b
 
 
     let jsonSerialize t = JsonConvert.SerializeObject t
     let jsonDeserialize<'T> s = JsonConvert.DeserializeObject<'T> s
 
 
-    let serializer = xmlSerializer
-    let serialize t = serializer.PickleToString t
-    let deserialize s = serializer.UnPickleOfString s
-    //let serialize t = jsonSerialize t
-    //let deserialize s = jsonDeserialize s
+    let serialize f t =
+        match f with
+        | BinaryFormat -> t |> binSerialize
+        | BinaryZippedFormat -> t |> binSerialize |> zipBytes
+        | JSonFormat -> t |> jsonSerialize |> toByteArray
+        | XmlFormat -> t |> xmlSerialize |> toByteArray
 
 
-    let trySerialize<'A> (a : 'A) : Result<byte[], SerializationError> =
+    let deserialize f b =
+        match f with
+        | BinaryFormat -> b |> binDeserialize
+        | BinaryZippedFormat -> b |> unZipBytes |> binDeserialize
+        | JSonFormat -> b |> fromByteArray |> jsonDeserialize
+        | XmlFormat -> b |> fromByteArray |> xmlDeserialize
+
+
+    let trySerialize<'A> f (a : 'A) : Result<byte[], SerializationError> =
         try
-            //printfn "trySerialize: Serializing type %A..." typeof<'A>
-            //printfn "trySerialize: a = '%A'." a
-            let b = a |> serialize
-            //printfn "trySerialize: b = '%A'." b
-            let c = b |> zip
-            //printfn "trySerialize: c = '%A'." c
-            c |> Ok
+            let b = serialize f a
+            Ok b
         with
         | e ->
             printfn "trySerialize: Exception: '%A'." e
@@ -426,15 +439,9 @@ module GeneralData =
         | _ -> None
 
 
-    let tryDeserialize<'A> (b : byte[]) : Result<'A, SerializationError> =
+    let tryDeserialize<'A> f (b : byte[]) : Result<'A, SerializationError> =
         try
-            //printfn "tryDeserialize: Unzipping..."
-            let x = b |> unZip
-            //printfn "tryDeserialize: x = %A" x
-
-            //printfn "tryDeserialize: Deserializing into type %A..." typeof<'A>
-            let (y : 'A) = deserialize x
-            //printfn "tryDeserialize: y = %A" y
+            let (y : 'A) = deserialize f b
             Ok y
         with
         | e ->

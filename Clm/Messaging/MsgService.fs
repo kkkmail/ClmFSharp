@@ -83,10 +83,6 @@ module Service =
                         |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
                         |> List.fold (fun acc e -> proxy.updateMessages acc e) s
 
-                //let eventHandler _ = w.removeExpiredMessages()
-                //let h = new EventHandler(EventHandlerInfo.oneHourValue (d.logger.logExn onStartName) eventHandler)
-                //do h.start()
-
                     { x with workState = CanTransmitMessages }, foldToUnitResult e
                 | Error e -> s, Error e
             | CanTransmitMessages | ShuttingDown -> s, Ok()
@@ -149,7 +145,7 @@ module Service =
                         match tryLoadMessage h.messageDataInfo.messageId with
                         | Ok m -> s, Ok(Some m)
                         | Error e ->
-                            let err = (n.value, h.messageDataInfo.messageId.value) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr
+                            let err = (n, h.messageDataInfo.messageId) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr
                             // Remove the message as we cannot load it.
                             { s with messages = s.messages.Add(n, t |> List.rev) }, Error (err + e)
             | None -> s, Ok None
@@ -164,7 +160,7 @@ module Service =
             | Some v ->
                 let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
                 let z() = { s with messages = s.messages.Add(n, x) }
-                let f() = (n.value, m.value) |> UnableToDeleteMessageErr |> TryDeleteFromServerErr |> MessagingServiceErr
+                let f() = (n, m) |> UnableToDeleteMessageErr |> TryDeleteFromServerErr |> MessagingServiceErr
 
                 match x.Length <> v.Length, deleteMessage m with
                 | true, Ok() -> z(), Ok()

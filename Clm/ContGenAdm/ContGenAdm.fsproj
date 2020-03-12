@@ -74,7 +74,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ContGenAdmCommandLine.fs" />
-    <Compile Include="ContGenAdmServiceResponse.fs" />
     <Compile Include="ContGenAdmTasks.fs" />
     <Compile Include="ContGenAdmProgram.fs" />
     <None Include="App.config" />
@@ -124,6 +123,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj">
+      <Name>ClmGenerator</Name>
+      <Project>{f91606ff-90b6-481f-a2ac-2f4fc54a228a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>

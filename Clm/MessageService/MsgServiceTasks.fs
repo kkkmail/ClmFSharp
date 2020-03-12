@@ -8,7 +8,6 @@ open ClmSys.Logging
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo
-open System.Runtime.Remoting.Channels
 
 module ServiceTasks =
 
@@ -20,13 +19,7 @@ module ServiceTasks =
             |> List.choose id
 
 
-    //let runService l (_, i) = startServiceRun l i
     let runService l (_, i) = startWcfServiceRun l i
-
-
-    //let cleanupService logger i =
-    //    logger.logInfo "MessagingWindowsService: Unregistering TCP channel."
-    //    ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
 
 
     let cleanupService (logger : Logger) i =

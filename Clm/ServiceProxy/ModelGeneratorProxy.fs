@@ -8,6 +8,17 @@ open Clm.Generator.ClmModelData
 
 module ModelGeneratorProxy =
 
+    type GenerateModelCodeProxy =
+        {
+            loadParams : ClmTask -> ClmResult<AllParams>
+        }
+
+        static member create c =
+            {
+                loadParams = AllParams.create (loadClmDefaultValue c)
+            }
+
+
     type GenerateModelProxy =
         {
             loadParams : ClmTask -> ClmResult<AllParams>
@@ -22,6 +33,11 @@ module ModelGeneratorProxy =
                 upsertModelData = upsertModelData c
                 upsertRunQueue = upsertRunQueue c
                 updateClmTask = updateClmTask c
+            }
+
+        member p.generateModelCodeProxy =
+            {
+                loadParams = p.loadParams
             }
 
 

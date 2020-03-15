@@ -60,7 +60,7 @@ module SvcCommandLine =
                 | MsgSvcPort _ -> "messaging server port."
 
                 | Partitioner _ -> "messaging client id of a partitioner service."
-                | UsePartitioner _ -> "if true, then use partitioner, otherwise don't use it (default)."
+                | UsePartitioner _ -> "if true, then use partitioner (default), otherwise don't use it."
 
 
     and

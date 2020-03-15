@@ -10,6 +10,8 @@ module AllDefaults =
         AllDefaults_001.defaultValues
         @
         AllDefaults_002.defaultValues
+        @
+        AllDefaults_003.defaultValues
 
         |> List.map (fun e -> e.clmDefaultValueId, e)
         |> Map.ofList

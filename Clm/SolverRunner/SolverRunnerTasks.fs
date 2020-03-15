@@ -30,6 +30,7 @@ open ClmSys.WorkerNodePrimitives
 open NoSql.FileSystemTypes
 open ClmSys.Registry
 open ClmSys.ClmErrors
+open ClmSys.Rop
 
 module SolverRunnerTasks =
 
@@ -113,7 +114,7 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : unit -> UnitResult
+            onCompleted : ChartGenerationResult -> UnitResult
             onFailed : (string -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
@@ -162,8 +163,8 @@ module SolverRunnerTasks =
 
                 onCompleted =
                     match n with
-                    | Some svc -> fun () -> notify r svc Completed
-                    | None ->  fun () -> Ok()
+                    | Some svc -> fun c -> notify r svc (Completed c)
+                    | None ->  fun _ -> Ok()
 
                 onFailed =
                     match n with
@@ -252,7 +253,7 @@ module SolverRunnerTasks =
                 ]
 
             match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
-            | Ok c -> i.sovlerRunnerProxy.saveChartInfo c
+            | Ok c -> i.sovlerRunnerProxy.saveChartInfo c |> mapSuccessValue GeneratedCharts
             | Error e ->
                 printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A, error: %A" i.resultDataWithId.resultDataId plots e
                 Error e
@@ -260,8 +261,10 @@ module SolverRunnerTasks =
         if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
         then
             printfn "Generating plots..."
-            plotAll false |> ignore
-        else printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
+            plotAll false
+        else
+            printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
+            Ok NotGeneratedCharts
 
 
     let runSolver (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
@@ -292,21 +295,35 @@ module SolverRunnerTasks =
                     printfn "Saving."
                     let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
 
-                    {
-                        runSolverData = runSolverData
-                        serviceAccessInfo = i
-                        resultDataWithId = r
-                        chartData = chartData
-                        sovlerRunnerProxy = p
-                    }
-                    |> plotAllResults
+                    let chartResult =
+                        {
+                            runSolverData = runSolverData
+                            serviceAccessInfo = i
+                            resultDataWithId = r
+                            chartData = chartData
+                            sovlerRunnerProxy = p
+                        }
+                        |> plotAllResults
 
-                    r |> p.saveResultData |> ignore
+                    let result = r |> p.saveResultData
                     printfn "Completed."
 
-                    match runSolverData.onCompleted() with
-                    | Ok() -> ignore()
-                    | Error e -> logCrit (sprintf "%A" e)
+                    let onCompleted c =
+                        match runSolverData.onCompleted c with
+                        | Ok() -> ignore()
+                        | Error e -> logCrit (sprintf "%A" e)
+
+                    match chartResult, result with
+                    | Ok c, Ok() -> onCompleted c
+                    | Ok c, Error e ->
+                        logCrit (sprintf "%A" e)
+                        onCompleted c
+                    | Error e, Ok() ->
+                        logCrit (sprintf "%A" e)
+                        onCompleted NotGeneratedCharts
+                    | Error e1, Error e2 ->
+                        logCrit (sprintf "%A" (e1 + e2))
+                        onCompleted NotGeneratedCharts
 
                     CompletedSuccessfully
                 with

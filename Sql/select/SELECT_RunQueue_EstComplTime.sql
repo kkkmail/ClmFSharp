@@ -22,5 +22,7 @@ set @now = getdate()
 	where progress <> 1 and runQueueStatusId = 2
 )
 select * from w
-where estCompl is not null and estCompl < dateadd(day, 1, @now)
+where
+	estCompl is not null
+	and estCompl < dateadd(day, 1, @now)
 order by estCompl

@@ -6,7 +6,6 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
-open System.Diagnostics
 open MBrace.FsPickler
 open Newtonsoft.Json
 open GeneralPrimitives
@@ -101,11 +100,6 @@ module GeneralData =
 
 
     type ResultDataId
-        with
-        member this.toRunQueueId() = this.value |> RunQueueId
-
-
-    type RemoteProcessId
         with
         member this.toRunQueueId() = this.value |> RunQueueId
 
@@ -375,20 +369,6 @@ module GeneralData =
         r
 
     let timed name f a = timedImpl logger name (fun () -> f a)
-
-
-    let tryGetProcessById (LocalProcessId v) =
-        try
-            Process.GetProcessById v |> Some
-        with
-        | _ -> None
-
-
-    let tryGetProcessName (p : Process) =
-        try
-            p.ProcessName |> Some
-        with
-        | _ -> None
 
 
     let private xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)

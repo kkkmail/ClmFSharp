@@ -10,6 +10,8 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
+open Clm.ChartData
+open Clm.ModelParams
 
 module ServiceInfo =
 
@@ -29,7 +31,6 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            runnerRemoteProcessId : RemoteProcessId
             progress : TaskProgress
             started : DateTime
             lastUpdated : DateTime
@@ -43,11 +44,10 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            sprintf "RP: %A; T: %s;%s %A" r.runnerRemoteProcessId.value s estCompl r.progress
+            sprintf "T: %s;%s %A" s estCompl r.progress
 
-        static member defaultValue r =
+        static member defaultValue =
             {
-                runnerRemoteProcessId = r
                 progress = TaskProgress.NotStarted
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
@@ -56,7 +56,7 @@ module ServiceInfo =
 
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<LocalProcessId, RunnerState>
+            runningWorkers : Map<RunQueueId, RunnerState>
             numberOfWorkerCores : int
         }
 
@@ -76,8 +76,8 @@ module ServiceInfo =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node"
             | WrkNodeState s ->
-                let toString acc ((LocalProcessId k), (v : RunnerState)) =
-                    acc + (sprintf "        LP: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
+                let toString acc ((RunQueueId k), (v : RunnerState)) =
+                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
         
                 let x =
                     match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
@@ -88,7 +88,9 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
+        abstract updateProgress : ProgressUpdateInfo -> UnitResult
+        abstract saveResults : ResultDataWithId -> UnitResult
+        abstract saveCharts : ChartData -> UnitResult
         abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 

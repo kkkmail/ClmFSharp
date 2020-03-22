@@ -455,5 +455,3 @@ module Client =
         let eventHandler1 _ = w.removeExpiredMessages()
         let h1 = ClmEventHandlerInfo.oneHourValue logger eventHandler1 "MessagingClient - removeExpiredMessages" |> ClmEventHandler
         do h1.start()
-
-

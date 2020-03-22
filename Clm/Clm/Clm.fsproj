@@ -71,7 +71,6 @@
     <Compile Include="ReactionTypes.fs" />
     <Compile Include="ReactionRates.fs" />
     <Compile Include="Reactions.fs" />
-    <Compile Include="CommandLine.fs" />
     <Compile Include="ModelParams.fs" />
     <Compile Include="ModelInit.fs" />
     <Compile Include="CalculationData.fs" />

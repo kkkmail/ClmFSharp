@@ -64,15 +64,15 @@ module WorkerNodeProxy =
             getCommandLine : RunModelParam -> string
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
 
-            saveModelData : ModelData -> UnitResult
-            tryDeleteModelData : ModelDataId -> UnitResult
+            //saveModelData : ModelData -> UnitResult
+            //tryDeleteModelData : ModelDataId -> UnitResult
 
-            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
-            tryDeleteResultData : ResultDataId -> UnitResult
-            loadAllResultData : unit -> ListResult<ResultDataWithId>
+            //loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+            //tryDeleteResultData : ResultDataId -> UnitResult
+            //loadAllResultData : unit -> ListResult<ResultDataWithId>
 
-            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
-            tryDeleteChartInfo : ResultDataId -> UnitResult
+            //loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+            //tryDeleteChartInfo : ResultDataId -> UnitResult
         }
 
         static member create (i : WorkerNodeProxyData) =
@@ -86,15 +86,15 @@ module WorkerNodeProxy =
                 getCommandLine = fun p -> getCommandLine p true i.minUsefulEe i.noOfProgressPoints
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
 
-                // These ones are needed for SolverRunner interop.
-                // Note that the "name" is different here.
-                saveModelData = saveModelDataFs solverRunnerName
-                tryDeleteModelData = tryDeleteModelDataFs solverRunnerName
+                //// These ones are needed for SolverRunner interop.
+                //// Note that the "name" is different here.
+                //saveModelData = saveModelDataFs solverRunnerName
+                //tryDeleteModelData = tryDeleteModelDataFs solverRunnerName
 
-                loadResultData = loadResultDataFs solverRunnerName
-                tryDeleteResultData = tryDeleteResultDataFs solverRunnerName
-                loadAllResultData = loadResultDataAllFs solverRunnerName
+                //loadResultData = loadResultDataFs solverRunnerName
+                //tryDeleteResultData = tryDeleteResultDataFs solverRunnerName
+                //loadAllResultData = loadResultDataAllFs solverRunnerName
 
-                loadChartInfo = loadChartInfoFs solverRunnerName
-                tryDeleteChartInfo = tryDeleteChartInfoFs solverRunnerName
+                //loadChartInfo = loadChartInfoFs solverRunnerName
+                //tryDeleteChartInfo = tryDeleteChartInfoFs solverRunnerName
             }

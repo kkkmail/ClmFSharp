@@ -267,7 +267,86 @@ module SolverRunnerTasks =
             Ok NotGeneratedCharts
 
 
-    let runSolver (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
+    //let runSolverOld (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
+    //    match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
+    //    | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
+    //        let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
+    //        match p.loadModelData i (ModelDataId modelDataId) with
+    //        | Ok md ->
+    //            printfn "Starting at: %A" DateTime.Now
+    //            let a = results.GetResult (UseAbundant, defaultValue = false)
+    //
+    //            let c =
+    //                {
+    //                    tEnd = tEnd
+    //                    y0 = y0
+    //                    useAbundant = a
+    //                }
+    //
+    //            let w = g |> MessagingClientId |> WorkerNodeId
+    //            let pp = results.TryGetResult ProgrNotifPoints
+    //            let runSolverData = RunSolverData.create md i c (RunQueueId d) w pp
+    //
+    //            try
+    //                let nSolveParam = getNSolveParam runSolverData
+    //                let data = nSolveParam 0.0 (double tEnd)
+    //                nSolve data |> ignore
+    //
+    //                printfn "Saving."
+    //                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
+    //
+    //                let chartResult =
+    //                    {
+    //                        runSolverData = runSolverData
+    //                        serviceAccessInfo = i
+    //                        resultDataWithId = r
+    //                        chartData = chartData
+    //                        sovlerRunnerProxy = p
+    //                    }
+    //                    |> plotAllResults
+    //
+    //                let result = r |> p.saveResultData
+    //                printfn "Completed."
+    //
+    //                let onCompleted c =
+    //                    match runSolverData.onCompleted c with
+    //                    | Ok() -> ignore()
+    //                    | Error e -> logCrit (sprintf "%A" e)
+    //
+    //                match chartResult, result with
+    //                | Ok c, Ok() -> onCompleted c
+    //                | Ok c, Error e ->
+    //                    logCrit (sprintf "%A" e)
+    //                    onCompleted c
+    //                | Error e, Ok() ->
+    //                    logCrit (sprintf "%A" e)
+    //                    onCompleted NotGeneratedCharts
+    //                | Error e1, Error e2 ->
+    //                    logCrit (sprintf "%A" (e1 + e2))
+    //                    onCompleted NotGeneratedCharts
+    //
+    //                CompletedSuccessfully
+    //            with
+    //            | ex ->
+    //                printfn "Failed!"
+    //
+    //                match runSolverData.onFailed (ex.ToString()) with
+    //                | Ok() -> ignore()
+    //                | Error e -> logCrit (sprintf "ERROR: %A, EXCEPTION: %A" e ex)
+    //
+    //                UnknownException
+    //        | _ ->
+    //            let msg = sprintf "Unable to load model with id: %A" modelDataId
+    //            printfn "%s" msg
+    //            logCrit msg
+    //            UnknownException
+    //    | _ ->
+    //        printfn "%s" usage
+    //        logCrit usage
+    //        InvalidCommandLineArgs
+
+
+    let runSolver (results : ParseResults<SolverRunnerArguments>) =
         match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
         | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
             let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
@@ -344,3 +423,4 @@ module SolverRunnerTasks =
             printfn "%s" usage
             logCrit usage
             InvalidCommandLineArgs
+

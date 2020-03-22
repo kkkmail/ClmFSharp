@@ -111,7 +111,7 @@ module ModelRunnerProxy =
 
     type ProcessMessageProxy =
         {
-            updateProgress : RemoteProgressUpdateInfo -> UnitResult
+            updateProgress : ProgressUpdateInfo -> UnitResult
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartInfo -> UnitResult
             register : WorkerNodeInfo -> UnitResult

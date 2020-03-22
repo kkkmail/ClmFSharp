@@ -62,7 +62,7 @@ module ServiceImplementation =
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             workerNodeProxy : WorkerNodeProxy
             messageProcessorProxy : MessageProcessorProxy
-            exeName : string
+            //exeName : string
             minUsefulEe : MinUsefulEe
         }
 
@@ -71,28 +71,28 @@ module ServiceImplementation =
         | Start of AsyncReplyChannel<UnitResult>
         | Register of AsyncReplyChannel<UnitResult>
         | Unregister of AsyncReplyChannel<UnitResult>
-        | UpdateProgress of AsyncReplyChannel<UnitResult> * LocalProgressUpdateInfo
+        | UpdateProgress of AsyncReplyChannel<UnitResult> * ProgressUpdateInfo
         | GetMessages of AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
-    type OnSaveResultProxy =
-        {
-            partitionerId : PartitionerId
-            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
-            tryDeleteResultData : ResultDataId -> UnitResult
-            sendMessage : MessageInfo -> UnitResult
-        }
+    //type OnSaveResultProxy =
+    //    {
+    //        partitionerId : PartitionerId
+    //        //loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
+    //        //tryDeleteResultData : ResultDataId -> UnitResult
+    //        sendMessage : MessageInfo -> UnitResult
+    //    }
 
 
-    type OnSaveChartsProxy =
-        {
-            partitionerId : PartitionerId
-            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
-            tryDeleteChartInfo : ResultDataId -> UnitResult
-            sendMessage : MessageInfo -> UnitResult
-        }
+    //type OnSaveChartsProxy =
+    //    {
+    //        partitionerId : PartitionerId
+    //        loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
+    //        tryDeleteChartInfo : ResultDataId -> UnitResult
+    //        sendMessage : MessageInfo -> UnitResult
+    //    }
 
 
     type OnRegisterProxy =
@@ -109,7 +109,7 @@ module ServiceImplementation =
             sendMessage : MessageInfo -> UnitResult
             onSaveResult : ResultDataId -> UnitResult
             onSaveCharts : ResultDataId -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             tryDeleteModelData : ModelDataId -> UnitResult
         }
 
@@ -205,7 +205,7 @@ module ServiceImplementation =
     let getUpdateProgressResult
         (send : unit -> UnitResult)
         (proxy : OnUpdateProgressProxy)
-        (p : LocalProgressUpdateInfo)
+        (p : ProgressUpdateInfo)
         rid
         completed
         saveCharts =
@@ -266,8 +266,8 @@ module ServiceImplementation =
             partitionerId : PartitionerId
             workerNodeId : WorkerNodeId
             getRunModelParam : WorkerNodeRunModelData -> RunModelParam
-            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
-            getCommandLine : RunModelParam -> string
+            runModel : RunModelParam -> Result<LocalProcessStartedInfo, ProcessStartedError>
+            //getCommandLine : RunModelParam -> string
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
             sendMessage : MessageInfo -> UnitResult
         }
@@ -329,7 +329,7 @@ module ServiceImplementation =
             noOfCores : int
             workerNodeId : WorkerNodeId
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            loadAllResultData : unit -> ListResult<ResultDataWithId>
+            //loadAllResultData : unit -> ListResult<ResultDataWithId>
             sendMessage : MessageInfo -> UnitResult
             tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
             tryDeleteModelData : ModelDataId -> UnitResult
@@ -415,7 +415,7 @@ module ServiceImplementation =
 
     type OnProcessMessageProxy =
         {
-            saveModelData : ModelData -> UnitResult
+            //saveModelData : ModelData -> UnitResult
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
             tryFindRunningModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> RunnerState option
         }
@@ -476,8 +476,8 @@ module ServiceImplementation =
     let onSaveResultProxy i =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
-            loadResultData = i.workerNodeProxy.loadResultData
-            tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
+            //loadResultData = i.workerNodeProxy.loadResultData
+            //tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
             sendMessage = i.messageProcessorProxy.sendMessage
         }
 

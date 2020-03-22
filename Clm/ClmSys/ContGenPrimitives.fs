@@ -1,8 +1,6 @@
 ﻿namespace ClmSys
 
 open System
-open GeneralPrimitives
-open WorkerNodePrimitives
 
 module ContGenPrimitives =
 
@@ -63,7 +61,7 @@ module ContGenPrimitives =
         | NotStarted
         | InProgress of decimal
         | Completed of ChartGenerationResult
-        | Failed of WorkerNodeId * RemoteProcessId
+        | Failed
 
         static member failedValue = -1000m
 
@@ -78,4 +76,4 @@ module ContGenPrimitives =
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
             | Completed _ -> 1.0m
-            | Failed _ -> TaskProgress.failedValue
+            | Failed -> TaskProgress.failedValue

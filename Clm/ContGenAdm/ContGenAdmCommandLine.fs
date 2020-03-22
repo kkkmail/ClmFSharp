@@ -133,15 +133,15 @@ module AdmCommandLine =
 
 
     let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
-        let address =
-            match tryGetServerAddress p with
-            | Some a -> a
-            | None -> ServiceAddress.defaultContGenServiceValue
+        //let address =
+        //    match tryGetServerAddress p with
+        //    | Some a -> a
+        //    | None -> ServiceAddress.defaultContGenServiceValue
 
-        let port =
-            match tryGetServerPort p with
-            | Some a -> a
-            | None -> ServicePort.defaultContGenServiceValue
+        //let port =
+        //    match tryGetServerPort p with
+        //    | Some a -> a
+        //    | None -> ServicePort.defaultContGenServiceValue
 
         let ee =
             match tryGetServerMinUsefulEe p with

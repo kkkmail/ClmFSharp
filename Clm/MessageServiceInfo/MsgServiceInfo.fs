@@ -42,7 +42,7 @@ module ServiceInfo =
 
 
     type PartitionerMessage =
-        | UpdateProgressPrtMsg of RemoteProgressUpdateInfo
+        | UpdateProgressPrtMsg of ProgressUpdateInfo
         | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
@@ -59,16 +59,14 @@ module ServiceInfo =
 
     type WorkerNodeRunModelData =
         {
-            remoteProcessId : RemoteProcessId
-            localProcessId : LocalProcessId option
             runningProcessData : RunningProcessData
+            modelData : ModelData
             minUsefulEe : MinUsefulEe
-            commandLine : string
         }
 
 
     type WorkerNodeMessage =
-        | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
+        | RunModelWrkMsg of WorkerNodeRunModelData
 
         member this.messageSize =
             match this with
@@ -295,22 +293,16 @@ module ServiceInfo =
                         workerNodeRecipient = d.workerNodeId
                         deliveryType = GuaranteedDelivery
                         messageData =
-                            (
-                                {
-                                    remoteProcessId = q.runQueueId.toRemoteProcessId()
-                                    localProcessId = None
-                                    runningProcessData = d
-                                    minUsefulEe = minUsefulEe
-                                    commandLine = EmptyString
-                                },
-                                m
-                            )
+                            {
+                                runningProcessData = d
+                                minUsefulEe = minUsefulEe
+                                modelData = m
+                            }
                             |> RunModelWrkMsg
                     }.getMessageInfo()
                     |> Some |> Ok
                 | Error e -> Error e
             | None -> Ok None
-
 
 
     type IMessagingService =

@@ -1,6 +1,5 @@
 ﻿namespace ClmSys
 
-open System
 open GeneralPrimitives
 open MessagingClientErrors
 open MessagingPrimitives
@@ -31,7 +30,7 @@ module WorkerNodeErrors =
 
     type OnProcessMessageError =
         | CannotSaveModelData
-        | ModelAlreadyRunning of RemoteProcessId
+        | ModelAlreadyRunning of RunQueueId
         | InvalidMessage of (MessageId * string)
 
 
@@ -51,4 +50,3 @@ module WorkerNodeErrors =
         | UpdateLocalProgressError of string
         | ConfigureServiceError of string
         | MonitorServiceError of string
-

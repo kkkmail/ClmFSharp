@@ -112,24 +112,6 @@ module SvcCommandLine =
     let tryGetUsePartitioner p = p |> List.tryPick (fun e -> match e with | UsePartitioner p -> Some p | _ -> None)
 
 
-    let getServerAddress logger version name p =
-        match tryGetServerAddress p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServiceAddress version name with
-            | Ok a -> a
-            | Error _ -> ServiceAddress.defaultContGenServiceValue
-
-
-    let getServerPort logger version name p =
-        match tryGetServerPort p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServicePort version name with
-            | Ok a -> a
-            | Error _ -> ServicePort.defaultContGenServiceValue
-
-
     let geMinUsefulEe logger version name p =
         match tryGeMinUsefulEe p with
         | Some e -> e
@@ -143,15 +125,11 @@ module SvcCommandLine =
     let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
     let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
-    //let getUsePartitioner = getUsePartitionerImpl tryGetUsePartitioner
 
 
     let private getServiceAccessInfoImpl b p =
         let name = contGenServiceName
         let version = getVersion p
-
-        let address = getServerAddress logger version name p
-        let port = getServerPort logger version name p
         let ee = geMinUsefulEe logger version name p
 
         let msgAddress = getMsgServerAddress logger version name p
@@ -161,15 +139,10 @@ module SvcCommandLine =
         let usePartitioner = true
 
         let saveSettings() =
-            trySetContGenServiceAddress versionNumberValue name address |> ignore
-            trySetContGenServicePort versionNumberValue name port |> ignore
-
             trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort versionNumberValue name msgPort |> ignore
-
             trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
             trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
-
             trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
 
         match tryGetSaveSettings p, b with
@@ -178,13 +151,6 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
-            contGenServiceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                    inputServiceName = ContGenServiceName
-                }
-
             minUsefulEe = ee
         }
 

@@ -12,11 +12,9 @@ open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.SolverRunnerData
-open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.GeneralData
 
 module ServiceInfo =
 

@@ -159,6 +159,11 @@
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
+      <Name>MessagingServiceInfo</Name>
+      <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\NoSql\NoSql.fsproj">
       <Name>NoSql</Name>
       <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>

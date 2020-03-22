@@ -18,7 +18,6 @@ open Messaging.Client
 open Messaging.ServiceResponse
 open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
-open Clm.CommandLine
 open System.IO
 open ServiceProxy.MsgProcessorProxy
 open Clm.CalculationData
@@ -638,7 +637,6 @@ module ServiceImplementation =
                         workerNodeAccessInfo = serviceAccessInfo
                         workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
                         messageProcessorProxy = messagingClient.messageProcessorProxy
-                        exeName = SolverRunnerName
                         minUsefulEe = MinUsefulEe.defaultValue
                     }
                     |> createServiceImpl logger
@@ -655,7 +653,7 @@ module ServiceImplementation =
         do initService ()
 
 
-        let updateLocalProgressImpl p =
+        let updateProgressImpl p =
             match w with
             | Ok (Some r) -> r.updateProgress p
             | Ok None -> toError ServiceUnavailable
@@ -677,7 +675,7 @@ module ServiceImplementation =
 
 
         interface IWorkerNodeService with
-            member __.updateLocalProgress p = updateLocalProgressImpl p
+            member __.updateProgress p = updateProgressImpl p
             member __.ping() = Ok()
             member __.configure d = configureImpl d
             member __.monitor p = monitorImpl p

@@ -122,24 +122,6 @@ module SvcCommandLine =
         max 0 (min n Environment.ProcessorCount)
 
 
-    let getServerAddress logger version name p =
-        match tryGetServerAddress p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServiceAddress version name with
-            | Ok a -> a
-            | Error _ -> ServiceAddress.defaultWorkerNodeServiceValue
-
-
-    let getServerPort logger version name p =
-        match tryGetServerPort p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServicePort version name with
-            | Ok a -> a
-            | Error _ -> ServicePort.defaultWorkerNodeServiceValue
-
-
     let getClientId logger version name p =
         match tryGetClientId p with
         | Some a -> a
@@ -171,8 +153,6 @@ module SvcCommandLine =
         let name = workerNodeServiceName
 
         let version = getVersion p
-        let address = getServerAddress logger version name p
-        let port = getServerPort logger version name p
         let noOfCores = getNoOfCores logger version name p
 
         let msgAddress = getMsgServerAddress logger version name p
@@ -184,11 +164,8 @@ module SvcCommandLine =
         let nodeName = tryGetNodeNameImpl logger version name p |> Option.defaultValue (clientId.value.value.ToString("N"))
 
         let saveSettings() =
-            trySetContGenServiceAddress versionNumberValue name address |> ignore
-            trySetContGenServicePort versionNumberValue name port |> ignore
             trySetWorkerNodeName versionNumberValue name nodeName |> ignore
             trySetNumberOfCores versionNumberValue name noOfCores |> ignore
-
             trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
             trySetMessagingClientPort versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
@@ -201,18 +178,6 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
-            workerNodeServiceAccessInfo =
-                {
-                    nodeServiceAccessInfo =
-                        {
-                            serviceAddress = address
-                            servicePort = port
-                            inputServiceName = WorkerNodeServiceName
-                        }
-
-                    minUsefulEe = MinUsefulEe.defaultValue
-                }
-
             nodeInfo =
                 {
                     workerNodeName = WorkerNodeName nodeName

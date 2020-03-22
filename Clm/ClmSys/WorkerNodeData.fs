@@ -4,7 +4,6 @@ open GeneralData
 open MessagingData
 open WorkerNodePrimitives
 open PartitionerPrimitives
-open ContGenPrimitives
 
 module WorkerNodeData =
 
@@ -37,16 +36,8 @@ module WorkerNodeData =
             }
 
 
-    type NodeServiceAccessInfo =
-        {
-            nodeServiceAccessInfo : ServiceAccessInfo
-            minUsefulEe : MinUsefulEe
-        }
-
-
     type WorkerNodeServiceAccessInfo =
         {
-            workerNodeServiceAccessInfo : NodeServiceAccessInfo
             nodeInfo : NodeInfo
             workNodeMsgAccessInfo : WorkNodeMsgAccessInfo
             partitionerId : PartitionerId

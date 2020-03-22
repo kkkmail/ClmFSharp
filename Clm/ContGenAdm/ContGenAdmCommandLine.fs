@@ -103,8 +103,8 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
-            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
-            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
+            //| [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
+            //| [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
             | [<Unique>] [<AltCommandLine("ee")>]   ServerMinUsefulEe of double
 
         with
@@ -115,17 +115,17 @@ module AdmCommandLine =
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
                     | ConfigureService _ -> "reconfigures service."
-                    | ServerAddress _ -> "server address / name."
-                    | ServerPort _ -> "server port."
+                    //| ServerAddress _ -> "server address / name."
+                    //| ServerPort _ -> "server port."
                     | ServerMinUsefulEe _ -> "server min useful ee."
 
 
-    let tryGetServerAddress (p :list<ContGenAdmArguments>) =
-         p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    //let tryGetServerAddress (p :list<ContGenAdmArguments>) =
+    //     p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
 
 
-    let tryGetServerPort (p :list<ContGenAdmArguments>) =
-        p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
+    //let tryGetServerPort (p :list<ContGenAdmArguments>) =
+    //    p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
 
 
     let tryGetServerMinUsefulEe (p :list<ContGenAdmArguments>) =
@@ -150,12 +150,12 @@ module AdmCommandLine =
 
 
         {
-            contGenServiceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                    inputServiceName = ContGenServiceName
-                }
+            //contGenServiceAccessInfo =
+            //    {
+            //        serviceAddress = address
+            //        servicePort = port
+            //        inputServiceName = ContGenServiceName
+            //    }
 
             minUsefulEe = ee
         }

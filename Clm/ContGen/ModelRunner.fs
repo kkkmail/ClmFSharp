@@ -76,12 +76,12 @@ module ModelRunner =
         doWork()
 
 
-    let updateProgress (proxy : UpdateProgressProxy) (i : RemoteProgressUpdateInfo) =
+    let updateProgress (proxy : UpdateProgressProxy) (i : ProgressUpdateInfo) =
         printfn "updateProgress: i = %A" i
         let addError = addError UpdateProgressErr
         let toError = toError UpdateProgressErr
 
-        match proxy.tryLoadRunQueue i.runningProcessData.runQueueId with
+        match proxy.tryLoadRunQueue i.runQueueId with
         | Ok (Some q) ->
             match q.runQueueStatus with
             | InProgressRunQueue ->
@@ -95,12 +95,12 @@ module ModelRunner =
 
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()
-                | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
+                | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
             | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue ->
-                toError (InvalidRunQueueStatusErr i.runningProcessData.runQueueId)
-            | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runningProcessData.runQueueId)
-        | Ok None -> toError (UnableToFindLoadRunQueueErr i.runningProcessData.runQueueId)
-        | Error e -> addError (UnableToLoadRunQueueErr i.runningProcessData.runQueueId) e
+                toError (InvalidRunQueueStatusErr i.runQueueId)
+            | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runQueueId)
+        | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)
+        | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
 
 
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =

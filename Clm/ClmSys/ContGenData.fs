@@ -19,6 +19,6 @@ module ContGenData =
 
     type ContGenServiceAccessInfo =
         {
-            contGenServiceAccessInfo : ServiceAccessInfo
+            //contGenServiceAccessInfo : ServiceAccessInfo
             minUsefulEe : MinUsefulEe
         }

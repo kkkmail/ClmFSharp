@@ -195,10 +195,10 @@ module FileSystemTypes =
     let getModelDataIdsFs serviceName () = getObjectIds<ModelDataId> serviceName modelDataTblName (fun e -> e |> Guid.Parse |> ModelDataId)
     let loadModelDataAllsFs serviceName () = loadObjects<ModelData, Guid> serviceName modelDataTblName Guid.Parse
 
-    let saveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.remoteProcessId.value m
-    let loadWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = loadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
-    let tryDeleteWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
-    let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RemoteProcessId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
+    let saveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.runningProcessData.runQueueId.value m
+    let loadWorkerNodeRunModelDataFs serviceName (RunQueueId runQueueId) = loadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName runQueueId
+    let tryDeleteWorkerNodeRunModelDataFs serviceName (RunQueueId runQueueId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName runQueueId
+    let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RunQueueId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadWorkerNodeRunModelDataAllFs serviceName () = loadObjects<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName Guid.Parse
 
     let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
@@ -242,5 +242,3 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
-
-    let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r

@@ -193,28 +193,40 @@ module ServiceImplementation =
 
     let toDeliveryType progress =
         match progress with
-        | NotStarted -> (NonGuaranteedDelivery, false)
-        | InProgress _ -> (NonGuaranteedDelivery, false)
-        | Completed -> (GuaranteedDelivery, true)
-        | Failed _ -> (GuaranteedDelivery, true)
+        | NotStarted -> (NonGuaranteedDelivery, false, false)
+        | InProgress _ -> (NonGuaranteedDelivery, false, false)
+        | Completed c -> 
+            match c with
+            | GeneratedCharts -> (GuaranteedDelivery, true, true)
+            | NotGeneratedCharts -> (GuaranteedDelivery, true, false)
+        | Failed _ -> (GuaranteedDelivery, true, false)
 
 
-    let getUpdateProgressResult (send : unit -> UnitResult) (proxy : OnUpdateProgressProxy) (p : LocalProgressUpdateInfo) rid c =
+    let getUpdateProgressResult
+        (send : unit -> UnitResult)
+        (proxy : OnUpdateProgressProxy)
+        (p : LocalProgressUpdateInfo)
+        rid
+        completed
+        saveCharts =
         [
             send()
 
-            if c
+            if completed
             then
                 proxy.tryDeleteWorkerNodeRunModelData rid
                 proxy.tryDeleteModelData p.runningProcessData.modelDataId
                 p.runningProcessData.toResultDataId() |> proxy.onSaveResult
+
+            if saveCharts
+            then
                 p.runningProcessData.toResultDataId() |> proxy.onSaveCharts
         ]
         |> foldUnitResults
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) =
-        let updateProgress t c =
+        let updateProgress t completed saveCharts =
             let rso, result =
                 match s.runningWorkers |> Map.tryFind p.localProcessId with
                 | Some rs ->
@@ -226,19 +238,19 @@ module ServiceImplementation =
                         }.getMessageInfo()
                         |> proxy.sendMessage
 
-                    let result = getUpdateProgressResult send proxy p rs.runnerRemoteProcessId c
+                    let result = getUpdateProgressResult send proxy p rs.runnerRemoteProcessId completed saveCharts
                     Some { rs with progress = p.progress; lastUpdated = DateTime.Now }, result
                 | None -> None, p.localProcessId.value |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
-            if c
+            if completed
             then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }, result
             else
                 match rso with
                 | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }, result
                 | None -> s, result
 
-        let (t, c) = toDeliveryType p.progress
-        let w, result = updateProgress t c
+        let (t, completed, saveCharts) = toDeliveryType p.progress
+        let w, result = updateProgress t completed saveCharts
         w, result
 
 
@@ -341,7 +353,7 @@ module ServiceImplementation =
                             {
                                 remoteProcessId = w.remoteProcessId
                                 runningProcessData = w.runningProcessData
-                                progress = Completed
+                                progress = Completed NotGeneratedCharts
                             }
                             |> UpdateProgressPrtMsg
                     }.getMessageInfo()

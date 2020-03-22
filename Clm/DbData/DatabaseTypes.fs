@@ -444,7 +444,7 @@ module DatabaseTypes =
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
                 | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
                 | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value None
+                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g (Completed NotGeneratedCharts).value None
                 | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2

@@ -158,6 +158,9 @@ module ModelParams =
         }
 
 
+    let updateDescription d (lst : List<ClmDefaultValue>) = lst |> List.map (fun e -> { e with description = Some d })
+
+
     /// TODO kk:20200214 - Possibly add NotifyAddress DefaultWorkerNodeServiceAddress
     /// and NotifyPort DefaultWorkerNodeServicePort here.
     /// Currently it is hard coded below in ModelCommandLineParam.

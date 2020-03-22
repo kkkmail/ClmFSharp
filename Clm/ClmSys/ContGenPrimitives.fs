@@ -54,10 +54,15 @@ module ContGenPrimitives =
         static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
+    type ChartGenerationResult =
+        | GeneratedCharts
+        | NotGeneratedCharts
+
+
     type TaskProgress =
         | NotStarted
         | InProgress of decimal
-        | Completed
+        | Completed of ChartGenerationResult
         | Failed of WorkerNodeId * RemoteProcessId
 
         static member failedValue = -1000m
@@ -72,5 +77,5 @@ module ContGenPrimitives =
             match progress with
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
-            | Completed -> 1.0m
+            | Completed _ -> 1.0m
             | Failed _ -> TaskProgress.failedValue

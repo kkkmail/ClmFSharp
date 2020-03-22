@@ -13,7 +13,7 @@ module ContGenData =
             match progress with
             | NotStarted -> None
             | InProgress p -> estimateEndTime p started
-            | Completed -> Some DateTime.Now
+            | Completed _ -> Some DateTime.Now
             | Failed _ -> None
 
 

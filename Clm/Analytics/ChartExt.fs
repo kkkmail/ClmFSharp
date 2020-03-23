@@ -6,6 +6,8 @@ open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
 open FSharp.Plotly
+open ClmSys.GeneralErrors
+open ClmSys.ClmErrors
 
 module ChartExt =
 
@@ -56,3 +58,19 @@ module ChartExt =
         match i.useTempFolder with
         | true -> Chart.ShowWithDescription show
         | false -> Chart.ShowFileWithDescription show fileName
+
+
+    let getChart fileName d ch =
+        {
+            htmlContent = GenericChart.toEmbeddedHtmlWithDescription d ch
+            fileName = fileName
+        }
+
+
+    let showHtmlChart chart =
+        try
+            File.WriteAllText(chart.fileName, chart.htmlContent)
+            System.Diagnostics.Process.Start(chart.fileName) |> ignore
+            Ok()
+        with
+        | e -> e |> GeneralFileExn |> FileErr |> Result.Error

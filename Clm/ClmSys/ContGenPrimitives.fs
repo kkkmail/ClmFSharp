@@ -1,6 +1,7 @@
 ﻿namespace ClmSys
 
 open System
+open GeneralPrimitives
 
 module ContGenPrimitives =
 
@@ -52,8 +53,23 @@ module ContGenPrimitives =
         static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
+    type HtmlChart =
+        {
+            htmlContent: string
+            fileName : string
+        }
+
+
+    type ChartInfo =
+        {
+            resultDataId : ResultDataId
+            defaultValueId : ClmDefaultValueId
+            charts : list<HtmlChart>
+        }
+
+
     type ChartGenerationResult =
-        | GeneratedCharts
+        | GeneratedCharts of ChartInfo
         | NotGeneratedCharts
 
 
@@ -61,7 +77,7 @@ module ContGenPrimitives =
         | NotStarted
         | InProgress of decimal
         | Completed of ChartGenerationResult
-        | Failed
+        | Failed of string
 
         static member failedValue = -1000m
 
@@ -76,4 +92,4 @@ module ContGenPrimitives =
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
             | Completed _ -> 1.0m
-            | Failed -> TaskProgress.failedValue
+            | Failed _ -> TaskProgress.failedValue

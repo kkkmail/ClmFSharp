@@ -14,7 +14,6 @@ open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.SolverRunnerErrors
 
@@ -228,7 +227,7 @@ module FileSystemTypes =
                     File.WriteAllText(f, c)
 
                 c.charts
-                |> List.map (fun e -> saveChart (getFileName e.chartName) e.chartContent)
+                |> List.map (fun e -> saveChart (getFileName e.fileName) e.htmlContent)
                 |> ignore
                 Ok ()
             with
@@ -242,3 +241,5 @@ module FileSystemTypes =
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
+
+    let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r

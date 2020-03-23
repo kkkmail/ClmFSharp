@@ -16,7 +16,6 @@ open Clm.Distributions
 open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open System.IO
-open ClmSys.SolverRunnerData
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
@@ -25,6 +24,7 @@ open ClmSys.ClmErrors
 open ClmSys.Rop
 open MessagingServiceInfo.ServiceInfo
 open Clm.CalculationData
+open ClmSys.SolverRunnerErrors
 
 module SolverRunnerTasks =
 
@@ -188,135 +188,65 @@ module SolverRunnerTasks =
         (r, chartData)
 
 
-    //type PlotResultsInfo =
-    //    {
-    //        runSolverData : RunSolverData
-    //        resultDataWithId : ResultDataWithId
-    //        chartData : ChartData
-    //        saveChartInfo : ChartInfo -> UnitResult
-    //    }
+    type PlotResultsInfo =
+        {
+            runSolverData : RunSolverData
+            resultDataWithId : ResultDataWithId
+            chartData : ChartData
+        }
 
 
-    //let plotAllResults (i : PlotResultsInfo) =
-    //    let plotAll show =
-    //        let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
-    //        let plotter = new Plotter(pdi, i.chartData)
-    //
-    //        let plots =
-    //            [
-    //                plotter.plotAminoAcids show
-    //                plotter.plotTotalSubst show
-    //                plotter.plotEnantiomericExcess show
-    //            ]
-    //
-    //        match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
-    //        | Ok c -> i.saveChartInfo c |> mapSuccessValue GeneratedCharts
-    //        | Error e -> Error e
-    //
-    //    if i.resultDataWithId.resultData.maxEe >= i.runSolverData.minUsefulEe.value
-    //    then plotAll false
-    //    else Ok NotGeneratedCharts
+    let plotAllResults (i : PlotResultsInfo) =
+        let plotAll () =
+            let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
+            let plotter = new Plotter(pdi, i.chartData)
 
-
-    //let runSolverOld (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
-    //    match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
-    //    | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
-    //        let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
-    //        match p.loadModelData i (ModelDataId modelDataId) with
-    //        | Ok md ->
-    //            printfn "Starting at: %A" DateTime.Now
-    //            let a = results.GetResult (UseAbundant, defaultValue = false)
-    //
-    //            let c =
-    //                {
-    //                    tEnd = tEnd
-    //                    y0 = y0
-    //                    useAbundant = a
-    //                }
-    //
-    //            let w = g |> MessagingClientId |> WorkerNodeId
-    //            let pp = results.TryGetResult ProgrNotifPoints
-    //            let runSolverData = RunSolverData.create md i c (RunQueueId d) w pp
-    //
-    //            try
-    //                let nSolveParam = getNSolveParam runSolverData
-    //                let data = nSolveParam 0.0 (double tEnd)
-    //                nSolve data |> ignore
-    //
-    //                printfn "Saving."
-    //                let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
-    //
-    //                let chartResult =
-    //                    {
-    //                        runSolverData = runSolverData
-    //                        serviceAccessInfo = i
-    //                        resultDataWithId = r
-    //                        chartData = chartData
-    //                        sovlerRunnerProxy = p
-    //                    }
-    //                    |> plotAllResults
-    //
-    //                let result = r |> p.saveResultData
-    //                printfn "Completed."
-    //
-    //                let onCompleted c =
-    //                    match runSolverData.onCompleted c with
-    //                    | Ok() -> ignore()
-    //                    | Error e -> logCrit (sprintf "%A" e)
-    //
-    //                match chartResult, result with
-    //                | Ok c, Ok() -> onCompleted c
-    //                | Ok c, Error e ->
-    //                    logCrit (sprintf "%A" e)
-    //                    onCompleted c
-    //                | Error e, Ok() ->
-    //                    logCrit (sprintf "%A" e)
-    //                    onCompleted NotGeneratedCharts
-    //                | Error e1, Error e2 ->
-    //                    logCrit (sprintf "%A" (e1 + e2))
-    //                    onCompleted NotGeneratedCharts
-    //
-    //                CompletedSuccessfully
-    //            with
-    //            | ex ->
-    //                printfn "Failed!"
-    //
-    //                match runSolverData.onFailed (ex.ToString()) with
-    //                | Ok() -> ignore()
-    //                | Error e -> logCrit (sprintf "ERROR: %A, EXCEPTION: %A" e ex)
-    //
-    //                UnknownException
-    //        | _ ->
-    //            let msg = sprintf "Unable to load model with id: %A" modelDataId
-    //            printfn "%s" msg
-    //            logCrit msg
-    //            UnknownException
-    //    | _ ->
-    //        printfn "%s" usage
-    //        logCrit usage
-    //        InvalidCommandLineArgs
+            {
+                resultDataId = i.resultDataWithId.resultDataId
+                defaultValueId = i.chartData.initData.defaultValueId
+                charts =
+                    [
+                        plotter.getAminoAcids ()
+                        plotter.getTotalSubst ()
+                        plotter.getEnantiomericExcess ()
+                    ]
+            }
+            |> GeneratedCharts
+    
+        if i.resultDataWithId.resultData.maxEe >= i.runSolverData.minUsefulEe.value
+        then plotAll ()
+        else NotGeneratedCharts
 
 
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) : unit =
-        //match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
-        //| Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
-        //let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
-        //let md = w.modelData
-        //let c = w.runningProcessData.commandLineParams
-        //let w1 = g |> MessagingClientId |> WorkerNodeId
-        //let pp = results.TryGetResult ProgrNotifPoints
-        let runSolverData = RunSolverData.create w proxy.updateProgress None
-
-        let nSolveParam = getNSolveParam runSolverData
-        let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
+        let logIfFailed result =
+            match result with
+            | Ok() -> ignore()
+            | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
 
         try
+            let runSolverData = RunSolverData.create w proxy.updateProgress None
+            let nSolveParam = getNSolveParam runSolverData
+            let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
             nSolve data |> ignore
             let (r, chartData) = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
-            proxy.saveResultData r
+            let result = proxy.saveResult r
 
-            proxy.saveChartInfo chartData
-            ignore()
+            let chartResult =
+                {
+                    runSolverData = runSolverData
+                    resultDataWithId = r
+                    chartData = chartData
+                }
+                |> plotAllResults
+                |> proxy.saveCharts
+
+            combineUnitResults result chartResult |> logIfFailed
         with
         | e ->
-            proxy.updateProgress 0
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                progress = Failed (e.ToString())
+            }
+            |> proxy.updateProgress
+            |> logIfFailed

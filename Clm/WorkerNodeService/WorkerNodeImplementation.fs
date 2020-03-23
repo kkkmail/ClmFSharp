@@ -25,9 +25,11 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
+open ClmSys.MessagingPrimitives
+open ServiceProxy.SolverRunner
+open NoSql.FileSystemTypes
 
 module ServiceImplementation =
 
@@ -609,6 +611,18 @@ module ServiceImplementation =
             | Error e -> Error e
 
 
+    let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
+
+
+    let createSolverRunnerProxy (w : IWorkerNodeService) r =
+        {
+            updateProgress = w.updateProgress
+            saveResult = w.saveResult
+            saveCharts = w.saveCharts
+            logCrit = saveSolverRunnerErrFs (getErrName r)
+        }
+
+
     type WorkerNodeService () =
         inherit MarshalByRefObject()
         let logger = Logger.log4net
@@ -675,7 +689,9 @@ module ServiceImplementation =
 
 
         interface IWorkerNodeService with
-            member __.updateProgress p = updateProgressImpl p
-            member __.ping() = Ok()
-            member __.configure d = configureImpl d
-            member __.monitor p = monitorImpl p
+            member _.updateProgress p = updateProgressImpl p
+            member _.saveResult r = 0
+            member _.saveCharts c = 0
+            member _.ping() = Ok()
+            member _.configure d = configureImpl d
+            member _.monitor p = monitorImpl p

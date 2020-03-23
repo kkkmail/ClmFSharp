@@ -10,9 +10,7 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
-open Clm.ChartData
 open Clm.ModelParams
-open ClmSys.SolverRunnerData
 
 module ServiceInfo =
 
@@ -90,12 +88,8 @@ module ServiceInfo =
 
     type IWorkerNodeService =
         abstract updateProgress : ProgressUpdateInfo -> UnitResult
-        abstract saveResultData : ResultDataWithId -> UnitResult
-
-        // TODO kk:20200322 - It is unclear if we really need to transition to ChartData. While it does have more information, we might not need that much!
-        //abstract saveChartData : ChartData -> UnitResult
-        abstract saveChartInfo : ChartInfo -> UnitResult
-
+        abstract saveResult : ResultDataWithId -> UnitResult
+        abstract saveCharts : ChartGenerationResult -> UnitResult
         abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 

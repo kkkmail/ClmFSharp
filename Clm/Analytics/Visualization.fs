@@ -17,8 +17,12 @@ module Visualization =
         let minMax = (0.0, float p.initData.tEnd)
         let fn = [ for i in 0..(p.initData.binaryInfo.aminoAcids.Length - 1) -> i ]
         let tIdx = [ for i in 0..noOfOutputPoints -> i ]
-        let showChart = showChart i
         let xAxisName = "t"
+
+        let showHtmlChart show chart =
+            match show with
+            | true -> showHtmlChart chart
+            | false -> Ok()
 
 
         let description =
@@ -38,19 +42,17 @@ module Visualization =
             |> String.concat ", "
 
 
-        let plotAminoAcidsImpl show =
+        let getAminoAcidsImpl () =
             let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].aminoAcidsData.[i])
             let fileName = getFileName PlotAminoAcids
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show fileName description
-
-            fileName
+            |> getChart fileName description
 
 
-        let plotEnantiomericExcessImpl show =
+        let getEnantiomericExcessImpl () =
             let fileName = getFileName PlotEnantiomericExcess
 
             let name (i : int) =
@@ -62,12 +64,10 @@ module Visualization =
 
             Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show fileName description
-
-            fileName
+            |> getChart fileName description
 
 
-        let plotTotalSubstImpl show =
+        let getTotalSubstImpl () =
             let totalData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.totalData)
             let minData = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.minData)
             let fileName = getFileName PlotTotalSubst
@@ -93,11 +93,13 @@ module Visualization =
 
             Chart.Combine(charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> showChart show fileName description
-
-            fileName
+            |> getChart fileName description
 
 
-        member __.plotAminoAcids (show : bool) = plotAminoAcidsImpl show
-        member __.plotTotalSubst (show : bool) = plotTotalSubstImpl show
-        member __.plotEnantiomericExcess (show : bool) = plotEnantiomericExcessImpl show
+        member __.plotAminoAcids (show : bool) = getAminoAcidsImpl() |> showHtmlChart show
+        member __.plotTotalSubst (show : bool) = getTotalSubstImpl() |> showHtmlChart show
+        member __.plotEnantiomericExcess (show : bool) = getEnantiomericExcessImpl() |> showHtmlChart show
+
+        member __.getAminoAcids () = getAminoAcidsImpl()
+        member __.getTotalSubst () = getTotalSubstImpl()
+        member __.getEnantiomericExcess () = getEnantiomericExcessImpl()

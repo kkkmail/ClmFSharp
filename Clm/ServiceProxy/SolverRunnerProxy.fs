@@ -7,18 +7,19 @@ open NoSql.FileSystemTypes
 open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerData
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open ContGenServiceInfo.ServiceInfo
+open ClmSys.SolverRunnerErrors
 
 module SolverRunner =
 
     type SolverRunnerProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            saveResultData : ResultDataWithId -> UnitResult
-            saveChartInfo : ChartInfo -> UnitResult
+            saveResult : ResultDataWithId -> UnitResult
+            saveCharts : ChartGenerationResult -> UnitResult
+            logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
         //static member create (i : SolverRunnerProxyInfo) =

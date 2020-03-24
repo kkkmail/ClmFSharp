@@ -6,7 +6,6 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
-open ClmSys.SolverRunnerData
 open ClmSys.Rop
 open ServiceProxy.ModelRunnerProxy
 open ClmSys.ModelRunnerErrors

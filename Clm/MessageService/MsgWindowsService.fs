@@ -15,23 +15,23 @@ open System.ServiceModel
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgSvcShutDownInfo option =
-        try
-            serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
-            ChannelServices.RegisterChannel (channel, false)
-
-            RemotingConfiguration.RegisterWellKnownServiceType
-                (typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton)
-
-            {
-                msgSvcTcpChannel = channel
-            }
-            |> Some
-        with
-        | e ->
-            logger.logExn "Error starting service." e
-            None
+    //let startServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgSvcShutDownInfo option =
+    //    try
+    //        serviceAccessInfo <- i
+    //        let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
+    //        ChannelServices.RegisterChannel (channel, false)
+    //
+    //        RemotingConfiguration.RegisterWellKnownServiceType
+    //            (typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton)
+    //
+    //        {
+    //            msgSvcTcpChannel = channel
+    //        }
+    //        |> Some
+    //    with
+    //    | e ->
+    //        logger.logExn "Error starting service." e
+    //        None
 
 
     let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =

@@ -4,10 +4,6 @@ open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
-open ClmSys.GeneralErrors
-open ClmSys.ClmErrors
-open ClmSys.ContGenPrimitives
 
 
 module ChartData =

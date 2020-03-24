@@ -132,10 +132,6 @@ module GeneralErrors =
         | GetContGenMinUsefulEeError of RegistryErrorInfo
 
 
-    type ProcessStartedError =
-        | FailedToStart of exn
-
-
     type ClmEventHandlerError =
         | UnhandledException of string * Guid * exn
         | StillRunningError of string * Guid * DateTime

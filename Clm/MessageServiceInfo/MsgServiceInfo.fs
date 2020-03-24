@@ -11,7 +11,6 @@ open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.SolverRunnerData
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
@@ -303,13 +302,13 @@ module ServiceInfo =
             | None -> Ok None
 
 
-    type IMessagingService =
-        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
-        abstract sendMessage : Message -> UnitResult
-        abstract configureService : MessagingConfigParam -> UnitResult
-        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
-        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-        abstract getState : unit -> ClmResult<MsgServiceState>
+    //type IMessagingService =
+    //    abstract getVersion : unit -> ClmResult<MessagingDataVersion>
+    //    abstract sendMessage : Message -> UnitResult
+    //    abstract configureService : MessagingConfigParam -> UnitResult
+    //    abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
+    //    abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
+    //    abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -317,27 +316,21 @@ module ServiceInfo =
     type IMessagingWcfService =
 
         [<OperationContract(Name = "getVersion")>]
-        //abstract getVersion : u:unit -> MessagingDataVersion
         abstract getVersion : u:byte[] -> byte[]
 
         [<OperationContract(Name = "sendMessage")>]
-        //abstract sendMessage : m:Message -> MessageDeliveryResult
         abstract sendMessage : m:byte[] -> byte[]
 
         [<OperationContract(Name = "configureService")>]
-        //abstract configureService : p:MessagingConfigParam -> unit
         abstract configureService : p:byte[] -> byte[]
 
         [<OperationContract(Name = "tryPeekMessage")>]
-        //abstract tryPeekMessage : c:MessagingClientId -> Message option
         abstract tryPeekMessage : c:byte[] -> byte[]
 
         [<OperationContract(Name = "tryDeleteFromServer")>]
-        //abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
         abstract tryDeleteFromServer : cm:byte[] -> byte[]
 
         [<OperationContract(Name = "getState")>]
-        //abstract getState : u:unit -> MsgServiceState
         abstract getState : u:byte[] -> byte[]
 
 

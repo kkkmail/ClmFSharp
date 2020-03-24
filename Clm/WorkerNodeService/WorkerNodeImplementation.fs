@@ -198,7 +198,7 @@ module ServiceImplementation =
         | InProgress _ -> (NonGuaranteedDelivery, false, false)
         | Completed c -> 
             match c with
-            | GeneratedCharts -> (GuaranteedDelivery, true, true)
+            | GeneratedCharts _ -> (GuaranteedDelivery, true, true)
             | NotGeneratedCharts -> (GuaranteedDelivery, true, false)
         | Failed _ -> (GuaranteedDelivery, true, false)
 
@@ -430,7 +430,7 @@ module ServiceImplementation =
             match m.messageData with
             | WorkerNodeMsg x ->
                 match x with
-                | RunModelWrkMsg (d, m) ->
+                | RunModelWrkMsg d ->
                     match proxy.tryFindRunningModel s d with
                     | None ->
                         match proxy.saveModelData m with

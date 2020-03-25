@@ -20,7 +20,6 @@ module ClmErrors =
         | SerializationErr of SerializationError
         | WcfErr of WcfError
         | DbErr of DbError
-        | ProcessStartedErr of ProcessStartedError
         | MessagingServiceErr of MessagingServiceError
         | MessagingClientErr of MessagingClientError
         | ModelGeneratorErr of ModelGeneratorError

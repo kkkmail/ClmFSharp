@@ -30,6 +30,7 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
 open NoSql.FileSystemTypes
+open ClmSys.Rop
 
 module ServiceImplementation =
 
@@ -78,13 +79,11 @@ module ServiceImplementation =
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
-    //type OnSaveResultProxy =
-    //    {
-    //        partitionerId : PartitionerId
-    //        //loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
-    //        //tryDeleteResultData : ResultDataId -> UnitResult
-    //        sendMessage : MessageInfo -> UnitResult
-    //    }
+    type SendMessageProxy =
+        {
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+        }
 
 
     //type OnSaveChartsProxy =
@@ -115,29 +114,17 @@ module ServiceImplementation =
         }
 
 
-    let onSaveResult (proxy : OnSaveResultProxy) (d : ResultDataId) =
-        let addError = addError OnSaveResultErr
-
-        match proxy.loadResultData d with
-        | Ok r ->
-            let send() =
-                {
-                    partitionerRecipient = proxy.partitionerId
-                    deliveryType = GuaranteedDelivery
-                    messageData = r |> SaveResultPrtMsg
-                }.getMessageInfo()
-                |> proxy.sendMessage
-
-            match send() with
-            | Ok() ->
-                match proxy.tryDeleteResultData d with
-                | Ok() -> Ok()
-                | Error e -> addError (DeleteResultDataError d) e
-            | Error e -> addError (SendResultMessageError (proxy.partitionerId.messagingClientId, d)) e
-        | Error e -> addError (LoadResultDataErr d) e
+    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
+        {
+            partitionerRecipient = proxy.partitionerId
+            deliveryType = GuaranteedDelivery
+            messageData = r |> SaveResultPrtMsg
+        }.getMessageInfo()
+        |> proxy.sendMessage
+        |> bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
-    let onSaveCharts (proxy : OnSaveChartsProxy) (d : ResultDataId) =
+    let onSaveCharts (proxy : SendMessageProxy) (d : ResultDataId) =
         let addError = addError OnSaveChartsErr
 
         match proxy.loadChartInfo d with

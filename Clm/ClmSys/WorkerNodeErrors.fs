@@ -7,16 +7,11 @@ open MessagingPrimitives
 module WorkerNodeErrors =
 
     type OnSaveResultError =
-        | LoadResultDataErr of ResultDataId
         | SendResultMessageError of (MessagingClientId * ResultDataId)
-        | DeleteResultDataError of ResultDataId
 
 
     type OnSaveChartsError =
-        | LoadChartInfoError of ResultDataId
         | SendChartMessageError of (MessagingClientId * ResultDataId)
-        | DeleteChartError of (MessagingClientId * ResultDataId * exn)
-        | DeleteChartInfoError of ResultDataId
 
 
     type OnUpdateProgressError =

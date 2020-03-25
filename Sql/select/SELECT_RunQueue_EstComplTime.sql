@@ -14,6 +14,7 @@ set @now = getdate()
 		,cast(case when startedOn is not null and progress > 0 then datediff(second, startedOn, @now) / progress / (3600 * 24) else null end as money) as totalRunTime
 		,runQueueId
 		,workerNodeName
+		,q.modifiedOn
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
@@ -27,4 +28,5 @@ where
 	estCompl is not null
 	and estCompl < dateadd(day, 1, @now)
 	and clmDefaultValueId > 2000000000
+	--and workerNodeName in ('CLM', 'THUNDER', 'WEENY')
 order by estCompl

@@ -64,7 +64,6 @@ module ServiceImplementation =
             workerNodeAccessInfo : WorkerNodeServiceAccessInfo
             workerNodeProxy : WorkerNodeProxy
             messageProcessorProxy : MessageProcessorProxy
-            //exeName : string
             minUsefulEe : MinUsefulEe
         }
 
@@ -86,15 +85,6 @@ module ServiceImplementation =
         }
 
 
-    //type OnSaveChartsProxy =
-    //    {
-    //        partitionerId : PartitionerId
-    //        loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
-    //        tryDeleteChartInfo : ResultDataId -> UnitResult
-    //        sendMessage : MessageInfo -> UnitResult
-    //    }
-
-
     type OnRegisterProxy =
         {
             partitionerId : PartitionerId
@@ -114,7 +104,7 @@ module ServiceImplementation =
         }
 
 
-    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
+    let onSaveResult (proxy : SendMessageProxy) r =
         {
             partitionerRecipient = proxy.partitionerId
             deliveryType = GuaranteedDelivery
@@ -124,35 +114,14 @@ module ServiceImplementation =
         |> bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
-    let onSaveCharts (proxy : SendMessageProxy) (d : ResultDataId) =
-        let addError = addError OnSaveChartsErr
-
-        match proxy.loadChartInfo d with
-        | Ok c ->
-            let send() =
-                {
-                    partitionerRecipient = proxy.partitionerId
-                    deliveryType = GuaranteedDelivery
-                    messageData = c |> SaveChartsPrtMsg
-                }.getMessageInfo()
-                |> proxy.sendMessage
-
-            match send() with
-            | Ok() ->
-                let r() =
-                    try
-                        c.charts
-                        |> List.map (fun e -> if File.Exists e.chartName then File.Delete e.chartName)
-                        |> ignore
-                        Ok()
-                    with
-                    | ex -> (proxy.partitionerId.messagingClientId, d, ex) |> DeleteChartError |> OnSaveChartsErr |> WorkerNodeErr |> Error
-
-                match (r(), proxy.tryDeleteChartInfo d) ||> combineUnitResults with
-                | Ok() -> Ok()
-                | Error e -> addError (DeleteChartInfoError d) e
-            | Error e -> addError (SendChartMessageError (proxy.partitionerId.messagingClientId, d)) e
-        | Error e -> addError (LoadChartInfoError d) e
+    let onSaveCharts (proxy : SendMessageProxy) c =
+        {
+            partitionerRecipient = proxy.partitionerId
+            deliveryType = GuaranteedDelivery
+            messageData = c |> SaveChartsPrtMsg
+        }.getMessageInfo()
+        |> proxy.sendMessage
+        |> bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
 
 
     let onRegister (proxy : OnRegisterProxy) s =
@@ -181,82 +150,48 @@ module ServiceImplementation =
 
     let toDeliveryType progress =
         match progress with
-        | NotStarted -> (NonGuaranteedDelivery, false, false)
-        | InProgress _ -> (NonGuaranteedDelivery, false, false)
-        | Completed c -> 
-            match c with
-            | GeneratedCharts _ -> (GuaranteedDelivery, true, true)
-            | NotGeneratedCharts -> (GuaranteedDelivery, true, false)
-        | Failed _ -> (GuaranteedDelivery, true, false)
+        | NotStarted -> (NonGuaranteedDelivery, false)
+        | InProgress _ -> (NonGuaranteedDelivery, false)
+        | Completed c -> (GuaranteedDelivery, true)
+        | Failed _ -> (GuaranteedDelivery, true)
 
 
-    let getUpdateProgressResult
-        (send : unit -> UnitResult)
-        (proxy : OnUpdateProgressProxy)
-        (p : ProgressUpdateInfo)
-        rid
-        completed
-        saveCharts =
-        [
-            send()
-
-            if completed
-            then
-                proxy.tryDeleteWorkerNodeRunModelData rid
-                proxy.tryDeleteModelData p.runningProcessData.modelDataId
-                p.runningProcessData.toResultDataId() |> proxy.onSaveResult
-
-            if saveCharts
-            then
-                p.runningProcessData.toResultDataId() |> proxy.onSaveCharts
-        ]
-        |> foldUnitResults
-
-
-    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : LocalProgressUpdateInfo) =
-        let updateProgress t completed saveCharts =
+    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
+        let updateProgress t completed =
             let rso, result =
-                match s.runningWorkers |> Map.tryFind p.localProcessId with
+                match s.runningWorkers |> Map.tryFind p.runQueueId with
                 | Some rs ->
-                    let send() =
+                    let result =
                         {
                             partitionerRecipient = proxy.partitionerId
                             deliveryType = t
-                            messageData = UpdateProgressPrtMsg { remoteProcessId = rs.runnerRemoteProcessId; runningProcessData = p.runningProcessData; progress = p.progress }
+                            messageData = UpdateProgressPrtMsg p
                         }.getMessageInfo()
                         |> proxy.sendMessage
+                        |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
-                    let result = getUpdateProgressResult send proxy p rs.runnerRemoteProcessId completed saveCharts
                     Some { rs with progress = p.progress; lastUpdated = DateTime.Now }, result
-                | None -> None, p.localProcessId.value |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
+                | None -> None, p.runQueueId |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
             if completed
-            then { s with runningWorkers = s.runningWorkers.tryRemove p.localProcessId }, result
+            then
+                let r2 = proxy.tryDeleteWorkerNodeRunModelData p.runQueueId
+                { s with runningWorkers = s.runningWorkers.tryRemove p.runQueueId }, combineUnitResults result r2
             else
                 match rso with
-                | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.localProcessId, rs) }, result
+                | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.runQueueId, rs) }, result
                 | None -> s, result
 
-        let (t, completed, saveCharts) = toDeliveryType p.progress
-        let w, result = updateProgress t completed saveCharts
+        let (t, completed) = toDeliveryType p.progress
+        let w, result = updateProgress t completed
         w, result
-
-
-    let getRunModelParam (i : WorkerNodeRunnerData) (d : WorkerNodeRunModelData) =
-        {
-            exeName = i.exeName
-            callBackInfo = { d.runningProcessData with workerNodeId = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId }
-        }
 
 
     type OnRunModelProxy =
         {
             partitionerId : PartitionerId
             workerNodeId : WorkerNodeId
-            getRunModelParam : WorkerNodeRunModelData -> RunModelParam
-            runModel : RunModelParam -> Result<LocalProcessStartedInfo, ProcessStartedError>
-            //getCommandLine : RunModelParam -> string
-            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            runModel : SolverRunnerProxy -> WorkerNodeRunModelData -> unit
             sendMessage : MessageInfo -> UnitResult
         }
 
@@ -317,12 +252,8 @@ module ServiceImplementation =
             noOfCores : int
             workerNodeId : WorkerNodeId
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            //loadAllResultData : unit -> ListResult<ResultDataWithId>
             sendMessage : MessageInfo -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
-            tryDeleteModelData : ModelDataId -> UnitResult
-            onSaveResult : ResultDataId -> UnitResult
-            onSaveCharts : ResultDataId -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
         }
 
@@ -394,18 +325,10 @@ module ServiceImplementation =
         g, result
 
 
-    let tryFindRunningModel (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        s.runningWorkers
-        |> Map.toList
-        |> List.map (fun (_, v) -> v)
-        |> List.tryFind (fun e -> e.runnerRemoteProcessId = d.remoteProcessId)
-
-
     type OnProcessMessageProxy =
         {
-            //saveModelData : ModelData -> UnitResult
+            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
-            tryFindRunningModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> RunnerState option
         }
 
 
@@ -418,14 +341,14 @@ module ServiceImplementation =
             | WorkerNodeMsg x ->
                 match x with
                 | RunModelWrkMsg d ->
-                    match proxy.tryFindRunningModel s d with
+                    match s.runningWorkers |> Map.tryFind d.runningProcessData.runQueueId with
                     | None ->
-                        match proxy.saveModelData m with
+                        match proxy.saveWorkerNodeRunModelData d with
                         | Ok() ->
                             let w1, r1 = proxy.onRunModel s d
                             w1, r1
                         | Error e -> s, addError CannotSaveModelData e
-                    | Some r -> s, r.runnerRemoteProcessId |> ModelAlreadyRunning |> toError
+                    | Some _ -> s, d.runningProcessData.runQueueId |> ModelAlreadyRunning |> toError
             | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessage |> toError
 
         w, result

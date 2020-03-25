@@ -15,7 +15,8 @@ module WorkerNodeErrors =
 
 
     type OnUpdateProgressError =
-        | UnableToFindMappingError of int
+        | UnableToSendProgressMsgErr of RunQueueId
+        | UnableToFindMappingError of RunQueueId
 
 
     type OnRunModelError =

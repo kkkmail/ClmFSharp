@@ -20,8 +20,7 @@ module WorkerNodeErrors =
 
 
     type OnRunModelError =
-        | CannotSaveWorkerNodeRunModelData of string
-        | CannotRunModel of string
+        | CannotRunModel
 
 
     type OnProcessMessageError =

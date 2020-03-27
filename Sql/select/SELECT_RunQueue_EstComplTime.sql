@@ -27,6 +27,5 @@ select * from w
 where
 	estCompl is not null
 	and estCompl < dateadd(day, 1, @now)
-	and clmDefaultValueId > 2000000000
-	--and workerNodeName in ('CLM', 'THUNDER', 'WEENY')
-order by estCompl
+	--and clmDefaultValueId > 2000000000
+order by modifiedOn, estCompl

@@ -31,6 +31,7 @@ open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
 open NoSql.FileSystemTypes
 open ClmSys.Rop
+open System.Threading
 
 module ServiceImplementation =
 
@@ -193,57 +194,39 @@ module ServiceImplementation =
             workerNodeId : WorkerNodeId
             runModel : SolverRunnerProxy -> WorkerNodeRunModelData -> unit
             sendMessage : MessageInfo -> UnitResult
+            solverRunnerProxy : SolverRunnerProxy
         }
 
 
     let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        let addError = addError OnRunModelErr
-
         let w, result =
-            let a = proxy.getRunModelParam d
-
             match s.numberOfWorkerCores > s.runningWorkers.Count with
             | true ->
-                match proxy.runModel a with
-                | Ok lpsi ->
-                    let res =
-                        match proxy.saveWorkerNodeRunModelData { d with localProcessId = Some lpsi.localProcessId; commandLine = proxy.getCommandLine a } with
-                        | Ok() -> Ok()
-                        | Error e -> addError (proxy.getCommandLine a |> CannotSaveWorkerNodeRunModelData) e
+                let c = new CancellationTokenSource()
+                let m = async { proxy.runModel proxy.solverRunnerProxy d }
+                Async.Start (m, c.Token)
 
-                    let rs =
-                        {
-                            runnerRemoteProcessId = d.remoteProcessId
-                            progress = TaskProgress.NotStarted
-                            started = DateTime.Now
-                            lastUpdated = DateTime.Now
-                        }
-
-                    { s with runningWorkers = s.runningWorkers.Add(lpsi.localProcessId, rs) }, res
-                | Error e ->
-                    let err = addError (proxy.getCommandLine a |> CannotRunModel) (ProcessStartedErr e)
-                    s, err
-            | false ->
-                let r = a.callBackInfo.runQueueId.toRemoteProcessId()
-
-                let q =
+                let rs =
                     {
-                        remoteProcessId = r
-                        runningProcessData = a.callBackInfo
-                        progress = Failed (proxy.workerNodeId, r)
+                        progress = TaskProgress.NotStarted
+                        started = DateTime.Now
+                        lastUpdated = DateTime.Now
+                        cancellationTokenSource = c
                     }
 
+                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, rs) }, Ok()
+            | false ->
                 let res =
                     {
                         partitionerRecipient = proxy.partitionerId
                         deliveryType = GuaranteedDelivery
-                        messageData = UpdateProgressPrtMsg q
+                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = Failed "" }
                     }.getMessageInfo()
                     |> proxy.sendMessage
 
                 s, res
 
-        w, result
+        w, result |> bindError (addError OnRunModelErr CannotRunModel)
 
 
     type OnStartProxy =
@@ -258,34 +241,34 @@ module ServiceImplementation =
         }
 
 
-    let runIfNoResult (proxy : OnStartProxy) (r : list<ResultDataWithId>) g w =
-        let d = w.remoteProcessId.toResultDataId()
-
-        match r |> List.tryFind (fun e -> e.resultDataId = d) with
-        | Some _ ->
-            let result =
-                [
-                    {
-                        partitionerRecipient = proxy.partitionerId
-                        deliveryType = GuaranteedDelivery
-                        messageData =
-                            {
-                                remoteProcessId = w.remoteProcessId
-                                runningProcessData = w.runningProcessData
-                                progress = Completed NotGeneratedCharts
-                            }
-                            |> UpdateProgressPrtMsg
-                    }.getMessageInfo()
-                    |> proxy.sendMessage
-
-                    proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
-                    proxy.tryDeleteModelData w.runningProcessData.modelDataId
-                    proxy.onSaveResult d
-                    proxy.onSaveCharts d
-                ]
-                |> foldUnitResults
-            g, result
-        | None -> proxy.onRunModel g w
+    //let runIfNoResult (proxy : OnStartProxy) (r : list<ResultDataWithId>) g w =
+    //    let d = w.remoteProcessId.toResultDataId()
+    //
+    //    match r |> List.tryFind (fun e -> e.resultDataId = d) with
+    //    | Some _ ->
+    //        let result =
+    //            [
+    //                {
+    //                    partitionerRecipient = proxy.partitionerId
+    //                    deliveryType = GuaranteedDelivery
+    //                    messageData =
+    //                        {
+    //                            remoteProcessId = w.remoteProcessId
+    //                            runningProcessData = w.runningProcessData
+    //                            progress = Completed NotGeneratedCharts
+    //                        }
+    //                        |> UpdateProgressPrtMsg
+    //                }.getMessageInfo()
+    //                |> proxy.sendMessage
+    //
+    //                proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
+    //                proxy.tryDeleteModelData w.runningProcessData.modelDataId
+    //                proxy.onSaveResult d
+    //                proxy.onSaveCharts d
+    //            ]
+    //            |> foldUnitResults
+    //        g, result
+    //    | None -> proxy.onRunModel g w
 
 
     let onStart (proxy : OnStartProxy) s =

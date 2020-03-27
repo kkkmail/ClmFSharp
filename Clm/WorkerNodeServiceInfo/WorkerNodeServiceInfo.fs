@@ -33,6 +33,7 @@ module ServiceInfo =
             progress : TaskProgress
             started : DateTime
             lastUpdated : DateTime
+            cancellationTokenSource : CancellationTokenSource
         }
 
         override r.ToString() =
@@ -45,12 +46,12 @@ module ServiceInfo =
 
             sprintf "T: %s;%s %A" s estCompl r.progress
 
-        static member defaultValue =
-            {
-                progress = TaskProgress.NotStarted
-                started = DateTime.Now
-                lastUpdated = DateTime.Now
-            }
+        //static member defaultValue =
+        //    {
+        //        progress = TaskProgress.NotStarted
+        //        started = DateTime.Now
+        //        lastUpdated = DateTime.Now
+        //    }
 
 
     type WorkerNodeRunnerState =

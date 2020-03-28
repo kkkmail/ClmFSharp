@@ -12,6 +12,7 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingService.ServiceImplementation
 open MessagingService.SvcCommandLine
 open System.ServiceModel
+open ClmSys.MessagingPrimitives
 
 module WindowsService =
 
@@ -63,7 +64,7 @@ module WindowsService =
 
 
     type public MessagingWindowsService () =
-        inherit ServiceBase (ServiceName = MessagingServiceName)
+        inherit ServiceBase (ServiceName = messagingServiceName.value.value)
 
         let initService () = ()
         do initService ()

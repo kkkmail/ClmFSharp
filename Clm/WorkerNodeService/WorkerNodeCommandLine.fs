@@ -186,6 +186,8 @@ module SvcCommandLine =
             |> WorkerNodeName
 
         let saveSettings() =
+            trySetContGenServiceAddress versionNumberValue name address.value |> ignore
+            trySetContGenServicePort versionNumberValue name port.value |> ignore
             trySetWorkerNodeName versionNumberValue name nodeName |> ignore
             trySetNumberOfCores versionNumberValue name noOfCores |> ignore
             trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore

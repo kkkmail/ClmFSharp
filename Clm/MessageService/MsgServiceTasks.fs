@@ -4,6 +4,8 @@ open Argu
 open ClmSys.ServiceInstaller
 open ClmSys.MessagingData
 open ClmSys.Logging
+open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService
 open MessagingServiceInfo.ServiceInfo
@@ -18,7 +20,7 @@ module ServiceTasks =
             |> List.choose id
 
 
-    let runService l (_, i) = startWcfServiceRun l i
+    let runService l (_ : list<MessagingConfigParam>, i) = startWcfServiceRun l i
 
 
     let cleanupService (logger : Logger) i =
@@ -29,7 +31,7 @@ module ServiceTasks =
 
     let serviceInfo =
         {
-            serviceName = ServiceName MessagingServiceName
+            serviceName = messagingServiceName.value
             runService = runService
             cleanup = cleanupService
             timeoutMilliseconds = None

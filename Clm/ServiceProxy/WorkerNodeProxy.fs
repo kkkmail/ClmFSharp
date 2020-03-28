@@ -50,5 +50,5 @@ module WorkerNodeProxy =
                 loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
-                logCrit = 0
+                logCrit = saveSolverRunnerErrFs name
             }

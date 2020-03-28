@@ -1,7 +1,5 @@
 ﻿namespace WorkerNodeServiceInfo
 
-open ClmSys.VersionInfo
-open ContGenServiceInfo.ServiceInfo
 open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralData
 open System.Threading
@@ -10,12 +8,10 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
-open Clm.ModelParams
 
 module ServiceInfo =
 
-    let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value
-    let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
+    let workerNodeServiceProgramName = "WorkerNodeService.exe"
 
 
     type WrkNodeShutDownInfo =
@@ -45,13 +41,6 @@ module ServiceInfo =
                 | None -> EmptyString
 
             sprintf "T: %s;%s %A" s estCompl r.progress
-
-        //static member defaultValue =
-        //    {
-        //        progress = TaskProgress.NotStarted
-        //        started = DateTime.Now
-        //        lastUpdated = DateTime.Now
-        //    }
 
 
     type WorkerNodeRunnerState =
@@ -88,9 +77,6 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        //abstract updateProgress : ProgressUpdateInfo -> UnitResult
-        //abstract saveResult : ResultDataWithId -> UnitResult
-        //abstract saveCharts : ChartGenerationResult -> UnitResult
         abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 

@@ -41,7 +41,7 @@ module ServiceImplementation =
 
 
     let mutable serviceAccessInfo =
-        let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
+        let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = workerNodeServiceProgramName)
         let results = (parser.Parse [||]).GetAllResults()
         results |> getServiceAccessInfo
 
@@ -449,13 +449,13 @@ module ServiceImplementation =
     let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
 
 
-    let createSolverRunnerProxy (w : IWorkerNodeService) r =
-        {
-            updateProgress = w.updateProgress
-            saveResult = w.saveResult
-            saveCharts = w.saveCharts
-            logCrit = saveSolverRunnerErrFs (getErrName r)
-        }
+    //let createSolverRunnerProxy (w : IWorkerNodeService) r =
+    //    {
+    //        updateProgress = w.updateProgress
+    //        saveResult = w.saveResult
+    //        saveCharts = w.saveCharts
+    //        logCrit = saveSolverRunnerErrFs (getErrName r)
+    //    }
 
 
     type WorkerNodeService () =
@@ -502,10 +502,10 @@ module ServiceImplementation =
         do initService ()
 
 
-        let updateProgressImpl p =
-            match w with
-            | Ok r -> r.updateProgress p
-            | Error e -> addError (UpdateLocalProgressError (sprintf "Failed to update progress: %A" p)) e
+        //let updateProgressImpl p =
+        //    match w with
+        //    | Ok r -> r.updateProgress p
+        //    | Error e -> addError (UpdateLocalProgressError (sprintf "Failed to update progress: %A" p)) e
 
 
         //let saveResultImpl r =
@@ -528,13 +528,12 @@ module ServiceImplementation =
 
         let monitorImpl _ =
             match w with
-            | Ok (Some r) -> r.getState() |> WrkNodeState
-            | Ok None -> CannotAccessWrkNode
+            | Ok r -> r.getState() |> WrkNodeState
             | Error e -> ErrorOccurred e
 
 
         interface IWorkerNodeService with
-            member _.updateProgress p = updateProgressImpl p
+            //member _.updateProgress p = updateProgressImpl p
             //member _.saveResult r = saveResultImpl r
             //member _.saveCharts c = saveChartsImpl c
             member _.ping() = Ok()

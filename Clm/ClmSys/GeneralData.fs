@@ -37,25 +37,25 @@ module GeneralData =
         serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
-    let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+    let getServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
         "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
-    let private getWcfServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+    let getWcfServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
         "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
-    type ServiceAccessInfo =
-        {
-            serviceAddress : ServiceAddress
-            servicePort : ServicePort
-            inputServiceName : string
-        }
+    //type ServiceAccessInfo =
+    //    {
+    //        serviceAddress : ServiceAddress
+    //        servicePort : ServicePort
+    //        inputServiceName : string
+    //    }
 
-        member s.serviceName = s.inputServiceName
-        member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
-        member s.wcfServiceName = toValidServiceName s.inputServiceName
-        member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
+    //    member s.serviceName = s.inputServiceName
+    //    member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
+    //    member s.wcfServiceName = toValidServiceName s.inputServiceName
+    //    member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
 
 
     let toVariableName (s : string) =

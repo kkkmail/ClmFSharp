@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<ContGenSvcArguArgs>(programName = ContGenServiceProgramName)
+            let parser = ArgumentParser.Create<ContGenSvcArguArgs>(programName = contGenServiceProgramName)
             let results = (parser.Parse argv).GetAllResults() |> ContGenSvcArgs.fromArgu convertArgs
 
             match ContGenServiceTask.tryCreate getParams getSaveSettings results with

@@ -17,8 +17,7 @@ open ClmSys.ClmErrors
 
 module ServiceInfo =
 
-    let MessagingServiceName = "MessagingService" + " - " + versionNumberValue.value
-    let MessagingProgramName = "MessagingService.exe"
+    let messagingProgramName = "MessagingService.exe"
 
 
     type MessagingWorkState =

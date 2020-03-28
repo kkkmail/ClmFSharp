@@ -16,18 +16,7 @@ open ClmSys.ClmErrors
 
 module ServiceInfo =
 
-    let ContGenServiceName = "ContGenService" + " - " + versionNumberValue.value
-    let ContGenServiceProgramName = "ContGenService.exe"
-
-
-    //type ProcessId =
-    //    | LocalProcess of LocalProcessId
-    //    | RemoteProcess of RemoteProcessId
-
-    //    override this.ToString() =
-    //        match this with
-    //        | LocalProcess p -> p.value.ToString()
-    //        | RemoteProcess p -> p.value.ToString()
+    let contGenServiceProgramName = "ContGenService.exe"
 
 
     type RunningProcessData =

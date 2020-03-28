@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = messagingProgramName)
             let results = (parser.Parse argv).GetAllResults() |> MsgSvcArgs.fromArgu convertArgs
 
             match MessagingServiceTask.tryCreate getParams getSaveSettings results with

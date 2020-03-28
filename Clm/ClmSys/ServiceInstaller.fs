@@ -8,17 +8,12 @@ open Argu
 open Logging
 open GeneralErrors
 open ClmErrors
+open GeneralPrimitives
 
 module ServiceInstaller =
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0
-
-
-    type ServiceName =
-        | ServiceName of string
-
-        member this.value = let (ServiceName v) = this in v
 
 
     type ServiceInfo<'R, 'C> =

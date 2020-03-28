@@ -8,6 +8,7 @@ open ContGenService.WindowsService
 open ContGenServiceInfo.ServiceInfo
 open System.Runtime.Remoting.Channels
 open ClmSys.ContGenData
+open ClmSys.ContGenPrimitives
 
 module ContGenServiceTasks =
 
@@ -22,7 +23,7 @@ module ContGenServiceTasks =
             |> List.choose id
 
 
-    let runService l (p, i) : ContGenShutDownInfo option =
+    let runService l ((p : list<ContGenConfigParam>), i) : ContGenShutDownInfo option =
         let s = startServiceRun l i
         s
 
@@ -34,7 +35,7 @@ module ContGenServiceTasks =
 
     let serviceInfo =
         {
-            serviceName = ServiceName ContGenServiceName
+            serviceName = contGenServiceName.value
             runService = runService
             cleanup = cleanupService
             timeoutMilliseconds = None

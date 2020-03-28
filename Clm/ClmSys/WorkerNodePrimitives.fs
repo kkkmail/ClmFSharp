@@ -1,8 +1,36 @@
 ﻿namespace ClmSys
 
+open GeneralPrimitives
 open MessagingPrimitives
+open ClmSys.VersionInfo
 
 module WorkerNodePrimitives =
+
+    type WorkerNodeServiceAddress =
+        | WorkerNodeServiceAddress of ServiceAddress
+
+        member this.value = let (WorkerNodeServiceAddress v) = this in v
+        static member defaultValue = DefaultWorkerNodeServiceAddress |> ServiceAddress |> WorkerNodeServiceAddress
+
+
+    type WorkerNodeServicePort =
+        | WorkerNodeServicePort of ServicePort
+
+        member this.value = let (WorkerNodeServicePort v) = this in v
+        static member defaultValue = DefaultWorkerNodeServicePort |> ServicePort |> WorkerNodeServicePort
+
+
+    type WorkerNodeServiceName =
+        | WorkerNodeServiceName of ServiceName
+
+        member this.value = let (WorkerNodeServiceName v) = this in v
+
+
+    let workerNodeServiceName =
+        "WorkerNodeService" + " - " + versionNumberValue.value
+        |> ServiceName
+        |> WorkerNodeServiceName
+
 
     type WorkerNodeId =
         | WorkerNodeId of MessagingClientId

@@ -6,7 +6,6 @@ open ClmSys.Wcf
 open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
 
-
 module ServiceResponse =
 
     /// Low level WCF messaging client.
@@ -38,4 +37,4 @@ module ServiceResponse =
             member __.getState() = getStateImpl()
 
         new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.wcfServiceUrl)
-        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.messagingServiceAccessInfo.wcfServiceUrl)
+        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.wcfServiceUrl)

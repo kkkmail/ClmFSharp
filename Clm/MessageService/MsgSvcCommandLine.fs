@@ -7,8 +7,10 @@ open ClmSys.MessagingData
 open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
-open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
+open ClmSys.MessagingPrimitives
+
+//open ClmSys.MessagingPrimitives
 
 module SvcCommandLine =
 
@@ -63,28 +65,28 @@ module SvcCommandLine =
         | Save a -> MsgSvcArgs.Save a
 
 
-    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
 
 
     let getVersion = getVersionImpl tryGetVersion
-    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
-    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
+    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
+    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
 
 
-    let getServiceAccessInfoImpl b p =
-        let name = messagingServiceName
+    let getServiceAccessInfoImpl b p : MessagingServiceAccessInfo =
+        let name = messagingServiceRegistryName
 
         let version = getVersion p
-        let address = getMsgServerAddress logger version name p
-        let port = getMsgServerPort logger version name p
+        let address = getMsgServiceAddress logger version name p
+        let port = getMsgServicePort logger version name p
         printfn "address: %A, port: %A" address port
 
         let saveSettings() =
-            trySetMessagingClientAddress versionNumberValue name address |> ignore
-            trySetMessagingClientPort versionNumberValue name port |> ignore
+            trySetMessagingServiceAddress versionNumberValue name address |> ignore
+            trySetMessagingServicePort versionNumberValue name port |> ignore
 
         match tryGetSaveSettings p, b with
         | Some _, _ -> saveSettings()
@@ -92,12 +94,9 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
-            messagingServiceAccessInfo =
-                {
-                    serviceAddress = address
-                    servicePort = port
-                    inputServiceName = MessagingServiceName
-                }
+            messagingServiceAddress = address
+            messagingServicePort = port
+            messagingServiceName = messagingServiceName
         }
 
 

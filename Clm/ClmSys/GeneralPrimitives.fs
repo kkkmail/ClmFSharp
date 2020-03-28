@@ -5,6 +5,10 @@ open ClmSys.VersionInfo
 
 module GeneralPrimitives =
 
+    let DefaultWorkerNodeServicePort = 20000 + DefaultServicePort
+    let DefaultWorkerNodeServiceAddress = "localhost"
+
+
     let DefaultMessagingServerPort = 40000 + DefaultServicePort
     let DefaultMessagingServerAddress = "localhost"
 
@@ -13,14 +17,18 @@ module GeneralPrimitives =
         | ServiceAddress of string
 
         member this.value = let (ServiceAddress v) = this in v
-        static member defaultMessagingServerValue = ServiceAddress DefaultMessagingServerAddress
 
 
     type ServicePort =
         | ServicePort of int
 
         member this.value = let (ServicePort v) = this in v
-        static member defaultMessagingServerValue = ServicePort DefaultMessagingServerPort
+
+
+    type ServiceName =
+        | ServiceName of string
+
+        member this.value = let (ServiceName v) = this in v
 
 
     type ConnectionString =

@@ -302,13 +302,13 @@ module ServiceInfo =
             | None -> Ok None
 
 
-    //type IMessagingService =
-    //    abstract getVersion : unit -> ClmResult<MessagingDataVersion>
-    //    abstract sendMessage : Message -> UnitResult
-    //    abstract configureService : MessagingConfigParam -> UnitResult
-    //    abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
-    //    abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-    //    abstract getState : unit -> ClmResult<MsgServiceState>
+    type IMessagingService =
+        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
+        abstract sendMessage : Message -> UnitResult
+        abstract configureService : MessagingConfigParam -> UnitResult
+        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
+        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
+        abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656

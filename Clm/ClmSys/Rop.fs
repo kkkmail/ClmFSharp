@@ -202,3 +202,16 @@ module Rop =
                 | Error e -> Error e
             | None -> Ok None
         | Error e -> Error e
+
+
+    /// Applies state modifying function to the list of items while the function returns Ok().
+    let foldWhileOk f a s =
+        let rec inner rem w =
+            match rem with
+            | [] -> w, Ok()
+            | h :: t ->
+                match f s h with
+                | w1, Ok() -> inner t w1
+                | w1, Error e -> w1, Error e
+
+        inner a s

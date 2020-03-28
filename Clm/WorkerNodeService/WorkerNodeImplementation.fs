@@ -32,6 +32,7 @@ open ServiceProxy.SolverRunner
 open NoSql.FileSystemTypes
 open ClmSys.Rop
 open System.Threading
+open SolverRunner.SolverRunnerTasks
 
 module ServiceImplementation =
 
@@ -69,16 +70,6 @@ module ServiceImplementation =
         }
 
 
-    type WorkerNodeMessage =
-        | Start of AsyncReplyChannel<UnitResult>
-        | Register of AsyncReplyChannel<UnitResult>
-        | Unregister of AsyncReplyChannel<UnitResult>
-        | UpdateProgress of AsyncReplyChannel<UnitResult> * ProgressUpdateInfo
-        | GetMessages of AsyncReplyChannel<UnitResult>
-        | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
-        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
-
-
     type SendMessageProxy =
         {
             partitionerId : PartitionerId
@@ -88,20 +79,15 @@ module ServiceImplementation =
 
     type OnRegisterProxy =
         {
-            partitionerId : PartitionerId
             workerNodeInfo : WorkerNodeInfo
-            sendMessage : MessageInfo -> UnitResult
+            sendMessageProxy : SendMessageProxy
         }
 
 
     type OnUpdateProgressProxy =
         {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
-            onSaveResult : ResultDataId -> UnitResult
-            onSaveCharts : ResultDataId -> UnitResult
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            tryDeleteModelData : ModelDataId -> UnitResult
+            sendMessageProxy : SendMessageProxy
         }
 
 
@@ -115,24 +101,27 @@ module ServiceImplementation =
         |> bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
-    let onSaveCharts (proxy : SendMessageProxy) c =
-        {
-            partitionerRecipient = proxy.partitionerId
-            deliveryType = GuaranteedDelivery
-            messageData = c |> SaveChartsPrtMsg
-        }.getMessageInfo()
-        |> proxy.sendMessage
-        |> bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
+    let onSaveCharts (proxy : SendMessageProxy) r =
+        match r with
+        | GeneratedCharts c ->
+            {
+                partitionerRecipient = proxy.partitionerId
+                deliveryType = GuaranteedDelivery
+                messageData = c |> SaveChartsPrtMsg
+            }.getMessageInfo()
+            |> proxy.sendMessage
+            |> bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
+        | NotGeneratedCharts -> Ok()
 
 
     let onRegister (proxy : OnRegisterProxy) s =
         let result =
             {
-                partitionerRecipient = proxy.partitionerId
+                partitionerRecipient = proxy.sendMessageProxy.partitionerId
                 deliveryType = GuaranteedDelivery
                 messageData = proxy.workerNodeInfo |> RegisterWorkerNodePrtMsg
             }.getMessageInfo()
-            |> proxy.sendMessage
+            |> proxy.sendMessageProxy.sendMessage
 
         s, result
 
@@ -140,11 +129,11 @@ module ServiceImplementation =
     let onUnregister (proxy : OnRegisterProxy) s =
         let result =
             {
-                partitionerRecipient = proxy.partitionerId
+                partitionerRecipient = proxy.sendMessageProxy.partitionerId
                 deliveryType = GuaranteedDelivery
                 messageData = proxy.workerNodeInfo.workerNodeId |> UnregisterWorkerNodePrtMsg
             }.getMessageInfo()
-            |> proxy.sendMessage
+            |> proxy.sendMessageProxy.sendMessage
 
         s, result
 
@@ -164,11 +153,11 @@ module ServiceImplementation =
                 | Some rs ->
                     let result =
                         {
-                            partitionerRecipient = proxy.partitionerId
+                            partitionerRecipient = proxy.sendMessageProxy.partitionerId
                             deliveryType = t
                             messageData = UpdateProgressPrtMsg p
                         }.getMessageInfo()
-                        |> proxy.sendMessage
+                        |> proxy.sendMessageProxy.sendMessage
                         |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
                     Some { rs with progress = p.progress; lastUpdated = DateTime.Now }, result
@@ -190,11 +179,9 @@ module ServiceImplementation =
 
     type OnRunModelProxy =
         {
-            partitionerId : PartitionerId
             workerNodeId : WorkerNodeId
-            runModel : SolverRunnerProxy -> WorkerNodeRunModelData -> unit
-            sendMessage : MessageInfo -> UnitResult
-            solverRunnerProxy : SolverRunnerProxy
+            runModel : WorkerNodeRunModelData -> unit
+            sendMessageProxy : SendMessageProxy
         }
 
 
@@ -203,7 +190,7 @@ module ServiceImplementation =
             match s.numberOfWorkerCores > s.runningWorkers.Count with
             | true ->
                 let c = new CancellationTokenSource()
-                let m = async { proxy.runModel proxy.solverRunnerProxy d }
+                let m = async { proxy.runModel d }
                 Async.Start (m, c.Token)
 
                 let rs =
@@ -218,11 +205,11 @@ module ServiceImplementation =
             | false ->
                 let res =
                     {
-                        partitionerRecipient = proxy.partitionerId
+                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
                         deliveryType = GuaranteedDelivery
                         messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = Failed "" }
                     }.getMessageInfo()
-                    |> proxy.sendMessage
+                    |> proxy.sendMessageProxy.sendMessage
 
                 s, res
 
@@ -231,79 +218,23 @@ module ServiceImplementation =
 
     type OnStartProxy =
         {
-            partitionerId : PartitionerId
-            noOfCores : int
-            workerNodeId : WorkerNodeId
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            sendMessage : MessageInfo -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
         }
 
 
-    //let runIfNoResult (proxy : OnStartProxy) (r : list<ResultDataWithId>) g w =
-    //    let d = w.remoteProcessId.toResultDataId()
-    //
-    //    match r |> List.tryFind (fun e -> e.resultDataId = d) with
-    //    | Some _ ->
-    //        let result =
-    //            [
-    //                {
-    //                    partitionerRecipient = proxy.partitionerId
-    //                    deliveryType = GuaranteedDelivery
-    //                    messageData =
-    //                        {
-    //                            remoteProcessId = w.remoteProcessId
-    //                            runningProcessData = w.runningProcessData
-    //                            progress = Completed NotGeneratedCharts
-    //                        }
-    //                        |> UpdateProgressPrtMsg
-    //                }.getMessageInfo()
-    //                |> proxy.sendMessage
-    //
-    //                proxy.tryDeleteWorkerNodeRunModelData w.remoteProcessId
-    //                proxy.tryDeleteModelData w.runningProcessData.modelDataId
-    //                proxy.onSaveResult d
-    //                proxy.onSaveCharts d
-    //            ]
-    //            |> foldUnitResults
-    //        g, result
-    //    | None -> proxy.onRunModel g w
-
-
     let onStart (proxy : OnStartProxy) s =
-        let doStart mi ri =
+        let doStart mi =
             let m, mf = mi |> Rop.unzip
-            let (r : list<ResultDataWithId>), rf = ri |> Rop.unzip
 
-            match (mf @ rf) |> foldErrors with
-            | None ->
-                let runIfNoResult = runIfNoResult proxy r
-
-                let tryRunModel g w =
-                    match w.localProcessId with
-                    | Some v ->
-                        match tryGetProcessById v |> Option.bind tryGetProcessName with
-                        | Some n when n = SolverRunnerProcessName ->
-                            let rs = RunnerState.defaultValue w.remoteProcessId
-                            { g with runningWorkers = s.runningWorkers.Add(v, rs) }, Ok()
-                        | _ -> runIfNoResult g w
-                    | None -> proxy.onRunModel g w
-
-                let run g e f =
-                    let (x, z) = tryRunModel g e
-                    x, combineUnitResults f z
-
-                let retVal = m |> List.fold (fun (g, f) e -> run g e f) ({ s with numberOfWorkerCores = proxy.noOfCores }, Ok())
-                retVal
+            match foldErrors mf with
+            | None -> (m, s) ||> Rop.foldWhileOk proxy.onRunModel
             | Some e -> s, Error e
 
         let g, result =
-            match proxy.loadAllWorkerNodeRunModelData(), proxy.loadAllResultData() with
-            | Ok mi, Ok ri -> doStart mi ri
-            | Ok _, Error e -> s, Error e
-            | Error e, Ok _ -> s, Error e
-            | Error e1, Error e2 -> s, Error (e1 + e2)
+            match proxy.loadAllWorkerNodeRunModelData() with
+            | Ok mi -> doStart mi
+            | Error e -> s, Error e
 
         g, result
 
@@ -353,11 +284,11 @@ module ServiceImplementation =
 
             let send() =
                 {
-                    partitionerRecipient = proxy.partitionerId
+                    partitionerRecipient = proxy.sendMessageProxy.partitionerId
                     deliveryType = GuaranteedDelivery
                     messageData = { proxy.workerNodeInfo with nodeInfo = { proxy.workerNodeInfo.nodeInfo with noOfCores = cores } } |> RegisterWorkerNodePrtMsg
                 }.getMessageInfo()
-                |> proxy.sendMessage
+                |> proxy.sendMessageProxy.sendMessage
 
             let w, result =
                 match send() with
@@ -367,95 +298,77 @@ module ServiceImplementation =
             w, result
 
 
-    let onSaveResultProxy i =
+    let sendMessageProxy i =
         {
             partitionerId = i.workerNodeAccessInfo.partitionerId
-            //loadResultData = i.workerNodeProxy.loadResultData
-            //tryDeleteResultData = i.workerNodeProxy.tryDeleteResultData
             sendMessage = i.messageProcessorProxy.sendMessage
         }
 
 
-    let onSaveChartsProxy i =
+    let onRunModelProxy i p =
         {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
-            loadChartInfo = i.workerNodeProxy.loadChartInfo
-            tryDeleteChartInfo = i.workerNodeProxy.tryDeleteChartInfo
-            sendMessage = i.messageProcessorProxy.sendMessage
-        }
-
-    let onRunModelProxy i =
-        {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
             workerNodeId = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId
-            getRunModelParam = getRunModelParam i
-            runModel = i.workerNodeProxy.runModel
-            getCommandLine = i.workerNodeProxy.getCommandLine
-            saveWorkerNodeRunModelData = i.workerNodeProxy.saveWorkerNodeRunModelData
-            sendMessage = i.messageProcessorProxy.sendMessage
+            runModel = runSolver p
+            sendMessageProxy = sendMessageProxy i
         }
 
 
-    let onStartProxy i =
-        let proxy = i.workerNodeProxy
-
-        {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
-            noOfCores = i.workerNodeAccessInfo.nodeInfo.noOfCores
-            workerNodeId = i.workerNodeAccessInfo.workNodeMsgAccessInfo.workerNodeId
-            loadAllWorkerNodeRunModelData = proxy.loadAllWorkerNodeRunModelData
-            loadAllResultData = proxy.loadAllResultData
-            sendMessage = i.messageProcessorProxy.sendMessage
-            tryDeleteWorkerNodeRunModelData = proxy.tryDeleteWorkerNodeRunModelData
-            tryDeleteModelData = proxy.tryDeleteModelData
-            onSaveResult = onSaveResult (onSaveResultProxy i)
-            onSaveCharts = onSaveCharts (onSaveChartsProxy i)
-            onRunModel = onRunModel (onRunModelProxy i)
-        }
+    //let onStartProxy i p =
+    //    {
+    //        loadAllWorkerNodeRunModelData = i.workerNodeProxy.loadAllWorkerNodeRunModelData
+    //        onRunModel = onRunModel (onRunModelProxy i p)
+    //    }
 
 
     let onRegisterProxy i : OnRegisterProxy =
         {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
             workerNodeInfo = i.workerNodeAccessInfo.workerNodeInfo
-            sendMessage = i.messageProcessorProxy.sendMessage
+            sendMessageProxy = sendMessageProxy i
         }
 
 
     let onUpdateProgressProxy i =
         {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
-            sendMessage = i.messageProcessorProxy.sendMessage
-            onSaveResult = onSaveResult (onSaveResultProxy i)
-            onSaveCharts = onSaveCharts (onSaveChartsProxy i)
             tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
-            tryDeleteModelData = i.workerNodeProxy.tryDeleteModelData
+            sendMessageProxy = sendMessageProxy i
         }
 
 
-    let onProcessMessageProxy i =
+    let onProcessMessageProxy i p =
         {
-            saveModelData = i.workerNodeProxy.saveModelData
-            onRunModel = onRunModel (onRunModelProxy i)
-            tryFindRunningModel = tryFindRunningModel
+            saveWorkerNodeRunModelData = i.workerNodeProxy.saveWorkerNodeRunModelData
+            onRunModel = onRunModel (onRunModelProxy i p)
         }
 
 
-    let onGetMessagesProxy i =
-        {
-            tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-            onProcessMessage = onProcessMessage (onProcessMessageProxy i)
-            maxMessages = WorkerNodeRunnerState.maxMessages
-            onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
-        }
+    //let onGetMessagesProxy i p =
+    //    {
+    //        tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
+    //        onProcessMessage = onProcessMessage (onProcessMessageProxy i p)
+    //        maxMessages = WorkerNodeRunnerState.maxMessages
+    //        onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
+    //    }
+
+
+    type WorkerNodeMessage =
+        | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
+        | Register of AsyncReplyChannel<UnitResult>
+        | Unregister of AsyncReplyChannel<UnitResult>
+        | UpdateProgress of AsyncReplyChannel<UnitResult> * ProgressUpdateInfo
+        | SaveResult of AsyncReplyChannel<UnitResult> * ResultDataWithId
+        | SaveCharts of AsyncReplyChannel<UnitResult> * ChartGenerationResult
+        | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
+        | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
+        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        let onStartProxy = onStartProxy i
+        //let onStartProxy = onStartProxy i
         let onRegisterProxy = onRegisterProxy i
         let onUpdateProgressProxy = onUpdateProgressProxy i
-        let onGetMessagesProxy = onGetMessagesProxy i
+        //let onGetMessagesProxy = onGetMessagesProxy i
         let onConfigureWorkerProxy = onRegisterProxy
+        let sendMessageProxy = sendMessageProxy i
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -463,11 +376,13 @@ module ServiceImplementation =
                     async
                         {
                             match! u.Receive() with
-                            | Start r -> return! onStart onStartProxy s |> (withReply r) |> loop
+                            | Start (p, r) -> return! onStart p s |> (withReply r) |> loop
                             | Register r -> return! onRegister onRegisterProxy s |> (withReply r) |> loop
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
                             | UpdateProgress (r, p) -> return! onUpdateProgress onUpdateProgressProxy s p |> (withReply r) |> loop
-                            | GetMessages r -> return! onGetMessages onGetMessagesProxy s |> (withReply r) |> loop
+                            | SaveResult (r, p) -> return! (s, onSaveResult sendMessageProxy p) |> (withReply r) |> loop
+                            | SaveCharts (r, c) -> return! (s, onSaveCharts sendMessageProxy c) |> (withReply r) |> loop
+                            | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
                             | GetState r -> return! onGetState s |> (withReply r) |> loop
                             | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
                         }
@@ -475,13 +390,40 @@ module ServiceImplementation =
                 WorkerNodeRunnerState.defaultValue |> loop
                 )
 
-        member _.start() = messageLoop.PostAndReply Start
+        member w.start() = messageLoop.PostAndReply (fun reply -> Start (w.onStartProxy, reply))
         member _.register() = messageLoop.PostAndReply Register
         member _.unregister() = messageLoop.PostAndReply Unregister
         member _.updateProgress p = messageLoop.PostAndReply (fun r -> UpdateProgress (r, p))
-        member _.getMessages() = messageLoop.PostAndReply GetMessages
+        member _.saveResult p = messageLoop.PostAndReply (fun r -> SaveResult (r, p))
+        member _.saveCharts p = messageLoop.PostAndReply (fun r -> SaveCharts (r, p))
+        member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
         member _.getState () = messageLoop.PostAndReply GetState
         member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
+
+        member w.solverRunnerProxy =
+            {
+                updateProgress = w.updateProgress
+                saveResult = w.saveResult
+                saveCharts = w.saveCharts
+                logCrit = i.workerNodeProxy.logCrit
+            }
+
+        member w.onStartProxy =
+            {
+                loadAllWorkerNodeRunModelData = i.workerNodeProxy.loadAllWorkerNodeRunModelData
+                onRunModel = onRunModel (onRunModelProxy i w.solverRunnerProxy)
+            }
+
+        member w.onGetMessagesProxy =
+            {
+                tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
+                onProcessMessage = onProcessMessage (onProcessMessageProxy i w.solverRunnerProxy)
+                maxMessages = WorkerNodeRunnerState.maxMessages
+                onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
+            }
+
+
+
 
 
     let createServiceImpl (logger : Logger) (i : WorkerNodeRunnerData) =
@@ -551,7 +493,7 @@ module ServiceImplementation =
                 match n with
                 | Ok (Some v) ->
                     createMessagingClientEventHandlers logger messagingClient
-                    Ok (Some v)
+                    Ok v
                 | Ok None -> toError UnableToCreateWorkerNodeServiceError
                 | Error e -> addError UnableToCreateWorkerNodeServiceError e
             | Error e -> addError UnableToStartMessagingClientError e
@@ -562,15 +504,25 @@ module ServiceImplementation =
 
         let updateProgressImpl p =
             match w with
-            | Ok (Some r) -> r.updateProgress p
-            | Ok None -> toError ServiceUnavailable
+            | Ok r -> r.updateProgress p
             | Error e -> addError (UpdateLocalProgressError (sprintf "Failed to update progress: %A" p)) e
+
+
+        //let saveResultImpl r =
+        //    match w with
+        //    | Ok r -> r.configure d
+        //    | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
+
+
+        //let saveChartsImpl c =
+        //    match w with
+        //    | Ok r -> r.getState d
+        //    | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
 
 
         let configureImpl d =
             match w with
-            | Ok (Some r) -> r.configure d
-            | Ok None -> toError ServiceUnavailable
+            | Ok r -> r.configure d
             | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
 
 
@@ -583,8 +535,8 @@ module ServiceImplementation =
 
         interface IWorkerNodeService with
             member _.updateProgress p = updateProgressImpl p
-            member _.saveResult r = 0
-            member _.saveCharts c = 0
+            //member _.saveResult r = saveResultImpl r
+            //member _.saveCharts c = saveChartsImpl c
             member _.ping() = Ok()
             member _.configure d = configureImpl d
             member _.monitor p = monitorImpl p

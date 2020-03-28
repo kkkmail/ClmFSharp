@@ -12,6 +12,7 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralData
 open SolverRunner
+open ClmSys.SolverRunnerErrors
 
 module WorkerNodeProxy =
 
@@ -37,8 +38,8 @@ module WorkerNodeProxy =
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
             loadWorkerNodeRunModelData : RunQueueId -> ClmResult<WorkerNodeRunModelData>
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            //runModel : SolverRunnerProxy -> WorkerNodeRunModelData -> unit
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
+            logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
         static member create (i : WorkerNodeProxyData) =
@@ -48,6 +49,6 @@ module WorkerNodeProxy =
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
                 loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-                //runModel = fun p -> runLocalModel p true i.minUsefulEe i.noOfProgressPoints
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
+                logCrit = 0
             }

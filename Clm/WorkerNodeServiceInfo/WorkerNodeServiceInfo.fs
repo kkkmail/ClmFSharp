@@ -88,9 +88,9 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        abstract updateProgress : ProgressUpdateInfo -> UnitResult
-        abstract saveResult : ResultDataWithId -> UnitResult
-        abstract saveCharts : ChartGenerationResult -> UnitResult
+        //abstract updateProgress : ProgressUpdateInfo -> UnitResult
+        //abstract saveResult : ResultDataWithId -> UnitResult
+        //abstract saveCharts : ChartGenerationResult -> UnitResult
         abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
 

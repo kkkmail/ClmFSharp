@@ -10,6 +10,7 @@ open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
 open ClmSys.ContGenData
+open ClmSys.ContGenPrimitives
 
 module WindowsService =
 
@@ -34,7 +35,7 @@ module WindowsService =
 
 
     type public ContGenWindowsService () =
-        inherit ServiceBase (ServiceName = ContGenServiceName)
+        inherit ServiceBase (ServiceName = contGenServiceName.value.value)
 
         let mutable shutDownInfo : ContGenShutDownInfo option = None
         let logger = Logger.log4net

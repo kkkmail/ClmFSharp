@@ -21,6 +21,7 @@ open ClmSys.PartitionerData
 open ContGen.ModelRunner
 open DbData.Configuration
 open Clm.ModelParams
+open ClmSys.MessagingData
 
 module SvcCommandLine =
 
@@ -98,15 +99,15 @@ module SvcCommandLine =
         | Save a -> ContGenSvcArgs.Save a
 
 
-    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | ContGenVersion p -> p |> VersionNumber |> Some | _ -> None)
 
-    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetUsePartitioner p = p |> List.tryPick (fun e -> match e with | UsePartitioner p -> Some p | _ -> None)
@@ -122,25 +123,25 @@ module SvcCommandLine =
 
 
     let getVersion = getVersionImpl tryGetVersion
-    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
-    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
+    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
+    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
     let private getServiceAccessInfoImpl b p =
-        let name = contGenServiceName
+        let name = contGenServiceRegistryName
         let version = getVersion p
         let ee = geMinUsefulEe logger version name p
 
-        let msgAddress = getMsgServerAddress logger version name p
-        let msgPort = getMsgServerPort logger version name p
+        let msgAddress = getMsgServiceAddress logger version name p
+        let msgPort = getMsgServicePort logger version name p
 
         let partitioner = getPartitioner logger version name p
         let usePartitioner = true
 
         let saveSettings() =
-            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
+            trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
+            trySetMessagingServicePort versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
             trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
             trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
@@ -160,29 +161,41 @@ module SvcCommandLine =
 
 
     let createModelRunnerImpl (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
-        let name = contGenServiceName
+        let name = contGenServiceRegistryName
         let version = getVersion p
 
-        let msgAddress = getMsgServerAddress logger version name p
-        let msgPort = getMsgServerPort logger version name p
+        let msgAddress = getMsgServiceAddress logger version name p
+        let msgPort = getMsgServicePort logger version name p
         let partitioner = getPartitioner logger version name p
 
-        let w =
+        //let w =
+        //    {
+        //        partitionerId = partitioner
+        //        msgSvcAccessInfo =
+        //            {
+        //                serviceAddress = msgAddress
+        //                servicePort = msgPort
+        //                inputServiceName = MessagingServiceName
+        //            }
+        //    }
+
+        let i =
             {
-                partitionerId = partitioner
+                msgClientId = partitioner.messagingClientId
+
                 msgSvcAccessInfo =
                     {
-                        serviceAddress = msgAddress
-                        servicePort = msgPort
-                        inputServiceName = MessagingServiceName
+                        messagingServiceAddress = msgAddress
+                        messagingServicePort = msgPort
+                        messagingServiceName = messagingServiceName
                     }
             }
 
-        let m = MsgResponseHandler (w.messagingClientAccessInfo)
+        let m = MsgResponseHandler i
 
         let messagingClientData =
             {
-                msgAccessInfo = w.messagingClientAccessInfo
+                msgAccessInfo = i
                 messagingService = m
                 msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
             }

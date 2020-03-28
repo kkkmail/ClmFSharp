@@ -3,11 +3,9 @@
 open System
 open Argu
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open ClmSys.Registry
 open ClmSys.MessagingData
 open Messaging.ServiceResponse
-open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 
@@ -80,35 +78,37 @@ module MsgCliCommandLine =
             | None -> no
 
         match nameOpt with
-        | Some name ->
+        | Some (MessagingClientName name) ->
+            let registryName = RegistryKeyName name
+
             let address =
                 match tryGetServerAddress p with
-                | Some a -> a
+                | Some a -> MessagingServiceAddress a
                 | None ->
-                    match tryGetMessagingClientAddress version name with
+                    match tryGetMessagingServiceAddress version registryName with
                     | Ok a -> a
-                    | Error _ -> ServiceAddress.defaultMessagingServerValue
+                    | Error _ -> MessagingServiceAddress.defaultValue
 
             let port =
                 match tryGetServerPort p with
-                | Some a -> a
+                | Some a -> MessagingServicePort a
                 | None ->
-                    match tryGetMessagingClientPort version name with
+                    match tryGetMessagingServicePort version registryName with
                     | Ok a -> a
-                    | Error _ -> ServicePort.defaultMessagingServerValue
+                    | Error _ -> MessagingServicePort.defaultValue
 
             let trySaveSettings c =
                 match tryGetSaveSettings p with
                 | Some _ ->
-                    trySetMessagingClientAddress versionNumberValue name address |> ignore
-                    trySetMessagingClientPort versionNumberValue name port |> ignore
-                    trySetMessagingClientId versionNumberValue name c |> ignore
+                    trySetMessagingServiceAddress versionNumberValue registryName address |> ignore
+                    trySetMessagingServicePort versionNumberValue registryName port |> ignore
+                    trySetMessagingClientId versionNumberValue registryName c |> ignore
                 | None -> ignore()
 
             let co =
                 match tryGetClientId p with
                 | Some c -> Ok c
-                | None -> tryGetMessagingClientId version name
+                | None -> tryGetMessagingClientId version registryName
 
             match co with
             | Ok c ->
@@ -119,9 +119,9 @@ module MsgCliCommandLine =
 
                     msgSvcAccessInfo =
                         {
-                            serviceAddress = address
-                            servicePort = port
-                            inputServiceName = MessagingServiceName
+                            messagingServiceAddress = address
+                            messagingServicePort = port
+                            messagingServiceName = messagingServiceName
                         }
                 }
                 |> Some

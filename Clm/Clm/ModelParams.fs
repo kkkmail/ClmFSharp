@@ -178,27 +178,6 @@ module ModelParams =
         }
 
 
-        //member this.toCommandLine (d : ModelCommandLineData) =
-        //    let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
-        //
-        //    [
-        //        EndTime this.tEnd
-        //        TotalAmount this.y0
-        //        UseAbundant this.useAbundant
-        //        ModelId d.modelDataId.value
-        //        MinimumUsefulEe d.minUsefulEe.value
-        //        Remote d.remote
-        //        ResultId d.resultDataId.value
-        //        WrkNodeId d.workerNodeId.messagingClientId.value
-        //        ProgrNotifPoints (d.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints)
-        //
-        //        // TODO kk:20200214 - Currently hard coded to use worker node.
-        //        NotifyAddress DefaultWorkerNodeServiceAddress
-        //        NotifyPort DefaultWorkerNodeServicePort
-        //    ]
-        //    |> parser.PrintCommandLineArgumentsFlat
-
-
     type RunQueueInfo =
         {
             modelDataId : ModelDataId

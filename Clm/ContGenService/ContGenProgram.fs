@@ -7,7 +7,6 @@ open ContGenService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
 open ContGenService.WindowsService
 open ClmSys.ExitErrorCodes
-open ClmSys.ContGenData
 
 module Program =
 

@@ -7,13 +7,10 @@ open ClmSys.Registry
 open ClmSys.Logging
 open System
 open ClmSys.WorkerNodeData
-open MessagingServiceInfo.ServiceInfo
-open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
-open ClmSys.ContGenPrimitives
 
 module AdmCommandLine =
 

@@ -1,29 +1,21 @@
 ﻿namespace SolverRunner
 
-open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
-open ClmSys.ExitErrorCodes
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.ChartData
 open OdeSolver.Solver
 open Analytics.ChartExt
 open Analytics.Visualization
-open Argu
 open ContGenServiceInfo.ServiceInfo
 open Clm.Distributions
 open Clm.CalculationData
 open ServiceProxy.SolverRunner
 open System.IO
-open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.MessagingPrimitives
-open ClmSys.WorkerNodePrimitives
 open ClmSys.ClmErrors
-open ClmSys.Rop
 open MessagingServiceInfo.ServiceInfo
-open Clm.CalculationData
 open ClmSys.SolverRunnerErrors
 
 module SolverRunnerTasks =
@@ -34,34 +26,6 @@ module SolverRunnerTasks =
                 runQueueId = r
                 progress = t
             }
-
-
-    //let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
-    //    match results.TryGetResult Remote with
-    //    | None | Some false -> SolverRunnerProxyInfo.defaultValue
-    //    | Some true -> SolverRunnerProxyInfo.defaultRemoteValue
-
-
-    //let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
-    //    match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
-    //    | Some address, Some port ->
-    //        let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
-
-    //        {
-    //            nodeServiceAccessInfo =
-    //                {
-    //                    serviceAddress = ServiceAddress address
-    //                    servicePort = ServicePort port
-    //                    inputServiceName = WorkerNodeServiceName
-    //                }
-
-    //            minUsefulEe = ee
-    //        }
-    //        |> Some
-    //    | _ -> None
-
-
-    //let getResponseHandler i = WorkerNodeResponseHandler.tryCreate i
 
 
     let getPlotDataInfo (df : ClmDefaultValueId) =

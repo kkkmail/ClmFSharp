@@ -10,8 +10,6 @@ open ClmSys.ServiceInstaller
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 
-//open ClmSys.MessagingPrimitives
-
 module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]

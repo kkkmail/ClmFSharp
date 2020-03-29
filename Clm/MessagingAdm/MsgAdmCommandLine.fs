@@ -1,7 +1,6 @@
 ﻿namespace MessagingAdm
 
 open Argu
-open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.VersionInfo

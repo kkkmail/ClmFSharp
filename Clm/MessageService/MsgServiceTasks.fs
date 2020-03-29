@@ -4,7 +4,6 @@ open Argu
 open ClmSys.ServiceInstaller
 open ClmSys.MessagingData
 open ClmSys.Logging
-open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open MessagingService.SvcCommandLine
 open MessagingService.WindowsService

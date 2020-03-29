@@ -2,7 +2,6 @@
 
 open System
 open GeneralData
-open GeneralPrimitives
 open ContGenPrimitives
 
 module ContGenData =

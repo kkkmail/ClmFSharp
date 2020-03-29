@@ -16,6 +16,6 @@ let main argv =
 
         CompletedSuccessfully
     with
-        | exn ->
-            printfn "%s" exn.Message
-            UnknownException
+    | exn ->
+        printfn "%s" exn.Message
+        UnknownException

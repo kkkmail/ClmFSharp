@@ -45,19 +45,6 @@ module GeneralData =
         "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
-    //type ServiceAccessInfo =
-    //    {
-    //        serviceAddress : ServiceAddress
-    //        servicePort : ServicePort
-    //        inputServiceName : string
-    //    }
-
-    //    member s.serviceName = s.inputServiceName
-    //    member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
-    //    member s.wcfServiceName = toValidServiceName s.inputServiceName
-    //    member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
-
-
     let toVariableName (s : string) =
         match s.Length with
         | 0 -> s

@@ -129,22 +129,6 @@ module Rop =
         |> List.choose id
 
 
-    //let unwrapFailure a b r =
-    //    match r with
-    //    | Ok v ->
-    //        v
-    //        |> List.map (fun e ->
-    //                match e with
-    //                | Ok x -> Some x
-    //                | Error f ->
-    //                    b f |> ignore
-    //                    None)
-    //    | Error f ->
-    //        a f |> ignore
-    //        []
-    //    |> List.choose id
-
-
     /// Splits the list of results into list of successes and list of failures.
     let unzip r =
         let success e =

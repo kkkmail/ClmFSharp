@@ -2,7 +2,6 @@
 
 open System
 open System.ServiceProcess
-open System.Runtime.Remoting
 open System.Runtime.Remoting.Channels
 open Argu
 open ClmSys.MessagingData
@@ -15,25 +14,6 @@ open System.ServiceModel
 open ClmSys.MessagingPrimitives
 
 module WindowsService =
-
-    //let startServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgSvcShutDownInfo option =
-    //    try
-    //        serviceAccessInfo <- i
-    //        let channel = new Tcp.TcpChannel (i.messagingServiceAccessInfo.servicePort.value)
-    //        ChannelServices.RegisterChannel (channel, false)
-    //
-    //        RemotingConfiguration.RegisterWellKnownServiceType
-    //            (typeof<MessagingRemoteService>, MessagingServiceName, WellKnownObjectMode.Singleton)
-    //
-    //        {
-    //            msgSvcTcpChannel = channel
-    //        }
-    //        |> Some
-    //    with
-    //    | e ->
-    //        logger.logExn "Error starting service." e
-    //        None
-
 
     let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
         try
@@ -69,22 +49,18 @@ module WindowsService =
         let initService () = ()
         do initService ()
         let logger = Logger.log4net
-        let mutable shutDownInfo : MsgSvcShutDownInfo option = None
         let mutable shutDownWcfInfo : MsgWcfSvcShutDownInfo option = None
 
         let tryDispose() =
-            match shutDownInfo with
-            | Some i ->
-                logger.logInfoString "MessagingWindowsService: Unregistering TCP channel."
-                ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
-                shutDownInfo <- None
-            | None -> ignore()
-
             match shutDownWcfInfo with
             | Some i ->
-                logger.logInfoString "MessagingWindowsService: Closing WCF service host."
-                i.serviceHost.Close()
-                shutDownInfo <- None
+                try
+                    logger.logInfoString "MessagingWindowsService: Closing WCF service host."
+                    i.serviceHost.Close()
+                with
+                | e -> logger.logExn "MessagingWindowsService: Exception occurred: " e
+
+                shutDownWcfInfo <- None
             | None -> ignore()
 
 
@@ -93,7 +69,6 @@ module WindowsService =
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = messagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            //shutDownInfo <- startServiceRun logger i
             shutDownWcfInfo <- startWcfServiceRun logger i
 
         override __.OnStop () =

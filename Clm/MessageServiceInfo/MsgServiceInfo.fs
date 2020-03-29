@@ -252,12 +252,6 @@ module ServiceInfo =
         }
 
 
-    type MsgSvcShutDownInfo =
-        {
-            msgSvcTcpChannel : TcpChannel
-        }
-
-
     type MsgWcfSvcShutDownInfo =
         {
             serviceHost : ServiceHost

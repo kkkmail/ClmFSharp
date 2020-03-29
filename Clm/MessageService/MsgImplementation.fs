@@ -1,6 +1,5 @@
 ﻿namespace MessagingService
 
-open System
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
@@ -25,23 +24,6 @@ module ServiceImplementation =
 
 
     let mutable serviceAccessInfo = getServiceAccessInfo []
-
-
-    //type MessagingRemoteService () =
-    //    inherit MarshalByRefObject()
-    //
-    //    let a = createServiceImpl serviceAccessInfo
-    //
-    //    let initService () = ()
-    //    do initService ()
-    //
-    //    interface IMessagingService with
-    //        member __.getVersion() = a.getVersion()
-    //        member __.sendMessage m = a.sendMessage m
-    //        member __.configureService x = a.configureService x
-    //        member __.tryPeekMessage n = a.tryPeekMessage n
-    //        member __.tryDeleteFromServer x = a.tryDeleteFromServer x
-    //        member __.getState() = a.getState()
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]

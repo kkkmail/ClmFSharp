@@ -1,7 +1,6 @@
 ﻿namespace ClmSys
 
 open System
-open GeneralData
 open MessagingData
 open MessagingPrimitives
 open PartitionerPrimitives

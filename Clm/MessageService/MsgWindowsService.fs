@@ -90,7 +90,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = messagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             //shutDownInfo <- startServiceRun logger i

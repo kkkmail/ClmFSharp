@@ -28,7 +28,8 @@ module GeneralPrimitives =
     type ServiceName =
         | ServiceName of string
 
-        member this.value = let (ServiceName v) = this in v
+        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value)
+        member this.originalValue = let (ServiceName v) = this in v
 
 
     type ConnectionString =

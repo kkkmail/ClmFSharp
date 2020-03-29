@@ -9,15 +9,12 @@ open ClmSys.Registry
 open ClmSys.Logging
 open Messaging.ServiceResponse
 open ServiceProxy.MsgServiceProxy
-open ContGenServiceInfo.ServiceInfo
-open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ContGenData
-open ClmSys.PartitionerData
 open ContGen.ModelRunner
 open DbData.Configuration
 open Clm.ModelParams
@@ -197,7 +194,7 @@ module SvcCommandLine =
             {
                 msgAccessInfo = i
                 messagingService = m
-                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName }
+                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
             }
 
         let messagingClient = MessagingClient messagingClientData

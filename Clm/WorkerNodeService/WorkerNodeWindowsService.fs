@@ -10,21 +10,22 @@ open ClmSys.WorkerNodeData
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.ServiceImplementation
 open WorkerNodeService.SvcCommandLine
-open ProgressNotifierClient.ServiceResponse
 open ClmSys.TimerEvents
+open ClmSys.WorkerNodePrimitives
 
 module WindowsService =
-    let private serviceName = WorkerNodeServiceName
+
+    let private serviceName = workerNodeServiceName
 
 
-    let startServiceRun (logger : Logger) (i : WorkerNodeServiceAccessInfo) : WrkNodeShutDownInfo option =
+    let startServiceRun (logger : Logger) (i : WorkerNodeServiceInfo) : WrkNodeShutDownInfo option =
         try
-            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName.value.value)
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.nodeServiceAccessInfo.servicePort.value)
-            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %A" i.workerNodeServiceAccessInfo.nodeServiceAccessInfo.servicePort)
+            let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.workerNodeServicePort.value.value)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %i" i.workerNodeServiceAccessInfo.workerNodeServicePort.value.value)
             ChannelServices.RegisterChannel (channel, false)
-            RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName, WellKnownObjectMode.Singleton)
+            RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName.value.value, WellKnownObjectMode.Singleton)
             let service = (new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)).workerNodeService
 
             try
@@ -50,7 +51,7 @@ module WindowsService =
 
 
     type public WorkerNodeWindowsService () =
-        inherit ServiceBase (ServiceName = serviceName)
+        inherit ServiceBase (ServiceName = serviceName.value.value)
 
         let initService () = ()
         do initService ()
@@ -68,7 +69,7 @@ module WindowsService =
 
         override __.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = WorkerNodeServiceProgramName)
+            let parser = ArgumentParser.Create<WorkerNodeServiceRunArgs>(programName = workerNodeServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             shutDownInfo <- startServiceRun logger i

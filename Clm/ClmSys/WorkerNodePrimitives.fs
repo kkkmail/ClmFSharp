@@ -2,7 +2,6 @@
 
 open GeneralPrimitives
 open MessagingPrimitives
-open ClmSys.VersionInfo
 
 module WorkerNodePrimitives =
 
@@ -26,10 +25,7 @@ module WorkerNodePrimitives =
         member this.value = let (WorkerNodeServiceName v) = this in v
 
 
-    let workerNodeServiceName =
-        "WorkerNodeService" + " - " + versionNumberValue.value
-        |> ServiceName
-        |> WorkerNodeServiceName
+    let workerNodeServiceName = "WorkerNodeService" |> ServiceName |> WorkerNodeServiceName
 
 
     type WorkerNodeId =

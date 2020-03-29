@@ -20,9 +20,9 @@ open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
 open ClmSys
+open ClmSys.PartitionerData
 
 
 module DatabaseTypes =
@@ -453,25 +453,24 @@ module DatabaseTypes =
     type WorkerNodeInfo
         with
 
+        /// TODO kk:20200329 - Note that partitionerId is hard coded. Revisit if necessary.
         static member create (r : WorkerNodeTableRow) =
             {
                 workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
-
-                nodeInfo =
-                    {
-                        workerNodeName = r.workerNodeName |> WorkerNodeName
-                        noOfCores = r.numberOfCores
-                        nodePriority = r.nodePriority |> WorkerNodePriority
-                    }
+                workerNodeName = r.workerNodeName |> WorkerNodeName
+                noOfCores = r.numberOfCores
+                partitionerId = defaultPartitionerId
+                nodePriority = r.nodePriority |> WorkerNodePriority
+                isInactive = r.isInactive
             }
 
         member w.addRow (t : WorkerNodeTable) =
             let newRow =
                 t.NewRow(
                         workerNodeId = w.workerNodeId.value.value,
-                        workerNodeName = w.nodeInfo.workerNodeName.value,
-                        numberOfCores = w.nodeInfo.noOfCores,
-                        nodePriority = w.nodeInfo.nodePriority.value
+                        workerNodeName = w.workerNodeName.value,
+                        numberOfCores = w.noOfCores,
+                        nodePriority = w.nodePriority.value
                         )
 
             newRow.modifiedOn <- DateTime.Now
@@ -479,9 +478,9 @@ module DatabaseTypes =
             newRow
 
         member w.updateRow (r : WorkerNodeTableRow) =
-            r.workerNodeName <- w.nodeInfo.workerNodeName.value
-            r.numberOfCores <- w.nodeInfo.noOfCores
-            r.nodePriority <- w.nodeInfo.nodePriority.value
+            r.workerNodeName <- w.workerNodeName.value
+            r.numberOfCores <- w.noOfCores
+            r.nodePriority <- w.nodePriority.value
             r.modifiedOn <- DateTime.Now
 
 

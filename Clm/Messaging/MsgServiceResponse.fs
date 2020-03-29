@@ -37,4 +37,4 @@ module ServiceResponse =
             member __.getState() = getStateImpl()
 
         new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.wcfServiceUrl)
-        //new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.wcfServiceUrl)
+        new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.wcfServiceUrl)

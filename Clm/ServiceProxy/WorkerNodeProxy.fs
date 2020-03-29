@@ -1,18 +1,13 @@
 ﻿namespace ServiceProxy
 
 open NoSql.FileSystemTypes
-open ClmSys.Registry
 open MessagingServiceInfo.ServiceInfo
-open ContGenServiceInfo.ServiceInfo
-open Clm.CalculationData
-open Clm.ModelParams
-open ClmSys.GeneralErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralData
-open SolverRunner
 open ClmSys.SolverRunnerErrors
+open ClmSys.WorkerNodePrimitives
+open ClmSys.MessagingPrimitives
 
 module WorkerNodeProxy =
 
@@ -43,7 +38,7 @@ module WorkerNodeProxy =
         }
 
         static member create (i : WorkerNodeProxyData) =
-            let name = workerNodeServiceName
+            let name = workerNodeServiceName.value.messagingClientName
 
             {
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name

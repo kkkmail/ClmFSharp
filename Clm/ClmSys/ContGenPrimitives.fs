@@ -2,8 +2,6 @@
 
 open System
 open GeneralPrimitives
-open ClmSys.VersionInfo
-
 
 module ContGenPrimitives =
 
@@ -17,10 +15,7 @@ module ContGenPrimitives =
         member this.value = let (ContGenServiceName v) = this in v
 
 
-    let contGenServiceName =
-        "ContGenService" + " - " + versionNumberValue.value
-        |> ServiceName
-        |> ContGenServiceName
+    let contGenServiceName = "ContGenService" |> ServiceName |> ContGenServiceName
 
 
     type MinUsefulEe =

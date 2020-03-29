@@ -7,7 +7,7 @@ open SvcCommandLine
 module ServiceImplementation =
 
     let parserResults =
-        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
+        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)
         (parser.Parse [||]).GetAllResults()
 
 

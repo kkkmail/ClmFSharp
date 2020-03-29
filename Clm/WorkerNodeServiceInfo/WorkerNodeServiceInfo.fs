@@ -8,6 +8,7 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
+open ClmSys.WorkerNodeData
 
 module ServiceInfo =
 
@@ -101,3 +102,17 @@ module ServiceInfo =
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
+
+
+    type WorkerNodeResponseHandler (w : WorkerNodeServiceAccessInfo) =
+        let service = Activator.GetObject (typeof<IWorkerNodeService>, w.serviceUrl) :?> IWorkerNodeService
+        member __.workerNodeService = service
+
+        static member tryCreate i =
+            try
+                WorkerNodeResponseHandler i |> Some
+            with
+            | exn ->
+                printfn "Exception occurred: %s." exn.Message
+                None
+

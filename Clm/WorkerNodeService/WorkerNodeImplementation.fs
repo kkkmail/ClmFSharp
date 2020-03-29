@@ -3,12 +3,10 @@
 open System
 open Argu
 open ClmSys.GeneralData
-open ClmSys.GeneralErrors
 open ClmSys
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
-open ClmSys.Registry
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
@@ -18,9 +16,7 @@ open Messaging.Client
 open Messaging.ServiceResponse
 open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
-open System.IO
 open ServiceProxy.MsgProcessorProxy
-open Clm.CalculationData
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.PartitionerPrimitives
@@ -29,7 +25,6 @@ open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
-open NoSql.FileSystemTypes
 open ClmSys.Rop
 open System.Threading
 open SolverRunner.SolverRunnerTasks
@@ -63,7 +58,7 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerData =
         {
-            workerNodeAccessInfo : WorkerNodeServiceAccessInfo
+            workerNodeServiceInfo : WorkerNodeServiceInfo
             workerNodeProxy : WorkerNodeProxy
             messageProcessorProxy : MessageProcessorProxy
             minUsefulEe : MinUsefulEe
@@ -286,7 +281,7 @@ module ServiceImplementation =
                 {
                     partitionerRecipient = proxy.sendMessageProxy.partitionerId
                     deliveryType = GuaranteedDelivery
-                    messageData = { proxy.workerNodeInfo with nodeInfo = { proxy.workerNodeInfo.nodeInfo with noOfCores = cores } } |> RegisterWorkerNodePrtMsg
+                    messageData = { proxy.workerNodeInfo with noOfCores = cores } |> RegisterWorkerNodePrtMsg
                 }.getMessageInfo()
                 |> proxy.sendMessageProxy.sendMessage
 
@@ -300,29 +295,22 @@ module ServiceImplementation =
 
     let sendMessageProxy i =
         {
-            partitionerId = i.workerNodeAccessInfo.partitionerId
+            partitionerId = i.workerNodeServiceInfo.workerNodeInfo.partitionerId
             sendMessage = i.messageProcessorProxy.sendMessage
         }
 
 
     let onRunModelProxy i p =
         {
-            workerNodeId = i.workerNodeAccessInfo.workerNodeInfo.workerNodeId
+            workerNodeId = i.workerNodeServiceInfo.workerNodeInfo.workerNodeId
             runModel = runSolver p
             sendMessageProxy = sendMessageProxy i
         }
 
 
-    //let onStartProxy i p =
-    //    {
-    //        loadAllWorkerNodeRunModelData = i.workerNodeProxy.loadAllWorkerNodeRunModelData
-    //        onRunModel = onRunModel (onRunModelProxy i p)
-    //    }
-
-
     let onRegisterProxy i : OnRegisterProxy =
         {
-            workerNodeInfo = i.workerNodeAccessInfo.workerNodeInfo
+            workerNodeInfo = i.workerNodeServiceInfo.workerNodeInfo
             sendMessageProxy = sendMessageProxy i
         }
 
@@ -341,15 +329,6 @@ module ServiceImplementation =
         }
 
 
-    //let onGetMessagesProxy i p =
-    //    {
-    //        tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-    //        onProcessMessage = onProcessMessage (onProcessMessageProxy i p)
-    //        maxMessages = WorkerNodeRunnerState.maxMessages
-    //        onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
-    //    }
-
-
     type WorkerNodeMessage =
         | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
         | Register of AsyncReplyChannel<UnitResult>
@@ -363,10 +342,8 @@ module ServiceImplementation =
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
-        //let onStartProxy = onStartProxy i
         let onRegisterProxy = onRegisterProxy i
         let onUpdateProgressProxy = onUpdateProgressProxy i
-        //let onGetMessagesProxy = onGetMessagesProxy i
         let onConfigureWorkerProxy = onRegisterProxy
         let sendMessageProxy = sendMessageProxy i
 
@@ -423,14 +400,11 @@ module ServiceImplementation =
             }
 
 
-
-
-
     let createServiceImpl (logger : Logger) (i : WorkerNodeRunnerData) =
         logger.logInfoString "createServiceImpl: Creating WorkerNodeRunner..."
         let w = WorkerNodeRunner i
 
-        match i.workerNodeAccessInfo.isInactive with
+        match i.workerNodeServiceInfo.workerNodeInfo.isInactive with
         | false ->
             logger.logInfoString "createServiceImpl: Registering..."
             match w.register >-> w.start |> evaluate with
@@ -449,15 +423,6 @@ module ServiceImplementation =
     let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
 
 
-    //let createSolverRunnerProxy (w : IWorkerNodeService) r =
-    //    {
-    //        updateProgress = w.updateProgress
-    //        saveResult = w.saveResult
-    //        saveCharts = w.saveCharts
-    //        logCrit = saveSolverRunnerErrFs (getErrName r)
-    //    }
-
-
     type WorkerNodeService () =
         inherit MarshalByRefObject()
         let logger = Logger.log4net
@@ -466,7 +431,7 @@ module ServiceImplementation =
         let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
         let w =
-            let messagingClientAccessInfo = serviceAccessInfo.workNodeMsgAccessInfo.messagingClientAccessInfo
+            let messagingClientAccessInfo = serviceAccessInfo.messagingClientAccessInfo
             let h = MsgResponseHandler messagingClientAccessInfo
             logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
 
@@ -474,7 +439,7 @@ module ServiceImplementation =
                 {
                     msgAccessInfo = messagingClientAccessInfo
                     messagingService = h
-                    msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName }
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName.value.messagingClientName }
                 }
 
             let messagingClient = MessagingClient messagingClientData
@@ -483,7 +448,7 @@ module ServiceImplementation =
             | Ok() ->
                 let n =
                     {
-                        workerNodeAccessInfo = serviceAccessInfo
+                        workerNodeServiceInfo = serviceAccessInfo
                         workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
                         messageProcessorProxy = messagingClient.messageProcessorProxy
                         minUsefulEe = MinUsefulEe.defaultValue
@@ -502,24 +467,6 @@ module ServiceImplementation =
         do initService ()
 
 
-        //let updateProgressImpl p =
-        //    match w with
-        //    | Ok r -> r.updateProgress p
-        //    | Error e -> addError (UpdateLocalProgressError (sprintf "Failed to update progress: %A" p)) e
-
-
-        //let saveResultImpl r =
-        //    match w with
-        //    | Ok r -> r.configure d
-        //    | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
-
-
-        //let saveChartsImpl c =
-        //    match w with
-        //    | Ok r -> r.getState d
-        //    | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
-
-
         let configureImpl d =
             match w with
             | Ok r -> r.configure d
@@ -533,9 +480,6 @@ module ServiceImplementation =
 
 
         interface IWorkerNodeService with
-            //member _.updateProgress p = updateProgressImpl p
-            //member _.saveResult r = saveResultImpl r
-            //member _.saveCharts c = saveChartsImpl c
             member _.ping() = Ok()
             member _.configure d = configureImpl d
             member _.monitor p = monitorImpl p

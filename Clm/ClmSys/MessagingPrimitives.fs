@@ -2,9 +2,33 @@
 
 open System
 open GeneralPrimitives
-open ClmSys.VersionInfo
 
 module MessagingPrimitives =
+
+    type MessagingClientId =
+        | MessagingClientId of Guid
+
+        member this.value = let (MessagingClientId v) = this in v
+        static member create() = Guid.NewGuid() |> MessagingClientId
+
+
+    type MessagingClientName =
+        | MessagingClientName of string
+
+        member this.value = let (MessagingClientName v) = this in v
+
+
+    type MessageId =
+        | MessageId of Guid
+
+        member this.value = let (MessageId v) = this in v
+        static member create() = Guid.NewGuid() |> MessageId
+
+
+    type ServiceName
+        with
+        member n.messagingClientName = MessagingClientName n.originalValue
+
 
     type MessagingServiceAddress =
         | MessagingServiceAddress of ServiceAddress
@@ -26,27 +50,4 @@ module MessagingPrimitives =
         member this.value = let (MessagingServiceName v) = this in v
 
 
-    let messagingServiceName =
-        "MessagingService" + " - " + versionNumberValue.value
-        |> ServiceName
-        |> MessagingServiceName
-
-
-    type MessagingClientName =
-        | MessagingClientName of string
-
-        member this.value = let (MessagingClientName v) = this in v
-
-
-    type MessagingClientId =
-        | MessagingClientId of Guid
-
-        member this.value = let (MessagingClientId v) = this in v
-        static member create() = Guid.NewGuid() |> MessagingClientId
-
-
-    type MessageId =
-        | MessageId of Guid
-
-        member this.value = let (MessageId v) = this in v
-        static member create() = Guid.NewGuid() |> MessageId
+    let messagingServiceName = "MessagingService" |> ServiceName |> MessagingServiceName

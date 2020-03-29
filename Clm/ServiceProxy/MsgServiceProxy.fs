@@ -2,7 +2,6 @@
 
 open MessagingServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
-open ClmSys.Registry
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 
@@ -47,8 +46,8 @@ module MsgServiceProxy =
             let name = messagingServiceName
 
             {
-                loadMessages = loadMessageAllFs name
-                saveMessage = saveMessageFs name
-                deleteMessage = tryDeleteMessageFs name
-                tryLoadMessage = loadMessageFs name
+                loadMessages = loadMessageAllFs name.value.messagingClientName
+                saveMessage = saveMessageFs name.value.messagingClientName
+                deleteMessage = tryDeleteMessageFs name.value.messagingClientName
+                tryLoadMessage = loadMessageFs name.value.messagingClientName
             }

@@ -96,8 +96,8 @@ module SvcCommandLine =
         | Save a -> ContGenSvcArgs.Save a
 
 
-    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
+    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
@@ -108,6 +108,24 @@ module SvcCommandLine =
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetUsePartitioner p = p |> List.tryPick (fun e -> match e with | UsePartitioner p -> Some p | _ -> None)
+
+
+    let getServiceAddress logger version name p =
+        match tryGetServiceAddress p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> ContGenServiceAddress a
+            | Error _ -> ContGenServiceAddress.defaultValue
+
+
+    let getServicePort logger version name p =
+        match tryGetServicePort p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServicePort version name with
+            | Ok a -> ContGenServicePort a
+            | Error _ -> ContGenServicePort.defaultValue
 
 
     let geMinUsefulEe logger version name p =
@@ -128,6 +146,9 @@ module SvcCommandLine =
     let private getServiceAccessInfoImpl b p =
         let name = contGenServiceRegistryName
         let version = getVersion p
+
+        let address = getServiceAddress logger version name p
+        let port = getServicePort logger version name p
         let ee = geMinUsefulEe logger version name p
 
         let msgAddress = getMsgServiceAddress logger version name p
@@ -149,6 +170,13 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
+            contGenServiceAccessInfo =
+                {
+                    contGenServiceAddress = address
+                    contGenServicePort = port
+                    contGenServiceName = contGenServiceName
+                }
+
             minUsefulEe = ee
         }
 
@@ -164,17 +192,6 @@ module SvcCommandLine =
         let msgAddress = getMsgServiceAddress logger version name p
         let msgPort = getMsgServicePort logger version name p
         let partitioner = getPartitioner logger version name p
-
-        //let w =
-        //    {
-        //        partitionerId = partitioner
-        //        msgSvcAccessInfo =
-        //            {
-        //                serviceAddress = msgAddress
-        //                servicePort = msgPort
-        //                inputServiceName = MessagingServiceName
-        //            }
-        //    }
 
         let i =
             {

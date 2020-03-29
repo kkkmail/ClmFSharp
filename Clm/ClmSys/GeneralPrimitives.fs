@@ -5,6 +5,10 @@ open ClmSys.VersionInfo
 
 module GeneralPrimitives =
 
+    let DefaultContGenServicePort = DefaultServicePort
+    let DefaultContGenServiceAddress = "localhost"
+
+
     let DefaultWorkerNodeServicePort = 20000 + DefaultServicePort
     let DefaultWorkerNodeServiceAddress = "localhost"
 

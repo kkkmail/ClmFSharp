@@ -6,7 +6,6 @@ open System.Runtime.Remoting.Channels
 open Argu
 open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
 open ClmSys.ContGenData
@@ -14,11 +13,11 @@ open ClmSys.ContGenPrimitives
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) : ContGenShutDownInfo option =
+    let startServiceRun (logger : Logger) (i : ContGenServiceInfo) : ContGenShutDownInfo option =
         try
             logger.logInfoString ("startServiceRun: registering ContGenService...")
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
+            let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.contGenServicePort.value.value)
             ChannelServices.RegisterChannel (channel, false)
             let modelRunner = createModelRunnerImpl logger parserResults
             do modelRunner.start()

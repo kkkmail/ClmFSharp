@@ -40,7 +40,7 @@ module WindowsService =
             printfn "startWcfServiceRun: Creating WCF service..."
             serviceAccessInfo <- i
             let binding = getBinding()
-            let baseAddress = new Uri(i.messagingServiceAccessInfo.wcfServiceUrl)
+            let baseAddress = new Uri(i.wcfServiceUrl)
 
             let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
 

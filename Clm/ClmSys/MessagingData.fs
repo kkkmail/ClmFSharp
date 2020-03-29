@@ -2,7 +2,6 @@
 
 open GeneralData
 open MessagingPrimitives
-open GeneralPrimitives
 
 module MessagingData =
 

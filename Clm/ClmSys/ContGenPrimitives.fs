@@ -100,7 +100,7 @@ module ContGenPrimitives =
     type TaskProgress =
         | NotStarted
         | InProgress of decimal
-        | Completed of ChartGenerationResult
+        | Completed
         | Failed of ErrorMessage
 
         static member failedValue = -1000m
@@ -115,5 +115,5 @@ module ContGenPrimitives =
             match progress with
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
-            | Completed _ -> 1.0m
+            | Completed -> 1.0m
             | Failed _ -> TaskProgress.failedValue

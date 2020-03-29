@@ -44,7 +44,7 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : ChartGenerationResult -> UnitResult
+            onCompleted : unit -> UnitResult
             onFailed : (ErrorMessage -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
@@ -91,7 +91,7 @@ module SolverRunnerTasks =
                 getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData commandLineParams.useAbundant)
                 y0 = double commandLineParams.y0
                 useAbundant = commandLineParams.useAbundant
-                onCompleted = fun c -> notify n r.runQueueId (Completed c)
+                onCompleted = fun () -> notify n r.runQueueId Completed
                 onFailed = fun e -> notify n r.runQueueId (Failed e)
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
@@ -206,7 +206,14 @@ module SolverRunnerTasks =
                 |> plotAllResults
                 |> proxy.saveCharts
 
-            combineUnitResults result chartResult |> logIfFailed
+            let completedResult =
+                {
+                    runQueueId = w.runningProcessData.runQueueId
+                    progress = Completed
+                }
+                |> proxy.updateProgress
+
+            foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
         with
         | e ->
             {

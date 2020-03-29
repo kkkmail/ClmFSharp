@@ -32,7 +32,7 @@ module GeneralPrimitives =
     type ServiceName =
         | ServiceName of string
 
-        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value)
+        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value + "." + messagingDataVersion.value.ToString())
         member this.originalValue = let (ServiceName v) = this in v
 
 
@@ -54,6 +54,12 @@ module GeneralPrimitives =
         member this.value = let (RunQueueId v) = this in v
         member this.toResultDataId() = this.value |> ResultDataId
         static member getNewId() = Guid.NewGuid() |> RunQueueId
+
+
+    type ErrorMessage =
+        | ErrorMessage of string
+
+        member this.value = let (ErrorMessage v) = this in v
 
 
     type RunQueueStatus =

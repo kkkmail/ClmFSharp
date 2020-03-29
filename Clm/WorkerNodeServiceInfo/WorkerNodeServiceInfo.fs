@@ -30,7 +30,6 @@ module ServiceInfo =
             progress : TaskProgress
             started : DateTime
             lastUpdated : DateTime
-            cancellationTokenSource : CancellationTokenSource
         }
 
         override r.ToString() =
@@ -44,11 +43,32 @@ module ServiceInfo =
             sprintf "T: %s;%s %A" s estCompl r.progress
 
 
+    type RunnerStateWithCancellation =
+        {
+            runnerState : RunnerState
+            cancellationTokenSource : CancellationTokenSource
+        }
+
+
+    type WorkerNodeRunnerMonitorState =
+        {
+            workers : Map<RunQueueId, RunnerState>
+            noOfWorkerCores : int
+        }
+
+
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<RunQueueId, RunnerState>
+            runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
             numberOfWorkerCores : int
         }
+
+        member w.toWorkerNodeRunnerMonitorState() =
+            {
+                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
+                noOfWorkerCores = w.numberOfWorkerCores
+            }
+
 
     type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
 
@@ -60,7 +80,7 @@ module ServiceInfo =
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
         | ErrorOccurred of ClmError
-        | WrkNodeState of WorkerNodeRunnerState
+        | WrkNodeState of WorkerNodeRunnerMonitorState
 
         override this.ToString() =
             match this with
@@ -70,10 +90,10 @@ module ServiceInfo =
                     acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
         
                 let x =
-                    match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
+                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"
                     | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfWorkerCores
+                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
 
 

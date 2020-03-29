@@ -89,8 +89,8 @@ module ModelRunner =
                 let q2 =
                     match i.progress with
                     | NotStarted | InProgress _ -> q1
-                    | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue }
-                    | Failed _ -> { q1 with runQueueStatus = FailedRunQueue }
+                    | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }
+                    | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }
 
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()

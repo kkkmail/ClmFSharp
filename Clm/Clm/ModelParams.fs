@@ -212,6 +212,7 @@ module ModelParams =
             runQueueId : RunQueueId
             info : RunQueueInfo
             runQueueStatus : RunQueueStatus
+            errorMessageOpt : ErrorMessage option
             workerNodeIdOpt : WorkerNodeId option
             progress : TaskProgress
             createdOn : DateTime
@@ -231,6 +232,7 @@ module ModelParams =
                     }
 
                 runQueueStatus = NotStartedRunQueue
+                errorMessageOpt = None
                 workerNodeIdOpt = None
                 progress = NotStarted
                 createdOn = DateTime.Now

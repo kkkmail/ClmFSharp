@@ -156,7 +156,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -179,7 +179,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -375,6 +375,7 @@ module DatabaseTypes =
                                 }
                         }
                     runQueueStatus = s
+                    errorMessageOpt = r.errorMessage |> Option.map ErrorMessage
                     workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                     progress = TaskProgress.create r.progress
                     createdOn = r.createdOn
@@ -389,13 +390,14 @@ module DatabaseTypes =
                         modelDataId = r.info.modelDataId.value,
                         y0 = r.modelCommandLineParam.y0,
                         tEnd = r.modelCommandLineParam.tEnd,
+                        runQueueStatusId = r.runQueueStatus.value,
                         useAbundant = r.modelCommandLineParam.useAbundant,
                         workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                         progress = r.progress.value,
                         modifiedOn = DateTime.Now
                         )
 
-            newRow.runQueueStatusId <- r.runQueueStatus.value
+            newRow.errorMessage <- r.errorMessageOpt |> Option.bind (fun e -> Some e.value)
             t.Rows.Add newRow
             newRow
 
@@ -416,6 +418,7 @@ module DatabaseTypes =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
                 r.progress <- p
+                r.errorMessage <- q.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
                 match s with
                 | Some v -> r.startedOn <- Some v
@@ -769,6 +772,7 @@ module DatabaseTypes =
                             }
                     }
                 runQueueStatus = s
+                errorMessageOpt = reader?errorMessage |> Option.map ErrorMessage
                 workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                 progress = TaskProgress.create reader?progress
                 createdOn = reader?createdOn

@@ -17,6 +17,7 @@ open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.SolverRunnerErrors
+open ClmSys.GeneralPrimitives
 
 module SolverRunnerTasks =
 
@@ -44,7 +45,7 @@ module SolverRunnerTasks =
             y0 : double
             useAbundant : bool
             onCompleted : ChartGenerationResult -> UnitResult
-            onFailed : (string -> UnitResult)
+            onFailed : (ErrorMessage -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> UnitResult) option
@@ -210,7 +211,7 @@ module SolverRunnerTasks =
         | e ->
             {
                 runQueueId = w.runningProcessData.runQueueId
-                progress = Failed (e.ToString())
+                progress = e.ToString() |> ErrorMessage |> Failed
             }
             |> proxy.updateProgress
             |> logIfFailed

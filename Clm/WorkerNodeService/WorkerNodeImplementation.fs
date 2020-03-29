@@ -137,7 +137,7 @@ module ServiceImplementation =
         match progress with
         | NotStarted -> (NonGuaranteedDelivery, false)
         | InProgress _ -> (NonGuaranteedDelivery, false)
-        | Completed c -> (GuaranteedDelivery, true)
+        | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
 
 
@@ -155,7 +155,7 @@ module ServiceImplementation =
                         |> proxy.sendMessageProxy.sendMessage
                         |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
-                    Some { rs with progress = p.progress; lastUpdated = DateTime.Now }, result
+                    Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
                 | None -> None, p.runQueueId |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
             if completed
@@ -177,6 +177,7 @@ module ServiceImplementation =
             workerNodeId : WorkerNodeId
             runModel : WorkerNodeRunModelData -> unit
             sendMessageProxy : SendMessageProxy
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
         }
 
 
@@ -190,9 +191,13 @@ module ServiceImplementation =
 
                 let rs =
                     {
-                        progress = TaskProgress.NotStarted
-                        started = DateTime.Now
-                        lastUpdated = DateTime.Now
+                        runnerState =
+                            {
+                                progress = TaskProgress.NotStarted
+                                started = DateTime.Now
+                                lastUpdated = DateTime.Now
+                            }
+
                         cancellationTokenSource = c
                     }
 
@@ -202,11 +207,12 @@ module ServiceImplementation =
                     {
                         partitionerRecipient = proxy.sendMessageProxy.partitionerId
                         deliveryType = GuaranteedDelivery
-                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = Failed "" }
+                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = "All cores are busy!" |> ErrorMessage |> Failed }
                     }.getMessageInfo()
                     |> proxy.sendMessageProxy.sendMessage
 
-                s, res
+                let r2 = proxy.tryDeleteWorkerNodeRunModelData d.runningProcessData.runQueueId
+                s, combineUnitResults res r2
 
         w, result |> bindError (addError OnRunModelErr CannotRunModel)
 
@@ -215,21 +221,24 @@ module ServiceImplementation =
         {
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
+            noOfCores : int
         }
 
 
     let onStart (proxy : OnStartProxy) s =
+        let w = { s with numberOfWorkerCores = proxy.noOfCores }
+
         let doStart mi =
             let m, mf = mi |> Rop.unzip
 
             match foldErrors mf with
-            | None -> (m, s) ||> Rop.foldWhileOk proxy.onRunModel
+            | None -> (m, w) ||> Rop.foldWhileOk proxy.onRunModel
             | Some e -> s, Error e
 
         let g, result =
             match proxy.loadAllWorkerNodeRunModelData() with
             | Ok mi -> doStart mi
-            | Error e -> s, Error e
+            | Error e -> w, Error e
 
         g, result
 
@@ -266,7 +275,7 @@ module ServiceImplementation =
     type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
     let onGetMessages = onGetMessages<WorkerNodeRunnerState>
-    let onGetState s = s, s
+    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState()
 
 
     type OnConfigureWorkerProxy = OnRegisterProxy
@@ -305,6 +314,7 @@ module ServiceImplementation =
             workerNodeId = i.workerNodeServiceInfo.workerNodeInfo.workerNodeId
             runModel = runSolver p
             sendMessageProxy = sendMessageProxy i
+            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
         }
 
 
@@ -337,7 +347,7 @@ module ServiceImplementation =
         | SaveResult of AsyncReplyChannel<UnitResult> * ResultDataWithId
         | SaveCharts of AsyncReplyChannel<UnitResult> * ChartGenerationResult
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
-        | GetState of AsyncReplyChannel<WorkerNodeRunnerState>
+        | GetState of AsyncReplyChannel<WorkerNodeRunnerMonitorState>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
@@ -389,6 +399,7 @@ module ServiceImplementation =
             {
                 loadAllWorkerNodeRunModelData = i.workerNodeProxy.loadAllWorkerNodeRunModelData
                 onRunModel = onRunModel (onRunModelProxy i w.solverRunnerProxy)
+                noOfCores = i.workerNodeServiceInfo.workerNodeInfo.noOfCores
             }
 
         member w.onGetMessagesProxy =

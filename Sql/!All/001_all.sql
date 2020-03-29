@@ -91,6 +91,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[runQueueOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[runQueueStatusId] [int] NOT NULL,
+		[errorMessage] nvarchar(max) NULL,
 		[progress] [money] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,

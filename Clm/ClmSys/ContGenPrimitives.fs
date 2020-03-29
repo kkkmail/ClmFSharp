@@ -101,7 +101,7 @@ module ContGenPrimitives =
         | NotStarted
         | InProgress of decimal
         | Completed of ChartGenerationResult
-        | Failed of string
+        | Failed of ErrorMessage
 
         static member failedValue = -1000m
 

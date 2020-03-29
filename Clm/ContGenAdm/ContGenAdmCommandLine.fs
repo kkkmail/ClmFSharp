@@ -103,8 +103,8 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
             | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
-            //| [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
-            //| [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
+            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
+            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
             | [<Unique>] [<AltCommandLine("ee")>]   ServerMinUsefulEe of double
 
         with
@@ -115,17 +115,17 @@ module AdmCommandLine =
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
                     | ConfigureService _ -> "reconfigures service."
-                    //| ServerAddress _ -> "server address / name."
-                    //| ServerPort _ -> "server port."
+                    | ServerAddress _ -> "server address / name."
+                    | ServerPort _ -> "server port."
                     | ServerMinUsefulEe _ -> "server min useful ee."
 
 
-    //let tryGetServerAddress (p :list<ContGenAdmArguments>) =
-    //     p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServiceAddress (p :list<ContGenAdmArguments>) =
+         p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
 
 
-    //let tryGetServerPort (p :list<ContGenAdmArguments>) =
-    //    p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetServicePort (p :list<ContGenAdmArguments>) =
+        p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
 
 
     let tryGetServerMinUsefulEe (p :list<ContGenAdmArguments>) =
@@ -133,15 +133,15 @@ module AdmCommandLine =
 
 
     let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
-        //let address =
-        //    match tryGetServerAddress p with
-        //    | Some a -> a
-        //    | None -> ServiceAddress.defaultContGenServiceValue
+        let address =
+            match tryGetServiceAddress p with
+            | Some a -> a
+            | None -> ContGenServiceAddress.defaultValue
 
-        //let port =
-        //    match tryGetServerPort p with
-        //    | Some a -> a
-        //    | None -> ServicePort.defaultContGenServiceValue
+        let port =
+            match tryGetServicePort p with
+            | Some a -> a
+            | None -> ContGenServicePort.defaultValue
 
         let ee =
             match tryGetServerMinUsefulEe p with
@@ -150,12 +150,12 @@ module AdmCommandLine =
 
 
         {
-            //contGenServiceAccessInfo =
-            //    {
-            //        serviceAddress = address
-            //        servicePort = port
-            //        inputServiceName = ContGenServiceName
-            //    }
+            contGenServiceAccessInfo =
+                {
+                    contGenServiceAddress = address
+                    contGenServicePort = port
+                    contGenServiceName = contGenServiceName
+                }
 
             minUsefulEe = ee
         }

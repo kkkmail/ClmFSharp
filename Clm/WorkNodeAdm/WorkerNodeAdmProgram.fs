@@ -14,7 +14,7 @@ let main argv =
         | Some i ->
             let service = new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)
 
-            match WrkAdmTask.tryCreateTask service.workerNodeService i.workerNodeServiceAccessInfo results with
+            match WrkAdmTask.tryCreateTask service.workerNodeService i results with
             | Some task -> task.run()
             | None -> printfn "Nothing to do!"
 

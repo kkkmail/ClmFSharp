@@ -161,6 +161,11 @@
       <Project>{380ec917-1ed5-482b-b801-574c1170462a}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj">
+      <Name>OdeSolver</Name>
+      <Project>{cabc1334-fa26-483e-ae65-9f93c86dce2d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">
       <Name>ServiceProxy</Name>
       <Project>{37054210-ce85-4b20-9b89-21a66a3bdf8e}</Project>

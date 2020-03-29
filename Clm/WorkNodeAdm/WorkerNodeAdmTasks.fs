@@ -32,13 +32,13 @@ module WorkerNodeAdmTasks =
             | ConfigureWorkerNodeTask (s, p) -> p |> List.map s.configure |> ignore
             | MonitorWorkerNodeTask (s, p)-> monitor s p |> ignore
 
-        static member private tryCreateConfigureTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
-            p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.nodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
+        static member private tryCreateConfigureTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
+            p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.workerNodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
 
-        static member private tryCreateMonitorTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
+        static member private tryCreateMonitorTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
             p |> List.tryPick (fun e -> match e with | MonitorWrkService -> (s, DummyWrkMonitorParam 0) |> MonitorWorkerNodeTask |> Some | _ -> None)
 
-        static member tryCreateTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
+        static member tryCreateTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
             [
                     WrkAdmTask.tryCreateMonitorTask
                     WrkAdmTask.tryCreateConfigureTask

@@ -112,7 +112,7 @@ module ModelRunner =
         let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
-        | Ok w -> proxy.upsertWorkerNodeInfo { w with nodeInfo = { w.nodeInfo with noOfCores = 0 } } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
+        | Ok w -> proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 

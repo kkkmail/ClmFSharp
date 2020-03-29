@@ -9,6 +9,7 @@ open WorkerNodeService.SvcCommandLine
 open WorkerNodeService.WindowsService
 open WorkerNodeServiceInfo.ServiceInfo
 open System.Runtime.Remoting.Channels
+open ClmSys.WorkerNodePrimitives
 
 module ServiceTasks =
 
@@ -19,7 +20,7 @@ module ServiceTasks =
 
     let serviceInfo =
         {
-            serviceName = ServiceName WorkerNodeServiceName
+            serviceName = workerNodeServiceName.value
             runService = startServiceRun
             cleanup = cleanupService
             timeoutMilliseconds = None
@@ -29,4 +30,4 @@ module ServiceTasks =
 
     let getParams (p : ParseResults<WorkerNodeServiceRunArgs>) = getServiceAccessInfo (p.GetAllResults())
     let getSaveSettings (p : ParseResults<WorkerNodeServiceRunArgs>) () = p.GetAllResults() |> saveSettings
-    type WorkerNodeServiceTask = ServiceTask<WorkerNodeWindowsService, WorkerNodeServiceAccessInfo, WorkerNodeServiceRunArgs>
+    type WorkerNodeServiceTask = ServiceTask<WorkerNodeWindowsService, WorkerNodeServiceInfo, WorkerNodeServiceRunArgs>

@@ -10,6 +10,7 @@ set @now = getdate()
 		runQueueOrder
 		,d.clmDefaultValueId
 		,progress
+		,runQueueStatusId
 		,errorMessage
 		,case when startedOn is not null and progress > 0 then dateadd(second, datediff(second, startedOn, @now) / progress, startedOn) else null end as estCompl
 		,cast(case when startedOn is not null and progress > 0 then datediff(second, startedOn, @now) / progress / (3600 * 24) else null end as money) as totalRunTime
@@ -29,9 +30,8 @@ select * from w
 --	runQueueOrder > 20
 --	estCompl is not null
 --	and estCompl < dateadd(day, 1, @now)
-order by modifiedOn, estCompl
+--order by modifiedOn, estCompl
+order by runQueueOrder
 
 --update RunQueue set progress = -1000, runQueueStatusId = 4
 --update RunQueue set progress = 0, runQueueStatusId = 0 where runQueueOrder > 20
-
-

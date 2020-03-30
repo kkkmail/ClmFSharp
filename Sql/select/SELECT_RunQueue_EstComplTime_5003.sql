@@ -25,8 +25,8 @@ set @now = getdate()
 	--where progress <> 1 and runQueueStatusId = 2
 )
 select * from w
-where
-	runQueueOrder > 20
+--where
+--	runQueueOrder > 20
 --	estCompl is not null
 --	and estCompl < dateadd(day, 1, @now)
 order by modifiedOn, estCompl

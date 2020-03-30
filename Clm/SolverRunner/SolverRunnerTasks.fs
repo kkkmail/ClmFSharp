@@ -183,6 +183,8 @@ module SolverRunnerTasks =
         else NotGeneratedCharts
 
 
+    /// Uncomment printfn below in case of severe issues.
+    /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) : unit =
         let logIfFailed result =
             match result with
@@ -193,7 +195,11 @@ module SolverRunnerTasks =
             let runSolverData = RunSolverData.create w proxy.updateProgress None
             let nSolveParam = getNSolveParam runSolverData
             let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
+
+            printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             nSolve data |> ignore
+            printfn "runSolver: ...call to nSolve for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+
             let (r, chartData) = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
             let result = proxy.saveResult r
 
@@ -206,6 +212,7 @@ module SolverRunnerTasks =
                 |> plotAllResults
                 |> proxy.saveCharts
 
+            printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             let completedResult =
                 {
                     runQueueId = w.runningProcessData.runQueueId
@@ -214,6 +221,7 @@ module SolverRunnerTasks =
                 |> proxy.updateProgress
 
             foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
+            printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
         with
         | e ->
             {

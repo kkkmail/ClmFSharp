@@ -25,7 +25,8 @@ set @now = getdate()
 )
 select * from w
 where
-	estCompl is not null
-	and estCompl < dateadd(day, 1, @now)
+	workerNodeName = 'WEENY'
+--	estCompl is not null
+	--and estCompl < dateadd(day, 1, @now)
 	--and clmDefaultValueId > 2000000000
-order by modifiedOn, estCompl
+order by estCompl

@@ -6,9 +6,9 @@ open ClmDefaults.DefaultValuesExt
 open Clm.Distributions
 open ClmSys.ContGenPrimitives
 
-module Defaults_001_000_026 =
+module Defaults_002_000_316 =
 
-    let ns =
+    let nsd =
         [
             ( 0L, 0.00)
             ( 1L, 0.10)
@@ -24,21 +24,34 @@ module Defaults_001_000_026 =
         ]
 
 
-    let getDefaultValue (n, s) =
-        let clmDefaultValueId = (1_000_026_000L + n) |> ClmDefaultValueId
+    let mw =
+        [
+            ( 0L, 0.001)
+            ( 1L, 0.002)
+            ( 2L, 0.005)
+            ( 3L, 0.010)
+            ( 4L, 0.020)
+            ( 5L, 0.050)
+        ]
+
+
+    let getDefaultValue ((n, s), (m, w)) =
+        let clmDefaultValueId = (2_000_316_000L + 20L * m + n) |> ClmDefaultValueId
         let description = None
         let catRateGenType = ByEnantiomerPairs FixedVal
         let successNumberType = ThresholdBased
 
         let defaultRateParams =
             //===========================================================
-            let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
+            let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam w
             //===========================================================
             let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
-            let catSynthRndParam = (synthParam, (Some 0.000_200), 100_000.0)
+            let catSynthRndParam = (synthParam, (Some 0.000_050), 100_000.0)
             let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some s) catRateGenType
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
+            let catDestrRndParam = (destrParam, (Some 0.000_050), 100_000.0)
+            let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some s) catRateGenType
             //===========================================================
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
             //===========================================================
@@ -50,6 +63,7 @@ module Defaults_001_000_026 =
                     catSynthParam
 
                     destrParam |> DestructionRateParam
+                    catDestrParam
 
                     ligParam |> LigationRateParam
                 ]
@@ -65,3 +79,6 @@ module Defaults_001_000_026 =
             defaultRateParams = defaultRateParams
             description = description
         }
+
+
+    let defaultValues = (List.allPairs nsd mw) |> List.map getDefaultValue

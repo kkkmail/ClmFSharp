@@ -26,7 +26,7 @@ module Defaults_000_013 =
         ]
 
 
-    let getGefaultValue (n, w) =
+    let getDefaultValue (n, w) =
         let clmDefaultValueId = (13_000L + n) |> ClmDefaultValueId
         let description = None
         let catRateGenType = ByEnantiomerPairs DistrBased

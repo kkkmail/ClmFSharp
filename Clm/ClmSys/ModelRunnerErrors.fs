@@ -21,6 +21,11 @@ module ModelRunnerErrors =
         | UnableToRunModelAndUpsertStatusErr
 
 
+    type TryCancelRunQueueError =
+        | TryLoadRunQueueErr of RunQueueId
+        | InvalidRunQueueStatusErr of RunQueueId
+
+
     type TryRunAllModelsError =
         | UnableToTryRunFirstModelErr
 
@@ -58,6 +63,7 @@ module ModelRunnerErrors =
     type ModelRunnerError =
         | RunModelErr of RunModelError
         | TryRunFirstModelErr of TryRunFirstModelError
+        | TryCancelRunQueueErr of TryCancelRunQueueError
         | TryRunAllModelsErr of TryRunAllModelsError
         | UpdateProgressErr of UpdateProgressError
         | RegisterErr of RegisterError

@@ -406,6 +406,8 @@ module DatabaseTypes =
         ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
         ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
+        ///     NotStartedRunQueue -> CancelledRunQueue + both None (workerNodeId).
+        ///     InProgressRunQueue -> CancelledRunQueue + the same Some workerNodeId.
         ///
         /// All others are not allowed and / or out of scope of this function.
         ///
@@ -449,6 +451,8 @@ module DatabaseTypes =
                 | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
                 | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value None
                 | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | NotStartedRunQueue, None, CancelledRunQueue, None -> g TaskProgress.failedValue None
+                | InProgressRunQueue, Some w1, CancelledRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 

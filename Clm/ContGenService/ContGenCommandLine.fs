@@ -14,7 +14,6 @@ open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
-open ClmSys.ContGenData
 open ContGen.ModelRunner
 open DbData.Configuration
 open Clm.ModelParams
@@ -24,42 +23,23 @@ module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type ContGenRunArgs =
-        | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
-        | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
-
-        | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
-        | [<Unique>] [<AltCommandLine("-i")>] RunIdle
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
-
         | [<Unique>] [<AltCommandLine("-save")>] SaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] ContGenVersion of string
-
+        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
 
-        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
-        | [<Unique>] [<AltCommandLine("-u")>] UsePartitioner of bool
-
-    with
+        with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | SvcAddress _ -> "cont gen service ip address / name."
-                | SvcPort _ -> "cont gen service port."
-
-                | NumberOfCores _ -> "number of logical cores to use."
-                | RunIdle -> "Start idle."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
-
                 | SaveSettings -> "saves settings to the Registry."
                 | ContGenVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
-
+                | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
-
-                | Partitioner _ -> "messaging client id of a partitioner service."
-                | UsePartitioner _ -> "if true, then use partitioner (default), otherwise don't use it."
-
 
     and
         [<CliPrefix(CliPrefix.None)>]
@@ -71,7 +51,7 @@ module SvcCommandLine =
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<ContGenRunArgs>
         | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<ContGenRunArgs>
 
-    with
+        with
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -96,36 +76,14 @@ module SvcCommandLine =
         | Save a -> ContGenSvcArgs.Save a
 
 
-    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
-    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | ContGenVersion p -> p |> VersionNumber |> Some | _ -> None)
 
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
-
-    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
-    let tryGetUsePartitioner p = p |> List.tryPick (fun e -> match e with | UsePartitioner p -> Some p | _ -> None)
-
-
-    let getServiceAddress logger version name p =
-        match tryGetServiceAddress p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServiceAddress version name with
-            | Ok a -> ContGenServiceAddress a
-            | Error _ -> ContGenServiceAddress.defaultValue
-
-
-    let getServicePort logger version name p =
-        match tryGetServicePort p with
-        | Some a -> a
-        | None ->
-            match tryGetContGenServicePort version name with
-            | Ok a -> ContGenServicePort a
-            | Error _ -> ContGenServicePort.defaultValue
 
 
     let geMinUsefulEe logger version name p =
@@ -143,14 +101,11 @@ module SvcCommandLine =
     let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
-    let private getServiceAccessInfoImpl b p =
+    let saveSettings p =
         let name = contGenServiceRegistryName
         let version = getVersion p
 
-        let address = getServiceAddress logger version name p
-        let port = getServicePort logger version name p
         let ee = geMinUsefulEe logger version name p
-
         let msgAddress = getMsgServiceAddress logger version name p
         let msgPort = getMsgServicePort logger version name p
 
@@ -164,25 +119,9 @@ module SvcCommandLine =
             trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
             trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
 
-        match tryGetSaveSettings p, b with
-        | Some _, _ -> saveSettings()
-        | _, true -> saveSettings()
-        | _ -> ignore()
-
-        {
-            contGenServiceAccessInfo =
-                {
-                    contGenServiceAddress = address
-                    contGenServicePort = port
-                    contGenServiceName = contGenServiceName
-                }
-
-            minUsefulEe = ee
-        }
-
-
-    let getServiceAccessInfo = getServiceAccessInfoImpl false
-    let saveSettings p = getServiceAccessInfoImpl true p |> ignore
+        match tryGetSaveSettings p with
+        | Some() -> saveSettings()
+        | None -> ignore()
 
 
     let createModelRunnerImpl (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =

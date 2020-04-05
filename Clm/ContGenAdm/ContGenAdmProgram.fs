@@ -2,6 +2,7 @@
 open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
+open ClmSys.Logging
 
 
 [<EntryPoint>]
@@ -9,10 +10,11 @@ let main argv =
     try
         let parser = ArgumentParser.Create<ContGenAdmArguments>(programName = ContGenAdmAppName)
         let results = (parser.Parse argv).GetAllResults()
-        let i = getServiceAccessInfo results
 
         match results |> ContGenAdmTask.tryCreate with
-        | Some task -> task.run ()
+        | Some task ->
+            task.run Logger.defaultValue |> ignore
+            CompletedSuccessfully
         | None ->
             printfn "%s" (parser.PrintUsage())
             InvalidCommandLineArgs

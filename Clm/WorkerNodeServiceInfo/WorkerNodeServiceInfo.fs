@@ -6,7 +6,6 @@ open System.Threading
 open System
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
-open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodeData
 
@@ -135,4 +134,3 @@ module ServiceInfo =
             | exn ->
                 printfn "Exception occurred: %s." exn.Message
                 None
-

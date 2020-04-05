@@ -4,7 +4,6 @@ open System
 open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
-open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ContGenPrimitives
@@ -58,17 +57,6 @@ module ServiceInfo =
                 started = DateTime.Now
                 progressUpdateInfo = this
             }
-
-
-    type ContGenConfigParam =
-        | CancelRunQueueId of runQueueId : RunQueueId
-        | SetMinUsefulEe of ee : double
-
-
-    type ContGenShutDownInfo =
-        {
-            contGenTcpChannel : TcpChannel
-        }
 
 
     let mutable private callCount = -1

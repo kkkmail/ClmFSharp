@@ -10,6 +10,7 @@ open MBrace.FsPickler
 open Newtonsoft.Json
 open GeneralPrimitives
 open GeneralErrors
+open ContGenPrimitives
 
 module GeneralData =
 
@@ -190,6 +191,17 @@ module GeneralData =
             let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
             started.Add estRunTime |> Some
         else None
+
+
+    type TaskProgress
+        with
+
+        member progress.estimateEndTime (started : DateTime) =
+            match progress with
+            | NotStarted -> None
+            | InProgress p -> estimateEndTime p started
+            | Completed _ -> Some DateTime.Now
+            | Failed _ -> None
 
 
     let partition maxVal q n =

@@ -2,26 +2,12 @@
 
 open System
 open GeneralPrimitives
+open MessagingPrimitives
 
 module ContGenPrimitives =
 
     [<Literal>]
     let DefaultMinEe = 0.000_1
-
-
-    type ContGenServiceAddress =
-        | ContGenServiceAddress of ServiceAddress
-
-        member this.value = let (ContGenServiceAddress v) = this in v
-        static member defaultValue = DefaultMessagingServerAddress |> ServiceAddress |> ContGenServiceAddress
-
-
-    type ContGenServicePort =
-        | ContGenServicePort of ServicePort
-
-        member this.value = let (ContGenServicePort v) = this in v
-        static member defaultValue = DefaultMessagingServerPort |> ServicePort |> ContGenServicePort
-
 
 
     type ContGenServiceName =
@@ -117,3 +103,11 @@ module ContGenPrimitives =
             | InProgress d -> max 0m (min d 1m)
             | Completed -> 1.0m
             | Failed _ -> TaskProgress.failedValue
+
+
+    type ContGenAdmId =
+        | ContGenAdmId of MessagingClientId
+
+        member this.value = let (ContGenAdmId v) = this in v
+        member this.messagingClientId = let (ContGenAdmId v) = this in v
+        static member newId() = Guid.NewGuid() |> MessagingClientId |> ContGenAdmId

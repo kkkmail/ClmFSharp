@@ -61,6 +61,37 @@ module ModelRunner =
         | Error e -> addError TryLoadFirstRunQueueErr e
 
 
+    let tryCancelRunQueue (proxy : TryCancelRunQueueProxy) q =
+        let addError = addError TryCancelRunQueueErr
+        let toError = toError TryCancelRunQueueErr
+
+        match proxy.tryLoadRunQueue q with
+        | Ok (Some r) ->
+            let r1 =
+                match r.workerNodeIdOpt with
+                | Some w ->
+                    {
+                        recipientInfo =
+                            {
+                                recipient = w.messagingClientId
+                                deliveryType = GuaranteedDelivery
+                            }
+
+                        messageData = q |> CancelRunWrkMsg |> WorkerNodeMsg
+                    }
+                    |> proxy.sendCancelRunQueueMessage
+                | None -> Ok()
+
+            let r2 =
+                match r.runQueueStatus with
+                | NotStartedRunQueue | InProgressRunQueue -> { r with runQueueStatus = CancelledRunQueue } |> proxy.upsertRunQueue
+                | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
+
+            combineUnitResults r1 r2
+        | Ok None -> toError (TryLoadRunQueueErr q)
+        | Error e -> addError (TryLoadRunQueueErr q) e
+
+
     /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
     let tryRunAllModels (proxy : TryRunAllModelsProxy) =
         let rec doWork() =
@@ -95,7 +126,7 @@ module ModelRunner =
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()
                 | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
-            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue ->
+            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue | CancelledRunQueue ->
                 toError (InvalidRunQueueStatusErr i.runQueueId)
             | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runQueueId)
         | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)
@@ -166,6 +197,17 @@ module ModelRunner =
                 tryLoadFirstRunQueue = fun () -> tryLoadFirstRunQueue c
                 tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c
                 runModel = runModel rmp
+                upsertRunQueue = upsertRunQueue c
+            }
+
+
+    type TryCancelRunQueueProxy
+        with
+
+        static member create c s =
+            {
+                tryLoadRunQueue = tryLoadRunQueue c
+                sendCancelRunQueueMessage = s
                 upsertRunQueue = upsertRunQueue c
             }
 
@@ -257,3 +299,13 @@ module ModelRunner =
                 getRunState = g
             }
 
+
+    //type ModelConfigurator =
+    //    {
+    //        x : int
+    //    }
+
+    //    static member create connectionString =
+    //        let proxy = TryCancelRunQueueProxy.create connectionString
+
+    //        0

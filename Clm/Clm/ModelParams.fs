@@ -7,7 +7,6 @@ open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.ContGenData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates

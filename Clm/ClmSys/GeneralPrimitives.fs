@@ -69,6 +69,7 @@ module GeneralPrimitives =
         | CompletedRunQueue
         | FailedRunQueue
         | ModifyingRunQueue
+        | CancelledRunQueue
         | InvalidRunQueue // It does not exist in DB, so it it not possible to insert it due to FK constraint.
 
         member r.value =
@@ -79,6 +80,7 @@ module GeneralPrimitives =
             | CompletedRunQueue -> 3
             | FailedRunQueue -> 4
             | ModifyingRunQueue -> 5
+            | CancelledRunQueue -> 6
             | InvalidRunQueue -> -1000
 
         static member tryCreate i =
@@ -89,6 +91,7 @@ module GeneralPrimitives =
             | 3 -> Some CompletedRunQueue
             | 4 -> Some FailedRunQueue
             | 5 -> Some ModifyingRunQueue
+            | 6 -> Some CancelledRunQueue
             | _ -> None
 
 

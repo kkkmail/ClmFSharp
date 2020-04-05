@@ -1,12 +1,24 @@
 ﻿namespace ContGenAdm
 open Argu
-open ContGenServiceInfo.ServiceInfo
 open Clm.Substances
 open Clm.ModelParams
 open System
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.ContGenData
+open ClmSys.MessagingPrimitives
+open ClmSys.Logging
+open ClmSys.Registry
+open ClmSys.VersionInfo
+open Messaging.ServiceResponse
+open ClmSys.PartitionerPrimitives
+open ClmSys.MessagingData
+open ClmSys.ContGenAdmData
+open Messaging.Client
+open ServiceProxy.MsgServiceProxy
+open ContGen.ModelRunner
+open ServiceProxy.ModelRunnerProxy
+open DbData.Configuration
+open ClmSys.ClmErrors
 
 module AdmCommandLine =
 
@@ -14,76 +26,74 @@ module AdmCommandLine =
     let ContGenAdmAppName = "ContGenAdm.exe"
 
 
-    type
-        [<CliPrefix(CliPrefix.Dash)>]
-        AddClmTaskArgs =
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-i")>] IndexOfDefault of int64
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] MaxPeptideLength of int
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] TaskY0 of list<decimal>
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
-            | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
-            | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
+    [<CliPrefix(CliPrefix.Dash)>]
+    type AddClmTaskArgs =
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-i")>] IndexOfDefault of int64
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-n")>] NumberOfAminoAcids of int
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] MaxPeptideLength of int
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] TaskY0 of list<decimal>
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
+        | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
+        | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
 
 
         with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | IndexOfDefault _ -> "index of default value in a map of defaults."
-                    | NumberOfAminoAcids _ -> "number of amino acids."
-                    | MaxPeptideLength _ -> "max peptide length."
-                    | TaskY0 _ -> "value of total y0."
-                    | TaskTEnd _ -> "value of tEnd."
-                    | Repetitions _ -> "number of repetitions."
-                    | GenerateModelCode -> "add in order to generate and save model code."
+        interface IArgParserTemplate with
+            member this.Usage =
+                match this with
+                | IndexOfDefault _ -> "index of default value in a map of defaults."
+                | NumberOfAminoAcids _ -> "number of amino acids."
+                | MaxPeptideLength _ -> "max peptide length."
+                | TaskY0 _ -> "value of total y0."
+                | TaskTEnd _ -> "value of tEnd."
+                | Repetitions _ -> "number of repetitions."
+                | GenerateModelCode -> "add in order to generate and save model code."
 
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
         RunModelArgs =
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of Guid
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] Y0 of decimal
-            | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TEnd of decimal
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] ModelId of Guid
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] Y0 of decimal
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TEnd of decimal
 
         with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | ModelId _ -> "id of the modelData to run."
-                    | Y0 _ -> "value of total y0."
-                    | TEnd _ -> "value of tEnd."
+        interface IArgParserTemplate with
+            member this.Usage =
+                match this with
+                | ModelId _ -> "id of the modelData to run."
+                | Y0 _ -> "value of total y0."
+                | TEnd _ -> "value of tEnd."
 
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
         MonitorArgs =
-            | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] RefreshInterval of int
+        | [<Unique>] [<EqualsAssignment>] [<AltCommandLine("-r")>] RefreshInterval of int
 
         with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | RefreshInterval _ -> "refresh inteval in seconds."
+        interface IArgParserTemplate with
+            member this.Usage =
+                match this with
+                | RefreshInterval _ -> "refresh inteval in seconds."
 
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
-        ConfigureServiceArgs =
-            | [<Unique>] [<AltCommandLine("-ee")>] SetMinUsefulEe of double
-            | [<Unique>] [<AltCommandLine("-cancel")>] CancelRunQueue of Guid
+        CancelRunQueueArgs =
+        | [<Unique>] [<AltCommandLine("-cancel")>] RunQueueIdToCancel of Guid
+        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
+        | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
+        | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
 
         with
-            interface IArgParserTemplate with
-                member this.Usage =
-                    match this with
-                    | SetMinUsefulEe _ -> "set minimum useful ee to generate charts. Set to 0.0 to generate all charts."
-                    | CancelRunQueue _ -> "attempts to cancel a given RunQueueId."
-
-            member this.configParam =
+        interface IArgParserTemplate with
+            member this.Usage =
                 match this with
-                | SetMinUsefulEe ee -> ContGenConfigParam.SetMinUsefulEe ee
-                | CancelRunQueue q -> q |> RunQueueId |> CancelRunQueueId
+                | RunQueueIdToCancel _ -> "RunQueueId to cancel."
+                | Partitioner _ -> "messaging client id of a partitioner service."
+                | MsgSvcAddress _ -> "messaging server ip address / name."
+                | MsgSvcPort _ -> "messaging server port."
 
 
     and
@@ -92,10 +102,7 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("add")>]    AddClmTask of ParseResults<AddClmTaskArgs>
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
-            | [<Unique>] [<AltCommandLine("c")>]      ConfigureService of ParseResults<ConfigureServiceArgs>
-            | [<Unique>] [<AltCommandLine("server")>] ServerAddress of string
-            | [<Unique>] [<AltCommandLine("port")>]   ServerPort of int
-            | [<Unique>] [<AltCommandLine("ee")>]   ServerMinUsefulEe of double
+            | [<Unique>] [<AltCommandLine("c")>]      CancelRunQueue of ParseResults<CancelRunQueueArgs>
 
         with
             interface IArgParserTemplate with
@@ -104,51 +111,7 @@ module AdmCommandLine =
                     | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
-                    | ConfigureService _ -> "reconfigures service."
-                    | ServerAddress _ -> "server address / name."
-                    | ServerPort _ -> "server port."
-                    | ServerMinUsefulEe _ -> "server min useful ee."
-
-
-    let tryGetServiceAddress (p :list<ContGenAdmArguments>) =
-         p |> List.tryPick (fun e -> match e with | ServerAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
-
-
-    let tryGetServicePort (p :list<ContGenAdmArguments>) =
-        p |> List.tryPick (fun e -> match e with | ServerPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
-
-
-    let tryGetServerMinUsefulEe (p :list<ContGenAdmArguments>) =
-        p |> List.tryPick (fun e -> match e with | ServerMinUsefulEe e -> e |> MinUsefulEe |> Some | _ -> None)
-
-
-    let getServiceAccessInfo (p :list<ContGenAdmArguments>) =
-        let address =
-            match tryGetServiceAddress p with
-            | Some a -> a
-            | None -> ContGenServiceAddress.defaultValue
-
-        let port =
-            match tryGetServicePort p with
-            | Some a -> a
-            | None -> ContGenServicePort.defaultValue
-
-        let ee =
-            match tryGetServerMinUsefulEe p with
-            | Some e -> e
-            | None -> MinUsefulEe.defaultValue
-
-
-        {
-            contGenServiceAccessInfo =
-                {
-                    contGenServiceAddress = address
-                    contGenServicePort = port
-                    contGenServiceName = contGenServiceName
-                }
-
-            minUsefulEe = ee
-        }
+                    | CancelRunQueue _ -> "tries to cancel run queue."
 
 
     let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
@@ -202,9 +165,60 @@ module AdmCommandLine =
         | None -> false
 
 
-    let tryGetModelId (p :list<RunModelArgs>) =
-        p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
-
-
+    let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
+    let tryGetCancelRunQueueId p = p |> List.tryPick (fun e -> match e with | RunQueueIdToCancel e -> e |> RunQueueId |> Some | _ -> None)
+
+
+    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
+    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
+    let getPartitioner = getPartitionerImpl tryGetPartitioner
+
+
+    let tryCancelRunQueueImpl (logger : Logger) p =
+        match tryGetCancelRunQueueId p with
+        | Some q ->
+            let name = contGenServiceRegistryName
+            let version = versionNumberValue
+
+            let msgAddress = getMsgServiceAddress logger version name p
+            let msgPort = getMsgServicePort logger version name p
+            let partitioner = getPartitioner logger version name p
+
+            let i =
+                {
+                    contGenAdmId = ContGenAdmId.newId()
+                    partitionerId = partitioner
+
+                    messagingServiceAccessInfo =
+                        {
+                            messagingServiceAddress = msgAddress
+                            messagingServicePort = msgPort
+                            messagingServiceName = messagingServiceName
+                        }
+                }
+
+            let m = MsgResponseHandler i.messagingClientAccessInfo
+
+            let messagingClientData =
+                {
+                    msgAccessInfo = i.messagingClientAccessInfo
+                    messagingService = m
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
+                }
+
+            let messagingClient = MessagingClient messagingClientData
+
+            match messagingClient.start() with
+            | Ok() ->
+                let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
+                let r1 = tryCancelRunQueue proxy q
+                let r2 = messagingClient.transmitMessages()
+
+                combineUnitResults r1 r2
+            | Error e -> Error e
+        | None -> Ok()

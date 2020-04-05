@@ -14,6 +14,7 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
+open ClmSys.GeneralPrimitives
 
 module ServiceInfo =
 
@@ -63,10 +64,12 @@ module ServiceInfo =
 
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData
+        | CancelRunWrkMsg of RunQueueId
 
         member this.messageSize =
             match this with
             | RunModelWrkMsg _ -> LargeSize
+            | CancelRunWrkMsg _ -> SmallSize
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

@@ -11,24 +11,24 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 72
+    let messagingDataVersion = MessagingDataVersion 74
 
 
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "5.0.0.3"
+    let VersionNumberValue = "5.0.1"
 
 
     /// A base name, which controls the database name and a working folder name.
     /// It is loosely the same as the version number.
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     [<Literal>]
-    let ClmBaseName = "clm5003"
+    let ClmBaseName = "clm501"
 
 
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
     /// the old verison is finishing its run.
-    let DefaultServicePort = 5003
+    let DefaultServicePort = 5010
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

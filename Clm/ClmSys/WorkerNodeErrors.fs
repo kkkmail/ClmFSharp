@@ -27,6 +27,7 @@ module WorkerNodeErrors =
         | CannotSaveModelData
         | ModelAlreadyRunning of RunQueueId
         | InvalidMessage of (MessageId * string)
+        | FailedToCancel of (RunQueueId * exn)
 
 
     type WorkerNodeError =

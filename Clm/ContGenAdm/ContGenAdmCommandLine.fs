@@ -1,7 +1,6 @@
 ﻿namespace ContGenAdm
 open Argu
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.GeneralData
 open Clm.Substances
 open Clm.ModelParams
 open System
@@ -71,29 +70,20 @@ module AdmCommandLine =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         ConfigureServiceArgs =
-            | [<Unique>] [<AltCommandLine("-c")>] NumberOfCores of int
-            | [<Unique>] Start
-            | [<Unique>] Stop
-            | [<Unique>] [<AltCommandLine("-s")>] ShutDown of bool
             | [<Unique>] [<AltCommandLine("-ee")>] SetMinUsefulEe of double
+            | [<Unique>] [<AltCommandLine("-cancel")>] CancelRunQueue of Guid
 
         with
             interface IArgParserTemplate with
                 member this.Usage =
                     match this with
-                    | NumberOfCores _ -> "number of logical cores to use."
-                    | Start -> "starts generating models."
-                    | Stop -> "stops generating models."
-                    | ShutDown _ -> "shut down (pass true to wait for completion of all running processes)."
                     | SetMinUsefulEe _ -> "set minimum useful ee to generate charts. Set to 0.0 to generate all charts."
+                    | CancelRunQueue _ -> "attempts to cancel a given RunQueueId."
 
             member this.configParam =
                 match this with
-                | NumberOfCores n -> ContGenConfigParam.SetRunLimit n
-                | Start -> SetToCanGenerate
-                | Stop -> SetToIdle
-                | ShutDown b -> RequestShutDown b
                 | SetMinUsefulEe ee -> ContGenConfigParam.SetMinUsefulEe ee
+                | CancelRunQueue q -> q |> RunQueueId |> CancelRunQueueId
 
 
     and

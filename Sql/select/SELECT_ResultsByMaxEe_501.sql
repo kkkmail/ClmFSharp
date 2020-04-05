@@ -1,4 +1,4 @@
-use clm4102
+use clm5001
 go
 
 select count(*) as noOfResults from ResultData
@@ -17,10 +17,18 @@ a as
 	select
 		d.clmDefaultValueId as defaultSetIndex,
 		t.numberOfAminoAcids,
-		sum(case when t.statusId = 0 then t.remainingRepetitions else 0 end) as remainingRepetitions
+		--sum(case when t.clmTaskStatusId = 0 then t.remainingRepetitions else 0 end) as remainingRepetitions
+		sum(
+			case
+				when q.RunQueueStatusId = 0 then 1.0 
+				when q.RunQueueStatusId = 2 then (1.0 - q.progress) 
+				else 0 
+		end) as remainingRepetitions
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
+		inner join ModelData m on m.clmTaskId = t.clmTaskId
+		inner join RunQueue q on q.modelDataId = m.modelDataId
 	group by d.clmDefaultValueId, t.numberOfAminoAcids
 ),
 b as
@@ -33,12 +41,13 @@ b as
 			when r.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or r.maxLastEe > @maxLastEe then 1 
 			else 0 
 		end as isSymmetryBroken,
-		cast(datediff(minute, m.createdOn, r.createdOn) as float) / 1440.0 as runTime
+		cast(datediff(minute, isnull(q.startedOn, m.createdOn), r.createdOn) as float) / 1440.0 as runTime
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
 		inner join ModelData m on t.clmTaskId = m.clmTaskId
 		inner join ResultData r on m.modelDataId = r.modelDataId
+		inner join RunQueue q on r.resultDataId = q.runQueueId
 	where r.maxEe <= 1
 ),
 c as

@@ -61,11 +61,7 @@ module ServiceInfo =
 
 
     type ContGenConfigParam =
-        | SetToIdle
-        | SetToCanGenerate
-        | RequestShutDown of waitForCompletion : bool
-        | SetRunLimit of numberOfCores : int
-        | CancelTask of runQueueId : RunQueueId
+        | CancelRunQueueId of runQueueId : RunQueueId
         | SetMinUsefulEe of ee : double
 
 
@@ -104,6 +100,7 @@ module ServiceInfo =
     //        commandLineArgs : string
     //        startDir : string option
     //    }
+    //
     //
     //let runProc (c : RunningProcessData) filename args startDir =
     //    let procStartInfo =

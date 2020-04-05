@@ -10,6 +10,7 @@
 			, (3, 'Completed')
 			, (4, 'Failed')
 			, (5, 'Modifying')
+			, (6, 'Cancelled')
 
 		) as a (runQueueStatusId, runQueueStatusName)
 	)

@@ -81,7 +81,7 @@ module AdmCommandLine =
     and
         [<CliPrefix(CliPrefix.Dash)>]
         CancelRunQueueArgs =
-        | [<Unique>] [<AltCommandLine("-cancel")>] RunQueueIdToCancel of Guid
+        | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToCancel of Guid
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
@@ -180,45 +180,49 @@ module AdmCommandLine =
 
 
     let tryCancelRunQueueImpl (logger : Logger) p =
-        match tryGetCancelRunQueueId p with
-        | Some q ->
-            let name = contGenServiceRegistryName
-            let version = versionNumberValue
+        let result =
+            match tryGetCancelRunQueueId p with
+            | Some q ->
+                let name = contGenServiceRegistryName
+                let version = versionNumberValue
 
-            let msgAddress = getMsgServiceAddress logger version name p
-            let msgPort = getMsgServicePort logger version name p
-            let partitioner = getPartitioner logger version name p
+                let msgAddress = getMsgServiceAddress logger version name p
+                let msgPort = getMsgServicePort logger version name p
+                let partitioner = getPartitioner logger version name p
 
-            let i =
-                {
-                    contGenAdmId = ContGenAdmId.newId()
-                    partitionerId = partitioner
+                let i =
+                    {
+                        contGenAdmId = ContGenAdmId.newId()
+                        partitionerId = partitioner
 
-                    messagingServiceAccessInfo =
-                        {
-                            messagingServiceAddress = msgAddress
-                            messagingServicePort = msgPort
-                            messagingServiceName = messagingServiceName
-                        }
-                }
+                        messagingServiceAccessInfo =
+                            {
+                                messagingServiceAddress = msgAddress
+                                messagingServicePort = msgPort
+                                messagingServiceName = messagingServiceName
+                            }
+                    }
 
-            let m = MsgResponseHandler i.messagingClientAccessInfo
+                let messagingClient =
+                    {
+                        msgAccessInfo = i.messagingClientAccessInfo
+                        messagingService = MsgResponseHandler i.messagingClientAccessInfo
+                        msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
+                    }
+                    |> MessagingClient
 
-            let messagingClientData =
-                {
-                    msgAccessInfo = i.messagingClientAccessInfo
-                    messagingService = m
-                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
-                }
+                match messagingClient.start() with
+                | Ok() ->
+                    let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
 
-            let messagingClient = MessagingClient messagingClientData
+                    match tryCancelRunQueue proxy q with
+                    | Ok() -> messagingClient.transmitMessages()
+                    | Error e -> Error e
+                | Error e -> Error e
+            | None -> Ok()
 
-            match messagingClient.start() with
-            | Ok() ->
-                let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
-                let r1 = tryCancelRunQueue proxy q
-                let r2 = messagingClient.transmitMessages()
-
-                combineUnitResults r1 r2
-            | Error e -> Error e
-        | None -> Ok()
+        match result with
+        | Ok() -> Ok()
+        | Error e ->
+            logger.logError e
+            Error e

@@ -246,6 +246,7 @@ module ServiceImplementation =
     type OnProcessMessageProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
         }
 
@@ -264,22 +265,29 @@ module ServiceImplementation =
         | Some _ -> s, d.runningProcessData.runQueueId |> ModelAlreadyRunning |> toError
 
 
-    let onCancelRunWrkMsg s q =
-        match s.runningWorkers |> Map.tryFind q with
-        | Some x ->
-            let c =
-                try
-                    x.cancellationTokenSource.Cancel()
-                    Ok()
-                with
-                | e -> (q, e) |> FailedToCancel |> toError OnProcessMessageErr
-            { s with runningWorkers = s.runningWorkers |> Map.remove q }, c
-        | None ->
-            // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
-            // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
-            // But, ... the model could've been completed in between and we generally don't care about individual models anyway!
-            // Anyway, the current view is: if you ask me to cancel but I don't have it, then I just ignore the request.
-            s, Ok()
+    let onCancelRunWrkMsg t s q =
+        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
+
+        let (w, r1) =
+            match s.runningWorkers |> Map.tryFind q with
+            | Some x ->
+                let c =
+                    try
+                        x.cancellationTokenSource.Cancel()
+                        Ok()
+                    with
+                    | e -> (q, e) |> FailedToCancel |> toError OnProcessMessageErr
+                { s with runningWorkers = s.runningWorkers |> Map.remove q }, c
+            | None ->
+                // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
+                // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
+                // But, ... the model could've been completed in between and we generally don't care about individual models anyway!
+                // Anyway, the current view is: if you ask me to cancel but I don't have it, then I just ignore the request.
+                s, Ok()
+
+        let result = t q |> combineUnitResults r1
+        printfn "onCancelRunWrkMsg: result: %A" result
+        w, result
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
@@ -287,7 +295,7 @@ module ServiceImplementation =
         | WorkerNodeMsg x ->
             match x with
             | RunModelWrkMsg d -> onRunModelWrkMsg proxy s d
-            | CancelRunWrkMsg q -> onCancelRunWrkMsg s q
+            | CancelRunWrkMsg q -> onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
         | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessage |> toError OnProcessMessageErr
 
 
@@ -354,6 +362,7 @@ module ServiceImplementation =
     let onProcessMessageProxy i p =
         {
             saveWorkerNodeRunModelData = i.workerNodeProxy.saveWorkerNodeRunModelData
+            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
             onRunModel = onRunModel (onRunModelProxy i p)
         }
 

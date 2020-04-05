@@ -18,6 +18,7 @@ open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.SolverRunnerErrors
 open ClmSys.GeneralPrimitives
+open System.Threading
 
 module SolverRunnerTasks =
 
@@ -192,6 +193,13 @@ module SolverRunnerTasks =
             | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
 
         try
+            // Uncomment temporarily when you need to test cancellations.
+            //let mutable counter = 0
+            //while true do
+            //    printfn "runSolver: runQueueId = %A, counter = %A" w.runningProcessData.runQueueId counter
+            //    Thread.Sleep 10000
+            //    counter <- counter + 1
+
             let runSolverData = RunSolverData.create w proxy.updateProgress None
             let nSolveParam = getNSolveParam runSolverData
             let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)

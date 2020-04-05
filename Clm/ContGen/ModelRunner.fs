@@ -298,14 +298,3 @@ module ModelRunner =
             {
                 getRunState = g
             }
-
-
-    //type ModelConfigurator =
-    //    {
-    //        x : int
-    //    }
-
-    //    static member create connectionString =
-    //        let proxy = TryCancelRunQueueProxy.create connectionString
-
-    //        0

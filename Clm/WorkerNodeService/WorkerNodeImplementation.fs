@@ -266,13 +266,14 @@ module ServiceImplementation =
 
 
     let onCancelRunWrkMsg t s q =
-        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
+        printfn "onCancelRunWrkMsg: Starting: %A ..." q
 
         let (w, r1) =
             match s.runningWorkers |> Map.tryFind q with
             | Some x ->
                 let c =
                     try
+                        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
                         x.cancellationTokenSource.Cancel()
                         Ok()
                     with

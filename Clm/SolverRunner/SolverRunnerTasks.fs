@@ -199,6 +199,7 @@ module SolverRunnerTasks =
                 printfn "runSolver: runQueueId = %A, counter = %A" w.runningProcessData.runQueueId counter
                 Thread.Sleep 10000
                 counter <- counter + 1
+            // End of test cancellation code.
 
             let runSolverData = RunSolverData.create w proxy.updateProgress None
             let nSolveParam = getNSolveParam runSolverData

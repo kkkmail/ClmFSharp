@@ -194,11 +194,11 @@ module SolverRunnerTasks =
 
         try
             // Uncomment temporarily when you need to test cancellations.
-            //let mutable counter = 0
-            //while true do
-            //    printfn "runSolver: runQueueId = %A, counter = %A" w.runningProcessData.runQueueId counter
-            //    Thread.Sleep 10000
-            //    counter <- counter + 1
+            let mutable counter = 0
+            while true do
+                printfn "runSolver: runQueueId = %A, counter = %A" w.runningProcessData.runQueueId counter
+                Thread.Sleep 10000
+                counter <- counter + 1
 
             let runSolverData = RunSolverData.create w proxy.updateProgress None
             let nSolveParam = getNSolveParam runSolverData

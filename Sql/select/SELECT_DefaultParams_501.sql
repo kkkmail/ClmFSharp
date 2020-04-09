@@ -1,4 +1,4 @@
-use clm5003
+use clm501
 go
 
 ; with w as
@@ -20,8 +20,8 @@ go
 select * 
 from w
 where
-	(catSynthScarcity = '50' and catSynthSim = '0.2')
-	or (catSynthScarcity = '100' and catSynthSim = '0.1')
+	((catSynthScarcity = '50' and catSynthSim = '0.2') or (catSynthScarcity = '100' and catSynthSim = '0.1'))
+	and cast(wasteRecyclingRate as float) <= 0.0005
 order by clmDefaultValueId
 
 

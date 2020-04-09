@@ -2,7 +2,7 @@ drop function if exists dbo.getWasteRecyclingRate
 go
 
 create function dbo.getWasteRecyclingRate(@clmDefaultValueId bigint)
-returns float
+returns decimal(18, 10)
 as
 begin
 	declare @json nvarchar(max), @retVal float
@@ -24,6 +24,6 @@ begin
 	cross apply openjson(a.[value]) as b
 	where b.[key] = 'wasteRecyclingRate'
 
-	return @retVal
+	return cast(@retVal as decimal(18, 10))
 end
 go

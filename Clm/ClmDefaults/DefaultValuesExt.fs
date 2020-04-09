@@ -5,6 +5,10 @@ open Clm.ReactionRates
 
 module DefaultValuesExt =
 
+    /// Converts a list of 'A into a list of tuples (i, 'A) where i is a zero based int64 element number in the original list.
+    let withRowNumber a = a |> List.mapi (fun i e -> (int64 i, e))
+
+
     let defaultRateMultiplierDistr threshold mult =
         Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None } |> RateMultDistr
 

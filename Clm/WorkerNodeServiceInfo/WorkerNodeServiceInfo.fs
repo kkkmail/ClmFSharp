@@ -45,7 +45,7 @@ module ServiceInfo =
     type RunnerStateWithCancellation =
         {
             runnerState : RunnerState
-            cancellationTokenSource : CancellationTokenSource
+            cancellationRequested : bool
         }
 
 

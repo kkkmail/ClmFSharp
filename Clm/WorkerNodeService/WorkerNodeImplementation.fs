@@ -185,9 +185,8 @@ module ServiceImplementation =
         let w, result =
             match s.numberOfWorkerCores > s.runningWorkers.Count with
             | true ->
-                let c = new CancellationTokenSource()
                 let m = async { proxy.runModel d }
-                Async.Start (m, c.Token)
+                Async.Start m
 
                 let rs =
                     {
@@ -198,7 +197,7 @@ module ServiceImplementation =
                                 lastUpdated = DateTime.Now
                             }
 
-                        cancellationTokenSource = c
+                        cancellationRequested = false
                     }
 
                 { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, rs) }, Ok()
@@ -271,14 +270,15 @@ module ServiceImplementation =
         let (w, r1) =
             match s.runningWorkers |> Map.tryFind q with
             | Some x ->
-                let c =
-                    try
-                        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
-                        x.cancellationTokenSource.Cancel()
-                        Ok()
-                    with
-                    | e -> (q, e) |> FailedToCancel |> toError OnProcessMessageErr
-                { s with runningWorkers = s.runningWorkers |> Map.remove q }, c
+                //let c =
+                //    try
+                //        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
+                //        x.cancellationTokenSource.Cancel()
+                //        Ok()
+                //    with
+                //    | e -> (q, e) |> FailedToCancel |> toError OnProcessMessageErr
+                //{ s with runningWorkers = s.runningWorkers |> Map.remove q }, c
+                { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationRequested = true } }, Ok()
             | None ->
                 // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
                 // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
@@ -330,6 +330,15 @@ module ServiceImplementation =
             w, result
 
 
+    let onCheckCancellation (s : WorkerNodeRunnerState) q =
+        match s.runningWorkers |> Map.tryFind q with
+        | Some x ->
+            match x.cancellationRequested with
+            | true -> { s with runningWorkers = s.runningWorkers |> Map.remove q }, true
+            | false -> s, false
+        | None -> s, false
+
+
     let sendMessageProxy i =
         {
             partitionerId = i.workerNodeServiceInfo.workerNodeInfo.partitionerId
@@ -378,6 +387,7 @@ module ServiceImplementation =
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeRunnerMonitorState>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
+        | CheckCancellation of AsyncReplyChannel<bool> * RunQueueId
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -401,6 +411,7 @@ module ServiceImplementation =
                             | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
                             | GetState r -> return! onGetState s |> (withReply r) |> loop
                             | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
+                            | CheckCancellation (r, q) -> return! onCheckCancellation s q |> (withReply r) |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -415,6 +426,7 @@ module ServiceImplementation =
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
         member _.getState () = messageLoop.PostAndReply GetState
         member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
+        member _.checkCancellation q = messageLoop.PostAndReply (fun r -> CheckCancellation (r, q))
 
         member w.solverRunnerProxy =
             {
@@ -422,6 +434,7 @@ module ServiceImplementation =
                 saveResult = w.saveResult
                 saveCharts = w.saveCharts
                 logCrit = i.workerNodeProxy.logCrit
+                checkCancellation = w.checkCancellation
             }
 
         member w.onStartProxy =

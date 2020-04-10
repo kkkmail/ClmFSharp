@@ -2,6 +2,7 @@
 
 open Microsoft.FSharp.Core
 open System
+open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
@@ -51,6 +52,7 @@ module Solver =
     type NSolveParam =
         {
             modelDataId : Guid
+            runQueueId : RunQueueId
             tStart : double
             tEnd : double
             derivative : double[] -> double[]
@@ -60,6 +62,8 @@ module Solver =
             getEeData : (unit -> EeData) option
             noOfOutputPoints : int option
             noOfProgressPoints : int option
+            checkCancellation : RunQueueId -> bool
+            checkFreq : TimeSpan
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -80,6 +84,7 @@ module Solver =
         let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
+        let mutable lastCheck = DateTime.Now
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notify t r m =
@@ -93,6 +98,13 @@ module Solver =
             | None -> ignore()
 
         let f (x : double[]) (t : double) : double[] =
+            let fromLastCheck = DateTime.Now - lastCheck
+
+            if fromLastCheck > n.checkFreq
+            then
+                lastCheck <- DateTime.Now
+                if n.checkCancellation n.runQueueId then raise(ComputationAbortedExcepton n.runQueueId)
+
             match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->
                 if t > (double progressCount) * (n.tEnd / (double k))

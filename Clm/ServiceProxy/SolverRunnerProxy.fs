@@ -5,6 +5,7 @@ open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.SolverRunnerErrors
+open ClmSys.GeneralPrimitives
 
 module SolverRunner =
 
@@ -14,4 +15,5 @@ module SolverRunner =
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult
+            checkCancellation : RunQueueId -> bool
         }

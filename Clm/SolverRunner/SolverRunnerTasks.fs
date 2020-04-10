@@ -19,6 +19,8 @@ open MessagingServiceInfo.ServiceInfo
 open ClmSys.SolverRunnerErrors
 open ClmSys.GeneralPrimitives
 open System.Threading
+open ClmSys.ClmErrors
+open System
 
 module SolverRunnerTasks =
 
@@ -53,10 +55,12 @@ module SolverRunnerTasks =
             updateChart : double -> double[] -> unit
             noOfProgressPoints : int option
             minUsefulEe : MinUsefulEe
+            checkCancellation : RunQueueId -> bool
+            checkFreq : TimeSpan
         }
 
 
-        static member create (w : WorkerNodeRunModelData) n pp =
+        static member create (w : WorkerNodeRunModelData) n pp cc =
             let modelDataParamsWithExtraData = w.modelData.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
             let binaryInfo = modelDataParamsWithExtraData.binaryInfo
@@ -100,6 +104,8 @@ module SolverRunnerTasks =
                 progressCallBack = (fun p -> notify n r.runQueueId (TaskProgress.create p)) |> Some
                 noOfProgressPoints = pp
                 minUsefulEe = w.minUsefulEe
+                checkCancellation = cc
+                checkFreq = TimeSpan.FromMilliseconds 1000.0
             }
 
 
@@ -114,9 +120,10 @@ module SolverRunnerTasks =
             }
 
 
-    let getNSolveParam (d : RunSolverData) s e =
+    let getNSolveParam (d : RunSolverData) r s e =
         {
             modelDataId = d.modelDataId.value
+            runQueueId = r
             tStart = s
             tEnd = e
             derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
@@ -126,6 +133,8 @@ module SolverRunnerTasks =
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
+            checkCancellation = d.checkCancellation
+            checkFreq = d.checkFreq
         }
 
 
@@ -184,6 +193,19 @@ module SolverRunnerTasks =
         else NotGeneratedCharts
 
 
+    let private testCancellation (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData)  =
+        let mutable counter = 0
+        let mutable cancel = false
+
+        while not cancel do
+            cancel <- proxy.checkCancellation w.runningProcessData.runQueueId
+            printfn "runSolver: runQueueId = %A, counter = %A, cancel = %A" w.runningProcessData.runQueueId counter cancel
+            Thread.Sleep 10000
+            counter <- counter + 1
+
+        raise(ComputationAbortedExcepton w.runningProcessData.runQueueId)
+
+
     /// Uncomment printfn below in case of severe issues.
     /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) : unit =
@@ -194,15 +216,10 @@ module SolverRunnerTasks =
 
         try
             // Uncomment temporarily when you need to test cancellations.
-            let mutable counter = 0
-            while true do
-                printfn "runSolver: runQueueId = %A, counter = %A" w.runningProcessData.runQueueId counter
-                Thread.Sleep 10000
-                counter <- counter + 1
-            // End of test cancellation code.
+            testCancellation proxy w
 
-            let runSolverData = RunSolverData.create w proxy.updateProgress None
-            let nSolveParam = getNSolveParam runSolverData
+            let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
+            let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
             let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
 
             printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
@@ -232,10 +249,17 @@ module SolverRunnerTasks =
             foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
             printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
         with
-        | e ->
-            {
-                runQueueId = w.runningProcessData.runQueueId
-                progress = e.ToString() |> ErrorMessage |> Failed
-            }
-            |> proxy.updateProgress
-            |> logIfFailed
+            | ComputationAbortedExcepton _ ->
+                {
+                    runQueueId = w.runningProcessData.runQueueId
+                    progress = sprintf "runQueueId = %A has been cancelled." w.runningProcessData.runQueueId |> ErrorMessage |> Failed
+                }
+                |> proxy.updateProgress
+                |> logIfFailed
+            | e ->
+                {
+                    runQueueId = w.runningProcessData.runQueueId
+                    progress = e.ToString() |> ErrorMessage |> Failed
+                }
+                |> proxy.updateProgress
+                |> logIfFailed

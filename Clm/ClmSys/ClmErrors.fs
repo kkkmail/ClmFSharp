@@ -6,6 +6,8 @@ open MessagingClientErrors
 open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
+open System
+open GeneralPrimitives
 
 module ClmErrors =
 
@@ -129,3 +131,9 @@ module ClmErrors =
             traceInfo : TraceInfo
             error : ClmError
         }
+
+
+
+    /// We have to resort to throwing a specific exception in order
+    /// to perform early termination from deep inside C# ODE solver.
+    exception ComputationAbortedExcepton of RunQueueId

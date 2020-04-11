@@ -24,35 +24,35 @@ module Service =
 
     type MessagingServiceState =
         {
-            workState : MessagingWorkState
-            messages : Map<MessagingClientId, List<MessageWithOptionalData>>
+            //workState : MessagingWorkState
+            //messages : Map<MessagingClientId, List<MessageWithOptionalData>>
             expirationTime : TimeSpan
         }
 
-        member s.getState() =
-            {
-                msgVersion = messagingDataVersion
-                msgWorkState = s.workState
-                msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageDataInfo.messageId))
-            }
+        //member s.getState() =
+        //    {
+        //        msgVersion = messagingDataVersion
+        //        msgWorkState = s.workState
+        //        msgInfo = s.messages |> Map.toList |> List.map (fun (k, v) -> k, v |> List.map (fun e -> e.messageDataInfo.messageId))
+        //    }
 
         static member defaultValue =
             {
-                workState = MsgSvcNotStarted
-                messages = Map.empty
-                expirationTime = TimeSpan(6, 0, 0)
+                //workState = MsgSvcNotStarted
+                //messages = Map.empty
+                expirationTime = TimeSpan.FromHours 6.0
             }
 
 
-    type OnStartProxy =
-        {
-            loadMessages : unit -> ListResult<Message>
-            updateMessages : MessagingServiceState -> Message -> MessagingServiceState
-        }
+    //type OnStartProxy =
+    //    {
+    //        loadMessages : unit -> ListResult<Message>
+    //        updateMessages : MessagingServiceState -> Message -> MessagingServiceState
+    //    }
 
 
     type MessagingServiceMessage =
-        | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
+        //| Start of OnStartProxy * AsyncReplyChannel<UnitResult>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of Message * AsyncReplyChannel<UnitResult>
         | ConfigureService of MessagingConfigParam
@@ -62,33 +62,33 @@ module Service =
         | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
 
 
-    let updateMessages s (m : Message) =
-        let x =
-            match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
-            | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m.toMessageWithOptionalData() :: r) }
-            | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m.toMessageWithOptionalData() ]) }
-        x
+    //let updateMessages s (m : Message) =
+    //    let x =
+    //        match s.messages.TryFind m.messageDataInfo.recipientInfo.recipient with
+    //        | Some r -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, m.toMessageWithOptionalData() :: r) }
+    //        | None -> { s with messages = s.messages.Add (m.messageDataInfo.recipientInfo.recipient, [ m.toMessageWithOptionalData() ]) }
+    //    x
 
 
-    let onStart (proxy : OnStartProxy) (s : MessagingServiceState) (r : AsyncReplyChannel<UnitResult>) =
-        let w, f =
-            match s.workState with
-            | MsgSvcNotStarted ->
-                match proxy.loadMessages() with
-                | Ok q ->
-                    let v, e = q |> Rop.unzip
+    //let onStart (proxy : OnStartProxy) (s : MessagingServiceState) (r : AsyncReplyChannel<UnitResult>) =
+    //    let w, f =
+    //        match s.workState with
+    //        | MsgSvcNotStarted ->
+    //            match proxy.loadMessages() with
+    //            | Ok q ->
+    //                let v, e = q |> Rop.unzip
 
-                    let x =
-                        v
-                        |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
-                        |> List.fold (fun acc e -> proxy.updateMessages acc e) s
+    //                let x =
+    //                    v
+    //                    |> List.sortByDescending (fun e -> e.messageDataInfo.createdOn) // The newest message WILL BE at the head after we add them to the list starting from the oldest first.
+    //                    |> List.fold (fun acc e -> proxy.updateMessages acc e) s
 
-                    { x with workState = CanTransmitMessages }, foldToUnitResult e
-                | Error e -> s, Error e
-            | CanTransmitMessages | ShuttingDown -> s, Ok()
+    //                { x with workState = CanTransmitMessages }, foldToUnitResult e
+    //            | Error e -> s, Error e
+    //        | CanTransmitMessages | ShuttingDown -> s, Ok()
 
-        r.Reply f
-        w
+    //    r.Reply f
+    //    w
 
 
     let onGetVersion s (r : AsyncReplyChannel<MessagingDataVersion>) =
@@ -118,12 +118,12 @@ module Service =
         r.Reply f
         w
 
-    let onConfigure s x =
-        match x with
-        | MsgWorkState w ->
-            match w with
-            | MsgSvcNotStarted -> s // Cannot change the state to not started.
-            | CanTransmitMessages | ShuttingDown -> { s with workState = w }
+    //let onConfigure s x =
+    //    match x with
+    //    | MsgWorkState w ->
+    //        match w with
+    //        | MsgSvcNotStarted -> s // Cannot change the state to not started.
+    //        | CanTransmitMessages | ShuttingDown -> { s with workState = w }
 
 
     let onGetState (s : MessagingServiceState) (r : AsyncReplyChannel<MsgServiceState>) =

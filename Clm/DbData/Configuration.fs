@@ -54,12 +54,6 @@ module Configuration =
         |> List.pick (fun x -> x)
 
 
-    let toError g f = f |> g |> DbErr |> Error
-    let addError g f e = ((f |> g |> DbErr) + e) |> Error
-    let mapException e = e |> DbExn |> DbErr
-    let mapExceptionToError e = e |> DbExn |> DbErr |> Error
-
-
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
@@ -70,6 +64,12 @@ module Configuration =
         let conn = new SqlConnection(connectionString)
         openConnIfClosed conn
         conn
+
+
+    let toError g f = f |> g |> DbErr |> Error
+    let addError g f e = ((f |> g |> DbErr) + e) |> Error
+    let mapException e = e |> DbExn |> DbErr
+    let mapExceptionToError e = e |> DbExn |> DbErr |> Error
 
 
     /// Maps missing value (None) to DbErr.

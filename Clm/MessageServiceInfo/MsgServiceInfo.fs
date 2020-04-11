@@ -20,15 +20,20 @@ module ServiceInfo =
     let messagingProgramName = "MessagingService.exe"
 
 
-    type MessagingWorkState =
-        | MsgSvcNotStarted
-        | CanTransmitMessages
-        | ShuttingDown
+    //type MessagingWorkState =
+    //    | MsgSvcNotStarted
+    //    | CanTransmitMessages
+    //    | ShuttingDown
 
 
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
+
+        member d.value =
+            match d with
+            | GuaranteedDelivery -> 0
+            | NonGuaranteedDelivery -> 1
 
         static member tryCreate i =
             match i with
@@ -186,45 +191,45 @@ module ServiceInfo =
         }
 
 
-    type MessageDataInfo
-        with
-        member this.isExpired(waitTime : TimeSpan) =
-            match this.recipientInfo.deliveryType with
-            | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+    //type MessageDataInfo
+    //    with
+    //    member this.isExpired(waitTime : TimeSpan) =
+    //        match this.recipientInfo.deliveryType with
+    //        | GuaranteedDelivery -> false
+    //        | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
-    type MessageWithOptionalData
-        with
-        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
+    //type MessageWithOptionalData
+    //    with
+    //    member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
-        member this.toMessasge() =
-            match this.messageDataOpt with
-            | Some m ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageData = m
-                }
-                |> Some
-            | None -> None
+    //    member this.toMessasge() =
+    //        match this.messageDataOpt with
+    //        | Some m ->
+    //            {
+    //                messageDataInfo = this.messageDataInfo
+    //                messageData = m
+    //            }
+    //            |> Some
+    //        | None -> None
 
 
-    type Message
-        with
-        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
+    //type Message
+    //    with
+    //    member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
-        member this.toMessageWithOptionalData() =
-            match this.messageData.keepInMemory() with
-            | true ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageDataOpt = Some this.messageData
-                }
-            | false ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageDataOpt = None
-                }
+    //    member this.toMessageWithOptionalData() =
+    //        match this.messageData.keepInMemory() with
+    //        | true ->
+    //            {
+    //                messageDataInfo = this.messageDataInfo
+    //                messageDataOpt = Some this.messageData
+    //            }
+    //        | false ->
+    //            {
+    //                messageDataInfo = this.messageDataInfo
+    //                messageDataOpt = None
+    //            }
 
 
     type MessageResultInfo =

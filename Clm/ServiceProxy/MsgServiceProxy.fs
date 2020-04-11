@@ -4,6 +4,9 @@ open MessagingServiceInfo.ServiceInfo
 open NoSql.FileSystemTypes
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
+open DbData.MsgSvcDatabaseTypes
+open System
+open ClmSys.GeneralPrimitives
 
 module MsgServiceProxy =
 
@@ -14,7 +17,7 @@ module MsgServiceProxy =
 
 
     /// Provides IO proxy for messaging client.
-    /// A messaging client may or may NOT have SQL server at its disposal.
+    /// Currently it is assumed that messaging client does NOT have SQL server at its disposal.
     /// This proxy encapsulates that.
     type MessagingClientProxy =
         {
@@ -36,18 +39,16 @@ module MsgServiceProxy =
     /// Provides IO proxy for messaging service.
     type MessagingServiceProxy =
         {
-            loadMessages : unit -> ListResult<Message>
+            tryPickMessage : MessagingClientId -> ClmResult<Message option>
             saveMessage : Message -> UnitResult
             deleteMessage : MessageId -> UnitResult
-            tryLoadMessage : MessageId ->  Result<Message, ClmError>
+            deleteExpiredMessages : TimeSpan -> ClmResult<int>
         }
 
-        static member create () =
-            let name = messagingServiceName
-
+        static member create (connectionString : ConnectionString) =
             {
-                loadMessages = loadMessageAllFs name.value.messagingClientName
-                saveMessage = saveMessageFs name.value.messagingClientName
-                deleteMessage = tryDeleteMessageFs name.value.messagingClientName
-                tryLoadMessage = loadMessageFs name.value.messagingClientName
+                tryPickMessage = tryPickMessage connectionString
+                saveMessage = saveMessage connectionString
+                deleteMessage = deleteMessage connectionString
+                deleteExpiredMessages = deleteExpiredMessages connectionString
             }

@@ -11,7 +11,7 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 77
+    let messagingDataVersion = MessagingDataVersion 78
 
 
     /// This is an overall system version.
@@ -30,9 +30,8 @@ module VersionInfo =
     let MsgSvcBaseName = "msg501"
 
 
-    /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while
-    /// the old verison is finishing its run.
-    let DefaultServicePort = 5010
+    /// Default port on which messaging communication is performed.
+    let DefaultServicePort = 5000 + messagingDataVersion.value
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

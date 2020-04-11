@@ -824,14 +824,11 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let deleteRunQueue (ConnectionString connectionString) (RunQueueId runQueueId) =
+    let deleteRunQueue (ConnectionString connectionString) (runQueueId : RunQueueId) =
         let g() =
-            use cmd = new SqlCommandProvider<"
-                delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-            let rowsAffected = cmd.Execute(runQueueId = runQueueId)
-
-            match rowsAffected = 1 with
+            match cmd.Execute(runQueueId = runQueueId.value) = 1 with
             | true -> Ok ()
             | false -> toError DeleteRunQueueEntryErr runQueueId
 

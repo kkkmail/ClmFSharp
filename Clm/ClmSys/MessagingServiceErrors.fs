@@ -4,8 +4,24 @@ open System
 open VersionInfo
 open GeneralErrors
 open MessagingPrimitives
+open MessagingCommonErrors
+
 
 module MessagingServiceErrors =
+
+    type MessageCreateError =
+        | InvalidDeliveryTypeErr of int
+        | InvalidDataVersionErr of VersionMismatchInfo
+        | InvalidDeliveryTypeAndDataVersionErr of int * VersionMismatchInfo
+
+
+    type MessageDeleteError =
+        | CannotDeleteMessageErr of MessageId
+
+    type MsgSvcDbError =
+        | MessageCreateErr of MessageCreateError
+        | MessageDeleteErr of MessageDeleteError
+
 
     type GetVersionSvcError =
         | GetVersionSvcWcfErr of WcfError
@@ -38,6 +54,7 @@ module MessagingServiceErrors =
 
 
     type MessagingServiceError =
+        | MsgSvcDbErr of MsgSvcDbError
         | GetVersionSvcErr of GetVersionSvcError
         | MessageDeliveryErr of MessageDeliveryError
         | ConfigureServiceErr of ConfigureServiceError

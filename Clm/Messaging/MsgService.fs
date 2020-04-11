@@ -132,6 +132,7 @@ module Service =
 
 
     let onTryPeekMessage tryLoadMessage s n (r : AsyncReplyChannel<ClmResult<Message option>>) =
+        printfn "onTryPeekMessage: clientId = %A." n
         let w, f =
             match s.messages |> Map.tryFind n with
             | Some v ->
@@ -139,29 +140,35 @@ module Service =
                 match List.rev v with
                 | [] -> s, Ok None
                 | h :: t ->
+                    printfn "onTryPeekMessage: Found messageId = %A for clientId = %A." h.messageDataInfo.messageId n
                     match h.toMessasge() with
                     | Some m -> s, Ok(Some m)
                     | None ->
+                        printfn "onTryPeekMessage: Trying to load mesage for messageId = %A, clientId = %A." h.messageDataInfo.messageId n
                         match tryLoadMessage h.messageDataInfo.messageId with
                         | Ok m -> s, Ok(Some m)
                         | Error e ->
-                            let err = (n, h.messageDataInfo.messageId) |> UnableToLoadMessageError |> TryPeekMessageErr |> MessagingServiceErr
+                            let err = (n, h.messageDataInfo.messageId) |> UnableToLoadMessageErr |> TryPeekMessageErr |> MessagingServiceErr
                             // Remove the message as we cannot load it.
                             { s with messages = s.messages.Add(n, t |> List.rev) }, Error (err + e)
             | None -> s, Ok None
 
+        printfn "onTryPeekMessage: result = %A for clientId = %A." (f.ToString().Substring(0, min 100 (f.ToString().Length - 1))) n
         r.Reply f
         w
 
 
     let onTryDeleteFromServer deleteMessage s n m (r : AsyncReplyChannel<UnitResult>) =
+        printfn "onTryDeleteFromServer: clientId = %A, messageId = %A." n m
         let w, f =
             match s.messages.TryFind n with
             | Some v ->
-                let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
+                //let x = removeFirst (fun e -> e.messageDataInfo.messageId = m) v
+                let x = v |> List.filter (fun e -> e.messageDataInfo.messageId <> m)
                 let z() = { s with messages = s.messages.Add(n, x) }
                 let f() = (n, m) |> UnableToDeleteMessageErr |> TryDeleteFromServerErr |> MessagingServiceErr
 
+                printfn "onTryDeleteFromServer: trying to remove message."
                 match x.Length <> v.Length, deleteMessage m with
                 | true, Ok() -> z(), Ok()
                 | false, Ok() -> z(), f() |> Error
@@ -169,6 +176,7 @@ module Service =
                 | false, Error e -> z(), e + f() |> Error
             | None -> s, n.value |> CannotFindClientErr |> TryDeleteFromServerErr |> toError
 
+        printfn "onTryDeleteFromServer: clientId = %A, messageId = %A, f = %A." n m f
         r.Reply f
         w
 

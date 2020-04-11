@@ -97,13 +97,20 @@ module Solver =
             | Some c -> c t x
             | None -> ignore()
 
-        let f (x : double[]) (t : double) : double[] =
+        /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        /// There seems to be no other easy and clean way. Revisit if that changes.
+        /// Follow the trail of that date stamp to find other related places.
+        let checkCancellation() =
             let fromLastCheck = DateTime.Now - lastCheck
+            printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
 
             if fromLastCheck > n.checkFreq
             then
                 lastCheck <- DateTime.Now
                 if n.checkCancellation n.runQueueId then raise(ComputationAbortedExcepton n.runQueueId)
+
+        let f (x : double[]) (t : double) : double[] =
+            checkCancellation()
 
             match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->

@@ -143,6 +143,8 @@ module Client =
         let result =
             match proxy.tryPeekMessage () with
             | Ok (Some m) ->
+                printfn "tryReceiveSingleMessage: Received message with messageId = %A, sent by %A to %A." m.messageDataInfo.messageId m.messageDataInfo.sender m.messageDataInfo.recipientInfo.recipient
+
                 let r =
                     match m.messageDataInfo.recipientInfo.deliveryType with
                     | GuaranteedDelivery -> proxy.saveMessage { message = m; messageType = IncomingMessage }

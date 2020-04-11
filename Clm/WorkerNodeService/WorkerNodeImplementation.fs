@@ -213,7 +213,7 @@ module ServiceImplementation =
                 let r2 = proxy.tryDeleteWorkerNodeRunModelData d.runningProcessData.runQueueId
                 s, combineUnitResults res r2
 
-        w, result |> bindError (addError OnRunModelErr CannotRunModel)
+        w, result |> bindError (addError OnRunModelErr CannotRunModelErr)
 
 
     type OnStartProxy =
@@ -250,7 +250,7 @@ module ServiceImplementation =
         }
 
 
-    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) s d =
+    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) s d m =
         let addError = addError OnProcessMessageErr
         let toError = toError OnProcessMessageErr
 
@@ -259,9 +259,12 @@ module ServiceImplementation =
             match proxy.saveWorkerNodeRunModelData d with
             | Ok() ->
                 let w1, r1 = proxy.onRunModel s d
-                w1, r1
-            | Error e -> s, addError CannotSaveModelData e
-        | Some _ -> s, d.runningProcessData.runQueueId |> ModelAlreadyRunning |> toError
+
+                match r1 with
+                | Ok() -> w1, Ok()
+                | Error e -> w1, addError (OnRunModelFailedErr (m, d.runningProcessData.runQueueId)) e
+            | Error e -> s, addError (CannotSaveModelDataErr (m, d.runningProcessData.runQueueId)) e
+        | Some _ -> s, (m, d.runningProcessData.runQueueId) |> ModelAlreadyRunningErr |> toError
 
 
     let onCancelRunWrkMsg t s q =
@@ -269,16 +272,7 @@ module ServiceImplementation =
 
         let (w, r1) =
             match s.runningWorkers |> Map.tryFind q with
-            | Some x ->
-                //let c =
-                //    try
-                //        printfn "onCancelRunWrkMsg: Trying to cancel: %A" q
-                //        x.cancellationTokenSource.Cancel()
-                //        Ok()
-                //    with
-                //    | e -> (q, e) |> FailedToCancel |> toError OnProcessMessageErr
-                //{ s with runningWorkers = s.runningWorkers |> Map.remove q }, c
-                { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationRequested = true } }, Ok()
+            | Some x -> { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationRequested = true } }, Ok()
             | None ->
                 // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
                 // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
@@ -295,9 +289,9 @@ module ServiceImplementation =
         match m.messageData with
         | WorkerNodeMsg x ->
             match x with
-            | RunModelWrkMsg d -> onRunModelWrkMsg proxy s d
+            | RunModelWrkMsg d -> onRunModelWrkMsg proxy s d m.messageDataInfo.messageId
             | CancelRunWrkMsg q -> onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
-        | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessage |> toError OnProcessMessageErr
+        | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 
     type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
@@ -512,9 +506,9 @@ module ServiceImplementation =
                 | Ok (Some v) ->
                     createMessagingClientEventHandlers logger messagingClient
                     Ok v
-                | Ok None -> toError UnableToCreateWorkerNodeServiceError
-                | Error e -> addError UnableToCreateWorkerNodeServiceError e
-            | Error e -> addError UnableToStartMessagingClientError e
+                | Ok None -> toError UnableToCreateWorkerNodeServiceErr
+                | Error e -> addError UnableToCreateWorkerNodeServiceErr e
+            | Error e -> addError UnableToStartMessagingClientErr e
 
         let initService () = ()
         do initService ()
@@ -523,7 +517,7 @@ module ServiceImplementation =
         let configureImpl d =
             match w with
             | Ok r -> r.configure d
-            | Error e -> addError (ConfigureServiceError (sprintf "Failed to configure service: %A" d)) e
+            | Error e -> addError (ConfigureServiceErr (sprintf "Failed to configure service: %A" d)) e
 
 
         let monitorImpl _ =

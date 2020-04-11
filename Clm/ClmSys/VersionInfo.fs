@@ -11,7 +11,7 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 74
+    let messagingDataVersion = MessagingDataVersion 77
 
 
     /// This is an overall system version.
@@ -24,6 +24,10 @@ module VersionInfo =
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     [<Literal>]
     let ClmBaseName = "clm501"
+
+
+    [<Literal>]
+    let MsgSvcBaseName = "msg501"
 
 
     /// Ideally it should match the numeric part in ClmBaseName to ensure that a new version and an old version can coexist while

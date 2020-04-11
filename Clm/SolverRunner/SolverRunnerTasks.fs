@@ -193,6 +193,7 @@ module SolverRunnerTasks =
         else NotGeneratedCharts
 
 
+    /// A function to test how to cancel hung up solvers.
     let private testCancellation (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData)  =
         let mutable counter = 0
         let mutable cancel = false
@@ -203,6 +204,12 @@ module SolverRunnerTasks =
             Thread.Sleep 10000
             counter <- counter + 1
 
+        // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        // There seems to be no other easy and clean way. Revisit if that changes.
+        // Follow the trail of that date stamp to find other related places.
+        //
+        // Note that we mimic the exception raised by the real solver when cancellation is requested.
+        // See comments to the exception type below for reasoning.
         raise(ComputationAbortedExcepton w.runningProcessData.runQueueId)
 
 
@@ -213,6 +220,8 @@ module SolverRunnerTasks =
             match result with
             | Ok() -> ignore()
             | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
+
+        let updateProgress = proxy.updateProgress >> logIfFailed
 
         try
             // Uncomment temporarily when you need to test cancellations.
@@ -249,17 +258,20 @@ module SolverRunnerTasks =
             foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
             printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
         with
-            | ComputationAbortedExcepton _ ->
-                {
-                    runQueueId = w.runningProcessData.runQueueId
-                    progress = sprintf "runQueueId = %A has been cancelled." w.runningProcessData.runQueueId |> ErrorMessage |> Failed
-                }
-                |> proxy.updateProgress
-                |> logIfFailed
-            | e ->
-                {
-                    runQueueId = w.runningProcessData.runQueueId
-                    progress = e.ToString() |> ErrorMessage |> Failed
-                }
-                |> proxy.updateProgress
-                |> logIfFailed
+        // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        // There seems to be no other easy and clean way. Revisit if that changes.
+        // Follow the trail of that date stamp to find other related places.
+        | ComputationAbortedExcepton _ ->
+            printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                progress = sprintf "runSolver: runQueueId = %A has been cancelled." w.runningProcessData.runQueueId |> ErrorMessage |> Failed
+            }
+            |> updateProgress
+        | e ->
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                progress = e.ToString() |> ErrorMessage |> Failed
+            }
+            |> updateProgress

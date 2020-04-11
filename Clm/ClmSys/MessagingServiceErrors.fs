@@ -17,7 +17,7 @@ module MessagingServiceErrors =
 
     type TryPeekMessageError =
         | TryPeekMsgWcfErr of WcfError
-        | UnableToLoadMessageError of (MessagingClientId * MessageId)
+        | UnableToLoadMessageErr of (MessagingClientId * MessageId)
 
 
     type MessageDeliveryError =

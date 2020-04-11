@@ -1,7 +1,6 @@
 ﻿namespace MessagingServiceInfo
 
 open System
-open System.Runtime.Remoting.Channels.Tcp
 open System.ServiceModel
 
 open ClmSys.VersionInfo
@@ -30,6 +29,12 @@ module ServiceInfo =
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
+
+        static member tryCreate i =
+            match i with
+            | 0 -> Some GuaranteedDelivery
+            | 1 -> Some NonGuaranteedDelivery
+            | _ -> None
 
 
     type MessageSize =

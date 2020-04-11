@@ -1,10 +1,7 @@
 ﻿namespace DbData
 
-open System.Data
-open System.Data.SqlClient
 open Newtonsoft.Json
 open FSharp.Data
-open Configuration
 open System
 open ClmSys.VersionInfo
 open Clm.Substances
@@ -14,7 +11,6 @@ open Clm.CalculationData
 open Clm.ReactionRates
 open DynamicSql
 open ClmSys.GeneralErrors
-open ClmSys.Retry
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
@@ -24,43 +20,10 @@ open ClmSys.WorkerNodeData
 open ClmSys
 open ClmSys.PartitionerData
 
+// ! Must be the last to open !
+open Configuration
 
 module DatabaseTypes =
-
-    let private toError g f = f |> g |> DbErr |> Error
-    let private addError g f e = ((f |> g |> DbErr) + e) |> Error
-    let private mapException e = e |> DbExn |> DbErr
-    let private mapExceptionToError e = e |> DbExn |> DbErr |> Error
-
-
-    let private openConnIfClosed (conn : SqlConnection) =
-        match conn.State with
-        | ConnectionState.Closed -> do conn.Open()
-        | _ -> ignore ()
-
-
-    let private getOpenConn (ConnectionString connectionString) =
-        let conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        conn
-
-
-    /// Maps missing value (None) to DbErr.
-    let private mapDbError f i v =
-        v
-        |> Option.map Ok
-        |> Option.defaultValue (i |> f |> DbErr |> Error)
-
-
-    let private tryDbFun g =
-        let w() =
-            try
-                g()
-            with
-            | e -> mapExceptionToError e
-
-        tryRopFun mapException w
-
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
@@ -408,6 +371,7 @@ module DatabaseTypes =
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///     NotStartedRunQueue -> CancelledRunQueue + both None (workerNodeId).
         ///     InProgressRunQueue -> CancelledRunQueue + the same Some workerNodeId.
+        ///     CancelledRunQueue -> CancelledRunQueue + the same Some workerNodeId (this is to update error message).
         ///
         /// All others are not allowed and / or out of scope of this function.
         ///
@@ -447,12 +411,13 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
+                | NotStartedRunQueue, None,    InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
                 | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g Completed.value None
-                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | NotStartedRunQueue, None, CancelledRunQueue, None -> g TaskProgress.failedValue None
-                | InProgressRunQueue, Some w1, CancelledRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | InProgressRunQueue, Some w1, CompletedRunQueue,  Some w2 when w1 = w2.value.value -> g Completed.value None
+                | InProgressRunQueue, Some w1, FailedRunQueue,     Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | NotStartedRunQueue, None,    CancelledRunQueue,  None -> g TaskProgress.failedValue None
+                | InProgressRunQueue, Some w1, CancelledRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | CancelledRunQueue,  Some w1, CancelledRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 

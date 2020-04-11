@@ -20,14 +20,15 @@ module WorkerNodeErrors =
 
 
     type OnRunModelError =
-        | CannotRunModel
+        | CannotRunModelErr
 
 
     type OnProcessMessageError =
-        | CannotSaveModelData
-        | ModelAlreadyRunning of RunQueueId
-        | InvalidMessage of (MessageId * string)
-        | FailedToCancel of (RunQueueId * exn)
+        | CannotSaveModelDataErr of MessageId * RunQueueId
+        | OnRunModelFailedErr of MessageId * RunQueueId
+        | ModelAlreadyRunningErr of MessageId * RunQueueId
+        | InvalidMessageErr of (MessageId * string)
+        | FailedToCancelErr of (MessageId * RunQueueId * exn)
 
 
     type WorkerNodeError =
@@ -40,9 +41,9 @@ module WorkerNodeErrors =
 
 
     type WorkerNodeServiceError =
-        | UnableToStartMessagingClientError
-        | UnableToCreateWorkerNodeServiceError
-        | ServiceUnavailable
-        | UpdateLocalProgressError of string
-        | ConfigureServiceError of string
-        | MonitorServiceError of string
+        | UnableToStartMessagingClientErr
+        | UnableToCreateWorkerNodeServiceErr
+        | ServiceUnavailableErr
+        | UpdateLocalProgressErr of string
+        | ConfigureServiceErr of string
+        | MonitorServiceErr of string

@@ -12,8 +12,7 @@ module MessagingData =
             messagingServiceName : MessagingServiceName
         }
 
-        member s.serviceName = s.messagingServiceName.value.value
-        member s.serviceUrl = getServiceUrlImpl s.messagingServiceAddress.value s.messagingServicePort.value s.serviceName
+        member private s.serviceName = s.messagingServiceName.value.value
         member s.wcfServiceName = toValidServiceName s.serviceName
         member s.wcfServiceUrl = getWcfServiceUrlImpl s.messagingServiceAddress.value s.messagingServicePort.value s.wcfServiceName
 

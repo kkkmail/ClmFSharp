@@ -10,6 +10,20 @@ module ContGenPrimitives =
     let DefaultMinEe = 0.000_1
 
 
+    type ContGenServiceAddress =
+        | ContGenServiceAddress of ServiceAddress
+
+        member this.value = let (ContGenServiceAddress v) = this in v
+        static member defaultValue = DefaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
+
+
+    type ContGenServicePort =
+        | ContGenServicePort of ServicePort
+
+        member this.value = let (ContGenServicePort v) = this in v
+        static member defaultValue = DefaultContGenServicePort |> ServicePort |> ContGenServicePort
+
+
     type ContGenServiceName =
         | ContGenServiceName of ServiceName
 

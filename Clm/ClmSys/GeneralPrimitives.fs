@@ -13,8 +13,8 @@ module GeneralPrimitives =
     let DefaultWorkerNodeServiceAddress = "localhost"
 
 
-    let DefaultMessagingServerPort = 40000 + DefaultServicePort
-    let DefaultMessagingServerAddress = "localhost"
+    let DefaultMessagingServicePort = 40000 + DefaultServicePort
+    let DefaultMessagingServiceAddress = "localhost"
 
 
     type ServiceAddress =

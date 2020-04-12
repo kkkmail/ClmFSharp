@@ -2,7 +2,6 @@
 
 open System
 open System.ServiceProcess
-open System.Runtime.Remoting.Channels
 open Argu
 open ClmSys.MessagingData
 open ClmSys.Logging

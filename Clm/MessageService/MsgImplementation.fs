@@ -1,11 +1,11 @@
 ﻿namespace MessagingService
 
+open System.ServiceModel
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
 open ServiceProxy.MsgServiceProxy
-open System.ServiceModel
 open ClmSys.Wcf
 open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
@@ -35,7 +35,7 @@ module ServiceImplementation =
         let toTryDeleteFromServerError f = f |> TryDeleteMsgWcfErr |> TryDeleteFromServerErr |> MessagingServiceErr
 
         interface IMessagingWcfService with
-            member __.getVersion b = tryReply a.getVersion toGetVersionError b
-            member __.sendMessage b = tryReply a.sendMessage toSendMessageError b
-            member __.tryPeekMessage b = tryReply a.tryPeekMessage toTryPickMessageError b
-            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer toTryDeleteFromServerError b
+            member _.getVersion b = tryReply a.getVersion toGetVersionError b
+            member _.sendMessage b = tryReply a.sendMessage toSendMessageError b
+            member _.tryPeekMessage b = tryReply a.tryPeekMessage toTryPickMessageError b
+            member _.tryDeleteFromServer b = tryReply a.tryDeleteFromServer toTryDeleteFromServerError b

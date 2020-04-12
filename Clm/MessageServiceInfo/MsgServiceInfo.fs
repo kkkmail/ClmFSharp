@@ -20,6 +20,10 @@ module ServiceInfo =
     let messagingProgramName = "MessagingService.exe"
 
 
+    [<Literal>]
+    let MessagingWcfServiceName = "MessagingWcfService"
+
+
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
@@ -274,7 +278,7 @@ module ServiceInfo =
 
 
     /// https://gist.github.com/dgfitch/661656
-    [<ServiceContract(ConfigurationName = "MessagingWcfService")>]
+    [<ServiceContract(ConfigurationName = MessagingWcfServiceName)>]
     type IMessagingWcfService =
 
         [<OperationContract(Name = "getVersion")>]

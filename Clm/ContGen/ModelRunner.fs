@@ -262,6 +262,7 @@ module ModelRunner =
         {
             modelGenerator : ClmEventHandler
             modelRunner : ClmEventHandler
+            modelUpdater : IContGenService
             messageProcessor : ClmEventHandler
         }
 
@@ -283,6 +284,7 @@ module ModelRunner =
             {
                 modelGenerator = createModelGenerator logger d.connectionString
                 modelRunner = createModelRunner logger d.connectionString rmp
+                modelUpdater = 0
                 messageProcessor = createModelRunnerMessageProcessor logger d.connectionString d.resultLocation w
             }
 

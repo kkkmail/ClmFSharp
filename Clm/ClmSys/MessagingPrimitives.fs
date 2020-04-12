@@ -34,14 +34,14 @@ module MessagingPrimitives =
         | MessagingServiceAddress of ServiceAddress
 
         member this.value = let (MessagingServiceAddress v) = this in v
-        static member defaultValue = DefaultMessagingServerAddress |> ServiceAddress |> MessagingServiceAddress
+        static member defaultValue = DefaultMessagingServiceAddress |> ServiceAddress |> MessagingServiceAddress
 
 
     type MessagingServicePort =
         | MessagingServicePort of ServicePort
 
         member this.value = let (MessagingServicePort v) = this in v
-        static member defaultValue = DefaultMessagingServerPort |> ServicePort |> MessagingServicePort
+        static member defaultValue = DefaultMessagingServicePort |> ServicePort |> MessagingServicePort
 
 
     type MessagingServiceName =

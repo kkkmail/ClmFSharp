@@ -437,3 +437,51 @@ module GeneralData =
     let withReply (r : AsyncReplyChannel<'T>) (s, result) =
         r.Reply result
         s
+
+
+    // !!! kk:20200322 - DO NOT DELETE !!!
+    //type RunProcArgs =
+    //    {
+    //        fileName : string
+    //        commandLineArgs : string
+    //        startDir : string option
+    //    }
+    //
+    //
+    //let runProc (c : RunningProcessData) filename args startDir =
+    //    let procStartInfo =
+    //        ProcessStartInfo(
+    //            RedirectStandardOutput = true,
+    //            RedirectStandardError = true,
+    //            UseShellExecute = false,
+    //            FileName = filename,
+    //            Arguments = args
+    //        )
+    //
+    //    match startDir with | Some d -> procStartInfo.WorkingDirectory <- d | _ -> ()
+    //
+    //    let outputs = System.Collections.Generic.List<string>()
+    //    let errors = System.Collections.Generic.List<string>()
+    //    let outputHandler f (_sender:obj) (args:DataReceivedEventArgs) = f args.Data
+    //    let p = new Process(StartInfo = procStartInfo)
+    //    p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
+    //    p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
+    //
+    //    try
+    //        p.Start() |> ignore
+    //        p.PriorityClass <- ProcessPriorityClass.Idle
+    //        let processId = p.Id |> LocalProcessId
+    //
+    //        printfn "Started %s with pid %A" p.ProcessName processId
+    //
+    //        {
+    //            localProcessId = processId
+    //            runningProcessData = c
+    //        }
+    //        |> Ok
+    //    with
+    //    | ex ->
+    //        printfn "Failed to start process %s" filename
+    //        ex.Data.["filename"] <- filename
+    //        ex.Data.["arguments"] <- args
+    //        FailedToStart ex |> Error

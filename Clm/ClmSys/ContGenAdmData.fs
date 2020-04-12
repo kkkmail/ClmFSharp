@@ -8,15 +8,17 @@ open ContGenPrimitives
 
 module ContGenAdmData =
 
-    type ContGenAdmMsgAccessInfo =
-        {
-            contGenAdmId : ContGenAdmId
-            partitionerId : PartitionerId
-            messagingServiceAccessInfo : MessagingServiceAccessInfo
-        }
+    let x = 1
 
-        member this.messagingClientAccessInfo =
-            {
-                msgClientId = this.contGenAdmId.messagingClientId
-                msgSvcAccessInfo = this.messagingServiceAccessInfo
-            }
+    //type ContGenAdmMsgAccessInfo =
+    //    {
+    //        contGenAdmId : ContGenAdmId
+    //        partitionerId : PartitionerId
+    //        messagingServiceAccessInfo : MessagingServiceAccessInfo
+    //    }
+
+    //    member this.messagingClientAccessInfo =
+    //        {
+    //            msgClientId = this.contGenAdmId.messagingClientId
+    //            msgSvcAccessInfo = this.messagingServiceAccessInfo
+    //        }

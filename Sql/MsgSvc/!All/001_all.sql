@@ -19,16 +19,18 @@ IF OBJECT_ID('[dbo].[Message]') IS NULL begin
 
 	CREATE TABLE [dbo].[Message](
 		[messageId] [uniqueidentifier] NOT NULL,
+		[senderId] [uniqueidentifier] NOT NULL,
+		[recipientId] [uniqueidentifier] NOT NULL,
 		[messageOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[dataVersion] [int] NOT NULL,
 		[deliveryTypeId] [int] NOT NULL,
-		[senderId] [uniqueidentifier] NOT NULL,
-		[recipientId] [uniqueidentifier] NOT NULL,
 		[messageData] [varbinary](max) NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_Message] PRIMARY KEY CLUSTERED 
 	(
-		[messageId] ASC
+		[messageId] ASC,
+		[senderId] ASC,
+		[recipientId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 

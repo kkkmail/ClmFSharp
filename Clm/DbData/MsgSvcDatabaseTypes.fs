@@ -145,6 +145,6 @@ module MsgSvcDatabaseTypes =
                     and createdOn < @createdOn", MsgSvcConnectionStringValue>(connectionString)
 
             let result = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
-            Ok result
+            Ok()
 
         tryDbFun g

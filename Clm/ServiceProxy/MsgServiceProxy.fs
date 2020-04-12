@@ -42,7 +42,7 @@ module MsgServiceProxy =
             tryPickMessage : MessagingClientId -> ClmResult<Message option>
             saveMessage : Message -> UnitResult
             deleteMessage : MessageId -> UnitResult
-            deleteExpiredMessages : TimeSpan -> ClmResult<int>
+            deleteExpiredMessages : TimeSpan -> UnitResult
         }
 
         static member create (connectionString : ConnectionString) =

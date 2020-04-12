@@ -428,6 +428,9 @@ module GeneralData =
             e |> DeserializationExn |> Error
 
 
+    let reply (r : AsyncReplyChannel<'T>) result = r.Reply result
+
+
     /// Replies with result and returns the state.
     /// It is used by MailboxProcessor based classes to standardize approach for PostAndReply.
     let withReply (r : AsyncReplyChannel<'T>) (s, result) =

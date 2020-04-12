@@ -191,12 +191,12 @@ module ServiceInfo =
         }
 
 
-    //type MessageDataInfo
-    //    with
-    //    member this.isExpired(waitTime : TimeSpan) =
-    //        match this.recipientInfo.deliveryType with
-    //        | GuaranteedDelivery -> false
-    //        | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+    type MessageDataInfo
+        with
+        member this.isExpired(waitTime : TimeSpan) =
+            match this.recipientInfo.deliveryType with
+            | GuaranteedDelivery -> false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
     //type MessageWithOptionalData
@@ -214,9 +214,9 @@ module ServiceInfo =
     //        | None -> None
 
 
-    //type Message
-    //    with
-    //    member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
+    type Message
+        with
+        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
     //    member this.toMessageWithOptionalData() =
     //        match this.messageData.keepInMemory() with
@@ -250,19 +250,19 @@ module ServiceInfo =
 
 
     type MessagingConfigParam =
-        | MsgWorkState of MessagingWorkState
+        | DummyConfig
 
 
     type MessagingClientConfigParam =
         | DummyConfig
 
 
-    type MsgServiceState =
-        {
-            msgVersion : MessagingDataVersion
-            msgWorkState : MessagingWorkState
-            msgInfo : list<(MessagingClientId * list<MessageId>)>
-        }
+    //type MsgServiceState =
+    //    {
+    //        msgVersion : MessagingDataVersion
+    //        msgWorkState : MessagingWorkState
+    //        msgInfo : list<(MessagingClientId * list<MessageId>)>
+    //    }
 
 
     type MsgWcfSvcShutDownInfo =
@@ -311,10 +311,10 @@ module ServiceInfo =
     type IMessagingService =
         abstract getVersion : unit -> ClmResult<MessagingDataVersion>
         abstract sendMessage : Message -> UnitResult
-        abstract configureService : MessagingConfigParam -> UnitResult
+        //abstract configureService : MessagingConfigParam -> UnitResult
         abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
         abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-        abstract getState : unit -> ClmResult<MsgServiceState>
+        //abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -327,8 +327,8 @@ module ServiceInfo =
         [<OperationContract(Name = "sendMessage")>]
         abstract sendMessage : m:byte[] -> byte[]
 
-        [<OperationContract(Name = "configureService")>]
-        abstract configureService : p:byte[] -> byte[]
+        //[<OperationContract(Name = "configureService")>]
+        //abstract configureService : p:byte[] -> byte[]
 
         [<OperationContract(Name = "tryPeekMessage")>]
         abstract tryPeekMessage : c:byte[] -> byte[]
@@ -336,8 +336,8 @@ module ServiceInfo =
         [<OperationContract(Name = "tryDeleteFromServer")>]
         abstract tryDeleteFromServer : cm:byte[] -> byte[]
 
-        [<OperationContract(Name = "getState")>]
-        abstract getState : u:byte[] -> byte[]
+        //[<OperationContract(Name = "getState")>]
+        //abstract getState : u:byte[] -> byte[]
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

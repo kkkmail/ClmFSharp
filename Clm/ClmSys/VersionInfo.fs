@@ -11,7 +11,7 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 78
+    let messagingDataVersion = MessagingDataVersion 80
 
 
     /// This is an overall system version.
@@ -31,7 +31,9 @@ module VersionInfo =
 
 
     /// Default port on which messaging communication is performed.
-    let DefaultServicePort = 5000 + messagingDataVersion.value
+    /// TODO kk:20200412 - There seems to be some conflict between how to use default service port and registry key where to store the information.
+    //let DefaultServicePort = 5000 + messagingDataVersion.value
+    let DefaultServicePort = 5010
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

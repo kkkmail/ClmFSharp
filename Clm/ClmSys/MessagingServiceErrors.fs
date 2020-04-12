@@ -49,15 +49,9 @@ module MessagingServiceErrors =
         | UnableToDeleteMessageErr of (MessagingClientId * MessageId)
 
 
-    type GetStateError =
-        | GetStateWcfErr of WcfError
-
-
     type MessagingServiceError =
         | MsgSvcDbErr of MsgSvcDbError
         | GetVersionSvcErr of GetVersionSvcError
         | MessageDeliveryErr of MessageDeliveryError
-        | ConfigureServiceErr of ConfigureServiceError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError
-        | GetStateErr of GetStateError

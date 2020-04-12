@@ -88,6 +88,7 @@ module ContGenPrimitives =
         | InProgress of decimal
         | Completed
         | Failed of ErrorMessage
+        | Cancelled
 
         static member failedValue = -1000m
 
@@ -103,6 +104,7 @@ module ContGenPrimitives =
             | InProgress d -> max 0m (min d 1m)
             | Completed -> 1.0m
             | Failed _ -> TaskProgress.failedValue
+            | Cancelled -> TaskProgress.failedValue
 
 
     type ContGenAdmId =

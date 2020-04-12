@@ -41,17 +41,17 @@ module Logging =
         | DebugMessage of LogInfo
         | InfoMessage of LogInfo
         | WarningMessage of LogInfo
-        | ErrorMessage of ErrorInfo * LogInfo
+        | ErrMessage of ErrorInfo * LogInfo
         | FatalMessage of ErrorInfo * LogInfo
 
         member this.Message =
-            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrorMessage (_, i) | FatalMessage (_, i) -> i.Message
+            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrMessage (_, i) | FatalMessage (_, i) -> i.Message
         member this.Exception =
-            match this with | ErrorMessage (e, _) | FatalMessage (e, _) -> Some e.Error | _ -> None
+            match this with | ErrMessage (e, _) | FatalMessage (e, _) -> Some e.Error | _ -> None
         member this.Level =
-            match this with | DebugMessage _ -> Level.Debug | InfoMessage _ -> Level.Info | WarningMessage _ -> Level.Warn | ErrorMessage _ -> Level.Error | FatalMessage _ -> Level.Fatal
+            match this with | DebugMessage _ -> Level.Debug | InfoMessage _ -> Level.Info | WarningMessage _ -> Level.Warn | ErrMessage _ -> Level.Error | FatalMessage _ -> Level.Fatal
         member this.LogInfo =
-            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrorMessage (_, i) | FatalMessage (_, i) -> i
+            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrMessage (_, i) | FatalMessage (_, i) -> i
 
 
     //let private writeLog level message maybeEx logDate (stackTrace: StackTrace) =

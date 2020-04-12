@@ -214,10 +214,9 @@ module AdmCommandLine =
                 match messagingClient.start() with
                 | Ok() ->
                     let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
-
-                    match tryCancelRunQueue proxy q with
-                    | Ok() -> messagingClient.transmitMessages()
-                    | Error e -> Error e
+                    let r1 = tryCancelRunQueue proxy q
+                    let r2 = messagingClient.transmitMessages()
+                    combineUnitResults  r1 r2
                 | Error e -> Error e
             | None -> Ok()
 

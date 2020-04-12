@@ -68,7 +68,7 @@ module GeneralPrimitives =
         | InProgressRunQueue
         | CompletedRunQueue
         | FailedRunQueue
-        | ModifyingRunQueue
+        | CancelRequestedRunQueue
         | CancelledRunQueue
         | InvalidRunQueue // It does not exist in DB, so it it not possible to insert it due to FK constraint.
 
@@ -79,7 +79,7 @@ module GeneralPrimitives =
             | InProgressRunQueue -> 2
             | CompletedRunQueue -> 3
             | FailedRunQueue -> 4
-            | ModifyingRunQueue -> 5
+            | CancelRequestedRunQueue -> 5
             | CancelledRunQueue -> 6
             | InvalidRunQueue -> -1000
 
@@ -90,7 +90,7 @@ module GeneralPrimitives =
             | 2 -> Some InProgressRunQueue
             | 3 -> Some CompletedRunQueue
             | 4 -> Some FailedRunQueue
-            | 5 -> Some ModifyingRunQueue
+            | 5 -> Some CancelRequestedRunQueue
             | 6 -> Some CancelledRunQueue
             | _ -> None
 

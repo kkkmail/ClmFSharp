@@ -366,17 +366,14 @@ module DatabaseTypes =
 
         /// The following transitions are allowed here:
         ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
+        ///     NotStartedRunQueue -> CancelledRunQueue + both None (workerNodeId).
         ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
         ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
-        ///     NotStartedRunQueue -> CancelledRunQueue + both None (workerNodeId).
-        ///     InProgressRunQueue -> CancelledRunQueue + the same Some workerNodeId.
-        ///     CancelledRunQueue -> CancelledRunQueue + the same Some workerNodeId (this is to update error message).
+        ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
+        ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId.
         ///
         /// All others are not allowed and / or out of scope of this function.
-        ///
-        ///     TODO kk:20200222 - I am not sure that this is needed, so it is not yet implemented:
-        ///         ... -> ModifyingRunQueue -> ...
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
@@ -411,13 +408,13 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue, None,    InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
-                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | InProgressRunQueue, Some w1, CompletedRunQueue,  Some w2 when w1 = w2.value.value -> g Completed.value None
-                | InProgressRunQueue, Some w1, FailedRunQueue,     Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | NotStartedRunQueue, None,    CancelledRunQueue,  None -> g TaskProgress.failedValue None
-                | InProgressRunQueue, Some w1, CancelledRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | CancelledRunQueue,  Some w1, CancelledRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | NotStartedRunQueue,       None,    InProgressRunQueue,       Some _ -> g NotStarted.value (Some DateTime.Now)
+                | NotStartedRunQueue,       None,    CancelledRunQueue,        None -> g TaskProgress.failedValue None
+                | InProgressRunQueue,       Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
+                | InProgressRunQueue,       Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
+                | InProgressRunQueue,       Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | InProgressRunQueue,       Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | CancelRequestedRunQueue,  Some w1, CancelledRunQueue,        Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 
@@ -891,7 +888,7 @@ module DatabaseTypes =
         select
             workerNodeId
             ,nodePriority
-            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
+            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5)) / (cast(numberOfCores as money)) end as money) as workLoad
         from WorkerNode w
         )
         select top 1

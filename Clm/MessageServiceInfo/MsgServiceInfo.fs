@@ -20,12 +20,6 @@ module ServiceInfo =
     let messagingProgramName = "MessagingService.exe"
 
 
-    //type MessagingWorkState =
-    //    | MsgSvcNotStarted
-    //    | CanTransmitMessages
-    //    | ShuttingDown
-
-
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
@@ -199,37 +193,9 @@ module ServiceInfo =
             | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
-    //type MessageWithOptionalData
-    //    with
-    //    member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
-
-    //    member this.toMessasge() =
-    //        match this.messageDataOpt with
-    //        | Some m ->
-    //            {
-    //                messageDataInfo = this.messageDataInfo
-    //                messageData = m
-    //            }
-    //            |> Some
-    //        | None -> None
-
-
     type Message
         with
         member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
-
-    //    member this.toMessageWithOptionalData() =
-    //        match this.messageData.keepInMemory() with
-    //        | true ->
-    //            {
-    //                messageDataInfo = this.messageDataInfo
-    //                messageDataOpt = Some this.messageData
-    //            }
-    //        | false ->
-    //            {
-    //                messageDataInfo = this.messageDataInfo
-    //                messageDataOpt = None
-    //            }
 
 
     type MessageResultInfo =
@@ -255,14 +221,6 @@ module ServiceInfo =
 
     type MessagingClientConfigParam =
         | DummyConfig
-
-
-    //type MsgServiceState =
-    //    {
-    //        msgVersion : MessagingDataVersion
-    //        msgWorkState : MessagingWorkState
-    //        msgInfo : list<(MessagingClientId * list<MessageId>)>
-    //    }
 
 
     type MsgWcfSvcShutDownInfo =
@@ -311,10 +269,8 @@ module ServiceInfo =
     type IMessagingService =
         abstract getVersion : unit -> ClmResult<MessagingDataVersion>
         abstract sendMessage : Message -> UnitResult
-        //abstract configureService : MessagingConfigParam -> UnitResult
         abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
         abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-        //abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -327,17 +283,11 @@ module ServiceInfo =
         [<OperationContract(Name = "sendMessage")>]
         abstract sendMessage : m:byte[] -> byte[]
 
-        //[<OperationContract(Name = "configureService")>]
-        //abstract configureService : p:byte[] -> byte[]
-
         [<OperationContract(Name = "tryPeekMessage")>]
         abstract tryPeekMessage : c:byte[] -> byte[]
 
         [<OperationContract(Name = "tryDeleteFromServer")>]
         abstract tryDeleteFromServer : cm:byte[] -> byte[]
-
-        //[<OperationContract(Name = "getState")>]
-        //abstract getState : u:byte[] -> byte[]
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

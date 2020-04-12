@@ -139,6 +139,7 @@ module ServiceImplementation =
         | InProgress _ -> (NonGuaranteedDelivery, false)
         | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
+        | Cancelled -> (GuaranteedDelivery, true)
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
@@ -289,8 +290,12 @@ module ServiceImplementation =
         match m.messageData with
         | WorkerNodeMsg x ->
             match x with
-            | RunModelWrkMsg d -> onRunModelWrkMsg proxy s d m.messageDataInfo.messageId
-            | CancelRunWrkMsg q -> onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
+            | RunModelWrkMsg d ->
+                printfn "onProcessMessage: RunModelWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId d.runningProcessData.runQueueId
+                onRunModelWrkMsg proxy s d m.messageDataInfo.messageId
+            | CancelRunWrkMsg q ->
+                printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
+                onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
         | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 
@@ -425,6 +430,7 @@ module ServiceImplementation =
         member w.solverRunnerProxy =
             {
                 updateProgress = w.updateProgress
+                transmitMessages = fun u -> i.messageProcessorProxy.transmitMessages() |> combineUnitResults u
                 saveResult = w.saveResult
                 saveCharts = w.saveCharts
                 logCrit = i.workerNodeProxy.logCrit

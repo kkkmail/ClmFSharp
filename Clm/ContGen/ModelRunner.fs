@@ -84,7 +84,7 @@ module ModelRunner =
 
             let r2 =
                 match r.runQueueStatus with
-                | NotStartedRunQueue | InProgressRunQueue -> { r with runQueueStatus = CancelledRunQueue } |> proxy.upsertRunQueue
+                | NotStartedRunQueue | InProgressRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
 
             combineUnitResults r1 r2
@@ -122,11 +122,12 @@ module ModelRunner =
                     | NotStarted | InProgress _ -> q1
                     | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }
                     | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }
+                    | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "" |> ErrorMessage |> Some }
 
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()
                 | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
-            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | ModifyingRunQueue | CancelledRunQueue ->
+            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | CancelRequestedRunQueue | CancelledRunQueue ->
                 toError (InvalidRunQueueStatusErr i.runQueueId)
             | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runQueueId)
         | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)

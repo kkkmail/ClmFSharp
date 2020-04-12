@@ -1,13 +1,9 @@
 ﻿namespace DbData
 
-open System.Data
-open System.Data.SqlClient
 open FSharp.Data
 open System
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.GeneralErrors
-open ClmSys.Retry
 open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
@@ -82,7 +78,7 @@ module MsgSvcDatabaseTypes =
                     t.NewRow(
                             messageId = r.messageDataInfo.messageId.value,
                             dataVersion = messagingDataVersion.value,
-                            deliveryTypeId = r.messageDataInfo.dataVersion.value,
+                            deliveryTypeId = r.messageDataInfo.recipientInfo.deliveryType.value,
                             senderId = r.messageDataInfo.sender.value,
                             recipientId = r.messageDataInfo.recipientInfo.recipient.value,
                             messageData = (r.messageData |> serialize serializationFormat)

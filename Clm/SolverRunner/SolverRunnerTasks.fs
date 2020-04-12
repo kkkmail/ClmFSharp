@@ -221,7 +221,7 @@ module SolverRunnerTasks =
             | Ok() -> ignore()
             | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
 
-        let updateProgress = proxy.updateProgress >> logIfFailed
+        let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
 
         try
             // Uncomment temporarily when you need to test cancellations.
@@ -254,6 +254,7 @@ module SolverRunnerTasks =
                     progress = Completed
                 }
                 |> proxy.updateProgress
+                |> proxy.transmitMessages
 
             foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
             printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
@@ -266,12 +267,12 @@ module SolverRunnerTasks =
 
             {
                 runQueueId = w.runningProcessData.runQueueId
-                progress = sprintf "runSolver: runQueueId = %A has been cancelled." w.runningProcessData.runQueueId |> ErrorMessage |> Failed
+                progress = Cancelled
             }
-            |> updateProgress
+            |> updateFinalProgress
         | e ->
             {
                 runQueueId = w.runningProcessData.runQueueId
                 progress = e.ToString() |> ErrorMessage |> Failed
             }
-            |> updateProgress
+            |> updateFinalProgress

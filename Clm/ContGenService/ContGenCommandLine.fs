@@ -164,7 +164,8 @@ module SvcCommandLine =
                 connectionString = clmConnectionString
                 minUsefulEe = MinUsefulEe.defaultValue
                 resultLocation = DefaultResultLocationFolder
+                messageProcessorProxy = messagingClient.messageProcessorProxy
             }
 
-        let modelRunner = ModelRunner.create logger data messagingClient.messageProcessorProxy
+        let modelRunner = ModelRunner.create logger data
         modelRunner

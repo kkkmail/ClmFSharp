@@ -234,35 +234,67 @@ module ModelRunner =
         }
 
 
-    let createModelRunner (logger : Logger) c rmp =
-        logger.logInfoString "createModelRunner: Creating model runner..."
-        let proxy = TryRunAllModelsProxy.create c rmp
-        let e = fun () -> tryRunAllModels proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunner - tryRunAllModels")
-        h
-
-
-    let createModelRunnerMessageProcessor (logger : Logger) c resultLocation w =
-        logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
-        let proxy = onGetMessagesProxy c resultLocation w
-        let e = fun () -> onGetMessages proxy () |> snd
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
-        h
-
-
-    type ModelRunnerData =
+    type RunnerData =
         {
             connectionString : ConnectionString
             minUsefulEe : MinUsefulEe
             resultLocation : string
+            messageProcessorProxy : MessageProcessorProxy
         }
+
+
+    type RunnerMessage =
+        | TryRunAll of AsyncReplyChannel<UnitResult>
+        | TryCancelRunQueue of AsyncReplyChannel<UnitResult> * RunQueueId
+        | ProcessMessages of AsyncReplyChannel<UnitResult>
+
+
+    type Runner (i : RunnerData) =
+        let runModelProxy = RunModelProxy.create i.connectionString i.minUsefulEe i.messageProcessorProxy.sendMessage
+        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.connectionString runModelProxy
+        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.connectionString i.messageProcessorProxy.sendMessage
+        let proxy = onGetMessagesProxy i.connectionString i.resultLocation i.messageProcessorProxy
+
+        let messageLoop =
+            MailboxProcessor.Start(fun u ->
+                let rec loop() =
+                    async
+                        {
+                            match! u.Receive() with
+                            | TryRunAll r -> tryRunAllModels tryRunAllModelsProxy |> r.Reply
+                            | TryCancelRunQueue (r, q) -> tryCancelRunQueue tryCancelRunQueueProxy q |> r.Reply
+                            | ProcessMessages r -> onGetMessages proxy () |> snd |> r.Reply
+
+                            return! loop()
+                        }
+
+                loop()
+                )
+
+        member _.tryRunAll() = messageLoop.PostAndReply (fun reply -> TryRunAll reply)
+        member _.tryCancelRunQueue q = messageLoop.PostAndReply (fun reply -> TryCancelRunQueue (reply, q))
+        member _.processMessages() = messageLoop.PostAndReply (fun reply -> ProcessMessages reply)
+
+
+    let createModelRunner (logger : Logger) (r : Runner) =
+        logger.logInfoString "createModelRunner: Creating model runner..."
+        let e = fun () -> r.tryRunAll()
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunner - tryRunAllModels")
+        h
+
+
+    let createModelRunnerMessageProcessor (logger : Logger) (r : Runner)  =
+        logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
+        let e = fun () -> r.processMessages()
+        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
+        h
 
 
     type ModelRunner =
         {
             modelGenerator : ClmEventHandler
             modelRunner : ClmEventHandler
-            modelUpdater : IContGenService
+            tryCancelRunQueue : RunQueueId -> UnitResult
             messageProcessor : ClmEventHandler
         }
 
@@ -278,14 +310,14 @@ module ModelRunner =
                 p.modelRunner.stop()
                 p.messageProcessor.stop()
 
-        static member create (logger : Logger) (d : ModelRunnerData) (w : MessageProcessorProxy) =
-            let rmp = RunModelProxy.create d.connectionString d.minUsefulEe w.sendMessage
+        static member create (logger : Logger) (d : RunnerData) =
+            let runner = new Runner(d)
 
             {
                 modelGenerator = createModelGenerator logger d.connectionString
-                modelRunner = createModelRunner logger d.connectionString rmp
-                modelUpdater = 0
-                messageProcessor = createModelRunnerMessageProcessor logger d.connectionString d.resultLocation w
+                modelRunner = createModelRunner logger runner
+                tryCancelRunQueue = runner.tryCancelRunQueue
+                messageProcessor = createModelRunnerMessageProcessor logger runner
             }
 
 

@@ -18,11 +18,11 @@ module WindowsService =
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type ContGenWcfService() =
-        let a : ContGenService = failwith "" // createServiceImpl serviceAccessInfo
-        let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
+        //let a : ContGenService = failwith "" // createServiceImpl serviceAccessInfo
+        //let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
 
         interface IContGenWcfService with
-            member _.tryCancelRunQueue q = tryReply a.getVersion toGetVersionError b
+            member _.tryCancelRunQueue q = failwith "" // tryReply a.getVersion toGetVersionError b
 
 
     let startServiceRun (logger : Logger) parserResults =

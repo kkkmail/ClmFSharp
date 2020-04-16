@@ -17,6 +17,7 @@ open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
 open ModelGenerator
+open ClmSys.ContGenData
 
 module ModelRunner =
 
@@ -243,6 +244,13 @@ module ModelRunner =
         }
 
 
+    type ModelRunnerData =
+        {
+            runnerData : RunnerData
+            logger : Logger
+        }
+
+
     type RunnerMessage =
         | TryRunAll of AsyncReplyChannel<UnitResult>
         | TryCancelRunQueue of AsyncReplyChannel<UnitResult> * RunQueueId
@@ -310,14 +318,14 @@ module ModelRunner =
                 p.modelRunner.stop()
                 p.messageProcessor.stop()
 
-        static member create (logger : Logger) (d : RunnerData) =
-            let runner = new Runner(d)
+        static member create (d : MdelRunnerData) =
+            let runner = new Runner(d.runnerData)
 
             {
-                modelGenerator = createModelGenerator logger d.connectionString
-                modelRunner = createModelRunner logger runner
+                modelGenerator = createModelGenerator d.logger d.runnerData.connectionString
+                modelRunner = createModelRunner d.logger runner
                 tryCancelRunQueue = runner.tryCancelRunQueue
-                messageProcessor = createModelRunnerMessageProcessor logger runner
+                messageProcessor = createModelRunnerMessageProcessor d.logger runner
             }
 
 

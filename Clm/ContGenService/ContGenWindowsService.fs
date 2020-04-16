@@ -10,19 +10,23 @@ open ContGenService.SvcCommandLine
 open ClmSys.ContGenPrimitives
 open ClmSys.ContGenData
 open ClmSys.Wcf
+open ContGen.ModelRunner
+open ClmSys.ContGenErrors
+open ClmSys.ClmErrors
 
 module WindowsService =
 
-    let mutable serviceAccessInfo : ContGenServiceAccessInfo = failwith "" // getServiceAccessInfo []
+    let mutable serviceData : ContGenServiceData = getServiceAccessInfo []
+
+    let modelRunner : Lazy<ModelRunner> = new Lazy<ModelRunner>(fun () -> ModelRunner.create serviceData.modelRunnerData)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type ContGenWcfService() =
-        //let a : ContGenService = failwith "" // createServiceImpl serviceAccessInfo
-        //let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
+        let toGetVersionError f = f |> TryDeleteRunQueueWcfErr |> TryDeleteRunQueueErr |> ContGenServiceErr
 
         interface IContGenWcfService with
-            member _.tryCancelRunQueue q = failwith "" // tryReply a.getVersion toGetVersionError b
+            member _.tryCancelRunQueue b = tryReply modelRunner.Value.tryCancelRunQueue toGetVersionError b
 
 
     let startServiceRun (logger : Logger) parserResults =

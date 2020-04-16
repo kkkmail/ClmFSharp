@@ -7,6 +7,7 @@ open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
 open GeneralPrimitives
+open ContGenErrors
 
 module ClmErrors =
 
@@ -27,6 +28,7 @@ module ClmErrors =
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | ModelRunnerErr of ModelRunnerError
+        | ContGenServiceErr of ContGenServiceError
 
         static member (+) (a, b) =
             match a, b with

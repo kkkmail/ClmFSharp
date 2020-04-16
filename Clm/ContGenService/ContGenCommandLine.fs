@@ -18,8 +18,16 @@ open ContGen.ModelRunner
 open DbData.Configuration
 open Clm.ModelParams
 open ClmSys.MessagingData
+open ClmSys.ContGenData
 
 module SvcCommandLine =
+
+    type ContGenServiceData =
+        {
+            modelRunnerData : ModelRunnerData
+            contGenServiceAccessInfo : ContGenServiceAccessInfo
+        }
+
 
     [<CliPrefix(CliPrefix.Dash)>]
     type ContGenRunArgs =

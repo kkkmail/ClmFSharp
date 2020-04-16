@@ -174,55 +174,54 @@ module AdmCommandLine =
     let tryGetCancelRunQueueId p = p |> List.tryPick (fun e -> match e with | RunQueueIdToCancel e -> e |> RunQueueId |> Some | _ -> None)
 
 
-    //let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
-    //let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
-    //let getPartitioner = getPartitionerImpl tryGetPartitioner
+    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
+    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
+    let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
     let tryCancelRunQueueImpl (logger : Logger) p =
-        //let result =
-        //    match tryGetCancelRunQueueId p with
-        //    | Some q ->
-        //        let name = contGenServiceRegistryName
-        //        let version = versionNumberValue
+        let result =
+            match tryGetCancelRunQueueId p with
+            | Some q ->
+                let name = contGenServiceRegistryName
+                let version = versionNumberValue
 
-        //        let msgAddress = getMsgServiceAddress logger version name p
-        //        let msgPort = getMsgServicePort logger version name p
-        //        let partitioner = getPartitioner logger version name p
+                let msgAddress = getMsgServiceAddress logger version name p
+                let msgPort = getMsgServicePort logger version name p
+                let partitioner = getPartitioner logger version name p
 
-        //        let i =
-        //            {
-        //                contGenAdmId = ContGenAdmId.newId()
-        //                partitionerId = partitioner
+                let i =
+                    {
+                        contGenAdmId = ContGenAdmId.newId()
+                        partitionerId = partitioner
 
-        //                messagingServiceAccessInfo =
-        //                    {
-        //                        messagingServiceAddress = msgAddress
-        //                        messagingServicePort = msgPort
-        //                        messagingServiceName = messagingServiceName
-        //                    }
-        //            }
+                        messagingServiceAccessInfo =
+                            {
+                                messagingServiceAddress = msgAddress
+                                messagingServicePort = msgPort
+                                messagingServiceName = messagingServiceName
+                            }
+                    }
 
-        //        let messagingClient =
-        //            {
-        //                msgAccessInfo = i.messagingClientAccessInfo
-        //                messagingService = MsgResponseHandler i.messagingClientAccessInfo
-        //                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
-        //            }
-        //            |> MessagingClient
+                let messagingClient =
+                    {
+                        msgAccessInfo = i.messagingClientAccessInfo
+                        messagingService = MsgResponseHandler i.messagingClientAccessInfo
+                        msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
+                    }
+                    |> MessagingClient
 
-        //        match messagingClient.start() with
-        //        | Ok() ->
-        //            let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
-        //            let r1 = tryCancelRunQueue proxy q
-        //            let r2 = messagingClient.transmitMessages()
-        //            combineUnitResults  r1 r2
-        //        | Error e -> Error e
-        //    | None -> Ok()
+                match messagingClient.start() with
+                | Ok() ->
+                    let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
+                    let r1 = tryCancelRunQueue proxy q
+                    let r2 = messagingClient.transmitMessages()
+                    combineUnitResults  r1 r2
+                | Error e -> Error e
+            | None -> Ok()
 
-        //match result with
-        //| Ok() -> Ok()
-        //| Error e ->
-        //    logger.logError e
-        //    Error e
-        failwith ""
+        match result with
+        | Ok() -> Ok()
+        | Error e ->
+            logger.logError e
+            Error e

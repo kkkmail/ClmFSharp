@@ -227,10 +227,12 @@ module Registry =
 
 
     let tryGetContGenServiceAddress v c =
-        tryGetRegistryValue (getServiceSubKey v c) contGenServiceAddressKey |> Rop.bindSuccess ServiceAddress
+        tryGetRegistryValue (getServiceSubKey v c) contGenServiceAddressKey
+        |> Rop.bindSuccess ServiceAddress
+        |> Rop.bindSuccess ContGenServiceAddress
 
 
-    let trySetContGenServiceAddress v c (ServiceAddress a) =
+    let trySetContGenServiceAddress v c (ContGenServiceAddress (ServiceAddress a)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
         | Ok() -> trySetRegistryValue (getServiceSubKey v c) contGenServiceAddressKey a
         | Error e -> Error e
@@ -240,12 +242,12 @@ module Registry =
         match tryGetRegistryValue (getServiceSubKey v c) contGenServicePortKey with
         | Ok s ->
             match Int32.TryParse s with
-            | true, v -> ServicePort v |> Ok
+            | true, v -> v |> ServicePort |> ContGenServicePort |> Ok
             | false, _ -> toErrorInfo GetContGenServicePortError v c s |> toError
         | Error e -> Error e
 
 
-    let trySetContGenServicePort v c (ServicePort p) =
+    let trySetContGenServicePort v c (ContGenServicePort (ServicePort p)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
         | Ok() -> trySetRegistryValue (getServiceSubKey v c) contGenServicePortKey (p.ToString())
         | Error e -> Error e
@@ -283,6 +285,24 @@ module Registry =
             match tryGetMessagingServicePort version name with
             | Ok a -> a
             | Error _ -> MessagingServicePort.defaultValue
+
+
+    let getContGenServiceAddressImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> ContGenServiceAddress.defaultValue
+
+
+    let getContGenServicePortImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServicePort version name with
+            | Ok a -> a
+            | Error _ -> ContGenServicePort.defaultValue
 
 
     let getPartitionerImpl getter logger version name p =

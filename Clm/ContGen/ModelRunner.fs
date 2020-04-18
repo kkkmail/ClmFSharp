@@ -18,6 +18,7 @@ open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
 open ModelGenerator
 open ClmSys.ContGenData
+open ClmSys.MessagingData
 
 module ModelRunner =
 
@@ -240,7 +241,8 @@ module ModelRunner =
             connectionString : ConnectionString
             minUsefulEe : MinUsefulEe
             resultLocation : string
-            messageProcessorProxy : MessageProcessorProxy
+            messagingClientAccessInfo : MessagingClientAccessInfo
+            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
         }
 
 
@@ -258,10 +260,11 @@ module ModelRunner =
 
 
     type Runner (i : RunnerData) =
-        let runModelProxy = RunModelProxy.create i.connectionString i.minUsefulEe i.messageProcessorProxy.sendMessage
+        let messageProcessorProxy = i.getMessageProcessorProxy i.messagingClientAccessInfo
+        let runModelProxy = RunModelProxy.create i.connectionString i.minUsefulEe messageProcessorProxy.sendMessage
         let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.connectionString runModelProxy
-        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.connectionString i.messageProcessorProxy.sendMessage
-        let proxy = onGetMessagesProxy i.connectionString i.resultLocation i.messageProcessorProxy
+        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.connectionString messageProcessorProxy.sendMessage
+        let proxy = onGetMessagesProxy i.connectionString i.resultLocation messageProcessorProxy
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -291,7 +294,9 @@ module ModelRunner =
         h
 
 
-    let createModelRunnerMessageProcessor (logger : Logger) (r : Runner)  =
+    /// Call this function to create timer events necessary for automatic ModelRunner operation.
+    /// If you don't call it, then you have to operate it by hands.
+    let createModelRunnerMessageProcessor (logger : Logger) (r : Runner) =
         logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
         let e = fun () -> r.processMessages()
         let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
@@ -318,15 +323,21 @@ module ModelRunner =
                 p.modelRunner.stop()
                 p.messageProcessor.stop()
 
-        static member create (d : MdelRunnerData) =
-            let runner = new Runner(d.runnerData)
+        static member create (d : ModelRunnerData) =
+            let messagingClient = d.runnerData.getMessageProcessorProxy d.runnerData.messagingClientAccessInfo
 
-            {
-                modelGenerator = createModelGenerator d.logger d.runnerData.connectionString
-                modelRunner = createModelRunner d.logger runner
-                tryCancelRunQueue = runner.tryCancelRunQueue
-                messageProcessor = createModelRunnerMessageProcessor d.logger runner
-            }
+            match messagingClient.start() with
+            | Ok() ->
+                let runner = new Runner(d.runnerData)
+
+                {
+                    modelGenerator = createModelGenerator d.logger d.runnerData.connectionString
+                    modelRunner = createModelRunner d.logger runner
+                    tryCancelRunQueue = runner.tryCancelRunQueue
+                    messageProcessor = createModelRunnerMessageProcessor d.logger runner
+                }
+                |> Ok
+            | Error e -> Error e
 
 
     type ModelMonitor =

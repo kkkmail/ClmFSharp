@@ -24,6 +24,7 @@ module MsgProcessorProxy =
 
     type MessageProcessorProxy =
         {
+            start : unit -> UnitResult
             tryPeekReceivedMessage : unit -> Message option
             tryRemoveReceivedMessage : MessageId -> TryRemoveReceivedMessageResult
             sendMessage : MessageInfo -> UnitResult

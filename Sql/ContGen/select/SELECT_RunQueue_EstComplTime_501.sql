@@ -1,4 +1,4 @@
-use clm5003
+use clm501
 go
 
 declare @now datetime

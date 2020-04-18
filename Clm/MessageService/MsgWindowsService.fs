@@ -16,7 +16,7 @@ module WindowsService =
 
     let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
         try
-            printfn "startWcfServiceRun: Creating WCF service..."
+            printfn "startWcfServiceRun: Creating WCF Messaging Service..."
             serviceAccessInfo <- i
             let binding = getBinding()
             let baseAddress = new Uri(i.wcfServiceUrl)
@@ -38,7 +38,7 @@ module WindowsService =
             |> Some
         with
         | e ->
-            logger.logExn "Error starting WCF service." e
+            logger.logExn "Error starting WCF Messaging Service." e
             None
 
 
@@ -63,16 +63,16 @@ module WindowsService =
             | None -> ignore()
 
 
-        override __.OnStart (args : string[]) =
+        override _.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = messagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
             shutDownWcfInfo <- startWcfServiceRun logger i
 
-        override __.OnStop () =
+        override _.OnStop () =
             tryDispose()
             base.OnStop()
 
         interface IDisposable with
-            member __.Dispose() = tryDispose()
+            member _.Dispose() = tryDispose()

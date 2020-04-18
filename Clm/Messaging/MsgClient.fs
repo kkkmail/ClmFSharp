@@ -405,6 +405,7 @@ module Client =
 
         member m.messageProcessorProxy : MessageProcessorProxy =
             {
+                start = m.start
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
                 sendMessage = m.sendMessage

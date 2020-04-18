@@ -31,6 +31,8 @@ module SvcCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type ContGenRunArgs =
+        | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
+        | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
         | [<Unique>] [<AltCommandLine("-save")>] SaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] ContGenVersion of string
@@ -42,6 +44,8 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
+                | SvcAddress _ -> "cont gen service ip address / name."
+                | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
                 | SaveSettings -> "saves settings to the Registry."
                 | ContGenVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
@@ -84,6 +88,9 @@ module SvcCommandLine =
         | Save a -> ContGenSvcArgs.Save a
 
 
+    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
+    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
+
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
@@ -107,6 +114,8 @@ module SvcCommandLine =
     let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
     let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
+    let getServerAddress = getContGenServiceAddressImpl tryGetServerAddress
+    let getServerPort = getContGenServicePortImpl tryGetServerPort
 
 
     let saveSettings p =
@@ -132,7 +141,7 @@ module SvcCommandLine =
         | None -> ignore()
 
 
-    let createModelRunnerImpl (logger : Logger) (p : list<ContGenRunArgs>) : ModelRunner =
+    let createContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
         let name = contGenServiceRegistryName
         let version = getVersion p
 
@@ -152,28 +161,39 @@ module SvcCommandLine =
                     }
             }
 
-        let m = MsgResponseHandler i
+        let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
+            let messagingClientData =
+                {
+                    msgAccessInfo = d
+                    messagingService = MsgResponseHandler d
+                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
+                }
 
-        let messagingClientData =
-            {
-                msgAccessInfo = i
-                messagingService = m
-                msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
-            }
-
-        let messagingClient = MessagingClient messagingClientData
-
-        match messagingClient.start() with
-        | Ok() -> createMessagingClientEventHandlers logger messagingClient
-        | Error e -> logger.logError e
+            let messagingClient = MessagingClient messagingClientData
+            messagingClient.messageProcessorProxy
 
         let data =
             {
-                connectionString = clmConnectionString
-                minUsefulEe = MinUsefulEe.defaultValue
-                resultLocation = DefaultResultLocationFolder
-                messageProcessorProxy = messagingClient.messageProcessorProxy
+                modelRunnerData =
+                    {
+                        runnerData =
+                            {
+                                connectionString = clmConnectionString
+                                minUsefulEe = MinUsefulEe.defaultValue
+                                resultLocation = DefaultResultLocationFolder
+                                messagingClientAccessInfo = i
+                                getMessageProcessorProxy = getMessageProcessorProxy
+                            }
+
+                        logger = logger
+                    }
+
+                contGenServiceAccessInfo =
+                    {
+                        contGenServiceAddress = getServerAddress logger version name p
+                        contGenServicePort = getServerPort logger version name p
+                        contGenServiceName = contGenServiceName
+                    }
             }
 
-        let modelRunner = ModelRunner.create logger data
-        modelRunner
+        data

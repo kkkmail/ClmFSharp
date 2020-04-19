@@ -48,7 +48,6 @@ module MessagingTestClientTask =
             printfn "Checking messages."
 
 
-
             let checkMessage() =
                 match tryProcessMessage () (fun _ m -> m) with
                 | ProcessedSucessfully m -> printfn "    Received message: %A" m

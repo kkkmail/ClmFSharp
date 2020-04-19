@@ -17,7 +17,7 @@ open ClmSys
 
 module WindowsService =
 
-    let mutable serviceData : ContGenServiceData = createContGenServiceData logger []
+    let mutable serviceData : ContGenServiceData = getContGenServiceData logger []
     let modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(fun () -> ModelRunner.create serviceData.modelRunnerData)
 
 
@@ -39,6 +39,8 @@ module WindowsService =
     //    | e -> logger.logExn "startServiceRun: Starting service failed." e
 
     // ContGenServiceAccessInfo
+
+
     let startWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
         try
             printfn "startWcfServiceRun: Creating WCF ContGen Service..."
@@ -111,7 +113,7 @@ module WindowsService =
             base.OnStart(args)
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
-            let i = createContGenServiceData logger results
+            let i = getContGenServiceData logger results
             shutDownWcfInfo <- startWcfServiceRun logger i
 
         override _.OnStop () =

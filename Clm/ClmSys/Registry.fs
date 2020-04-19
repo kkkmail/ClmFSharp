@@ -22,8 +22,8 @@ module Registry =
         member this.value = let (RegistryKeyName v) = this in v
 
 
-    let private serviceAddressKey = "ServiceAddress"
-    let private servicePortKey = "ServicePort"
+    let private msgServiceAddressKey = "MsgServiceAddress"
+    let private msgServicePortKey = "MsgServicePort"
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let private usePartitionerKey = "UsePartitioner"
@@ -33,6 +33,8 @@ module Registry =
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
     let private contGenMinUsefulEeKey = "ContGenMinUsefulEe"
+    let private wrkNodeServiceAddressKey = "WorkerNodeServiceAddress"
+    let private wrkNodeServicePortKey = "WorkerNodeServicePort"
 
     let contGenServiceRegistryName ="ContGenService" |> RegistryKeyName
     let workerNodeServiceRegistryName ="WorkerNodeService" |> RegistryKeyName
@@ -114,19 +116,19 @@ module Registry =
 
 
     let tryGetMessagingServiceAddress v c =
-        tryGetRegistryValue (getServiceSubKey v c) serviceAddressKey
+        tryGetRegistryValue (getServiceSubKey v c) msgServiceAddressKey
         |> Rop.bindSuccess ServiceAddress
         |> Rop.bindSuccess MessagingServiceAddress
 
 
     let trySetMessagingServiceAddress v c (MessagingServiceAddress (ServiceAddress a)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
-        | Ok() -> trySetRegistryValue (getServiceSubKey v c) serviceAddressKey a
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServiceAddressKey a
         | Error e -> Error e
 
 
     let tryGetMessagingServicePort v c =
-        match tryGetRegistryValue (getServiceSubKey v c) servicePortKey with
+        match tryGetRegistryValue (getServiceSubKey v c) msgServicePortKey with
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> MessagingServicePort |> Ok
@@ -136,7 +138,7 @@ module Registry =
 
     let trySetMessagingServicePort v c (MessagingServicePort (ServicePort p)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
-        | Ok() -> trySetRegistryValue (getServiceSubKey v c) servicePortKey (p.ToString())
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServicePortKey (p.ToString())
         | Error e -> Error e
 
 
@@ -193,6 +195,33 @@ module Registry =
     let trySetWorkerNodeName v c (WorkerNodeName n) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
         | Ok() -> trySetRegistryValue (getServiceSubKey v c) workerNodeNameKey n
+        | Error e -> Error e
+
+
+    let tryGetWorkerNodeServiceAddress v c =
+        tryGetRegistryValue (getServiceSubKey v c) msgServiceAddressKey
+        |> Rop.bindSuccess ServiceAddress
+        |> Rop.bindSuccess WorkerNodeServiceAddress
+
+
+    let trySetWorkerNodeServiceAddress v c (WorkerNodeServiceAddress (ServiceAddress a)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServiceAddressKey a
+        | Error e -> Error e
+
+
+    let tryGetWorkerNodeServicePort v c =
+        match tryGetRegistryValue (getServiceSubKey v c) msgServicePortKey with
+        | Ok s ->
+            match Int32.TryParse s with
+            | true, v -> v |> ServicePort |> WorkerNodeServicePort |> Ok
+            | false, _ -> toErrorInfo GetMorkerNodeClientPortError v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMorkerNodeClientPortError v c, e) ||> addError
+
+
+    let trySetWorkerNodeServicePort v c (WorkerNodeServicePort (ServicePort p)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServicePortKey (p.ToString())
         | Error e -> Error e
 
 
@@ -303,6 +332,24 @@ module Registry =
             match tryGetContGenServicePort version name with
             | Ok a -> a
             | Error _ -> ContGenServicePort.defaultValue
+
+
+    let getWorkerNodeServiceAddressImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetWorkerNodeServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> WorkerNodeServiceAddress.defaultValue
+
+
+    let getWorkerNodeServicePortImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetWorkerNodeServicePort version name with
+            | Ok a -> a
+            | Error _ -> WorkerNodeServicePort.defaultValue
 
 
     let getPartitionerImpl getter logger version name p =

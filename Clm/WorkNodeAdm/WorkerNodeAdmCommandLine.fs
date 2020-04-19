@@ -97,8 +97,8 @@ module AdmCommandLine =
         match tryGetServiceAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress version name with
-            | Ok a -> WorkerNodeServiceAddress a
+            match tryGetWorkerNodeServiceAddress version name with
+            | Ok a -> a
             | Error e -> WorkerNodeServiceAddress.defaultValue
 
 
@@ -106,8 +106,8 @@ module AdmCommandLine =
         match tryGetServicePort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort version name with
-            | Ok a -> WorkerNodeServicePort a
+            match tryGetWorkerNodeServicePort version name with
+            | Ok a -> a
             | Error e -> WorkerNodeServicePort.defaultValue
 
 
@@ -156,8 +156,8 @@ module AdmCommandLine =
         match tryGetNodeNameImpl logger version name p with
         | Some nodeName ->
             let saveSettings() =
-                trySetContGenServiceAddress versionNumberValue name address.value |> ignore
-                trySetContGenServicePort versionNumberValue name port.value |> ignore
+                trySetWorkerNodeServiceAddress versionNumberValue name address|> ignore
+                trySetWorkerNodeServicePort versionNumberValue name port |> ignore
                 trySetWorkerNodeName versionNumberValue name nodeName |> ignore
                 trySetNumberOfCores versionNumberValue name noOfCores |> ignore
 

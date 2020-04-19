@@ -126,8 +126,8 @@ module SvcCommandLine =
         match tryGetServiceAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress version name with
-            | Ok a -> WorkerNodeServiceAddress a
+            match tryGetWorkerNodeServiceAddress version name with
+            | Ok a -> a
             | Error _ -> WorkerNodeServiceAddress.defaultValue
 
 
@@ -135,8 +135,8 @@ module SvcCommandLine =
         match tryGetServicePort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort version name with
-            | Ok a -> WorkerNodeServicePort a
+            match tryGetWorkerNodeServicePort version name with
+            | Ok a -> a
             | Error _ -> WorkerNodeServicePort.defaultValue
 
 
@@ -186,8 +186,8 @@ module SvcCommandLine =
             |> WorkerNodeName
 
         let saveSettings() =
-            trySetContGenServiceAddress versionNumberValue name address.value |> ignore
-            trySetContGenServicePort versionNumberValue name port.value |> ignore
+            //trySetContGenServiceAddress versionNumberValue name address.value |> ignore
+            //trySetContGenServicePort versionNumberValue name port.value |> ignore
             trySetWorkerNodeName versionNumberValue name nodeName |> ignore
             trySetNumberOfCores versionNumberValue name noOfCores |> ignore
             trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore

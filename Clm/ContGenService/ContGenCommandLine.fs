@@ -141,7 +141,7 @@ module SvcCommandLine =
         | None -> ignore()
 
 
-    let createContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
+    let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
         let name = contGenServiceRegistryName
         let version = getVersion p
 

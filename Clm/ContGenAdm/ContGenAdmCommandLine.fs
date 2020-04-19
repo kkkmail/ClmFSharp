@@ -19,6 +19,10 @@ open ContGen.ModelRunner
 open ServiceProxy.ModelRunnerProxy
 open DbData.Configuration
 open ClmSys.ClmErrors
+open ClmSys.ContGenData
+open ContGen.ServiceResponse
+open ContGenServiceInfo.ServiceInfo
+open MessagingServiceInfo.ServiceInfo
 
 module AdmCommandLine =
 
@@ -82,18 +86,18 @@ module AdmCommandLine =
         [<CliPrefix(CliPrefix.Dash)>]
         CancelRunQueueArgs =
         | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToCancel of Guid
-        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
-        | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
-        | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
+//        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
+        | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
+        | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
         with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
                 | RunQueueIdToCancel _ -> "RunQueueId to cancel."
-                | Partitioner _ -> "messaging client id of a partitioner service."
-                | MsgSvcAddress _ -> "messaging server ip address / name."
-                | MsgSvcPort _ -> "messaging server port."
+                //| Partitioner _ -> "messaging client id of a partitioner service."
+                | SvcAddress _ -> "ContGen service ip address / name."
+                | SvcPort _ -> "ContGen service port."
 
 
     and
@@ -168,15 +172,15 @@ module AdmCommandLine =
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
-    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
+    //let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
+    let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGetCancelRunQueueId p = p |> List.tryPick (fun e -> match e with | RunQueueIdToCancel e -> e |> RunQueueId |> Some | _ -> None)
 
 
-    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
-    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
-    let getPartitioner = getPartitionerImpl tryGetPartitioner
+    let getContGenServiceAddress = getContGenServiceAddressImpl tryGetContGenServiceAddress
+    let getContGenServicePort = getContGenServicePortImpl tryGetContGenServicePort
+    //let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
     let tryCancelRunQueueImpl (logger : Logger) p =
@@ -185,39 +189,18 @@ module AdmCommandLine =
             | Some q ->
                 let name = contGenServiceRegistryName
                 let version = versionNumberValue
-
-                let msgAddress = getMsgServiceAddress logger version name p
-                let msgPort = getMsgServicePort logger version name p
-                let partitioner = getPartitioner logger version name p
+                let contGenAddress = getContGenServiceAddress logger version name p
+                let contGenPort = getContGenServicePort logger version name p
 
                 let i =
                     {
-                        contGenAdmId = ContGenAdmId.newId()
-                        partitionerId = partitioner
-
-                        messagingServiceAccessInfo =
-                            {
-                                messagingServiceAddress = msgAddress
-                                messagingServicePort = msgPort
-                                messagingServiceName = messagingServiceName
-                            }
+                        contGenServiceAddress = contGenAddress
+                        contGenServicePort = contGenPort
+                        contGenServiceName = contGenServiceName
                     }
 
-                let messagingClient =
-                    {
-                        msgAccessInfo = i.messagingClientAccessInfo
-                        messagingService = MsgResponseHandler i.messagingClientAccessInfo
-                        msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
-                    }
-                    |> MessagingClient
-
-                match messagingClient.start() with
-                | Ok() ->
-                    let proxy = TryCancelRunQueueProxy.create clmConnectionString messagingClient.sendMessage
-                    let r1 = tryCancelRunQueue proxy q
-                    let r2 = messagingClient.transmitMessages()
-                    combineUnitResults  r1 r2
-                | Error e -> Error e
+                let h = ContGenResponseHandler i :> IContGenService
+                h.tryCancelRunQueue q
             | None -> Ok()
 
         match result with

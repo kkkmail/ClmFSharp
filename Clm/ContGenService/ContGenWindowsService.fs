@@ -45,22 +45,28 @@ module WindowsService =
         try
             printfn "startWcfServiceRun: Creating WCF ContGen Service..."
             serviceData <- i
-            let binding = getBinding()
-            let baseAddress = new Uri(i.contGenServiceAccessInfo.wcfServiceUrl)
 
-            let serviceHost = new ServiceHost(typeof<ContGenWcfService>, baseAddress)
+            match modelRunner.Value with
+            | Ok r ->
+                r.start()
 
-            let d = serviceHost.AddServiceEndpoint(typeof<IContGenWcfService>, binding, baseAddress)
-            do serviceHost.Open()
-            printfn "... completed."
+                let binding = getBinding()
+                let baseAddress = new Uri(i.contGenServiceAccessInfo.wcfServiceUrl)
+                let serviceHost = new ServiceHost(typeof<ContGenWcfService>, baseAddress)
+                let d = serviceHost.AddServiceEndpoint(typeof<IContGenWcfService>, binding, baseAddress)
+                do serviceHost.Open()
+                printfn "... completed."
 
-            {
-                contGenServiceHost = serviceHost
-            }
-            |> Some
+                {
+                    contGenServiceHost = serviceHost
+                }
+                |> Some
+            | Error e ->
+                printfn "startWcfServiceRun: Error - %A." e
+                None
         with
         | e ->
-            logger.logExn "Error starting WCF ContGen Service." e
+            logger.logExn "startWcfServiceRun: Error starting WCF ContGen Service." e
             None
 
 

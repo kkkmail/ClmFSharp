@@ -321,7 +321,7 @@ module Client =
 
 
     let onTransmitMessages proxy s =
-        printfn "onTransmitMessages: Starting..."
+        printfn "onTransmitMessages: Starting. Outgoing messages: %i, incoming messages: %i." s.outgoingMessages.Length s.incomingMessages.Length
         let (w, result) =
             match s.messagingClientState with
             | MsgCliNotStarted -> s, Ok()
@@ -410,6 +410,7 @@ module Client =
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
                 sendMessage = m.sendMessage
                 transmitMessages = m.transmitMessages
+                removeExpiredMessages = m.removeExpiredMessages
             }
 
 
@@ -451,7 +452,7 @@ module Client =
 
     /// Call this function to create timer events necessary for automatic MessagingClient operation.
     /// If you don't call it, then you have to operate MessagingClient by hands.
-    let createMessagingClientEventHandlers logger (w : MessagingClient) =
+    let createMessagingClientEventHandlers logger (w : MessageProcessorProxy) =
         let eventHandler _ = w.transmitMessages()
         let h = ClmEventHandlerInfo.defaultValue logger eventHandler "MessagingClient - transmitMessages" |> ClmEventHandler
         do h.start()

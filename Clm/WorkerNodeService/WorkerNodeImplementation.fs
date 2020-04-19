@@ -510,7 +510,7 @@ module ServiceImplementation =
 
                 match n with
                 | Ok (Some v) ->
-                    createMessagingClientEventHandlers logger messagingClient
+                    createMessagingClientEventHandlers logger messagingClient.messageProcessorProxy
                     Ok v
                 | Ok None -> toError UnableToCreateWorkerNodeServiceErr
                 | Error e -> addError UnableToCreateWorkerNodeServiceErr e

@@ -15,16 +15,16 @@ open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ContGen.ModelRunner
-open DbData.Configuration
-open Clm.ModelParams
 open ClmSys.MessagingData
 open ClmSys.ContGenData
+open Clm.ModelParams
+open DbData.Configuration
 
 module SvcCommandLine =
 
     type ContGenServiceData =
         {
-            modelRunnerData : ModelRunnerData
+            modelRunnerData : ModelRunnerDataWithProxy
             contGenServiceAccessInfo : ContGenServiceAccessInfo
         }
 
@@ -129,12 +129,17 @@ module SvcCommandLine =
         let partitioner = getPartitioner logger version name p
         let usePartitioner = true
 
+        let address = getServerAddress logger version name p
+        let port = getServerPort logger version name p
+
         let saveSettings() =
             trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
             trySetMessagingServicePort versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
             trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
             trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
+            trySetContGenServiceAddress versionNumberValue name address |> ignore
+            trySetContGenServicePort versionNumberValue name port |> ignore
 
         match tryGetSaveSettings p with
         | Some() -> saveSettings()
@@ -181,10 +186,15 @@ module SvcCommandLine =
                                 connectionString = clmConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
-                                messagingClientAccessInfo = i
-                                getMessageProcessorProxy = getMessageProcessorProxy
                             }
 
+                        runnerProxy =
+                            {
+                                getMessageProcessorProxy = getMessageProcessorProxy
+                                createMessagingEventHandlers = createMessagingClientEventHandlers
+                            }
+
+                        messagingClientAccessInfo = i
                         logger = logger
                     }
 

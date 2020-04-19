@@ -888,7 +888,11 @@ module DatabaseTypes =
         select
             workerNodeId
             ,nodePriority
-            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5)) / (cast(numberOfCores as money)) end as money) as workLoad
+            ,cast(
+                case
+                    when numberOfCores <= 0 then 1
+                    else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5)) / (cast(numberOfCores as money))
+                end as money) as workLoad
         from WorkerNode w
         )
         select top 1

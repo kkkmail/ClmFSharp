@@ -236,19 +236,36 @@ module ModelRunner =
         }
 
 
+    type RunnerProxy =
+        {
+            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
+            createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
+        }
+
+
     type RunnerData =
         {
             connectionString : ConnectionString
             minUsefulEe : MinUsefulEe
             resultLocation : string
-            messagingClientAccessInfo : MessagingClientAccessInfo
-            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
         }
 
 
-    type ModelRunnerData =
+    type RunnerDataWithProxy =
         {
             runnerData : RunnerData
+            messageProcessorProxy : MessageProcessorProxy
+            //messagingClientAccessInfo : MessagingClientAccessInfo
+            //getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
+            //createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
+        }
+
+
+    type ModelRunnerDataWithProxy =
+        {
+            runnerData : RunnerData
+            runnerProxy : RunnerProxy
+            messagingClientAccessInfo : MessagingClientAccessInfo
             logger : Logger
         }
 
@@ -259,12 +276,11 @@ module ModelRunner =
         | ProcessMessages of AsyncReplyChannel<UnitResult>
 
 
-    type Runner (i : RunnerData) =
-        let messageProcessorProxy = i.getMessageProcessorProxy i.messagingClientAccessInfo
-        let runModelProxy = RunModelProxy.create i.connectionString i.minUsefulEe messageProcessorProxy.sendMessage
-        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.connectionString runModelProxy
-        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.connectionString messageProcessorProxy.sendMessage
-        let proxy = onGetMessagesProxy i.connectionString i.resultLocation messageProcessorProxy
+    type Runner (i : RunnerDataWithProxy) =
+        let runModelProxy = RunModelProxy.create i.runnerData.connectionString i.runnerData.minUsefulEe i.messageProcessorProxy.sendMessage
+        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.connectionString runModelProxy
+        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
+        let proxy = onGetMessagesProxy i.runnerData.connectionString i.runnerData.resultLocation i.messageProcessorProxy
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -323,12 +339,19 @@ module ModelRunner =
                 p.modelRunner.stop()
                 p.messageProcessor.stop()
 
-        static member create (d : ModelRunnerData) =
-            let messagingClient = d.runnerData.getMessageProcessorProxy d.runnerData.messagingClientAccessInfo
+        static member create (d : ModelRunnerDataWithProxy) =
+            let messagingClient = d.runnerProxy.getMessageProcessorProxy d.messagingClientAccessInfo
 
             match messagingClient.start() with
             | Ok() ->
-                let runner = new Runner(d.runnerData)
+                d.runnerProxy.createMessagingEventHandlers d.logger messagingClient
+                let data =
+                    {
+                        runnerData = d.runnerData
+                        messageProcessorProxy = messagingClient
+                    }
+
+                let runner = new Runner(data)
 
                 {
                     modelGenerator = createModelGenerator d.logger d.runnerData.connectionString

@@ -18,7 +18,7 @@ open ClmSys
 module WindowsService =
 
     let mutable serviceData : ContGenServiceData = getContGenServiceData logger []
-    let modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(fun () -> ModelRunner.create serviceData.modelRunnerData)
+    let private modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(fun () -> ModelRunner.create serviceData.modelRunnerData)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
@@ -30,9 +30,9 @@ module WindowsService =
             member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toGetVersionError b
 
 
-    let startWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
+    let startContGenWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
         try
-            printfn "startWcfServiceRun: Creating WCF ContGen Service..."
+            printfn "startContGenWcfServiceRun: Creating WCF ContGen Service..."
             serviceData <- i
 
             match modelRunner.Value with
@@ -44,44 +44,28 @@ module WindowsService =
                 let serviceHost = new ServiceHost(typeof<ContGenWcfService>, baseAddress)
                 let d = serviceHost.AddServiceEndpoint(typeof<IContGenWcfService>, binding, baseAddress)
                 do serviceHost.Open()
-                printfn "... completed."
+                printfn "startContGenWcfServiceRun: Completed."
 
                 {
                     contGenServiceHost = serviceHost
                 }
                 |> Some
             | Error e ->
-                printfn "startWcfServiceRun: Error - %A." e
+                printfn "startContGenWcfServiceRun: Error - %A." e
                 None
         with
         | e ->
-            logger.logExn "startWcfServiceRun: Error starting WCF ContGen Service." e
+            logger.logExn "startContGenWcfServiceRun: Error starting WCF ContGen Service." e
             None
 
 
-    //type public ContGenWindowsService () =
-    //    inherit ServiceBase (ServiceName = contGenServiceName.value.value)
+    let cleanupService (logger : Logger) (i : ContGenWcfSvcShutDownInfo) =
+        try
+            logger.logInfoString "ContGenWindowsService: Closing WCF service host."
+            i.contGenServiceHost.Close()
+        with
+        | e -> logger.logExn "ContGenWindowsService: Exception occurred: " e
 
-    //    let logger = Logger.log4net
-    //    let initService () = ()
-    //    do initService ()
-    //    let tryDispose() = ignore()
-
-
-    //    override __.OnStart (args : string[]) =
-    //        base.OnStart(args)
-    //        let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)
-    //        let results = (parser.Parse args).GetAllResults()
-    //        startServiceRun logger results
-
-
-    //    override __.OnStop () =
-    //        tryDispose()
-    //        base.OnStop()
-
-
-    //    interface IDisposable with
-    //        member __.Dispose() = tryDispose()
 
     type public ContGenWindowsService () =
         inherit ServiceBase (ServiceName = contGenServiceName.value.value)
@@ -94,12 +78,7 @@ module WindowsService =
         let tryDispose() =
             match shutDownWcfInfo with
             | Some i ->
-                try
-                    logger.logInfoString "ContGenWindowsService: Closing WCF service host."
-                    i.contGenServiceHost.Close()
-                with
-                | e -> logger.logExn "ContGenWindowsService: Exception occurred: " e
-
+                cleanupService logger i
                 shutDownWcfInfo <- None
             | None -> ignore()
 
@@ -109,7 +88,7 @@ module WindowsService =
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getContGenServiceData logger results
-            shutDownWcfInfo <- startWcfServiceRun logger i
+            shutDownWcfInfo <- startContGenWcfServiceRun logger i
 
         override _.OnStop () =
             tryDispose()

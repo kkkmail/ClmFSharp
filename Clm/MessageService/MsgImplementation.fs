@@ -15,8 +15,10 @@ module ServiceImplementation =
 
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
+    //let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> 0)
 
-    let createServiceImpl (i : MessagingServiceAccessInfo) : MessagingService =
+
+    let createMessagingService (i : MessagingServiceAccessInfo) : MessagingService =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
@@ -28,7 +30,7 @@ module ServiceImplementation =
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type MessagingWcfService() =
-        let a = createServiceImpl serviceAccessInfo
+        let a = createMessagingService serviceAccessInfo
         let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
         let toSendMessageError f = f |> MsgWcfErr |> MessageDeliveryErr |> MessagingServiceErr
         let toTryPickMessageError f = f |> TryPeekMsgWcfErr |> TryPeekMessageErr |> MessagingServiceErr

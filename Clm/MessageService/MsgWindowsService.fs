@@ -12,11 +12,11 @@ open MessagingService.SvcCommandLine
 open System.ServiceModel
 open ClmSys.MessagingPrimitives
 
-module WindowsService =
+module MsgWindowsService =
 
-    let startWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
+    let startMsgWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
         try
-            printfn "startWcfServiceRun: Creating WCF Messaging Service..."
+            printfn "startMsgWcfServiceRun: Creating WCF Messaging Service..."
             serviceAccessInfo <- i
             let binding = getBinding()
             let baseAddress = new Uri(i.wcfServiceUrl)
@@ -30,7 +30,7 @@ module WindowsService =
 
             let d = serviceHost.AddServiceEndpoint(typeof<IMessagingWcfService>, binding, baseAddress)
             do serviceHost.Open()
-            printfn "... completed."
+            printfn "startMsgWcfServiceRun: ... completed."
 
             {
                 serviceHost = serviceHost
@@ -38,8 +38,16 @@ module WindowsService =
             |> Some
         with
         | e ->
-            logger.logExn "Error starting WCF Messaging Service." e
+            logger.logExn "startMsgWcfServiceRun: Error starting WCF Messaging Service." e
             None
+
+    let cleanupService (logger : Logger) (i : MsgWcfSvcShutDownInfo) =
+        try
+            logger.logInfoString "MessagingWindowsService: Closing WCF service host."
+            i.serviceHost.Close()
+        with
+        | e -> logger.logExn "MessagingWindowsService: Exception occurred: " e
+
 
 
     type public MessagingWindowsService () =
@@ -68,7 +76,7 @@ module WindowsService =
             let parser = ArgumentParser.Create<MessagingServiceRunArgs>(programName = messagingProgramName)
             let results = (parser.Parse args).GetAllResults()
             let i = getServiceAccessInfo results
-            shutDownWcfInfo <- startWcfServiceRun logger i
+            shutDownWcfInfo <- startMsgWcfServiceRun logger i
 
         override _.OnStop () =
             tryDispose()

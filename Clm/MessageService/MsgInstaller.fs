@@ -3,7 +3,7 @@
 open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
-open MessagingService.WindowsService
+open MessagingService.MsgWindowsService
 open ClmSys.MessagingPrimitives
 
 [<RunInstaller(true)>]

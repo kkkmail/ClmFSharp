@@ -5,7 +5,7 @@ open Argu
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open MessagingService.ServiceTasks
-open MessagingService.WindowsService
+open MessagingService.MsgWindowsService
 open ClmSys.ExitErrorCodes
 
 module Program =

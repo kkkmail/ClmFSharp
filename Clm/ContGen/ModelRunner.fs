@@ -86,7 +86,8 @@ module ModelRunner =
 
             let r2 =
                 match r.runQueueStatus with
-                | NotStartedRunQueue | InProgressRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
+                | NotStartedRunQueue -> { r with runQueueStatus = CancelledRunQueue } |> proxy.upsertRunQueue
+                | InProgressRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
 
             combineUnitResults r1 r2
@@ -115,23 +116,19 @@ module ModelRunner =
 
         match proxy.tryLoadRunQueue i.runQueueId with
         | Ok (Some q) ->
-            match q.runQueueStatus with
-            | InProgressRunQueue ->
-                let q1 = { q with progress = i.progress }
+            let q1 = { q with progress = i.progress }
 
-                let q2 =
-                    match i.progress with
-                    | NotStarted | InProgress _ -> q1
-                    | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }
-                    | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }
-                    | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "" |> ErrorMessage |> Some }
-
+            let upsert q2 =
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()
                 | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
-            | NotStartedRunQueue | InactiveRunQueue | CompletedRunQueue | FailedRunQueue | CancelRequestedRunQueue | CancelledRunQueue ->
-                toError (InvalidRunQueueStatusErr i.runQueueId)
-            | InvalidRunQueue -> toError (CompleteyInvalidRunQueueStatusErr i.runQueueId)
+
+            match i.progress with
+            | NotStarted | InProgress _ -> q1
+            | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }
+            | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }
+            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was cancelled." |> ErrorMessage |> Some }
+            |> upsert
         | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)
         | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
 
@@ -255,9 +252,6 @@ module ModelRunner =
         {
             runnerData : RunnerData
             messageProcessorProxy : MessageProcessorProxy
-            //messagingClientAccessInfo : MessagingClientAccessInfo
-            //getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
-            //createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
         }
 
 

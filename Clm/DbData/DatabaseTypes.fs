@@ -372,6 +372,8 @@ module DatabaseTypes =
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
         ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId.
+        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId.
+        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
@@ -415,6 +417,8 @@ module DatabaseTypes =
                 | InProgressRunQueue,       Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | InProgressRunQueue,       Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | CancelRequestedRunQueue,  Some w1, CancelledRunQueue,        Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | CancelRequestedRunQueue,  Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
+                | CancelRequestedRunQueue,  Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 

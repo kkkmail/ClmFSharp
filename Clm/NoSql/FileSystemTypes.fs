@@ -38,7 +38,7 @@ module FileSystemTypes =
     let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
-    let solverRunnerErrTblName = TableName "solverRunnerErr"
+    let solverRunnerErrTblName = TableName "SolverRunnerErr"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =

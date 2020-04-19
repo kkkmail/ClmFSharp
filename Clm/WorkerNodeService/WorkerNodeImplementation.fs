@@ -143,6 +143,8 @@ module ServiceImplementation =
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
+        printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
+
         let updateProgress t completed =
             let rso, result =
                 match s.runningWorkers |> Map.tryFind p.runQueueId with
@@ -157,7 +159,7 @@ module ServiceImplementation =
                         |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
                     Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
-                | None -> None, p.runQueueId |> UnableToFindMappingError |> OnUpdateProgressErr |> WorkerNodeErr |> Error
+                | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
             if completed
             then
@@ -331,10 +333,7 @@ module ServiceImplementation =
 
     let onCheckCancellation (s : WorkerNodeRunnerState) q =
         match s.runningWorkers |> Map.tryFind q with
-        | Some x ->
-            match x.cancellationRequested with
-            | true -> { s with runningWorkers = s.runningWorkers |> Map.remove q }, true
-            | false -> s, false
+        | Some x -> s, x.cancellationRequested
         | None -> s, false
 
 

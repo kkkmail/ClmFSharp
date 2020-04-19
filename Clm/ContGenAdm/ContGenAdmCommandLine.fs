@@ -204,7 +204,10 @@ module AdmCommandLine =
             | None -> Ok()
 
         match result with
-        | Ok() -> Ok()
+        | Ok() ->
+            printfn "tryCancelRunQueueImpl: Successfully scheduled."
+            Ok()
         | Error e ->
+            printfn "tryCancelRunQueueImpl: Error %A" e
             logger.logError e
             Error e

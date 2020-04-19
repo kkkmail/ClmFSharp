@@ -58,7 +58,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
     <PlatformTarget>x64</PlatformTarget>
-    <StartArguments>r</StartArguments>
+    <StartArguments>r -save</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>

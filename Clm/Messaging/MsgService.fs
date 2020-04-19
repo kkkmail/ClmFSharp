@@ -77,8 +77,22 @@ module Service =
                 MessagingServiceState.defaultValue |> loop
                 )
 
-        member _.getVersion() = GetVersion |> messageLoop.PostAndReply |> Ok
-        member _.sendMessage m = messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
-        member _.tryPeekMessage n = messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
-        member _.tryDeleteFromServer (n, m) = messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
-        member _.removeExpiredMessages() = messageLoop.PostAndReply RemoveExpiredMessages
+        member _.getVersion() =
+            printfn "MessagingService.getVersion ..."
+            GetVersion |> messageLoop.PostAndReply |> Ok
+
+        member _.sendMessage m =
+            printfn "MessagingService.sendMessage ..."
+            messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+
+        member _.tryPeekMessage n =
+            printfn "MessagingService.tryPeekMessage ..."
+            messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
+
+        member _.tryDeleteFromServer (n, m) =
+            printfn "MessagingService.tryDeleteFromServer ..."
+            messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+
+        member _.removeExpiredMessages() =
+            printfn "MessagingService.removeExpiredMessages ..."
+            messageLoop.PostAndReply RemoveExpiredMessages

@@ -25,10 +25,10 @@ module ServiceResponse =
         let tryDeleteFromServerImpl x = tryCommunicate tryGetWcfService (fun service -> service.tryDeleteFromServer) tryDeleteMsgWcfErr x
 
         interface IMessagingService with
-            member __.getVersion() = getVersionImpl()
-            member __.sendMessage m = sendMessageImpl m
-            member __.tryPeekMessage n = tryPeekMessageImpl n
-            member __.tryDeleteFromServer x = tryDeleteFromServerImpl x
+            member _.getVersion() = getVersionImpl()
+            member _.sendMessage m = sendMessageImpl m
+            member _.tryPeekMessage n = tryPeekMessageImpl n
+            member _.tryDeleteFromServer x = tryDeleteFromServerImpl x
 
         new (i : MessagingClientAccessInfo) = MsgResponseHandler(i.msgSvcAccessInfo.wcfServiceUrl)
         new (i : MessagingServiceAccessInfo) = MsgResponseHandler(i.wcfServiceUrl)

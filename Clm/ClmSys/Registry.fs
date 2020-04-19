@@ -199,19 +199,19 @@ module Registry =
 
 
     let tryGetWorkerNodeServiceAddress v c =
-        tryGetRegistryValue (getServiceSubKey v c) msgServiceAddressKey
+        tryGetRegistryValue (getServiceSubKey v c) wrkNodeServiceAddressKey
         |> Rop.bindSuccess ServiceAddress
         |> Rop.bindSuccess WorkerNodeServiceAddress
 
 
     let trySetWorkerNodeServiceAddress v c (WorkerNodeServiceAddress (ServiceAddress a)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
-        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServiceAddressKey a
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) wrkNodeServiceAddressKey a
         | Error e -> Error e
 
 
     let tryGetWorkerNodeServicePort v c =
-        match tryGetRegistryValue (getServiceSubKey v c) msgServicePortKey with
+        match tryGetRegistryValue (getServiceSubKey v c) wrkNodeServicePortKey with
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> WorkerNodeServicePort |> Ok
@@ -221,7 +221,7 @@ module Registry =
 
     let trySetWorkerNodeServicePort v c (WorkerNodeServicePort (ServicePort p)) =
         match tryCreateRegistrySubKey (getServiceSubKey v c) with
-        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServicePortKey (p.ToString())
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) wrkNodeServicePortKey (p.ToString())
         | Error e -> Error e
 
 

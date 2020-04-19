@@ -20,12 +20,15 @@ module WindowsService =
 
     let startServiceRun (logger : Logger) (i : WorkerNodeServiceInfo) : WrkNodeShutDownInfo option =
         try
-            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." serviceName.value.value)
+            let name = serviceName.value.value
+            let address = i.workerNodeServiceAccessInfo.workerNodeServiceAddress.value.value
+            let port = i.workerNodeServiceAccessInfo.workerNodeServicePort.value.value
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering service %s..." name)
             serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.workerNodeServiceAccessInfo.workerNodeServicePort.value.value)
-            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on port: %i" i.workerNodeServiceAccessInfo.workerNodeServicePort.value.value)
+            let channel = new Tcp.TcpChannel (port)
+            logger.logInfoString (sprintf "WindowsService.startServiceRun: registering TCP channel for WorkerNodeService on address: %s, port: %i" address port)
             ChannelServices.RegisterChannel (channel, false)
-            RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, serviceName.value.value, WellKnownObjectMode.Singleton)
+            RemotingConfiguration.RegisterWellKnownServiceType (typeof<WorkerNodeService>, name, WellKnownObjectMode.Singleton)
             let service = (new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)).workerNodeService
 
             try

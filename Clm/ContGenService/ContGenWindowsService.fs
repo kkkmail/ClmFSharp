@@ -30,17 +30,6 @@ module WindowsService =
             member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toGetVersionError b
 
 
-    //let startServiceRun (logger : Logger) parserResults =
-    //    try
-    //        logger.logInfoString ("startServiceRun: registering ContGenService...")
-    //        let modelRunner = createModelRunnerImpl logger parserResults
-    //        do modelRunner.start()
-    //    with
-    //    | e -> logger.logExn "startServiceRun: Starting service failed." e
-
-    // ContGenServiceAccessInfo
-
-
     let startWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
         try
             printfn "startWcfServiceRun: Creating WCF ContGen Service..."

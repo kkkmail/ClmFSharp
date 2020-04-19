@@ -17,6 +17,6 @@ module ServiceResponse =
         let tryCancelRunQueueImpl q = tryCommunicate tryGetWcfService (fun service -> service.tryCancelRunQueue) tryPeekMsgWcfErr q
 
         interface IContGenService with
-            member __.tryCancelRunQueue q = tryCancelRunQueueImpl q
+            member _.tryCancelRunQueue q = tryCancelRunQueueImpl q
 
         new (i : ContGenServiceAccessInfo) = ContGenResponseHandler(i.wcfServiceUrl)

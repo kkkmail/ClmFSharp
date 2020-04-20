@@ -1,27 +1,20 @@
 ﻿namespace WorkerNodeService
 
 open Argu
-
 open ClmSys.ServiceInstaller
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open WorkerNodeService.SvcCommandLine
 open WorkerNodeService.WindowsService
 open WorkerNodeServiceInfo.ServiceInfo
-open System.Runtime.Remoting.Channels
 open ClmSys.WorkerNodePrimitives
 
 module ServiceTasks =
 
-    let cleanupService (logger : Logger) i =
-        logger.logInfoString "WorkerNodeWindowsService: Unregistering TCP channel."
-        ChannelServices.UnregisterChannel(i.wrkNodeTcpChannel)
-
-
     let serviceInfo =
         {
             serviceName = workerNodeServiceName.value
-            runService = startServiceRun
+            runService = startWrkNodeWcfServiceRun
             cleanup = cleanupService
             timeoutMilliseconds = None
             logger = logger

@@ -7,7 +7,7 @@ open MessagingService.MsgWindowsService
 open ClmSys.MessagingPrimitives
 
 [<RunInstaller(true)>]
-type ContGenServiceInstaller() =
+type MsgServiceInstaller() =
     inherit Installer()
 
     do

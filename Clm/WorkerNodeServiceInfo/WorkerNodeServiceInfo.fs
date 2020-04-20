@@ -1,6 +1,5 @@
 ﻿namespace WorkerNodeServiceInfo
 
-open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralData
 open System.Threading
 open System
@@ -8,15 +7,27 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodeData
+open System.ServiceModel
+
 
 module ServiceInfo =
 
     let workerNodeServiceProgramName = "WorkerNodeService.exe"
 
 
-    type WrkNodeShutDownInfo =
+    [<Literal>]
+    let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
+
+
+    //type WrkNodeShutDownInfo =
+    //    {
+    //        wrkNodeTcpChannel : TcpChannel
+    //    }
+
+
+    type WrkNodeWcfSvcShutDownInfo =
         {
-            wrkNodeTcpChannel : TcpChannel
+            wrkNodeServiceHost : ServiceHost
         }
 
 
@@ -123,14 +134,28 @@ module ServiceInfo =
         Interlocked.Decrement(&callCount) |> ignore
 
 
-    type WorkerNodeResponseHandler (w : WorkerNodeServiceAccessInfo) =
-        let service = Activator.GetObject (typeof<IWorkerNodeService>, w.serviceUrl) :?> IWorkerNodeService
-        member __.workerNodeService = service
+    /// https://gist.github.com/dgfitch/661656
+    [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
+    type IWorkerNodeWcfService =
 
-        static member tryCreate i =
-            try
-                WorkerNodeResponseHandler i |> Some
-            with
-            | exn ->
-                printfn "Exception occurred: %s." exn.Message
-                None
+        [<OperationContract(Name = "configure")>]
+        abstract configure : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "monitor")>]
+        abstract monitor : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "ping")>]
+        abstract ping : q:byte[] -> byte[]
+
+
+    //type WorkerNodeResponseHandler (w : WorkerNodeServiceAccessInfo) =
+    //    let service = Activator.GetObject (typeof<IWorkerNodeService>, w.serviceUrl) :?> IWorkerNodeService
+    //    member __.workerNodeService = service
+    //
+    //    static member tryCreate i =
+    //        try
+    //            WorkerNodeResponseHandler i |> Some
+    //        with
+    //        | exn ->
+    //            printfn "Exception occurred: %s." exn.Message
+    //            None

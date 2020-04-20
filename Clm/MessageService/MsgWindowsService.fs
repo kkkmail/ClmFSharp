@@ -41,13 +41,13 @@ module MsgWindowsService =
             logger.logExn "startMsgWcfServiceRun: Error starting WCF Messaging Service." e
             None
 
+
     let cleanupService (logger : Logger) (i : MsgWcfSvcShutDownInfo) =
         try
             logger.logInfoString "MessagingWindowsService: Closing WCF service host."
             i.serviceHost.Close()
         with
         | e -> logger.logExn "MessagingWindowsService: Exception occurred: " e
-
 
 
     type public MessagingWindowsService () =
@@ -61,15 +61,9 @@ module MsgWindowsService =
         let tryDispose() =
             match shutDownWcfInfo with
             | Some i ->
-                try
-                    logger.logInfoString "MessagingWindowsService: Closing WCF service host."
-                    i.serviceHost.Close()
-                with
-                | e -> logger.logExn "MessagingWindowsService: Exception occurred: " e
-
+                cleanupService logger i
                 shutDownWcfInfo <- None
             | None -> ignore()
-
 
         override _.OnStart (args : string[]) =
             base.OnStart(args)

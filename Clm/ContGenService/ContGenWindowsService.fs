@@ -82,7 +82,6 @@ module WindowsService =
                 shutDownWcfInfo <- None
             | None -> ignore()
 
-
         override _.OnStart (args : string[]) =
             base.OnStart(args)
             let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)

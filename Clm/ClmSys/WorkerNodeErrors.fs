@@ -3,6 +3,7 @@
 open GeneralPrimitives
 open MessagingClientErrors
 open MessagingPrimitives
+open GeneralErrors
 
 module WorkerNodeErrors =
 
@@ -40,7 +41,14 @@ module WorkerNodeErrors =
         | OnGetMessagesErr of OnGetMessagesError
 
 
+    type WorkerNodeWcfError =
+        | ConfigureWcfErr of WcfError
+        | MonitorWcfErr of WcfError
+        | PingWcfErr of WcfError
+
+
     type WorkerNodeServiceError =
+        | WorkerNodeWcfErr of WorkerNodeWcfError
         | UnableToStartMessagingClientErr
         | UnableToCreateWorkerNodeServiceErr
         | ServiceUnavailableErr

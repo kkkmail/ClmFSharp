@@ -98,4 +98,4 @@ module ServiceInfo =
         abstract tryCancelRunQueue : q:byte[] -> byte[]
 
 
-    type ContGenWcfCommunicator = (IContGenWcfService -> byte[] -> byte[])
+    //type ContGenWcfCommunicator = (IContGenWcfService -> byte[] -> byte[])

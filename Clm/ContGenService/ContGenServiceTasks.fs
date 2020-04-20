@@ -9,13 +9,10 @@ open ClmSys.ContGenPrimitives
 
 module ContGenServiceTasks =
 
-    let runService l i = startContGenWcfServiceRun l i
-
-
     let serviceInfo =
         {
             serviceName = contGenServiceName.value
-            runService = runService
+            runService = startContGenWcfServiceRun
             cleanup = cleanupService
             timeoutMilliseconds = None
             logger = logger

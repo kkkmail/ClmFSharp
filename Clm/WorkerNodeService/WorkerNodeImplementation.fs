@@ -304,7 +304,7 @@ module ServiceImplementation =
     type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
     let onGetMessages = onGetMessages<WorkerNodeRunnerState>
-    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState()
+    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
 
 
     type OnConfigureWorkerProxy = OnRegisterProxy
@@ -383,7 +383,7 @@ module ServiceImplementation =
         | SaveResult of AsyncReplyChannel<UnitResult> * ResultDataWithId
         | SaveCharts of AsyncReplyChannel<UnitResult> * ChartGenerationResult
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
-        | GetState of AsyncReplyChannel<WorkerNodeRunnerMonitorState>
+        | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
         | CheckCancellation of AsyncReplyChannel<bool> * RunQueueId
 
@@ -470,71 +470,6 @@ module ServiceImplementation =
             match w.unregister() with
             | Ok() -> failwith "createServiceImpl for inactive worker node is not implemented yet."
             | Error e -> Error e
-
-
-    //let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
-
-
-    //type WorkerNodeService () =
-    //    inherit MarshalByRefObject()
-    //    let logger = Logger.log4net
-    //    let className = "WorkerNodeService"
-    //    let toError e = e |> WorkerNodeServiceErr |> Error
-    //    let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
-
-    //    let w =
-    //        let messagingClientAccessInfo = serviceAccessInfo.messagingClientAccessInfo
-    //        let h = MsgResponseHandler messagingClientAccessInfo
-    //        logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
-
-    //        let messagingClientData =
-    //            {
-    //                msgAccessInfo = messagingClientAccessInfo
-    //                messagingService = h
-    //                msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName.value.messagingClientName }
-    //            }
-
-    //        let messagingClient = MessagingClient messagingClientData
-
-    //        match messagingClient.start() with
-    //        | Ok() ->
-    //            let n =
-    //                {
-    //                    workerNodeServiceInfo = serviceAccessInfo
-    //                    workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
-    //                    messageProcessorProxy = messagingClient.messageProcessorProxy
-    //                    minUsefulEe = MinUsefulEe.defaultValue
-    //                }
-    //                |> createServiceImpl logger
-
-    //            match n with
-    //            | Ok (Some v) ->
-    //                createMessagingClientEventHandlers logger messagingClient.messageProcessorProxy
-    //                Ok v
-    //            | Ok None -> toError UnableToCreateWorkerNodeServiceErr
-    //            | Error e -> addError UnableToCreateWorkerNodeServiceErr e
-    //        | Error e -> addError UnableToStartMessagingClientErr e
-
-    //    let initService () = ()
-    //    do initService ()
-
-
-    //    let configureImpl d =
-    //        match w with
-    //        | Ok r -> r.configure d
-    //        | Error e -> addError (ConfigureServiceErr (sprintf "Failed to configure service: %A" d)) e
-
-
-    //    let monitorImpl _ =
-    //        match w with
-    //        | Ok r -> r.getState() |> WrkNodeState
-    //        | Error e -> ErrorOccurred e
-
-
-    //    interface IWorkerNodeService with
-    //        member _.ping() = Ok()
-    //        member _.configure d = configureImpl d
-    //        member _.monitor p = monitorImpl p
 
 
     type WorkerNodeRunner

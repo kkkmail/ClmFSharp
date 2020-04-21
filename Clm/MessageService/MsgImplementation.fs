@@ -10,15 +10,14 @@ open ClmSys.Wcf
 open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
 open DbData.Configuration
+open ClmSys
 
 module ServiceImplementation =
 
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
-    //let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> 0)
 
-
-    let createMessagingService (i : MessagingServiceAccessInfo) : MessagingService =
+    let private createMessagingService (i : MessagingServiceAccessInfo) : MessagingService =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
@@ -28,16 +27,23 @@ module ServiceImplementation =
         service
 
 
+    let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService serviceAccessInfo |> Ok)
+
+
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type MessagingWcfService() =
-        let a = createMessagingService serviceAccessInfo
         let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
         let toSendMessageError f = f |> MsgWcfErr |> MessageDeliveryErr |> MessagingServiceErr
         let toTryPickMessageError f = f |> TryPeekMsgWcfErr |> TryPeekMessageErr |> MessagingServiceErr
         let toTryDeleteFromServerError f = f |> TryDeleteMsgWcfErr |> TryDeleteFromServerErr |> MessagingServiceErr
 
+        let getVersion() = messagingService.Value |> Rop.bind (fun e -> e.getVersion())
+        let sendMessage b = messagingService.Value |> Rop.bind (fun e -> e.sendMessage b)
+        let tryPeekMessage b = messagingService.Value |> Rop.bind (fun e -> e.tryPeekMessage b)
+        let tryDeleteFromServer b = messagingService.Value |> Rop.bind (fun e -> e.tryDeleteFromServer b)
+
         interface IMessagingWcfService with
-            member _.getVersion b = tryReply a.getVersion toGetVersionError b
-            member _.sendMessage b = tryReply a.sendMessage toSendMessageError b
-            member _.tryPeekMessage b = tryReply a.tryPeekMessage toTryPickMessageError b
-            member _.tryDeleteFromServer b = tryReply a.tryDeleteFromServer toTryDeleteFromServerError b
+            member _.getVersion b = tryReply getVersion toGetVersionError b
+            member _.sendMessage b = tryReply sendMessage toSendMessageError b
+            member _.tryPeekMessage b = tryReply tryPeekMessage toTryPickMessageError b
+            member _.tryDeleteFromServer b = tryReply tryDeleteFromServer toTryDeleteFromServerError b

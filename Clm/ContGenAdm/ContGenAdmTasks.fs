@@ -2,7 +2,6 @@
 
 open System.Threading
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.ExitErrorCodes
 open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.ModelParams

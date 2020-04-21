@@ -96,10 +96,10 @@ module Visualization =
             |> getChart fileName description
 
 
-        member __.plotAminoAcids (show : bool) = getAminoAcidsImpl() |> showHtmlChart show
-        member __.plotTotalSubst (show : bool) = getTotalSubstImpl() |> showHtmlChart show
-        member __.plotEnantiomericExcess (show : bool) = getEnantiomericExcessImpl() |> showHtmlChart show
+        member _.plotAminoAcids (show : bool) = getAminoAcidsImpl() |> showHtmlChart show
+        member _.plotTotalSubst (show : bool) = getTotalSubstImpl() |> showHtmlChart show
+        member _.plotEnantiomericExcess (show : bool) = getEnantiomericExcessImpl() |> showHtmlChart show
 
-        member __.getAminoAcids () = getAminoAcidsImpl()
-        member __.getTotalSubst () = getTotalSubstImpl()
-        member __.getEnantiomericExcess () = getEnantiomericExcessImpl()
+        member _.getAminoAcids () = getAminoAcidsImpl()
+        member _.getTotalSubst () = getTotalSubstImpl()
+        member _.getEnantiomericExcess () = getEnantiomericExcessImpl()

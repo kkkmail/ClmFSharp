@@ -20,12 +20,6 @@ module ServiceInfo =
     let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
 
 
-    //type WrkNodeShutDownInfo =
-    //    {
-    //        wrkNodeTcpChannel : TcpChannel
-    //    }
-
-
     type WrkNodeWcfSvcShutDownInfo =
         {
             wrkNodeServiceHost : ServiceHost
@@ -125,7 +119,10 @@ module ServiceInfo =
             try
                 printfn "Getting worker node state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let state = service.monitor p
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
+
+                match state with
+                | Ok r -> printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (r.ToString())
+                | Error e -> printfn "...state at %s =\n%A\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) e
             with
             | e -> printfn "Exception occurred: %A" e
         else
@@ -147,19 +144,6 @@ module ServiceInfo =
 
         [<OperationContract(Name = "ping")>]
         abstract ping : q:byte[] -> byte[]
-
-
-    //type WorkerNodeResponseHandler (w : WorkerNodeServiceAccessInfo) =
-    //    let service = Activator.GetObject (typeof<IWorkerNodeService>, w.serviceUrl) :?> IWorkerNodeService
-    //    member __.workerNodeService = service
-    //
-    //    static member tryCreate i =
-    //        try
-    //            WorkerNodeResponseHandler i |> Some
-    //        with
-    //        | exn ->
-    //            printfn "Exception occurred: %s." exn.Message
-    //            None
 
 
     /// Low level WCF messaging client.

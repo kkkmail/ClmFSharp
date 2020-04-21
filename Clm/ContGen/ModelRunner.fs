@@ -17,7 +17,6 @@ open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
 open ModelGenerator
-open ClmSys.ContGenData
 open ClmSys.MessagingData
 
 module ModelRunner =

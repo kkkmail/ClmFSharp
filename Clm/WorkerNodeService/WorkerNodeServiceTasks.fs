@@ -6,7 +6,6 @@ open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open WorkerNodeService.SvcCommandLine
 open WorkerNodeService.WindowsService
-open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 
 module ServiceTasks =

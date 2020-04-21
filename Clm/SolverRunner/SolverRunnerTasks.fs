@@ -225,7 +225,7 @@ module SolverRunnerTasks =
 
         try
             // Uncomment temporarily when you need to test cancellations.
-            testCancellation proxy w
+            //testCancellation proxy w
 
             let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
             let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId

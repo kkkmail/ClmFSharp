@@ -35,12 +35,12 @@ module WorkerNodeAdmTasks =
         static member private tryCreateConfigureTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
             p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.workerNodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
 
-        static member private tryCreateMonitorTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
+        static member private tryCreateMonitorTask s (p : list<WorkerNodeAdmArgs>) =
             p |> List.tryPick (fun e -> match e with | MonitorWrkService -> (s, DummyWrkMonitorParam 0) |> MonitorWorkerNodeTask |> Some | _ -> None)
 
-        static member tryCreateTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
+        static member tryCreate (p : list<WorkerNodeAdmArgs>) =
             [
                     WrkAdmTask.tryCreateMonitorTask
-                    WrkAdmTask.tryCreateConfigureTask
+                    //WrkAdmTask.tryCreateConfigureTask
             ]
-            |> List.tryPick (fun e -> e s i p)
+            |> List.tryPick (fun e -> e p)

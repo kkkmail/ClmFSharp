@@ -472,7 +472,7 @@ module ServiceImplementation =
             | Error e -> Error e
 
 
-    let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
+    //let getErrName (RunQueueId r) = "SolverRunnerErr\\" + r.ToString() |> MessagingClientName
 
 
     //type WorkerNodeService () =

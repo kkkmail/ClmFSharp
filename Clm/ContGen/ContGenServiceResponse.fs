@@ -6,11 +6,9 @@ open ClmSys.ContGenData
 open ClmSys.Wcf
 open ClmSys.ContGenErrors
 
-module ServiceResponse =
+module ContGenServiceResponse =
 
     /// Low level WCF messaging client.
-    /// It seems nearly imposible to bake in "tryCommunicate tryGetWcfService" into a single function due to generics + type inference interplay.
-    /// It does look very simple. However, tryCommunicate is an implicit generics with 4 generic parameters. Thread carefully...
     type ContGenResponseHandler private (url) =
         let tryGetWcfService() = tryGetWcfService<IContGenWcfService> url
         let tryPeekMsgWcfErr e = e |> TryDeleteRunQueueWcfErr |> TryDeleteRunQueueErr |> ContGenServiceErr

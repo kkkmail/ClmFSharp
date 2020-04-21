@@ -96,6 +96,3 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryCancelRunQueue")>]
         abstract tryCancelRunQueue : q:byte[] -> byte[]
-
-
-    //type ContGenWcfCommunicator = (IContGenWcfService -> byte[] -> byte[])

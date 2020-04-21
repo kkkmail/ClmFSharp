@@ -8,7 +8,8 @@ open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
-
+open ClmSys.Wcf
+open ClmSys.WorkerNodeErrors
 
 module ServiceInfo =
 
@@ -94,7 +95,7 @@ module ServiceInfo =
 
         override this.ToString() =
             match this with
-            | CannotAccessWrkNode -> "Cannot access worker node"
+            | CannotAccessWrkNode -> "Cannot access worker node."
             | WrkNodeState s ->
                 let toString acc ((RunQueueId k), (v : RunnerState)) =
                     acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
@@ -109,7 +110,7 @@ module ServiceInfo =
 
     type IWorkerNodeService =
         abstract configure : WorkerNodeConfigParam -> UnitResult
-        abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
+        abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
         /// To check if service is working.
         abstract ping : unit -> UnitResult
@@ -159,3 +160,23 @@ module ServiceInfo =
     //        | exn ->
     //            printfn "Exception occurred: %s." exn.Message
     //            None
+
+
+    /// Low level WCF messaging client.
+    type WorkerNodeResponseHandler private (url) =
+        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> url
+
+        let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+        let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+        let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+
+        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
+        let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
+        let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
+
+        interface IWorkerNodeService with
+            member _.configure p = configureImpl p
+            member _.monitor p = monitorImpl p
+            member _.ping() = pingImpl()
+
+        new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)

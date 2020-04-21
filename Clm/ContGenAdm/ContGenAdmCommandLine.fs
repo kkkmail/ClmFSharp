@@ -1,28 +1,17 @@
 ﻿namespace ContGenAdm
+
 open Argu
 open Clm.Substances
 open Clm.ModelParams
 open System
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.MessagingPrimitives
 open ClmSys.Logging
 open ClmSys.Registry
 open ClmSys.VersionInfo
-open Messaging.ServiceResponse
-open ClmSys.PartitionerPrimitives
-open ClmSys.MessagingData
-open ClmSys.ContGenAdmData
-open Messaging.Client
-open ServiceProxy.MsgServiceProxy
-open ContGen.ModelRunner
-open ServiceProxy.ModelRunnerProxy
-open DbData.Configuration
-open ClmSys.ClmErrors
 open ClmSys.ContGenData
-open ContGen.ServiceResponse
+open ContGen.ContGenServiceResponse
 open ContGenServiceInfo.ServiceInfo
-open MessagingServiceInfo.ServiceInfo
 
 module AdmCommandLine =
 

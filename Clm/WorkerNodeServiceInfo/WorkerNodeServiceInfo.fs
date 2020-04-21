@@ -85,7 +85,7 @@ module ServiceInfo =
 
 
     type WorkerNodeMonitorParam =
-        | DummyWrkMonitorParam of int
+        | DummyWrkMonitorParam
 
 
     type WorkerNodeMonitorResponse =

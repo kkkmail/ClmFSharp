@@ -19,7 +19,7 @@ module AdmCommandLine =
 
     [<CliPrefix(CliPrefix.Dash)>]
     type WorkerNodeAdmArgs =
-        | [<Unique>] [<First>] [<AltCommandLine("c")>] ConfigureWrkService
+        //| [<Unique>] [<First>] [<AltCommandLine("c")>] ConfigureWrkService
         | [<Unique>] [<First>] [<AltCommandLine("m")>] MonitorWrkService
 
         | [<Unique>] [<AltCommandLine("-address")>] WrkAdmSvcAddress of string
@@ -37,11 +37,11 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-p")>] WrkAdmPartitioner of Guid
         | [<Unique>] [<AltCommandLine("-i")>] WrkAdmInactive of bool
 
-    with
+        with
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | ConfigureWrkService -> "configures running worker node service."
+                //| ConfigureWrkService -> "configures running worker node service."
                 | MonitorWrkService -> "monitors running worker node service."
 
                 | WrkAdmSvcAddress _ -> "worker node service ip address / name."

@@ -371,6 +371,7 @@ module DatabaseTypes =
         ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
+        ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
         ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId.
         ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId.
         ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId.
@@ -416,6 +417,7 @@ module DatabaseTypes =
                 | InProgressRunQueue,       Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
                 | InProgressRunQueue,       Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | InProgressRunQueue,       Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | CancelRequestedRunQueue,  Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
                 | CancelRequestedRunQueue,  Some w1, CancelledRunQueue,        Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
                 | CancelRequestedRunQueue,  Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
                 | CancelRequestedRunQueue,  Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None

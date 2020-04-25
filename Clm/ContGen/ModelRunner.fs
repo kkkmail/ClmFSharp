@@ -157,7 +157,7 @@ module ModelRunner =
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
-        printfn "processMessage: messageId = %A" m.messageDataInfo.messageId
+        //printfn "processMessage: messageId = %A" m.messageDataInfo.messageId
         match m.messageData with
         | PartitionerMsg x ->
             match x with

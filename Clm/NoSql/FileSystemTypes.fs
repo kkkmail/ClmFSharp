@@ -186,7 +186,7 @@ module FileSystemTypes =
     let loadMessageWithTypeFs serviceName (MessageId messageId) = loadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
 
     let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) =
-        printfn "tryDeleteMessageWithTypeFs: trying to delete message with messageId = %A" messageId
+        //printfn "tryDeleteMessageWithTypeFs: trying to delete message with messageId = %A" messageId
         tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
 
     let getMessageWithTypeIdsFs serviceName () = getObjectIds<MessageId> serviceName messageWithTypeTblName (fun e -> e |> Guid.Parse |> MessageId)

@@ -359,15 +359,18 @@ module GeneralData =
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
 
 
-    let timedImpl (l : Logger) name f =
+    let timedImplementation b (l : Logger) name f =
         let (r, t) = time f ()
 
-        if t.TotalSeconds <= 5.0
-        then l.logInfoString (sprintf "%s: Execution time: %A" name t)
+        if t.TotalSeconds <= 10.0
+        then
+            if b then l.logInfoString (sprintf "%s: Execution time: %A" name t)
         else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name t)
 
         r
 
+
+    let timedImpl l n f = timedImplementation true l n f
     let timed name f a = timedImpl logger name (fun () -> f a)
 
 

@@ -184,7 +184,11 @@ module FileSystemTypes =
 
     let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
     let loadMessageWithTypeFs serviceName (MessageId messageId) = loadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
-    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+
+    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) =
+        printfn "tryDeleteMessageWithTypeFs: trying to delete message with messageId = %A" messageId
+        tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+
     let getMessageWithTypeIdsFs serviceName () = getObjectIds<MessageId> serviceName messageWithTypeTblName (fun e -> e |> Guid.Parse |> MessageId)
     let loadMessageWithTypeAllFs serviceName () = loadObjects<MessageWithType, Guid> serviceName messageWithTypeTblName Guid.Parse
 

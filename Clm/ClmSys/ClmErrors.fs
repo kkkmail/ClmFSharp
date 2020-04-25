@@ -117,6 +117,7 @@ module ClmErrors =
         | Error e -> Some ((f g) + e)
 
 
+    /// The head should contain the latest error and the tail the earliest error.
     let foldUnitResults (r : list<UnitResult>) =
         let rec fold acc w =
             match w with

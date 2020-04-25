@@ -147,12 +147,12 @@ module ModelRunner =
 
 
     let saveResult (proxy : SaveResultProxy) r =
-        printfn "updateProgress: r= %A" r
+        printfn "saveResult: r= %A" r
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
     let saveCharts (proxy : SaveChartsProxy) c =
-        printfn "saveResult: c.resultDataId = %A" c.resultDataId
+        printfn "saveCharts: c.resultDataId = %A" c.resultDataId
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
 
 

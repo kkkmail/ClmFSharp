@@ -276,13 +276,15 @@ module Client =
 
 
     let onTryRemoveReceivedMessage deleteMessage (s : MessagingClientStateData) m =
-        printfn "onTryRemoveReceivedMessage: Starting..."
+        printfn "onTryRemoveReceivedMessage: Starting with messageId = %A" m
+
         let removedMessage e =
             let result =
                 match e with
                 | None -> RemovedSucessfully
                 | Some e -> RemovedWithError e
 
+            printfn "onTryRemoveReceivedMessage: removedMessage: messageId = %A, result = %A." m result
             { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }, result
 
         let failedToRemove e = s, FailedToRemove e

@@ -51,7 +51,7 @@ module MsgProcessorProxy =
         let addError f e = ((proxy.onError f) + e) |> Error
         let toError e = e |> proxy.onError |> Error
 
-        let rec doFold x acc =
+        let rec doFold x (acc, r) =
             match x with
             | [] -> acc, Ok()
             | () :: t ->
@@ -59,14 +59,16 @@ module MsgProcessorProxy =
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
                 | ProcessedSucessfully (g, u) ->
                     match u with
-                    | Ok() -> doFold t g
-                    | Error e -> g, addError ProcessedSucessfullyWithInnerErr e
-                | ProcessedWithError ((g, u), e) -> g, (addError ProcessedWithErr e, u) ||> combineUnitResults
-                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveErr e, u) ||> combineUnitResults
+                    | Ok() -> doFold t (g, r)
+                    | Error e ->
+                        printfn "onGetMessages: Got error: %A" e
+                        doFold t (g, (addError ProcessedSucessfullyWithInnerErr e, r) ||> combineUnitResults)
+                | ProcessedWithError ((g, u), e) -> g, [ addError ProcessedWithErr e; u; r ] |> foldUnitResults
+                | ProcessedWithFailedToRemove((g, u), e) -> g, [ addError ProcessedWithFailedToRemoveErr e; u; r ] |> foldUnitResults
                 | FailedToProcess e -> acc, addError FailedToProcessErr e
                 | NothingToDo -> acc, Ok()
                 | BusyProcessing -> acc, toError BusyProcessingErr
 
-        let w, result = doFold proxy.maxMessages s
+        let w, result = doFold proxy.maxMessages (s, Ok())
         printfn "onGetMessages: result = %A" result
         w, result

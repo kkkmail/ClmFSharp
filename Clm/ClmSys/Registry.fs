@@ -61,7 +61,7 @@ module Registry =
             Registry.createRegistrySubKey Registry.HKEYLocalMachine subKey
             Ok()
         with
-        | e -> ((formatSubKey subKey), e) |> CreateRegistrySubKeyError |> toError
+        | e -> ((formatSubKey subKey), e) |> CreateRegistrySubKeyErr |> toError
 
 
     let private trySetRegistryValue subKey key value =
@@ -69,7 +69,7 @@ module Registry =
             Registry.setRegistryValue Registry.HKEYLocalMachine subKey key value
             Ok()
         with
-        | e -> ((formatSubKeyValue subKey value), e) |> SetRegistryValueError |> toError
+        | e -> ((formatSubKeyValue subKey value), e) |> SetRegistryValueErr |> toError
 
 
     //let private tryGetRegistryValueNames (logger : Logger) subKey =
@@ -85,7 +85,7 @@ module Registry =
         try
              Registry.getRegistryValue Registry.HKEYLocalMachine subKey key |> Ok
         with
-        | e -> ((formatSubKeyKey subKey key), e) |> GetRegistryValueError |> toError
+        | e -> ((formatSubKeyKey subKey key), e) |> GetRegistryValueErr |> toError
 
 
     //let private valueExistsForKey (logger : Logger) subKey key =
@@ -132,8 +132,8 @@ module Registry =
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> MessagingServicePort |> Ok
-            | false, _ -> toErrorInfo GetMessagingClientPortError v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMessagingClientPortError v c, e) ||> addError
+            | false, _ -> toErrorInfo GetMessagingClientPortErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMessagingClientPortErr v c, e) ||> addError
 
 
     let trySetMessagingServicePort v c (MessagingServicePort (ServicePort p)) =
@@ -147,8 +147,8 @@ module Registry =
         | Ok s ->
             match Guid.TryParse s with
             | true, v -> MessagingClientId v |> Ok
-            | false, _ -> toErrorInfo GetMessagingClientIdError v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMessagingClientIdError v c, e) ||> addError
+            | false, _ -> toErrorInfo GetMessagingClientIdErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMessagingClientIdErr v c, e) ||> addError
 
 
     let trySetMessagingClientId v c (MessagingClientId i) =
@@ -163,7 +163,7 @@ module Registry =
         | Ok s ->
             match Guid.TryParse s with
             | true, v -> v |> MessagingClientId |> PartitionerId |> Ok
-            | false, _ -> toErrorInfo GetPartitionerMessagingClientIdError v c s |> toError
+            | false, _ -> toErrorInfo GetPartitionerMessagingClientIdErr v c s |> toError
         | Error e -> Error e
 
 
@@ -178,7 +178,7 @@ module Registry =
         | Ok s ->
             match Boolean.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetUsePartitionerError v c s |> toError
+            | false, _ -> toErrorInfo GetUsePartitionerErr v c s |> toError
         |  Error e -> Error e
 
 
@@ -215,8 +215,8 @@ module Registry =
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> WorkerNodeServicePort |> Ok
-            | false, _ -> toErrorInfo GetMorkerNodeClientPortError v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMorkerNodeClientPortError v c, e) ||> addError
+            | false, _ -> toErrorInfo GetMorkerNodeClientPortErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMorkerNodeClientPortErr v c, e) ||> addError
 
 
     let trySetWorkerNodeServicePort v c (WorkerNodeServicePort (ServicePort p)) =
@@ -230,7 +230,7 @@ module Registry =
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetNumberOfCoresError v c s |> toError
+            | false, _ -> toErrorInfo GetNumberOfCoresErr v c s |> toError
         | Error e -> Error e
 
 
@@ -245,7 +245,7 @@ module Registry =
         | Ok s ->
             match Boolean.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetWrkInactiveError v c s |> toError
+            | false, _ -> toErrorInfo GetWrkInactiveErr v c s |> toError
         | Error e -> Error e
 
 
@@ -272,7 +272,7 @@ module Registry =
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> ContGenServicePort |> Ok
-            | false, _ -> toErrorInfo GetContGenServicePortError v c s |> toError
+            | false, _ -> toErrorInfo GetContGenServicePortErr v c s |> toError
         | Error e -> Error e
 
 
@@ -287,7 +287,7 @@ module Registry =
         | Ok s ->
             match Double.TryParse s with
             | true, v -> v |> MinUsefulEe |> Ok
-            | false, _ -> toErrorInfo GetContGenMinUsefulEeError v c s |> toError
+            | false, _ -> toErrorInfo GetContGenMinUsefulEeErr v c s |> toError
         | Error e -> Error e
 
 

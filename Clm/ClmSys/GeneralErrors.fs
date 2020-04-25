@@ -104,10 +104,10 @@ module GeneralErrors =
 
 
     type ServiceInstallerError =
-        | InstallServiceError of exn
-        | UninstallServiceError of exn
-        | StartServiceError of exn
-        | StopServiceError of exn
+        | InstallServiceErr of exn
+        | UninstallServiceErr of exn
+        | StartServiceErr of exn
+        | StopServiceErr of exn
 
 
     type RegistryErrorInfo =
@@ -119,20 +119,20 @@ module GeneralErrors =
 
 
     type RegistryError =
-        | CreateRegistrySubKeyError of string * exn
-        | SetRegistryValueError of string * exn
-        | GetRegistryValueError of string * exn
-        | GetMessagingClientPortError of RegistryErrorInfo
-        | GetMessagingClientIdError of RegistryErrorInfo
-        | GetPartitionerMessagingClientIdError of RegistryErrorInfo
-        | GetUsePartitionerError of RegistryErrorInfo
-        | GetNumberOfCoresError of RegistryErrorInfo
-        | GetWrkInactiveError of RegistryErrorInfo
-        | GetContGenServicePortError of RegistryErrorInfo
-        | GetContGenMinUsefulEeError of RegistryErrorInfo
-        | GetMorkerNodeClientPortError of RegistryErrorInfo
+        | CreateRegistrySubKeyErr of string * exn
+        | SetRegistryValueErr of string * exn
+        | GetRegistryValueErr of string * exn
+        | GetMessagingClientPortErr of RegistryErrorInfo
+        | GetMessagingClientIdErr of RegistryErrorInfo
+        | GetPartitionerMessagingClientIdErr of RegistryErrorInfo
+        | GetUsePartitionerErr of RegistryErrorInfo
+        | GetNumberOfCoresErr of RegistryErrorInfo
+        | GetWrkInactiveErr of RegistryErrorInfo
+        | GetContGenServicePortErr of RegistryErrorInfo
+        | GetContGenMinUsefulEeErr of RegistryErrorInfo
+        | GetMorkerNodeClientPortErr of RegistryErrorInfo
 
 
     type ClmEventHandlerError =
-        | UnhandledException of string * Guid * exn
-        | StillRunningError of string * Guid * DateTime
+        | UnhandledEventHandlerExn of string * Guid * exn
+        | StillRunningEventHandlerErr of string * Guid * DateTime

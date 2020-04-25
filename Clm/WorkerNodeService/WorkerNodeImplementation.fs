@@ -143,7 +143,7 @@ module ServiceImplementation =
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
-        printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
+        //printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
 
         let updateProgress t completed =
             let rso, result =
@@ -271,7 +271,7 @@ module ServiceImplementation =
 
 
     let onCancelRunWrkMsg t s q =
-        printfn "onCancelRunWrkMsg: Starting: %A ..." q
+        //printfn "onCancelRunWrkMsg: Starting: %A ..." q
 
         let (w, r1) =
             match s.runningWorkers |> Map.tryFind q with
@@ -284,7 +284,7 @@ module ServiceImplementation =
                 s, Ok()
 
         let result = t q |> combineUnitResults r1
-        printfn "onCancelRunWrkMsg: result: %A" result
+        //printfn "onCancelRunWrkMsg: result: %A" result
         w, result
 
 
@@ -293,10 +293,10 @@ module ServiceImplementation =
         | WorkerNodeMsg x ->
             match x with
             | RunModelWrkMsg d ->
-                printfn "onProcessMessage: RunModelWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId d.runningProcessData.runQueueId
+                //printfn "onProcessMessage: RunModelWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId d.runningProcessData.runQueueId
                 onRunModelWrkMsg proxy s d m.messageDataInfo.messageId
             | CancelRunWrkMsg q ->
-                printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
+                //printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
                 onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
         | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 

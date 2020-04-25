@@ -137,13 +137,13 @@ module Client =
 
 
     let tryReceiveSingleMessage (proxy : TryReceiveSingleMessageProxy) : MessageResult =
-        printfn "tryReceiveSingleMessage: Starting..."
+        //printfn "tryReceiveSingleMessage: Starting..."
         let addError = addError TryReceiveSingleMessageErr
 
         let result =
             match proxy.tryPeekMessage () with
             | Ok (Some m) ->
-                printfn "tryReceiveSingleMessage: Received message with messageId = %A, sent by %A to %A." m.messageDataInfo.messageId m.messageDataInfo.sender m.messageDataInfo.recipientInfo.recipient
+                //printfn "tryReceiveSingleMessage: Received message with messageId = %A, sent by %A to %A." m.messageDataInfo.messageId m.messageDataInfo.sender m.messageDataInfo.recipientInfo.recipient
 
                 let r =
                     match m.messageDataInfo.recipientInfo.deliveryType with
@@ -162,7 +162,7 @@ module Client =
             | Ok None -> Ok NoMessage
             | Error e -> addError TryPeekMessageErr e
 
-        printfn "tryReceiveSingleMessage: Comleted."
+        //printfn "tryReceiveSingleMessage: Comleted."
         result
 
 
@@ -270,13 +270,13 @@ module Client =
 
 
     let onTryPeekReceivedMessage (s : MessagingClientStateData) =
-        printfn "onTryPeekReceivedMessage: Starting..."
+        //printfn "onTryPeekReceivedMessage: Starting..."
         let x = s.incomingMessages |> List.tryHead
         s, x
 
 
     let onTryRemoveReceivedMessage deleteMessage (s : MessagingClientStateData) m =
-        printfn "onTryRemoveReceivedMessage: Starting with messageId = %A" m
+        //printfn "onTryRemoveReceivedMessage: Starting with messageId = %A" m
 
         let removedMessage e =
             let result =
@@ -284,7 +284,7 @@ module Client =
                 | None -> RemovedSucessfully
                 | Some e -> RemovedWithError e
 
-            printfn "onTryRemoveReceivedMessage: removedMessage: messageId = %A, result = %A." m result
+            //printfn "onTryRemoveReceivedMessage: removedMessage: messageId = %A, result = %A." m result
             { s with incomingMessages = s.incomingMessages |> List.filter (fun e -> e.messageDataInfo.messageId <> m) |> sortIncoming }, result
 
         let failedToRemove e = s, FailedToRemove e
@@ -323,12 +323,12 @@ module Client =
 
 
     let onTransmitMessages proxy s =
-        printfn "onTransmitMessages: Starting. Outgoing messages: %i, incoming messages: %i." s.outgoingMessages.Length s.incomingMessages.Length
+        //printfn "onTransmitMessages: Starting. Outgoing messages: %i, incoming messages: %i." s.outgoingMessages.Length s.incomingMessages.Length
         let (w, result) =
             match s.messagingClientState with
             | MsgCliNotStarted -> s, Ok()
             | MsgCliIdle ->
-                printfn "onTransmitMessages: Sending..."
+                //printfn "onTransmitMessages: Sending..."
                 // Note that we need to apply List.rev to get to the first (the oldest) message in the outgoing queue.
                 let sent, sentErrors =
                     s.outgoingMessages
@@ -336,7 +336,7 @@ module Client =
                     |> List.map (sendMessageImpl proxy.sendMessage proxy.tryDeleteMessage)
                     |> Rop.unzip
 
-                printfn "onTransmitMessages: Receiving..."
+                //printfn "onTransmitMessages: Receiving..."
                 let received, receivedErrors =
                     match receiveMessagesImpl proxy with
                     | Ok r -> r |> Rop.unzip
@@ -345,7 +345,7 @@ module Client =
                 let e = sentErrors @ receivedErrors |> foldToUnitResult
                 { receivedMessages = received; sentMessages = sent } |> (onFinishTransmitting s), e
 
-        printfn "onTransmitMessages: result = %A" result
+        //printfn "onTransmitMessages: result = %A" result
         w, result
 
 

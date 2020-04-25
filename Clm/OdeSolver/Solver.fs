@@ -102,7 +102,7 @@ module Solver =
         /// Follow the trail of that date stamp to find other related places.
         let checkCancellation() =
             let fromLastCheck = DateTime.Now - lastCheck
-            printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
+            //printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
 
             if fromLastCheck > n.checkFreq
             then
@@ -117,7 +117,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
+                    //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
                     notify t progressCount k |> ignore
             | _ -> ignore()
 

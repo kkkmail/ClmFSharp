@@ -109,7 +109,7 @@ module ModelRunner =
 
 
     let updateProgress (proxy : UpdateProgressProxy) (i : ProgressUpdateInfo) =
-        printfn "updateProgress: i = %A" i
+        //printfn "updateProgress: i = %A" i
         let addError = addError UpdateProgressErr
         let toError = toError UpdateProgressErr
 
@@ -133,12 +133,12 @@ module ModelRunner =
 
 
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
-        printfn "register: r = %A" r
+        //printfn "register: r = %A" r
         proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId))
 
 
     let unregister (proxy : UnregisterProxy) (r : WorkerNodeId) =
-        printfn "unregister: r = %A" r
+        //printfn "unregister: r = %A" r
         let addError = addError UnregisterErr
 
         match proxy.loadWorkerNodeInfo r with
@@ -147,12 +147,12 @@ module ModelRunner =
 
 
     let saveResult (proxy : SaveResultProxy) r =
-        printfn "saveResult: r= %A" r
+        //printfn "saveResult: r= %A" r
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
     let saveCharts (proxy : SaveChartsProxy) c =
-        printfn "saveCharts: c.resultDataId = %A" c.resultDataId
+        //printfn "saveCharts: c.resultDataId = %A" c.resultDataId
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
 
 

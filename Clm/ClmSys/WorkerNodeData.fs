@@ -1,5 +1,6 @@
 ﻿namespace ClmSys
 
+open System
 open GeneralData
 open MessagingData
 open WorkerNodePrimitives
@@ -15,6 +16,7 @@ module WorkerNodeData =
             noOfCores : int
             nodePriority : WorkerNodePriority
             isInactive : bool
+            lastErrorDateOpt : DateTime option
         }
 
 

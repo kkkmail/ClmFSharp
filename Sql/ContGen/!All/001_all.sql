@@ -56,6 +56,7 @@ IF OBJECT_ID('[dbo].[WorkerNode]') IS NULL begin
 		[isInactive] [bit] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
+		[lastErrorOn] [datetime] NULL,
 	 CONSTRAINT [PK_WorkerNode] PRIMARY KEY CLUSTERED 
 	(
 		[workerNodeId] ASC

@@ -3,6 +3,7 @@
 open System
 open GeneralPrimitives
 open MessagingPrimitives
+open WorkerNodePrimitives
 
 module ContGenPrimitives =
 
@@ -103,7 +104,9 @@ module ContGenPrimitives =
         | Completed
         | Failed of ErrorMessage
         | Cancelled
+        | AllCoresBusy of WorkerNodeId
 
+        static member notStartedValue = 0m
         static member failedValue = -1000m
 
         static member create d =
@@ -119,6 +122,7 @@ module ContGenPrimitives =
             | Completed -> 1.0m
             | Failed _ -> TaskProgress.failedValue
             | Cancelled -> TaskProgress.failedValue
+            | AllCoresBusy _ -> TaskProgress.notStartedValue
 
 
     type ContGenAdmId =

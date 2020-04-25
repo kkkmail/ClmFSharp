@@ -140,6 +140,7 @@ module ServiceImplementation =
         | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
         | Cancelled -> (GuaranteedDelivery, true)
+        | AllCoresBusy _ -> (GuaranteedDelivery, true)
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
@@ -209,7 +210,7 @@ module ServiceImplementation =
                     {
                         partitionerRecipient = proxy.sendMessageProxy.partitionerId
                         deliveryType = GuaranteedDelivery
-                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = "All cores are busy!" |> ErrorMessage |> Failed }
+                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = AllCoresBusy proxy.workerNodeId }
                     }.getMessageInfo()
                     |> proxy.sendMessageProxy.sendMessage
 

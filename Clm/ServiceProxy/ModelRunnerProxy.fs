@@ -62,12 +62,14 @@ module ModelRunnerProxy =
         {
             tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
             upsertRunQueue : RunQueue -> UnitResult
+            upsertWorkerNodeErr : WorkerNodeId -> UnitResult
         }
 
         static member create c =
             {
                 tryLoadRunQueue = tryLoadRunQueue c
                 upsertRunQueue = upsertRunQueue c
+                upsertWorkerNodeErr = upsertWorkerNodeErr c
             }
 
 

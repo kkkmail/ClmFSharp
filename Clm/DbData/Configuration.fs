@@ -47,6 +47,11 @@ module Configuration =
     let MsgSvcSqlProviderName : string = "name=MsgSvc"
 
 
+    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
+    [<Literal>]
+    let lastAllowedNodeErrInMinutes = "60"
+
+
     let buildConnectionString (key : string) : string =
         [
             Some (sprintf "Server=localhost;Database=%s;Integrated Security=SSPI" key)

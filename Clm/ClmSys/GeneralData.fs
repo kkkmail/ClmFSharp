@@ -203,6 +203,7 @@ module GeneralData =
             | Completed _ -> Some DateTime.Now
             | Failed _ -> None
             | Cancelled -> None
+            | AllCoresBusy _ -> None
 
 
     let partition maxVal q n =

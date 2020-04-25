@@ -1,4 +1,4 @@
-use clm5001
+use clm501
 go
 
 select count(*) as noOfResults from ResultData

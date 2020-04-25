@@ -437,6 +437,7 @@ module DatabaseTypes =
                 partitionerId = defaultPartitionerId
                 nodePriority = r.nodePriority |> WorkerNodePriority
                 isInactive = r.isInactive
+                lastErrorDateOpt = r.lastErrorOn
             }
 
         member w.addRow (t : WorkerNodeTable) =
@@ -445,7 +446,8 @@ module DatabaseTypes =
                         workerNodeId = w.workerNodeId.value.value,
                         workerNodeName = w.workerNodeName.value,
                         numberOfCores = w.noOfCores,
-                        nodePriority = w.nodePriority.value
+                        nodePriority = w.nodePriority.value,
+                        lastErrorOn = w.lastErrorDateOpt
                         )
 
             newRow.modifiedOn <- DateTime.Now
@@ -887,6 +889,15 @@ module DatabaseTypes =
         tryDbFun g
 
 
+    let upsertWorkerNodeErr connectionString i =
+        let g() =
+            match loadWorkerNodeInfo connectionString i with
+            | Ok w -> upsertWorkerNodeInfo connectionString { w with lastErrorDateOpt = Some DateTime.Now }
+            | Error e -> Error e
+
+        tryDbFun g
+
+
     [<Literal>]
     let availablbeWorkerNodeSql = @"
         ; with q as
@@ -899,12 +910,13 @@ module DatabaseTypes =
                     when numberOfCores <= 0 then 1
                     else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5)) / (cast(numberOfCores as money))
                 end as money) as workLoad
+            ,case when lastErrorOn is null or dateadd(minute, " + lastAllowedNodeErrInMinutes + @", lastErrorOn) < getdate() then 0 else 1 end as noErr
         from WorkerNode w
         )
         select top 1
         workerNodeId
         from q
-        where workLoad < 1
+        where noErr = 0 and workLoad < 1
         order by nodePriority desc, workLoad, newid()"
 
 

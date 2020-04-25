@@ -210,6 +210,7 @@ module SvcCommandLine =
                     noOfCores = noOfCores
                     nodePriority = WorkerNodePriority.defaultValue
                     isInactive = inactive
+                    lastErrorDateOpt = None
                 }
 
             workerNodeServiceAccessInfo =

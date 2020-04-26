@@ -45,7 +45,7 @@ module ModelRunner =
         | Ok (Some q) ->
             match proxy.tryGetAvailableWorkerNode() with
             | Ok (Some n) ->
-                let q1 = { q with workerNodeIdOpt = Some n; runQueueStatus = InProgressRunQueue }
+                let q1 = { q with workerNodeIdOpt = Some n; runQueueStatus = RunRequestedRunQueue }
 
                 match proxy.upsertRunQueue q1 with
                 | Ok() ->
@@ -86,7 +86,9 @@ module ModelRunner =
             let r2 =
                 match r.runQueueStatus with
                 | NotStartedRunQueue -> { r with runQueueStatus = CancelledRunQueue } |> proxy.upsertRunQueue
+                | RunRequestedRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | InProgressRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
+                | CancelRequestedRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
 
             combineUnitResults r1 r2

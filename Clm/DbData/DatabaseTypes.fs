@@ -365,33 +365,49 @@ module DatabaseTypes =
             newRow
 
         /// The following transitions are allowed here:
-        ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
-        ///     NotStartedRunQueue -> CancelledRunQueue + both None (workerNodeId).
-        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
-        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
-        ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
-        ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId.
-        ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId.
-        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId.
-        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
+        ///     NotStartedRunQueue + None (workerNodeId) -> RunRequestedRunQueue + Some workerNodeId - scheduled (but not yet confirmed) new work.
+        ///     NotStartedRunQueue + None (workerNodeId) -> CancelledRunQueue + None (workerNodeId) - cancelled work that has not been scheduled yet.
+        ///
+        ///     RunRequestedRunQueue + Some workerNodeId -> NotStartedRunQueue + None (workerNodeId) - the node rejected work.
+        ///     RunRequestedRunQueue + Some workerNodeId -> InProgressRunQueue + the same Some workerNodeId - the node accepted work.
+        ///     RunRequestedRunQueue + Some workerNodeId -> CancelRequestedRunQueue + the same Some workerNodeId -
+        //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
+        ///     + -> completed / failed
+        ///
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress - normal work progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0) - completed work.
+        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
+        ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
+
+        ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
+        ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
+        ///         roll back to cancel requested - in progress message came while our cancel request propages through the system.
+        ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
+        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propaged through the system.
+        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propaged through the system.
+
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-            let g p s =
+            let g p s u =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
                 r.progress <- p
                 r.errorMessage <- q.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
                 match s with
-                | Some v -> r.startedOn <- Some v
+                | Some (Some v) -> r.startedOn <- Some v
+                | Some None-> r.startedOn <- None
                 | None -> ignore()
 
                 r.modifiedOn <- DateTime.Now
-                r.runQueueStatusId <- q.runQueueStatus.value
+
+                match u with
+                | true -> r.runQueueStatusId <- q.runQueueStatus.value
+                | false -> ignore()
+
                 Ok()
 
             let f s =
@@ -411,16 +427,25 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue,       None,    InProgressRunQueue,       Some _ -> g NotStarted.value (Some DateTime.Now)
-                | NotStartedRunQueue,       None,    CancelledRunQueue,        None -> g TaskProgress.failedValue None
-                | InProgressRunQueue,       Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | InProgressRunQueue,       Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
-                | InProgressRunQueue,       Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | InProgressRunQueue,       Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | CancelRequestedRunQueue,  Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | CancelRequestedRunQueue,  Some w1, CancelledRunQueue,        Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
-                | CancelRequestedRunQueue,  Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None
-                | CancelRequestedRunQueue,  Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g NotStarted.value (Some (Some DateTime.Now)) true
+                | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g TaskProgress.failedValue None true
+
+                | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
+                | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
+
+                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
+                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
+                | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
+
+                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None false // !!! Roll back the status change !!!
+                | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 

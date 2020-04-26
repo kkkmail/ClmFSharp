@@ -65,6 +65,7 @@ module GeneralPrimitives =
     type RunQueueStatus =
         | NotStartedRunQueue
         | InactiveRunQueue
+        | RunRequestedRunQueue
         | InProgressRunQueue
         | CompletedRunQueue
         | FailedRunQueue
@@ -76,6 +77,7 @@ module GeneralPrimitives =
             match r with
             | NotStartedRunQueue -> 0
             | InactiveRunQueue -> 1
+            | RunRequestedRunQueue -> 7
             | InProgressRunQueue -> 2
             | CompletedRunQueue -> 3
             | FailedRunQueue -> 4
@@ -87,6 +89,7 @@ module GeneralPrimitives =
             match i with
             | 0 -> Some NotStartedRunQueue
             | 1 -> Some InactiveRunQueue
+            | 7 -> Some RunRequestedRunQueue
             | 2 -> Some InProgressRunQueue
             | 3 -> Some CompletedRunQueue
             | 4 -> Some FailedRunQueue

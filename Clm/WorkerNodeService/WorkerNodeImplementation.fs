@@ -135,7 +135,7 @@ module ServiceImplementation =
 
     let toDeliveryType progress =
         match progress with
-        | NotStarted -> (NonGuaranteedDelivery, false)
+        | NotStarted -> (GuaranteedDelivery, false)
         | InProgress _ -> (NonGuaranteedDelivery, false)
         | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
@@ -184,7 +184,7 @@ module ServiceImplementation =
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
         }
 
-
+            
     let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
         let w, result =
             match s.numberOfWorkerCores > s.runningWorkers.Count with
@@ -192,19 +192,15 @@ module ServiceImplementation =
                 let m = async { proxy.runModel d }
                 Async.Start m
 
-                let rs =
+                let res =
                     {
-                        runnerState =
-                            {
-                                progress = TaskProgress.NotStarted
-                                started = DateTime.Now
-                                lastUpdated = DateTime.Now
-                            }
+                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
+                        deliveryType = GuaranteedDelivery
+                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = InProgress 0.0M }
+                    }.getMessageInfo()
+                    |> proxy.sendMessageProxy.sendMessage
 
-                        cancellationRequested = false
-                    }
-
-                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, rs) }, Ok()
+                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, RunnerStateWithCancellation.defaultValue) }, res
             | false ->
                 let res =
                     {

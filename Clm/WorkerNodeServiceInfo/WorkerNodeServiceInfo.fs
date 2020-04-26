@@ -37,6 +37,13 @@ module ServiceInfo =
             lastUpdated : DateTime
         }
 
+        static member defaultValue =
+            {
+                progress = NotStarted
+                started = DateTime.Now
+                lastUpdated = DateTime.Now
+            }
+
         override r.ToString() =
             let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
 
@@ -53,6 +60,12 @@ module ServiceInfo =
             runnerState : RunnerState
             cancellationRequested : bool
         }
+
+        static member defaultValue =
+            {
+                runnerState = RunnerState.defaultValue
+                cancellationRequested = false
+            }
 
 
     type WorkerNodeRunnerMonitorState =

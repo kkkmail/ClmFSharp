@@ -484,6 +484,7 @@ module DatabaseTypes =
             r.numberOfCores <- w.noOfCores
             r.nodePriority <- w.nodePriority.value
             r.modifiedOn <- DateTime.Now
+            r.lastErrorOn <- w.lastErrorDateOpt
 
 
     let loadClmDefaultValue connectionString (ClmDefaultValueId clmDefaultValueId) =
@@ -933,7 +934,7 @@ module DatabaseTypes =
             ,cast(
                 case
                     when numberOfCores <= 0 then 1
-                    else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5)) / (cast(numberOfCores as money))
+                    else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
                 end as money) as workLoad
             ,case when lastErrorOn is null or dateadd(minute, " + lastAllowedNodeErrInMinutes + @", lastErrorOn) < getdate() then 0 else 1 end as noErr
         from WorkerNode w

@@ -32,7 +32,7 @@ select * from w
 --	estCompl is not null
 --	and estCompl < dateadd(day, 1, @now)
 --order by modifiedOn, estCompl
-order by runQueueOrder
+order by runQueueOrder	
 
 --update RunQueue set progress = -1000, runQueueStatusId = 4
 --update RunQueue set progress = 0, runQueueStatusId = 0 where runQueueOrder > 20

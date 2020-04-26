@@ -24,9 +24,12 @@ module MsgProcessorProxy =
 
     type MessageProcessorProxy =
         {
+            start : unit -> UnitResult
             tryPeekReceivedMessage : unit -> Message option
             tryRemoveReceivedMessage : MessageId -> TryRemoveReceivedMessageResult
             sendMessage : MessageInfo -> UnitResult
+            transmitMessages : unit -> UnitResult
+            removeExpiredMessages : unit -> UnitResult
         }
 
 
@@ -44,26 +47,28 @@ module MsgProcessorProxy =
 
 
     let onGetMessages<'S> (proxy : OnGetMessagesProxy<'S>) (s : 'S) =
-        printfn "onGetMessages: Getting messages..."
+        //printfn "onGetMessages: Getting messages..."
         let addError f e = ((proxy.onError f) + e) |> Error
         let toError e = e |> proxy.onError |> Error
 
-        let rec doFold x acc =
+        let rec doFold x (acc, r) =
             match x with
             | [] -> acc, Ok()
             | () :: t ->
-                printfn "onGetMessages: Calling proxy.tryProcessMessage..."
+                //printfn "onGetMessages: Calling proxy.tryProcessMessage..."
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
                 | ProcessedSucessfully (g, u) ->
                     match u with
-                    | Ok() -> doFold t g
-                    | Error e -> g, addError ProcessedSucessfullyWithInnerErr e
-                | ProcessedWithError ((g, u), e) -> g, (addError ProcessedWithErr e, u) ||> combineUnitResults
-                | ProcessedWithFailedToRemove((g, u), e) -> g, (addError ProcessedWithFailedToRemoveErr e, u) ||> combineUnitResults
+                    | Ok() -> doFold t (g, r)
+                    | Error e ->
+                        printfn "onGetMessages: Got error: %A" e
+                        doFold t (g, (addError ProcessedSucessfullyWithInnerErr e, r) ||> combineUnitResults)
+                | ProcessedWithError ((g, u), e) -> g, [ addError ProcessedWithErr e; u; r ] |> foldUnitResults
+                | ProcessedWithFailedToRemove((g, u), e) -> g, [ addError ProcessedWithFailedToRemoveErr e; u; r ] |> foldUnitResults
                 | FailedToProcess e -> acc, addError FailedToProcessErr e
                 | NothingToDo -> acc, Ok()
                 | BusyProcessing -> acc, toError BusyProcessingErr
 
-        let w, result = doFold proxy.maxMessages s
-        printfn "onGetMessages: result = %A" result
+        let w, result = doFold proxy.maxMessages (s, Ok())
+        //printfn "onGetMessages: result = %A" result
         w, result

@@ -89,16 +89,16 @@ module SvcCommandLine =
         | Save a -> WorkerNodeServiceArgs.Save a
 
 
-    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkSvcAddress s -> s |> ServiceAddress |> WorkerNodeServiceAddress |> Some | _ -> None)
+    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> WorkerNodeServicePort |> Some | _ -> None)
     let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkName p -> Some p | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | WrkVersion p -> p |> VersionNumber |> Some | _ -> None)
 
-    let tryGetMsgServerAddress p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServerPort p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
 
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetClientId p = p |> List.tryPick (fun e -> match e with | WrkMsgCliId p -> p |> MessagingClientId |> WorkerNodeId |> Some | _ -> None)
@@ -106,8 +106,8 @@ module SvcCommandLine =
 
 
     let getVersion = getVersionImpl tryGetVersion
-    let getMsgServerAddress = getMsgServerAddressImpl tryGetMsgServerAddress
-    let getMsgServerPort = getMsgServerPortImpl tryGetMsgServerPort
+    let getMsgServerAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
+    let getMsgServerPort = getMsgServicePortImpl tryGetMsgServicePort
     let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
@@ -122,22 +122,22 @@ module SvcCommandLine =
         max 0 (min n Environment.ProcessorCount)
 
 
-    let getServerAddress logger version name p =
-        match tryGetServerAddress p with
+    let getServiceAddress logger version name p =
+        match tryGetServiceAddress p with
         | Some a -> a
         | None ->
-            match tryGetContGenServiceAddress version name with
+            match tryGetWorkerNodeServiceAddress version name with
             | Ok a -> a
-            | Error _ -> ServiceAddress.defaultWorkerNodeServiceValue
+            | Error _ -> WorkerNodeServiceAddress.defaultValue
 
 
-    let getServerPort logger version name p =
-        match tryGetServerPort p with
+    let getServicePort logger version name p =
+        match tryGetServicePort p with
         | Some a -> a
         | None ->
-            match tryGetContGenServicePort version name with
+            match tryGetWorkerNodeServicePort version name with
             | Ok a -> a
-            | Error _ -> ServicePort.defaultWorkerNodeServiceValue
+            | Error _ -> WorkerNodeServicePort.defaultValue
 
 
     let getClientId logger version name p =
@@ -168,12 +168,12 @@ module SvcCommandLine =
 
 
     let getServiceAccessInfoImpl b p =
-        let name = workerNodeServiceName
+        let name = workerNodeServiceRegistryName
 
         let version = getVersion p
-        let address = getServerAddress logger version name p
-        let port = getServerPort logger version name p
         let noOfCores = getNoOfCores logger version name p
+        let address = getServiceAddress logger version name p
+        let port = getServicePort logger version name p
 
         let msgAddress = getMsgServerAddress logger version name p
         let msgPort = getMsgServerPort logger version name p
@@ -181,16 +181,17 @@ module SvcCommandLine =
         let clientId = getClientId logger version name p
         let inactive = getInactive logger version name p
 
-        let nodeName = tryGetNodeNameImpl logger version name p |> Option.defaultValue (clientId.value.value.ToString("N"))
+        let nodeName =
+            tryGetNodeNameImpl logger version name p |> Option.defaultValue (clientId.value.value.ToString("N"))
+            |> WorkerNodeName
 
         let saveSettings() =
-            trySetContGenServiceAddress versionNumberValue name address |> ignore
-            trySetContGenServicePort versionNumberValue name port |> ignore
+            trySetWorkerNodeServiceAddress versionNumberValue name address |> ignore
+            trySetWorkerNodeServicePort versionNumberValue name port |> ignore
             trySetWorkerNodeName versionNumberValue name nodeName |> ignore
             trySetNumberOfCores versionNumberValue name noOfCores |> ignore
-
-            trySetMessagingClientAddress versionNumberValue name msgAddress |> ignore
-            trySetMessagingClientPort versionNumberValue name msgPort |> ignore
+            trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
+            trySetMessagingServicePort versionNumberValue name msgPort |> ignore
             trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
             trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
             trySetWrkInactive versionNumberValue name inactive |> ignore
@@ -201,39 +202,30 @@ module SvcCommandLine =
         | _ -> ignore()
 
         {
-            workerNodeServiceAccessInfo =
-                {
-                    nodeServiceAccessInfo =
-                        {
-                            serviceAddress = address
-                            servicePort = port
-                            inputServiceName = WorkerNodeServiceName
-                        }
-
-                    minUsefulEe = MinUsefulEe.defaultValue
-                }
-
-            nodeInfo =
-                {
-                    workerNodeName = WorkerNodeName nodeName
-                    noOfCores = noOfCores
-                    nodePriority = WorkerNodePriority.defaultValue
-                }
-
-            workNodeMsgAccessInfo =
+            workerNodeInfo =
                 {
                     workerNodeId = clientId
-
-                    msgSvcAccessInfo =
-                        {
-                            serviceAddress = msgAddress
-                            servicePort = msgPort
-                            inputServiceName = MessagingServiceName
-                        }
+                    workerNodeName = nodeName
+                    partitionerId = partitioner
+                    noOfCores = noOfCores
+                    nodePriority = WorkerNodePriority.defaultValue
+                    isInactive = inactive
+                    lastErrorDateOpt = None
                 }
 
-            partitionerId = partitioner
-            isInactive = inactive
+            workerNodeServiceAccessInfo =
+                {
+                    workerNodeServiceAddress = address
+                    workerNodeServicePort = port
+                    workerNodeServiceName = workerNodeServiceName
+                }
+
+            messagingServiceAccessInfo =
+                {
+                    messagingServiceAddress = msgAddress
+                    messagingServicePort = msgPort
+                    messagingServiceName = messagingServiceName
+                }
         }
 
 

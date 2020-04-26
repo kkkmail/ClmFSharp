@@ -1,25 +1,28 @@
 ﻿namespace WorkerNodeServiceInfo
 
-open ClmSys.VersionInfo
-open ContGenServiceInfo.ServiceInfo
-open System.Runtime.Remoting.Channels.Tcp
 open ClmSys.GeneralData
 open System.Threading
 open System
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
-open ClmSys.ContGenData
 open ClmSys.ContGenPrimitives
+open ClmSys.WorkerNodeData
+open System.ServiceModel
+open ClmSys.Wcf
+open ClmSys.WorkerNodeErrors
 
 module ServiceInfo =
 
-    let WorkerNodeServiceName = "WorkerNodeService" + " - " + versionNumberValue.value
-    let WorkerNodeServiceProgramName = "WorkerNodeService.exe"
+    let workerNodeServiceProgramName = "WorkerNodeService.exe"
 
 
-    type WrkNodeShutDownInfo =
+    [<Literal>]
+    let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
+
+
+    type WrkNodeWcfSvcShutDownInfo =
         {
-            wrkNodeTcpChannel : TcpChannel
+            wrkNodeServiceHost : ServiceHost
         }
 
 
@@ -29,11 +32,17 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            runnerRemoteProcessId : RemoteProcessId
             progress : TaskProgress
             started : DateTime
             lastUpdated : DateTime
         }
+
+        static member defaultValue =
+            {
+                progress = NotStarted
+                started = DateTime.Now
+                lastUpdated = DateTime.Now
+            }
 
         override r.ToString() =
             let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
@@ -43,54 +52,72 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            sprintf "RP: %A; T: %s;%s %A" r.runnerRemoteProcessId.value s estCompl r.progress
+            sprintf "T: %s;%s %A" s estCompl r.progress
 
-        static member defaultValue r =
+
+    type RunnerStateWithCancellation =
+        {
+            runnerState : RunnerState
+            cancellationRequested : bool
+        }
+
+        static member defaultValue =
             {
-                runnerRemoteProcessId = r
-                progress = TaskProgress.NotStarted
-                started = DateTime.Now
-                lastUpdated = DateTime.Now
+                runnerState = RunnerState.defaultValue
+                cancellationRequested = false
             }
+
+
+    type WorkerNodeRunnerMonitorState =
+        {
+            workers : Map<RunQueueId, RunnerState>
+            noOfWorkerCores : int
+        }
 
 
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<LocalProcessId, RunnerState>
+            runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
             numberOfWorkerCores : int
         }
+
+        member w.toWorkerNodeRunnerMonitorState() =
+            {
+                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
+                noOfWorkerCores = w.numberOfWorkerCores
+            }
+
 
     type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
 
 
     type WorkerNodeMonitorParam =
-        | DummyWrkMonitorParam of int
+        | DummyWrkMonitorParam
 
 
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
         | ErrorOccurred of ClmError
-        | WrkNodeState of WorkerNodeRunnerState
+        | WrkNodeState of WorkerNodeRunnerMonitorState
 
         override this.ToString() =
             match this with
-            | CannotAccessWrkNode -> "Cannot access worker node"
+            | CannotAccessWrkNode -> "Cannot access worker node."
             | WrkNodeState s ->
-                let toString acc ((LocalProcessId k), (v : RunnerState)) =
-                    acc + (sprintf "        LP: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
+                let toString acc ((RunQueueId k), (v : RunnerState)) =
+                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
         
                 let x =
-                    match s.runningWorkers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
+                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"
                     | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A, cores: %A" x s.runningWorkers.Count s.numberOfWorkerCores
+                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
 
 
     type IWorkerNodeService =
-        abstract updateLocalProgress : LocalProgressUpdateInfo -> UnitResult
         abstract configure : WorkerNodeConfigParam -> UnitResult
-        abstract monitor : WorkerNodeMonitorParam -> WorkerNodeMonitorResponse
+        abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
         /// To check if service is working.
         abstract ping : unit -> UnitResult
@@ -105,7 +132,10 @@ module ServiceInfo =
             try
                 printfn "Getting worker node state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let state = service.monitor p
-                printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (state.ToString())
+
+                match state with
+                | Ok r -> printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (r.ToString())
+                | Error e -> printfn "...state at %s =\n%A\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) e
             with
             | e -> printfn "Exception occurred: %A" e
         else
@@ -113,3 +143,37 @@ module ServiceInfo =
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
+
+
+    /// https://gist.github.com/dgfitch/661656
+    [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
+    type IWorkerNodeWcfService =
+
+        [<OperationContract(Name = "configure")>]
+        abstract configure : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "monitor")>]
+        abstract monitor : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "ping")>]
+        abstract ping : q:byte[] -> byte[]
+
+
+    /// Low level WCF messaging client.
+    type WorkerNodeResponseHandler private (url) =
+        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> url
+
+        let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+        let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+        let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+
+        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
+        let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
+        let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
+
+        interface IWorkerNodeService with
+            member _.configure p = configureImpl p
+            member _.monitor p = monitorImpl p
+            member _.ping() = pingImpl()
+
+        new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)

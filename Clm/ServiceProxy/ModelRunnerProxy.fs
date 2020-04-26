@@ -7,7 +7,6 @@ open NoSql.FileSystemTypes
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
-open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
@@ -39,6 +38,14 @@ module ModelRunnerProxy =
         }
 
 
+    type TryCancelRunQueueProxy =
+        {
+            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+            sendCancelRunQueueMessage : MessageInfo -> UnitResult
+            upsertRunQueue : RunQueue -> UnitResult
+        }
+
+
     type TryRunModelResult =
         | WorkScheduled
         | NoWork
@@ -55,12 +62,14 @@ module ModelRunnerProxy =
         {
             tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
             upsertRunQueue : RunQueue -> UnitResult
+            upsertWorkerNodeErr : WorkerNodeId -> UnitResult
         }
 
         static member create c =
             {
                 tryLoadRunQueue = tryLoadRunQueue c
                 upsertRunQueue = upsertRunQueue c
+                upsertWorkerNodeErr = upsertWorkerNodeErr c
             }
 
 
@@ -111,7 +120,7 @@ module ModelRunnerProxy =
 
     type ProcessMessageProxy =
         {
-            updateProgress : RemoteProgressUpdateInfo -> UnitResult
+            updateProgress : ProgressUpdateInfo -> UnitResult
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartInfo -> UnitResult
             register : WorkerNodeInfo -> UnitResult

@@ -1,38 +1,35 @@
 ﻿namespace ClmSys
 
-open System
 open GeneralPrimitives
 open MessagingClientErrors
 open MessagingPrimitives
+open GeneralErrors
 
 module WorkerNodeErrors =
 
     type OnSaveResultError =
-        | LoadResultDataErr of ResultDataId
         | SendResultMessageError of (MessagingClientId * ResultDataId)
-        | DeleteResultDataError of ResultDataId
 
 
     type OnSaveChartsError =
-        | LoadChartInfoError of ResultDataId
         | SendChartMessageError of (MessagingClientId * ResultDataId)
-        | DeleteChartError of (MessagingClientId * ResultDataId * exn)
-        | DeleteChartInfoError of ResultDataId
 
 
     type OnUpdateProgressError =
-        | UnableToFindMappingError of int
+        | UnableToSendProgressMsgErr of RunQueueId
+        | UnableToFindMappingErr of RunQueueId
 
 
     type OnRunModelError =
-        | CannotSaveWorkerNodeRunModelData of string
-        | CannotRunModel of string
+        | CannotRunModelErr
 
 
     type OnProcessMessageError =
-        | CannotSaveModelData
-        | ModelAlreadyRunning of RemoteProcessId
-        | InvalidMessage of (MessageId * string)
+        | CannotSaveModelDataErr of MessageId * RunQueueId
+        | OnRunModelFailedErr of MessageId * RunQueueId
+        | ModelAlreadyRunningErr of MessageId * RunQueueId
+        | InvalidMessageErr of (MessageId * string)
+        | FailedToCancelErr of (MessageId * RunQueueId * exn)
 
 
     type WorkerNodeError =
@@ -44,11 +41,17 @@ module WorkerNodeErrors =
         | OnGetMessagesErr of OnGetMessagesError
 
 
-    type WorkerNodeServiceError =
-        | UnableToStartMessagingClientError
-        | UnableToCreateWorkerNodeServiceError
-        | ServiceUnavailable
-        | UpdateLocalProgressError of string
-        | ConfigureServiceError of string
-        | MonitorServiceError of string
+    type WorkerNodeWcfError =
+        | ConfigureWcfErr of WcfError
+        | MonitorWcfErr of WcfError
+        | PingWcfErr of WcfError
 
+
+    type WorkerNodeServiceError =
+        | WorkerNodeWcfErr of WorkerNodeWcfError
+        | UnableToStartMessagingClientErr
+        | UnableToCreateWorkerNodeServiceErr
+        | ServiceUnavailableErr
+        | UpdateLocalProgressErr of string
+        | ConfigureServiceErr of string
+        | MonitorServiceErr of string

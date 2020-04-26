@@ -92,6 +92,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
@@ -100,6 +101,11 @@
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj">
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Name>Clm</Name>
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj">

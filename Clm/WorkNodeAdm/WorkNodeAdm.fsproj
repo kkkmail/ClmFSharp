@@ -139,11 +139,6 @@
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ProgressNotifierClient\ProgressNotifierClient.fsproj">
-      <Name>ProgressNotifierClient</Name>
-      <Project>{6779f3df-43d1-40cd-9c30-91b1f3a92a1f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj">
       <Name>WorkerNodeServiceInfo</Name>
       <Project>{d9222f72-d01c-4db6-bc76-2c9ccf9b1f31}</Project>

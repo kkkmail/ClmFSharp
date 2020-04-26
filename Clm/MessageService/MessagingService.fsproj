@@ -136,6 +136,11 @@
       <Project>{421101c3-190a-432c-82c9-0e390e131057}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Name>DbData</Name>
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
       <Name>MessagingServiceInfo</Name>
       <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>

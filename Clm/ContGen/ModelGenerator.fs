@@ -57,6 +57,7 @@ module ModelGenerator =
                                                     modelCommandLineParam = e
                                                 }
                                             runQueueStatus = NotStartedRunQueue
+                                            errorMessageOpt = None
                                             workerNodeIdOpt = None
                                             progress = NotStarted
                                             createdOn = DateTime.Now

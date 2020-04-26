@@ -15,38 +15,34 @@ module SolverRunnerErrors =
         {
             errorId : ErrorId
             errorType : CriticalErrorType
-            commandLine : string[]
             result : int
             errorMessageOpt : string option
             exceptionOpt : exn option
         }
 
-        static member fromErrorCode c e =
+        static member fromErrorCode e =
             {
                 errorId = ErrorId.getNewId()
                 errorType = ErrorCodeBased
-                commandLine = c
                 result = e
                 errorMessageOpt = None
                 exceptionOpt = None
             }
 
-        static member fromExn c e =
+        static member fromExn e =
             {
                 errorId = ErrorId.getNewId()
                 errorType = ExceptionBased
-                commandLine = c
                 result = UnknownException
                 errorMessageOpt = None
                 exceptionOpt = Some e
             }
 
 
-        static member fromErrMessage c e =
+        static member fromErrMessage e =
             {
                 errorId = ErrorId.getNewId()
                 errorType = ErrroMessageBased
-                commandLine = c
                 result = UnknownException
                 errorMessageOpt = Some e
                 exceptionOpt = None

@@ -52,7 +52,7 @@ module TimerEvents =
         let logError e = e |> ClmEventHandlerErr |> i.logger.logError
         let logWarn e = e |> ClmEventHandlerErr |> i.logger.logWarn
         let info = sprintf "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
-        do info |> ClmInfo |> i.logger.logInfo
+        //do info |> ClmInfo |> i.logger.logInfo
 
         let g() =
             try
@@ -60,13 +60,13 @@ module TimerEvents =
                 | Ok() -> ignore()
                 | Error e -> i.logger.logError e
             with
-            | e -> (i.handlerName, handlerId, e) |> UnhandledException |> logError
+            | e -> (i.handlerName, handlerId, e) |> UnhandledEventHandlerExn |> logError
 
         let eventHandler _ =
             try
                 if Interlocked.Increment(&counter) = 0
-                then timedImpl logger info g
-                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningError |> logWarn
+                then timedImplementation false logger info g
+                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningEventHandlerErr |> logWarn
             finally Interlocked.Decrement(&counter) |> ignore
 
 

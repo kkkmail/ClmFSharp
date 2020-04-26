@@ -14,7 +14,6 @@ open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.SolverRunnerErrors
 
@@ -39,7 +38,7 @@ module FileSystemTypes =
     let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
-    let solverRunnerErrTblName = TableName "solverRunnerErr"
+    let solverRunnerErrTblName = TableName "SolverRunnerErr"
 
 
     let getFolderName (MessagingClientName serviceName) (TableName tableName) =
@@ -185,7 +184,11 @@ module FileSystemTypes =
 
     let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
     let loadMessageWithTypeFs serviceName (MessageId messageId) = loadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
-    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) = tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+
+    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) =
+        //printfn "tryDeleteMessageWithTypeFs: trying to delete message with messageId = %A" messageId
+        tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
+
     let getMessageWithTypeIdsFs serviceName () = getObjectIds<MessageId> serviceName messageWithTypeTblName (fun e -> e |> Guid.Parse |> MessageId)
     let loadMessageWithTypeAllFs serviceName () = loadObjects<MessageWithType, Guid> serviceName messageWithTypeTblName Guid.Parse
 
@@ -195,10 +198,10 @@ module FileSystemTypes =
     let getModelDataIdsFs serviceName () = getObjectIds<ModelDataId> serviceName modelDataTblName (fun e -> e |> Guid.Parse |> ModelDataId)
     let loadModelDataAllsFs serviceName () = loadObjects<ModelData, Guid> serviceName modelDataTblName Guid.Parse
 
-    let saveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.remoteProcessId.value m
-    let loadWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = loadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
-    let tryDeleteWorkerNodeRunModelDataFs serviceName (RemoteProcessId processId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName processId
-    let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RemoteProcessId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RemoteProcessId)
+    let saveWorkerNodeRunModelDataFs serviceName (m : WorkerNodeRunModelData) = saveData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName m.runningProcessData.runQueueId.value m
+    let loadWorkerNodeRunModelDataFs serviceName (RunQueueId runQueueId) = loadData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName runQueueId
+    let tryDeleteWorkerNodeRunModelDataFs serviceName (RunQueueId runQueueId) = tryDeleteData<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName runQueueId
+    let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RunQueueId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadWorkerNodeRunModelDataAllFs serviceName () = loadObjects<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName Guid.Parse
 
     let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
@@ -228,7 +231,7 @@ module FileSystemTypes =
                     File.WriteAllText(f, c)
 
                 c.charts
-                |> List.map (fun e -> saveChart (getFileName e.chartName) e.chartContent)
+                |> List.map (fun e -> saveChart (getFileName e.fileName) e.htmlContent)
                 |> ignore
                 Ok ()
             with

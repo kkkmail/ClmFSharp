@@ -8,17 +8,12 @@ open Argu
 open Logging
 open GeneralErrors
 open ClmErrors
+open GeneralPrimitives
 
 module ServiceInstaller =
 
     [<Literal>]
     let ServiceTmeOut = 10_000.0
-
-
-    type ServiceName =
-        | ServiceName of string
-
-        member this.value = let (ServiceName v) = this in v
 
 
     type ServiceInfo<'R, 'C> =
@@ -73,7 +68,7 @@ module ServiceInstaller =
             l.logInfoString "... services installed successfully.\n"
             true
         with
-        | e -> e |> InstallServiceError |> toError l.logError
+        | e -> e |> InstallServiceErr |> toError l.logError
 
 
     let private uninstallService<'T> (l : Logger) (ServiceName serviceName) =
@@ -85,7 +80,7 @@ module ServiceInstaller =
             l.logInfoString "... services uninstalled successfully.\n"
             true
         with
-        | e -> e |> UninstallServiceError |> toError l.logError
+        | e -> e |> UninstallServiceErr |> toError l.logError
 
 
     let private startService (i : ServiceInfo<'R, 'C>) =
@@ -97,7 +92,7 @@ module ServiceInstaller =
             i.logger.logInfoString (sprintf "... service %s started successfully.\n" i.serviceName.value)
             true
         with
-        | e -> e |> StartServiceError |> toError i.logger.logError
+        | e -> e |> StartServiceErr |> toError i.logger.logError
 
 
     let private stopService (i : ServiceInfo<'R, 'C>) =
@@ -109,7 +104,7 @@ module ServiceInstaller =
             i.logger.logInfoString (sprintf "... service %s stopped successfully.\n" i.serviceName.value)
             true
         with
-        | e -> e |> StopServiceError |> toError i.logger.logError
+        | e -> e |> StopServiceErr |> toError i.logger.logError
 
 
     let private runService (i : ServiceInfo<'R, 'C>) r =

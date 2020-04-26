@@ -5,7 +5,7 @@ open Argu
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open MessagingService.ServiceTasks
-open MessagingService.WindowsService
+open MessagingService.MsgWindowsService
 open ClmSys.ExitErrorCodes
 
 module Program =
@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = MessagingProgramName)
+            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = messagingProgramName)
             let results = (parser.Parse argv).GetAllResults() |> MsgSvcArgs.fromArgu convertArgs
 
             match MessagingServiceTask.tryCreate getParams getSaveSettings results with
@@ -23,6 +23,6 @@ module Program =
             CompletedSuccessfully
 
         with
-            | exn ->
-                printfn "%s" exn.Message
-                UnknownException
+        | exn ->
+            printfn "%s" exn.Message
+            UnknownException

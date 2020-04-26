@@ -1,102 +1,35 @@
 ﻿namespace SolverRunner
 
-open System
 open Microsoft.FSharp.Core
 open ClmSys.GeneralData
-open ClmSys.ExitErrorCodes
 open Clm.ModelInit
 open Clm.ModelParams
-open Clm.CommandLine
 open Clm.ChartData
 open OdeSolver.Solver
 open Analytics.ChartExt
 open Analytics.Visualization
-open Argu
 open ContGenServiceInfo.ServiceInfo
-open ProgressNotifierClient.ServiceResponse
-open System.Diagnostics
 open Clm.Distributions
 open Clm.CalculationData
 open ServiceProxy.SolverRunner
-open WorkerNodeServiceInfo.ServiceInfo
 open System.IO
-open ClmSys.Retry
-open ClmSys.SolverRunnerData
-open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.WorkerNodeData
-open ClmSys.MessagingPrimitives
-open ClmSys.WorkerNodePrimitives
-open NoSql.FileSystemTypes
-open ClmSys.Registry
 open ClmSys.ClmErrors
-open ClmSys.Rop
+open MessagingServiceInfo.ServiceInfo
+open ClmSys.SolverRunnerErrors
+open ClmSys.GeneralPrimitives
+open System.Threading
+open ClmSys.ClmErrors
+open System
 
 module SolverRunnerTasks =
 
-    let getErrName processId =
-        "SolverRunnerErr\\" + processId.ToString().PadLeft(6, '0') |> MessagingClientName
-
-    let logError e = printfn "Error: %A." e
-    let logCriticalError processId = saveSolverRunnerErrFs (getErrName processId)
-
-
-    let progressNotifier (r : WorkerNodeResponseHandler) (p : LocalProgressUpdateInfo) =
-        let result =
-            try
-                printfn "Notifying of progress: %A." p
-
-                match tryFun (fun () -> r.updateLocalProgress p) with
-                | Ok (Ok()) -> Ok()
-                | Ok (Error e) ->
-                    printfn "Internal error occurred: %A" e
-                    Error e
-                | Error ex ->
-                    printfn "Error occurred: %A" ex
-                    ("SolverRunnerTasks.progressNotifier", ex) |> UnhandledExn |> Error
-            with
-            | e ->
-                printfn "Exception occurred: %A, progress: %A." e.Message p
-                ("SolverRunnerTasks.progressNotifier", e) |> UnhandledExn |> Error
-
-        result
-
-
-    let notify (r : RunningProcessData) (svc : WorkerNodeResponseHandler) (t : TaskProgress) =
-        progressNotifier svc
+    let notify progressNotifier r t =
+        progressNotifier
             {
-                localProcessId = Process.GetCurrentProcess().Id |> LocalProcessId
-                runningProcessData = r
+                runQueueId = r
                 progress = t
             }
-
-
-    let getSolverRunnerProxy (results : ParseResults<SolverRunnerArguments>) =
-        match results.TryGetResult Remote with
-        | None | Some false -> SolverRunnerProxyInfo.defaultValue
-        | Some true -> SolverRunnerProxyInfo.defaultRemoteValue
-
-
-    let tryGetServiceInfo (results : ParseResults<SolverRunnerArguments>) =
-        match results.TryGetResult NotifyAddress, results.TryGetResult NotifyPort with
-        | Some address, Some port ->
-            let ee = results.GetResult(MinimumUsefulEe, defaultValue = DefaultMinEe) |> MinUsefulEe
-
-            {
-                nodeServiceAccessInfo =
-                    {
-                        serviceAddress = ServiceAddress address
-                        servicePort = ServicePort port
-                        inputServiceName = WorkerNodeServiceName
-                    }
-
-                minUsefulEe = ee
-            }
-            |> Some
-        | _ -> None
-
-
-    let getResponseHandler i = WorkerNodeResponseHandler.tryCreate i
 
 
     let getPlotDataInfo (df : ClmDefaultValueId) =
@@ -114,32 +47,35 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : ChartGenerationResult -> UnitResult
-            onFailed : (string -> UnitResult)
+            onCompleted : unit -> UnitResult
+            onFailed : (ErrorMessage -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> UnitResult) option
             updateChart : double -> double[] -> unit
             noOfProgressPoints : int option
+            minUsefulEe : MinUsefulEe
+            checkCancellation : RunQueueId -> bool
+            checkFreq : TimeSpan
         }
 
 
-        static member create (md : ModelData) i (c : ModelCommandLineParam) (d : RunQueueId) w pp =
-            let n = getResponseHandler i
-            let modelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
+        static member create (w : WorkerNodeRunModelData) n pp cc =
+            let modelDataParamsWithExtraData = w.modelData.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
             let binaryInfo = modelDataParamsWithExtraData.binaryInfo
             let seed = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.seedValue
             let rnd = RandomValueGetter.create (Some seed)
-            let defaultValueId = md.modelData.modelDataParams.modelInfo.clmDefaultValueId
+            let defaultValueId = w.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
+            let commandLineParams = w.runningProcessData.commandLineParams
 
             let r =
                 {
                     modelDataId = modelDataId
                     defaultValueId = defaultValueId
-                    runQueueId = d
-                    workerNodeId = w
-                    commandLineParams = c
+                    runQueueId = w.runningProcessData.runQueueId
+                    workerNodeId = w.runningProcessData.workerNodeId
+                    commandLineParams = commandLineParams
                 }
 
             let chartInitData =
@@ -147,8 +83,8 @@ module SolverRunnerTasks =
                     modelDataId = modelDataId
                     defaultValueId = defaultValueId
                     binaryInfo = binaryInfo
-                    y0 = c.y0
-                    tEnd = c.tEnd
+                    y0 = commandLineParams.y0
+                    tEnd = commandLineParams.tEnd
                 }
 
             let chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
@@ -156,26 +92,20 @@ module SolverRunnerTasks =
 
             {
                 modelDataId = modelDataId
-                modelData = md
-                getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData c.useAbundant)
-                y0 = double c.y0
-                useAbundant = c.useAbundant
-
-                onCompleted =
-                    match n with
-                    | Some svc -> fun c -> notify r svc (Completed c)
-                    | None ->  fun _ -> Ok()
-
-                onFailed =
-                    match n with
-                    | Some svc -> fun e -> notify r svc (Failed (w, d.toRemoteProcessId()))
-                    | None -> fun _ -> Ok()
-
+                modelData = w.modelData
+                getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData commandLineParams.useAbundant)
+                y0 = double commandLineParams.y0
+                useAbundant = commandLineParams.useAbundant
+                onCompleted = fun () -> notify n r.runQueueId Completed
+                onFailed = fun e -> notify n r.runQueueId (Failed e)
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
-                progressCallBack = n |> Option.bind (fun svc -> (fun p -> notify r svc (TaskProgress.create p)) |> Some)
+                progressCallBack = (fun p -> notify n r.runQueueId (TaskProgress.create p)) |> Some
                 noOfProgressPoints = pp
+                minUsefulEe = w.minUsefulEe
+                checkCancellation = cc
+                checkFreq = TimeSpan.FromMilliseconds 1000.0
             }
 
 
@@ -190,9 +120,10 @@ module SolverRunnerTasks =
             }
 
 
-    let getNSolveParam (d : RunSolverData) s e =
+    let getNSolveParam (d : RunSolverData) r s e =
         {
             modelDataId = d.modelDataId.value
+            runQueueId = r
             tStart = s
             tEnd = e
             derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
@@ -202,6 +133,8 @@ module SolverRunnerTasks =
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
+            checkCancellation = d.checkCancellation
+            checkFreq = d.checkFreq
         }
 
 
@@ -233,114 +166,113 @@ module SolverRunnerTasks =
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            serviceAccessInfo : NodeServiceAccessInfo
             resultDataWithId : ResultDataWithId
             chartData : ChartData
-            sovlerRunnerProxy : SolverRunnerProxy
         }
 
 
     let plotAllResults (i : PlotResultsInfo) =
-        let plotAll show =
+        let plotAll () =
             let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
             let plotter = new Plotter(pdi, i.chartData)
 
-            let plots =
-                [
-                    plotter.plotAminoAcids show
-                    plotter.plotTotalSubst show
-                    plotter.plotEnantiomericExcess show
-                ]
-
-            match ChartInfo.tryCreate i.resultDataWithId.resultDataId i.chartData.initData.defaultValueId plots with
-            | Ok c -> i.sovlerRunnerProxy.saveChartInfo c |> mapSuccessValue GeneratedCharts
-            | Error e ->
-                printfn "Unable to create ChartInfo for resultDataId: %A, plots: %A, error: %A" i.resultDataWithId.resultDataId plots e
-                Error e
-
-        if i.resultDataWithId.resultData.maxEe >= i.serviceAccessInfo.minUsefulEe.value
-        then
-            printfn "Generating plots..."
-            plotAll false
-        else
-            printfn "Value of maxEe = %A is too small. Not creating plots." i.resultDataWithId.resultData.maxEe
-            Ok NotGeneratedCharts
+            {
+                resultDataId = i.resultDataWithId.resultDataId
+                defaultValueId = i.chartData.initData.defaultValueId
+                charts =
+                    [
+                        plotter.getAminoAcids ()
+                        plotter.getTotalSubst ()
+                        plotter.getEnantiomericExcess ()
+                    ]
+            }
+            |> GeneratedCharts
+    
+        if i.resultDataWithId.resultData.maxEe >= i.runSolverData.minUsefulEe.value
+        then plotAll ()
+        else NotGeneratedCharts
 
 
-    let runSolver (logCrit : string -> unit) (results : ParseResults<SolverRunnerArguments>) usage =
-        match results.TryGetResult EndTime, results.TryGetResult TotalAmount, results.TryGetResult ModelId, tryGetServiceInfo results, results.TryGetResult ResultId, results.TryGetResult WrkNodeId with
-        | Some tEnd, Some y0, Some modelDataId, Some i, Some d, Some g ->
-            let p = SolverRunnerProxy.create (getSolverRunnerProxy results)
-            match p.loadModelData i (ModelDataId modelDataId) with
-            | Ok md ->
-                printfn "Starting at: %A" DateTime.Now
-                let a = results.GetResult (UseAbundant, defaultValue = false)
+    /// A function to test how to cancel hung up solvers.
+    let private testCancellation (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData)  =
+        let mutable counter = 0
+        let mutable cancel = false
 
-                let c =
-                    {
-                        tEnd = tEnd
-                        y0 = y0
-                        useAbundant = a
-                    }
+        while not cancel do
+            cancel <- proxy.checkCancellation w.runningProcessData.runQueueId
+            printfn "runSolver: runQueueId = %A, counter = %A, cancel = %A" w.runningProcessData.runQueueId counter cancel
+            Thread.Sleep 10000
+            counter <- counter + 1
 
-                let w = g |> MessagingClientId |> WorkerNodeId
-                let pp = results.TryGetResult ProgrNotifPoints
-                let runSolverData = RunSolverData.create md i c (RunQueueId d) w pp
+        // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        // There seems to be no other easy and clean way. Revisit if that changes.
+        // Follow the trail of that date stamp to find other related places.
+        //
+        // Note that we mimic the exception raised by the real solver when cancellation is requested.
+        // See comments to the exception type below for reasoning.
+        raise(ComputationAbortedExcepton w.runningProcessData.runQueueId)
 
-                try
-                    let nSolveParam = getNSolveParam runSolverData
-                    let data = nSolveParam 0.0 (double tEnd)
-                    nSolve data |> ignore
 
-                    printfn "Saving."
-                    let (r, chartData) = getResultAndChartData (ResultDataId d) w runSolverData
+    /// Uncomment printfn below in case of severe issues.
+    /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
+    let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) : unit =
+        let logIfFailed result =
+            match result with
+            | Ok() -> ignore()
+            | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
 
-                    let chartResult =
-                        {
-                            runSolverData = runSolverData
-                            serviceAccessInfo = i
-                            resultDataWithId = r
-                            chartData = chartData
-                            sovlerRunnerProxy = p
-                        }
-                        |> plotAllResults
+        let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
 
-                    let result = r |> p.saveResultData
-                    printfn "Completed."
+        try
+            // Uncomment temporarily when you need to test cancellations.
+            //testCancellation proxy w
 
-                    let onCompleted c =
-                        match runSolverData.onCompleted c with
-                        | Ok() -> ignore()
-                        | Error e -> logCrit (sprintf "%A" e)
+            let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
+            let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
+            let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
 
-                    match chartResult, result with
-                    | Ok c, Ok() -> onCompleted c
-                    | Ok c, Error e ->
-                        logCrit (sprintf "%A" e)
-                        onCompleted c
-                    | Error e, Ok() ->
-                        logCrit (sprintf "%A" e)
-                        onCompleted NotGeneratedCharts
-                    | Error e1, Error e2 ->
-                        logCrit (sprintf "%A" (e1 + e2))
-                        onCompleted NotGeneratedCharts
+            printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+            nSolve data |> ignore
+            printfn "runSolver: ...call to nSolve for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
 
-                    CompletedSuccessfully
-                with
-                | ex ->
-                    printfn "Failed!"
+            let (r, chartData) = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
+            let result = proxy.saveResult r
 
-                    match runSolverData.onFailed (ex.ToString()) with
-                    | Ok() -> ignore()
-                    | Error e -> logCrit (sprintf "ERROR: %A, EXCEPTION: %A" e ex)
+            let chartResult =
+                {
+                    runSolverData = runSolverData
+                    resultDataWithId = r
+                    chartData = chartData
+                }
+                |> plotAllResults
+                |> proxy.saveCharts
 
-                    UnknownException
-            | _ ->
-                let msg = sprintf "Unable to load model with id: %A" modelDataId
-                printfn "%s" msg
-                logCrit msg
-                UnknownException
-        | _ ->
-            printfn "%s" usage
-            logCrit usage
-            InvalidCommandLineArgs
+            printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+            let completedResult =
+                {
+                    runQueueId = w.runningProcessData.runQueueId
+                    progress = Completed
+                }
+                |> proxy.updateProgress
+                |> proxy.transmitMessages
+
+            foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
+            printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+        with
+        // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        // There seems to be no other easy and clean way. Revisit if that changes.
+        // Follow the trail of that date stamp to find other related places.
+        | ComputationAbortedExcepton _ ->
+            printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                progress = Cancelled
+            }
+            |> updateFinalProgress
+        | e ->
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                progress = e.ToString() |> ErrorMessage |> Failed
+            }
+            |> updateFinalProgress

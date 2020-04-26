@@ -8,42 +8,35 @@ open System
 module MsgAdmTasks =
 
     let monitorService (service : IMessagingService) =
-    //let monitorService (service : IMessagingWcfService) =
-        let i = 30_000
+    ////let monitorService (service : IMessagingWcfService) =
+    //    let i = 30_000
 
-        while true do
-            try
-                printfn "Getting messaging service state..."
-                let state = service.getState()
+    //    while true do
+    //        try
+    //            printfn "Getting messaging service state..."
+    //            let state = service.getState()
 
-                let n =
-                    match state with
-                    | Ok s -> s.msgInfo |> List.map (fun (_, e) -> e.Length) |> List.sum
-                    | Error _-> 0
-                printfn "State at %A is: %A\nNumber of messages: %i.\n" DateTime.Now state n
-            with
-            | e -> printfn "Exception: %A\n" e.Message
+    //            let n =
+    //                match state with
+    //                | Ok s -> s.msgInfo |> List.map (fun (_, e) -> e.Length) |> List.sum
+    //                | Error _-> 0
+    //            printfn "State at %A is: %A\nNumber of messages: %i.\n" DateTime.Now state n
+    //        with
+    //        | e -> printfn "Exception: %A\n" e.Message
 
-            Thread.Sleep(i)
+    //        Thread.Sleep(i)
 
         ignore()
 
 
-    let stopService (service : IMessagingService) = service.configureService (MsgWorkState ShuttingDown)
-    let startService (service : IMessagingService) = service.configureService (MsgWorkState CanTransmitMessages)
-
-    //let stopService (service : IMessagingWcfService) = service.configureService (MsgWorkState ShuttingDown)
-    //let startService (service : IMessagingWcfService) = service.configureService (MsgWorkState CanTransmitMessages)
-
+    let stopService (service : IMessagingService) = ignore() // service.configureService (MsgWorkState ShuttingDown)
+    let startService (service : IMessagingService) = ignore() // service.configureService (MsgWorkState CanTransmitMessages)
 
     type MsgAdmTask =
         | MonitorMsgServiceTask of IMessagingService
         | StartMsgServiceTask of IMessagingService
         | StopMsgServiceTask of IMessagingService
 
-        //| MonitorMsgServiceTask of IMessagingWcfService
-        //| StartMsgServiceTask of IMessagingWcfService
-        //| StopMsgServiceTask of IMessagingWcfService
 
         member task.run () =
             match task with

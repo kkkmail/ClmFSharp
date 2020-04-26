@@ -6,11 +6,11 @@ open System.IO.Compression
 open System.Text
 open ClmSys.VersionInfo
 open ClmSys.Logging
-open System.Diagnostics
 open MBrace.FsPickler
 open Newtonsoft.Json
 open GeneralPrimitives
 open GeneralErrors
+open ContGenPrimitives
 
 module GeneralData =
 
@@ -38,25 +38,12 @@ module GeneralData =
         serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
-    let private getServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+    let getServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
         "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
-    let private getWcfServiceUrlImpl serviceAddress (servicePort : int) serviceName =
+    let getWcfServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
         "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
-
-
-    type ServiceAccessInfo =
-        {
-            serviceAddress : ServiceAddress
-            servicePort : ServicePort
-            inputServiceName : string
-        }
-
-        member s.serviceName = s.inputServiceName
-        member s.serviceUrl = getServiceUrlImpl s.serviceAddress.value s.servicePort.value s.serviceName
-        member s.wcfServiceName = toValidServiceName s.inputServiceName
-        member s.wcfServiceUrl = getWcfServiceUrlImpl s.serviceAddress.value s.servicePort.value s.wcfServiceName
 
 
     let toVariableName (s : string) =
@@ -101,11 +88,6 @@ module GeneralData =
 
 
     type ResultDataId
-        with
-        member this.toRunQueueId() = this.value |> RunQueueId
-
-
-    type RemoteProcessId
         with
         member this.toRunQueueId() = this.value |> RunQueueId
 
@@ -209,6 +191,19 @@ module GeneralData =
             let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
             started.Add estRunTime |> Some
         else None
+
+
+    type TaskProgress
+        with
+
+        member progress.estimateEndTime (started : DateTime) =
+            match progress with
+            | NotStarted -> None
+            | InProgress p -> estimateEndTime p started
+            | Completed _ -> Some DateTime.Now
+            | Failed _ -> None
+            | Cancelled -> None
+            | AllCoresBusy _ -> None
 
 
     let partition maxVal q n =
@@ -365,30 +360,19 @@ module GeneralData =
     let time f a = System.Diagnostics.Stopwatch.StartNew() |> (fun sw -> (f a, sw.Elapsed))
 
 
-    let timedImpl (l : Logger) name f =
+    let timedImplementation b (l : Logger) name f =
         let (r, t) = time f ()
 
-        if t.TotalSeconds <= 5.0
-        then l.logInfoString (sprintf "%s: Execution time: %A" name t)
+        if t.TotalSeconds <= 10.0
+        then
+            if b then l.logInfoString (sprintf "%s: Execution time: %A" name t)
         else l.logInfoString (sprintf "%s: !!! LARGE Execution time: %A" name t)
 
         r
 
+
+    let timedImpl l n f = timedImplementation true l n f
     let timed name f a = timedImpl logger name (fun () -> f a)
-
-
-    let tryGetProcessById (LocalProcessId v) =
-        try
-            Process.GetProcessById v |> Some
-        with
-        | _ -> None
-
-
-    let tryGetProcessName (p : Process) =
-        try
-            p.ProcessName |> Some
-        with
-        | _ -> None
 
 
     let private xmlSerializer = FsPickler.CreateXmlSerializer(indent = true)
@@ -449,8 +433,59 @@ module GeneralData =
             e |> DeserializationExn |> Error
 
 
+    let reply (r : AsyncReplyChannel<'T>) result = r.Reply result
+
+
     /// Replies with result and returns the state.
     /// It is used by MailboxProcessor based classes to standardize approach for PostAndReply.
     let withReply (r : AsyncReplyChannel<'T>) (s, result) =
         r.Reply result
         s
+
+
+    // !!! kk:20200322 - DO NOT DELETE !!!
+    //type RunProcArgs =
+    //    {
+    //        fileName : string
+    //        commandLineArgs : string
+    //        startDir : string option
+    //    }
+    //
+    //
+    //let runProc (c : RunningProcessData) filename args startDir =
+    //    let procStartInfo =
+    //        ProcessStartInfo(
+    //            RedirectStandardOutput = true,
+    //            RedirectStandardError = true,
+    //            UseShellExecute = false,
+    //            FileName = filename,
+    //            Arguments = args
+    //        )
+    //
+    //    match startDir with | Some d -> procStartInfo.WorkingDirectory <- d | _ -> ()
+    //
+    //    let outputs = System.Collections.Generic.List<string>()
+    //    let errors = System.Collections.Generic.List<string>()
+    //    let outputHandler f (_sender:obj) (args:DataReceivedEventArgs) = f args.Data
+    //    let p = new Process(StartInfo = procStartInfo)
+    //    p.OutputDataReceived.AddHandler(DataReceivedEventHandler (outputHandler outputs.Add))
+    //    p.ErrorDataReceived.AddHandler(DataReceivedEventHandler (outputHandler errors.Add))
+    //
+    //    try
+    //        p.Start() |> ignore
+    //        p.PriorityClass <- ProcessPriorityClass.Idle
+    //        let processId = p.Id |> LocalProcessId
+    //
+    //        printfn "Started %s with pid %A" p.ProcessName processId
+    //
+    //        {
+    //            localProcessId = processId
+    //            runningProcessData = c
+    //        }
+    //        |> Ok
+    //    with
+    //    | ex ->
+    //        printfn "Failed to start process %s" filename
+    //        ex.Data.["filename"] <- filename
+    //        ex.Data.["arguments"] <- args
+    //        FailedToStart ex |> Error

@@ -1,10 +1,7 @@
 ﻿namespace DbData
 
-open System.Data
-open System.Data.SqlClient
 open Newtonsoft.Json
 open FSharp.Data
-open Configuration
 open System
 open ClmSys.VersionInfo
 open Clm.Substances
@@ -14,53 +11,19 @@ open Clm.CalculationData
 open Clm.ReactionRates
 open DynamicSql
 open ClmSys.GeneralErrors
-open ClmSys.Retry
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.ContGenData
 open ClmSys.WorkerNodeData
 open ClmSys
+open ClmSys.PartitionerData
 
+// ! Must be the last to open !
+open Configuration
 
 module DatabaseTypes =
-
-    let private toError g f = f |> g |> DbErr |> Error
-    let private addError g f e = ((f |> g |> DbErr) + e) |> Error
-    let private mapException e = e |> DbExn |> DbErr
-    let private mapExceptionToError e = e |> DbExn |> DbErr |> Error
-
-
-    let private openConnIfClosed (conn : SqlConnection) =
-        match conn.State with
-        | ConnectionState.Closed -> do conn.Open()
-        | _ -> ignore ()
-
-
-    let private getOpenConn (ConnectionString connectionString) =
-        let conn = new SqlConnection(connectionString)
-        openConnIfClosed conn
-        conn
-
-
-    /// Maps missing value (None) to DbErr.
-    let private mapDbError f i v =
-        v
-        |> Option.map Ok
-        |> Option.defaultValue (i |> f |> DbErr |> Error)
-
-
-    let private tryDbFun g =
-        let w() =
-            try
-                g()
-            with
-            | e -> mapExceptionToError e
-
-        tryRopFun mapException w
-
 
     type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = AppConfigFile>
 
@@ -156,7 +119,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -179,7 +142,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where r.runQueueStatusId = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
+        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
         order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
 
 
@@ -375,6 +338,7 @@ module DatabaseTypes =
                                 }
                         }
                     runQueueStatus = s
+                    errorMessageOpt = r.errorMessage |> Option.map ErrorMessage
                     workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                     progress = TaskProgress.create r.progress
                     createdOn = r.createdOn
@@ -389,40 +353,61 @@ module DatabaseTypes =
                         modelDataId = r.info.modelDataId.value,
                         y0 = r.modelCommandLineParam.y0,
                         tEnd = r.modelCommandLineParam.tEnd,
+                        runQueueStatusId = r.runQueueStatus.value,
                         useAbundant = r.modelCommandLineParam.useAbundant,
                         workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                         progress = r.progress.value,
                         modifiedOn = DateTime.Now
                         )
 
-            newRow.runQueueStatusId <- r.runQueueStatus.value
+            newRow.errorMessage <- r.errorMessageOpt |> Option.bind (fun e -> Some e.value)
             t.Rows.Add newRow
             newRow
 
         /// The following transitions are allowed here:
-        ///     NotStartedRunQueue + None (workerNodeId) -> InProgressRunQueue + Some workerNodeId.
-        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0).
-        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId.
         ///
+        ///     NotStartedRunQueue + None (workerNodeId) -> RunRequestedRunQueue + Some workerNodeId - scheduled (but not yet confirmed) new work.
+        ///     NotStartedRunQueue + None (workerNodeId) -> CancelledRunQueue + None (workerNodeId) - cancelled work that has not been scheduled yet.
+        ///
+        ///     RunRequestedRunQueue + Some workerNodeId -> NotStartedRunQueue + None (workerNodeId) - the node rejected work.
+        ///     RunRequestedRunQueue + Some workerNodeId -> InProgressRunQueue + the same Some workerNodeId - the node accepted work.
+        ///     RunRequestedRunQueue + Some workerNodeId -> CancelRequestedRunQueue + the same Some workerNodeId -
+        //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
+        ///     + -> completed / failed
+        ///
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress - normal work progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0) - completed work.
+        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
+        ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
+
+        ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
+        ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
+        ///         roll back to cancel requested - in progress message came while our cancel request propages through the system.
+        ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
+        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propaged through the system.
+        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propaged through the system.
+
         /// All others are not allowed and / or out of scope of this function.
-        ///
-        ///     TODO kk:20200222 - I am not sure that this is needed, so it is not yet implemented:
-        ///         ... -> ModifyingRunQueue -> ...
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-            let g p s =
+            let g p s u =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
                 r.progress <- p
+                r.errorMessage <- q.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
                 match s with
-                | Some v -> r.startedOn <- Some v
+                | Some (Some v) -> r.startedOn <- Some v
+                | Some None-> r.startedOn <- None
                 | None -> ignore()
 
                 r.modifiedOn <- DateTime.Now
-                r.runQueueStatusId <- q.runQueueStatus.value
+
+                match u with
+                | true -> r.runQueueStatusId <- q.runQueueStatus.value
+                | false -> ignore()
+
                 Ok()
 
             let f s =
@@ -442,10 +427,25 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue, None, InProgressRunQueue, Some _ -> g NotStarted.value (Some DateTime.Now)
-                | InProgressRunQueue, Some w1, InProgressRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None
-                | InProgressRunQueue, Some w1, CompletedRunQueue, Some w2 when w1 = w2.value.value -> g (Completed NotGeneratedCharts).value None
-                | InProgressRunQueue, Some w1, FailedRunQueue, Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None
+                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g NotStarted.value (Some (Some DateTime.Now)) true
+                | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g TaskProgress.failedValue None true
+
+                | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
+                | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
+
+                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
+                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
+                | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
+
+                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None false // !!! Roll back the status change !!!
+                | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
 
@@ -453,25 +453,26 @@ module DatabaseTypes =
     type WorkerNodeInfo
         with
 
+        /// TODO kk:20200329 - Note that partitionerId is hard coded. Revisit if necessary.
         static member create (r : WorkerNodeTableRow) =
             {
                 workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
-
-                nodeInfo =
-                    {
-                        workerNodeName = r.workerNodeName |> WorkerNodeName
-                        noOfCores = r.numberOfCores
-                        nodePriority = r.nodePriority |> WorkerNodePriority
-                    }
+                workerNodeName = r.workerNodeName |> WorkerNodeName
+                noOfCores = r.numberOfCores
+                partitionerId = defaultPartitionerId
+                nodePriority = r.nodePriority |> WorkerNodePriority
+                isInactive = r.isInactive
+                lastErrorDateOpt = r.lastErrorOn
             }
 
         member w.addRow (t : WorkerNodeTable) =
             let newRow =
                 t.NewRow(
                         workerNodeId = w.workerNodeId.value.value,
-                        workerNodeName = w.nodeInfo.workerNodeName.value,
-                        numberOfCores = w.nodeInfo.noOfCores,
-                        nodePriority = w.nodeInfo.nodePriority.value
+                        workerNodeName = w.workerNodeName.value,
+                        numberOfCores = w.noOfCores,
+                        nodePriority = w.nodePriority.value,
+                        lastErrorOn = w.lastErrorDateOpt
                         )
 
             newRow.modifiedOn <- DateTime.Now
@@ -479,10 +480,11 @@ module DatabaseTypes =
             newRow
 
         member w.updateRow (r : WorkerNodeTableRow) =
-            r.workerNodeName <- w.nodeInfo.workerNodeName.value
-            r.numberOfCores <- w.nodeInfo.noOfCores
-            r.nodePriority <- w.nodeInfo.nodePriority.value
+            r.workerNodeName <- w.workerNodeName.value
+            r.numberOfCores <- w.noOfCores
+            r.nodePriority <- w.nodePriority.value
             r.modifiedOn <- DateTime.Now
+            r.lastErrorOn <- w.lastErrorDateOpt
 
 
     let loadClmDefaultValue connectionString (ClmDefaultValueId clmDefaultValueId) =
@@ -770,6 +772,7 @@ module DatabaseTypes =
                             }
                     }
                 runQueueStatus = s
+                errorMessageOpt = reader?errorMessage |> Option.map ErrorMessage
                 workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                 progress = TaskProgress.create reader?progress
                 createdOn = reader?createdOn
@@ -852,14 +855,11 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let deleteRunQueue (ConnectionString connectionString) (RunQueueId runQueueId) =
+    let deleteRunQueue (ConnectionString connectionString) (runQueueId : RunQueueId) =
         let g() =
-            use cmd = new SqlCommandProvider<"
-                delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
-            let rowsAffected = cmd.Execute(runQueueId = runQueueId)
-
-            match rowsAffected = 1 with
+            match cmd.Execute(runQueueId = runQueueId.value) = 1 with
             | true -> Ok ()
             | false -> toError DeleteRunQueueEntryErr runQueueId
 
@@ -915,6 +915,15 @@ module DatabaseTypes =
         tryDbFun g
 
 
+    let upsertWorkerNodeErr connectionString i =
+        let g() =
+            match loadWorkerNodeInfo connectionString i with
+            | Ok w -> upsertWorkerNodeInfo connectionString { w with lastErrorDateOpt = Some DateTime.Now }
+            | Error e -> Error e
+
+        tryDbFun g
+
+
     [<Literal>]
     let availablbeWorkerNodeSql = @"
         ; with q as
@@ -922,13 +931,18 @@ module DatabaseTypes =
         select
             workerNodeId
             ,nodePriority
-            ,cast(case when numberOfCores <= 0 then 1 else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId = 2) / (cast(numberOfCores as money)) end as money) as workLoad
+            ,cast(
+                case
+                    when numberOfCores <= 0 then 1
+                    else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
+                end as money) as workLoad
+            ,case when lastErrorOn is null or dateadd(minute, " + lastAllowedNodeErrInMinutes + @", lastErrorOn) < getdate() then 0 else 1 end as noErr
         from WorkerNode w
         )
         select top 1
         workerNodeId
         from q
-        where workLoad < 1
+        where noErr = 0 and workLoad < 1
         order by nodePriority desc, workLoad, newid()"
 
 

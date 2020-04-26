@@ -13,7 +13,7 @@ module Program =
     [<EntryPoint>]
     let main (argv : string[]) : int =
         try
-            let parser = ArgumentParser.Create<WorkerNodeServiceArguArgs>(programName = WorkerNodeServiceProgramName)
+            let parser = ArgumentParser.Create<WorkerNodeServiceArguArgs>(programName = workerNodeServiceProgramName)
             let results = (parser.Parse argv).GetAllResults() |> WorkerNodeServiceArgs.fromArgu convertArgs
 
             match WorkerNodeServiceTask.tryCreate getParams getSaveSettings results with

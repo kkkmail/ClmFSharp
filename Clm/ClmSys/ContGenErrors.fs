@@ -1,5 +1,12 @@
 ﻿namespace ClmSys
 
-module ContGenErrors =
-    let x = 1
+open GeneralErrors
 
+module ContGenErrors =
+
+    type TryDeleteRunQueueError =
+        | TryDeleteRunQueueWcfErr of WcfError
+
+
+    type ContGenServiceError =
+        | TryDeleteRunQueueErr of TryDeleteRunQueueError

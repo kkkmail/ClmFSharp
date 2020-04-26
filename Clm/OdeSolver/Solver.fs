@@ -2,6 +2,7 @@
 
 open Microsoft.FSharp.Core
 open System
+open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
@@ -51,6 +52,7 @@ module Solver =
     type NSolveParam =
         {
             modelDataId : Guid
+            runQueueId : RunQueueId
             tStart : double
             tEnd : double
             derivative : double[] -> double[]
@@ -60,6 +62,8 @@ module Solver =
             getEeData : (unit -> EeData) option
             noOfOutputPoints : int option
             noOfProgressPoints : int option
+            checkCancellation : RunQueueId -> bool
+            checkFreq : TimeSpan
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -80,6 +84,7 @@ module Solver =
         let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
+        let mutable lastCheck = DateTime.Now
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notify t r m =
@@ -92,13 +97,27 @@ module Solver =
             | Some c -> c t x
             | None -> ignore()
 
+        /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+        /// There seems to be no other easy and clean way. Revisit if that changes.
+        /// Follow the trail of that date stamp to find other related places.
+        let checkCancellation() =
+            let fromLastCheck = DateTime.Now - lastCheck
+            //printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
+
+            if fromLastCheck > n.checkFreq
+            then
+                lastCheck <- DateTime.Now
+                if n.checkCancellation n.runQueueId then raise(ComputationAbortedExcepton n.runQueueId)
+
         let f (x : double[]) (t : double) : double[] =
+            checkCancellation()
+
             match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
+                    //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
                     notify t progressCount k |> ignore
             | _ -> ignore()
 

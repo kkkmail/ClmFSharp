@@ -2,19 +2,14 @@
 
 open System
 open FSharp.Collections
-open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.SolverRunnerData
-open ClmSys.ContGenData
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
-open Clm.CommandLine
-open ClmSys.SolverRunnerPrimitives
 
 
 module ModelParams =
@@ -161,9 +156,6 @@ module ModelParams =
     let updateDescription d (lst : List<ClmDefaultValue>) = lst |> List.map (fun e -> { e with description = Some d })
 
 
-    /// TODO kk:20200214 - Possibly add NotifyAddress DefaultWorkerNodeServiceAddress
-    /// and NotifyPort DefaultWorkerNodeServicePort here.
-    /// Currently it is hard coded below in ModelCommandLineParam.
     /// Additional information needed to produce command line params for solver runner.
     type ModelCommandLineData =
         {
@@ -185,27 +177,6 @@ module ModelParams =
         }
 
 
-        member this.toCommandLine (d : ModelCommandLineData) =
-            let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
-
-            [
-                EndTime this.tEnd
-                TotalAmount this.y0
-                UseAbundant this.useAbundant
-                ModelId d.modelDataId.value
-                MinimumUsefulEe d.minUsefulEe.value
-                Remote d.remote
-                ResultId d.resultDataId.value
-                WrkNodeId d.workerNodeId.messagingClientId.value
-                ProgrNotifPoints (d.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints)
-
-                // TODO kk:20200214 - Currently hard coded to use worker node.
-                NotifyAddress DefaultWorkerNodeServiceAddress
-                NotifyPort DefaultWorkerNodeServicePort
-            ]
-            |> parser.PrintCommandLineArgumentsFlat
-
-
     type RunQueueInfo =
         {
             modelDataId : ModelDataId
@@ -219,6 +190,7 @@ module ModelParams =
             runQueueId : RunQueueId
             info : RunQueueInfo
             runQueueStatus : RunQueueStatus
+            errorMessageOpt : ErrorMessage option
             workerNodeIdOpt : WorkerNodeId option
             progress : TaskProgress
             createdOn : DateTime
@@ -238,6 +210,7 @@ module ModelParams =
                     }
 
                 runQueueStatus = NotStartedRunQueue
+                errorMessageOpt = None
                 workerNodeIdOpt = None
                 progress = NotStarted
                 createdOn = DateTime.Now

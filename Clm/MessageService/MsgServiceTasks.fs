@@ -1,12 +1,12 @@
 ﻿namespace MessagingService
 
 open Argu
-
 open ClmSys.ServiceInstaller
 open ClmSys.MessagingData
 open ClmSys.Logging
+open ClmSys.MessagingPrimitives
 open MessagingService.SvcCommandLine
-open MessagingService.WindowsService
+open MessagingService.MsgWindowsService
 open MessagingServiceInfo.ServiceInfo
 
 module ServiceTasks =
@@ -19,18 +19,12 @@ module ServiceTasks =
             |> List.choose id
 
 
-    let runService l (_, i) = startWcfServiceRun l i
-
-
-    let cleanupService (logger : Logger) i =
-        logger.logInfoString "MessagingWindowsService: Unregistering TCP channel."
-        //ChannelServices.UnregisterChannel(i.msgSvcTcpChannel)
-        printfn "cleanupService is not yet implemented."
+    let runService l (_ : list<MessagingConfigParam>, i) = startMsgWcfServiceRun l i
 
 
     let serviceInfo =
         {
-            serviceName = ServiceName MessagingServiceName
+            serviceName = messagingServiceName.value
             runService = runService
             cleanup = cleanupService
             timeoutMilliseconds = None

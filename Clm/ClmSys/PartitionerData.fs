@@ -1,7 +1,6 @@
 ﻿namespace ClmSys
 
 open System
-open GeneralData
 open MessagingData
 open MessagingPrimitives
 open PartitionerPrimitives
@@ -15,12 +14,11 @@ module PartitionerData =
     type PartitionerMsgAccessInfo =
         {
             partitionerId : PartitionerId
-            msgSvcAccessInfo : ServiceAccessInfo
+            messagingServiceAccessInfo : MessagingServiceAccessInfo
         }
 
         member this.messagingClientAccessInfo =
             {
                 msgClientId = this.partitionerId.messagingClientId
-                msgSvcAccessInfo = this.msgSvcAccessInfo
+                msgSvcAccessInfo = this.messagingServiceAccessInfo
             }
-

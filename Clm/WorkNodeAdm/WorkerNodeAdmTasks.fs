@@ -4,43 +4,46 @@ open WorkerNodeAdm.AdmCommandLine
 open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
 open System.Threading
+open ClmSys.ExitErrorCodes
 
 module WorkerNodeAdmTasks =
 
-    let monitor (service : IWorkerNodeService) p =
-        let i = 30_000
-            //match p |> List.tryPick (fun e -> match e with | RefreshInterval i -> Some i) with
-            //| Some i -> i * 1_000
-            //| None -> 30_000
+    let monitor p =
+        let d = 30_000
+        match getServiceAccessInfo p with
+        | Some i ->
+            let service = new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)
 
-        while true do
-            try
-                getServiceState service p
-            with
+            while true do
+                try
+                    getServiceState service DummyWrkMonitorParam
+                with
                 | e -> printfn "Exception: %A\n" e.Message
 
-            Thread.Sleep(i)
-        0
+                Thread.Sleep(d)
+        | None -> printfn "Nothing to do!"
+
+        CompletedSuccessfully
 
 
     type  WrkAdmTask =
-        | ConfigureWorkerNodeTask of IWorkerNodeService * list<WorkerNodeConfigParam>
-        | MonitorWorkerNodeTask of IWorkerNodeService * WorkerNodeMonitorParam
+        //| ConfigureWorkerNodeTask of IWorkerNodeService * list<WorkerNodeConfigParam>
+        | MonitorWorkerNodeTask of list<WorkerNodeAdmArgs>
 
         member task.run () =
             match task with
-            | ConfigureWorkerNodeTask (s, p) -> p |> List.map s.configure |> ignore
-            | MonitorWorkerNodeTask (s, p)-> monitor s p |> ignore
+            //| ConfigureWorkerNodeTask (s, p) -> p |> List.map s.configure |> ignore
+            | MonitorWorkerNodeTask p -> monitor p
 
-        static member private tryCreateConfigureTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
-            p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.nodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
+        //static member private tryCreateConfigureTask s (i : WorkerNodeServiceInfo) (p : list<WorkerNodeAdmArgs>) =
+        //    p |> List.tryPick (fun e -> match e with | ConfigureWrkService -> (s, [ WorkerNumberOfSores i.workerNodeInfo.noOfCores ]) |> ConfigureWorkerNodeTask |> Some | _ -> None)
 
-        static member private tryCreateMonitorTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
-            p |> List.tryPick (fun e -> match e with | MonitorWrkService -> (s, DummyWrkMonitorParam 0) |> MonitorWorkerNodeTask |> Some | _ -> None)
+        static member private tryCreateMonitorTask (p : list<WorkerNodeAdmArgs>) =
+            p |> List.tryPick (fun e -> match e with | MonitorWrkService -> p |> MonitorWorkerNodeTask |> Some | _ -> None)
 
-        static member tryCreateTask s (i : WorkerNodeServiceAccessInfo) (p : list<WorkerNodeAdmArgs>) =
+        static member tryCreate (p : list<WorkerNodeAdmArgs>) =
             [
                     WrkAdmTask.tryCreateMonitorTask
-                    WrkAdmTask.tryCreateConfigureTask
+                    //WrkAdmTask.tryCreateConfigureTask
             ]
-            |> List.tryPick (fun e -> e s i p)
+            |> List.tryPick (fun e -> e p)

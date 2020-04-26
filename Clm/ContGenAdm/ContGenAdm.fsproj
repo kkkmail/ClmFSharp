@@ -55,7 +55,7 @@
     <Prefer32Bit>true</Prefer32Bit>
     <PlatformTarget>x64</PlatformTarget>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
-    <StartArguments>m</StartArguments>
+    <StartArguments>c -q 1DBF7B8A-541D-43A1-987F-1885160036CC</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>
@@ -68,7 +68,7 @@
     <Prefer32Bit>true</Prefer32Bit>
     <PlatformTarget>x64</PlatformTarget>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
-    <StartArguments>m</StartArguments>
+    <StartArguments>c -q 1DBF7B8A-541D-43A1-987F-1885160036CC</StartArguments>
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
@@ -151,6 +151,16 @@
     <ProjectReference Include="..\DbData\DbData.fsproj">
       <Name>DbData</Name>
       <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageServiceInfo\MessagingServiceInfo.fsproj">
+      <Name>MessagingServiceInfo</Name>
+      <Project>{a993f0a8-3659-4a7d-87fc-e25902adea5e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Messaging\Messaging.fsproj">
+      <Name>Messaging</Name>
+      <Project>{fafb8e2d-719c-4e49-9ecc-febc10acd5f1}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj">

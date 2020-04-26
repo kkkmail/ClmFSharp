@@ -2,67 +2,96 @@
 
 open System
 open System.ServiceProcess
-open System.Runtime.Remoting.Channels
+open System.ServiceModel
 open Argu
-open ContGenService.ServiceImplementation
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.GeneralData
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
+open ClmSys.ContGenPrimitives
 open ClmSys.ContGenData
+open ClmSys.Wcf
+open ContGen.ModelRunner
+open ClmSys.ContGenErrors
+open ClmSys.ClmErrors
+open ClmSys
 
 module WindowsService =
 
-    let startServiceRun (logger : Logger) (i : ContGenServiceAccessInfo) : ContGenShutDownInfo option =
+    let mutable serviceData : ContGenServiceData = getContGenServiceData logger []
+    let private modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(fun () -> ModelRunner.create serviceData.modelRunnerData)
+
+
+    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
+    type ContGenWcfService() =
+        let toGetVersionError f = f |> TryDeleteRunQueueWcfErr |> TryDeleteRunQueueErr |> ContGenServiceErr
+        let tryCancelRunQueue a = modelRunner.Value |> Rop.bind (fun e -> e.tryCancelRunQueue a)
+
+        interface IContGenWcfService with
+            member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toGetVersionError b
+
+
+    let startContGenWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
         try
-            logger.logInfoString ("startServiceRun: registering ContGenService...")
-            serviceAccessInfo <- i
-            let channel = new Tcp.TcpChannel (i.contGenServiceAccessInfo.servicePort.value)
-            ChannelServices.RegisterChannel (channel, false)
-            let modelRunner = createModelRunnerImpl logger parserResults
-            do modelRunner.start()
+            printfn "startContGenWcfServiceRun: Creating WCF ContGen Service..."
+            serviceData <- i
 
-            {
-                contGenTcpChannel = channel
-            }
-            |> Some
+            match modelRunner.Value with
+            | Ok r ->
+                r.start()
 
+                let binding = getBinding()
+                let baseAddress = new Uri(i.contGenServiceAccessInfo.wcfServiceUrl)
+                let serviceHost = new ServiceHost(typeof<ContGenWcfService>, baseAddress)
+                let d = serviceHost.AddServiceEndpoint(typeof<IContGenWcfService>, binding, baseAddress)
+                do serviceHost.Open()
+                printfn "startContGenWcfServiceRun: Completed."
+
+                {
+                    contGenServiceHost = serviceHost
+                }
+                |> Some
+            | Error e ->
+                printfn "startContGenWcfServiceRun: Error - %A." e
+                None
         with
         | e ->
-            logger.logExn "startServiceRun: Starting service failed." e
+            logger.logExn "startContGenWcfServiceRun: Error starting WCF ContGen Service." e
             None
 
 
-    type public ContGenWindowsService () =
-        inherit ServiceBase (ServiceName = ContGenServiceName)
+    let cleanupService (logger : Logger) (i : ContGenWcfSvcShutDownInfo) =
+        try
+            logger.logInfoString "ContGenWindowsService: Closing WCF service host."
+            i.contGenServiceHost.Close()
+        with
+        | e -> logger.logExn "ContGenWindowsService: Exception occurred: " e
 
-        let mutable shutDownInfo : ContGenShutDownInfo option = None
+
+    type public ContGenWindowsService () =
+        inherit ServiceBase (ServiceName = contGenServiceName.value.value)
+
         let logger = Logger.log4net
         let initService () = ()
         do initService ()
-
+        let mutable shutDownWcfInfo : ContGenWcfSvcShutDownInfo option = None
 
         let tryDispose() =
-            match shutDownInfo with
+            match shutDownWcfInfo with
             | Some i ->
-                logger.logInfoString "ContGenWindowsService: Unregistering TCP channel."
-                ChannelServices.UnregisterChannel(i.contGenTcpChannel)
-                shutDownInfo <- None
+                cleanupService logger i
+                shutDownWcfInfo <- None
             | None -> ignore()
 
-
-        override __.OnStart (args : string[]) =
+        override _.OnStart (args : string[]) =
             base.OnStart(args)
-            let parser = ArgumentParser.Create<ContGenRunArgs>(programName = ContGenServiceProgramName)
+            let parser = ArgumentParser.Create<ContGenRunArgs>(programName = contGenServiceProgramName)
             let results = (parser.Parse args).GetAllResults()
-            let i = getServiceAccessInfo results
-            shutDownInfo <- startServiceRun logger i
+            let i = getContGenServiceData logger results
+            shutDownWcfInfo <- startContGenWcfServiceRun logger i
 
-
-        override __.OnStop () =
+        override _.OnStop () =
             tryDispose()
             base.OnStop()
 
-
         interface IDisposable with
-            member __.Dispose() = tryDispose()
+            member _.Dispose() = tryDispose()

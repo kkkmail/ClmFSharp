@@ -82,7 +82,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ContGenCommandLine.fs" />
-    <Compile Include="ContGenImplementation.fs" />
     <Compile Include="ContGenWindowsService.fs" />
     <Compile Include="ContGenInstaller.fs" />
     <Compile Include="ContGenServiceTasks.fs" />

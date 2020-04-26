@@ -2,7 +2,6 @@
 
 open System.Threading
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.ExitErrorCodes
 open DbData.Configuration
 open DbData.DatabaseTypes
 open Clm.ModelParams
@@ -17,7 +16,7 @@ module ContGenAdmTasks =
 
     let logError e =
         printfn "Error occurred: %A" e
-        UnknownException
+        Ok()
 
 
     let loadClmDefaultValue = loadClmDefaultValue clmConnectionString
@@ -61,39 +60,17 @@ module ContGenAdmTasks =
                         match generateModel proxy t with
                         | Ok modelDataId ->
                             match generateModelCode proxy.generateModelCodeProxy modelDataId t with
-                            | Ok _ -> CompletedSuccessfully
+                            | Ok _ -> Ok()
                             | Error e -> logError e
                         | Error e -> logError e
-                    | false -> CompletedSuccessfully
+                    | false -> Ok()
                 | Error e -> logError e
             | Error e ->
                 printfn "updateParameters: Cannot find data for default set index %A, Error: %A" i e
-                InvalidCommandLineArgs
+                Ok()
         | _ ->
             printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
-            InvalidCommandLineArgs
-
-
-    //let runModel (service : IContGenService) i (p :list<RunModelArgs>) =
-    //    match tryGetModelId p, tryGetY0 p, tryGetTEnd p with
-    //    | Some m, Some y, Some t ->
-    //        let c =
-    //            {
-    //                taskParam =
-    //                    {
-    //                        tEnd = t
-    //                        y0 = y
-    //                        useAbundant = false
-    //                    }
-    //
-    //                serviceAccessInfo = i
-    //            }
-    //
-    //        service.runModel m c
-    //        CompletedSuccessfully
-    //    | _ ->
-    //        printfn "Missing some command line arguments!"
-    //        InvalidCommandLineArgs
+            Ok()
 
 
     let monitor (p :list<MonitorArgs>) =
@@ -111,51 +88,33 @@ module ContGenAdmTasks =
             | e -> printfn "Exception: %A\n" e.Message
 
             Thread.Sleep(i)
-        0
-
-
-    //let configureService (service : IContGenService) (p :list<ConfigureServiceArgs>) =
-    //    try
-    //        p
-    //        |> List.map (fun e -> e.configParam |> service.configureService)
-    //        |> ignore
-    //        0
-    //    with
-    //    | e ->
-    //        printfn "Exception: %A\n" e.Message
-    //        -1
+        Ok()
 
 
     type ContGenAdmTask =
         | AddClmTaskTask of list<AddClmTaskArgs>
-        //| RunModelTask of service : IContGenService * list<RunModelArgs>
         | MonitorTask of list<MonitorArgs>
-        //| ConfigureServiceTask of service : IContGenService * arguments : list<ConfigureServiceArgs>
+        | CancelRunQueueTask of list<CancelRunQueueArgs>
 
-        member task.run () =
+        member task.run logger =
             match task with
             | AddClmTaskTask p -> addClmTask p
-            //| RunModelTask (s, p) -> runModel s i p
             | MonitorTask p -> monitor p
-            //| ConfigureServiceTask (s, p) -> configureService s p
+            | CancelRunQueueTask p -> tryCancelRunQueueImpl logger p
 
         static member private tryCreateUpdateParametersTask p =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
-        //static member private tryCreateRunModelTask s p =
-        //    p |> List.tryPick (fun e -> match e with | RunModel q -> (s, q.GetAllResults()) |> RunModelTask |> Some | _ -> None)
-
         static member private tryCreateMonitorTask p =
             p |> List.tryPick (fun e -> match e with | Monitor q -> q.GetAllResults() |> MonitorTask |> Some | _ -> None)
 
-        //static member private tryCreatConfigureServiceTask s p =
-        //    p |> List.tryPick (fun e -> match e with | ConfigureService q -> (s, q.GetAllResults()) |> ConfigureServiceTask |> Some | _ -> None)
+        static member private tryCreatCancelRunQueueTask p =
+            p |> List.tryPick (fun e -> match e with | CancelRunQueue q -> q.GetAllResults() |> CancelRunQueueTask |> Some | _ -> None)
 
         static member tryCreate p =
             [
                 ContGenAdmTask.tryCreateUpdateParametersTask
-                //ContGenAdmTask.tryCreateRunModelTask
-                //ContGenAdmTask.tryCreatConfigureServiceTask
+                ContGenAdmTask.tryCreatCancelRunQueueTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]
             |> List.tryPick (fun e -> e p)

@@ -1,67 +1,49 @@
 ﻿namespace MessagingService
 
-open System
+open System.ServiceModel
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open Messaging.Service
 open ServiceProxy.MsgServiceProxy
-open System.ServiceModel
 open ClmSys.Wcf
 open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
+open DbData.Configuration
+open ClmSys
 
 module ServiceImplementation =
-
-    let private toMessagingServiceErr g f = f |> g |> MessagingServiceErr
-    let private toError g f = f |> g |> MessagingServiceErr |> Error
-    let private addError g f e = ((f |> g |> MessagingServiceErr) + e) |> Error
-
-    let createServiceImpl (i : MessagingServiceAccessInfo) : MessagingService =
-        let d : MessagingServiceData =
-            {
-                messagingServiceProxy = MessagingServiceProxy.create()
-            }
-
-        let service = MessagingService d
-        do service.start() |> ignore
-        service
-
 
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
-    type MessagingRemoteService () =
-        inherit MarshalByRefObject()
+    let private createMessagingService (i : MessagingServiceAccessInfo) : MessagingService =
+        let d : MessagingServiceData =
+            {
+                messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
+            }
 
-        let a = createServiceImpl serviceAccessInfo
+        let service = MessagingService d
+        service
 
-        let initService () = ()
-        do initService ()
 
-        interface IMessagingService with
-            member __.getVersion() = a.getVersion()
-            member __.sendMessage m = a.sendMessage m
-            member __.configureService x = a.configureService x
-            member __.tryPeekMessage n = a.tryPeekMessage n
-            member __.tryDeleteFromServer x = a.tryDeleteFromServer x
-            member __.getState() = a.getState()
+    let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService serviceAccessInfo |> Ok)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type MessagingWcfService() =
-        let a = createServiceImpl serviceAccessInfo
         let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr
         let toSendMessageError f = f |> MsgWcfErr |> MessageDeliveryErr |> MessagingServiceErr
-        let toConfigureServiceError f = f |> CfgSvcWcfErr |> ConfigureServiceErr |> MessagingServiceErr
         let toTryPickMessageError f = f |> TryPeekMsgWcfErr |> TryPeekMessageErr |> MessagingServiceErr
         let toTryDeleteFromServerError f = f |> TryDeleteMsgWcfErr |> TryDeleteFromServerErr |> MessagingServiceErr
-        let toGetStateError f = f |> GetStateWcfErr |> GetStateErr |> MessagingServiceErr
+
+        let getVersion() = messagingService.Value |> Rop.bind (fun e -> e.getVersion())
+        let sendMessage b = messagingService.Value |> Rop.bind (fun e -> e.sendMessage b)
+        let tryPeekMessage b = messagingService.Value |> Rop.bind (fun e -> e.tryPeekMessage b)
+        let tryDeleteFromServer b = messagingService.Value |> Rop.bind (fun e -> e.tryDeleteFromServer b)
 
         interface IMessagingWcfService with
-            member __.getVersion b = tryReply a.getVersion toGetVersionError b
-            member __.sendMessage b = tryReply a.sendMessage toSendMessageError b
-            member __.configureService b = tryReply a.configureService toConfigureServiceError b
-            member __.tryPeekMessage b = tryReply a.tryPeekMessage toTryPickMessageError b
-            member __.tryDeleteFromServer b = tryReply a.tryDeleteFromServer toTryDeleteFromServerError b
-            member __.getState b = tryReply a.getState toGetStateError b
+            member _.getVersion b = tryReply getVersion toGetVersionError b
+            member _.sendMessage b = tryReply sendMessage toSendMessageError b
+            member _.tryPeekMessage b = tryReply tryPeekMessage toTryPickMessageError b
+            member _.tryDeleteFromServer b = tryReply tryDeleteFromServer toTryDeleteFromServerError b

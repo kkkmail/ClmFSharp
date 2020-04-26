@@ -4,8 +4,8 @@ open System.Configuration.Install
 open System.ComponentModel
 open System.ServiceProcess
 
-open ContGenServiceInfo.ServiceInfo
 open ContGenService.WindowsService
+open ClmSys.ContGenPrimitives
 
 [<RunInstaller(true)>]
 type ContGenServiceInstaller() =
@@ -18,12 +18,11 @@ type ContGenServiceInstaller() =
 
         // Specify properties of the service running inside the process.
         new ServiceInstaller
-          ( DisplayName = ContGenServiceName,
-            ServiceName = ContGenServiceName,
+          ( DisplayName = contGenServiceName.value.value,
+            ServiceName = contGenServiceName.value.value,
             StartType = ServiceStartMode.Automatic )
         |> base.Installers.Add |> ignore
 
 
 // Run the services when the process starts.
-module Main =
-    ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]
+module Main = ServiceBase.Run [| new ContGenWindowsService() :> ServiceBase |]

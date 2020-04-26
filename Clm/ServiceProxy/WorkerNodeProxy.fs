@@ -1,42 +1,15 @@
 ﻿namespace ServiceProxy
 
 open NoSql.FileSystemTypes
-open ClmSys.Registry
 open MessagingServiceInfo.ServiceInfo
-open ContGenServiceInfo.ServiceInfo
-open Clm.CalculationData
-open Clm.ModelParams
-open ClmSys.GeneralErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.SolverRunnerData
-open ClmSys.GeneralData
-
+open ClmSys.SolverRunnerErrors
+open ClmSys.WorkerNodePrimitives
+open ClmSys.MessagingPrimitives
 
 module WorkerNodeProxy =
-
-    let getCommandLine (p : RunModelParam) r e pp =
-        let data =
-            {
-                modelDataId = p.callBackInfo.modelDataId
-                resultDataId = p.callBackInfo.runQueueId.toResultDataId()
-                workerNodeId = p.callBackInfo.workerNodeId
-                minUsefulEe = e
-                remote = r
-                noOfProgressPoints = pp
-            }
-
-        let commandLineParams = p.callBackInfo.commandLineParams.toCommandLine data
-        commandLineParams
-
-
-    let runLocalModel (p : RunModelParam) r e pp =
-        let fullExeName = getExeName p.exeName
-        let commandLineParams = getCommandLine p r e pp
-        printfn "runModel::commandLineParams = %A\n" commandLineParams
-        runProc p.callBackInfo fullExeName commandLineParams None
-
 
     type StorageType =
         | LocalStorage of ConnectionString
@@ -58,43 +31,19 @@ module WorkerNodeProxy =
     type WorkerNodeProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
-            loadWorkerNodeRunModelData : RemoteProcessId -> ClmResult<WorkerNodeRunModelData>
-            tryDeleteWorkerNodeRunModelData : RemoteProcessId -> UnitResult
-            runModel : RunModelParam ->  Result<LocalProcessStartedInfo, ProcessStartedError>
-            getCommandLine : RunModelParam -> string
+            loadWorkerNodeRunModelData : RunQueueId -> ClmResult<WorkerNodeRunModelData>
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-
-            saveModelData : ModelData -> UnitResult
-            tryDeleteModelData : ModelDataId -> UnitResult
-
-            loadResultData : ResultDataId -> ClmResult<ResultDataWithId>
-            tryDeleteResultData : ResultDataId -> UnitResult
-            loadAllResultData : unit -> ListResult<ResultDataWithId>
-
-            loadChartInfo : ResultDataId -> ClmResult<ChartInfo>
-            tryDeleteChartInfo : ResultDataId -> UnitResult
+            logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
         static member create (i : WorkerNodeProxyData) =
-            let name = workerNodeServiceName
+            let name = workerNodeServiceName.value.messagingClientName
 
             {
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
                 loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
                 tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-                runModel = fun p -> runLocalModel p true i.minUsefulEe i.noOfProgressPoints
-                getCommandLine = fun p -> getCommandLine p true i.minUsefulEe i.noOfProgressPoints
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
-
-                // These ones are needed for SolverRunner interop.
-                // Note that the "name" is different here.
-                saveModelData = saveModelDataFs solverRunnerName
-                tryDeleteModelData = tryDeleteModelDataFs solverRunnerName
-
-                loadResultData = loadResultDataFs solverRunnerName
-                tryDeleteResultData = tryDeleteResultDataFs solverRunnerName
-                loadAllResultData = loadResultDataAllFs solverRunnerName
-
-                loadChartInfo = loadChartInfoFs solverRunnerName
-                tryDeleteChartInfo = tryDeleteChartInfoFs solverRunnerName
+                logCrit = saveSolverRunnerErrFs name
             }

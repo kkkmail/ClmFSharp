@@ -2,12 +2,36 @@
 
 open System
 open GeneralPrimitives
+open MessagingPrimitives
 open WorkerNodePrimitives
 
 module ContGenPrimitives =
 
     [<Literal>]
     let DefaultMinEe = 0.000_1
+
+
+    type ContGenServiceAddress =
+        | ContGenServiceAddress of ServiceAddress
+
+        member this.value = let (ContGenServiceAddress v) = this in v
+        static member defaultValue = DefaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
+
+
+    type ContGenServicePort =
+        | ContGenServicePort of ServicePort
+
+        member this.value = let (ContGenServicePort v) = this in v
+        static member defaultValue = DefaultContGenServicePort |> ServicePort |> ContGenServicePort
+
+
+    type ContGenServiceName =
+        | ContGenServiceName of ServiceName
+
+        member this.value = let (ContGenServiceName v) = this in v
+
+
+    let contGenServiceName = "ContGenService" |> ServiceName |> ContGenServiceName
 
 
     type MinUsefulEe =
@@ -54,17 +78,35 @@ module ContGenPrimitives =
         static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
+    type HtmlChart =
+        {
+            htmlContent: string
+            fileName : string
+        }
+
+
+    type ChartInfo =
+        {
+            resultDataId : ResultDataId
+            defaultValueId : ClmDefaultValueId
+            charts : list<HtmlChart>
+        }
+
+
     type ChartGenerationResult =
-        | GeneratedCharts
+        | GeneratedCharts of ChartInfo
         | NotGeneratedCharts
 
 
     type TaskProgress =
         | NotStarted
         | InProgress of decimal
-        | Completed of ChartGenerationResult
-        | Failed of WorkerNodeId * RemoteProcessId
+        | Completed
+        | Failed of ErrorMessage
+        | Cancelled
+        | AllCoresBusy of WorkerNodeId
 
+        static member notStartedValue = 0m
         static member failedValue = -1000m
 
         static member create d =
@@ -77,5 +119,15 @@ module ContGenPrimitives =
             match progress with
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
-            | Completed _ -> 1.0m
+            | Completed -> 1.0m
             | Failed _ -> TaskProgress.failedValue
+            | Cancelled -> TaskProgress.failedValue
+            | AllCoresBusy _ -> TaskProgress.notStartedValue
+
+
+    type ContGenAdmId =
+        | ContGenAdmId of MessagingClientId
+
+        member this.value = let (ContGenAdmId v) = this in v
+        member this.messagingClientId = let (ContGenAdmId v) = this in v
+        static member newId() = Guid.NewGuid() |> MessagingClientId |> ContGenAdmId

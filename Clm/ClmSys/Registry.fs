@@ -12,11 +12,18 @@ open MessagingPrimitives
 open PartitionerPrimitives
 open ContGenPrimitives
 open ClmErrors
+open WorkerNodePrimitives
 
 module Registry =
 
-    let private serviceAddressKey = "ServiceAddress"
-    let private servicePortKey = "ServicePort"
+    type RegistryKeyName =
+        | RegistryKeyName of string
+
+        member this.value = let (RegistryKeyName v) = this in v
+
+
+    let private msgServiceAddressKey = "MsgServiceAddress"
+    let private msgServicePortKey = "MsgServicePort"
     let private messagingClientIdKey = "ClientId"
     let private partitionerMessagingClientIdKey = "PartitionerId"
     let private usePartitionerKey = "UsePartitioner"
@@ -26,25 +33,27 @@ module Registry =
     let private contGenServiceAddressKey = "ContGenServiceAddress"
     let private contGenServicePortKey = "ContGenServicePort"
     let private contGenMinUsefulEeKey = "ContGenMinUsefulEe"
+    let private wrkNodeServiceAddressKey = "WorkerNodeServiceAddress"
+    let private wrkNodeServicePortKey = "WorkerNodeServicePort"
 
-    let contGenServiceName ="ContGenService" |> MessagingClientName
-    let workerNodeServiceName ="WorkerNodeService" |> MessagingClientName
-    let partitionerServiceName ="PartitionerService" |> MessagingClientName
-    let solverRunnerName ="SolverRunner" |> MessagingClientName
-    let messagingServiceName ="MessagingService" |> MessagingClientName
-    let messagingAdmName ="MessagingAdm" |> MessagingClientName
+    let contGenServiceRegistryName ="ContGenService" |> RegistryKeyName
+    let workerNodeServiceRegistryName ="WorkerNodeService" |> RegistryKeyName
+    let partitionerServiceRegistryName ="PartitionerService" |> RegistryKeyName
+    let solverRunnerRegistryName ="SolverRunner" |> RegistryKeyName
+    let messagingServiceRegistryName ="MessagingService" |> RegistryKeyName
+    let messagingAdmRegistryName ="MessagingAdm" |> RegistryKeyName
 
     let private formatSubKey subKey = (sprintf "subKey: '%s'" subKey)
     let private formatSubKeyValue subKey value = (sprintf "subKey: '%s', value = '%s'." subKey value)
     let private formatSubKeyKey subKey key = (sprintf "subKey: '%s', key = '%s'." subKey key)
 
     let private getTopSubKey (VersionNumber v) = "SOFTWARE" + "\\" + SystemName + "\\" + v
-    let private getMessagingClientSubKey v (MessagingClientName c) = (getTopSubKey v) + "\\" + c
+    let private getServiceSubKey v (RegistryKeyName c) = (getTopSubKey v) + "\\" + c
 
     let addError f e = ((f |> RegistryErr) + e) |> Error
     let private toError e = e |> RegistryErr |> Error
-    let private toErrorInfo f (v : VersionNumber) (c : MessagingClientName) s = { version = v.value; client = c.value; data = s } |> f
-    let private toErrorInfoNoData f (v : VersionNumber) (c : MessagingClientName) = { version = v.value; client = c.value; data = EmptyString } |> f
+    let private toErrorInfo f (v : VersionNumber) (c : RegistryKeyName) s = { version = v.value; client = c.value; data = s } |> f
+    let private toErrorInfoNoData f (v : VersionNumber) (c : RegistryKeyName) = { version = v.value; client = c.value; data = EmptyString } |> f
 
 
     let private tryCreateRegistrySubKey subKey =
@@ -52,7 +61,7 @@ module Registry =
             Registry.createRegistrySubKey Registry.HKEYLocalMachine subKey
             Ok()
         with
-        | e -> ((formatSubKey subKey), e) |> CreateRegistrySubKeyError |> toError
+        | e -> ((formatSubKey subKey), e) |> CreateRegistrySubKeyErr |> toError
 
 
     let private trySetRegistryValue subKey key value =
@@ -60,7 +69,7 @@ module Registry =
             Registry.setRegistryValue Registry.HKEYLocalMachine subKey key value
             Ok()
         with
-        | e -> ((formatSubKeyValue subKey value), e) |> SetRegistryValueError |> toError
+        | e -> ((formatSubKeyValue subKey value), e) |> SetRegistryValueErr |> toError
 
 
     //let private tryGetRegistryValueNames (logger : Logger) subKey =
@@ -76,7 +85,7 @@ module Registry =
         try
              Registry.getRegistryValue Registry.HKEYLocalMachine subKey key |> Ok
         with
-        | e -> ((formatSubKeyKey subKey key), e) |> GetRegistryValueError |> toError
+        | e -> ((formatSubKeyKey subKey key), e) |> GetRegistryValueErr |> toError
 
 
     //let private valueExistsForKey (logger : Logger) subKey key =
@@ -106,175 +115,241 @@ module Registry =
     //            None
 
 
-    // Messaging Client
-    let tryGetMessagingClientAddress v c =
-        tryGetRegistryValue (getMessagingClientSubKey v c) serviceAddressKey |> Rop.bindSuccess ServiceAddress
+    let tryGetMessagingServiceAddress v c =
+        tryGetRegistryValue (getServiceSubKey v c) msgServiceAddressKey
+        |> Rop.bindSuccess ServiceAddress
+        |> Rop.bindSuccess MessagingServiceAddress
 
 
-    let trySetMessagingClientAddress v c (ServiceAddress a) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) serviceAddressKey a
+    let trySetMessagingServiceAddress v c (MessagingServiceAddress (ServiceAddress a)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServiceAddressKey a
         | Error e -> Error e
 
 
-    let tryGetMessagingClientPort v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) servicePortKey with
+    let tryGetMessagingServicePort v c =
+        match tryGetRegistryValue (getServiceSubKey v c) msgServicePortKey with
         | Ok s ->
             match Int32.TryParse s with
-            | true, v -> ServicePort v |> Ok
-            | false, _ -> toErrorInfo GetMessagingClientPortError v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMessagingClientPortError v c, e) ||> addError
+            | true, v -> v |> ServicePort |> MessagingServicePort |> Ok
+            | false, _ -> toErrorInfo GetMessagingClientPortErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMessagingClientPortErr v c, e) ||> addError
 
 
-    let trySetMessagingClientPort v c (ServicePort p) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) servicePortKey (p.ToString())
+    let trySetMessagingServicePort v c (MessagingServicePort (ServicePort p)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) msgServicePortKey (p.ToString())
         | Error e -> Error e
 
 
     let tryGetMessagingClientId v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) messagingClientIdKey with
+        match tryGetRegistryValue (getServiceSubKey v c) messagingClientIdKey with
         | Ok s ->
             match Guid.TryParse s with
             | true, v -> MessagingClientId v |> Ok
-            | false, _ -> toErrorInfo GetMessagingClientIdError v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMessagingClientIdError v c, e) ||> addError
+            | false, _ -> toErrorInfo GetMessagingClientIdErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMessagingClientIdErr v c, e) ||> addError
 
 
     let trySetMessagingClientId v c (MessagingClientId i) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) messagingClientIdKey (i.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) messagingClientIdKey (i.ToString())
         | Error e -> Error e
 
 
     /// Partitioner - Messaging Client Id
     let tryGetPartitionerMessagingClientId v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) partitionerMessagingClientIdKey with
+        match tryGetRegistryValue (getServiceSubKey v c) partitionerMessagingClientIdKey with
         | Ok s ->
             match Guid.TryParse s with
             | true, v -> v |> MessagingClientId |> PartitionerId |> Ok
-            | false, _ -> toErrorInfo GetPartitionerMessagingClientIdError v c s |> toError
+            | false, _ -> toErrorInfo GetPartitionerMessagingClientIdErr v c s |> toError
         | Error e -> Error e
 
 
     let trySetPartitionerMessagingClientId v c (PartitionerId (MessagingClientId i)) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) partitionerMessagingClientIdKey (i.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) partitionerMessagingClientIdKey (i.ToString())
         | Error e -> Error e
 
 
     let tryGetUsePartitioner v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) usePartitionerKey with
+        match tryGetRegistryValue (getServiceSubKey v c) usePartitionerKey with
         | Ok s ->
             match Boolean.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetUsePartitionerError v c s |> toError
+            | false, _ -> toErrorInfo GetUsePartitionerErr v c s |> toError
         |  Error e -> Error e
 
 
     let trySetUsePartitioner v c (u : bool) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) usePartitionerKey (u.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) usePartitionerKey (u.ToString())
         | Error e -> Error e
 
 
     let tryGetWorkerNodeName v c =
-        tryGetRegistryValue (getMessagingClientSubKey v c) workerNodeNameKey
+        tryGetRegistryValue (getServiceSubKey v c) workerNodeNameKey
 
 
-    let trySetWorkerNodeName v c n =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) workerNodeNameKey n
+    let trySetWorkerNodeName v c (WorkerNodeName n) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) workerNodeNameKey n
+        | Error e -> Error e
+
+
+    let tryGetWorkerNodeServiceAddress v c =
+        tryGetRegistryValue (getServiceSubKey v c) wrkNodeServiceAddressKey
+        |> Rop.bindSuccess ServiceAddress
+        |> Rop.bindSuccess WorkerNodeServiceAddress
+
+
+    let trySetWorkerNodeServiceAddress v c (WorkerNodeServiceAddress (ServiceAddress a)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) wrkNodeServiceAddressKey a
+        | Error e -> Error e
+
+
+    let tryGetWorkerNodeServicePort v c =
+        match tryGetRegistryValue (getServiceSubKey v c) wrkNodeServicePortKey with
+        | Ok s ->
+            match Int32.TryParse s with
+            | true, v -> v |> ServicePort |> WorkerNodeServicePort |> Ok
+            | false, _ -> toErrorInfo GetMorkerNodeClientPortErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetMorkerNodeClientPortErr v c, e) ||> addError
+
+
+    let trySetWorkerNodeServicePort v c (WorkerNodeServicePort (ServicePort p)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) wrkNodeServicePortKey (p.ToString())
         | Error e -> Error e
 
 
     let tryGetNumberOfCores v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) numberOfCoresKey with
+        match tryGetRegistryValue (getServiceSubKey v c) numberOfCoresKey with
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetNumberOfCoresError v c s |> toError
+            | false, _ -> toErrorInfo GetNumberOfCoresErr v c s |> toError
         | Error e -> Error e
 
 
     let trySetNumberOfCores v c n =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) numberOfCoresKey (n.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) numberOfCoresKey (n.ToString())
         | Error e -> Error e
 
 
     let tryGetWrkInactive v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) wrkInactiveKey with
+        match tryGetRegistryValue (getServiceSubKey v c) wrkInactiveKey with
         | Ok s ->
             match Boolean.TryParse s with
             | true, v -> Ok v
-            | false, _ -> toErrorInfo GetWrkInactiveError v c s |> toError
+            | false, _ -> toErrorInfo GetWrkInactiveErr v c s |> toError
         | Error e -> Error e
 
 
     let trySetWrkInactive v c n =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) wrkInactiveKey (n.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) wrkInactiveKey (n.ToString())
         | Error e -> Error e
 
 
     let tryGetContGenServiceAddress v c =
-        tryGetRegistryValue (getMessagingClientSubKey v c) contGenServiceAddressKey |> Rop.bindSuccess ServiceAddress
+        tryGetRegistryValue (getServiceSubKey v c) contGenServiceAddressKey
+        |> Rop.bindSuccess ServiceAddress
+        |> Rop.bindSuccess ContGenServiceAddress
 
 
-    let trySetContGenServiceAddress v c (ServiceAddress a) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) contGenServiceAddressKey a
+    let trySetContGenServiceAddress v c (ContGenServiceAddress (ServiceAddress a)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) contGenServiceAddressKey a
         | Error e -> Error e
 
 
     let tryGetContGenServicePort v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) contGenServicePortKey with
+        match tryGetRegistryValue (getServiceSubKey v c) contGenServicePortKey with
         | Ok s ->
             match Int32.TryParse s with
-            | true, v -> ServicePort v |> Ok
-            | false, _ -> toErrorInfo GetContGenServicePortError v c s |> toError
+            | true, v -> v |> ServicePort |> ContGenServicePort |> Ok
+            | false, _ -> toErrorInfo GetContGenServicePortErr v c s |> toError
         | Error e -> Error e
 
 
-    let trySetContGenServicePort v c (ServicePort p) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) contGenServicePortKey (p.ToString())
+    let trySetContGenServicePort v c (ContGenServicePort (ServicePort p)) =
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) contGenServicePortKey (p.ToString())
         | Error e -> Error e
 
 
     let tryGetContGenMinUsefulEe v c =
-        match tryGetRegistryValue (getMessagingClientSubKey v c) contGenMinUsefulEeKey with
+        match tryGetRegistryValue (getServiceSubKey v c) contGenMinUsefulEeKey with
         | Ok s ->
             match Double.TryParse s with
             | true, v -> v |> MinUsefulEe |> Ok
-            | false, _ -> toErrorInfo GetContGenMinUsefulEeError v c s |> toError
+            | false, _ -> toErrorInfo GetContGenMinUsefulEeErr v c s |> toError
         | Error e -> Error e
 
 
     let trySetContGenMinUsefulEe v c (MinUsefulEe p) =
-        match tryCreateRegistrySubKey (getMessagingClientSubKey v c) with
-        | Ok() -> trySetRegistryValue (getMessagingClientSubKey v c) contGenMinUsefulEeKey (p.ToString())
+        match tryCreateRegistrySubKey (getServiceSubKey v c) with
+        | Ok() -> trySetRegistryValue (getServiceSubKey v c) contGenMinUsefulEeKey (p.ToString())
         | Error e -> Error e
 
 
     // Getters OR defaults
-    let getMsgServerAddressImpl getter logger version name p =
+    let getMsgServiceAddressImpl getter logger version name p =
         match getter p with
         | Some a -> a
         | None ->
-            match tryGetMessagingClientAddress version name with
+            match tryGetMessagingServiceAddress version name with
             | Ok a -> a
-            | Error _ -> ServiceAddress.defaultMessagingServerValue
+            | Error _ -> MessagingServiceAddress.defaultValue
 
 
-    let getMsgServerPortImpl getter logger version name p =
+    let getMsgServicePortImpl getter logger version name p =
         match getter p with
         | Some a -> a
         | None ->
-            match tryGetMessagingClientPort version name with
+            match tryGetMessagingServicePort version name with
             | Ok a -> a
-            | Error _ -> ServicePort.defaultMessagingServerValue
+            | Error _ -> MessagingServicePort.defaultValue
+
+
+    let getContGenServiceAddressImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> ContGenServiceAddress.defaultValue
+
+
+    let getContGenServicePortImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetContGenServicePort version name with
+            | Ok a -> a
+            | Error _ -> ContGenServicePort.defaultValue
+
+
+    let getWorkerNodeServiceAddressImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetWorkerNodeServiceAddress version name with
+            | Ok a -> a
+            | Error _ -> WorkerNodeServiceAddress.defaultValue
+
+
+    let getWorkerNodeServicePortImpl getter logger version name p =
+        match getter p with
+        | Some a -> a
+        | None ->
+            match tryGetWorkerNodeServicePort version name with
+            | Ok a -> a
+            | Error _ -> WorkerNodeServicePort.defaultValue
 
 
     let getPartitionerImpl getter logger version name p =

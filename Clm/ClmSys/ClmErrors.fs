@@ -1,19 +1,13 @@
 ﻿namespace ClmSys
 
-open System
-open System.Runtime.CompilerServices
-open System.Runtime.InteropServices
-open VersionInfo
 open GeneralErrors
-open ContGenErrors
 open MessagingServiceErrors
 open MessagingClientErrors
 open WorkerNodeErrors
-//open PartitionerErrors
-open SolverRunnerErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
-open Rop
+open GeneralPrimitives
+open ContGenErrors
 
 module ClmErrors =
 
@@ -28,13 +22,13 @@ module ClmErrors =
         | SerializationErr of SerializationError
         | WcfErr of WcfError
         | DbErr of DbError
-        | ProcessStartedErr of ProcessStartedError
         | MessagingServiceErr of MessagingServiceError
         | MessagingClientErr of MessagingClientError
         | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | ModelRunnerErr of ModelRunnerError
+        | ContGenServiceErr of ContGenServiceError
 
         static member (+) (a, b) =
             match a, b with
@@ -123,6 +117,7 @@ module ClmErrors =
         | Error e -> Some ((f g) + e)
 
 
+    /// The head should contain the latest error and the tail the earliest error.
     let foldUnitResults (r : list<UnitResult>) =
         let rec fold acc w =
             match w with
@@ -138,3 +133,8 @@ module ClmErrors =
             traceInfo : TraceInfo
             error : ClmError
         }
+
+
+    /// We have to resort to throwing a specific exception in order
+    /// to perform early termination from deep inside C# ODE solver.
+    exception ComputationAbortedExcepton of RunQueueId

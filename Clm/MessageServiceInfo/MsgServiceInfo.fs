@@ -1,7 +1,6 @@
 ﻿namespace MessagingServiceInfo
 
 open System
-open System.Runtime.Remoting.Channels.Tcp
 open System.ServiceModel
 
 open ClmSys.VersionInfo
@@ -11,28 +10,34 @@ open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.SolverRunnerData
-open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.GeneralData
+open ClmSys.GeneralPrimitives
 
 module ServiceInfo =
 
-    let MessagingServiceName = "MessagingService" + " - " + versionNumberValue.value
-    let MessagingProgramName = "MessagingService.exe"
+    let messagingProgramName = "MessagingService.exe"
 
 
-    type MessagingWorkState =
-        | MsgSvcNotStarted
-        | CanTransmitMessages
-        | ShuttingDown
+    [<Literal>]
+    let MessagingWcfServiceName = "MessagingWcfService"
 
 
     type MessageDeliveryType =
         | GuaranteedDelivery
         | NonGuaranteedDelivery
+
+        member d.value =
+            match d with
+            | GuaranteedDelivery -> 0
+            | NonGuaranteedDelivery -> 1
+
+        static member tryCreate i =
+            match i with
+            | 0 -> Some GuaranteedDelivery
+            | 1 -> Some NonGuaranteedDelivery
+            | _ -> None
 
 
     type MessageSize =
@@ -42,7 +47,7 @@ module ServiceInfo =
 
 
     type PartitionerMessage =
-        | UpdateProgressPrtMsg of RemoteProgressUpdateInfo
+        | UpdateProgressPrtMsg of ProgressUpdateInfo
         | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
@@ -59,20 +64,20 @@ module ServiceInfo =
 
     type WorkerNodeRunModelData =
         {
-            remoteProcessId : RemoteProcessId
-            localProcessId : LocalProcessId option
             runningProcessData : RunningProcessData
+            modelData : ModelData
             minUsefulEe : MinUsefulEe
-            commandLine : string
         }
 
 
     type WorkerNodeMessage =
-        | RunModelWrkMsg of WorkerNodeRunModelData * ModelData
+        | RunModelWrkMsg of WorkerNodeRunModelData
+        | CancelRunWrkMsg of RunQueueId
 
         member this.messageSize =
             match this with
             | RunModelWrkMsg _ -> LargeSize
+            | CancelRunWrkMsg _ -> SmallSize
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
@@ -192,37 +197,9 @@ module ServiceInfo =
             | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
-    type MessageWithOptionalData
-        with
-        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
-
-        member this.toMessasge() =
-            match this.messageDataOpt with
-            | Some m ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageData = m
-                }
-                |> Some
-            | None -> None
-
-
     type Message
         with
         member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
-
-        member this.toMessageWithOptionalData() =
-            match this.messageData.keepInMemory() with
-            | true ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageDataOpt = Some this.messageData
-                }
-            | false ->
-                {
-                    messageDataInfo = this.messageDataInfo
-                    messageDataOpt = None
-                }
 
 
     type MessageResultInfo =
@@ -243,25 +220,11 @@ module ServiceInfo =
 
 
     type MessagingConfigParam =
-        | MsgWorkState of MessagingWorkState
+        | DummyConfig
 
 
     type MessagingClientConfigParam =
         | DummyConfig
-
-
-    type MsgServiceState =
-        {
-            msgVersion : MessagingDataVersion
-            msgWorkState : MessagingWorkState
-            msgInfo : list<(MessagingClientId * list<MessageId>)>
-        }
-
-
-    type MsgSvcShutDownInfo =
-        {
-            msgSvcTcpChannel : TcpChannel
-        }
 
 
     type MsgWcfSvcShutDownInfo =
@@ -295,16 +258,11 @@ module ServiceInfo =
                         workerNodeRecipient = d.workerNodeId
                         deliveryType = GuaranteedDelivery
                         messageData =
-                            (
-                                {
-                                    remoteProcessId = q.runQueueId.toRemoteProcessId()
-                                    localProcessId = None
-                                    runningProcessData = d
-                                    minUsefulEe = minUsefulEe
-                                    commandLine = EmptyString
-                                },
-                                m
-                            )
+                            {
+                                runningProcessData = d
+                                minUsefulEe = minUsefulEe
+                                modelData = m
+                            }
                             |> RunModelWrkMsg
                     }.getMessageInfo()
                     |> Some |> Ok
@@ -312,43 +270,28 @@ module ServiceInfo =
             | None -> Ok None
 
 
-
     type IMessagingService =
         abstract getVersion : unit -> ClmResult<MessagingDataVersion>
         abstract sendMessage : Message -> UnitResult
-        abstract configureService : MessagingConfigParam -> UnitResult
         abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
         abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-        abstract getState : unit -> ClmResult<MsgServiceState>
 
 
     /// https://gist.github.com/dgfitch/661656
-    [<ServiceContract(ConfigurationName = "MessagingWcfService")>]
+    [<ServiceContract(ConfigurationName = MessagingWcfServiceName)>]
     type IMessagingWcfService =
 
         [<OperationContract(Name = "getVersion")>]
-        //abstract getVersion : u:unit -> MessagingDataVersion
         abstract getVersion : u:byte[] -> byte[]
 
         [<OperationContract(Name = "sendMessage")>]
-        //abstract sendMessage : m:Message -> MessageDeliveryResult
         abstract sendMessage : m:byte[] -> byte[]
 
-        [<OperationContract(Name = "configureService")>]
-        //abstract configureService : p:MessagingConfigParam -> unit
-        abstract configureService : p:byte[] -> byte[]
-
         [<OperationContract(Name = "tryPeekMessage")>]
-        //abstract tryPeekMessage : c:MessagingClientId -> Message option
         abstract tryPeekMessage : c:byte[] -> byte[]
 
         [<OperationContract(Name = "tryDeleteFromServer")>]
-        //abstract tryDeleteFromServer : cm:(MessagingClientId * MessageId) -> bool
         abstract tryDeleteFromServer : cm:byte[] -> byte[]
-
-        [<OperationContract(Name = "getState")>]
-        //abstract getState : u:unit -> MsgServiceState
-        abstract getState : u:byte[] -> byte[]
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])

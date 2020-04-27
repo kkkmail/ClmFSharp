@@ -23,16 +23,10 @@ set @now = getdate()
 		inner join ModelData m on m.clmTaskId = t.clmTaskId
 		inner join RunQueue q on q.modelDataId = m.modelDataId
 		left outer join WorkerNode w on q.workerNodeId = w.workerNodeId
-	--where progress <> 1 and runQueueStatusId = 2
+	where progress <> 1 and runQueueStatusId = 2
 )
 select * from w
---where workerNodeName = 'HYPER'
---where
---	runQueueOrder > 20
---	estCompl is not null
---	and estCompl < dateadd(day, 1, @now)
---order by modifiedOn, estCompl
-order by runQueueOrder	
-
---update RunQueue set progress = -1000, runQueueStatusId = 4
---update RunQueue set progress = 0, runQueueStatusId = 0 where runQueueOrder > 20
+where
+	estCompl is not null
+	--and estCompl < dateadd(day, 1, @now)
+order by estCompl

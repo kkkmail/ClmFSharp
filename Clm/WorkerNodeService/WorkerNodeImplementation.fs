@@ -290,7 +290,11 @@ module ServiceImplementation =
 
 
     let onRequestResultWrkMsg s q =
-        s, Ok()
+        let result =
+            match s.runningWorkers |> Map.tryFind q with
+            | Some x -> x.notifyOfResults true // TODO kk:20200509 - Charts are forced to be generated. Propagate through input parameters if needed.
+            | None -> CannotFindRunQueueErr q |> toError OnRequestResultErr
+        s, result
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =

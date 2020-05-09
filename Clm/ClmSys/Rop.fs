@@ -194,7 +194,7 @@ module Rop =
             match rem with
             | [] -> w, Ok()
             | h :: t ->
-                match f s h with
+                match f w h with
                 | w1, Ok() -> inner t w1
                 | w1, Error e -> w1, Error e
 

@@ -75,10 +75,15 @@ module ServiceInfo =
         }
 
 
+    type WorkerNodeState =
+        | NotStartedWorkerNode
+        | StartedWorkerNode
+
     type WorkerNodeRunnerState =
         {
             runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
             numberOfWorkerCores : int
+            workerNodeState : WorkerNodeState
         }
 
         member w.toWorkerNodeRunnerMonitorState() =
@@ -106,7 +111,7 @@ module ServiceInfo =
             | WrkNodeState s ->
                 let toString acc ((RunQueueId k), (v : RunnerState)) =
                     acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-        
+
                 let x =
                     match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"

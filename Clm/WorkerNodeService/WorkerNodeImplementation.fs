@@ -46,13 +46,14 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState
         with
-    
+
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
-    
+
         static member defaultValue =
             {
                 runningWorkers = Map.empty
                 numberOfWorkerCores = 0
+                workerNodeState = NotStartedWorkerNode
             }
 
 
@@ -184,7 +185,7 @@ module ServiceImplementation =
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
         }
 
-            
+
     let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
         let w, result =
             match s.numberOfWorkerCores > s.runningWorkers.Count with
@@ -225,22 +226,24 @@ module ServiceImplementation =
 
 
     let onStart (proxy : OnStartProxy) s =
-        let w = { s with numberOfWorkerCores = proxy.noOfCores }
+        match s.workerNodeState with
+        | NotStartedWorkerNode ->
+            let w = { s with numberOfWorkerCores = proxy.noOfCores; workerNodeState = StartedWorkerNode }
 
-        let doStart mi =
-            let m, mf = mi |> Rop.unzip
+            let doStart mi =
+                let m, mf = mi |> Rop.unzip
 
-            match foldErrors mf with
-            | None -> (m, w) ||> Rop.foldWhileOk proxy.onRunModel
-            | Some e -> s, Error e
+                match foldErrors mf with
+                | None -> (m, w) ||> Rop.foldWhileOk proxy.onRunModel
+                | Some e -> s, Error e
 
-        let g, result =
-            match proxy.loadAllWorkerNodeRunModelData() with
-            | Ok mi -> doStart mi
-            | Error e -> w, Error e
+            let g, result =
+                match proxy.loadAllWorkerNodeRunModelData() with
+                | Ok mi -> doStart mi
+                | Error e -> w, Error e
 
-        g, result
-
+            g, result
+        | StartedWorkerNode -> s, Ok()
 
     type OnProcessMessageProxy =
         {

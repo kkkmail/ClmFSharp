@@ -171,7 +171,7 @@ module SolverRunnerTasks =
         }
 
 
-    let plotAllResults (i : PlotResultsInfo) =
+    let plotAllResults force (i : PlotResultsInfo) =
         let plotAll () =
             let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
             let plotter = new Plotter(pdi, i.chartData)
@@ -187,8 +187,8 @@ module SolverRunnerTasks =
                     ]
             }
             |> GeneratedCharts
-    
-        if i.resultDataWithId.resultData.maxEe >= i.runSolverData.minUsefulEe.value
+
+        if i.resultDataWithId.resultData.maxEe >= i.runSolverData.minUsefulEe.value || force
         then plotAll ()
         else NotGeneratedCharts
 
@@ -213,28 +213,27 @@ module SolverRunnerTasks =
         raise(ComputationAbortedExcepton w.runningProcessData.runQueueId)
 
 
+    type SolverRunner =
+        {
+            runSolver : unit -> unit
+            notifyOfResults : bool -> UnitResult
+        }
+
+
     /// Uncomment printfn below in case of severe issues.
     /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
-    let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) : unit =
+    let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let logIfFailed result =
             match result with
             | Ok() -> ignore()
             | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
 
         let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
+        let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
+        let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
+        let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
 
-        try
-            // Uncomment temporarily when you need to test cancellations.
-            //testCancellation proxy w
-
-            let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
-            let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
-            let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
-
-            printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-            nSolve data |> ignore
-            printfn "runSolver: ...call to nSolve for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-
+        let notifyOfResults force =
             let (r, chartData) = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
             let result = proxy.saveResult r
 
@@ -244,35 +243,52 @@ module SolverRunnerTasks =
                     resultDataWithId = r
                     chartData = chartData
                 }
-                |> plotAllResults
+                |> plotAllResults force
                 |> proxy.saveCharts
 
-            printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-            let completedResult =
+            combineUnitResults result chartResult
+
+        let runSolver() =
+            try
+                // Uncomment temporarily when you need to test cancellations.
+                //testCancellation proxy w
+
+                printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                nSolve data |> ignore
+                printfn "runSolver: ...call to nSolve for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                let result = notifyOfResults false
+
+                printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                let completedResult =
+                    {
+                        runQueueId = w.runningProcessData.runQueueId
+                        progress = Completed
+                    }
+                    |> proxy.updateProgress
+                    |> proxy.transmitMessages
+
+                combineUnitResults result completedResult |> logIfFailed
+                printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+            with
+            // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+            // There seems to be no other easy and clean way. Revisit if that changes.
+            // Follow the trail of that date stamp to find other related places.
+            | ComputationAbortedExcepton _ ->
+                printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+
                 {
                     runQueueId = w.runningProcessData.runQueueId
-                    progress = Completed
+                    progress = Cancelled
                 }
-                |> proxy.updateProgress
-                |> proxy.transmitMessages
+                |> updateFinalProgress
+            | e ->
+                {
+                    runQueueId = w.runningProcessData.runQueueId
+                    progress = e.ToString() |> ErrorMessage |> Failed
+                }
+                |> updateFinalProgress
 
-            foldUnitResults [ result; chartResult; completedResult ] |> logIfFailed
-            printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-        with
-        // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
-        // There seems to be no other easy and clean way. Revisit if that changes.
-        // Follow the trail of that date stamp to find other related places.
-        | ComputationAbortedExcepton _ ->
-            printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
-
-            {
-                runQueueId = w.runningProcessData.runQueueId
-                progress = Cancelled
-            }
-            |> updateFinalProgress
-        | e ->
-            {
-                runQueueId = w.runningProcessData.runQueueId
-                progress = e.ToString() |> ErrorMessage |> Failed
-            }
-            |> updateFinalProgress
+        {
+            runSolver = runSolver
+            notifyOfResults = notifyOfResults
+        }

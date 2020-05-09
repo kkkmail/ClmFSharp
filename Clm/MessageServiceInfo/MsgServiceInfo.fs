@@ -73,11 +73,13 @@ module ServiceInfo =
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData
         | CancelRunWrkMsg of RunQueueId
+        | RequestResultWrkMsg of RunQueueId
 
         member this.messageSize =
             match this with
             | RunModelWrkMsg _ -> LargeSize
             | CancelRunWrkMsg _ -> SmallSize
+            | RequestResultWrkMsg _ -> LargeSize
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

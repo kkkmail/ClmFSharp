@@ -180,7 +180,7 @@ module ServiceImplementation =
     type OnRunModelProxy =
         {
             workerNodeId : WorkerNodeId
-            runModel : WorkerNodeRunModelData -> unit
+            getSolverRunner : WorkerNodeRunModelData -> SolverRunner
             sendMessageProxy : SendMessageProxy
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
         }
@@ -190,7 +190,8 @@ module ServiceImplementation =
         let w, result =
             match s.numberOfWorkerCores > s.runningWorkers.Count with
             | true ->
-                let m = async { proxy.runModel d }
+                let solver = proxy.getSolverRunner d
+                let m = async { solver.runSolver() }
                 Async.Start m
 
                 let res =
@@ -201,7 +202,7 @@ module ServiceImplementation =
                     }.getMessageInfo()
                     |> proxy.sendMessageProxy.sendMessage
 
-                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, RunnerStateWithCancellation.defaultValue) }, res
+                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, RunnerStateWithCancellation.defaultValue solver.notifyOfResults) }, res
             | false ->
                 let res =
                     {
@@ -279,13 +280,17 @@ module ServiceImplementation =
             | None ->
                 // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
                 // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
-                // But, ... the model could've been completed in between and we generally don't care about individual models anyway!
+                // But, ... the model could have been completed in between and we generally don't care about individual models anyway!
                 // Anyway, the current view is: if you ask me to cancel but I don't have it, then I just ignore the request.
                 s, Ok()
 
         let result = t q |> combineUnitResults r1
         //printfn "onCancelRunWrkMsg: result: %A" result
         w, result
+
+
+    let onRequestResultWrkMsg s q =
+        s, Ok()
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
@@ -298,6 +303,7 @@ module ServiceImplementation =
             | CancelRunWrkMsg q ->
                 //printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
                 onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
+            | RequestResultWrkMsg q -> onRequestResultWrkMsg s q
         | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 
@@ -347,7 +353,7 @@ module ServiceImplementation =
     let onRunModelProxy i p =
         {
             workerNodeId = i.workerNodeServiceInfo.workerNodeInfo.workerNodeId
-            runModel = runSolver p
+            getSolverRunner = getSolverRunner p
             sendMessageProxy = sendMessageProxy i
             tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
         }

@@ -59,12 +59,14 @@ module ServiceInfo =
         {
             runnerState : RunnerState
             cancellationRequested : bool
+            notifyOfResults : bool -> UnitResult
         }
 
-        static member defaultValue =
+        static member defaultValue n =
             {
                 runnerState = RunnerState.defaultValue
                 cancellationRequested = false
+                notifyOfResults = n
             }
 
 

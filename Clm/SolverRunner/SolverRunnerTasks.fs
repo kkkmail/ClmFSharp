@@ -327,11 +327,7 @@ module SolverRunnerTasks =
                 printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
 
                 match r with
-                | CancelWithResults ->
-                    let (x, c) = getResultAndChartData()
-                    let tLast = x.resultData.tEnd
-                    let tEnd = c.initData.tEnd
-                    (if tEnd > 0.0m then tLast / tEnd else 0.0m) |> Some |> Completed |> getProgress
+                | CancelWithResults -> (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
                 | AbortCalculation -> getProgress Cancelled
                 |> updateFinalProgress
             | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> updateFinalProgress

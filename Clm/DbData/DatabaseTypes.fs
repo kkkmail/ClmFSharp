@@ -375,8 +375,8 @@ module DatabaseTypes =
         //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
         ///     + -> completed / failed
         ///
-        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress - normal work progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0) - completed work.
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId - normal work progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to Completed _) - completed work.
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
         ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
 
@@ -436,13 +436,13 @@ module DatabaseTypes =
                 | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
 
-                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
+                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
 
-                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None false // !!! Roll back the status change !!!
+                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None false // !!! Roll back the status change !!!
                 | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true

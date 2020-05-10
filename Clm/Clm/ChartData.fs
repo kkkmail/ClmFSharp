@@ -150,7 +150,7 @@ module ChartData =
 
         /// Last calculated value of tEnd.
         member cd.tLast =
-            match cd.allChartData |> List.rev |> List.tryHead with
+            match cd.allChartData |> List.tryHead with
             | Some c -> c.t
             | None -> 0.0
             |> decimal

@@ -135,7 +135,7 @@ module GeneralData =
             ]
             |> Seq.map makePart
             |> Seq.skipWhile (snd >> ((>) 0))
-  
+
         let flip f a b = f b a
 
         bigParts
@@ -155,7 +155,7 @@ module GeneralData =
         else sprintf "%i day(s), %s" t.Days x
 
 
-    type IUpdater<'I, 'A, 'S> = 
+    type IUpdater<'I, 'A, 'S> =
         abstract member init : 'I -> 'S
         abstract member add : 'A -> 'S -> 'S
 
@@ -163,7 +163,7 @@ module GeneralData =
     type Updater<'T> = MailboxProcessor<'T>
 
 
-    type UpdatatableStorage<'A, 'S> = 
+    type UpdatableStorage<'A, 'S> =
         | AddContent of 'A
         | GetContent of AsyncReplyChannel<'S>
 
@@ -228,7 +228,7 @@ module GeneralData =
 
 
         /// Tries to get value out of the map OR returns a given default value if there is none.
-        member m.getValueorDefault k v = m |> Map.tryFind k |> Option.defaultValue v
+        member m.getValueOrDefault k v = m |> Map.tryFind k |> Option.defaultValue v
 
 
     /// http://www.fssnip.net/1T/title/Remove-first-ocurrence-from-list.
@@ -265,7 +265,7 @@ module GeneralData =
         match q with
         | Queue([], []) -> None, q
         | Queue(fs, b :: bs) -> Some b, Queue(fs, bs)
-        | Queue(fs, []) -> 
+        | Queue(fs, []) ->
             let bs = List.rev fs
             Some bs.Head, Queue([], bs.Tail)
 

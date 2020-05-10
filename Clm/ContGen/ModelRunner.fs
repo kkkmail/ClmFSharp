@@ -143,6 +143,8 @@ module ModelRunner =
             let q1 = { q with progress = i.progress }
 
             let upsert (q2, r) =
+                printfn "updateProgress.upsert: Upserting %A into %A." i q2
+
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> r
                 | Error e -> (r, addError (UnableToLoadRunQueueErr i.runQueueId) e) ||> combineUnitResults
@@ -150,9 +152,12 @@ module ModelRunner =
             match i.progress with
             | NotStarted -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()
             | InProgress _ ->{ q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
-            | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+            | Completed v ->
+                match v with
+                | None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+                | Some d -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
             | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
-            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was cancelled." |> ErrorMessage |> Some }, Ok()
+            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
             | AllCoresBusy w ->
                 let e = sprintf "Node %A is busy" w |> ErrorMessage |> Some
                 { q1 with runQueueStatus = NotStartedRunQueue; workerNodeIdOpt = None; progress = NotStarted; errorMessageOpt = e }, proxy.upsertWorkerNodeErr w

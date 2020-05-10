@@ -433,18 +433,18 @@ module DatabaseTypes =
                 | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
                 | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
 
                 | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
-                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
 
                 | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
                 | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None false // !!! Roll back the status change !!!
                 | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2

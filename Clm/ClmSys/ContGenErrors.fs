@@ -4,9 +4,14 @@ open GeneralErrors
 
 module ContGenErrors =
 
-    type TryDeleteRunQueueError =
-        | TryDeleteRunQueueWcfErr of WcfError
+    type TryCancelRunQueueError =
+        | TryCancelRunQueueWcfErr of WcfError
+
+
+    type TryRequestResultsError =
+        | TryRequestResultsWcfErr of WcfError
 
 
     type ContGenServiceError =
-        | TryDeleteRunQueueErr of TryDeleteRunQueueError
+        | TryCancelRunQueueErr of TryCancelRunQueueError
+        | TryRequestResultsErr of TryRequestResultsError

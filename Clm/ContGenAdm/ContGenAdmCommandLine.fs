@@ -1,6 +1,7 @@
 ﻿namespace ContGenAdm
 
 open Argu
+open ClmSys.ClmErrors
 open Clm.Substances
 open Clm.ModelParams
 open System
@@ -8,6 +9,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.Logging
 open ClmSys.Registry
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.VersionInfo
 open ClmSys.ContGenData
 open ContGen.ContGenServiceResponse
@@ -68,13 +70,15 @@ module AdmCommandLine =
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | RefreshInterval _ -> "refresh inteval in seconds."
+                | RefreshInterval _ -> "refresh interval in seconds."
 
 
     and
         [<CliPrefix(CliPrefix.Dash)>]
-        CancelRunQueueArgs =
-        | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToCancel of Guid
+        ModifyRunQueueArgs =
+        | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToModify of Guid
+        | [<Unique>] [<AltCommandLine("-c")>] CancelOrAbort of bool
+        | [<Unique>] [<AltCommandLine("-r")>] ReportResults of bool
 //        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
@@ -83,7 +87,9 @@ module AdmCommandLine =
         interface IArgParserTemplate with
             member this.Usage =
                 match this with
-                | RunQueueIdToCancel _ -> "RunQueueId to cancel."
+                | RunQueueIdToModify _ -> "RunQueueId to modify."
+                | CancelOrAbort _ -> "if false then requests to cancel with results, if true then requests to abort calculations."
+                | ReportResults _ -> "if false then requests results without charts, if true the requests results with charts."
                 //| Partitioner _ -> "messaging client id of a partitioner service."
                 | SvcAddress _ -> "ContGen service ip address / name."
                 | SvcPort _ -> "ContGen service port."
@@ -95,7 +101,7 @@ module AdmCommandLine =
             | [<Unique>] [<AltCommandLine("add")>]    AddClmTask of ParseResults<AddClmTaskArgs>
             | [<Unique>] [<AltCommandLine("run")>]    RunModel of ParseResults<RunModelArgs>
             | [<Unique>] [<AltCommandLine("m")>]      Monitor of ParseResults<MonitorArgs>
-            | [<Unique>] [<AltCommandLine("c")>]      CancelRunQueue of ParseResults<CancelRunQueueArgs>
+            | [<Unique>] [<AltCommandLine("c")>]      ModifyRunQueue of ParseResults<ModifyRunQueueArgs>
 
         with
             interface IArgParserTemplate with
@@ -104,7 +110,7 @@ module AdmCommandLine =
                     | AddClmTask _ -> "adds task / generates a single model."
                     | RunModel _ -> "runs a given model."
                     | Monitor _ -> "starts monitor."
-                    | CancelRunQueue _ -> "tries to cancel run queue."
+                    | ModifyRunQueue _ -> "tries to modify run queue."
 
 
     let tryGetCommandLineParams (p :list<AddClmTaskArgs>) =
@@ -164,39 +170,64 @@ module AdmCommandLine =
     //let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
-    let tryGetCancelRunQueueId p = p |> List.tryPick (fun e -> match e with | RunQueueIdToCancel e -> e |> RunQueueId |> Some | _ -> None)
-
-
+    let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
     let getContGenServiceAddress = getContGenServiceAddressImpl tryGetContGenServiceAddress
     let getContGenServicePort = getContGenServicePortImpl tryGetContGenServicePort
     //let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
-    let tryCancelRunQueueImpl (logger : Logger) p =
-        let result =
-            match tryGetCancelRunQueueId p with
-            | Some q ->
-                let name = contGenServiceRegistryName
-                let version = versionNumberValue
-                let contGenAddress = getContGenServiceAddress logger version name p
-                let contGenPort = getContGenServicePort logger version name p
+    let getContGenServiceAccessInfo p =
+        let name = contGenServiceRegistryName
+        let version = versionNumberValue
+        let contGenAddress = getContGenServiceAddress logger version name p
+        let contGenPort = getContGenServicePort logger version name p
 
-                let i =
-                    {
-                        contGenServiceAddress = contGenAddress
-                        contGenServicePort = contGenPort
-                        contGenServiceName = contGenServiceName
-                    }
+        {
+            contGenServiceAddress = contGenAddress
+            contGenServicePort = contGenPort
+            contGenServiceName = contGenServiceName
+        }
 
-                let h = ContGenResponseHandler i :> IContGenService
-                h.tryCancelRunQueue q
-            | None -> Ok()
 
-        match result with
+    let getCancellationTypeOpt p =
+        p |> List.tryPick (fun e -> match e with | CancelOrAbort e -> (match e with | false -> CancelWithResults | true -> AbortCalculation) |> Some | _ -> None)
+
+
+    let getResultNotificationTypeOpt p =
+        p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
+
+    let private reportResult (logger : Logger) name r =
+        match r with
         | Ok() ->
-            printfn "tryCancelRunQueueImpl: Successfully scheduled."
+            printfn "%s: Successfully scheduled." name
             Ok()
         | Error e ->
-            printfn "tryCancelRunQueueImpl: Error %A" e
+            printfn "%s: Error %A" name e
             logger.logError e
             Error e
+
+    let tryCancelRunQueueImpl (logger : Logger) p =
+        match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
+        | Some q, Some c ->
+            let i = getContGenServiceAccessInfo p
+            let h = ContGenResponseHandler i :> IContGenService
+            h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
+        | _ -> Ok()
+
+
+    let tryRequestResultsImpl (logger : Logger) p =
+        match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
+        | Some q, Some c ->
+            let i = getContGenServiceAccessInfo p
+            let h = ContGenResponseHandler i :> IContGenService
+            h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
+        | _ -> Ok()
+
+
+    let tryModifyRunQueueImpl l p =
+        [
+            tryRequestResultsImpl
+            tryCancelRunQueueImpl
+        ]
+        |> List.map (fun e -> e l p)
+        |> foldUnitResults

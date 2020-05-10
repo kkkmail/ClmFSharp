@@ -46,6 +46,13 @@ module ModelRunnerProxy =
         }
 
 
+    type TryRequestResultsProxy =
+        {
+            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+            sendRequestResultsMessage : MessageInfo -> UnitResult
+        }
+
+
     type TryRunModelResult =
         | WorkScheduled
         | NoWork

@@ -33,7 +33,7 @@ module DatabaseTypes =
 
 
     type ClmDefaultValueData = SqlCommandProvider<"
-        select * 
+        select *
         from dbo.ClmDefaultValue
         where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
 
@@ -106,7 +106,7 @@ module DatabaseTypes =
 
     /// SQL to upsert RunQueue.
     type RunQueueTableData = SqlCommandProvider<"
-        select * 
+        select *
         from dbo.RunQueue
         where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
@@ -382,10 +382,10 @@ module DatabaseTypes =
 
         ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
         ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
-        ///         roll back to cancel requested - in progress message came while our cancel request propages through the system.
+        ///         roll back to cancel requested - in progress message came while our cancel request propagates through the system.
         ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
-        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propaged through the system.
-        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propaged through the system.
+        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propagated through the system.
+        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propagated through the system.
 
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
@@ -506,7 +506,7 @@ module DatabaseTypes =
         let g() =
             use cmd = new SqlCommandProvider<"
                 merge ClmDefaultValue as target
-                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
                 on (target.clmDefaultValueId = source.clmDefaultValueId)
                 when not matched then
                     insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
@@ -954,7 +954,7 @@ module DatabaseTypes =
             use conn = getOpenConn connectionString
             use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
             let table = cmd.Execute()
-            
+
             match table.Rows |> Seq.tryHead with
             | None -> Ok None
             | Some r -> r.workerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok

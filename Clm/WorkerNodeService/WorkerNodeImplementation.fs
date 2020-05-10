@@ -26,8 +26,8 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
 open ClmSys.Rop
-open System.Threading
 open SolverRunner.SolverRunnerTasks
+open ClmSys.SolverRunnerPrimitives
 
 module ServiceImplementation =
 
@@ -271,12 +271,12 @@ module ServiceImplementation =
         | Some _ -> s, (m, d.runningProcessData.runQueueId) |> ModelAlreadyRunningErr |> toError
 
 
-    let onCancelRunWrkMsg t s q =
+    let onCancelRunWrkMsg t s (q, c) =
         //printfn "onCancelRunWrkMsg: Starting: %A ..." q
 
         let (w, r1) =
             match s.runningWorkers |> Map.tryFind q with
-            | Some x -> { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationRequested = true } }, Ok()
+            | Some x -> { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationTypeOpt = Some c } }, Ok()
             | None ->
                 // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
                 // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
@@ -289,10 +289,10 @@ module ServiceImplementation =
         w, result
 
 
-    let onRequestResultWrkMsg s q =
+    let onRequestResultWrkMsg s (q, c) =
         let result =
             match s.runningWorkers |> Map.tryFind q with
-            | Some x -> x.notifyOfResults true // TODO kk:20200509 - Charts are forced to be generated. Propagate through input parameters if needed.
+            | Some x -> x.notifyOfResults c
             | None -> CannotFindRunQueueErr q |> toError OnRequestResultErr
         s, result
 
@@ -343,8 +343,8 @@ module ServiceImplementation =
 
     let onCheckCancellation (s : WorkerNodeRunnerState) q =
         match s.runningWorkers |> Map.tryFind q with
-        | Some x -> s, x.cancellationRequested
-        | None -> s, false
+        | Some x -> s, x.cancellationTypeOpt
+        | None -> s, None
 
 
     let sendMessageProxy i =
@@ -395,7 +395,7 @@ module ServiceImplementation =
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
-        | CheckCancellation of AsyncReplyChannel<bool> * RunQueueId
+        | CheckCancellation of AsyncReplyChannel<CancellationType option> * RunQueueId
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =

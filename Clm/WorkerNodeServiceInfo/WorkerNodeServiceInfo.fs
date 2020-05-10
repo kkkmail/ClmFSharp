@@ -6,6 +6,7 @@ open System
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
 open ClmSys.Wcf
@@ -58,14 +59,14 @@ module ServiceInfo =
     type RunnerStateWithCancellation =
         {
             runnerState : RunnerState
-            cancellationRequested : bool
-            notifyOfResults : bool -> UnitResult
+            cancellationTypeOpt : CancellationType option
+            notifyOfResults : ResultNotificationType -> UnitResult
         }
 
         static member defaultValue n =
             {
                 runnerState = RunnerState.defaultValue
-                cancellationRequested = false
+                cancellationTypeOpt = None
                 notifyOfResults = n
             }
 

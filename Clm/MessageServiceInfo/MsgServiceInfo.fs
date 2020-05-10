@@ -3,6 +3,7 @@
 open System
 open System.ServiceModel
 
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.VersionInfo
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
@@ -72,14 +73,14 @@ module ServiceInfo =
 
     type WorkerNodeMessage =
         | RunModelWrkMsg of WorkerNodeRunModelData
-        | CancelRunWrkMsg of RunQueueId
-        | RequestResultWrkMsg of RunQueueId
+        | CancelRunWrkMsg of (RunQueueId * CancellationType)
+        | RequestResultWrkMsg of (RunQueueId * ResultNotificationType)
 
         member this.messageSize =
             match this with
             | RunModelWrkMsg _ -> LargeSize
             | CancelRunWrkMsg _ -> SmallSize
-            | RequestResultWrkMsg _ -> LargeSize
+            | RequestResultWrkMsg _ -> SmallSize
 
 
     /// The decision was that we want strongly typed messages rather than untyped messages.

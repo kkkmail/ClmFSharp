@@ -62,7 +62,7 @@ module Solver =
             getEeData : (unit -> EeData) option
             noOfOutputPoints : int option
             noOfProgressPoints : int option
-            checkCancellation : RunQueueId -> bool
+            checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
         }
 
@@ -107,7 +107,11 @@ module Solver =
             if fromLastCheck > n.checkFreq
             then
                 lastCheck <- DateTime.Now
-                if n.checkCancellation n.runQueueId then raise(ComputationAbortedExcepton n.runQueueId)
+                let cancel = n.checkCancellation n.runQueueId
+
+                match cancel with
+                | None -> ignore()
+                | Some c -> raise(ComputationAbortedException (n.runQueueId, c))
 
         let f (x : double[]) (t : double) : double[] =
             checkCancellation()

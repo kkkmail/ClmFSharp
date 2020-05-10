@@ -51,6 +51,17 @@
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
     <None Include="AsyncCancellationTest.fsx" />
+    <None Include="References.fsx" />
+    <None Include="ModelGenerator.fsx" />
+    <None Include="FileSystemTests.fsx" />
+    <None Include="NoOfSubstAndReact.fsx" />
+    <None Include="ModelDataVsCodeGen.fsx" />
+    <None Include="TimeSpanFormat.fsx" />
+    <None Include="TryGetProcessTest.fsx" />
+    <None Include="ContGenTest.fsx" />
+    <None Include="ZipStringTest.fsx" />
+    <None Include="SolverTest.fsx" />
+    <None Include="ModelRunner.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

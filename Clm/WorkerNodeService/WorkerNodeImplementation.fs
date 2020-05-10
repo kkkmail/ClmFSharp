@@ -307,7 +307,9 @@ module ServiceImplementation =
             | CancelRunWrkMsg q ->
                 //printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
                 onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
-            | RequestResultWrkMsg q -> onRequestResultWrkMsg s q
+            | RequestResultWrkMsg q ->
+                printfn "onProcessMessage: RequestResultWrkMsg, messageId = %A, %A" m.messageDataInfo.messageId q
+                onRequestResultWrkMsg s q
         | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 

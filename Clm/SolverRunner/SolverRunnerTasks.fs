@@ -151,7 +151,7 @@ module SolverRunnerTasks =
                         modelDataId = d.modelDataId
 
                         y0 = decimal d.y0
-                        tEnd = decimal d.chartInitData.tEnd
+                        tEnd = decimal chartData.tLast
                         useAbundant = d.useAbundant
 
                         maxEe = chartData.maxEe
@@ -215,11 +215,48 @@ module SolverRunnerTasks =
         raise(ComputationAbortedException (w.runningProcessData.runQueueId, cancel |> Option.defaultValue AbortCalculation))
 
 
-    type SolverRunner =
+    type SolverProxy =
         {
             runSolver : unit -> unit
             notifyOfResults : ResultNotificationType -> UnitResult
+            logIfFailed : UnitResult -> unit
         }
+
+
+    type private SolverRunnerState =
+        | NotRunningSolver
+        | RunningSolver
+
+
+    type SolverRunnerMessage =
+        | RunSolver
+        | NotifyOfResults of ResultNotificationType
+
+
+    type SolverRunner(proxy : SolverProxy) =
+        let messageLoop =
+            MailboxProcessor.Start(fun u ->
+                let rec loop s =
+                    async
+                        {
+                            match! u.Receive() with
+                            | RunSolver ->
+                                match s with
+                                | NotRunningSolver -> proxy.runSolver()
+                                | RunningSolver -> ignore()
+                                return! RunningSolver |> loop
+                            | NotifyOfResults t ->
+                                proxy.notifyOfResults t |> proxy.logIfFailed
+                                return! s |> loop
+                        }
+
+                NotRunningSolver |> loop
+                )
+
+        member _.runSolver() = messageLoop.Post RunSolver
+        member _.notifyOfResults t =
+            NotifyOfResults t |> messageLoop.Post
+            Ok()
 
 
     /// Uncomment printfn below in case of severe issues.
@@ -286,4 +323,6 @@ module SolverRunnerTasks =
         {
             runSolver = runSolver
             notifyOfResults = notifyOfResults
+            logIfFailed = logIfFailed
         }
+        |> SolverRunner

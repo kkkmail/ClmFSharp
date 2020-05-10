@@ -684,7 +684,8 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let saveResultData connectionString (r : ResultDataWithId) =
+    /// Do not delete. It shows how to use OUTPUT clause.
+    let saveResultDataOld connectionString (r : ResultDataWithId) =
         let g() =
             use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString
@@ -737,6 +738,97 @@ module DatabaseTypes =
             | false -> toError SaveResultDataErr r.resultDataId.value
 
         tryDbFun g
+
+    let saveResultData (ConnectionString connectionString) (r : ResultDataWithId) =
+        let g() =
+            use cmd = new SqlCommandProvider<"
+                merge ResultData as target
+                using (
+                    select
+                        @resultDataId
+                        ,@modelDataId
+                        ,@workerNodeId
+                        ,@y0
+                        ,@tEnd
+                        ,@useAbundant
+                        ,@maxEe
+                        ,@maxAverageEe
+                        ,@maxWeightedAverageAbsEe
+                        ,@maxLastEe
+                        ,@createdOn)
+                    as source
+                        (resultDataId
+                        ,modelDataId
+                        ,workerNodeId
+                        ,y0
+                        ,tEnd
+                        ,useAbundant
+                        ,maxEe
+                        ,maxAverageEe
+                        ,maxWeightedAverageAbsEe
+                        ,maxLastEe
+                        ,createdOn)
+                on (target.resultDataId = source.resultDataId)
+                when not matched then
+                    insert
+                        (resultDataId
+                        ,modelDataId
+                        ,workerNodeId
+                        ,y0
+                        ,tEnd
+                        ,useAbundant
+                        ,maxEe
+                        ,maxAverageEe
+                        ,maxWeightedAverageAbsEe
+                        ,maxLastEe
+                        ,createdOn)
+                    values
+                        (source.resultDataId
+                        ,source.modelDataId
+                        ,source.workerNodeId
+                        ,source.y0
+                        ,source.tEnd
+                        ,source.useAbundant
+                        ,source.maxEe
+                        ,source.maxAverageEe
+                        ,source.maxWeightedAverageAbsEe
+                        ,source.maxLastEe
+                        ,source.createdOn)
+                when matched then
+                    update
+                    set
+                        modelDataId = source.modelDataId
+                        ,workerNodeId = source.workerNodeId
+                        ,y0 = source.y0
+                        ,tEnd = source.tEnd
+                        ,useAbundant = source.useAbundant
+                        ,maxEe = source.maxEe
+                        ,maxAverageEe = source.maxAverageEe
+                        ,maxWeightedAverageAbsEe = source.maxWeightedAverageAbsEe
+                        ,maxLastEe = source.maxLastEe
+                        ,createdOn = source.createdOn;
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let result =
+                cmd.Execute(
+                        resultDataId = r.resultDataId.value
+                        ,modelDataId = r.resultData.modelDataId.value
+                        ,workerNodeId = r.workerNodeId.messagingClientId.value
+                        ,y0 = r.resultData.y0
+                        ,tEnd = r.resultData.tEnd
+                        ,useAbundant = r.resultData.useAbundant
+                        ,maxEe = r.resultData.maxEe
+                        ,maxAverageEe = r.resultData.maxAverageEe
+                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+                        ,maxLastEe = r.resultData.maxLastEe
+                        ,createdOn = DateTime.Now)
+
+            match result = 1 with
+            | true -> Ok ()
+            | false -> toError SaveResultDataErr r.resultDataId.value
+
+        tryDbFun g
+
 
 
     let tryLoadResultData connectionString (ResultDataId resultDataId) =

@@ -148,6 +148,13 @@ module ChartData =
                 |> Array.map (fun e -> abs e)
                 |> Array.max
 
+        /// Last calculated value of tEnd.
+        member cd.tLast =
+            match cd.allChartData |> List.rev |> List.tryHead with
+            | Some c -> c.t
+            | None -> 0.0
+            |> decimal
+
 
     type ChartDataUpdater () =
         interface IUpdater<ChartInitData, ChartSliceData, ChartData> with

@@ -29,4 +29,5 @@ select * from w
 where
 	estCompl is not null
 	--and estCompl < dateadd(day, 1, @now)
-order by estCompl
+	--and totalRunTime > 0.5
+order by estCompl desc

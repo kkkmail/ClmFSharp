@@ -48,7 +48,7 @@ b as
 		inner join ModelData m on t.clmTaskId = m.clmTaskId
 		inner join ResultData r on m.modelDataId = r.modelDataId
 		inner join RunQueue q on r.resultDataId = q.runQueueId
-	where r.maxEe <= 1
+	where r.maxEe <= 1 and q.runQueueStatusId = 3
 ),
 c as
 (

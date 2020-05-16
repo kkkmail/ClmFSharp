@@ -23,11 +23,14 @@ module WindowsService =
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     type ContGenWcfService() =
-        let toGetVersionError f = f |> TryDeleteRunQueueWcfErr |> TryDeleteRunQueueErr |> ContGenServiceErr
-        let tryCancelRunQueue a = modelRunner.Value |> Rop.bind (fun e -> e.tryCancelRunQueue a)
+        let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
+        let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
+        let tryCancelRunQueue (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryCancelRunQueue q c)
+        let tryRequestResults (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryRequestResults q c)
 
         interface IContGenWcfService with
-            member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toGetVersionError b
+            member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toCancelRunQueueError b
+            member _.tryRequestResults b = tryReply tryRequestResults toRequestResultsError b
 
 
     let startContGenWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =

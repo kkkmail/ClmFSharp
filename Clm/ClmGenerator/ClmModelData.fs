@@ -142,7 +142,7 @@ module ClmModelData =
         match rateProvider.tryGetPrimaryDistribution i.reactionName with
         | Some d ->
             let sn = d.successNumber sng noOfTries
-            printfn "generatePairs.sn = %A" sn
+            printfn "generatePairs: successNumberType = %A, sn = %A" i.successNumberType sn
             [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
         | None -> []
 

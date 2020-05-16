@@ -67,8 +67,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Solver.fs" />
-    <None Include="References.fsx" />
-    <None Include="SolverTest.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

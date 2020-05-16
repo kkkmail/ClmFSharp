@@ -6,6 +6,7 @@ open System
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
 open ClmSys.Wcf
@@ -58,13 +59,15 @@ module ServiceInfo =
     type RunnerStateWithCancellation =
         {
             runnerState : RunnerState
-            cancellationRequested : bool
+            cancellationTypeOpt : CancellationType option
+            notifyOfResults : ResultNotificationType -> UnitResult
         }
 
-        static member defaultValue =
+        static member defaultValue n =
             {
                 runnerState = RunnerState.defaultValue
-                cancellationRequested = false
+                cancellationTypeOpt = None
+                notifyOfResults = n
             }
 
 
@@ -75,10 +78,15 @@ module ServiceInfo =
         }
 
 
+    type WorkerNodeState =
+        | NotStartedWorkerNode
+        | StartedWorkerNode
+
     type WorkerNodeRunnerState =
         {
             runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
             numberOfWorkerCores : int
+            workerNodeState : WorkerNodeState
         }
 
         member w.toWorkerNodeRunnerMonitorState() =
@@ -106,7 +114,7 @@ module ServiceInfo =
             | WrkNodeState s ->
                 let toString acc ((RunQueueId k), (v : RunnerState)) =
                     acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-        
+
                 let x =
                     match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
                     | EmptyString -> "[]"

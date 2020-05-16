@@ -1,6 +1,7 @@
 ﻿namespace ContGen
 
 open Clm.ModelParams
+open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
@@ -62,7 +63,7 @@ module ModelRunner =
         | Error e -> addError TryLoadFirstRunQueueErr e
 
 
-    let tryCancelRunQueue (proxy : TryCancelRunQueueProxy) q =
+    let tryCancelRunQueue (proxy : TryCancelRunQueueProxy) (q, c) =
         let addError = addError TryCancelRunQueueErr
         let toError = toError TryCancelRunQueueErr
 
@@ -78,7 +79,7 @@ module ModelRunner =
                                 deliveryType = GuaranteedDelivery
                             }
 
-                        messageData = q |> CancelRunWrkMsg |> WorkerNodeMsg
+                        messageData = (q, c) |> CancelRunWrkMsg |> WorkerNodeMsg
                     }
                     |> proxy.sendCancelRunQueueMessage
                 | None -> Ok()
@@ -92,9 +93,31 @@ module ModelRunner =
                 | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
 
             combineUnitResults r1 r2
-        | Ok None -> toError (TryLoadRunQueueErr q)
-        | Error e -> addError (TryLoadRunQueueErr q) e
+        | Ok None -> toError (TryCancelRunQueueError.TryLoadRunQueueErr q)
+        | Error e -> addError (TryCancelRunQueueError.TryLoadRunQueueErr q) e
 
+
+    let tryRequestResults (proxy : TryRequestResultsProxy) (q, c) =
+        let addError = addError TryRequestResultsErr
+        let toError = toError TryRequestResultsErr
+
+        match proxy.tryLoadRunQueue q with
+        | Ok (Some r) ->
+            match r.workerNodeIdOpt with
+            | Some w ->
+                {
+                    recipientInfo =
+                        {
+                            recipient = w.messagingClientId
+                            deliveryType = GuaranteedDelivery
+                        }
+
+                    messageData = (q, c) |> RequestResultWrkMsg |> WorkerNodeMsg
+                }
+                |> proxy.sendRequestResultsMessage
+            | None -> Ok()
+        | Ok None -> toError (TryRequestResultsError.TryLoadRunQueueErr q)
+        | Error e -> addError (TryRequestResultsError.TryLoadRunQueueErr q) e
 
     /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
     let tryRunAllModels (proxy : TryRunAllModelsProxy) =
@@ -120,6 +143,8 @@ module ModelRunner =
             let q1 = { q with progress = i.progress }
 
             let upsert (q2, r) =
+                printfn "updateProgress.upsert: Upserting %A into %A." i q2
+
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> r
                 | Error e -> (r, addError (UnableToLoadRunQueueErr i.runQueueId) e) ||> combineUnitResults
@@ -127,9 +152,12 @@ module ModelRunner =
             match i.progress with
             | NotStarted -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()
             | InProgress _ ->{ q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
-            | Completed _ -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+            | Completed v ->
+                match v with
+                | None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+                | Some d -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
             | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
-            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was cancelled." |> ErrorMessage |> Some }, Ok()
+            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
             | AllCoresBusy w ->
                 let e = sprintf "Node %A is busy" w |> ErrorMessage |> Some
                 { q1 with runQueueStatus = NotStartedRunQueue; workerNodeIdOpt = None; progress = NotStarted; errorMessageOpt = e }, proxy.upsertWorkerNodeErr w
@@ -183,7 +211,6 @@ module ModelRunner =
 
     type ProcessMessageProxy
         with
-
         static member create c resultLocation =
             {
                 updateProgress = updateProgress (UpdateProgressProxy.create c)
@@ -196,7 +223,6 @@ module ModelRunner =
 
     type TryRunFirstModelProxy
         with
-
         static member create c rmp =
             {
                 tryLoadFirstRunQueue = fun () -> tryLoadFirstRunQueue c
@@ -208,7 +234,6 @@ module ModelRunner =
 
     type TryCancelRunQueueProxy
         with
-
         static member create c s =
             {
                 tryLoadRunQueue = tryLoadRunQueue c
@@ -217,9 +242,17 @@ module ModelRunner =
             }
 
 
+    type TryRequestResultsProxy
+        with
+        static member create c s =
+            {
+                tryLoadRunQueue = tryLoadRunQueue c
+                sendRequestResultsMessage = s
+            }
+
+
     type TryRunAllModelsProxy
         with
-
         static member create c r =
             {
                 tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r)
@@ -271,7 +304,8 @@ module ModelRunner =
 
     type RunnerMessage =
         | TryRunAll of AsyncReplyChannel<UnitResult>
-        | TryCancelRunQueue of AsyncReplyChannel<UnitResult> * RunQueueId
+        | TryCancelRunQueue of AsyncReplyChannel<UnitResult> * RunQueueId * CancellationType
+        | TryRequestResults of AsyncReplyChannel<UnitResult> * RunQueueId * ResultNotificationType
         | ProcessMessages of AsyncReplyChannel<UnitResult>
 
 
@@ -279,6 +313,7 @@ module ModelRunner =
         let runModelProxy = RunModelProxy.create i.runnerData.connectionString i.runnerData.minUsefulEe i.messageProcessorProxy.sendMessage
         let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.connectionString runModelProxy
         let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
+        let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
         let proxy = onGetMessagesProxy i.runnerData.connectionString i.runnerData.resultLocation i.messageProcessorProxy
 
         let messageLoop =
@@ -288,7 +323,8 @@ module ModelRunner =
                         {
                             match! u.Receive() with
                             | TryRunAll r -> tryRunAllModels tryRunAllModelsProxy |> r.Reply
-                            | TryCancelRunQueue (r, q) -> tryCancelRunQueue tryCancelRunQueueProxy q |> r.Reply
+                            | TryCancelRunQueue (r, q, c) -> tryCancelRunQueue tryCancelRunQueueProxy (q, c) |> r.Reply
+                            | TryRequestResults (r, q, c) -> tryRequestResults tryRequestResultsProxy (q, c) |> r.Reply
                             | ProcessMessages r -> onGetMessages proxy () |> snd |> r.Reply
 
                             return! loop()
@@ -298,8 +334,9 @@ module ModelRunner =
                 )
 
         member _.tryRunAll() = messageLoop.PostAndReply (fun reply -> TryRunAll reply)
-        member _.tryCancelRunQueue q = messageLoop.PostAndReply (fun reply -> TryCancelRunQueue (reply, q))
+        member _.tryCancelRunQueue q c = messageLoop.PostAndReply (fun reply -> TryCancelRunQueue (reply, q, c))
         member _.processMessages() = messageLoop.PostAndReply (fun reply -> ProcessMessages reply)
+        member _.tryRequestResults q c = messageLoop.PostAndReply (fun reply -> TryRequestResults (reply, q, c))
 
 
     let createModelRunner (logger : Logger) (r : Runner) =
@@ -312,7 +349,7 @@ module ModelRunner =
     /// Call this function to create timer events necessary for automatic ModelRunner operation.
     /// If you don't call it, then you have to operate it by hands.
     let createModelRunnerMessageProcessor (logger : Logger) (r : Runner) =
-        logger.logInfoString "createModelRunnerMessageProcessor: Creating message procesor..."
+        logger.logInfoString "createModelRunnerMessageProcessor: Creating message processor..."
         let e = fun () -> r.processMessages()
         let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
         h
@@ -322,7 +359,8 @@ module ModelRunner =
         {
             modelGenerator : ClmEventHandler
             modelRunner : ClmEventHandler
-            tryCancelRunQueue : RunQueueId -> UnitResult
+            tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
+            tryRequestResults: RunQueueId -> ResultNotificationType -> UnitResult
             messageProcessor : ClmEventHandler
         }
 
@@ -356,6 +394,7 @@ module ModelRunner =
                     modelGenerator = createModelGenerator d.logger d.runnerData.connectionString
                     modelRunner = createModelRunner d.logger runner
                     tryCancelRunQueue = runner.tryCancelRunQueue
+                    tryRequestResults = runner.tryRequestResults
                     messageProcessor = createModelRunnerMessageProcessor d.logger runner
                 }
                 |> Ok

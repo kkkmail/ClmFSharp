@@ -32,6 +32,10 @@ module WorkerNodeErrors =
         | FailedToCancelErr of (MessageId * RunQueueId * exn)
 
 
+    type OnRequestResultError =
+        | CannotFindRunQueueErr of RunQueueId
+
+
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError
@@ -39,6 +43,7 @@ module WorkerNodeErrors =
         | OnRunModelErr of OnRunModelError
         | OnProcessMessageErr of OnProcessMessageError
         | OnGetMessagesErr of OnGetMessagesError
+        | OnRequestResultErr of OnRequestResultError
 
 
     type WorkerNodeWcfError =

@@ -78,8 +78,6 @@
     <Compile Include="ContGenServiceResponse.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="ContGenTest.fsx" />
-    <None Include="ZipStringTest.fsx" />
     <None Include="SqlServerTypes\readme.htm" />
     <None Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>

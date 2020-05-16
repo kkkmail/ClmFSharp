@@ -71,11 +71,6 @@
     <Compile Include="ClmModelData.fs" />
     <Compile Include="ClmModel.fs" />
     <Content Include="packages.config" />
-    <None Include="References.fsx" />
-    <None Include="ModelGenerator.fsx" />
-    <None Include="FileSystemTests.fsx" />
-    <None Include="NoOfSubstAndReact.fsx" />
-    <None Include="ModelDataVsCodeGen.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

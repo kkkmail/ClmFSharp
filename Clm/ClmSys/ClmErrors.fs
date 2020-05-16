@@ -8,6 +8,7 @@ open ModelGeneratorErrors
 open ModelRunnerErrors
 open GeneralPrimitives
 open ContGenErrors
+open SolverRunnerPrimitives
 
 module ClmErrors =
 
@@ -137,4 +138,4 @@ module ClmErrors =
 
     /// We have to resort to throwing a specific exception in order
     /// to perform early termination from deep inside C# ODE solver.
-    exception ComputationAbortedExcepton of RunQueueId
+    exception ComputationAbortedException of (RunQueueId * CancellationType)

@@ -77,8 +77,6 @@
     <Compile Include="SolverRunnerTasks.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="References.fsx" />
-    <None Include="ModelRunner.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Argu">

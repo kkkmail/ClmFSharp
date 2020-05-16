@@ -33,7 +33,7 @@ module DatabaseTypes =
 
 
     type ClmDefaultValueData = SqlCommandProvider<"
-        select * 
+        select *
         from dbo.ClmDefaultValue
         where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
 
@@ -106,7 +106,7 @@ module DatabaseTypes =
 
     /// SQL to upsert RunQueue.
     type RunQueueTableData = SqlCommandProvider<"
-        select * 
+        select *
         from dbo.RunQueue
         where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
 
@@ -375,17 +375,17 @@ module DatabaseTypes =
         //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
         ///     + -> completed / failed
         ///
-        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId + not decreasing progress - normal work progress.
-        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to 1.0) - completed work.
+        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId - normal work progress.
+        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to Completed _) - completed work.
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
         ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
 
         ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
         ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
-        ///         roll back to cancel requested - in progress message came while our cancel request propages through the system.
+        ///         roll back to cancel requested - in progress message came while our cancel request propagates through the system.
         ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
-        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propaged through the system.
-        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propaged through the system.
+        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propagated through the system.
+        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propagated through the system.
 
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
@@ -433,18 +433,18 @@ module DatabaseTypes =
                 | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
                 | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
 
-                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
-                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
 
-                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value && q.progress.value >= r.progress -> g q.progress.value None false // !!! Roll back the status change !!!
+                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None false // !!! Roll back the status change !!!
                 | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g Completed.value None true
+                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
                 | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
                 | _ -> s |> f |> f1
             | None -> InvalidRunQueue |> f |> f2
@@ -506,7 +506,7 @@ module DatabaseTypes =
         let g() =
             use cmd = new SqlCommandProvider<"
                 merge ClmDefaultValue as target
-                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)  
+                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
                 on (target.clmDefaultValueId = source.clmDefaultValueId)
                 when not matched then
                     insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
@@ -684,7 +684,8 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let saveResultData connectionString (r : ResultDataWithId) =
+    /// Do not delete. It shows how to use OUTPUT clause.
+    let saveResultDataOld connectionString (r : ResultDataWithId) =
         let g() =
             use conn = getOpenConn connectionString
             let connectionString = conn.ConnectionString
@@ -737,6 +738,97 @@ module DatabaseTypes =
             | false -> toError SaveResultDataErr r.resultDataId.value
 
         tryDbFun g
+
+    let saveResultData (ConnectionString connectionString) (r : ResultDataWithId) =
+        let g() =
+            use cmd = new SqlCommandProvider<"
+                merge ResultData as target
+                using (
+                    select
+                        @resultDataId
+                        ,@modelDataId
+                        ,@workerNodeId
+                        ,@y0
+                        ,@tEnd
+                        ,@useAbundant
+                        ,@maxEe
+                        ,@maxAverageEe
+                        ,@maxWeightedAverageAbsEe
+                        ,@maxLastEe
+                        ,@createdOn)
+                    as source
+                        (resultDataId
+                        ,modelDataId
+                        ,workerNodeId
+                        ,y0
+                        ,tEnd
+                        ,useAbundant
+                        ,maxEe
+                        ,maxAverageEe
+                        ,maxWeightedAverageAbsEe
+                        ,maxLastEe
+                        ,createdOn)
+                on (target.resultDataId = source.resultDataId)
+                when not matched then
+                    insert
+                        (resultDataId
+                        ,modelDataId
+                        ,workerNodeId
+                        ,y0
+                        ,tEnd
+                        ,useAbundant
+                        ,maxEe
+                        ,maxAverageEe
+                        ,maxWeightedAverageAbsEe
+                        ,maxLastEe
+                        ,createdOn)
+                    values
+                        (source.resultDataId
+                        ,source.modelDataId
+                        ,source.workerNodeId
+                        ,source.y0
+                        ,source.tEnd
+                        ,source.useAbundant
+                        ,source.maxEe
+                        ,source.maxAverageEe
+                        ,source.maxWeightedAverageAbsEe
+                        ,source.maxLastEe
+                        ,source.createdOn)
+                when matched then
+                    update
+                    set
+                        modelDataId = source.modelDataId
+                        ,workerNodeId = source.workerNodeId
+                        ,y0 = source.y0
+                        ,tEnd = source.tEnd
+                        ,useAbundant = source.useAbundant
+                        ,maxEe = source.maxEe
+                        ,maxAverageEe = source.maxAverageEe
+                        ,maxWeightedAverageAbsEe = source.maxWeightedAverageAbsEe
+                        ,maxLastEe = source.maxLastEe
+                        ,createdOn = source.createdOn;
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let result =
+                cmd.Execute(
+                        resultDataId = r.resultDataId.value
+                        ,modelDataId = r.resultData.modelDataId.value
+                        ,workerNodeId = r.workerNodeId.messagingClientId.value
+                        ,y0 = r.resultData.y0
+                        ,tEnd = r.resultData.tEnd
+                        ,useAbundant = r.resultData.useAbundant
+                        ,maxEe = r.resultData.maxEe
+                        ,maxAverageEe = r.resultData.maxAverageEe
+                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+                        ,maxLastEe = r.resultData.maxLastEe
+                        ,createdOn = DateTime.Now)
+
+            match result = 1 with
+            | true -> Ok ()
+            | false -> toError SaveResultDataErr r.resultDataId.value
+
+        tryDbFun g
+
 
 
     let tryLoadResultData connectionString (ResultDataId resultDataId) =
@@ -954,7 +1046,7 @@ module DatabaseTypes =
             use conn = getOpenConn connectionString
             use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
             let table = cmd.Execute()
-            
+
             match table.Rows |> Seq.tryHead with
             | None -> Ok None
             | Some r -> r.workerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok

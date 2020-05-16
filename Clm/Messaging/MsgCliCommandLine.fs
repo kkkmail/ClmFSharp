@@ -30,9 +30,9 @@ module MsgCliCommandLine =
                 | MsgCliSvcAddress _ -> "messaging server ip address / name."
                 | MsgCliSvcPort _ -> "messaging server port."
                 | MsgCliSaveSettings -> "saves settings to the Registry."
-                | MsgCliVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
+                | MsgCliVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
                 | MsgCliId _ -> "id of the client - it is like an \"email\" address of a client."
-                | MsgCliName _ -> "optinal client name to distinguish clients when there is more than one on a machine."
+                | MsgCliName _ -> "optional client name to distinguish clients when there is more than one on a machine."
 
                 /// For debugging, comment when not needed.
                 | MsgRcpId _ -> "id of message recipient."

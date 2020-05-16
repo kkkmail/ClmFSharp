@@ -94,13 +94,13 @@ module ContGenAdmTasks =
     type ContGenAdmTask =
         | AddClmTaskTask of list<AddClmTaskArgs>
         | MonitorTask of list<MonitorArgs>
-        | CancelRunQueueTask of list<CancelRunQueueArgs>
+        | ModifyRunQueueTask of list<ModifyRunQueueArgs>
 
         member task.run logger =
             match task with
             | AddClmTaskTask p -> addClmTask p
             | MonitorTask p -> monitor p
-            | CancelRunQueueTask p -> tryCancelRunQueueImpl logger p
+            | ModifyRunQueueTask p -> tryModifyRunQueueImpl logger p
 
         static member private tryCreateUpdateParametersTask p =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
@@ -108,13 +108,13 @@ module ContGenAdmTasks =
         static member private tryCreateMonitorTask p =
             p |> List.tryPick (fun e -> match e with | Monitor q -> q.GetAllResults() |> MonitorTask |> Some | _ -> None)
 
-        static member private tryCreatCancelRunQueueTask p =
-            p |> List.tryPick (fun e -> match e with | CancelRunQueue q -> q.GetAllResults() |> CancelRunQueueTask |> Some | _ -> None)
+        static member private tryCreatModifyRunQueueTask p =
+            p |> List.tryPick (fun e -> match e with | ModifyRunQueue q -> q.GetAllResults() |> ModifyRunQueueTask |> Some | _ -> None)
 
         static member tryCreate p =
             [
                 ContGenAdmTask.tryCreateUpdateParametersTask
-                ContGenAdmTask.tryCreatCancelRunQueueTask
+                ContGenAdmTask.tryCreatModifyRunQueueTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]
             |> List.tryPick (fun e -> e p)

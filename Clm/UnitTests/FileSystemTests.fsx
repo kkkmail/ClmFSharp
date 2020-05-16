@@ -1,14 +1,14 @@
 ﻿open System.IO
 open System
 
-type ModelLocationInputData = 
+type ModelLocationInputData =
     {
         startingFolder : string
         separator : string
         padLength : int
     }
 
-    static member defaultValue = 
+    static member defaultValue =
         {
             startingFolder = @"C:\GitHub\CLM\Clm\Model\Models"
             separator = "_"
@@ -16,7 +16,7 @@ type ModelLocationInputData =
         }
 
 
-type ModelLocationInfo = 
+type ModelLocationInfo =
     {
         modelFolder : string
         modelName : string
@@ -32,7 +32,7 @@ type ResultInfo =
         //tMax : double
     }
 
-    static member defautlValue = 
+    static member defautlValue =
         {
             resultLocation =  @"C:\GitHub\CLM\Clm\Results"
             separator = "_"
@@ -44,8 +44,8 @@ let createModelFolder (i : ModelLocationInputData) =
     let today = DateTime.Now
     let todayPrefix = today.ToString "yyyyMMdd"
 
-    let todayMaxDirNumber = 
-        dirs 
+    let todayMaxDirNumber =
+        dirs
         |> List.filter(fun d -> d.StartsWith(todayPrefix))
         |> List.map (fun d -> d.Substring(todayPrefix.Length).Replace("_", ""))
         |> List.choose (fun n -> match Int32.TryParse n with | (true, i) -> Some i | (false, _) -> None)
@@ -65,7 +65,4 @@ let createModelFolder (i : ModelLocationInputData) =
     }
 
 
-
-
 createModelFolder ModelLocationInputData.defaultValue
-

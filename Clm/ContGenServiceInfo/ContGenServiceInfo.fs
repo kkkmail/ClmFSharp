@@ -5,6 +5,7 @@ open ClmSys.GeneralData
 open System.Threading
 open Clm.ModelParams
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
@@ -87,7 +88,8 @@ module ServiceInfo =
 
 
     type IContGenService =
-        abstract tryCancelRunQueue : RunQueueId -> UnitResult
+        abstract tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
+        abstract tryRequestResults : RunQueueId -> ResultNotificationType -> UnitResult
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -96,3 +98,7 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryCancelRunQueue")>]
         abstract tryCancelRunQueue : q:byte[] -> byte[]
+
+
+        [<OperationContract(Name = "tryRequestResults")>]
+        abstract tryRequestResults : q:byte[] -> byte[]

@@ -1,5 +1,5 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 5.0.1.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 5.0.2.
 
 ## Release Notes
 Version 5.0.0.0 introduced a major refactoring and simplification of cluster architecture eliminating `Partitioner`, `AsyncRun` and `Runner` modules and replacing them by much simpler and independent `ModelGenerator` and `ModelRunner` modules while shifting all job of monitoring running models to the database. As a result, non-cluster mode of operation was temporarily disabled. In addition, Windows Service mode of operation has not been thoroughly tested yet. This will be fixed in future versions along with further cleanup of no longer used code.
@@ -23,7 +23,7 @@ The system uses MS SQL as a database to store various parameters and generates H
 
 ## Build order
 The system uses F# type providers, which means that the database must be created first. The compile time connection string (as well as the run time connection string) are loaded from `App.config`. See `DbData.DatabaseTypes` fro details. Because the database is primitive (it contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not seem yet justified. So, the procedure is as follows:
-1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm501`) / adjust it as necessary.
+1.	Look up the value of `ClmSys.GeneralData.ClmBaseName` (e.g. `clm502`) / adjust it as necessary.
 2.	Create MSSQL database with the name from step #1.
 3.	Run `-build.bat` file from `SQL` folder. It will produce files `001_all.sql` and `002_data.sql` in the folder `!All`. If no changes to tables or data were made, then these files will come out the same as in repository.
 4.	Load file `001_all.sql` and run it in the database created on step #2, then load file `002_data.sql` and run it. The scripts are fully reentrable, which means that they can be run many times without any side effects.

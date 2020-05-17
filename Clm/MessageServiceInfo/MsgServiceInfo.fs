@@ -102,6 +102,9 @@ module ServiceInfo =
                     |> List.fold (fun acc r -> acc && r) true
 
 
+        static member defaultProgress = 0.02M
+        static member defaultMinEe = 0.15
+
         static member getDefaultValue p e =
             [
                 [
@@ -115,7 +118,7 @@ module ServiceInfo =
             ]
             |> AllOfAny
 
-            static member defaultValue = EarlyExitStrategy.getDefaultValue 0.02M 0.15
+            static member defaultValue = EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
 
 
     type EarlyExitInfo =

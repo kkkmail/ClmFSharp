@@ -283,6 +283,7 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 		[maxWeightedAverageAbsEe] [float] NOT NULL,
 		[maxLastEe] [float] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
+		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_ResultData] PRIMARY KEY CLUSTERED 
 	(
 		[resultDataId] ASC
@@ -295,6 +296,7 @@ IF OBJECT_ID('[dbo].[ResultData]') IS NULL begin
 	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
 	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT ((0)) FOR [maxLastEe]
 	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [dbo].[ResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
 	ALTER TABLE [dbo].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_ResultData_WorkerNode] FOREIGN KEY([workerNodeId])
 	REFERENCES [dbo].[WorkerNode] ([workerNodeId])

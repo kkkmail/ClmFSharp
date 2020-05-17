@@ -8,6 +8,7 @@ open ClmSys.VersionInfo
 open ClmSys.Registry
 open ClmSys.Logging
 open Messaging.ServiceResponse
+open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open Messaging.Client
 open ClmSys.GeneralPrimitives
@@ -146,6 +147,7 @@ module SvcCommandLine =
         | None -> ignore()
 
 
+    /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
         let name = contGenServiceRegistryName
         let version = getVersion p
@@ -186,6 +188,7 @@ module SvcCommandLine =
                                 connectionString = clmConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
+                                earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
                             }
 
                         runnerProxy =

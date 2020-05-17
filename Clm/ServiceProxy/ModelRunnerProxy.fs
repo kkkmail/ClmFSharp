@@ -19,14 +19,8 @@ module ModelRunnerProxy =
             minUsefulEe : MinUsefulEe
             sendRunModelMessage : MessageInfo -> UnitResult
             loadModelData : ModelDataId -> ClmResult<ModelData>
+            earlyExitInfo : EarlyExitInfo option
         }
-
-        static member create c e s =
-            {
-                minUsefulEe = e
-                sendRunModelMessage = s
-                loadModelData = loadModelData c
-            }
 
 
     type TryRunFirstModelProxy =

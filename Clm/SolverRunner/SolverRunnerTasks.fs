@@ -121,12 +121,33 @@ module SolverRunnerTasks =
             }
 
 
-    let getNSolveParam (d : RunSolverData) r s e =
+    let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) =
+        let checkCancellation =
+            match w.earlyExitOpt with
+            | None -> d.checkCancellation
+            | Some c ->
+                let mutable lastCheck = DateTime.Now
+
+                let check r =
+                    let fromLastCheck = DateTime.Now - lastCheck
+
+                    if fromLastCheck > c.frequency.value
+                    then
+                        lastCheck <- DateTime.Now
+
+                        match d.chartDataUpdater.getContent() |> c.earlyExitStrategy.exitEarly with
+                        | true -> Some CancelWithResults
+                        | false -> d.checkCancellation r
+
+                    else d.checkCancellation r
+
+                check
+
         {
             modelDataId = d.modelDataId.value
-            runQueueId = r
-            tStart = s
-            tEnd = e
+            runQueueId = w.runningProcessData.runQueueId
+            tStart = 0.0
+            tEnd = (double w.runningProcessData.commandLineParams.tEnd)
             derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
             initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
@@ -134,7 +155,7 @@ module SolverRunnerTasks =
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
-            checkCancellation = d.checkCancellation
+            checkCancellation = checkCancellation
             checkFreq = d.checkFreq
         }
 
@@ -260,6 +281,7 @@ module SolverRunnerTasks =
                 )
 
         member _.runSolver() = messageLoop.Post RunSolver
+
         member _.notifyOfResults t =
             printfn "SolverRunner.notifyOfResults was called."
             NotifyOfResults t |> messageLoop.Post
@@ -277,8 +299,7 @@ module SolverRunnerTasks =
 
         let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
-        let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
-        let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
+        let data = getNSolveParam runSolverData w
         let getResultAndChartData() = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
 
         let notifyOfResults t =

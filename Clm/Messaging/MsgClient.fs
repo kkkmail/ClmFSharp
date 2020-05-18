@@ -113,6 +113,7 @@ module Client =
         | Start of AsyncReplyChannel<UnitResult>
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
         | SendMessage of AsyncReplyChannel<UnitResult> * MessageInfo
+        | ScheduleMessage of MessageInfo
         | TransmitMessages of AsyncReplyChannel<UnitResult> * TryReceiveSingleMessageProxy
         | ConfigureClient of MessagingClientConfigParam
         | TryPeekReceivedMessage of AsyncReplyChannel<Message option>
@@ -235,6 +236,9 @@ module Client =
             | NonGuaranteedDelivery -> Ok()
 
         { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }, result
+
+
+    let onScheduleMessage = onSendMessage
 
 
     let onGetVersion s =
@@ -373,7 +377,7 @@ module Client =
         let loadMsg = d.msgClientProxy.loadMessages
         let saveMsg = d.msgClientProxy.saveMessage
         let deleteMsg = d.msgClientProxy.tryDeleteMessage
-        let msgClietnId = d.msgAccessInfo.msgClientId
+        let msgClientId = d.msgAccessInfo.msgClientId
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -383,7 +387,8 @@ module Client =
                             match! u.Receive() with
                             | Start r -> return! onStart s loadMsg |> (withReply r) |> loop
                             | GetVersion r -> return! onGetVersion s |> (withReply r) |> loop
-                            | SendMessage (r, m) -> return! onSendMessage saveMsg msgClietnId s m |> (withReply r) |> loop
+                            | SendMessage (r, m) -> return! onSendMessage saveMsg msgClientId s m |> (withReply r) |> loop
+                            | ScheduleMessage m -> return! onScheduleMessage saveMsg msgClientId s m (*|> fst*) |> loop
                             | TransmitMessages (r, p) -> return! onTransmitMessages p s |> (withReply r) |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s |> (withReply r) |> loop
@@ -438,7 +443,7 @@ module Client =
                 | Some m ->
                     try
                         let r = f x m
-    
+
                         match w.tryRemoveReceivedMessage m.messageDataInfo.messageId with
                         | RemovedSucessfully -> ProcessedSucessfully r
                         | RemovedWithError e -> ProcessedWithError (r, e)
@@ -447,7 +452,7 @@ module Client =
                     | e -> e |> OnTryProcessMessageExn |> OnTryProcessMessageErr |> MessagingClientErr |> FailedToProcess
                 | None -> NothingToDo
             else BusyProcessing
-    
+
         Interlocked.Decrement(&callCount) |> ignore
         retVal
 

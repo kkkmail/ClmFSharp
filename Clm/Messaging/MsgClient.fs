@@ -238,6 +238,10 @@ module Client =
         { s with outgoingMessages = (message :: s.outgoingMessages) |> sortOutgoing }, result
 
 
+    /// This is a UDP-like message. You send it and it may or may not reach the destination.
+    /// And you will never know if it did or did not.
+    /// Adding any kind of logging here would kill the purpose.
+    /// The caller is responsible for not sending messages with guaranteed delivery via this channel.
     let onScheduleMessage = onSendMessage
 
 
@@ -388,7 +392,7 @@ module Client =
                             | Start r -> return! onStart s loadMsg |> (withReply r) |> loop
                             | GetVersion r -> return! onGetVersion s |> (withReply r) |> loop
                             | SendMessage (r, m) -> return! onSendMessage saveMsg msgClientId s m |> (withReply r) |> loop
-                            | ScheduleMessage m -> return! onScheduleMessage saveMsg msgClientId s m (*|> fst*) |> loop
+                            | ScheduleMessage m -> return! onScheduleMessage saveMsg msgClientId s m |> fst |> loop
                             | TransmitMessages (r, p) -> return! onTransmitMessages p s |> (withReply r) |> loop
                             | ConfigureClient x -> return! onConfigureClient s x |> loop
                             | TryPeekReceivedMessage r -> return! onTryPeekReceivedMessage s |> (withReply r) |> loop
@@ -403,6 +407,7 @@ module Client =
         member _.start() = messageLoop.PostAndReply Start
         member _.getVersion() = messageLoop.PostAndReply GetVersion
         member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (reply, m))
+        member _.scheduleMessage (m : MessageInfo) = ScheduleMessage m |> messageLoop.Post
         member _.configureClient x = ConfigureClient x |> messageLoop.Post
         member m.transmitMessages() = messageLoop.PostAndReply (fun reply -> TransmitMessages (reply, m.tryReceiveSingleMessageProxy))
         member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)

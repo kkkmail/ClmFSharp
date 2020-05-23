@@ -9,6 +9,7 @@ open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingServiceErrors
 open MessagingServiceInfo.ServiceInfo
+open System.Data.SQLite
 
 // ! Must be the last to open !
 open Configuration

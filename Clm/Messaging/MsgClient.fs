@@ -406,8 +406,15 @@ module Client =
 
         member _.start() = messageLoop.PostAndReply Start
         member _.getVersion() = messageLoop.PostAndReply GetVersion
+
+        /// Sends a message and waits for confirmation that it was sent.
+        /// If failed then the error in Result will contain the error.
         member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (reply, m))
+
+        /// Schedules a message to be sent and returns immediately.
+        /// If something fails at a later stage, then no error will be recorded.
         member _.scheduleMessage (m : MessageInfo) = ScheduleMessage m |> messageLoop.Post
+
         member _.configureClient x = ConfigureClient x |> messageLoop.Post
         member m.transmitMessages() = messageLoop.PostAndReply (fun reply -> TransmitMessages (reply, m.tryReceiveSingleMessageProxy))
         member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
@@ -421,6 +428,7 @@ module Client =
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
                 sendMessage = m.sendMessage
+                scheduleMessage = m.scheduleMessage
                 transmitMessages = m.transmitMessages
                 removeExpiredMessages = m.removeExpiredMessages
             }

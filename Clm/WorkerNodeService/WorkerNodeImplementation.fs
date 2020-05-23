@@ -70,6 +70,7 @@ module ServiceImplementation =
         {
             partitionerId : PartitionerId
             sendMessage : MessageInfo -> UnitResult
+            scheduleMessage : MessageInfo -> unit
         }
 
 
@@ -152,13 +153,21 @@ module ServiceImplementation =
                 match s.runningWorkers |> Map.tryFind p.runQueueId with
                 | Some rs ->
                     let result =
-                        {
-                            partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                            deliveryType = t
-                            messageData = UpdateProgressPrtMsg p
-                        }.getMessageInfo()
-                        |> proxy.sendMessageProxy.sendMessage
-                        |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
+                        let g() =
+                            {
+                                partitionerRecipient = proxy.sendMessageProxy.partitionerId
+                                deliveryType = t
+                                messageData = UpdateProgressPrtMsg p
+                            }.getMessageInfo()
+
+                        match t with
+                        | GuaranteedDelivery ->
+                            g()
+                            |> proxy.sendMessageProxy.sendMessage
+                            |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
+                        | NonGuaranteedDelivery ->
+                            g() |> proxy.sendMessageProxy.scheduleMessage
+                            Ok()
 
                     Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
                 | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
@@ -353,6 +362,7 @@ module ServiceImplementation =
         {
             partitionerId = i.workerNodeServiceInfo.workerNodeInfo.partitionerId
             sendMessage = i.messageProcessorProxy.sendMessage
+            scheduleMessage = i.messageProcessorProxy.scheduleMessage
         }
 
 

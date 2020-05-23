@@ -10,9 +10,15 @@ open ClmSys.GeneralPrimitives
 
 module MsgServiceProxy =
 
+    type MessagingClientStorageType =
+        | LocalFolder
+        | Database of ConnectionString
+
+
     type MessagingClientProxyInfo =
         {
             messagingClientName : MessagingClientName
+            storageType : MessagingClientStorageType
         }
 
 
@@ -21,19 +27,28 @@ module MsgServiceProxy =
     /// This proxy encapsulates that.
     type MessagingClientProxy =
         {
-            loadMessages : unit -> ListResult<MessageWithType>
+//            loadMessages : unit -> ListResult<MessageWithType>
             saveMessage : MessageWithType -> UnitResult
             tryDeleteMessage : MessageId -> UnitResult
         }
 
-        static member create (i : MessagingClientProxyInfo) =
+        static member create (i : MessagingClientProxyInfo) (c : MessagingClientId) =
             let name = i.messagingClientName
 
-            {
-                loadMessages = loadMessageWithTypeAllFs name
-                saveMessage = saveMessageWithTypeFs name
-                tryDeleteMessage = tryDeleteMessageWithTypeFs name
-            }
+            match i.storageType with
+            | LocalFolder ->
+                {
+//                    loadMessages = loadMessageWithTypeAllFs name
+                    saveMessage = saveMessageWithTypeFs name
+                    tryDeleteMessage = tryDeleteMessageWithTypeFs name
+                }
+            | Database connectionString ->
+
+                {
+//                    loadMessages = loadMessageWithTypeAllFs name
+                    saveMessage = fun m -> saveMessage connectionString m.message
+                    tryDeleteMessage = deleteMessage connectionString
+                }
 
 
     /// Provides IO proxy for messaging service.

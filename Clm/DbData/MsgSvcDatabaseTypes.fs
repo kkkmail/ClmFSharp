@@ -29,10 +29,18 @@ module MsgSvcDatabaseTypes =
         where messageId = @messageId", MsgSvcConnectionStringValue, ResultType.DataReader>
 
 
-    type TryPickMessageData = SqlCommandProvider<"
+    type TryPickRecipientMessageData = SqlCommandProvider<"
            select top 1 *
            from dbo.Message
            where recipientId = @recipientId and dataVersion = @dataVersion
+           order by createdOn, messageOrder
+           ", MsgSvcConnectionStringValue, ResultType.DataReader>
+
+
+    type TryPickSenderMessageData = SqlCommandProvider<"
+           select top 1 *
+           from dbo.Message
+           where senderId = @senderId and dataVersion = @dataVersion
            order by createdOn, messageOrder
            ", MsgSvcConnectionStringValue, ResultType.DataReader>
 
@@ -95,7 +103,7 @@ module MsgSvcDatabaseTypes =
     let tryPickMessage connectionString (MessagingClientId i) =
         let g () =
             use conn = getOpenConn connectionString
-            use d = new TryPickMessageData(conn)
+            use d = new TryPickRecipientMessageData(conn)
             let t = new MessageTable()
             d.Execute(i, messagingDataVersion.value) |> t.Load
 
@@ -104,6 +112,10 @@ module MsgSvcDatabaseTypes =
             | None -> Ok None
 
         tryDbFun g
+
+
+    let loadMessages connectionString (MessagingClientId i) =
+        0
 
 
     /// TODO kk:20200411 - I am not very happy about double ignore below. Refactor when time permits.

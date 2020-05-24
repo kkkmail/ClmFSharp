@@ -21,7 +21,7 @@ module FileSystemTypes =
 
     let serializationFormat = BinaryZippedFormat
     let serializationErrFormat = XmlFormat
-    let fileStorageFolder = DefaultFileStorageFolder
+    let private fileStorageFolder = DefaultFileStorageFolder
 
 
     type TableName =

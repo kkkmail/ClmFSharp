@@ -158,14 +158,16 @@ module MsgSvcDatabaseTypes =
 
 
     /// TODO kk:20200523 - So far this looks extremely far beyond ugly. Find the proper way and don't go beyond this one table until that proper way is found.
-    /// https://devonburriss.me/how-to-fsharp-pt-9/
-    /// https://isthisit.nz/posts/2019/sqlite-database-with-dapper-and-fsharp/
+    ///
+    /// Here are some references:
+    ///     https://devonburriss.me/how-to-fsharp-pt-9/
+    ///     https://isthisit.nz/posts/2019/sqlite-database-with-dapper-and-fsharp/
     let saveMessageWithTypeSqlite (SqliteConnectionString connectionString) (m : MessageWithType) =
         let g() =
             let connectionString = new SQLiteConnection(connectionString)
 
             let sql = @"
-                INSERT INTO dbo.Message
+                INSERT INTO Message
                     (messageId
                     ,senderId
                     ,recipientId

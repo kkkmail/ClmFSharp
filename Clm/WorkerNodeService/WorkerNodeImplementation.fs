@@ -502,7 +502,7 @@ module ServiceImplementation =
             let toError e = e |> WorkerNodeServiceErr |> Error
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
-            let connStrSqlite = 0
+            let connStrSqlite = @"Data Source=C:\clm503\MsgClient.db;Version=3;foreign keys=true"
 
             let w =
                 let messagingClientAccessInfo = i.messagingClientAccessInfo

@@ -24,8 +24,7 @@ module MsgServiceProxy =
 
 
     /// Provides IO proxy for messaging client.
-    /// Currently it is assumed that messaging client does NOT have SQL server at its disposal.
-    /// This proxy encapsulates that.
+    /// Currently it is assumed that messaging client may NOT have SQL server at its disposal.
     type MessagingClientProxy =
         {
             loadMessages : unit -> ListResult<MessageWithType>
@@ -54,7 +53,7 @@ module MsgServiceProxy =
                 {
                     loadMessages = loadMessageWithTypeAllFs name
                     saveMessage = fun m -> saveMessageWithTypeSqlite connectionString m
-                    tryDeleteMessage = failwith "tryDeleteMessage for SqliteDatabase is not yet supported."
+                    tryDeleteMessage = fun i -> failwith "tryDeleteMessage for SqliteDatabase is not yet supported."
                 }
 
 

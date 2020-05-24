@@ -14,11 +14,18 @@ open ClmSys.MessagingPrimitives
 module MessagingTestClientTask =
 
     let runTestClient i h r =
+
+        let j =
+            {
+                messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString())
+                storageType = LocalFolder
+            }
+
         let d =
             {
                 msgAccessInfo = i
                 messagingService = h
-                msgClientProxy = MessagingClientProxy.create { messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString()) }
+                msgClientProxy = MessagingClientProxy.create j i.msgClientId
             }
 
         let a = MessagingClient d

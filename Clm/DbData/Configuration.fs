@@ -1,4 +1,5 @@
 ﻿namespace DbData
+open System.Data.SQLite
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
 open System.Data
@@ -68,6 +69,12 @@ module Configuration =
     let getOpenConn (ConnectionString connectionString) =
         let conn = new SqlConnection(connectionString)
         openConnIfClosed conn
+        conn
+
+
+    let getOpenSqliteConn (SqliteConnectionString connectionString) =
+        let conn = new SQLiteConnection(connectionString)
+        conn.Open()
         conn
 
 

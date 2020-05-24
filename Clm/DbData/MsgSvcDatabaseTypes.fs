@@ -222,7 +222,7 @@ module MsgSvcDatabaseTypes =
             use connectionString = new SQLiteConnection(connectionString)
 
             let sql = @"
-                INSERT INTO Message
+                insert into Message
                     (messageId
                     ,senderId
                     ,recipientId
@@ -230,7 +230,7 @@ module MsgSvcDatabaseTypes =
                     ,deliveryTypeId
                     ,messageData
                     ,createdOn)
-                VALUES
+                values
                     (@messageId
                     ,@senderId
                     ,@recipientId
@@ -258,12 +258,12 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let deleteMessageSqlite (SqliteConnectionString connectionString) (messageId : MessageId) =
+    let deleteMessageSqlite connectionString (messageId : MessageId) =
         let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
-            use conn = new SQLiteConnection(connectionString)
-            use cmd = new SQLiteCommand("delete from dbo.Message where messageId = @messageId", conn)
+            use conn = getOpenSqliteConn connectionString
+            use cmd = new SQLiteCommand("delete from Message where messageId = @messageId", conn)
             cmd.Parameters.Add(SQLiteParameter("@messageId", messageId.value.ToSqliteString())) |> ignore
 
             match cmd.ExecuteNonQuery() = 1 with
@@ -273,11 +273,11 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let deleteExpiredMessagesSqlite (SqliteConnectionString connectionString) (expirationTime : TimeSpan) =
+    let deleteExpiredMessagesSqlite connectionString (expirationTime : TimeSpan) =
         let g() =
-            use conn = new SQLiteConnection(connectionString)
+            use conn = getOpenSqliteConn connectionString
             use cmd = new SQLiteCommand(@"
-                delete from dbo.Message
+                delete from Message
                 where
                     deliveryTypeId = 1
                     and dataVersion = @dataVersion
@@ -330,16 +330,18 @@ module MsgSvcDatabaseTypes =
         }
 
 
-    let tryPickIncomingMessageSqlite (SqliteConnectionString connectionString) (MessagingClientId i) =
+    let tryPickIncomingMessageSqlite connectionString (MessagingClientId i) =
         let g () =
-            use conn = new SQLiteConnection(connectionString)
+            use conn = getOpenSqliteConn connectionString
             use cmd = new SQLiteCommand(@"
-                select top 1 *
-                from dbo.Message
+                select *
+                from Message
                 where recipientId = @recipientId and dataVersion = @dataVersion
-                order by messageOrder", conn)
+                order by messageOrder
+                limit 1", conn)
 
             cmd.Parameters.Add(SQLiteParameter("@recipientId", i.ToSqliteString())) |> ignore
+            cmd.Parameters.Add(SQLiteParameter("@dataVersion", messagingDataVersion.value)) |> ignore
             use rdr = cmd.ExecuteReader()
 
             match rdr.Read() with
@@ -350,16 +352,18 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let tryPickOutgoingMessageSqlite (SqliteConnectionString connectionString) (MessagingClientId i) =
+    let tryPickOutgoingMessageSqlite connectionString (MessagingClientId i) =
         let g () =
-            use conn = new SQLiteConnection(connectionString)
+            use conn = getOpenSqliteConn connectionString
             use cmd = new SQLiteCommand(@"
-                select top 1 *
-                from dbo.Message
+                select *
+                from Message
                 where senderId = @senderId and dataVersion = @dataVersion
-                order by messageOrder", conn)
+                order by messageOrder
+                limit 1", conn)
 
             cmd.Parameters.Add(SQLiteParameter("@senderId", i.ToSqliteString())) |> ignore
+            cmd.Parameters.Add(SQLiteParameter("@dataVersion", messagingDataVersion.value)) |> ignore
             use rdr = cmd.ExecuteReader()
 
             match rdr.Read() with

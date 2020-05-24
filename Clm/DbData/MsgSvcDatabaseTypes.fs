@@ -9,12 +9,29 @@ open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingServiceErrors
 open MessagingServiceInfo.ServiceInfo
+open FSharp.Data.Sql
 open System.Data.SQLite
+open Dapper
+open System.Data.Common
+open ClmSys.GeneralErrors
 
 // ! Must be the last to open !
 open Configuration
 
 module MsgSvcDatabaseTypes =
+
+    [<Literal>]
+    let MsgSqliteConnStr =
+        "Data Source=" + __SOURCE_DIRECTORY__ + @"\MsgClient.db;Version=3;foreign keys=true"
+
+
+    type sqLite = SqlDataProvider<
+                   Common.DatabaseProviderTypes.SQLITE,
+                   SQLiteLibrary = Common.SQLiteLibrary.SystemDataSQLite,
+                   ConnectionString = MsgSqliteConnStr,
+                   //ResolutionPath = resolutionPath,
+                   CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL>
+
 
     let serializationFormat = BinaryZippedFormat
 
@@ -114,9 +131,74 @@ module MsgSvcDatabaseTypes =
 
         tryDbFun g
 
+//select top 1 *
+//from dbo.Message
+//where recipientId = @recipientId and dataVersion = @dataVersion
+//order by createdOn, messageOrder
 
-    let loadMessages connectionString (MessagingClientId i) =
-        0
+
+    //let tryLoadIncomingMessage connectionString (MessagingClientId i) =
+    //    let cmdText =
+    //        @"select top 1 *
+    //        from dbo.Message
+    //        where recipientId = " + i.ToString("N") + " and dataVersion = " + messagingDataVersion.value.ToString() + "
+    //        order by createdOn, messageOrder"
+
+    //    0
+
+
+    let private executeSqlite (connection : #DbConnection) (sql : string) (parameters : _) =
+        let g() =
+            let result = connection.Execute(sql, parameters)
+            Ok result
+        //with
+        //| ex -> ex |> DbExn |> DbErr |> Error
+
+        tryDbFun g
+
+
+    /// TODO kk:20200523 - So far this looks extremely far beyond ugly. Find the proper way and don't go beyond this one table until that proper way is found.
+    /// https://devonburriss.me/how-to-fsharp-pt-9/
+    /// https://isthisit.nz/posts/2019/sqlite-database-with-dapper-and-fsharp/
+    let saveMessageWithTypeSqlite (SqliteConnectionString connectionString) (m : MessageWithType) =
+        let g() =
+            let connectionString = new SQLiteConnection(connectionString)
+
+            let sql = @"
+                INSERT INTO dbo.Message
+                    (messageId
+                    ,senderId
+                    ,recipientId
+                    ,dataVersion
+                    ,deliveryTypeId
+                    ,messageData
+                    ,createdOn)
+                VALUES
+                    (@messageId
+                    ,@senderId
+                    ,@recipientId
+                    ,@dataVersion
+                    ,@deliveryTypeId
+                    ,@messageData
+                    ,@createdOn)"
+
+            let data =
+                [
+                    ("@messageId", m.message.messageDataInfo.messageId.value.ToString("N") |> box)
+                    ("@senderId", m.message.messageDataInfo.sender.value.ToString("N") |> box)
+                    ("@recipientId", m.message.messageDataInfo.recipientInfo.recipient.value.ToString("N") |> box)
+                    ("@dataVersion", m.message.messageDataInfo.dataVersion.value |> box)
+                    ("@deliveryTypeId", m.message.messageDataInfo.recipientInfo.deliveryType.value |> box)
+                    ("@messageData", m.message.messageData |> (serialize serializationFormat) |> box)
+                    ("@createdOn", m.message.messageDataInfo.createdOn |> box)
+                ]
+                |> dict
+                |> fun d -> new Dapper.DynamicParameters(d)
+
+            let result = executeSqlite connectionString sql data
+            Ok()
+
+        tryDbFun g
 
 
     /// TODO kk:20200411 - I am not very happy about double ignore below. Refactor when time permits.

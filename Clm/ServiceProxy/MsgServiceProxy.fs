@@ -12,7 +12,8 @@ module MsgServiceProxy =
 
     type MessagingClientStorageType =
         | LocalFolder
-        | Database of ConnectionString
+        | MsSqlDatabase of ConnectionString
+        | SqliteDatabase of SqliteConnectionString
 
 
     type MessagingClientProxyInfo =
@@ -27,7 +28,7 @@ module MsgServiceProxy =
     /// This proxy encapsulates that.
     type MessagingClientProxy =
         {
-//            loadMessages : unit -> ListResult<MessageWithType>
+            loadMessages : unit -> ListResult<MessageWithType>
             saveMessage : MessageWithType -> UnitResult
             tryDeleteMessage : MessageId -> UnitResult
         }
@@ -38,16 +39,22 @@ module MsgServiceProxy =
             match i.storageType with
             | LocalFolder ->
                 {
-//                    loadMessages = loadMessageWithTypeAllFs name
+                    loadMessages = loadMessageWithTypeAllFs name
                     saveMessage = saveMessageWithTypeFs name
                     tryDeleteMessage = tryDeleteMessageWithTypeFs name
                 }
-            | Database connectionString ->
+            | MsSqlDatabase connectionString ->
 
                 {
-//                    loadMessages = loadMessageWithTypeAllFs name
+                    loadMessages = loadMessageWithTypeAllFs name
                     saveMessage = fun m -> saveMessage connectionString m.message
                     tryDeleteMessage = deleteMessage connectionString
+                }
+            | SqliteDatabase connectionString->
+                {
+                    loadMessages = loadMessageWithTypeAllFs name
+                    saveMessage = fun m -> saveMessageWithTypeSqlite connectionString m
+                    tryDeleteMessage = failwith "tryDeleteMessage for SqliteDatabase is not yet supported."
                 }
 
 

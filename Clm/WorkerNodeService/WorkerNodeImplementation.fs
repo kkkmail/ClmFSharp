@@ -507,11 +507,17 @@ module ServiceImplementation =
                 let h = MsgResponseHandler messagingClientAccessInfo
                 logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
 
+                let j =
+                    {
+                        messagingClientName = workerNodeServiceName.value.messagingClientName
+                        storageType = 0 |> SqliteConnectionString |> SqliteDatabase
+                    }
+
                 let messagingClientData =
                     {
                         msgAccessInfo = messagingClientAccessInfo
                         messagingService = h
-                        msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName.value.messagingClientName }
+                        msgClientProxy = MessagingClientProxy.create j messagingClientAccessInfo.msgClientId
                     }
 
                 let messagingClient = MessagingClient messagingClientData

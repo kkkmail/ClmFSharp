@@ -169,11 +169,17 @@ module SvcCommandLine =
             }
 
         let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
+            let i =
+                {
+                    messagingClientName = contGenServiceName.value.messagingClientName
+                    storageType = clmConnectionString |> MsSqlDatabase
+                }
+
             let messagingClientData =
                 {
                     msgAccessInfo = d
                     messagingService = MsgResponseHandler d
-                    msgClientProxy = MessagingClientProxy.create { messagingClientName = contGenServiceName.value.messagingClientName }
+                    msgClientProxy = MessagingClientProxy.create i d.msgClientId
                 }
 
             let messagingClient = MessagingClient messagingClientData

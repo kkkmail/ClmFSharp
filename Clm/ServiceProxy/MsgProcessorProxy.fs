@@ -7,14 +7,8 @@ open ClmSys.MessagingPrimitives
 
 module MsgProcessorProxy =
 
-    type TryRemoveReceivedMessageResult =
-        | RemovedSucessfully
-        | RemovedWithError of ClmError
-        | FailedToRemove of ClmError
-
-
     type MessageProcessorResult<'T> =
-        | ProcessedSucessfully of 'T
+        | ProcessedSuccessfully of 'T
         | ProcessedWithError of ('T * ClmError)
         | ProcessedWithFailedToRemove of ('T * ClmError)
         | FailedToProcess of ClmError
@@ -25,8 +19,8 @@ module MsgProcessorProxy =
     type MessageProcessorProxy =
         {
             start : unit -> UnitResult
-            tryPeekReceivedMessage : unit -> Message option
-            tryRemoveReceivedMessage : MessageId -> TryRemoveReceivedMessageResult
+            tryPeekReceivedMessage : unit -> ClmResult<Message option>
+            tryRemoveReceivedMessage : MessageId -> UnitResult
             sendMessage : MessageInfo -> UnitResult
             scheduleMessage : MessageInfo -> unit
             transmitMessages : unit -> UnitResult
@@ -58,7 +52,7 @@ module MsgProcessorProxy =
             | () :: t ->
                 //printfn "onGetMessages: Calling proxy.tryProcessMessage..."
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
-                | ProcessedSucessfully (g, u) ->
+                | ProcessedSuccessfully (g, u) ->
                     match u with
                     | Ok() -> doFold t (g, r)
                     | Error e ->

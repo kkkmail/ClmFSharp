@@ -2,6 +2,7 @@
 
 open System
 open System.Threading
+open ClmSys.GeneralPrimitives
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
 open Messaging.MsgCliCommandLine
@@ -18,7 +19,7 @@ module MessagingTestClientTask =
         let j =
             {
                 messagingClientName = MessagingClientName ("TestClient_" + i.msgClientId.value.ToString())
-                storageType = LocalFolder
+                storageType = ":memory:" |> SqliteConnectionString |> SqliteDatabase
             }
 
         let d =
@@ -34,9 +35,9 @@ module MessagingTestClientTask =
         let tryProcessMessage = onTryProcessMessage a.messageProcessorProxy
 
         while true do
-            printfn "Getting version number for: %A" r
-            let version = a.getVersion()
-            printfn "Version number: %A" version
+//            printfn "Getting version number for: %A" r
+//            let version = a.getVersion()
+//            printfn "Version number: %A" version
 
             printfn "Sending message to %A" r
 
@@ -57,7 +58,7 @@ module MessagingTestClientTask =
 
             let checkMessage() =
                 match tryProcessMessage () (fun _ m -> m) with
-                | ProcessedSucessfully m -> printfn "    Received message: %A" m
+                | ProcessedSuccessfully m -> printfn "    Received message: %A" m
                 | ProcessedWithError (m, e) -> printfn "    Received message: %A with error e: %A" m e
                 | ProcessedWithFailedToRemove (m, e) -> printfn "    Received message: %A with error e: %A" m e
                 | FailedToProcess e -> printfn "    Error e: %A" e

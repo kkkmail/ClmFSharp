@@ -103,7 +103,7 @@ module ClmErrors =
 
     /// The first result r1 is an earlier result and r2 is a later result
     /// and we want to sum up errors as (e2 + e1), so that to keep
-    /// the latest error at the begining.
+    /// the latest error at the beginning.
     let combineUnitResults (r1 : UnitResult) (r2 : UnitResult) =
         match r1, r2 with
         | Ok(), Ok() -> Ok()

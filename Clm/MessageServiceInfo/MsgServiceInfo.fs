@@ -283,28 +283,7 @@ module ServiceInfo =
         member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
 
-    type MessageResultInfo =
-        | NoMessage
-        | SmallMessage of Message
-        | MediumMessage of Message
-        | LargeMessage of Message
-
-
-    type MessageResult = ClmResult<MessageResultInfo>
-
-
-    type MessageWithType =
-        {
-            message : Message
-            messageType : MessageType
-        }
-
-
     type MessagingConfigParam =
-        | DummyConfig
-
-
-    type MessagingClientConfigParam =
         | DummyConfig
 
 

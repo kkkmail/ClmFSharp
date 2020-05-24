@@ -22,7 +22,7 @@ module TimerEvents =
             handlerId : Guid option
             handlerName : string
             eventHandler : unit -> UnitResult
-            refreshInterfal : int option
+            refreshInterval : int option
             logger : Logger
         }
 
@@ -31,7 +31,7 @@ module TimerEvents =
                 handlerId = None
                 handlerName = n
                 eventHandler = h
-                refreshInterfal = None
+                refreshInterval = None
                 logger = logger
             }
 
@@ -40,7 +40,7 @@ module TimerEvents =
                 handlerId = None
                 handlerName = n
                 eventHandler = h
-                refreshInterfal = Some OneHourRefreshInterval
+                refreshInterval = Some OneHourRefreshInterval
                 logger = logger
             }
 
@@ -48,7 +48,7 @@ module TimerEvents =
     type ClmEventHandler(i : ClmEventHandlerInfo) =
         let mutable counter = -1
         let handlerId = i.handlerId |> Option.defaultValue (Guid.NewGuid())
-        let refreshInterfal = i.refreshInterfal |> Option.defaultValue RefreshInterval |> float
+        let refreshInterval = i.refreshInterval |> Option.defaultValue RefreshInterval |> float
         let logError e = e |> ClmEventHandlerErr |> i.logger.logError
         let logWarn e = e |> ClmEventHandlerErr |> i.logger.logWarn
         let info = sprintf "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
@@ -70,7 +70,7 @@ module TimerEvents =
             finally Interlocked.Decrement(&counter) |> ignore
 
 
-        let timer = new System.Timers.Timer(refreshInterfal)
+        let timer = new System.Timers.Timer(refreshInterval)
         do timer.AutoReset <- true
         do timer.Elapsed.Add eventHandler
 

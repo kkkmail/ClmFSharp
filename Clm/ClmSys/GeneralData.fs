@@ -443,6 +443,10 @@ module GeneralData =
         s
 
 
+    let withoutReply (s, result) =
+        s
+
+
     // !!! kk:20200322 - DO NOT DELETE !!!
     //type RunProcArgs =
     //    {

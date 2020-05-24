@@ -141,7 +141,7 @@ module MsgSvcDatabaseTypes =
         | None -> Ok None
 
 
-    let tryPickMessage connectionString (MessagingClientId i) =
+    let tryPickIncomingMessage connectionString (MessagingClientId i) =
         let g () =
             use conn = getOpenConn connectionString
             let t = new MessageTable()
@@ -161,9 +161,6 @@ module MsgSvcDatabaseTypes =
             tryCreateMessage t
 
         tryDbFun g
-
-
-    let tryPickIncomingMessage = tryPickMessage
 
 
     /// TODO kk:20200411 - I am not very happy about double ignore below. Refactor when time permits.
@@ -220,7 +217,7 @@ module MsgSvcDatabaseTypes =
     ///     https://devonburriss.me/how-to-fsharp-pt-9/
     ///     https://isthisit.nz/posts/2019/sqlite-database-with-dapper-and-fsharp/
     ///     http://zetcode.com/csharp/sqlite/
-    let saveMessageWithTypeSqlite (SqliteConnectionString connectionString) (m : MessageWithType) =
+    let saveMessageWithTypeSqlite (SqliteConnectionString connectionString) (m : Message) =
         let g() =
             use connectionString = new SQLiteConnection(connectionString)
 
@@ -244,13 +241,13 @@ module MsgSvcDatabaseTypes =
 
             let data =
                 [
-                    ("@messageId", m.message.messageDataInfo.messageId.value.ToSqliteString() |> box)
-                    ("@senderId", m.message.messageDataInfo.sender.value.ToSqliteString() |> box)
-                    ("@recipientId", m.message.messageDataInfo.recipientInfo.recipient.value.ToSqliteString() |> box)
-                    ("@dataVersion", m.message.messageDataInfo.dataVersion.value |> box)
-                    ("@deliveryTypeId", m.message.messageDataInfo.recipientInfo.deliveryType.value |> box)
-                    ("@messageData", m.message.messageData |> (serialize serializationFormat) |> box)
-                    ("@createdOn", m.message.messageDataInfo.createdOn |> box)
+                    ("@messageId", m.messageDataInfo.messageId.value.ToSqliteString() |> box)
+                    ("@senderId", m.messageDataInfo.sender.value.ToSqliteString() |> box)
+                    ("@recipientId", m.messageDataInfo.recipientInfo.recipient.value.ToSqliteString() |> box)
+                    ("@dataVersion", m.messageDataInfo.dataVersion.value |> box)
+                    ("@deliveryTypeId", m.messageDataInfo.recipientInfo.deliveryType.value |> box)
+                    ("@messageData", m.messageData |> (serialize serializationFormat) |> box)
+                    ("@createdOn", m.messageDataInfo.createdOn |> box)
                 ]
                 |> dict
                 |> fun d -> Dapper.DynamicParameters(d)
@@ -294,6 +291,7 @@ module MsgSvcDatabaseTypes =
 
         tryDbFun g
 
+
     type SQLiteDataReader
         with
         member rdr.GetGuid(columnName : string) = rdr.GetString(rdr.GetOrdinal(columnName)) |> Guid.Parse
@@ -310,30 +308,25 @@ module MsgSvcDatabaseTypes =
             bytes
 
 
-    let toMessageWithType (rdr : SQLiteDataReader) =
+    let toMessage (rdr : SQLiteDataReader) =
         {
-            message =
+            messageDataInfo =
                 {
-                    messageDataInfo =
+                    messageId = rdr.GetGuid("messageId") |> MessageId
+                    dataVersion = rdr.GetInt32("dataVersion") |> MessagingDataVersion
+                    sender = rdr.GetGuid("senderId") |> MessagingClientId
+                    recipientInfo =
                         {
-                            messageId = rdr.GetGuid("messageId") |> MessageId
-                            dataVersion = rdr.GetInt32("dataVersion") |> MessagingDataVersion
-                            sender = rdr.GetGuid("senderId") |> MessagingClientId
-                            recipientInfo =
-                                {
-                                    recipient = rdr.GetGuid("recipientId") |> MessagingClientId
-                                    deliveryType = rdr.GetInt32("deliveryTypeId")
-                                                   |> MessageDeliveryType.tryCreate
-                                                   |> Option.defaultValue GuaranteedDelivery
-                                }
-
-                            createdOn = rdr.GetDateTime("createdOn")
+                            recipient = rdr.GetGuid("recipientId") |> MessagingClientId
+                            deliveryType = rdr.GetInt32("deliveryTypeId")
+                                           |> MessageDeliveryType.tryCreate
+                                           |> Option.defaultValue GuaranteedDelivery
                         }
 
-                    messageData = rdr.GetBlob("messageData") |> (deserialize serializationFormat)
+                    createdOn = rdr.GetDateTime("createdOn")
                 }
 
-            messageType = IncomingMessage
+            messageData = rdr.GetBlob("messageData") |> (deserialize serializationFormat)
         }
 
 
@@ -350,7 +343,7 @@ module MsgSvcDatabaseTypes =
             use rdr = cmd.ExecuteReader()
 
             match rdr.Read() with
-            | true -> toMessageWithType rdr |> Some
+            | true -> toMessage rdr |> Some
             | false -> None
             |> Ok
 
@@ -370,7 +363,7 @@ module MsgSvcDatabaseTypes =
             use rdr = cmd.ExecuteReader()
 
             match rdr.Read() with
-            | true -> toMessageWithType rdr |> Some
+            | true -> toMessage rdr |> Some
             | false -> None
             |> Ok
 

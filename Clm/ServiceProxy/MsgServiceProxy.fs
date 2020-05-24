@@ -11,7 +11,6 @@ open ClmSys.GeneralPrimitives
 module MsgServiceProxy =
 
     type MessagingClientStorageType =
-        | LocalFolder
         | MsSqlDatabase of ConnectionString
         | SqliteDatabase of SqliteConnectionString
 
@@ -27,33 +26,39 @@ module MsgServiceProxy =
     /// Currently it is assumed that messaging client may NOT have SQL server at its disposal.
     type MessagingClientProxy =
         {
-            loadMessages : unit -> ListResult<MessageWithType>
-            saveMessage : MessageWithType -> UnitResult
+            tryPickIncomingMessage : unit -> ClmResult<Message option>
+            tryPickOutgoingMessage : unit -> ClmResult<Message option>
+            saveMessage : Message -> UnitResult
             tryDeleteMessage : MessageId -> UnitResult
+            deleteExpiredMessages : TimeSpan -> UnitResult
         }
 
         static member create (i : MessagingClientProxyInfo) (c : MessagingClientId) =
             let name = i.messagingClientName
 
             match i.storageType with
-            | LocalFolder ->
-                {
-                    loadMessages = loadMessageWithTypeAllFs name
-                    saveMessage = saveMessageWithTypeFs name
-                    tryDeleteMessage = tryDeleteMessageWithTypeFs name
-                }
+//            | LocalFolder ->
+//                {
+//                    loadMessages = loadMessageWithTypeAllFs name
+//                    saveMessage = saveMessageWithTypeFs name
+//                    tryDeleteMessage = tryDeleteMessageWithTypeFs name
+//                }
             | MsSqlDatabase connectionString ->
 
                 {
-                    loadMessages = loadMessageWithTypeAllFs name
-                    saveMessage = fun m -> saveMessage connectionString m.message
+                    tryPickIncomingMessage = fun () -> tryPickIncomingMessage connectionString c
+                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessage connectionString c
+                    saveMessage = fun m -> saveMessage connectionString m
                     tryDeleteMessage = deleteMessage connectionString
+                    deleteExpiredMessages = deleteExpiredMessages connectionString
                 }
-            | SqliteDatabase connectionString->
+            | SqliteDatabase connectionString ->
                 {
-                    loadMessages = loadMessageWithTypeAllFs name
+                    tryPickIncomingMessage = fun () -> tryPickIncomingMessageSqlite connectionString c
+                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessageSqlite connectionString c
                     saveMessage = fun m -> saveMessageWithTypeSqlite connectionString m
-                    tryDeleteMessage = fun i -> failwith "tryDeleteMessage for SqliteDatabase is not yet supported."
+                    tryDeleteMessage = deleteMessageSqlite connectionString
+                    deleteExpiredMessages = deleteExpiredMessagesSqlite connectionString
                 }
 
 
@@ -68,7 +73,7 @@ module MsgServiceProxy =
 
         static member create (connectionString : ConnectionString) =
             {
-                tryPickMessage = tryPickMessage connectionString
+                tryPickMessage = tryPickIncomingMessage connectionString
                 saveMessage = saveMessage connectionString
                 deleteMessage = deleteMessage connectionString
                 deleteExpiredMessages = deleteExpiredMessages connectionString

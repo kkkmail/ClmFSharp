@@ -502,6 +502,8 @@ module ServiceImplementation =
             let toError e = e |> WorkerNodeServiceErr |> Error
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
+            let connStrSqlite = 0
+
             let w =
                 let messagingClientAccessInfo = i.messagingClientAccessInfo
                 let h = MsgResponseHandler messagingClientAccessInfo
@@ -510,7 +512,7 @@ module ServiceImplementation =
                 let j =
                     {
                         messagingClientName = workerNodeServiceName.value.messagingClientName
-                        storageType = 0 |> SqliteConnectionString |> SqliteDatabase
+                        storageType = connStrSqlite |> SqliteConnectionString |> SqliteDatabase
                     }
 
                 let messagingClientData =

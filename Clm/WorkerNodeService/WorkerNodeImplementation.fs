@@ -28,6 +28,7 @@ open ServiceProxy.SolverRunner
 open ClmSys.Rop
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
+open ClmSys.MessagingData
 
 module ServiceImplementation =
 
@@ -502,7 +503,9 @@ module ServiceImplementation =
             let toError e = e |> WorkerNodeServiceErr |> Error
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
-            let connStrSqlite = @"Data Source=C:\clm503\MsgClient.db;Version=3;foreign keys=true"
+            let msgDbLocation = getFileName MsgDatabase
+//            let connStrSqlite = @"Data Source=C:\clm503\MsgClient.db;Version=3;foreign keys=true"
+            let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
 
             let w =
                 let messagingClientAccessInfo = i.messagingClientAccessInfo

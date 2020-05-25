@@ -15,6 +15,7 @@ open System.Data.SQLite
 open Dapper
 open System.Data.Common
 open Clm.ModelParams
+open ClmSys.MessagingData
 open ClmSys.GeneralErrors
 
 // ! Must be the last to open !
@@ -24,10 +25,6 @@ module MsgSvcDatabaseTypes =
 
     [<Literal>]
     let private SqliteStorageFolder = DefaultRootFolder
-
-
-    [<Literal>]
-    let MsgDatabase = "MsgClient.db"
 
 
     [<Literal>]

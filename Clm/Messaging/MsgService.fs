@@ -29,9 +29,9 @@ module Service =
 
     type MessagingServiceMessage =
         | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-        | SendMessage of Message * AsyncReplyChannel<UnitResult>
-        | TryPeekMessage of MessagingClientId * AsyncReplyChannel<ClmResult<Message option>>
-        | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<UnitResult>
+//        | SendMessage of Message * AsyncReplyChannel<UnitResult>
+//        | TryPeekMessage of MessagingClientId * AsyncReplyChannel<ClmResult<Message option>>
+//        | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<UnitResult>
         | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
 
 
@@ -68,31 +68,34 @@ module Service =
                         {
                             match! u.Receive() with
                             | GetVersion r -> return! (s, onGetVersion()) |> (withReply r) |> loop
-                            | SendMessage (m, r) -> return! (s, onSendMessage saveMsg m) |> (withReply r) |> loop
-                            | TryPeekMessage (n, r) -> return! (s, onTryPeekMessage tryPickMsg n) |> (withReply r) |> loop
-                            | TryDeleteFromServer (n, m, r) -> return! (s, onTryDeleteFromServer deleteMsg n m) |> (withReply r) |> loop
+//                            | SendMessage (m, r) -> return! (s, onSendMessage saveMsg m) |> (withReply r) |> loop
+//                            | TryPeekMessage (n, r) -> return! (s, onTryPeekMessage tryPickMsg n) |> (withReply r) |> loop
+//                            | TryDeleteFromServer (n, m, r) -> return! (s, onTryDeleteFromServer deleteMsg n m) |> (withReply r) |> loop
                             | RemoveExpiredMessages r -> return! onRemoveExpiredMessages deleteExpiredMsgs s |> (withReply r) |> loop
                         }
 
                 MessagingServiceState.defaultValue |> loop
                 )
 
-        member _.getVersion() =
+        member _.getVersion() : ClmResult<MessagingDataVersion> =
             printfn "MessagingService.getVersion ..."
             GetVersion |> messageLoop.PostAndReply |> Ok
 
-        member _.sendMessage m =
+        member _.sendMessage (m : Message) : UnitResult =
             printfn "MessagingService.sendMessage ..."
-            messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+            //messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
+            onSendMessage saveMsg m
 
-        member _.tryPeekMessage n =
+        member _.tryPeekMessage (n : MessagingClientId) : ClmResult<Message option> =
             printfn "MessagingService.tryPeekMessage ..."
-            messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
+            //messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
+            onTryPeekMessage tryPickMsg n
 
-        member _.tryDeleteFromServer (n, m) =
+        member _.tryDeleteFromServer (n : MessagingClientId, m : MessageId) : UnitResult =
             printfn "MessagingService.tryDeleteFromServer ..."
-            messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+            //messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
+            onTryDeleteFromServer deleteMsg n m
 
-        member _.removeExpiredMessages() =
+        member _.removeExpiredMessages() : UnitResult =
             printfn "MessagingService.removeExpiredMessages ..."
             messageLoop.PostAndReply RemoveExpiredMessages

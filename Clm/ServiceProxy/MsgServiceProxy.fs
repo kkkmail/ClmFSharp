@@ -1,7 +1,6 @@
 ﻿namespace ServiceProxy
 
 open MessagingServiceInfo.ServiceInfo
-open NoSql.FileSystemTypes
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open DbData.MsgSvcDatabaseTypes
@@ -37,12 +36,6 @@ module MsgServiceProxy =
             let name = i.messagingClientName
 
             match i.storageType with
-//            | LocalFolder ->
-//                {
-//                    loadMessages = loadMessageWithTypeAllFs name
-//                    saveMessage = saveMessageWithTypeFs name
-//                    tryDeleteMessage = tryDeleteMessageWithTypeFs name
-//                }
             | MsSqlDatabase connectionString ->
 
                 {

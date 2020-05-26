@@ -1016,8 +1016,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
+    /// SQL to get the first available worker node to schedule work.
     [<Literal>]
-    let availablbeWorkerNodeSql = @"
+    let AvailableWorkerNodeSql = @"
         ; with q as
         (
         select
@@ -1030,6 +1031,7 @@ module DatabaseTypes =
                 end as money) as workLoad
             ,case when lastErrorOn is null or dateadd(minute, " + lastAllowedNodeErrInMinutes + @", lastErrorOn) < getdate() then 0 else 1 end as noErr
         from WorkerNode w
+        where isInactive = 0
         )
         select top 1
         workerNodeId
@@ -1038,13 +1040,13 @@ module DatabaseTypes =
         order by nodePriority desc, workLoad, newid()"
 
 
-    type AvailableWorkerNodeTableData = SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
+    type AvailableWorkerNodeTableData = SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
 
 
     let tryGetAvailableWorkerNode connectionString =
         let g() =
             use conn = getOpenConn connectionString
-            use cmd = new SqlCommandProvider<availablbeWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
+            use cmd = new SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
             let table = cmd.Execute()
 
             match table.Rows |> Seq.tryHead with

@@ -15,6 +15,9 @@ module MessagingServiceErrors =
         | InvalidDeliveryTypeAndDataVersionErr of int * VersionMismatchInfo
 
 
+    type MessageUpsertError =
+        | CannotUpsertMessageErr of MessageId
+
     type MessageDeleteError =
         | CannotDeleteMessageErr of MessageId
 
@@ -53,5 +56,6 @@ module MessagingServiceErrors =
         | MsgSvcDbErr of MsgSvcDbError
         | GetVersionSvcErr of GetVersionSvcError
         | MessageDeliveryErr of MessageDeliveryError
+        | MessageUpsertErr of MessageUpsertError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError

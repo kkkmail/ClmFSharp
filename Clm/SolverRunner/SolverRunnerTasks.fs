@@ -292,12 +292,12 @@ module SolverRunnerTasks =
     /// Uncomment printfn below in case of severe issues.
     /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
     let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
-        let logIfFailed result =
+        let logIfFailed errMessage result =
             match result with
             | Ok() -> ignore()
-            | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
+            | Error e -> SolverRunnerCriticalError.fromErrMessage (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
 
-        let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
+        let updateFinalProgress errMessage = proxy.updateProgress >> proxy.transmitMessages >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
         let data = getNSolveParam runSolverData w
         let getResultAndChartData() = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
@@ -338,24 +338,24 @@ module SolverRunnerTasks =
 
                 printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
                 let completedResult = None |> Completed |> getProgress |> proxy.updateProgress |> proxy.transmitMessages
-                combineUnitResults result completedResult |> logIfFailed
+                combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             with
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
             | ComputationAbortedException (_, r) ->
-                printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+                printfn "getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
 
                 match r with
                 | CancelWithResults -> (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
                 | AbortCalculation -> getProgress Cancelled
-                |> updateFinalProgress
-            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> updateFinalProgress
+                |> updateFinalProgress "getSolverRunner - ComputationAborted failed"
+            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred")
 
         {
             runSolver = runSolver
             notifyOfResults = notifyOfResults
-            logIfFailed = logIfFailed
+            logIfFailed = logIfFailed "getSolverRunner - SolverRunner"
         }
         |> SolverRunner

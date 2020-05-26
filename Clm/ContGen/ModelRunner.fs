@@ -119,7 +119,7 @@ module ModelRunner =
         | Ok None -> toError (TryRequestResultsError.TryLoadRunQueueErr q)
         | Error e -> addError (TryRequestResultsError.TryLoadRunQueueErr q) e
 
-    /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
+    /// Tries to run all available work items (run queue) on all available work nodes until one or the other is exhausted.
     let tryRunAllModels (proxy : TryRunAllModelsProxy) =
         let rec doWork() =
             match proxy.tryRunFirstModel() with

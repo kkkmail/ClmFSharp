@@ -180,6 +180,7 @@ module SvcCommandLine =
                     msgAccessInfo = d
                     messagingService = MsgResponseHandler d
                     msgClientProxy = MessagingClientProxy.create i d.msgClientId
+                    expirationTime = MessagingClientData.defaultExpirationTime
                 }
 
             let messagingClient = MessagingClient messagingClientData

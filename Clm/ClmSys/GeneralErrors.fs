@@ -130,7 +130,7 @@ module GeneralErrors =
         | GetWrkInactiveErr of RegistryErrorInfo
         | GetContGenServicePortErr of RegistryErrorInfo
         | GetContGenMinUsefulEeErr of RegistryErrorInfo
-        | GetMorkerNodeClientPortErr of RegistryErrorInfo
+        | GetWorkerNodeClientPortErr of RegistryErrorInfo
 
 
     type ClmEventHandlerError =

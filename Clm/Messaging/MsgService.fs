@@ -2,7 +2,6 @@
 
 open System
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open ClmSys.ClmErrors
@@ -13,89 +12,22 @@ module Service =
     type MessagingServiceData =
         {
             messagingServiceProxy : MessagingServiceProxy
-        }
-
-
-    type MessagingServiceState =
-        {
             expirationTime : TimeSpan
         }
-
-        static member defaultValue =
-            {
-                expirationTime = TimeSpan.FromHours 6.0
-            }
-
-
-    type MessagingServiceMessage =
-        | GetVersion of AsyncReplyChannel<MessagingDataVersion>
-//        | SendMessage of Message * AsyncReplyChannel<UnitResult>
-//        | TryPeekMessage of MessagingClientId * AsyncReplyChannel<ClmResult<Message option>>
-//        | TryDeleteFromServer of MessagingClientId * MessageId * AsyncReplyChannel<UnitResult>
-        | RemoveExpiredMessages of AsyncReplyChannel<UnitResult>
-
-
-    let onGetVersion () = messagingDataVersion
-    let onSendMessage saveMessage (m : Message) = saveMessage m
-
-
-    let onTryPeekMessage tryPickMessage n =
-        printfn "onTryPeekMessage: clientId = %A." n
-        let result = tryPickMessage n
-        printfn "onTryPeekMessage: result = %A for clientId = %A." (result.ToString().Substring(0, min 100 (result.ToString().Length - 1))) n
-        result
-
-
-    let onTryDeleteFromServer (deleteMessage : MessageId -> UnitResult) n m =
-        printfn "onTryDeleteFromServer: clientId = %A, messageId = %A." n m
-        deleteMessage m
-
-
-    let onRemoveExpiredMessages deleteExpiredMessages (s : MessagingServiceState) =
-        s, deleteExpiredMessages s.expirationTime
-
+        static member defaultExpirationTime = TimeSpan.FromHours 6.0
 
     type MessagingService(d : MessagingServiceData) =
-        let tryPickMsg = d.messagingServiceProxy.tryPickMessage
-        let saveMsg = d.messagingServiceProxy.saveMessage
-        let deleteMsg = d.messagingServiceProxy.deleteMessage
-        let deleteExpiredMsgs = d.messagingServiceProxy.deleteExpiredMessages
-
-        let messageLoop =
-            MailboxProcessor.Start(fun u ->
-                let rec loop s =
-                    async
-                        {
-                            match! u.Receive() with
-                            | GetVersion r -> return! (s, onGetVersion()) |> (withReply r) |> loop
-//                            | SendMessage (m, r) -> return! (s, onSendMessage saveMsg m) |> (withReply r) |> loop
-//                            | TryPeekMessage (n, r) -> return! (s, onTryPeekMessage tryPickMsg n) |> (withReply r) |> loop
-//                            | TryDeleteFromServer (n, m, r) -> return! (s, onTryDeleteFromServer deleteMsg n m) |> (withReply r) |> loop
-                            | RemoveExpiredMessages r -> return! onRemoveExpiredMessages deleteExpiredMsgs s |> (withReply r) |> loop
-                        }
-
-                MessagingServiceState.defaultValue |> loop
-                )
-
-        member _.getVersion() : ClmResult<MessagingDataVersion> =
-            printfn "MessagingService.getVersion ..."
-            GetVersion |> messageLoop.PostAndReply |> Ok
+        let proxy = d.messagingServiceProxy
+        member _.getVersion() : ClmResult<MessagingDataVersion> = Ok messagingDataVersion
 
         member _.sendMessage (m : Message) : UnitResult =
-            printfn "MessagingService.sendMessage ..."
-            //messageLoop.PostAndReply (fun reply -> SendMessage (m, reply))
-            onSendMessage saveMsg m
+            let result = proxy.saveMessage m
 
-        member _.tryPeekMessage (n : MessagingClientId) : ClmResult<Message option> =
-            printfn "MessagingService.tryPeekMessage ..."
-            //messageLoop.PostAndReply (fun reply -> TryPeekMessage (n, reply))
-            onTryPeekMessage tryPickMsg n
+            match result with
+            | Ok() -> ignore()
+            | Error e -> printfn "ERROR - MessagingService.sendMessage failed for messageId: %A with error: %A" m.messageDataInfo.messageId e
+            result
 
-        member _.tryDeleteFromServer (n : MessagingClientId, m : MessageId) : UnitResult =
-            printfn "MessagingService.tryDeleteFromServer ..."
-            //messageLoop.PostAndReply (fun reply -> TryDeleteFromServer (n, m, reply))
-            onTryDeleteFromServer deleteMsg n m
-
-        member _.removeExpiredMessages() : UnitResult =
-            printfn "MessagingService.removeExpiredMessages ..."
-            messageLoop.PostAndReply RemoveExpiredMessages
+        member _.tryPeekMessage (n : MessagingClientId) : ClmResult<Message option> = proxy.tryPickMessage n
+        member _.tryDeleteFromServer (n : MessagingClientId, m : MessageId) : UnitResult = proxy.deleteMessage m
+        member _.removeExpiredMessages() : UnitResult = proxy.deleteExpiredMessages d.expirationTime

@@ -27,6 +27,7 @@ module MessagingTestClientTask =
                 msgAccessInfo = i
                 messagingService = h
                 msgClientProxy = MessagingClientProxy.create j i.msgClientId
+                expirationTime = MessagingClientData.defaultExpirationTime
             }
 
         let a = MessagingClient d

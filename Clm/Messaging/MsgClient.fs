@@ -7,22 +7,19 @@ open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
 open System.Threading
 open ServiceProxy.MsgProcessorProxy
-open ClmSys
-open ClmSys.GeneralData
 open ClmSys.TimerEvents
 open ClmSys.ClmErrors
 open ClmSys.MessagingClientErrors
 open ClmSys.MessagingPrimitives
-open ClmSys.MessagingCommonErrors
 
 module Client =
 
     /// Maximum number of messages to process in one go.
-    let maxNumberOfMessages = 1_000
+    let maxNumberOfMessages = 5_000
 
-    let maxNumberOfSmallMessages = 1_000
-    let maxNumberOfMediumMessages = 100
-    let maxNumberOfLargeMessages = 10
+    let maxNumberOfSmallMessages = 5_000
+    let maxNumberOfMediumMessages = 500
+    let maxNumberOfLargeMessages = 100
 
     let private toError e = e |> MessagingClientErr |> Error
     let private addError g f e = ((f |> g |> MessagingClientErr) + e) |> Error
@@ -64,27 +61,12 @@ module Client =
             msgAccessInfo : MessagingClientAccessInfo
             messagingService : IMessagingService
             msgClientProxy : MessagingClientProxy
-        }
-
-
-    type MessagingClientStateData =
-        {
             expirationTime : TimeSpan
         }
 
+        static member defaultExpirationTime = TimeSpan(6, 0, 0)
+
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
-
-        static member defaultValue =
-            {
-                expirationTime = TimeSpan(6, 0, 0)
-            }
-
-
-    type MessagingClientMessage =
-        | SendMessage of AsyncReplyChannel<UnitResult> * MessageInfo
-        | ScheduleMessage of MessageInfo
-        | TryPeekReceivedMessage of AsyncReplyChannel<ClmResult<Message option>>
-        | TryRemoveReceivedMessage of AsyncReplyChannel<UnitResult> * MessageId
 
 
     type TryReceiveSingleMessageProxy =
@@ -143,7 +125,7 @@ module Client =
                 | Ok None -> Ok()
                 | Error e -> Error e
 
-        let y = doTryTransmit MessagingClientStateData.maxMessages MessageCount.defaultValue
+        let y = doTryTransmit MessagingClientData.maxMessages MessageCount.defaultValue
         y
 
 
@@ -194,7 +176,6 @@ module Client =
 
     type MessagingClient(d : MessagingClientData) =
         let proxy = d.msgClientProxy
-        let saveMsg = proxy.saveMessage
         let msgClientId = d.msgAccessInfo.msgClientId
 
         let receiveProxy =
@@ -212,36 +193,14 @@ module Client =
                 sendMessage = d.messagingService.sendMessage
             }
 
-        let messageLoop =
-            MailboxProcessor.Start(fun u ->
-                let rec loop (s : MessagingClientStateData) =
-                    async
-                        {
-                            match! u.Receive() with
-                            | SendMessage (r, m) -> return! (s, onSendMessage saveMsg msgClientId m) |> (withReply r) |> loop
-                            | ScheduleMessage m -> return! (s, onSendMessage saveMsg msgClientId m) |> withoutReply |> loop
-                            | TryPeekReceivedMessage r -> return! (s, proxy.tryPickIncomingMessage()) |> (withReply r) |> loop
-                            | TryRemoveReceivedMessage (r, m) -> return! (s, proxy.tryDeleteMessage m) |> (withReply r) |> loop
-                        }
-
-                MessagingClientStateData.defaultValue |> loop
-                )
-
         /// Verifies that we have access to the relevant database and removes all expired messages.
         member m.start() = m.removeExpiredMessages()
 
-        /// Sends a message and waits for confirmation that it was sent.
-        /// If failed then the error in Result will contain the error.
-        member _.sendMessage (m : MessageInfo) = messageLoop.PostAndReply (fun reply -> SendMessage (reply, m))
-
-        /// Schedules a message to be sent and returns immediately.
-        /// If something fails at a later stage, then no error will be recorded.
-        member _.scheduleMessage (m : MessageInfo) = ScheduleMessage m |> messageLoop.Post
-
-        member _.tryPeekReceivedMessage() = messageLoop.PostAndReply (fun reply -> TryPeekReceivedMessage reply)
-        member _.tryRemoveReceivedMessage m = messageLoop.PostAndReply (fun reply -> TryRemoveReceivedMessage (reply, m))
+        member _.sendMessage (m : MessageInfo) : UnitResult = createMessage msgClientId m |> proxy.saveMessage
+        member _.tryPeekReceivedMessage() : ClmResult<Message option> = proxy.tryPickIncomingMessage()
+        member _.tryRemoveReceivedMessage (m : MessageId) : UnitResult = proxy.tryDeleteMessage m
         member _.transmitMessages() : UnitResult = [ tryReceiveMessages receiveProxy; trySendMessages sendProxy ] |> foldUnitResults
-        member m.removeExpiredMessages() : UnitResult = proxy.deleteExpiredMessages MessagingClientStateData.defaultValue.expirationTime
+        member m.removeExpiredMessages() : UnitResult = proxy.deleteExpiredMessages d.expirationTime
 
 
         member m.messageProcessorProxy : MessageProcessorProxy =
@@ -250,7 +209,6 @@ module Client =
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
                 sendMessage = m.sendMessage
-                scheduleMessage = m.scheduleMessage
                 transmitMessages = m.transmitMessages
                 removeExpiredMessages = m.removeExpiredMessages
             }

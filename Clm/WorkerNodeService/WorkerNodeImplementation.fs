@@ -71,7 +71,6 @@ module ServiceImplementation =
         {
             partitionerId : PartitionerId
             sendMessage : MessageInfo -> UnitResult
-            scheduleMessage : MessageInfo -> unit
         }
 
 
@@ -154,21 +153,13 @@ module ServiceImplementation =
                 match s.runningWorkers |> Map.tryFind p.runQueueId with
                 | Some rs ->
                     let result =
-                        let g() =
-                            {
-                                partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                                deliveryType = t
-                                messageData = UpdateProgressPrtMsg p
-                            }.getMessageInfo()
-
-                        match t with
-                        | GuaranteedDelivery ->
-                            g()
-                            |> proxy.sendMessageProxy.sendMessage
-                            |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
-                        | NonGuaranteedDelivery ->
-                            g() |> proxy.sendMessageProxy.scheduleMessage
-                            Ok()
+                        {
+                            partitionerRecipient = proxy.sendMessageProxy.partitionerId
+                            deliveryType = t
+                            messageData = UpdateProgressPrtMsg p
+                        }.getMessageInfo()
+                        |> proxy.sendMessageProxy.sendMessage
+                        |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
                     Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
                 | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
@@ -363,7 +354,6 @@ module ServiceImplementation =
         {
             partitionerId = i.workerNodeServiceInfo.workerNodeInfo.partitionerId
             sendMessage = i.messageProcessorProxy.sendMessage
-            scheduleMessage = i.messageProcessorProxy.scheduleMessage
         }
 
 
@@ -484,7 +474,7 @@ module ServiceImplementation =
             logger.logInfoString "createServiceImpl: Registering..."
             match w.register >-> w.start |> evaluate with
             | Ok() ->
-                let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
+                let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
                 do h.start()
                 Ok w
             | Error e -> Error e
@@ -504,8 +494,8 @@ module ServiceImplementation =
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
             let msgDbLocation = getFileName MsgDatabase
-//            let connStrSqlite = @"Data Source=C:\clm503\MsgClient.db;Version=3;foreign keys=true"
             let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
+            logger.logInfoString (sprintf "%s: Using local database: '%s'." className msgDbLocation)
 
             let w =
                 let messagingClientAccessInfo = i.messagingClientAccessInfo
@@ -523,6 +513,7 @@ module ServiceImplementation =
                         msgAccessInfo = messagingClientAccessInfo
                         messagingService = h
                         msgClientProxy = MessagingClientProxy.create j messagingClientAccessInfo.msgClientId
+                        expirationTime = MessagingClientData.defaultExpirationTime
                     }
 
                 let messagingClient = MessagingClient messagingClientData

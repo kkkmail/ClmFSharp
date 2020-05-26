@@ -21,6 +21,7 @@ module ServiceImplementation =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
+                expirationTime = MessagingServiceData.defaultExpirationTime
             }
 
         let service = MessagingService d
@@ -30,7 +31,6 @@ module ServiceImplementation =
     let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService serviceAccessInfo |> Ok)
 
 
-//    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.PerSession)>]
     type MessagingWcfService() =
         let toGetVersionError f = f |> GetVersionSvcWcfErr |> GetVersionSvcErr |> MessagingServiceErr

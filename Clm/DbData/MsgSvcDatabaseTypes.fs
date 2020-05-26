@@ -1,6 +1,5 @@
 ﻿namespace DbData
 
-open System.Data.SqlClient
 open FSharp.Data
 open System
 open ClmSys.VersionInfo
@@ -16,7 +15,6 @@ open Dapper
 open System.Data.Common
 open Clm.ModelParams
 open ClmSys.MessagingData
-open ClmSys.GeneralErrors
 
 // ! Must be the last to open !
 open Configuration
@@ -29,7 +27,7 @@ module MsgSvcDatabaseTypes =
 
     [<Literal>]
     let MsgSqliteConnStr =
-        "Data Source=" + SqliteStorageFolder + MsgDatabase + @";Version=3;foreign keys=true"
+        "Data Source=" + __SOURCE_DIRECTORY__ + @"\" + MsgDatabase + @";Version=3;foreign keys=true"
 
 
     let msgSqliteConnStr = MsgSqliteConnStr |> SqliteConnectionString
@@ -161,13 +159,44 @@ module MsgSvcDatabaseTypes =
 
 
     /// TODO kk:20200411 - I am not very happy about double ignore below. Refactor when time permits.
-    let saveMessage connectionString (m : Message) =
+    let saveMessageOld connectionString (m : Message) =
         let g() =
             use conn = getOpenConn connectionString
             use t = new MessageTable()
             m.addRow t |> ignore
             t.Update conn |> ignore
             Ok()
+
+        tryDbFun g
+
+
+    let saveMessage (ConnectionString connectionString) (m : Message) =
+        let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
+
+        let g() =
+            use cmd = new SqlCommandProvider<"
+                merge Message as target
+                using (select @messageId, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn)
+                as source (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+                on (target.messageId = source.messageId)
+                when not matched then
+                    insert (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+                    values (source.messageId, source.senderId, source.recipientId, source.dataVersion, source.deliveryTypeId, source.messageData, source.createdOn)
+                when matched then
+                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
+            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            let result = cmd.Execute(messageId = m.messageDataInfo.messageId.value
+                                    ,senderId = m.messageDataInfo.sender.value
+                                    ,recipientId = m.messageDataInfo.recipientInfo.recipient.value
+                                    ,dataVersion = messagingDataVersion.value
+                                    ,deliveryTypeId = m.messageDataInfo.recipientInfo.deliveryType.value
+                                    ,messageData = (m.messageData |> serialize serializationFormat)
+                                    ,createdOn = m.messageDataInfo.createdOn)
+
+            match result = 1 with
+            | true -> Ok ()
+            | false -> m.messageDataInfo.messageId |> CannotUpsertMessageErr |> MessageUpsertErr |> MessagingServiceErr |> Error
 
         tryDbFun g
 

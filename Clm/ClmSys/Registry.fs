@@ -215,8 +215,8 @@ module Registry =
         | Ok s ->
             match Int32.TryParse s with
             | true, v -> v |> ServicePort |> WorkerNodeServicePort |> Ok
-            | false, _ -> toErrorInfo GetMorkerNodeClientPortErr v c s |> toError
-        | Error e -> (toErrorInfoNoData GetMorkerNodeClientPortErr v c, e) ||> addError
+            | false, _ -> toErrorInfo GetWorkerNodeClientPortErr v c s |> toError
+        | Error e -> (toErrorInfoNoData GetWorkerNodeClientPortErr v c, e) ||> addError
 
 
     let trySetWorkerNodeServicePort v c (WorkerNodeServicePort (ServicePort p)) =

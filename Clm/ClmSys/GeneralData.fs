@@ -188,7 +188,7 @@ module GeneralData =
     let estimateEndTime progress (started : DateTime) =
         if progress > 0.0m && progress <= 1.0m
         then
-            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
+            let estRunTime = (decimal (DateTime.UtcNow.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
             started.Add estRunTime |> Some
         else None
 
@@ -200,7 +200,7 @@ module GeneralData =
             match progress with
             | NotStarted -> None
             | InProgress p -> estimateEndTime p started
-            | Completed _ -> Some DateTime.Now
+            | Completed _ -> Some DateTime.UtcNow
             | Failed _ -> None
             | Cancelled -> None
             | AllCoresBusy _ -> None

@@ -126,14 +126,14 @@ module SolverRunnerTasks =
             match w.earlyExitOpt with
             | None -> d.checkCancellation
             | Some c ->
-                let mutable lastCheck = DateTime.Now
+                let mutable lastCheck = DateTime.UtcNow
 
                 let check r =
-                    let fromLastCheck = DateTime.Now - lastCheck
+                    let fromLastCheck = DateTime.UtcNow - lastCheck
 
                     if fromLastCheck > c.frequency.value
                     then
-                        lastCheck <- DateTime.Now
+                        lastCheck <- DateTime.UtcNow
 
                         match d.chartDataUpdater.getContent() |> c.earlyExitStrategy.exitEarly with
                         | true -> Some CancelWithResults
@@ -297,7 +297,7 @@ module SolverRunnerTasks =
             | Ok() -> ignore()
             | Error e -> SolverRunnerCriticalError.fromErrMessage (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
 
-        let updateFinalProgress errMessage = proxy.updateProgress >> proxy.transmitMessages >> (logIfFailed errMessage)
+        let updateFinalProgress errMessage = proxy.updateProgress >> proxy.trySendMessages >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
         let data = getNSolveParam runSolverData w
         let getResultAndChartData() = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
@@ -337,7 +337,7 @@ module SolverRunnerTasks =
                 let result = notifyOfResults RegularChartGeneration
 
                 printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-                let completedResult = None |> Completed |> getProgress |> proxy.updateProgress |> proxy.transmitMessages
+                let completedResult = None |> Completed |> getProgress |> proxy.updateProgress |> proxy.trySendMessages
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             with

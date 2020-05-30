@@ -23,6 +23,7 @@ module TimerEvents =
             handlerName : string
             eventHandler : unit -> UnitResult
             refreshInterval : int option
+            firstDelay : int option
             logger : Logger
         }
 
@@ -32,6 +33,7 @@ module TimerEvents =
                 handlerName = n
                 eventHandler = h
                 refreshInterval = None
+                firstDelay = None
                 logger = logger
             }
 
@@ -41,6 +43,7 @@ module TimerEvents =
                 handlerName = n
                 eventHandler = h
                 refreshInterval = Some OneHourRefreshInterval
+                firstDelay = None
                 logger = logger
             }
 
@@ -48,7 +51,8 @@ module TimerEvents =
     type ClmEventHandler(i : ClmEventHandlerInfo) =
         let mutable counter = -1
         let handlerId = i.handlerId |> Option.defaultValue (Guid.NewGuid())
-        let refreshInterval = i.refreshInterval |> Option.defaultValue RefreshInterval |> float
+        let refreshInterval = i.refreshInterval |> Option.defaultValue RefreshInterval
+        let firstDelay = i.firstDelay |> Option.defaultValue refreshInterval
         let logError e = e |> ClmEventHandlerErr |> i.logger.logError
         let logWarn e = e |> ClmEventHandlerErr |> i.logger.logWarn
         let info = sprintf "ClmEventHandler: handlerId = %A, handlerName = %A" handlerId i.handlerName
@@ -66,13 +70,26 @@ module TimerEvents =
             try
                 if Interlocked.Increment(&counter) = 0
                 then timedImplementation false logger info g
-                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningEventHandlerErr |> logWarn
+                else (i.handlerName, handlerId, DateTime.UtcNow) |> StillRunningEventHandlerErr |> logWarn
             finally Interlocked.Decrement(&counter) |> ignore
 
 
-        let timer = new System.Timers.Timer(refreshInterval)
-        do timer.AutoReset <- true
-        do timer.Elapsed.Add eventHandler
+//        let timer = new System.Timers.Timer(refreshInterval)
+//        do timer.AutoReset <- true
+//        do timer.Elapsed.Add eventHandler
+//        member _.start() = do timer.Start()
+//        member _.stop() = do timer.Stop()
 
-        member _.start() = do timer.Start()
-        member _.stop() = do timer.Stop()
+        let timer = new System.Threading.Timer(TimerCallback(eventHandler), null, Timeout.Infinite, refreshInterval)
+
+        member _.start() =
+            try
+                timer.Change(firstDelay, refreshInterval) |> ignore
+            with
+            | e -> (i.handlerName, handlerId, e) |> UnhandledEventHandlerExn |> logError
+
+        member _.stop() =
+            try
+                timer.Change(Timeout.Infinite, refreshInterval) |> ignore
+            with
+            | e -> (i.handlerName, handlerId, e) |> UnhandledEventHandlerExn |> logError

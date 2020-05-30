@@ -47,7 +47,7 @@ module ContGenAdmTasks =
                         commandLineParams = c
                         numberOfRepetitions = r
                         remainingRepetitions = r
-                        createdOn = DateTime.Now
+                        createdOn = DateTime.UtcNow
                     }
 
                 match addClmTask clmConnectionString t with

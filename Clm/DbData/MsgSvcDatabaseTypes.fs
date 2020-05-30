@@ -64,7 +64,7 @@ module MsgSvcDatabaseTypes =
            select top 1 *
            from dbo.Message
            where recipientId = @recipientId and dataVersion = @dataVersion
-           order by createdOn, messageOrder
+           order by messageOrder
            ", MsgSvcConnectionStringValue, ResultType.DataReader>
 
 
@@ -72,7 +72,7 @@ module MsgSvcDatabaseTypes =
            select top 1 *
            from dbo.Message
            where senderId = @senderId and dataVersion = @dataVersion
-           order by createdOn, messageOrder
+           order by messageOrder
            ", MsgSvcConnectionStringValue, ResultType.DataReader>
 
 
@@ -224,7 +224,7 @@ module MsgSvcDatabaseTypes =
                     and dataVersion = @dataVersion
                     and createdOn < @createdOn", MsgSvcConnectionStringValue>(connectionString)
 
-            let result = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
+            let result = cmd.Execute(messagingDataVersion.value, DateTime.UtcNow - expirationTime)
             Ok()
 
         tryDbFun g
@@ -311,7 +311,7 @@ module MsgSvcDatabaseTypes =
                     and createdOn < @createdOn", conn)
 
             cmd.Parameters.Add(SQLiteParameter("@dataVersion", messagingDataVersion.value)) |> ignore
-            cmd.Parameters.Add(SQLiteParameter("@createdOn", DateTime.Now - expirationTime)) |> ignore
+            cmd.Parameters.Add(SQLiteParameter("@createdOn", DateTime.UtcNow - expirationTime)) |> ignore
 
             let result = cmd.ExecuteNonQuery()
             Ok()

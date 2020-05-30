@@ -64,7 +64,7 @@ module Client =
             expirationTime : TimeSpan
         }
 
-        static member defaultExpirationTime = TimeSpan(0, 5, 0)
+        static member defaultExpirationTime = TimeSpan.FromMinutes 10.0
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
@@ -140,7 +140,7 @@ module Client =
                     dataVersion = messagingDataVersion
                     sender = msgClientId
                     recipientInfo = m.recipientInfo
-                    createdOn = DateTime.Now
+                    createdOn = DateTime.UtcNow
                 }
 
             messageData = m.messageData
@@ -199,7 +199,8 @@ module Client =
         member _.sendMessage (m : MessageInfo) : UnitResult = createMessage msgClientId m |> proxy.saveMessage
         member _.tryPeekReceivedMessage() : ClmResult<Message option> = proxy.tryPickIncomingMessage()
         member _.tryRemoveReceivedMessage (m : MessageId) : UnitResult = proxy.tryDeleteMessage m
-        member _.transmitMessages() : UnitResult = [ tryReceiveMessages receiveProxy; trySendMessages sendProxy ] |> foldUnitResults
+        member _.tryReceiveMessages() : UnitResult = tryReceiveMessages receiveProxy
+        member _.trySendMessages() : UnitResult = trySendMessages sendProxy
         member m.removeExpiredMessages() : UnitResult = proxy.deleteExpiredMessages d.expirationTime
 
 
@@ -209,7 +210,8 @@ module Client =
                 tryPeekReceivedMessage = m.tryPeekReceivedMessage
                 tryRemoveReceivedMessage = m.tryRemoveReceivedMessage
                 sendMessage = m.sendMessage
-                transmitMessages = m.transmitMessages
+                tryReceiveMessages = m.tryReceiveMessages
+                trySendMessages = m.trySendMessages
                 removeExpiredMessages = m.removeExpiredMessages
             }
 
@@ -251,10 +253,20 @@ module Client =
     /// Call this function to create timer events necessary for automatic MessagingClient operation.
     /// If you don't call it, then you have to operate MessagingClient by hands.
     let createMessagingClientEventHandlers logger (w : MessageProcessorProxy) =
-        let eventHandler _ = w.transmitMessages()
-        let h = ClmEventHandlerInfo.defaultValue logger eventHandler "MessagingClient - transmitMessages" |> ClmEventHandler
+        let eventHandler _ = w.tryReceiveMessages()
+        let h = ClmEventHandlerInfo.defaultValue logger eventHandler "MessagingClient - tryReceiveMessages" |> ClmEventHandler
         do h.start()
 
-        let eventHandler1 _ = w.removeExpiredMessages()
-        let h1 = ClmEventHandlerInfo.oneHourValue logger eventHandler1 "MessagingClient - removeExpiredMessages" |> ClmEventHandler
+        let eventHandler1 _ = w.trySendMessages()
+        let h1 =
+             { ClmEventHandlerInfo.defaultValue logger eventHandler1 "MessagingClient - trySendMessages" with firstDelay = RefreshInterval / 3 |> Some }
+             |> ClmEventHandler
+
         do h1.start()
+
+        let eventHandler2 _ = w.removeExpiredMessages()
+        let h2 =
+            { ClmEventHandlerInfo.oneHourValue logger eventHandler2 "MessagingClient - removeExpiredMessages" with firstDelay = 2 * RefreshInterval / 3 |> Some }
+            |> ClmEventHandler
+
+        do h2.start()

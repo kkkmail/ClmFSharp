@@ -240,7 +240,7 @@ module DatabaseTypes =
                         maxPeptideLength = r.clmTaskInfo.maxPeptideLength.length,
                         numberOfRepetitions = r.numberOfRepetitions,
                         remainingRepetitions = r.remainingRepetitions,
-                        createdOn = DateTime.Now
+                        createdOn = DateTime.UtcNow
                         )
 
             t.Rows.Add newRow
@@ -357,7 +357,7 @@ module DatabaseTypes =
                         useAbundant = r.modelCommandLineParam.useAbundant,
                         workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                         progress = r.progress.value,
-                        modifiedOn = DateTime.Now
+                        modifiedOn = DateTime.UtcNow
                         )
 
             newRow.errorMessage <- r.errorMessageOpt |> Option.bind (fun e -> Some e.value)
@@ -402,7 +402,7 @@ module DatabaseTypes =
                 | Some None-> r.startedOn <- None
                 | None -> ignore()
 
-                r.modifiedOn <- DateTime.Now
+                r.modifiedOn <- DateTime.UtcNow
 
                 match u with
                 | true -> r.runQueueStatusId <- q.runQueueStatus.value
@@ -427,7 +427,7 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g NotStarted.value (Some (Some DateTime.Now)) true
+                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g NotStarted.value (Some (Some DateTime.UtcNow)) true
                 | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g TaskProgress.failedValue None true
 
                 | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
@@ -475,7 +475,7 @@ module DatabaseTypes =
                         lastErrorOn = w.lastErrorDateOpt
                         )
 
-            newRow.modifiedOn <- DateTime.Now
+            newRow.modifiedOn <- DateTime.UtcNow
             t.Rows.Add newRow
             newRow
 
@@ -483,7 +483,7 @@ module DatabaseTypes =
             r.workerNodeName <- w.workerNodeName.value
             r.numberOfCores <- w.noOfCores
             r.nodePriority <- w.nodePriority.value
-            r.modifiedOn <- DateTime.Now
+            r.modifiedOn <- DateTime.UtcNow
             r.lastErrorOn <- w.lastErrorDateOpt
 
 
@@ -675,7 +675,7 @@ module DatabaseTypes =
                     seedValue = (match m.data.seedValue with | Some s -> s | None -> -1),
                     modelDataParams = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
                     modelBinaryData = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                    createdOn = DateTime.Now)
+                    createdOn = DateTime.UtcNow)
 
             match recordsUpdated = 1 with
             | true -> Ok ()
@@ -730,7 +730,7 @@ module DatabaseTypes =
                         ,maxAverageEe = r.resultData.maxAverageEe
                         ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
                         ,maxLastEe = r.resultData.maxLastEe
-                        ,createdOn = DateTime.Now)
+                        ,createdOn = DateTime.UtcNow)
                 |> Seq.toList
 
             match result.Length = 1 with
@@ -821,7 +821,7 @@ module DatabaseTypes =
                         ,maxAverageEe = r.resultData.maxAverageEe
                         ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
                         ,maxLastEe = r.resultData.maxLastEe
-                        ,createdOn = DateTime.Now)
+                        ,createdOn = DateTime.UtcNow)
 
             match result = 1 with
             | true -> Ok ()
@@ -1010,7 +1010,7 @@ module DatabaseTypes =
     let upsertWorkerNodeErr connectionString i =
         let g() =
             match loadWorkerNodeInfo connectionString i with
-            | Ok w -> upsertWorkerNodeInfo connectionString { w with lastErrorDateOpt = Some DateTime.Now }
+            | Ok w -> upsertWorkerNodeInfo connectionString { w with lastErrorDateOpt = Some DateTime.UtcNow }
             | Error e -> Error e
 
         tryDbFun g

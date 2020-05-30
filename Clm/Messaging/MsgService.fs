@@ -14,7 +14,8 @@ module Service =
             messagingServiceProxy : MessagingServiceProxy
             expirationTime : TimeSpan
         }
-        static member defaultExpirationTime = TimeSpan.FromHours 6.0
+
+        static member defaultExpirationTime = TimeSpan.FromMinutes 10.0
 
     type MessagingService(d : MessagingServiceData) =
         let proxy = d.messagingServiceProxy

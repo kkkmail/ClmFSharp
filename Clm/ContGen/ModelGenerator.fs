@@ -60,7 +60,7 @@ module ModelGenerator =
                                             errorMessageOpt = None
                                             workerNodeIdOpt = None
                                             progress = NotStarted
-                                            createdOn = DateTime.Now
+                                            createdOn = DateTime.UtcNow
                                         })
                         |> List.map (fun e -> proxy.upsertRunQueue e)
                         |> foldUnitResults

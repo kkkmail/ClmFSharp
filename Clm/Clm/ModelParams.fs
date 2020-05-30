@@ -213,14 +213,14 @@ module ModelParams =
                 errorMessageOpt = None
                 workerNodeIdOpt = None
                 progress = NotStarted
-                createdOn = DateTime.Now
+                createdOn = DateTime.UtcNow
             }
 
         override r.ToString() =
             let (ModelDataId modelDataId) = r.info.modelDataId
             let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
             let (RunQueueId runQueueId) = r.runQueueId
-            let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
+            let s = (DateTime.UtcNow - r.createdOn).ToString("d\.hh\:mm")
 
             let estCompl =
                 match r.runQueueStatus, r.progress.estimateEndTime r.createdOn with

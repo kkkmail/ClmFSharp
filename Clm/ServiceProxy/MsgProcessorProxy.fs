@@ -22,7 +22,8 @@ module MsgProcessorProxy =
             tryPeekReceivedMessage : unit -> ClmResult<Message option>
             tryRemoveReceivedMessage : MessageId -> UnitResult
             sendMessage : MessageInfo -> UnitResult
-            transmitMessages : unit -> UnitResult
+            tryReceiveMessages : unit -> UnitResult
+            trySendMessages : unit -> UnitResult
             removeExpiredMessages : unit -> UnitResult
         }
 

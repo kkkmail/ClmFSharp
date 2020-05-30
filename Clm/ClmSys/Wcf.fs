@@ -56,7 +56,7 @@ module Wcf =
 
                     match trySerialize wcfSerializationFormat a with
                     | Ok b ->
-                        //printfn "tryCommunicate: Calling service at %A..." DateTime.Now
+                        //printfn "tryCommunicate: Calling service at %A..." DateTime.UtcNow
                         let d = c service b
                         channel.Close()
                         factoryCloser()
@@ -80,7 +80,7 @@ module Wcf =
             | Error e -> e |> f |> Error
         with
         | e ->
-            printfn "tryCommunicate: At %A got exception: %A" DateTime.Now e
+            printfn "tryCommunicate: At %A got exception: %A" DateTime.UtcNow e
             toWcfError f e
 
 

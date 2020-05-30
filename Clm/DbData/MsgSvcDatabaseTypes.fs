@@ -159,16 +159,15 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    /// TODO kk:20200411 - I am not very happy about double ignore below. Refactor when time permits.
-    let saveMessageOld connectionString (m : Message) =
-        let g() =
-            use conn = getOpenConn connectionString
-            use t = new MessageTable()
-            m.addRow t |> ignore
-            t.Update conn |> ignore
-            Ok()
-
-        tryDbFun g
+//    let saveMessageOld connectionString (m : Message) =
+//        let g() =
+//            use conn = getOpenConn connectionString
+//            use t = new MessageTable()
+//            m.addRow t |> ignore
+//            t.Update conn |> ignore
+//            Ok()
+//
+//        tryDbFun g
 
 
     let saveMessage (ConnectionString connectionString) (m : Message) =

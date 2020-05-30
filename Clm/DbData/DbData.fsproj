@@ -74,6 +74,9 @@
     <Content Include="packages.config" />
     <None Include="SqlServerTypes\readme.htm" />
     <None Include="SqlServerTypes\Loader.cs" />
+    <None Include="db.config" />
+    <Content Include="MsgClient.db" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Dapper">

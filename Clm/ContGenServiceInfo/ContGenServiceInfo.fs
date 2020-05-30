@@ -45,7 +45,7 @@ module ServiceInfo =
 
         //override r.ToString() =
         //    let (ModelDataId modelDataId) = r.progressUpdateInfo.processStartedInfo.runningProcessData.modelDataId
-        //    let s = (DateTime.UtcNow - r.started).ToString("d\.hh\:mm")
+        //    let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
         //
         //    let estCompl =
         //        match r.progressUpdateInfo.progress.estimateEndTime r.started with
@@ -60,7 +60,7 @@ module ServiceInfo =
         with
         member this.toRunningProcessInfo() =
             {
-                started = DateTime.UtcNow
+                started = DateTime.Now
                 progressUpdateInfo = this
             }
 
@@ -72,15 +72,15 @@ module ServiceInfo =
         if Interlocked.Increment(&callCount) = 0
         then
             try
-                printfn "Getting state at %s ..." (DateTime.UtcNow.ToString("yyyy-MM-dd.HH:mm:ss"))
+                printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let (q, e) = getState()
                 let r0 = q |> List.sortBy (fun e -> e.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
-                printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.UtcNow.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
+                printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with
             | e -> printfn "Exception occurred: %A" e
         else
-            printfn "Not getting state at %A because callCount = %A." DateTime.UtcNow callCount
+            printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore

@@ -275,7 +275,7 @@ module ServiceInfo =
         member this.isExpired(waitTime : TimeSpan) =
             match this.recipientInfo.deliveryType with
             | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.UtcNow then true else false
+            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
     type Message

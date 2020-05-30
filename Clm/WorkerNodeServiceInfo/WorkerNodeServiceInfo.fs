@@ -41,12 +41,12 @@ module ServiceInfo =
         static member defaultValue =
             {
                 progress = NotStarted
-                started = DateTime.UtcNow
-                lastUpdated = DateTime.UtcNow
+                started = DateTime.Now
+                lastUpdated = DateTime.Now
             }
 
         override r.ToString() =
-            let s = (DateTime.UtcNow - r.started).ToString("d\.hh\:mm")
+            let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
 
             let estCompl =
                 match r.progress.estimateEndTime r.started with
@@ -138,16 +138,16 @@ module ServiceInfo =
         if Interlocked.Increment(&callCount) = 0
         then
             try
-                printfn "Getting worker node state at %s ..." (DateTime.UtcNow.ToString("yyyy-MM-dd.HH:mm:ss"))
+                printfn "Getting worker node state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let state = service.monitor p
 
                 match state with
-                | Ok r -> printfn "...state at %s =\n%s\n\n" (DateTime.UtcNow.ToString("yyyy-MM-dd.HH:mm:ss")) (r.ToString())
-                | Error e -> printfn "...state at %s =\n%A\n\n" (DateTime.UtcNow.ToString("yyyy-MM-dd.HH:mm:ss")) e
+                | Ok r -> printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (r.ToString())
+                | Error e -> printfn "...state at %s =\n%A\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) e
             with
             | e -> printfn "Exception occurred: %A" e
         else
-            printfn "Not getting state at %A because callCount = %A." DateTime.UtcNow callCount
+            printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore

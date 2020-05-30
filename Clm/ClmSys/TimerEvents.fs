@@ -70,7 +70,7 @@ module TimerEvents =
             try
                 if Interlocked.Increment(&counter) = 0
                 then timedImplementation false logger info g
-                else (i.handlerName, handlerId, DateTime.UtcNow) |> StillRunningEventHandlerErr |> logWarn
+                else (i.handlerName, handlerId, DateTime.Now) |> StillRunningEventHandlerErr |> logWarn
             finally Interlocked.Decrement(&counter) |> ignore
 
 

@@ -126,14 +126,14 @@ module SolverRunnerTasks =
             match w.earlyExitOpt with
             | None -> d.checkCancellation
             | Some c ->
-                let mutable lastCheck = DateTime.UtcNow
+                let mutable lastCheck = DateTime.Now
 
                 let check r =
-                    let fromLastCheck = DateTime.UtcNow - lastCheck
+                    let fromLastCheck = DateTime.Now - lastCheck
 
                     if fromLastCheck > c.frequency.value
                     then
-                        lastCheck <- DateTime.UtcNow
+                        lastCheck <- DateTime.Now
 
                         match d.chartDataUpdater.getContent() |> c.earlyExitStrategy.exitEarly with
                         | true -> Some CancelWithResults

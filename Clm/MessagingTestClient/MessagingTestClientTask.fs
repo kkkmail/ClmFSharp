@@ -50,7 +50,7 @@ module MessagingTestClientTask =
                             deliveryType = GuaranteedDelivery
                         }
 
-                    messageData = sprintf "Message sent at %A." DateTime.UtcNow |> TextData
+                    messageData = sprintf "Message sent at %A." DateTime.Now |> TextData
                 }
 
             a.sendMessage m |> ignore

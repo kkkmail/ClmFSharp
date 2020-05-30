@@ -123,7 +123,7 @@ module Logging =
                     fun e ->
                         {
                             Message = sprintf "ERROR: %A" e
-                            Date = DateTime.UtcNow
+                            Date = DateTime.Now
                         }
                         |> InfoMessage
                         |> logAgent.Post
@@ -132,7 +132,7 @@ module Logging =
                     fun e ->
                         {
                             Message = sprintf "WARN: %A" e
-                            Date = DateTime.UtcNow
+                            Date = DateTime.Now
                         }
                         |> InfoMessage
                         |> logAgent.Post
@@ -141,7 +141,7 @@ module Logging =
                     fun e ->
                         {
                             Message = sprintf "INFO: %A" e
-                            Date = DateTime.UtcNow
+                            Date = DateTime.Now
                         }
                         |> InfoMessage
                         |> logAgent.Post

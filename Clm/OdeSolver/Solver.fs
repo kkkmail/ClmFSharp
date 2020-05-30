@@ -81,10 +81,10 @@ module Solver =
     /// F# wrapper around Alglib ODE solver.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
-        let start = DateTime.UtcNow
+        let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
-        let mutable lastCheck = DateTime.UtcNow
+        let mutable lastCheck = DateTime.Now
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notify t r m =
@@ -101,12 +101,12 @@ module Solver =
         /// There seems to be no other easy and clean way. Revisit if that changes.
         /// Follow the trail of that date stamp to find other related places.
         let checkCancellation() =
-            let fromLastCheck = DateTime.UtcNow - lastCheck
+            let fromLastCheck = DateTime.Now - lastCheck
             //printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
 
             if fromLastCheck > n.checkFreq
             then
-                lastCheck <- DateTime.UtcNow
+                lastCheck <- DateTime.Now
                 let cancel = n.checkCancellation n.runQueueId
 
                 match cancel with
@@ -121,7 +121,7 @@ module Solver =
                 if t > (double progressCount) * (n.tEnd / (double k))
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.UtcNow) (estCompl start progressCount k) t n.tEnd n.modelDataId
+                    //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
                     notify t progressCount k |> ignore
             | _ -> ignore()
 

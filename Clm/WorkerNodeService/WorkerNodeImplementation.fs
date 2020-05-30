@@ -161,7 +161,7 @@ module ServiceImplementation =
                         |> proxy.sendMessageProxy.sendMessage
                         |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
-                    Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.UtcNow } }, result
+                    Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
                 | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
 
             if completed

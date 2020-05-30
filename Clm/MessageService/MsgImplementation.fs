@@ -1,6 +1,7 @@
 ﻿namespace MessagingService
 
 open System.ServiceModel
+open ClmSys.Logging
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
@@ -17,7 +18,7 @@ module ServiceImplementation =
     let mutable serviceAccessInfo = getServiceAccessInfo []
 
 
-    let private createMessagingService (i : MessagingServiceAccessInfo) : MessagingService =
+    let private createMessagingService logger (i : MessagingServiceAccessInfo) : MessagingService =
         let d : MessagingServiceData =
             {
                 messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
@@ -25,10 +26,11 @@ module ServiceImplementation =
             }
 
         let service = MessagingService d
+        createMessagingServiceEventHandlers logger service
         service
 
 
-    let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService serviceAccessInfo |> Ok)
+    let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService Logger.log4net serviceAccessInfo |> Ok)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.PerSession)>]

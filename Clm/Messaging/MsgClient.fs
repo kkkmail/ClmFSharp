@@ -64,7 +64,7 @@ module Client =
             expirationTime : TimeSpan
         }
 
-        static member defaultExpirationTime = TimeSpan.FromMinutes 10.0
+        static member defaultExpirationTime = TimeSpan.FromMinutes 5.0
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
@@ -140,7 +140,7 @@ module Client =
                     dataVersion = messagingDataVersion
                     sender = msgClientId
                     recipientInfo = m.recipientInfo
-                    createdOn = DateTime.UtcNow
+                    createdOn = DateTime.Now
                 }
 
             messageData = m.messageData

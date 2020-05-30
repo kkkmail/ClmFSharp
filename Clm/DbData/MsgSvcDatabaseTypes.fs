@@ -123,7 +123,7 @@ module MsgSvcDatabaseTypes =
                             messageData = (r.messageData |> serialize serializationFormat)
                             )
 
-                newRow.createdOn <- r.messageDataInfo.createdOn
+                newRow.createdOn <- DateTime.Now // Set our local time as we don't care about remote time.
 
                 t.Rows.Add newRow
                 Ok newRow
@@ -193,7 +193,7 @@ module MsgSvcDatabaseTypes =
                                     ,dataVersion = messagingDataVersion.value
                                     ,deliveryTypeId = m.messageDataInfo.recipientInfo.deliveryType.value
                                     ,messageData = (m.messageData |> serialize serializationFormat)
-                                    ,createdOn = m.messageDataInfo.createdOn)
+                                    ,createdOn = DateTime.Now) // Set our local time as we don't care about remote time.
 
             match result with
             | 1 -> Ok ()
@@ -224,7 +224,7 @@ module MsgSvcDatabaseTypes =
                     and dataVersion = @dataVersion
                     and createdOn < @createdOn", MsgSvcConnectionStringValue>(connectionString)
 
-            let result = cmd.Execute(messagingDataVersion.value, DateTime.UtcNow - expirationTime)
+            let result = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
             Ok()
 
         tryDbFun g
@@ -311,7 +311,7 @@ module MsgSvcDatabaseTypes =
                     and createdOn < @createdOn", conn)
 
             cmd.Parameters.Add(SQLiteParameter("@dataVersion", messagingDataVersion.value)) |> ignore
-            cmd.Parameters.Add(SQLiteParameter("@createdOn", DateTime.UtcNow - expirationTime)) |> ignore
+            cmd.Parameters.Add(SQLiteParameter("@createdOn", DateTime.Now - expirationTime)) |> ignore
 
             let result = cmd.ExecuteNonQuery()
             Ok()

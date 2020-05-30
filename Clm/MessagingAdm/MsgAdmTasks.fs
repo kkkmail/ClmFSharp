@@ -20,7 +20,7 @@ module MsgAdmTasks =
     //                match state with
     //                | Ok s -> s.msgInfo |> List.map (fun (_, e) -> e.Length) |> List.sum
     //                | Error _-> 0
-    //            printfn "State at %A is: %A\nNumber of messages: %i.\n" DateTime.UtcNow state n
+    //            printfn "State at %A is: %A\nNumber of messages: %i.\n" DateTime.Now state n
     //        with
     //        | e -> printfn "Exception: %A\n" e.Message
 

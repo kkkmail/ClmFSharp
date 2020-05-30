@@ -64,7 +64,7 @@ module Client =
             expirationTime : TimeSpan
         }
 
-        static member defaultExpirationTime = TimeSpan(6, 0, 0)
+        static member defaultExpirationTime = TimeSpan(0, 5, 0)
 
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 

@@ -8,6 +8,7 @@ open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingServiceErrors
+open ClmSys.MessagingClientErrors
 open MessagingServiceInfo.ServiceInfo
 open FSharp.Data.Sql
 open System.Data.SQLite
@@ -171,7 +172,7 @@ module MsgSvcDatabaseTypes =
 
 
     let saveMessage (ConnectionString connectionString) (m : Message) =
-        let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
+        let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
             use cmd = new SqlCommandProvider<"
@@ -194,9 +195,9 @@ module MsgSvcDatabaseTypes =
                                     ,messageData = (m.messageData |> serialize serializationFormat)
                                     ,createdOn = m.messageDataInfo.createdOn)
 
-            match result = 1 with
-            | true -> Ok ()
-            | false -> m.messageDataInfo.messageId |> CannotUpsertMessageErr |> MessageUpsertErr |> MessagingServiceErr |> Error
+            match result with
+            | 1 -> Ok ()
+            | _ -> m.messageDataInfo.messageId |> CannotUpsertMessageErr |> MessageUpsertErr |> MessagingServiceErr |> Error
 
         tryDbFun g
 
@@ -207,9 +208,9 @@ module MsgSvcDatabaseTypes =
         let g() =
             use cmd = new SqlCommandProvider<"delete from dbo.Message where messageId = @messageId", MsgSvcConnectionStringValue>(connectionString)
 
-            match cmd.Execute(messageId = messageId.value) = 1 with
-            | true -> Ok()
-            | false -> messageId |> CannotDeleteMessageErr |> toError
+            match cmd.Execute(messageId = messageId.value) with
+            | 0 | 1 -> Ok()
+            | _ -> messageId |> MessageDeleteError.CannotDeleteMessageErr |> toError
 
         tryDbFun g
 
@@ -243,7 +244,7 @@ module MsgSvcDatabaseTypes =
     ///     https://devonburriss.me/how-to-fsharp-pt-9/
     ///     https://isthisit.nz/posts/2019/sqlite-database-with-dapper-and-fsharp/
     ///     http://zetcode.com/csharp/sqlite/
-    let saveMessageWithTypeSqlite (SqliteConnectionString connectionString) (m : Message) =
+    let saveMessageSqlite (SqliteConnectionString connectionString) (m : Message) =
         let g() =
             use connectionString = new SQLiteConnection(connectionString)
 
@@ -285,16 +286,16 @@ module MsgSvcDatabaseTypes =
 
 
     let deleteMessageSqlite connectionString (messageId : MessageId) =
-        let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
+        let toError e = e |> SendMessageErr |> MessagingClientErr |> Error
 
         let g() =
             use conn = getOpenSqliteConn connectionString
             use cmd = new SQLiteCommand("delete from Message where messageId = @messageId", conn)
             cmd.Parameters.Add(SQLiteParameter("@messageId", messageId.value.ToSqliteString())) |> ignore
 
-            match cmd.ExecuteNonQuery() = 1 with
-            | true -> Ok()
-            | false -> messageId |> CannotDeleteMessageErr |> toError
+            match cmd.ExecuteNonQuery() with
+            | 0 | 1 -> Ok()
+            | _ -> messageId |> SendMessageError.CannotDeleteMessageErr |> toError
 
         tryDbFun g
 

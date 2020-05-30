@@ -49,7 +49,7 @@ module MsgServiceProxy =
                 {
                     tryPickIncomingMessage = fun () -> tryPickIncomingMessageSqlite connectionString c
                     tryPickOutgoingMessage = fun () -> tryPickOutgoingMessageSqlite connectionString c
-                    saveMessage = fun m -> saveMessageWithTypeSqlite connectionString m
+                    saveMessage = fun m -> saveMessageSqlite connectionString m
                     tryDeleteMessage = deleteMessageSqlite connectionString
                     deleteExpiredMessages = deleteExpiredMessagesSqlite connectionString
                 }

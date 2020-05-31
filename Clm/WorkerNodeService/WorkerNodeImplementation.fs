@@ -442,7 +442,6 @@ module ServiceImplementation =
         member w.solverRunnerProxy =
             {
                 updateProgress = w.updateProgress
-                trySendMessages = fun u -> i.messageProcessorProxy.trySendMessages()
                 saveResult = w.saveResult
                 saveCharts = w.saveCharts
                 logCrit = i.workerNodeProxy.logCrit

@@ -159,31 +159,29 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-//    let saveMessageOld connectionString (m : Message) =
-//        let g() =
-//            use conn = getOpenConn connectionString
-//            use t = new MessageTable()
-//            m.addRow t |> ignore
-//            t.Update conn |> ignore
-//            Ok()
-//
-//        tryDbFun g
-
-
+    /// We consider the messages are write once, so if the message is already in the database, then we just ignore it.
+    ///
+    /// Using "with (holdlock)" seems to be causing some deadlocks.
+    ///                merge Message with (holdlock) as target
+    ///                using (select @messageId, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn)
+    ///                as source (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+    ///                on (target.messageId = source.messageId)
+    ///                when not matched then
+    ///                    insert (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+    ///                    values (source.messageId, source.senderId, source.recipientId, source.dataVersion, source.deliveryTypeId, source.messageData, source.createdOn)
+    ///                when matched then
+    ///                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
     let saveMessage (ConnectionString connectionString) (m : Message) =
         let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
             use cmd = new SqlCommandProvider<"
-                merge Message as target
-                using (select @messageId, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn)
-                as source (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
-                on (target.messageId = source.messageId)
-                when not matched then
-                    insert (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
-                    values (source.messageId, source.senderId, source.recipientId, source.dataVersion, source.deliveryTypeId, source.messageData, source.createdOn)
-                when matched then
-                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
+                declare @messageIdValue uniqueidentifier
+                set @messageIdValue = @messageId
+
+				insert into Message (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+				select @messageIdValue, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn
+				where not exists (select 1 from Message where messageId = @messageIdValue)
             ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result = cmd.Execute(messageId = m.messageDataInfo.messageId.value

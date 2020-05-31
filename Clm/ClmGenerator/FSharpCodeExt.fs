@@ -8,7 +8,7 @@ open Clm.ReactionTypes
 open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
 
-module FSharpCodeExt = 
+module FSharpCodeExt =
 
     let increaseShift shift = shift + "    "
     let increaseShiftTwice shift = shift |> increaseShift |> increaseShift
@@ -39,10 +39,10 @@ module FSharpCodeExt =
         |> Seq.fold f state
 
 
-    let toFloat (s : string) = 
-        match s.Contains(".") with 
+    let toFloat (s : string) =
+        match s.Contains(".") with
         | true -> s
-        | false -> 
+        | false ->
             match s.ToUpper().Contains("E+") || s.ToUpper().Contains("E-") with
             | true -> s
             | false -> s + ".0"
@@ -51,31 +51,31 @@ module FSharpCodeExt =
     let doubleFSharpString (d : double) = d.ToString() |> toFloat
 
 
-    let doubleOptFSharpString (d : double option) = 
-        match d with 
+    let doubleOptFSharpString (d : double option) =
+        match d with
         | Some v -> "Some " + (v.ToString() |> toFloat)
         | None -> "None"
 
 
-    let arrayToFSharpString (a : double[]) (shift : string) = 
-        let s = 
+    let arrayToFSharpString (a : double[]) (shift : string) =
+        let s =
             a
             |> Array.map (fun e -> doubleFSharpString e)
             |> String.concat "; "
         shift + "[| " + s + " |]"
 
 
-    let array2DToFSharpString (a : double[,]) (shift : string) = 
+    let array2DToFSharpString (a : double[,]) (shift : string) =
         let arrayShift = shift |> increaseShift
 
-        let s = 
+        let s =
             [| for i in 0..((Array2D.length1 a) - 1) -> i |]
             |> Array.map (fun i -> a.[i,*])
             |> Array.map (fun e -> arrayToFSharpString e arrayShift)
             |> String.concat Nl
 
         shift + "[| " + Nl +
-        s + Nl + 
+        s + Nl +
         shift + "|]" + Nl
 
 
@@ -92,7 +92,7 @@ module FSharpCodeExt =
             "{ " +
             "threshold = " + (doubleOptFSharpString this.threshold) + "; " +
             "scale = " + (doubleOptFSharpString this.scale) + "; " +
-            "shift = " + (doubleOptFSharpString this.shift) + 
+            "shift = " + (doubleOptFSharpString this.shift) +
             " }"
 
 
@@ -115,21 +115,21 @@ module FSharpCodeExt =
     type EeDistribution
         with
 
-        member distr.toFSharpCode = 
+        member distr.toFSharpCode =
             let (EeDistribution d) = distr
             d.toFSharpCode + " |> " + "EeDistribution"
 
 
-    let toEeDistrOpt (distr : EeDistribution option) = 
-        match distr with 
+    let toEeDistrOpt (distr : EeDistribution option) =
+        match distr with
         | Some d -> d.toFSharpCode + " |> " + "Some"
         | None -> "None"
 
 
     type EeDistributionGetter
-        with 
-        member distr.toFSharpCode = 
-            match distr with 
+        with
+        member distr.toFSharpCode =
+            match distr with
             | NoneEeGetter -> "NoneEeGetter"
             | DeltaEeDistributionGetter -> "DeltaEeDistributionGetter"
             | CenteredEeDistributionGetter -> "CenteredEeDistributionGetter"
@@ -138,16 +138,16 @@ module FSharpCodeExt =
     type RateMultiplierDistribution
         with
 
-        member distr.toFSharpCode = 
-            match distr with 
+        member distr.toFSharpCode =
+            match distr with
             | RateMultDistr d -> d.toFSharpCode + " |> " + "RateMultDistr"
             | NoneRateMult -> "NoneRateMult"
 
 
     type RateMultiplierDistributionGetter
         with
-        member distr.toFSharpCode = 
-            match distr with 
+        member distr.toFSharpCode =
+            match distr with
             | NoneRateMultDistrGetter -> "NoneRateMultDistrGetter"
             | DeltaRateMultDistrGetter -> "DeltaRateMultDistrGetter"
             | TriangularRateMultDistrGetter -> "TriangularRateMultDistrGetter"
@@ -155,8 +155,8 @@ module FSharpCodeExt =
 
 
     type CatRatesEeParam
-        with 
-        member p.toFSharpCode (shift : string) = 
+        with
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
             shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
@@ -167,7 +167,7 @@ module FSharpCodeExt =
     type FoodCreationParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    foodCreationRate = " + (doubleFSharpString p.foodCreationRate) + Nl +
             shift + "}" + Nl
@@ -176,7 +176,7 @@ module FSharpCodeExt =
     type WasteRemovalParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    wasteRemovalRate = " + (doubleFSharpString p.wasteRemovalRate) + Nl +
             shift + "}" + Nl
@@ -185,7 +185,7 @@ module FSharpCodeExt =
     type WasteRecyclingParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    wasteRecyclingRate = " + (doubleFSharpString p.wasteRecyclingRate) + Nl +
             shift + "}" + Nl
@@ -194,7 +194,7 @@ module FSharpCodeExt =
     type SynthesisRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    synthesisDistribution = " + p.synthesisDistribution.toFSharpCode + Nl +
             shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
@@ -203,17 +203,17 @@ module FSharpCodeExt =
 
 
     type SynthesisParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | SynthRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "SynthRndParam" + Nl)
 
 
     type CatalyticSynthesisRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    synthesisParam = " + Nl + (p.synthesisParam.toFSharpCode (increaseShiftTwice shift)) +
             shift + "    catSynthRndEeParams = " + Nl + (p.catSynthRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
@@ -252,10 +252,10 @@ module FSharpCodeExt =
 
 
     type CatalyticSynthesisParam
-        with 
+        with
 
         member p.toFSharpCode (shift : string) =
-            match p with 
+            match p with
             | CatSynthRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatSynthRndParam" + Nl)
             | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatSynthSimParam" + Nl)
 
@@ -263,7 +263,7 @@ module FSharpCodeExt =
     type DestructionRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    destructionDistribution = " + p.destructionDistribution.toFSharpCode + Nl +
             shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
@@ -272,10 +272,10 @@ module FSharpCodeExt =
 
 
     type DestructionParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | DestrRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "DestrRndParam" + Nl)
 
 
@@ -299,10 +299,10 @@ module FSharpCodeExt =
 
 
     type CatalyticDestructionParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | CatDestrRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatDestrRndParam" + Nl)
             | CatDestrSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatDestrSimParam" + Nl)
 
@@ -354,7 +354,7 @@ module FSharpCodeExt =
         with
 
         member p.toFSharpCode (shift : string) =
-            match p with 
+            match p with
             | SedDirRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "SedDirRndParam" + Nl)
             | SedDirSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "SedDirSimParam" + Nl)
 
@@ -370,17 +370,17 @@ module FSharpCodeExt =
 
 
     type SedimentationAllParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | SedAllRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "SedAllRndParam" + Nl)
 
 
     type LigationRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    ligationDistribution = " + p.ligationDistribution.toFSharpCode + Nl +
             shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
@@ -389,35 +389,45 @@ module FSharpCodeExt =
 
 
     type LigationParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | LigRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "LigRndParam" + Nl)
 
 
     type CatalyticLigationRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    ligationParam = " + Nl + (p.ligationParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
             shift + "    catLigRndEeParams = " + Nl + (p.catLigRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
             shift + "}" + Nl
 
 
+    type CatalyticLigationSimilarParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    catLigParam = " + Nl + (p.catLigParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    catLigSimParam = " + Nl + (p.catLigSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "}" + Nl
+
+
     type CatalyticLigationParam
         with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | CatLigRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatLigRndParam" + Nl)
+            | CatLigSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatLigSimParam" + Nl)
 
 
     type RacemizationRandomParam
         with
 
-        member p.toFSharpCode (shift : string) = 
+        member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    racemizationDistribution = " + p.racemizationDistribution.toFSharpCode + Nl +
             shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
@@ -425,10 +435,10 @@ module FSharpCodeExt =
 
 
     type RacemizationParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | RacemRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "RacemRndParam" + Nl)
 
 
@@ -452,10 +462,10 @@ module FSharpCodeExt =
 
 
     type CatalyticRacemizationParam
-        with 
+        with
 
-        member p.toFSharpCode (shift : string) = 
-            match p with 
+        member p.toFSharpCode (shift : string) =
+            match p with
             | CatRacemRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatRacemRndParam" + Nl)
             | CatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatRacemSimParam" + Nl)
 
@@ -464,7 +474,7 @@ module FSharpCodeExt =
         with
 
         member rm.toFSharpCode (shift : string) =
-            match rm with 
+            match rm with
             | FoodCreationRateParam m -> (m.toFSharpCode shift) + shift + "|> FoodCreationRateParam" + Nl
             | WasteRemovalRateParam m -> (m.toFSharpCode shift) + shift + "|> WasteRemovalRateParam" + Nl
             | WasteRecyclingRateParam m -> (m.toFSharpCode shift) + shift + "|> WasteRecyclingRateParam" + Nl
@@ -564,11 +574,11 @@ module FSharpCodeExt =
             shift + "    allSubst = " + "allSubst" + Nl +
             shift + "    allInd = " + "allInd" + Nl +
             shift + "    allRawReactions =" + Nl +
-            newShift + "[" + Nl + 
+            newShift + "[" + Nl +
             (toReactionsCode p.allRawReactions (increaseShift newShift)) + Nl +
             newShift + "]" + Nl +
-            shift + "    allReactions =" + Nl + 
-            newShift + "[" + Nl + 
+            shift + "    allReactions =" + Nl +
+            newShift + "[" + Nl +
             (toReactionsCode p.allReactions (increaseShift newShift)) + Nl +
             newShift + "]" + Nl +
             shift + "}" + Nl

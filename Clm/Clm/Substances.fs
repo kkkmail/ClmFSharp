@@ -324,7 +324,7 @@ module Substances =
 
         static member toString (a : AminoAcid) = a.name
 
-        static member toString (i : int) = 
+        static member toString (i : int) =
             match AminoAcid.all |> List.tryFind(fun a -> a.number = i) with
             | Some a -> AminoAcid.toString a
             | None -> sprintf "Invalid amino acid index %A" i
@@ -340,8 +340,8 @@ module Substances =
         | L of AminoAcid
         | R of AminoAcid
 
-        member __.length = 1
-        member __.atoms = 1
+        member _.length = 1
+        member _.atoms = 1
 
         member aminoAcid.isL =
             match aminoAcid with
@@ -355,7 +355,7 @@ module Substances =
             | L a -> R a
             | R a -> L a
 
-        static member getAminoAcids n = 
+        static member getAminoAcids n =
             (AminoAcid.getAminoAcids n |> List.map (fun a -> L a))
             @
             (AminoAcid.getAminoAcids n |> List.map (fun a -> R a))
@@ -375,6 +375,13 @@ module Substances =
             | L _ -> L a
             | R _ -> R a
 
+
+    /// Type to describe a symmetry of a directed amino acid pair, e.g. Ab -> LR
+    type BindingSymmetry =
+        | LL
+        | LR
+        | RL
+        | RR
 
     type Peptide =
         | Peptide of list<ChiralAminoAcid>
@@ -405,7 +412,7 @@ module Substances =
                 |> Map.ofList
 
             let count v =
-                match counts.TryFind v with 
+                match counts.TryFind v with
                 | Some c -> c
                 | None -> 0
 
@@ -422,10 +429,10 @@ module Substances =
                 //printfn "makePeptide::acc = %A" acc
                 match l with
                 | [] -> acc
-                | h :: t -> 
-                    match acc with 
+                | h :: t ->
+                    match acc with
                     | [] -> makePeptide (h |> List.map (fun e -> [e])) t
-                    | _ -> 
+                    | _ ->
                         //let pairs = (List.allPairs h acc)
                         //printfn "makePeptide::pairs = %A" pairs
                         //let x = pairs |> List.map (fun e -> e)
@@ -450,7 +457,7 @@ module Substances =
         | Sum of SumSubst
 
         member substance.enantiomer =
-            match substance with 
+            match substance with
             | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
@@ -515,7 +522,7 @@ module Substances =
         static member chiralL a = a |> L |> Chiral
 
         static member fromList (a : list<ChiralAminoAcid>) =
-            match a.Length with 
+            match a.Length with
             | 1 -> Chiral a.Head
             | _ -> Peptide a |> PeptideChain
 
@@ -528,7 +535,7 @@ module Substances =
     let orderPairs (a : list<ChiralAminoAcid>, b : list<ChiralAminoAcid>) =
         if a.Length < b.Length
         then (a, b)
-        else 
+        else
             if a.Length > b.Length
             then (b, a)
             else

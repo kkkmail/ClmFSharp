@@ -20,7 +20,7 @@ module ReactionTypes =
         | CatalyticRacemizationName
 
         member this.name =
-            match this with 
+            match this with
             | FoodCreationName -> "food"
             | WasteRemovalName -> "waste"
             | WasteRecyclingName -> "recycling"
@@ -76,7 +76,7 @@ module ReactionTypes =
 
         member this.normalized() =
             let normalize d =
-                d 
+                d
                 |> List.map (fun (s, i) -> [ for _ in 0..(i-1) -> s ])
                 |> List.concat
                 |> List.sort
@@ -211,8 +211,28 @@ module ReactionTypes =
             (a, c.enantiomer) |> CatalyticDestructionReaction
 
 
+    /// A directed pair of amino acids forming peptide bond.
+    /// leftAminoAcid is the amino acid on the left side of the bond and
+    /// rightAminoAcid is on the right side of the bond.
+    /// Any of these amino acids can be L or R.
+    type PeptideBond =
+        {
+            leftAminoAcid : ChiralAminoAcid
+            rightAminoAcid : ChiralAminoAcid
+        }
+
+        member r.bingingType =
+            match r.leftAminoAcid, r.rightAminoAcid with
+            | L _, L _ -> LL
+            | L _, R _ -> LR
+            | R _, L _ -> RL
+            | R _, R _ -> RR
+
+
     type LigationReaction =
         | LigationReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
+
+        member this.value = let (LigationReaction v) = this in v
 
         member r.info =
             let (LigationReaction (a, b)) = r
@@ -222,9 +242,59 @@ module ReactionTypes =
                 output = [ (Substance.fromList (a @ b), 1) ]
             }
 
+        member r.peptideBond =
+            let (LigationReaction (a, b)) = r
+            { leftAminoAcid = a |> List.rev |> List.head; rightAminoAcid = b |> List.head }
+
+        member r.bingingType = r.peptideBond.bingingType
+
+
         member r.enantiomer =
             let (LigationReaction (a, b)) = r
             (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> LigationReaction
+
+
+    type PeptideBondMap =
+        | PeptideBondMap of Map<BindingSymmetry, Map<PeptideBond, Set<LigationReaction>>>
+
+        /// Finds all ligation reactions with the same peptide bond.
+        member m.findSame (x : LigationReaction) =
+            let (PeptideBondMap v) = m
+
+            v
+            |> Map.tryFind x.bingingType
+            |> Option.defaultValue Map.empty
+            |> Map.tryFind x.peptideBond
+            |> Option.defaultValue Set.empty
+            |> Set.toList
+            |> List.sortBy (fun e -> e.info)
+
+
+        /// Finds all ligation reactions, which have the same peptide bond symmetry as given ligation reaction (e.g. aB + C -> aBC).
+        /// But NOT the same bond. E.g. if incoming reaction is aB + C -> aBC, then peptide bond is BC, bond symmetry is LL
+        /// And this function returns all ligation reactions, which have bond symmetry type LL but not bond BC.
+        member m.findSimilar (x : LigationReaction) =
+            let (PeptideBondMap v) = m
+
+            v
+            |> Map.tryFind x.bingingType
+            |> Option.defaultValue Map.empty
+            |> Map.toList
+            |> List.map snd
+            |> List.map (fun e -> e |> Set.toList)
+            |> List.concat
+            |> List.distinct
+            |> List.filter(fun e -> e.peptideBond <> x.peptideBond)
+            |> List.sortBy (fun e -> e.info)
+
+        static member create (p : List<LigationReaction>) =
+            p
+            |> List.groupBy (fun e -> e.peptideBond)
+            |> List.map (fun (a, b) -> a, b |> Set.ofList)
+            |> List.groupBy (fun (e, _) -> e.bingingType)
+            |> List.map (fun (a, b) -> a, b |> Map.ofList)
+            |> Map.ofList
+            |> PeptideBondMap
 
 
     type LigCatalyst =
@@ -321,7 +391,7 @@ module ReactionTypes =
                 output = [ (Chiral a.enantiomer, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (RacemizationReaction a) = r
             a.enantiomer |> RacemizationReaction
 

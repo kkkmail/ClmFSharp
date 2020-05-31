@@ -52,7 +52,7 @@ module ReactionRateFunctions =
         x.primary
 
 
-    let getRatesImpl<'R> 
+    let getRatesImpl<'R>
         (rateDictionary : Dictionary<'R, RateData>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
@@ -82,7 +82,20 @@ module ReactionRateFunctions =
         {
             reaction : 'R
             catalyst : 'C
-            aminoAcids : list<'A>
+
+            // TODO kk:20200531 - Rename as appropriate in a separate PR.
+            // Gets the list of "objects" to choose from.
+            // For e.g. catalytic synthesis this is a list of amino acids.
+            // However, for catalytic ligation this is a substantially more difficult question to answer and it my depend on the model.
+            // That's the reason for making this label a function.
+            aminoAcids : CatRatesSimilarityParam -> 'R -> list<'A>
+
+            // Reactions that match given reaction by some parameters controlled by the model.
+            // This is mostly for catalytic ligation where a model may require that catalyst is applied to the
+            // same peptide bond.
+            // All other reactions (e.g. catalytic synthesis) should return empty list.
+            getMatchingReactions : CatRatesSimilarityParam -> 'R -> list<'R>
+
             getCatEnantiomer : 'C -> 'C
             catReactionCreator : ('R * 'C) -> 'RC
             simReactionCreator : 'A -> 'R
@@ -109,20 +122,37 @@ module ReactionRateFunctions =
             }
 
 
-    let calculateSimRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) =
+    let calculateCatRates i s c e =
+        let reaction = (s, c) |> i.catReactionCreator
+        let related = i.toCatRatesInfo s c e |> calculateCatRatesImpl
+        updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+
+
+    let calculateMatchingRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) (r : 'R) =
+        let m =
+            i.getMatchingReactions i.simParams r
+            |> List.map (fun x -> calculateCatRates i s c e)
+
+        r
+
+
+    let calculateSimRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
         let br = i.getBaseRates i.reaction // (bf, bb)
         let cr = r |> i.getBaseCatRates // (f, b)
 
-        let calculateCatRates s c e =
-            let reaction = (s, c) |> i.catReactionCreator
-            let related = i.toCatRatesInfo s c e |> calculateCatRates
-            updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+        // List of "objects" to choose from.
+        // For e.g. catalytic synthesis this is a list of amino acids.
+        // However, for catalytic ligation this is a substantially more difficult question to answer and it my depend on the model.
+        // That's the reason for making this label a function.
+        let aa = i.aminoAcids i.simParams i.reaction
+
+        let calculateCatRates = calculateCatRates i
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None ->
-            i.aminoAcids
+            aa
             |> List.map (fun a -> i.simReactionCreator a)
             |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
@@ -153,16 +183,15 @@ module ReactionRateFunctions =
 
             match i.simParams.catRatesSimGeneration with
             | DistributionBased simBaseDistribution ->
-                i.aminoAcids
-                |> List.map (fun a -> i.simReactionCreator a, simBaseDistribution.isDefined i.rnd)
+                aa |> List.map (fun a -> i.simReactionCreator a, simBaseDistribution.isDefined i.rnd)
             | FixedValue d ->
                 // Here we need to ensure that number of successes is NOT random but fixed.
                 let isDefined j =
                     match d.value.distributionParams.threshold with
-                    | Some t -> (double j) < t * (double i.aminoAcids.Length)
+                    | Some t -> (double j) < t * (double aa.Length)
                     | None -> true
 
-                i.aminoAcids
+                aa
                 |> List.map(fun a -> i.rnd.nextDouble(), a)
                 |> List.sortBy (fun (r, _) -> r)
                 |> List.mapi (fun j (_, a) -> i.simReactionCreator a, isDefined j)

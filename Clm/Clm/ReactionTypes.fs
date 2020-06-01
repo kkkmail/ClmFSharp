@@ -221,6 +221,9 @@ module ReactionTypes =
             rightAminoAcid : ChiralAminoAcid
         }
 
+        member r.enantiomer =
+            { leftAminoAcid = r.leftAminoAcid.enantiomer; rightAminoAcid = r.rightAminoAcid.enantiomer }
+
         member r.bingingType =
             match r.leftAminoAcid, r.rightAminoAcid with
             | L _, L _ -> LL
@@ -257,9 +260,11 @@ module ReactionTypes =
     type PeptideBondMap =
         | PeptideBondMap of Map<BindingSymmetry, Map<PeptideBond, Set<LigationReaction>>>
 
-        /// Finds all ligation reactions with the same peptide bond.
+        /// Finds all ligation reactions with the same peptide bond EXCEPT input reaction.
+        /// Enantiomers are excluded as well.
         member m.findSame (x : LigationReaction) =
             let (PeptideBondMap v) = m
+            let xe = x.enantiomer
 
             v
             |> Map.tryFind x.bingingType
@@ -267,14 +272,19 @@ module ReactionTypes =
             |> Map.tryFind x.peptideBond
             |> Option.defaultValue Set.empty
             |> Set.toList
+            |> List.filter (fun e -> e <> x && e <> xe)
             |> List.sortBy (fun e -> e.info)
 
 
         /// Finds all ligation reactions, which have the same peptide bond symmetry as given ligation reaction (e.g. aB + C -> aBC).
-        /// But NOT the same bond. E.g. if incoming reaction is aB + C -> aBC, then peptide bond is BC, bond symmetry is LL
-        /// And this function returns all ligation reactions, which have bond symmetry type LL but not bond BC.
+        /// But NOT the same bond. E.g. if incoming reaction is aB + C -> aBC, then peptide bond (of this reaction) is BC,
+        /// bond symmetry is LL and this function returns all ligation reactions, which have bond symmetry type LL but not bond BC.
+        /// E.g.: aB + D -> aBD, AC + E -> ACE, A + De -> ADe, etc..., but NOT B + C -> BC, B + Ce -> BCe, etc...
+        /// Enantiomers are excluded as well.
         member m.findSimilar (x : LigationReaction) =
             let (PeptideBondMap v) = m
+            let xp = x.peptideBond
+            let xpe = x.peptideBond.enantiomer
 
             v
             |> Map.tryFind x.bingingType
@@ -284,7 +294,7 @@ module ReactionTypes =
             |> List.map (fun e -> e |> Set.toList)
             |> List.concat
             |> List.distinct
-            |> List.filter(fun e -> e.peptideBond <> x.peptideBond)
+            |> List.filter(fun e -> e.peptideBond <> xp && e.peptideBond <> xpe)
             |> List.sortBy (fun e -> e.info)
 
         static member create (p : List<LigationReaction>) =

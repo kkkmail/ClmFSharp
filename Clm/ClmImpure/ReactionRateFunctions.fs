@@ -122,18 +122,18 @@ module ReactionRateFunctions =
             }
 
 
-    let calculateCatRates i s c e =
+    let calculateSimCatRates i s c e =
         let reaction = (s, c) |> i.catReactionCreator
-        let related = i.toCatRatesInfo s c e |> calculateCatRatesImpl
+        let related = i.toCatRatesInfo s c e |> calculateCatRates
         updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
 
 
-    let calculateMatchingRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) (r : 'R) =
-        let m =
-            i.getMatchingReactions i.simParams r
-            |> List.map (fun x -> calculateCatRates i s c e)
-
-        r
+//    let calculateMatchingRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) (r : 'R) =
+//        let m =
+//            i.getMatchingReactions i.simParams r
+//            |> List.map (fun x -> calculateCatRates i s c e)
+//
+//        r
 
 
     /// The logic here is as follows:
@@ -183,13 +183,13 @@ module ReactionRateFunctions =
         // That's the reason for making this record label a function.
         let aa = i.aminoAcids i.simParams i.reaction
 
-        let calculateCatRates = calculateCatRates i
+        let calculateSimCatRates = calculateSimCatRates i
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None ->
             aa
             |> List.map (fun a -> i.simReactionCreator a)
-            |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
+            |> List.map (fun e -> calculateSimCatRates e i.catalyst CatRatesEeParam.defaultValue)
             |> ignore
         | _ ->
             let cre = re |> i.getBaseCatRates
@@ -231,7 +231,7 @@ module ReactionRateFunctions =
                     |> List.map(fun a -> i.rnd.nextDouble(), a)
                     |> List.sortBy (fun (r, _) -> r)
                     |> List.mapi (fun j (_, a) -> i.simReactionCreator a, isDefined j)
-                |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
+                |> List.map (fun (e, b) -> calculateSimCatRates e i.catalyst (getEeParams b))
 //                |> ignore
 
             abcd |> ignore

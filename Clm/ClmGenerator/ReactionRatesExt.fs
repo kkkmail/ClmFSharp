@@ -67,6 +67,8 @@ module ReactionRatesExt =
             match model with
             | CatLigRndModel m ->
                 m.inputParams.catLigationParam.catLigRndEeParams.rateMultiplierDistr.value
+            | CatLigSimModel m ->
+                m.inputParams.catLigModel.inputParams.catLigationParam.catLigRndEeParams.rateMultiplierDistr.value
 
 
     type SedimentationDirectModel

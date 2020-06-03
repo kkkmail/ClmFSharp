@@ -124,7 +124,7 @@ module ReactionRates =
     /// Setting eeParams.eeBackwardDistribution = None imposes more stringent constraint that
     /// forward and backward rate multipliers must be the same for each catalyst independently from
     /// its enantiomer. This seems to be more correct.
-    let calculateCatRatesImpl<'R, 'C, 'RC> (i : CatRatesInfo<'R, 'C, 'RC>) =
+    let calculateCatRates<'R, 'C, 'RC> (i : CatRatesInfo<'R, 'C, 'RC>) =
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
 
         let rf, rb, rfe, rbe =

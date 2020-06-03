@@ -145,21 +145,32 @@ module ReactionRateFunctions =
     ///
     ///        The situation changes drastically when the base reaction is of order 2 and especially when considering
     ///        reactions like ligation, where the reaction binds two specific amino acids, while both may and usually
-    ///        do have some chains of other amino acids on the left / right of bound amino acids.
+    ///        do have some chains of other amino acids on the left / right of amino acids to be bound.
     ///
     ///        The term "matching" is probably confusing. Please, refer to  PeptideBondMap for further information.
     ///        This is the value aa below.
     ///
-    ///     2. We then call the relevant distribution function (i.getBaseCatRates). In the majority of cases it should
+    ///     2. We then call relevant distribution function (i.getBaseCatRates). In the majority of cases it should
     ///        return some values. And if it returns none, then we should mark incoming catalytic reaction and all
     ///        "matching" catalytic reactions as having exactly zero (None) catalytic rate.
     ///
     ///     3. However if (i.getBaseCatRates) returns some values (and this is the standard scenario) then the following
     ///        should happen.
     ///
-    ///     4. For each "matching" reaction apply ???TBD??? distribution
+    ///     4. For each "matching" reaction apply the same (i.getBaseCatRates) distribution to get their rates.
     ///
     ///     5. For each base + "matching" reaction apply similarity ...
+    ///
+    ///     6. The similarity will return a list of similar reactions. In case of order 1 reactions (e.g. synthesis)
+    ///        the list is simple - e.g. if the chosen (incoming) base reaction was synthesis Y -> C then similarity may
+    ///        return, e.g. Y -> D, Y -> I.
+    ///
+    ///        However, if this is order 2 reaction
+    ///
+    ///
+    ///     x. In other words: given a chosen catalytic ligation reaction, we apply (i.getBaseCatRates) distribution to
+    ///        all ligation reaction with exactly the same peptide bond, e.g. <p1>A + b<p2> -> <p1>Ab<p2> gets "extended"
+    ///        to include all ligation reactions where A binds to b.
     let calculateSimRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator

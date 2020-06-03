@@ -113,6 +113,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 aminoAcids = fun _ _ -> p.aminoAcids
+                getMatchingReactions = 0
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticSynthesisReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -233,6 +234,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 aminoAcids = fun _ _ -> p.aminoAcids
+                getMatchingReactions = 0
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticDestructionReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -462,8 +464,8 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                aminoAcids =
-                    fun s p -> 0
+                aminoAcids = fun s p -> 0
+                getMatchingReactions = 0
 
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
@@ -585,6 +587,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 aminoAcids = p.aminoAcids
+                getMatchingReactions = 0
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticRacemizationReaction
                 getCatReactEnantiomer = getEnantiomer

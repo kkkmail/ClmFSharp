@@ -113,14 +113,16 @@ module ReactionRates =
         }
 
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
-    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
-    /// If sf and sb are forward and backward rates of not catalyzed reaction, then
+    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state).
+    /// Therefore, if sf and sb are forward and backward rates of not catalyzed reaction, then
     /// total forward and backward multipliers due to racemic mixture of catalysts must be equal:
+    ///
     /// kf + kfe = kb + kbe, where
     ///     kf -  is forward  multiplier for a catalyst C
     ///     kfe - is forward  multiplier for a catalyst E(C) - enantiomer of C
     ///     kb -  is backward multiplier for a catalyst C
     ///     kbe - is backward multiplier for a catalyst E(C)
+    ///
     /// Setting eeParams.eeBackwardDistribution = None imposes more stringent constraint that
     /// forward and backward rate multipliers must be the same for each catalyst independently from
     /// its enantiomer. This seems to be more correct.

@@ -78,27 +78,47 @@ module ReactionRateFunctions =
     //    | None -> (None, None)
 
 
-    type CatRatesSimInfo<'A, 'R, 'C, 'RC> =
+    type CatRatesSimInfo<'A, 'R, 'C, 'RC when 'R : equality> =
         {
             reaction : 'R
             catalyst : 'C
 
-            // TODO kk:20200531 - Rename into ??? in a separate PR.
-            // Gets the list of "objects" to choose from.
-            // For e.g. catalytic synthesis this is a list of amino acids.
-            // However, for catalytic ligation this is a substantially more difficult question to answer and it my depend on the model.
-            // That's the reason for making this label a function.
-            aminoAcids : CatRatesSimilarityParam -> 'R -> list<'A>
+            // Gets the list of reaction data "objects" to choose from.
+            // For e.g. catalytic synthesis this is a list of all amino acids.
+            //
+            // For catalytic ligation this may depend on the model.
+            // The most standard model returns list of all peptide bonds of the same symmetry.
+            // If input reaction's peptide bond is (A, B) and we have 3 amino acids (A, B, C) then
+            // the model will return [ (A, A); (A, B), (A, C); (B, A); (B, B); (B, C); (C, A); (C, B), (C, C) ]
+            getReactionData : 'R -> list<'A>
 
-            // Reactions that match given reaction by some parameters controlled by the model.
-            // This is mostly for catalytic ligation where a model may require that catalyst is applied to the
-            // same peptide bond.
-            // All other reactions (e.g. catalytic synthesis) should return empty list.
-            getMatchingReactions : CatRatesSimilarityParam -> 'R -> list<'R>
+//            // Reactions that match given reaction by some parameters controlled by the model.
+//            // This is mostly for catalytic ligation where a model may require that catalyst is applied to the
+//            // same peptide bond. The most standard model returns all ligation reaction with the same peptide bond.
+//            // E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
+//            // reactions which bind A and b in that order excluding the input reaction.
+//            //
+//            // All other reactions (e.g. catalytic synthesis) should return empty list.
+//            getMatchingReactions : 'R -> list<'R>
+//
+//            // Creates a reaction that maches input reaction 'R but replaces a relevant portion with 'A.
+//            // This only affects ligation reaction.
+//            // E.g. if 'R = <P1>A + b<P2> and 'A = C + d then create reaction <P1>C + d<P2>
+//            matchingReactionCreator : 'R -> 'A -> 'R
+
+            // Adjusts rate multiplier for matching reactions.
+            getMatchingReactionMult : double -> double
 
             getCatEnantiomer : 'C -> 'C
             catReactionCreator : ('R * 'C) -> 'RC
-            simReactionCreator : 'A -> 'R
+
+            // Creates reactions, which are similar to a given input.
+            // For synthesis this is just the reaction itself.
+            // For ligation, the most standard model returns all ligation reaction with the same peptide bond.
+            // E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
+            // reactions which bind A and b in that order.
+            simReactionCreator : 'A -> list<'R>
+
             getCatReactEnantiomer : 'RC -> 'RC
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
             getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
@@ -128,12 +148,63 @@ module ReactionRateFunctions =
         updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
 
 
-//    let calculateMatchingRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) (r : 'R) =
-//        let m =
-//            i.getMatchingReactions i.simParams r
-//            |> List.map (fun x -> calculateCatRates i s c e)
-//
-//        r
+    let getEeParams i cr cre rateMult d =
+        match d with
+        | true ->
+            {
+                rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
+                eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+            }
+        | false -> CatRatesEeParam.defaultValue
+
+
+    let getRateMult br cr cre =
+        match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
+        | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
+            match br.forwardRate with
+            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
+        | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
+            match br.backwardRate with
+            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
+        | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
+
+
+    let getSimNoRates i creator aa r =
+        aa
+        |> List.map (fun a -> creator a)
+        |> List.concat
+        |> List.map (fun e -> e, calculateSimCatRates i e i.catalyst CatRatesEeParam.defaultValue)
+
+
+    let chooseData i aa =
+        match i.simParams.catRatesSimGeneration with
+        | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+        | FixedValue d ->
+            /// Here we need to ensure that number of successes is NOT random but fixed.
+            let isDefined j =
+                match d.value.distributionParams.threshold with
+                | Some t -> (double j) < t * (double aa.Length)
+                | None -> true
+
+            aa
+            |> List.map(fun a -> i.rnd.nextDouble(), a)
+            |> List.sortBy (fun (r, _) -> r)
+            |> List.mapi (fun j (_, a) -> a, isDefined j)
+
+
+    let getSimRates i aa getEeParams rateMult =
+        let x =
+            chooseData i aa
+            |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
+
+        x
+        |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+        |> List.concat
+        |> List.filter (fun (e, _, _) -> e <> i.reaction)
+        |> List.map (fun (e, b, m) -> e, calculateSimCatRates i e i.catalyst (getEeParams m b))
 
 
     /// The logic here is as follows:
@@ -171,70 +242,22 @@ module ReactionRateFunctions =
     ///     x. In other words: given a chosen catalytic ligation reaction, we apply (i.getBaseCatRates) distribution to
     ///        all ligation reaction with exactly the same peptide bond, e.g. <p1>A + b<p2> -> <p1>Ab<p2> gets "extended"
     ///        to include all ligation reactions where A binds to b.
-    let calculateSimRates<'A, 'R, 'C, 'RC> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
+    let calculateSimRates<'A, 'R, 'C, 'RC when 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
         let br = i.getBaseRates i.reaction // (bf, bb)
         let cr = r |> i.getBaseCatRates // (f, b)
-
-        // List of "objects" to choose from.
-        // For e.g. catalytic synthesis this is a list of amino acids.
-        // However, for catalytic ligation this is a substantially more difficult question to answer and it may depend on the model.
-        // That's the reason for making this record label a function.
-        let aa = i.aminoAcids i.simParams i.reaction
-
-        let calculateSimCatRates = calculateSimCatRates i
+        let aa = i.getReactionData i.reaction
 
         match (cr.forwardRate, cr.backwardRate) with
-        | None, None ->
-            aa
-            |> List.map (fun a -> i.simReactionCreator a)
-            |> List.map (fun e -> calculateSimCatRates e i.catalyst CatRatesEeParam.defaultValue)
-            |> ignore
+        | None, None -> getSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
+            let rateMult = getRateMult br cr cre
+            let getEeParams = getEeParams i cr cre
+            getSimRates i aa getEeParams rateMult
+        |> ignore
 
-            let rateMult =
-                match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
-                | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
-                    match br.forwardRate with
-                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
-                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
-                | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
-                    match br.backwardRate with
-                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
-                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
-                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
-
-            let getEeParams d =
-                match d with
-                | true ->
-                    {
-                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                        eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-                    }
-                | false -> CatRatesEeParam.defaultValue
-
-            let abcd =
-                match i.simParams.catRatesSimGeneration with
-                | DistributionBased simBaseDistribution ->
-                    aa |> List.map (fun a -> i.simReactionCreator a, simBaseDistribution.isDefined i.rnd)
-                | FixedValue d ->
-                    // Here we need to ensure that number of successes is NOT random but fixed.
-                    let isDefined j =
-                        match d.value.distributionParams.threshold with
-                        | Some t -> (double j) < t * (double aa.Length)
-                        | None -> true
-
-                    aa
-                    |> List.map(fun a -> i.rnd.nextDouble(), a)
-                    |> List.sortBy (fun (r, _) -> r)
-                    |> List.mapi (fun j (_, a) -> i.simReactionCreator a, isDefined j)
-                |> List.map (fun (e, b) -> calculateSimCatRates e i.catalyst (getEeParams b))
-//                |> ignore
-
-            abcd |> ignore
         cr
 
 

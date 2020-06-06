@@ -112,12 +112,12 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                aminoAcids = fun _ _ -> p.aminoAcids
-                getMatchingReactions = fun _ _ -> []
+                getReactionData = fun _ -> p.aminoAcids
+                getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticSynthesisReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = (fun e -> a.createSameChirality e |> SynthesisReaction)
+                simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
                 getBaseRates = p.catSynthModel.inputParams.synthesisModel.getRates rnd
                 getBaseCatRates = p.catSynthModel.getRates rnd t
                 simParams = p.catSynthSimParam
@@ -233,12 +233,12 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                aminoAcids = fun _ _ -> p.aminoAcids
-                getMatchingReactions =  fun _ _ -> []
+                getReactionData = fun _ -> p.aminoAcids
+                getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticDestructionReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = (fun e -> a.createSameChirality e |> DestructionReaction)
+                simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
                 getBaseRates = p.catDestrModel.inputParams.destructionModel.getRates rnd
                 getBaseCatRates = p.catDestrModel.getRates rnd t
                 simParams = p.catDestrSimParam
@@ -464,8 +464,8 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                aminoAcids = fun s p -> 0
-                getMatchingReactions = 0
+                getReactionData = fun p -> 0
+                getMatchingReactionMult = fun x -> x
 
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
@@ -508,6 +508,7 @@ module ReactionRateModels =
         static member create p =
             match p with
             | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
+            | CatLigSimParamWithModel q -> 0
 
 
     type RacemizationRandomModel (p : RacemizationRandomParam) =
@@ -586,12 +587,12 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                aminoAcids = fun _ _ -> p.aminoAcids
-                getMatchingReactions =  fun _ _ -> []
+                getReactionData = fun _ -> p.aminoAcids
+                getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticRacemizationReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = (fun e -> a.createSameChirality e |> RacemizationReaction)
+                simReactionCreator = (fun e -> [ a.createSameChirality e |> RacemizationReaction ])
                 getBaseRates = p.catRacemModel.inputParams.racemizationModel.getRates rnd
                 getBaseCatRates = p.catRacemModel.getRates rnd t
                 simParams = p.catRacemSimParam
@@ -602,9 +603,9 @@ module ReactionRateModels =
             }
             |> calculateSimRates
 
-        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
-        member __.inputParams = p
-        member __.getAllRates() = getAllRatesImpl p.catRacemModel.rateDictionary
+        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
+        member _.getAllRates() = getAllRatesImpl p.catRacemModel.rateDictionary
 
 
     type CatalyticRacemizationModel =

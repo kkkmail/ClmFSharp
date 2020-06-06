@@ -4,6 +4,7 @@ open Clm.ReactionRates
 open Clm.ReactionRatesExt
 open Clm.CalculationData
 
+open Clm.ReactionTypes
 open ClmImpure.ReactionRateModels
 
 module ReactionRateModelsExt =
@@ -262,7 +263,7 @@ module ReactionRateModelsExt =
 
 
         static member tryCreate a (p, m) =
-            let creator b (d : CatalyticDestructionSimilarParam) = 
+            let creator b (d : CatalyticDestructionSimilarParam) =
                 { catDestrModel = b; aminoAcids = a; catDestrSimParam = d.catDestrSimParam } |> CatalyticDestructionSimilarModel |> CatDestrSimModel |> CatalyticDestructionRateModel
 
             tryCreateModelWithBase CatalyticDestructionSimilarModel.paramGetter creator CatalyticDestructionRandomModel.modelGetter CatalyticDestructionRandomModel.tryCreate (p, m)
@@ -321,6 +322,31 @@ module ReactionRateModelsExt =
             let creator b d = { ligationModel = b; catLigationParam = d } |> CatalyticLigationRandomModel |> CatLigRndModel |> CatalyticLigationRateModel
             tryCreateModelWithBase CatalyticLigationRandomParam.paramGetter creator LigationModel.modelGetter LigationModel.tryCreate (p, m)
 
+    type CatalyticLigationSimilarModel
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | CatalyticLigationRateParam (CatLigSimParam d) -> Some (p.usage, d)
+            | _ -> None
+
+        static member modelGetter (p : ReactionRateModelWithUsage) =
+            match p.model with
+            | CatalyticLigationRateModel (CatLigSimModel d) -> Some d
+            | _ -> None
+
+
+        static member tryCreate a (p, m) =
+            let creator b (d : CatalyticLigationSimilarParam) =
+                {
+                    catLigModel = b
+                    peptideBondData = a
+                    catLigSimParam = d.catLigSimParam
+                }
+                |> CatalyticLigationSimilarModel |> CatLigSimModel |> CatalyticLigationRateModel
+
+            tryCreateModelWithBase CatalyticLigationSimilarModel.paramGetter creator CatalyticLigationRandomModel.modelGetter CatalyticLigationRandomModel.tryCreate (p, m)
+
 
     type CatalyticLigationModel
         with
@@ -330,9 +356,10 @@ module ReactionRateModelsExt =
             | CatalyticLigationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (p, m) =
+        static member tryCreate (si : SubstInfo) (p, m) =
             (p, m)
             |> CatalyticLigationRandomModel.tryCreate
+            |> CatalyticLigationSimilarModel.tryCreate (si.ligationReactions |> PeptideBondData.create)
 
 
     type RacemizationModel
@@ -410,7 +437,7 @@ module ReactionRateModelsExt =
                     CatalyticSynthesisModel.tryCreate si
                     CatalyticDestructionModel.tryCreate si
                     LigationModel.tryCreate
-                    CatalyticLigationModel.tryCreate
+                    CatalyticLigationModel.tryCreate si
                     SedimentationDirectModel.tryCreate si
                     SedimentationAllModel.tryCreate
                     RacemizationModel.tryCreate

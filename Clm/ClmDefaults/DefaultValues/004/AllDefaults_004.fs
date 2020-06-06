@@ -8,3 +8,6 @@ module AllDefaults_004 =
         @
         updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 5, m = 5 (vary both scarcity param and both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased, w = 0.1."
             Defaults_004_001_000.defaultValues
+        @
+        updateDescription "Cat lig with similarity playground."
+            Defaults_004_002_000.defaultValues

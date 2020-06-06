@@ -13,10 +13,10 @@ module ReactionRateModels =
     [<AbstractClass>]
     type RateModel<'P, 'R when 'R : equality> (p : 'P) =
         let rateDictionaryImpl = new Dictionary<'R, RateData>()
-        member __.rateDictionary = rateDictionaryImpl
-        member __.inputParams = p
+        member _.rateDictionary = rateDictionaryImpl
+        member _.inputParams = p
 
-        member __.getAllRates() = getAllRatesImpl rateDictionaryImpl
+        member _.getAllRates() = getAllRatesImpl rateDictionaryImpl
 
 
     type FoodCreationModel (p : FoodCreationParam) =
@@ -128,9 +128,9 @@ module ReactionRateModels =
             }
             |> calculateSimRates
 
-        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
-        member __.inputParams = p
-        member __.getAllRates() = getAllRatesImpl p.catSynthModel.rateDictionary
+        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
+        member _.getAllRates() = getAllRatesImpl p.catSynthModel.rateDictionary
 
 
     type CatalyticSynthesisModel =
@@ -249,9 +249,9 @@ module ReactionRateModels =
             }
             |> calculateSimRates
 
-        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
-        member __.inputParams = p
-        member __.getAllRates() = getAllRatesImpl p.catDestrModel.rateDictionary
+        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
+        member _.getAllRates() = getAllRatesImpl p.catDestrModel.rateDictionary
 
 
     type CatalyticDestructionModel =
@@ -322,9 +322,9 @@ module ReactionRateModels =
             }
             |> calculateSedDirSimRates
 
-        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
-        member __.inputParams = p
-        member __.getAllRates() = getAllRatesImpl p.sedDirModel.rateDictionary
+        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
+        member _.getAllRates() = getAllRatesImpl p.sedDirModel.rateDictionary
 
 
     type SedimentationDirectParamWithModel =
@@ -441,9 +441,9 @@ module ReactionRateModels =
 
     type CatalyticLigationSimilarParamWithModel =
         {
-            catLigSimParam : CatRatesSimilarityParam
-            peptideBondData : PeptideBondData
             catLigModel : CatalyticLigationRandomModel
+            peptideBondData : PeptideBondData
+            catLigSimParam : CatRatesSimilarityParam
         }
 
 
@@ -465,7 +465,6 @@ module ReactionRateModels =
                 catalyst = c
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
                 getMatchingReactionMult = fun x -> x
-
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
@@ -480,9 +479,9 @@ module ReactionRateModels =
             }
             |> calculateSimRates
 
-        member __.getRates rnd t r = calculateSimRatesImpl rnd t r
-        member __.inputParams = p
-        member __.getAllRates() = getAllRatesImpl p.catLigModel.rateDictionary
+        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
+        member _.getAllRates() = getAllRatesImpl p.catLigModel.rateDictionary
 
 
     type CatalyticLigationModel =

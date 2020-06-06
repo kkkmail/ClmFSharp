@@ -442,8 +442,7 @@ module ReactionRateModels =
     type CatalyticLigationSimilarParamWithModel =
         {
             catLigSimParam : CatRatesSimilarityParam
-            //aminoAcids : list<AminoAcid * AminoAcid>
-            peptideBondMap : PeptideBondMap
+            peptideBondData : PeptideBondData
             catLigModel : CatalyticLigationRandomModel
         }
 
@@ -452,10 +451,10 @@ module ReactionRateModels =
         | CatLigRndParamWithModel of CatalyticLigationRandomParamWithModel
         | CatLigSimParamWithModel of CatalyticLigationSimilarParamWithModel
 
-        member p.catLigationParam =
-            match p with
-            | CatLigRndParamWithModel q -> q.catLigationParam
-            | CatLigSimParamWithModel q -> 0
+//        member p.catLigationParam =
+//            match p with
+//            | CatLigRndParamWithModel q -> q.catLigationParam
+//            | CatLigSimParamWithModel q -> q.catLigSimParam
 
 
     type CatalyticLigationSimilarModel (p : CatalyticLigationSimilarParamWithModel) =
@@ -464,13 +463,13 @@ module ReactionRateModels =
             {
                 reaction = s
                 catalyst = c
-                getReactionData = fun p -> 0
+                getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
                 getMatchingReactionMult = fun x -> x
 
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = (fun e -> a.createSameChirality e |> LigationReaction)
+                simReactionCreator = (fun e -> p.peptideBondData.findSameBond e)
                 getBaseRates = p.catLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.catLigModel.getRates rnd t
                 simParams = p.catLigSimParam
@@ -508,7 +507,7 @@ module ReactionRateModels =
         static member create p =
             match p with
             | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
-            | CatLigSimParamWithModel q -> 0
+            | CatLigSimParamWithModel q -> CatalyticLigationSimilarModel q |> CatLigSimModel
 
 
     type RacemizationRandomModel (p : RacemizationRandomParam) =

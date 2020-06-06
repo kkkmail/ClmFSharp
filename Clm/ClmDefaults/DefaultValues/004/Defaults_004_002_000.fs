@@ -37,6 +37,10 @@ module Defaults_004_002_000 =
             (0.000_020_000, 2_000.0)
             (0.000_050_000, 2_000.0)
         ]
+
+        // Remove once no longer needed.
+        |> List.map (fun (a, b) -> 1_000.0 * a, b)
+
         |> List.map (fun (a, b) -> Some a, b)
         |> withRowNumber
 
@@ -64,16 +68,16 @@ module Defaults_004_002_000 =
             //===========================================================
             let rates =
                 [
-                    wasteRecyclingParam
-
-                    synthParam |> SynthesisRateParam
-                    catSynthParam
-
+//                    wasteRecyclingParam
+//
+//                    synthParam |> SynthesisRateParam
+//                    catSynthParam
+//
                     destrParam |> DestructionRateParam
                     catDestrParam
 
                     ligParam |> LigationRateParam
-                    catLigParam
+//                    catLigParam
                 ]
             //===========================================================
 

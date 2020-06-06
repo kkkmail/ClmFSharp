@@ -225,8 +225,8 @@ module FSharpCodeExt =
 
         member p.toFSharpCode =
             match p with
-            | DistributionBased d -> "DistributionBased " + d.toFSharpCode
-            | FixedValue d -> "FixedValue " + d.toFSharpCode
+            | DistributionBased d -> d.toFSharpCode + " |> DistributionBased"
+            | FixedValue d -> d.toFSharpCode + " |> FixedValue"
 
 
     type CatRatesSimilarityParam
@@ -247,7 +247,7 @@ module FSharpCodeExt =
             Nl +
             shift + "{" + Nl +
             shift + "    catSynthParam = " + Nl + (p.catSynthParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
-            shift + "    catSynthSimParam = " + (p.catSynthSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    catSynthSimParam = " + Nl + (p.catSynthSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
             shift + "}" + Nl
 
 
@@ -511,7 +511,7 @@ module FSharpCodeExt =
 
     type ModelDataId
         with
-        member p.toFSharpCode = "(" + "ModelDataId" + " " + p.value.toFSharpCode + ")"
+        member p.toFSharpCode = "(" + p.value.toFSharpCode + " |> Guid |> ModelDataId)"
 
 
     type NumberOfAminoAcids
@@ -529,7 +529,7 @@ module FSharpCodeExt =
 
     type ClmDefaultValueId
         with
-        member p.toFSharpCode = "ClmDefaultValueId" + "." + p.ToString()
+        member p.toFSharpCode = "ClmDefaultValueId " + p.ToString()
 
 
     type ModelInfo

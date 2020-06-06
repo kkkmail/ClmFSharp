@@ -39,7 +39,7 @@ module Defaults_004_002_000 =
         ]
 
         // Remove once no longer needed.
-        |> List.map (fun (a, b) -> 1_000.0 * a, b)
+        |> List.map (fun (a, b) -> 100.0 * a, b)
 
         |> List.map (fun (a, b) -> Some a, b)
         |> withRowNumber
@@ -60,7 +60,10 @@ module Defaults_004_002_000 =
             let catSynthParam = ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some s) catRateGenType
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
-            let catDestrRndParam = (destrParam, (Some 0.000_100), 100_000.0)
+
+//            let catDestrRndParam = (destrParam, (Some 0.000_100), 100_000.0)
+            let catDestrRndParam = (destrParam, (Some 0.30), 100_000.0)
+
             let catDestrParam = ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some s) catRateGenType
             //===========================================================
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (1.0, 1.0)
@@ -76,7 +79,7 @@ module Defaults_004_002_000 =
                     destrParam |> DestructionRateParam
                     catDestrParam
 
-                    ligParam |> LigationRateParam
+//                    ligParam |> LigationRateParam
 //                    catLigParam
                 ]
             //===========================================================

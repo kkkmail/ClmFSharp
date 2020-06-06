@@ -69,8 +69,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library1.fs" />
-    <None Include="Script.fsx" />
+    <Compile Include="ModelTests.fs" />
     <None Include="CallerMemberName.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
@@ -80,6 +79,10 @@
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.7.2\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Data.SqlClient, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\FSharp.Data.SqlClient.2.0.6\lib\net40\FSharp.Data.SqlClient.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="FsUnit.Xunit">
       <HintPath>..\packages\FsUnit.xUnit.3.8.1\lib\net46\FsUnit.Xunit.dll</HintPath>
@@ -91,12 +94,18 @@
     <Reference Include="NHamcrest">
       <HintPath>..\packages\NHamcrest.2.0.1\lib\net451\NHamcrest.dll</HintPath>
     </Reference>
+    <Reference Include="Should, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Should.1.1.20\lib\Should.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Xml" />
     <Reference Include="Validation">
       <HintPath>..\packages\Validation.2.4.22\lib\net45\Validation.dll</HintPath>
     </Reference>
@@ -112,9 +121,6 @@
     <Reference Include="xunit.execution.desktop">
       <HintPath>..\packages\xunit.extensibility.execution.2.4.1\lib\net452\xunit.execution.desktop.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.should">
-      <HintPath>..\packages\xunit.should.1.1\lib\net35\xunit.should.dll</HintPath>
-    </Reference>
     <Reference Include="Xunit.SkippableFact">
       <HintPath>..\packages\Xunit.SkippableFact.1.4.8\lib\net452\Xunit.SkippableFact.dll</HintPath>
     </Reference>
@@ -124,6 +130,18 @@
       <Name>ClmSys</Name>
       <Project>{bce818ca-581b-4b54-8352-89aa27df066e}</Project>
       <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Clm\Clm.fsproj">
+      <Project>{2cfc7e81-4fb4-46b4-9534-c1455e2c4c14}</Project>
+      <Name>Clm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DbData\DbData.fsproj">
+      <Project>{19e4d7d7-c472-495d-91d1-6b279f69ecae}</Project>
+      <Name>DbData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model\Model.fsproj">
+      <Project>{b4966a0d-d7c6-4421-8fa4-2a2fa018550e}</Project>
+      <Name>Model</Name>
     </ProjectReference>
   </ItemGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

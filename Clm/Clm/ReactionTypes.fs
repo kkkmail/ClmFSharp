@@ -4,6 +4,8 @@ open Substances
 
 module ReactionTypes =
 
+    let toSubstName a = a |> List.fold (fun acc r -> acc + r.ToString()) ""
+
     type ReactionName =
         | FoodCreationName
         | WasteRemovalName
@@ -221,8 +223,8 @@ module ReactionTypes =
             rightAminoAcid : ChiralAminoAcid
         }
 
-        member r.enantiomer =
-            { leftAminoAcid = r.leftAminoAcid.enantiomer; rightAminoAcid = r.rightAminoAcid.enantiomer }
+        member r.enantiomer = { leftAminoAcid = r.leftAminoAcid.enantiomer; rightAminoAcid = r.rightAminoAcid.enantiomer }
+        override r.ToString() = "(" + r.leftAminoAcid.name + " + " + r.rightAminoAcid.name + ")"
 
         member r.bingingSymmetry =
             match r.leftAminoAcid, r.rightAminoAcid with
@@ -251,10 +253,16 @@ module ReactionTypes =
 
         member r.bingingSymmetry = r.peptideBond.bingingSymmetry
 
-
         member r.enantiomer =
             let (LigationReaction (a, b)) = r
             (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> LigationReaction
+
+        override r.ToString() =
+            let (LigationReaction (a, b)) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            sprintf "LigationReaction: %s + %s <-> %s" sa sb (sa + sb)
+
 
     type PeptideBondData =
         {
@@ -349,6 +357,13 @@ module ReactionTypes =
         member r.withEnantiomerCatalyst =
             let (CatalyticLigationReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticLigationReaction
+
+        override r.ToString() =
+            let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst (Peptide c))) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            let sc = toSubstName c
+            sprintf "CatalyticLigationReaction: %s + %s + %s <-> %s + %s" sa sb sc (sa + sb) sc
 
 
     /// A resolving agent, which forms insoluble diasteriomeric salt with one of the enantiomer of some amino acid (or, in general, peptide as well).

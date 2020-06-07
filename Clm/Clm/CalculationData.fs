@@ -104,6 +104,15 @@ module CalculationData =
                 reagents
                 |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
 
+
+            let ligationPairs =
+                List.allPairs allLigChains allLigChains
+                |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
+                |> List.filter (fun (a, _) -> a.Head.isL)
+                |> List.distinct
+                |> List.sort
+                |> List.map LigationReaction
+
             {
                 infoParam = p
                 aminoAcids = aminoAcids
@@ -112,15 +121,7 @@ module CalculationData =
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
-
-                ligationPairs =
-                    List.allPairs allLigChains allLigChains
-                    |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
-                    |> List.map (fun (a, b) -> orderPairs (a, b))
-                    |> List.filter (fun (a, _) -> a.Head.isL)
-                    |> List.distinct
-                    |> List.map LigationReaction
-
+                ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 
                 sedDirReagents =

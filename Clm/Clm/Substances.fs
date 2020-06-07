@@ -30,7 +30,7 @@ module Substances =
         | TwentyFourAminoAcids
         | TwentyFiveAminoAcids
         | TwentySixAminoAcids
-        | TwentySevemnAminoAcids
+        | TwentySevenAminoAcids
         | TwentyEightAminoAcids
         | TwentyNineAminoAcids
         | ThirtyAminoAcids
@@ -66,7 +66,7 @@ module Substances =
             | TwentyFourAminoAcids -> 24
             | TwentyFiveAminoAcids -> 25
             | TwentySixAminoAcids -> 26
-            | TwentySevemnAminoAcids -> 27
+            | TwentySevenAminoAcids -> 27
             | TwentyEightAminoAcids -> 28
             | TwentyNineAminoAcids -> 29
             | ThirtyAminoAcids -> 30
@@ -102,7 +102,7 @@ module Substances =
                 TwentyFourAminoAcids
                 TwentyFiveAminoAcids
                 TwentySixAminoAcids
-                TwentySevemnAminoAcids
+                TwentySevenAminoAcids
                 TwentyEightAminoAcids
                 TwentyNineAminoAcids
                 ThirtyAminoAcids
@@ -335,6 +335,8 @@ module Substances =
             AminoAcid.all
             |> List.take n.length
 
+        override a.ToString() = a.name
+
 
     type ChiralAminoAcid =
         | L of AminoAcid
@@ -375,6 +377,8 @@ module Substances =
             | L _ -> L a
             | R _ -> R a
 
+        override aminoAcid.ToString() = aminoAcid.name
+
 
     /// Type to describe a symmetry of a directed amino acid pair, e.g. Ab -> LR
     type BindingSymmetry =
@@ -382,6 +386,7 @@ module Substances =
         | LR
         | RL
         | RR
+
 
     type Peptide =
         | Peptide of list<ChiralAminoAcid>
@@ -404,6 +409,8 @@ module Substances =
             peptide.aminoAcids
             |> List.map (fun a -> a.name)
             |> String.concat ""
+
+        override peptide.ToString() = peptide.name
 
         member peptide.noOfLR =
             let counts =
@@ -470,6 +477,8 @@ module Substances =
             | PeptideChain p -> p.name
             | Sum s -> s.name
 
+        override substance.ToString() = substance.name
+
         member substance.noOfAminoAcid a =
             match substance with
             | Simple _ -> None
@@ -531,7 +540,6 @@ module Substances =
     type SubstanceMap = Map<Substance, int>
 
 
-    /// TODO 20181029 Check.
     let orderPairs (a : list<ChiralAminoAcid>, b : list<ChiralAminoAcid>) =
         if a.Length < b.Length
         then (a, b)

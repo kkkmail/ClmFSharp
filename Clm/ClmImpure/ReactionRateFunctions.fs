@@ -101,7 +101,7 @@ module ReactionRateFunctions =
 //            // All other reactions (e.g. catalytic synthesis) should return empty list.
 //            getMatchingReactions : 'R -> list<'R>
 //
-//            // Creates a reaction that maches input reaction 'R but replaces a relevant portion with 'A.
+//            // Creates a reaction that matches input reaction 'R but replaces a relevant portion with 'A.
 //            // This only affects ligation reaction.
 //            // E.g. if 'R = <P1>A + b<P2> and 'A = C + d then create reaction <P1>C + d<P2>
 //            matchingReactionCreator : 'R -> 'A -> 'R
@@ -145,6 +145,7 @@ module ReactionRateFunctions =
     let calculateSimCatRates i s c e =
         let reaction = (s, c) |> i.catReactionCreator
         let related = i.toCatRatesInfo s c e |> calculateCatRates
+//        printfn "calculateSimCatRates: related = %A" related
         updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
 
 
@@ -180,68 +181,62 @@ module ReactionRateFunctions =
 
 
     let chooseData i aa =
-        match i.simParams.catRatesSimGeneration with
-        | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
-        | FixedValue d ->
-            /// Here we need to ensure that number of successes is NOT random but fixed.
-            let isDefined j =
-                match d.value.distributionParams.threshold with
-                | Some t -> (double j) < t * (double aa.Length)
-                | None -> true
+        let a =
+            match i.simParams.catRatesSimGeneration with
+            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+            | FixedValue d ->
+                /// Here we need to ensure that number of successes is NOT random but fixed.
+                let isDefined j =
+                    match d.value.distributionParams.threshold with
+                    | Some t -> (double j) < t * (double aa.Length)
+                    | None -> true
 
-            aa
-            |> List.map(fun a -> i.rnd.nextDouble(), a)
-            |> List.sortBy (fun (r, _) -> r)
-            |> List.mapi (fun j (_, a) -> a, isDefined j)
+                aa
+                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.sortBy (fun (r, _) -> r)
+                |> List.mapi (fun j (_, a) -> a, isDefined j)
 
+        a
 
     let getSimRates i aa getEeParams rateMult =
+        printfn "getSimRates: aa = %A\n\n" aa
+
         let x =
             chooseData i aa
             |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
 
         x
-        |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
-        |> List.concat
-        |> List.filter (fun (e, _, _) -> e <> i.reaction)
-        |> List.map (fun (e, b, m) -> e, calculateSimCatRates i e i.catalyst (getEeParams m b))
+        |> List.filter (fun (_, b, _) -> b)
+        |> List.sortBy (fun (a, _, _) -> a.ToString())
+        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A\n" (a.ToString()) r)
+        |> ignore
 
+        let a =
+            x
+            |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+            |> List.concat
 
-    /// The logic here is as follows:
-    ///     1. Given incoming base reaction (i.reaction), which was chosen by a random generator, we first get a list
-    ///        of "matching" reactions except incoming reaction. For simple base reactions (e.g. synthesis) the list of
-    ///        matching reactions is empty by definition. The order of such reactions is 1 (e.g. F -> A) and they simply
-    ///        don't have extra "information" to go beyond a chosen base reaction. The distinction among incoming base
-    ///        reaction and "matching" reactions currently seems important. But that may change.
-    ///
-    ///        The situation changes drastically when the base reaction is of order 2 and especially when considering
-    ///        reactions like ligation, where the reaction binds two specific amino acids, while both may and usually
-    ///        do have some chains of other amino acids on the left / right of amino acids to be bound.
-    ///
-    ///        The term "matching" is probably confusing. Please, refer to  PeptideBondMap for further information.
-    ///        This is the value aa below.
-    ///
-    ///     2. We then call relevant distribution function (i.getBaseCatRates). In the majority of cases it should
-    ///        return some values. And if it returns none, then we should mark incoming catalytic reaction and all
-    ///        "matching" catalytic reactions as having exactly zero (None) catalytic rate.
-    ///
-    ///     3. However if (i.getBaseCatRates) returns some values (and this is the standard scenario) then the following
-    ///        should happen.
-    ///
-    ///     4. For each "matching" reaction apply the same (i.getBaseCatRates) distribution to get their rates.
-    ///
-    ///     5. For each base + "matching" reaction apply similarity ...
-    ///
-    ///     6. The similarity will return a list of similar reactions. In case of order 1 reactions (e.g. synthesis)
-    ///        the list is simple - e.g. if the chosen (incoming) base reaction was synthesis Y -> C then similarity may
-    ///        return, e.g. Y -> D, Y -> I.
-    ///
-    ///        However, if this is order 2 reaction
-    ///
-    ///
-    ///     x. In other words: given a chosen catalytic ligation reaction, we apply (i.getBaseCatRates) distribution to
-    ///        all ligation reaction with exactly the same peptide bond, e.g. <p1>A + b<p2> -> <p1>Ab<p2> gets "extended"
-    ///        to include all ligation reactions where A binds to b.
+        a
+        |> List.filter (fun (_, b, _) -> b)
+        |> List.sortBy (fun (a, _, _) -> a.ToString())
+        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+        |> ignore
+        printfn "\n"
+
+        let b =
+            a
+            |> List.filter (fun (e, _, _) -> e <> i.reaction)
+            |> List.map (fun (e, b, m) -> e, calculateSimCatRates i e i.catalyst (getEeParams m b))
+
+        b
+        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+        |> List.sortBy (fun (a, _) -> a.ToString())
+        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+        |> ignore
+        printfn "\n"
+
+        b
+
     let calculateSimRates<'A, 'R, 'C, 'RC when 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
@@ -249,11 +244,14 @@ module ReactionRateFunctions =
         let cr = r |> i.getBaseCatRates // (f, b)
         let aa = i.getReactionData i.reaction
 
+        printfn "calculateSimRates: r = %A\n\n" r
+
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
             let rateMult = getRateMult br cr cre
+            printfn "calculateSimRates: br = %A, cr = %A, cre = %A, rateMult = %A" br cr cre rateMult
             let getEeParams = getEeParams i cr cre
             getSimRates i aa getEeParams rateMult
         |> ignore

@@ -9,7 +9,7 @@ open DbData.Configuration
 open Clm.Model.ModelData
 
 
-type AddressTypesTests(output : ITestOutputHelper) =
+type ModelTests(output : ITestOutputHelper) =
 
     let writeLine s = output.WriteLine s
 
@@ -55,23 +55,23 @@ type AddressTypesTests(output : ITestOutputHelper) =
 
                 writeLine (sprintf "diffTotals (must be close to 0.0) = %A" diffTotals)
 
-                let cgUpdate = cgUpdate x
-                let mdUpdate = mdUpdate x
+                let cgUpdate = cgUpdate x |> Array.toList
+                let mdUpdate = mdUpdate x |> Array.toList
 
                 let diffUpdate =
-                    Array.zip cgUpdate mdUpdate
-                    |> Array.map(fun (a, b) -> (a - b) * (a - b))
-                    |> Array.sum
+                    List.zip cgUpdate mdUpdate
+                    |> List.map(fun (a, b) -> (a - b) * (a - b))
+                    |> List.sum
 
                 writeLine ( sprintf "diffUpdate (must be close to 0.0) = %A" diffUpdate)
 
                 if diffUpdate > eps
                 then
-                    Array.zip cgUpdate mdUpdate
-                    |> Array.mapi(fun i (a, b) -> i, (a, b, abs (a - b)))
-                    |> Array.filter (fun (i, (a, b, c)) -> c > eps)
-                    |> Array.sortByDescending (fun (i, (a, b, c)) -> c, i)
-                    |> Array.map (fun (i, (a, b, c)) -> writeLine (sprintf "i = %A, s = %A, cg = %A, md = %A, diff = %A" i (allSubst.[i]) a b c))
+                    List.zip cgUpdate mdUpdate
+                    |> List.mapi(fun i (a, b) -> i, (a, b, abs (a - b)))
+                    |> List.filter (fun (i, (a, b, c)) -> c > eps)
+                    |> List.sortByDescending (fun (i, (a, b, c)) -> c, i)
+                    |> List.map (fun (i, (a, b, c)) -> writeLine (sprintf "i = %A, s = %A, cg = %A, md = %A, diff = %A" i (allSubst.[i]) a b c))
                     |> ignore
 
                 diffUpdate.ShouldBeLessThan eps

@@ -9,7 +9,7 @@ open Clm.ReactionRates
 open ClmSys.ContGenPrimitives
 
 module ModelData = 
-    let seedValue = 383123873
+    let seedValue = 810165255
     let numberOfAminoAcids = NumberOfAminoAcids.OneAminoAcid
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 17
@@ -105,10 +105,10 @@ module ModelData =
     // 2 - waste
     let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            3.66772290435288 * x.[4] * x.[16] // a + aaa | catalytic destruction: a + aaa -> waste + aaa
-            3.66772290435288 * x.[3] * x.[9] // A + AAA | catalytic destruction: A + AAA -> waste + AAA
-            143.041193269762 * x.[4] * x.[9] // a + AAA | catalytic destruction: a + AAA -> waste + AAA
-            143.041193269762 * x.[3] * x.[16] // A + aaa | catalytic destruction: A + aaa -> waste + aaa
+            6.67495988002384 * x.[3] * x.[16] // A + aaa | catalytic destruction: A + aaa -> waste + aaa
+            6.67495988002384 * x.[4] * x.[9] // a + AAA | catalytic destruction: a + AAA -> waste + AAA
+            260.323435320929 * x.[3] * x.[9] // A + AAA | catalytic destruction: A + AAA -> waste + AAA
+            260.323435320929 * x.[4] * x.[16] // a + aaa | catalytic destruction: a + aaa -> waste + aaa
             0.001 * x.[4] // a | destruction: a -> waste
             0.001 * x.[3] // A | destruction: A -> waste
         |]
@@ -118,8 +118,8 @@ module ModelData =
     // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3.66772290435288 * x.[3] * x.[9] // A + AAA | catalytic destruction: A + AAA -> waste + AAA
-            -143.041193269762 * x.[3] * x.[16] // A + aaa | catalytic destruction: A + aaa -> waste + aaa
+            -6.67495988002384 * x.[3] * x.[16] // A + aaa | catalytic destruction: A + aaa -> waste + aaa
+            -260.323435320929 * x.[3] * x.[9] // A + AAA | catalytic destruction: A + AAA -> waste + AAA
             -0.001 * x.[3] // A | destruction: A -> waste
         |]
         |> Array.sum
@@ -128,8 +128,8 @@ module ModelData =
     // 4 - a
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -3.66772290435288 * x.[4] * x.[16] // a + aaa | catalytic destruction: a + aaa -> waste + aaa
-            -143.041193269762 * x.[4] * x.[9] // a + AAA | catalytic destruction: a + AAA -> waste + AAA
+            -6.67495988002384 * x.[4] * x.[9] // a + AAA | catalytic destruction: a + AAA -> waste + AAA
+            -260.323435320929 * x.[4] * x.[16] // a + aaa | catalytic destruction: a + aaa -> waste + aaa
             -0.001 * x.[4] // a | destruction: a -> waste
         |]
         |> Array.sum
@@ -295,11 +295,11 @@ module ModelData =
                                             {
                                                 fileStructureVersion = 4.0000m
                                                 versionNumber = "5.0.3"
-                                                modelDataId = ("487a0c8d-0d48-482c-837b-8c78aad6d4c1" |> Guid |> ModelDataId)
+                                                modelDataId = ("b7a42bfa-0be6-4d09-91b0-e1d74f70329c" |> Guid |> ModelDataId)
                                                 numberOfSubstances = 17
                                                 numberOfAminoAcids = NumberOfAminoAcids.OneAminoAcid
                                                 maxPeptideLength = MaxPeptideLength.ThreeMax
-                                                seedValue = 383123873
+                                                seedValue = 810165255
                                                 clmDefaultValueId = ClmDefaultValueId 4002000020L
                                             }
 

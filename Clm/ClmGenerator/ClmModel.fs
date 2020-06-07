@@ -42,8 +42,6 @@ module ClmModel =
             |> SubstInfo.create
 
         let rateProvider = ReactionRateProvider (rrp, si)
-
-
         let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType
 
         let modelInfo =

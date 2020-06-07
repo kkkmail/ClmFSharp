@@ -14,13 +14,9 @@ open Clm.CalculationData
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
-open ClmSys.GeneralData
 open Clm.Distributions
 
 module ClmModelData =
-
-    let newSeed() = (new Random()).Next()
-
 
     type UpdateFuncType =
         | UseArray

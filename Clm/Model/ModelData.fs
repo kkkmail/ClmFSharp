@@ -9,7 +9,7 @@ open Clm.ReactionRates
 open ClmSys.ContGenPrimitives
 
 module ModelData = 
-    let seedValue = 1118393691
+    let seedValue = 152097045
     let numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
     let numberOfSubstances = 87
@@ -351,66 +351,26 @@ module ModelData =
     // 3 - A
     let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[47] * x.[58] // BaA + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            -4404.73200206935 * x.[13] * x.[3] * x.[58] // Ba + A + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            112.941846206906 * x.[47] * x.[32] // BaA + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
-            -112.941846206906 * x.[13] * x.[3] * x.[32] // Ba + A + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
-            4404.73200206935 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            -4404.73200206935 * x.[9] * x.[3] * x.[58] // Aa + A + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            112.941846206906 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            -112.941846206906 * x.[9] * x.[3] * x.[32] // Aa + A + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            4404.73200206935 * x.[79] * x.[58] // baA + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            -4404.73200206935 * x.[21] * x.[3] * x.[58] // ba + A + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            112.941846206906 * x.[79] * x.[32] // baA + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
-            -112.941846206906 * x.[21] * x.[3] * x.[32] // ba + A + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
-            4404.73200206935 * x.[63] * x.[58] // aaA + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            -4404.73200206935 * x.[17] * x.[3] * x.[58] // aa + A + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            112.941846206906 * x.[63] * x.[32] // aaA + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
-            -112.941846206906 * x.[17] * x.[3] * x.[32] // aa + A + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
-            4404.73200206935 * x.[34] * x.[32] // Aab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            -4404.73200206935 * x.[3] * x.[18] * x.[32] // A + ab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            112.941846206906 * x.[34] * x.[58] // Aab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
-            -112.941846206906 * x.[3] * x.[18] * x.[58] // A + ab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
-            4404.73200206935 * x.[33] * x.[32] // Aaa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            -4404.73200206935 * x.[3] * x.[17] * x.[32] // A + aa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            112.941846206906 * x.[33] * x.[58] // Aaa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
-            -112.941846206906 * x.[3] * x.[17] * x.[58] // A + aa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
-            4404.73200206935 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -4404.73200206935 * x.[3] * x.[16] * x.[32] // A + aB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            112.941846206906 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            -112.941846206906 * x.[3] * x.[16] * x.[58] // A + aB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            4404.73200206935 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            -4404.73200206935 * x.[3] * x.[15] * x.[32] // A + aA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            112.941846206906 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
-            -112.941846206906 * x.[3] * x.[15] * x.[58] // A + aA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
-            4404.73200206935 * x.[15] * x.[58] // aA + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            -4404.73200206935 * x.[5] * x.[3] * x.[58] // a + A + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            4404.73200206935 * x.[9] * x.[32] // Aa + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            -4404.73200206935 * x.[3] * x.[5] * x.[32] // A + a + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            112.941846206906 * x.[15] * x.[32] // aA + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            -112.941846206906 * x.[5] * x.[3] * x.[32] // a + A + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            112.941846206906 * x.[9] * x.[58] // Aa + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            -112.941846206906 * x.[3] * x.[5] * x.[58] // A + a + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            4404.73200206935 * x.[37] * x.[32] // Aba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            -4404.73200206935 * x.[3] * x.[21] * x.[32] // A + ba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            112.941846206906 * x.[37] * x.[58] // Aba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
-            -112.941846206906 * x.[3] * x.[21] * x.[58] // A + ba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
-            4404.73200206935 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            -4404.73200206935 * x.[3] * x.[20] * x.[32] // A + bB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            112.941846206906 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            -112.941846206906 * x.[3] * x.[20] * x.[58] // A + bB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            4404.73200206935 * x.[35] * x.[32] // AbA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            -4404.73200206935 * x.[3] * x.[19] * x.[32] // A + bA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            112.941846206906 * x.[35] * x.[58] // AbA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
-            -112.941846206906 * x.[3] * x.[19] * x.[58] // A + bA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
-            4404.73200206935 * x.[10] * x.[32] // Ab + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            -4404.73200206935 * x.[3] * x.[6] * x.[32] // A + b + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            112.941846206906 * x.[10] * x.[58] // Ab + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            -112.941846206906 * x.[3] * x.[6] * x.[58] // A + b + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            4404.73200206935 * x.[38] * x.[32] // Abb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            -4404.73200206935 * x.[3] * x.[22] * x.[32] // A + bb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            112.941846206907 * x.[38] * x.[58] // Abb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
-            -112.941846206907 * x.[3] * x.[22] * x.[58] // A + bb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
+            1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            -1717.16681523593 * x.[3] * x.[12] * x.[55] // A + BB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            -44.0299183393827 * x.[3] * x.[12] * x.[33] // A + BB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            1717.16681523593 * x.[27] * x.[55] // ABA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            -1717.16681523593 * x.[3] * x.[11] * x.[55] // A + BA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            44.0299183393827 * x.[27] * x.[33] // ABA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
+            -44.0299183393827 * x.[3] * x.[11] * x.[33] // A + BA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
+            1717.16681523593 * x.[30] * x.[55] // ABb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            -1717.16681523593 * x.[3] * x.[14] * x.[55] // A + Bb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            44.0299183393827 * x.[30] * x.[33] // ABb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
+            -44.0299183393827 * x.[3] * x.[14] * x.[33] // A + Bb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
+            1717.16681523593 * x.[29] * x.[55] // ABa + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            -1717.16681523593 * x.[3] * x.[13] * x.[55] // A + Ba + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            44.0299183393827 * x.[29] * x.[33] // ABa + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
+            -44.0299183393827 * x.[3] * x.[13] * x.[33] // A + Ba + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
+            1717.16681523593 * x.[8] * x.[55] // AB + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            -1717.16681523593 * x.[3] * x.[4] * x.[55] // A + B + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            44.0299183393827 * x.[8] * x.[33] // AB + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
+            -44.0299183393827 * x.[3] * x.[4] * x.[33] // A + B + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
             1.0 * x.[75] // bBA | ligation: bB + A <-> bBA
             -1.0 * x.[20] * x.[3] // bB + A | ligation: bB + A <-> bBA
             1.0 * x.[51] // BbA | ligation: Bb + A <-> BbA
@@ -498,66 +458,66 @@ module ModelData =
     // 4 - B
     let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[48] * x.[58] // BaB + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            -4404.73200206935 * x.[13] * x.[4] * x.[58] // Ba + B + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            112.941846206906 * x.[48] * x.[32] // BaB + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
-            -112.941846206906 * x.[13] * x.[4] * x.[32] // Ba + B + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
-            4404.73200206935 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            -4404.73200206935 * x.[9] * x.[4] * x.[58] // Aa + B + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            112.941846206906 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            -112.941846206906 * x.[9] * x.[4] * x.[32] // Aa + B + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            4404.73200206935 * x.[80] * x.[58] // baB + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            -4404.73200206935 * x.[21] * x.[4] * x.[58] // ba + B + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            112.941846206906 * x.[80] * x.[32] // baB + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
-            -112.941846206906 * x.[21] * x.[4] * x.[32] // ba + B + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
-            4404.73200206935 * x.[64] * x.[58] // aaB + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            -4404.73200206935 * x.[17] * x.[4] * x.[58] // aa + B + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            112.941846206906 * x.[64] * x.[32] // aaB + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
-            -112.941846206906 * x.[17] * x.[4] * x.[32] // aa + B + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
-            4404.73200206935 * x.[16] * x.[58] // aB + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            -4404.73200206935 * x.[5] * x.[4] * x.[58] // a + B + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            112.941846206906 * x.[16] * x.[32] // aB + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            -112.941846206906 * x.[5] * x.[4] * x.[32] // a + B + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            4404.73200206935 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            -4404.73200206935 * x.[14] * x.[4] * x.[58] // Bb + B + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            112.941846206906 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            -112.941846206906 * x.[14] * x.[4] * x.[32] // Bb + B + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            4404.73200206935 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            -4404.73200206935 * x.[10] * x.[4] * x.[58] // Ab + B + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            112.941846206906 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
-            -112.941846206906 * x.[10] * x.[4] * x.[32] // Ab + B + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
-            4404.73200206935 * x.[84] * x.[58] // bbB + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            -4404.73200206935 * x.[22] * x.[4] * x.[58] // bb + B + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            112.941846206906 * x.[84] * x.[32] // bbB + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
-            -112.941846206906 * x.[22] * x.[4] * x.[32] // bb + B + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
-            4404.73200206935 * x.[68] * x.[58] // abB + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            -4404.73200206935 * x.[18] * x.[4] * x.[58] // ab + B + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            112.941846206906 * x.[68] * x.[32] // abB + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
-            -112.941846206906 * x.[18] * x.[4] * x.[32] // ab + B + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
-            4404.73200206935 * x.[54] * x.[32] // Bbb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            -4404.73200206935 * x.[4] * x.[22] * x.[32] // B + bb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            112.941846206906 * x.[54] * x.[58] // Bbb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
-            -112.941846206906 * x.[4] * x.[22] * x.[58] // B + bb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
-            4404.73200206935 * x.[53] * x.[32] // Bba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            -4404.73200206935 * x.[4] * x.[21] * x.[32] // B + ba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            112.941846206906 * x.[53] * x.[58] // Bba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
-            -112.941846206906 * x.[4] * x.[21] * x.[58] // B + ba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
-            4404.73200206935 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            -4404.73200206935 * x.[4] * x.[20] * x.[32] // B + bB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            112.941846206906 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
-            -112.941846206906 * x.[4] * x.[20] * x.[58] // B + bB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
-            4404.73200206935 * x.[51] * x.[32] // BbA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            -4404.73200206935 * x.[4] * x.[19] * x.[32] // B + bA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            112.941846206906 * x.[51] * x.[58] // BbA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
-            -112.941846206906 * x.[4] * x.[19] * x.[58] // B + bA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
-            4404.73200206935 * x.[20] * x.[58] // bB + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            -4404.73200206935 * x.[6] * x.[4] * x.[58] // b + B + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            4404.73200206935 * x.[14] * x.[32] // Bb + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            -4404.73200206935 * x.[4] * x.[6] * x.[32] // B + b + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            112.941846206906 * x.[20] * x.[32] // bB + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
-            -112.941846206906 * x.[6] * x.[4] * x.[32] // b + B + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
-            112.941846206906 * x.[14] * x.[58] // Bb + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
-            -112.941846206906 * x.[4] * x.[6] * x.[58] // B + b + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
+            1717.16681523593 * x.[40] * x.[55] // BAB + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            -1717.16681523593 * x.[11] * x.[4] * x.[55] // BA + B + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            44.0299183393827 * x.[40] * x.[33] // BAB + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
+            -44.0299183393827 * x.[11] * x.[4] * x.[33] // BA + B + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
+            1717.16681523593 * x.[24] * x.[55] // AAB + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            -1717.16681523593 * x.[7] * x.[4] * x.[55] // AA + B + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            44.0299183393827 * x.[24] * x.[33] // AAB + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
+            -44.0299183393827 * x.[7] * x.[4] * x.[33] // AA + B + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
+            1717.16681523593 * x.[72] * x.[55] // bAB + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            -1717.16681523593 * x.[19] * x.[4] * x.[55] // bA + B + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            44.0299183393827 * x.[72] * x.[33] // bAB + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
+            -44.0299183393827 * x.[19] * x.[4] * x.[33] // bA + B + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
+            1717.16681523593 * x.[56] * x.[55] // aAB + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            -1717.16681523593 * x.[15] * x.[4] * x.[55] // aA + B + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            44.0299183393827 * x.[56] * x.[33] // aAB + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
+            -44.0299183393827 * x.[15] * x.[4] * x.[33] // aA + B + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
+            1717.16681523593 * x.[8] * x.[55] // AB + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            -1717.16681523593 * x.[3] * x.[4] * x.[55] // A + B + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            44.0299183393827 * x.[8] * x.[33] // AB + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
+            -44.0299183393827 * x.[3] * x.[4] * x.[33] // A + B + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
+            1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            -1717.16681523593 * x.[12] * x.[4] * x.[55] // BB + B + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            -44.0299183393827 * x.[12] * x.[4] * x.[33] // BB + B + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            -1717.16681523593 * x.[8] * x.[4] * x.[55] // AB + B + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
+            -44.0299183393827 * x.[8] * x.[4] * x.[33] // AB + B + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
+            1717.16681523593 * x.[76] * x.[55] // bBB + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            -1717.16681523593 * x.[20] * x.[4] * x.[55] // bB + B + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            44.0299183393827 * x.[76] * x.[33] // bBB + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
+            -44.0299183393827 * x.[20] * x.[4] * x.[33] // bB + B + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
+            1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            -1717.16681523593 * x.[4] * x.[12] * x.[55] // B + BB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
+            -44.0299183393827 * x.[4] * x.[12] * x.[33] // B + BB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
+            1717.16681523593 * x.[43] * x.[55] // BBA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            -1717.16681523593 * x.[4] * x.[11] * x.[55] // B + BA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            44.0299183393827 * x.[43] * x.[33] // BBA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
+            -44.0299183393827 * x.[4] * x.[11] * x.[33] // B + BA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
+            1717.16681523593 * x.[46] * x.[55] // BBb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            -1717.16681523593 * x.[4] * x.[14] * x.[55] // B + Bb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            44.0299183393827 * x.[46] * x.[33] // BBb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
+            -44.0299183393827 * x.[4] * x.[14] * x.[33] // B + Bb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
+            1717.16681523593 * x.[45] * x.[55] // BBa + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            -1717.16681523593 * x.[4] * x.[13] * x.[55] // B + Ba + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            44.0299183393827 * x.[45] * x.[33] // BBa + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
+            -44.0299183393827 * x.[4] * x.[13] * x.[33] // B + Ba + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
+            1717.16681523593 * x.[12] * x.[55] // BB + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            1717.16681523593 * x.[12] * x.[55] // BB + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            -1717.16681523593 * x.[4] * x.[4] * x.[55] // B + B + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            -1717.16681523593 * x.[4] * x.[4] * x.[55] // B + B + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            44.0299183393827 * x.[12] * x.[33] // BB + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
+            44.0299183393827 * x.[12] * x.[33] // BB + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
+            -44.0299183393827 * x.[4] * x.[4] * x.[33] // B + B + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
+            -44.0299183393827 * x.[4] * x.[4] * x.[33] // B + B + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
+            1717.16681523593 * x.[60] * x.[55] // aBB + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            -1717.16681523593 * x.[16] * x.[4] * x.[55] // aB + B + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            44.0299183393827 * x.[60] * x.[33] // aBB + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
+            -44.0299183393827 * x.[16] * x.[4] * x.[33] // aB + B + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
             1.0 * x.[76] // bBB | ligation: bB + B <-> bBB
             -1.0 * x.[20] * x.[4] // bB + B | ligation: bB + B <-> bBB
             1.0 * x.[52] // BbB | ligation: Bb + B <-> BbB
@@ -645,66 +605,26 @@ module ModelData =
     // 5 - a
     let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[73] * x.[32] // bAa + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            -4404.73200206935 * x.[19] * x.[5] * x.[32] // bA + a + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            112.941846206906 * x.[73] * x.[58] // bAa + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
-            -112.941846206906 * x.[19] * x.[5] * x.[58] // bA + a + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
-            4404.73200206935 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            -4404.73200206935 * x.[15] * x.[5] * x.[32] // aA + a + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            112.941846206906 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            -112.941846206906 * x.[15] * x.[5] * x.[58] // aA + a + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            4404.73200206935 * x.[41] * x.[32] // BAa + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            -4404.73200206935 * x.[11] * x.[5] * x.[32] // BA + a + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            112.941846206906 * x.[41] * x.[58] // BAa + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
-            -112.941846206906 * x.[11] * x.[5] * x.[58] // BA + a + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
-            4404.73200206935 * x.[25] * x.[32] // AAa + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            -4404.73200206935 * x.[7] * x.[5] * x.[32] // AA + a + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            112.941846206906 * x.[25] * x.[58] // AAa + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
-            -112.941846206906 * x.[7] * x.[5] * x.[58] // AA + a + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
-            4404.73200206935 * x.[56] * x.[58] // aAB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            -4404.73200206935 * x.[5] * x.[8] * x.[58] // a + AB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            112.941846206906 * x.[56] * x.[32] // aAB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
-            -112.941846206906 * x.[5] * x.[8] * x.[32] // a + AB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
-            4404.73200206935 * x.[55] * x.[58] // aAA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            -4404.73200206935 * x.[5] * x.[7] * x.[58] // a + AA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            112.941846206906 * x.[55] * x.[32] // aAA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
-            -112.941846206906 * x.[5] * x.[7] * x.[32] // a + AA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
-            4404.73200206935 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -4404.73200206935 * x.[5] * x.[10] * x.[58] // a + Ab + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            112.941846206906 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            -112.941846206906 * x.[5] * x.[10] * x.[32] // a + Ab + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            4404.73200206935 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            -4404.73200206935 * x.[5] * x.[9] * x.[58] // a + Aa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            112.941846206906 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
-            -112.941846206906 * x.[5] * x.[9] * x.[32] // a + Aa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
-            4404.73200206935 * x.[15] * x.[58] // aA + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            -4404.73200206935 * x.[5] * x.[3] * x.[58] // a + A + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            4404.73200206935 * x.[9] * x.[32] // Aa + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            -4404.73200206935 * x.[3] * x.[5] * x.[32] // A + a + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            112.941846206906 * x.[15] * x.[32] // aA + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            -112.941846206906 * x.[5] * x.[3] * x.[32] // a + A + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            112.941846206906 * x.[9] * x.[58] // Aa + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            -112.941846206906 * x.[3] * x.[5] * x.[58] // A + a + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            4404.73200206935 * x.[59] * x.[58] // aBA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            -4404.73200206935 * x.[5] * x.[11] * x.[58] // a + BA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            112.941846206906 * x.[59] * x.[32] // aBA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
-            -112.941846206906 * x.[5] * x.[11] * x.[32] // a + BA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
-            4404.73200206935 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            -4404.73200206935 * x.[5] * x.[14] * x.[58] // a + Bb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            112.941846206906 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            -112.941846206906 * x.[5] * x.[14] * x.[32] // a + Bb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            4404.73200206935 * x.[61] * x.[58] // aBa + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            -4404.73200206935 * x.[5] * x.[13] * x.[58] // a + Ba + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            112.941846206906 * x.[61] * x.[32] // aBa + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
-            -112.941846206906 * x.[5] * x.[13] * x.[32] // a + Ba + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
-            4404.73200206935 * x.[16] * x.[58] // aB + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            -4404.73200206935 * x.[5] * x.[4] * x.[58] // a + B + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            112.941846206906 * x.[16] * x.[32] // aB + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            -112.941846206906 * x.[5] * x.[4] * x.[32] // a + B + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            4404.73200206935 * x.[60] * x.[58] // aBB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            -4404.73200206935 * x.[5] * x.[12] * x.[58] // a + BB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            112.941846206907 * x.[60] * x.[32] // aBB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
-            -112.941846206907 * x.[5] * x.[12] * x.[32] // a + BB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
+            1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            -1717.16681523593 * x.[5] * x.[22] * x.[33] // a + bb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            -44.0299183393827 * x.[5] * x.[22] * x.[55] // a + bb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            1717.16681523593 * x.[69] * x.[33] // aba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            -1717.16681523593 * x.[5] * x.[21] * x.[33] // a + ba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            44.0299183393827 * x.[69] * x.[55] // aba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
+            -44.0299183393827 * x.[5] * x.[21] * x.[55] // a + ba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
+            1717.16681523593 * x.[68] * x.[33] // abB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            -1717.16681523593 * x.[5] * x.[20] * x.[33] // a + bB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            44.0299183393827 * x.[68] * x.[55] // abB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
+            -44.0299183393827 * x.[5] * x.[20] * x.[55] // a + bB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
+            1717.16681523593 * x.[67] * x.[33] // abA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            -1717.16681523593 * x.[5] * x.[19] * x.[33] // a + bA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            44.0299183393827 * x.[67] * x.[55] // abA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
+            -44.0299183393827 * x.[5] * x.[19] * x.[55] // a + bA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
+            1717.16681523593 * x.[18] * x.[33] // ab + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            -1717.16681523593 * x.[5] * x.[6] * x.[33] // a + b + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            44.0299183393827 * x.[18] * x.[55] // ab + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
+            -44.0299183393827 * x.[5] * x.[6] * x.[55] // a + b + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
             1.0 * x.[53] // Bba | ligation: Bb + a <-> Bba
             -1.0 * x.[14] * x.[5] // Bb + a | ligation: Bb + a <-> Bba
             1.0 * x.[77] // bBa | ligation: bB + a <-> bBa
@@ -792,66 +712,66 @@ module ModelData =
     // 6 - b
     let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[74] * x.[32] // bAb + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            -4404.73200206935 * x.[19] * x.[6] * x.[32] // bA + b + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            112.941846206906 * x.[74] * x.[58] // bAb + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
-            -112.941846206906 * x.[19] * x.[6] * x.[58] // bA + b + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
-            4404.73200206935 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            -4404.73200206935 * x.[15] * x.[6] * x.[32] // aA + b + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            112.941846206906 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            -112.941846206906 * x.[15] * x.[6] * x.[58] // aA + b + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            4404.73200206935 * x.[42] * x.[32] // BAb + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            -4404.73200206935 * x.[11] * x.[6] * x.[32] // BA + b + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            112.941846206906 * x.[42] * x.[58] // BAb + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
-            -112.941846206906 * x.[11] * x.[6] * x.[58] // BA + b + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
-            4404.73200206935 * x.[26] * x.[32] // AAb + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            -4404.73200206935 * x.[7] * x.[6] * x.[32] // AA + b + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            112.941846206906 * x.[26] * x.[58] // AAb + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
-            -112.941846206906 * x.[7] * x.[6] * x.[58] // AA + b + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
-            4404.73200206935 * x.[10] * x.[32] // Ab + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            -4404.73200206935 * x.[3] * x.[6] * x.[32] // A + b + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            112.941846206906 * x.[10] * x.[58] // Ab + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            -112.941846206906 * x.[3] * x.[6] * x.[58] // A + b + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            4404.73200206935 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            -4404.73200206935 * x.[20] * x.[6] * x.[32] // bB + b + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            112.941846206906 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            -112.941846206906 * x.[20] * x.[6] * x.[58] // bB + b + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            4404.73200206935 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            -4404.73200206935 * x.[16] * x.[6] * x.[32] // aB + b + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            112.941846206906 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
-            -112.941846206906 * x.[16] * x.[6] * x.[58] // aB + b + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
-            4404.73200206935 * x.[46] * x.[32] // BBb + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            -4404.73200206935 * x.[12] * x.[6] * x.[32] // BB + b + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            112.941846206906 * x.[46] * x.[58] // BBb + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
-            -112.941846206906 * x.[12] * x.[6] * x.[58] // BB + b + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
-            4404.73200206935 * x.[30] * x.[32] // ABb + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            -4404.73200206935 * x.[8] * x.[6] * x.[32] // AB + b + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            112.941846206906 * x.[30] * x.[58] // ABb + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
-            -112.941846206906 * x.[8] * x.[6] * x.[58] // AB + b + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
-            4404.73200206935 * x.[76] * x.[58] // bBB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            -4404.73200206935 * x.[6] * x.[12] * x.[58] // b + BB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            112.941846206906 * x.[76] * x.[32] // bBB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
-            -112.941846206906 * x.[6] * x.[12] * x.[32] // b + BB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
-            4404.73200206935 * x.[75] * x.[58] // bBA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            -4404.73200206935 * x.[6] * x.[11] * x.[58] // b + BA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            112.941846206906 * x.[75] * x.[32] // bBA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
-            -112.941846206906 * x.[6] * x.[11] * x.[32] // b + BA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
-            4404.73200206935 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            -4404.73200206935 * x.[6] * x.[14] * x.[58] // b + Bb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            112.941846206906 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
-            -112.941846206906 * x.[6] * x.[14] * x.[32] // b + Bb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
-            4404.73200206935 * x.[77] * x.[58] // bBa + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            -4404.73200206935 * x.[6] * x.[13] * x.[58] // b + Ba + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            112.941846206906 * x.[77] * x.[32] // bBa + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
-            -112.941846206906 * x.[6] * x.[13] * x.[32] // b + Ba + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
-            4404.73200206935 * x.[20] * x.[58] // bB + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            -4404.73200206935 * x.[6] * x.[4] * x.[58] // b + B + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            4404.73200206935 * x.[14] * x.[32] // Bb + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            -4404.73200206935 * x.[4] * x.[6] * x.[32] // B + b + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            112.941846206906 * x.[20] * x.[32] // bB + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
-            -112.941846206906 * x.[6] * x.[4] * x.[32] // b + B + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
-            112.941846206906 * x.[14] * x.[58] // Bb + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
-            -112.941846206906 * x.[4] * x.[6] * x.[58] // B + b + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
+            1717.16681523593 * x.[82] * x.[33] // bab + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            -1717.16681523593 * x.[21] * x.[6] * x.[33] // ba + b + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            44.0299183393827 * x.[82] * x.[55] // bab + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
+            -44.0299183393827 * x.[21] * x.[6] * x.[55] // ba + b + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
+            1717.16681523593 * x.[66] * x.[33] // aab + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            -1717.16681523593 * x.[17] * x.[6] * x.[33] // aa + b + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            44.0299183393827 * x.[66] * x.[55] // aab + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
+            -44.0299183393827 * x.[17] * x.[6] * x.[55] // aa + b + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
+            1717.16681523593 * x.[50] * x.[33] // Bab + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            -1717.16681523593 * x.[13] * x.[6] * x.[33] // Ba + b + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            44.0299183393827 * x.[50] * x.[55] // Bab + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
+            -44.0299183393827 * x.[13] * x.[6] * x.[55] // Ba + b + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
+            1717.16681523593 * x.[34] * x.[33] // Aab + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            -1717.16681523593 * x.[9] * x.[6] * x.[33] // Aa + b + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            44.0299183393827 * x.[34] * x.[55] // Aab + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
+            -44.0299183393827 * x.[9] * x.[6] * x.[55] // Aa + b + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
+            1717.16681523593 * x.[18] * x.[33] // ab + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            -1717.16681523593 * x.[5] * x.[6] * x.[33] // a + b + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            44.0299183393827 * x.[18] * x.[55] // ab + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
+            -44.0299183393827 * x.[5] * x.[6] * x.[55] // a + b + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
+            1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            -1717.16681523593 * x.[22] * x.[6] * x.[33] // bb + b + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            -44.0299183393827 * x.[22] * x.[6] * x.[55] // bb + b + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            -1717.16681523593 * x.[18] * x.[6] * x.[33] // ab + b + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
+            -44.0299183393827 * x.[18] * x.[6] * x.[55] // ab + b + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
+            1717.16681523593 * x.[54] * x.[33] // Bbb + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            -1717.16681523593 * x.[14] * x.[6] * x.[33] // Bb + b + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            44.0299183393827 * x.[54] * x.[55] // Bbb + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
+            -44.0299183393827 * x.[14] * x.[6] * x.[55] // Bb + b + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
+            1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            -1717.16681523593 * x.[6] * x.[22] * x.[33] // b + bb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
+            -44.0299183393827 * x.[6] * x.[22] * x.[55] // b + bb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
+            1717.16681523593 * x.[85] * x.[33] // bba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            -1717.16681523593 * x.[6] * x.[21] * x.[33] // b + ba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            44.0299183393827 * x.[85] * x.[55] // bba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
+            -44.0299183393827 * x.[6] * x.[21] * x.[55] // b + ba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
+            1717.16681523593 * x.[84] * x.[33] // bbB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            -1717.16681523593 * x.[6] * x.[20] * x.[33] // b + bB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            44.0299183393827 * x.[84] * x.[55] // bbB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
+            -44.0299183393827 * x.[6] * x.[20] * x.[55] // b + bB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
+            1717.16681523593 * x.[83] * x.[33] // bbA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            -1717.16681523593 * x.[6] * x.[19] * x.[33] // b + bA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            44.0299183393827 * x.[83] * x.[55] // bbA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
+            -44.0299183393827 * x.[6] * x.[19] * x.[55] // b + bA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
+            1717.16681523593 * x.[22] * x.[33] // bb + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            1717.16681523593 * x.[22] * x.[33] // bb + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            -1717.16681523593 * x.[6] * x.[6] * x.[33] // b + b + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            -1717.16681523593 * x.[6] * x.[6] * x.[33] // b + b + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            44.0299183393827 * x.[22] * x.[55] // bb + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
+            44.0299183393827 * x.[22] * x.[55] // bb + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
+            -44.0299183393827 * x.[6] * x.[6] * x.[55] // b + b + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
+            -44.0299183393827 * x.[6] * x.[6] * x.[55] // b + b + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
+            1717.16681523593 * x.[38] * x.[33] // Abb + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            -1717.16681523593 * x.[10] * x.[6] * x.[33] // Ab + b + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            44.0299183393827 * x.[38] * x.[55] // Abb + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
+            -44.0299183393827 * x.[10] * x.[6] * x.[55] // Ab + b + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
             1.0 * x.[54] // Bbb | ligation: Bb + b <-> Bbb
             -1.0 * x.[14] * x.[6] // Bb + b | ligation: Bb + b <-> Bbb
             1.0 * x.[78] // bBb | ligation: bB + b <-> bBb
@@ -939,18 +859,10 @@ module ModelData =
     // 7 - AA
     let d7 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[25] * x.[32] // AAa + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            -4404.73200206935 * x.[7] * x.[5] * x.[32] // AA + a + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            112.941846206906 * x.[25] * x.[58] // AAa + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
-            -112.941846206906 * x.[7] * x.[5] * x.[58] // AA + a + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
-            4404.73200206935 * x.[55] * x.[58] // aAA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            -4404.73200206935 * x.[5] * x.[7] * x.[58] // a + AA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            112.941846206906 * x.[55] * x.[32] // aAA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
-            -112.941846206906 * x.[5] * x.[7] * x.[32] // a + AA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
-            4404.73200206935 * x.[26] * x.[32] // AAb + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            -4404.73200206935 * x.[7] * x.[6] * x.[32] // AA + b + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            112.941846206906 * x.[26] * x.[58] // AAb + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
-            -112.941846206906 * x.[7] * x.[6] * x.[58] // AA + b + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
+            1717.16681523593 * x.[24] * x.[55] // AAB + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            -1717.16681523593 * x.[7] * x.[4] * x.[55] // AA + B + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            44.0299183393827 * x.[24] * x.[33] // AAB + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
+            -44.0299183393827 * x.[7] * x.[4] * x.[33] // AA + B + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
             1.0 * x.[71] // bAA | ligation: b + AA <-> bAA
             -1.0 * x.[6] * x.[7] // b + AA | ligation: b + AA <-> bAA
             1.0 * x.[39] // BAA | ligation: B + AA <-> BAA
@@ -976,14 +888,14 @@ module ModelData =
     // 8 - AB
     let d8 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[56] * x.[58] // aAB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            -4404.73200206935 * x.[5] * x.[8] * x.[58] // a + AB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            112.941846206906 * x.[56] * x.[32] // aAB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
-            -112.941846206906 * x.[5] * x.[8] * x.[32] // a + AB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
-            4404.73200206935 * x.[30] * x.[32] // ABb + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            -4404.73200206935 * x.[8] * x.[6] * x.[32] // AB + b + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            112.941846206906 * x.[30] * x.[58] // ABb + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
-            -112.941846206906 * x.[8] * x.[6] * x.[58] // AB + b + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
+            -1717.16681523593 * x.[8] * x.[55] // AB + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            1717.16681523593 * x.[3] * x.[4] * x.[55] // A + B + aAA | catalytic ligation: A + B + aAA <-> AB + aAA
+            -44.0299183393827 * x.[8] * x.[33] // AB + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
+            44.0299183393827 * x.[3] * x.[4] * x.[33] // A + B + Aaa | catalytic ligation: A + B + Aaa <-> AB + Aaa
+            1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            -1717.16681523593 * x.[8] * x.[4] * x.[55] // AB + B + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
+            -44.0299183393827 * x.[8] * x.[4] * x.[33] // AB + B + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
             1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
             -1.0 * x.[6] * x.[8] // b + AB | ligation: b + AB <-> bAB
             1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
@@ -1009,22 +921,10 @@ module ModelData =
     // 9 - Aa
     let d9 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            -4404.73200206935 * x.[9] * x.[3] * x.[58] // Aa + A + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            112.941846206906 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            -112.941846206906 * x.[9] * x.[3] * x.[32] // Aa + A + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            4404.73200206935 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            -4404.73200206935 * x.[5] * x.[9] * x.[58] // a + Aa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            112.941846206906 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
-            -112.941846206906 * x.[5] * x.[9] * x.[32] // a + Aa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
-            -4404.73200206935 * x.[9] * x.[32] // Aa + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            4404.73200206935 * x.[3] * x.[5] * x.[32] // A + a + AaB | catalytic ligation: A + a + AaB <-> Aa + AaB
-            -112.941846206906 * x.[9] * x.[58] // Aa + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            112.941846206906 * x.[3] * x.[5] * x.[58] // A + a + aAb | catalytic ligation: A + a + aAb <-> Aa + aAb
-            4404.73200206935 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            -4404.73200206935 * x.[9] * x.[4] * x.[58] // Aa + B + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            112.941846206906 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            -112.941846206906 * x.[9] * x.[4] * x.[32] // Aa + B + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
+            1717.16681523593 * x.[34] * x.[33] // Aab + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            -1717.16681523593 * x.[9] * x.[6] * x.[33] // Aa + b + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            44.0299183393827 * x.[34] * x.[55] // Aab + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
+            -44.0299183393827 * x.[9] * x.[6] * x.[55] // Aa + b + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
             1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
             -1.0 * x.[6] * x.[9] // b + Aa | ligation: b + Aa <-> bAa
             1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
@@ -1050,18 +950,10 @@ module ModelData =
     // 10 - Ab
     let d10 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -4404.73200206935 * x.[5] * x.[10] * x.[58] // a + Ab + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            112.941846206906 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            -112.941846206906 * x.[5] * x.[10] * x.[32] // a + Ab + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            -4404.73200206935 * x.[10] * x.[32] // Ab + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            4404.73200206935 * x.[3] * x.[6] * x.[32] // A + b + AaB | catalytic ligation: A + b + AaB <-> Ab + AaB
-            -112.941846206906 * x.[10] * x.[58] // Ab + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            112.941846206906 * x.[3] * x.[6] * x.[58] // A + b + aAb | catalytic ligation: A + b + aAb <-> Ab + aAb
-            4404.73200206935 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            -4404.73200206935 * x.[10] * x.[4] * x.[58] // Ab + B + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            112.941846206906 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
-            -112.941846206906 * x.[10] * x.[4] * x.[32] // Ab + B + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
+            1717.16681523593 * x.[38] * x.[33] // Abb + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            -1717.16681523593 * x.[10] * x.[6] * x.[33] // Ab + b + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            44.0299183393827 * x.[38] * x.[55] // Abb + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
+            -44.0299183393827 * x.[10] * x.[6] * x.[55] // Ab + b + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
             1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
             -1.0 * x.[6] * x.[10] // b + Ab | ligation: b + Ab <-> bAb
             1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
@@ -1087,22 +979,18 @@ module ModelData =
     // 11 - BA
     let d11 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[41] * x.[32] // BAa + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            -4404.73200206935 * x.[11] * x.[5] * x.[32] // BA + a + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            112.941846206906 * x.[41] * x.[58] // BAa + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
-            -112.941846206906 * x.[11] * x.[5] * x.[58] // BA + a + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
-            4404.73200206935 * x.[42] * x.[32] // BAb + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            -4404.73200206935 * x.[11] * x.[6] * x.[32] // BA + b + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            112.941846206906 * x.[42] * x.[58] // BAb + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
-            -112.941846206906 * x.[11] * x.[6] * x.[58] // BA + b + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
-            4404.73200206935 * x.[59] * x.[58] // aBA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            -4404.73200206935 * x.[5] * x.[11] * x.[58] // a + BA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            112.941846206906 * x.[59] * x.[32] // aBA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
-            -112.941846206906 * x.[5] * x.[11] * x.[32] // a + BA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
-            4404.73200206935 * x.[75] * x.[58] // bBA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            -4404.73200206935 * x.[6] * x.[11] * x.[58] // b + BA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            112.941846206906 * x.[75] * x.[32] // bBA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
-            -112.941846206906 * x.[6] * x.[11] * x.[32] // b + BA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
+            1717.16681523593 * x.[40] * x.[55] // BAB + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            -1717.16681523593 * x.[11] * x.[4] * x.[55] // BA + B + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            44.0299183393827 * x.[40] * x.[33] // BAB + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
+            -44.0299183393827 * x.[11] * x.[4] * x.[33] // BA + B + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
+            1717.16681523593 * x.[27] * x.[55] // ABA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            -1717.16681523593 * x.[3] * x.[11] * x.[55] // A + BA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            44.0299183393827 * x.[27] * x.[33] // ABA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
+            -44.0299183393827 * x.[3] * x.[11] * x.[33] // A + BA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
+            1717.16681523593 * x.[43] * x.[55] // BBA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            -1717.16681523593 * x.[4] * x.[11] * x.[55] // B + BA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            44.0299183393827 * x.[43] * x.[33] // BBA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
+            -44.0299183393827 * x.[4] * x.[11] * x.[33] // B + BA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
             1.0 * x.[42] // BAb | ligation: BA + b <-> BAb
             -1.0 * x.[11] * x.[6] // BA + b | ligation: BA + b <-> BAb
             1.0 * x.[41] // BAa | ligation: BA + a <-> BAa
@@ -1128,18 +1016,22 @@ module ModelData =
     // 12 - BB
     let d12 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[46] * x.[32] // BBb + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            -4404.73200206935 * x.[12] * x.[6] * x.[32] // BB + b + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            112.941846206906 * x.[46] * x.[58] // BBb + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
-            -112.941846206906 * x.[12] * x.[6] * x.[58] // BB + b + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
-            4404.73200206935 * x.[76] * x.[58] // bBB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            -4404.73200206935 * x.[6] * x.[12] * x.[58] // b + BB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            112.941846206906 * x.[76] * x.[32] // bBB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
-            -112.941846206906 * x.[6] * x.[12] * x.[32] // b + BB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
-            4404.73200206935 * x.[60] * x.[58] // aBB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            -4404.73200206935 * x.[5] * x.[12] * x.[58] // a + BB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            112.941846206907 * x.[60] * x.[32] // aBB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
-            -112.941846206907 * x.[5] * x.[12] * x.[32] // a + BB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
+            1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            -1717.16681523593 * x.[3] * x.[12] * x.[55] // A + BB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            -44.0299183393827 * x.[3] * x.[12] * x.[33] // A + BB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            -1717.16681523593 * x.[12] * x.[4] * x.[55] // BB + B + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            -44.0299183393827 * x.[12] * x.[4] * x.[33] // BB + B + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            -1717.16681523593 * x.[4] * x.[12] * x.[55] // B + BB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
+            -44.0299183393827 * x.[4] * x.[12] * x.[33] // B + BB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
+            -1717.16681523593 * x.[12] * x.[55] // BB + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            1717.16681523593 * x.[4] * x.[4] * x.[55] // B + B + aAA | catalytic ligation: B + B + aAA <-> BB + aAA
+            -44.0299183393827 * x.[12] * x.[33] // BB + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
+            44.0299183393827 * x.[4] * x.[4] * x.[33] // B + B + Aaa | catalytic ligation: B + B + Aaa <-> BB + Aaa
             1.0 * x.[46] // BBb | ligation: BB + b <-> BBb
             -1.0 * x.[12] * x.[6] // BB + b | ligation: BB + b <-> BBb
             1.0 * x.[45] // BBa | ligation: BB + a <-> BBa
@@ -1165,22 +1057,18 @@ module ModelData =
     // 13 - Ba
     let d13 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[47] * x.[58] // BaA + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            -4404.73200206935 * x.[13] * x.[3] * x.[58] // Ba + A + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            112.941846206906 * x.[47] * x.[32] // BaA + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
-            -112.941846206906 * x.[13] * x.[3] * x.[32] // Ba + A + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
-            4404.73200206935 * x.[48] * x.[58] // BaB + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            -4404.73200206935 * x.[13] * x.[4] * x.[58] // Ba + B + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            112.941846206906 * x.[48] * x.[32] // BaB + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
-            -112.941846206906 * x.[13] * x.[4] * x.[32] // Ba + B + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
-            4404.73200206935 * x.[61] * x.[58] // aBa + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            -4404.73200206935 * x.[5] * x.[13] * x.[58] // a + Ba + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            112.941846206906 * x.[61] * x.[32] // aBa + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
-            -112.941846206906 * x.[5] * x.[13] * x.[32] // a + Ba + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
-            4404.73200206935 * x.[77] * x.[58] // bBa + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            -4404.73200206935 * x.[6] * x.[13] * x.[58] // b + Ba + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            112.941846206906 * x.[77] * x.[32] // bBa + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
-            -112.941846206906 * x.[6] * x.[13] * x.[32] // b + Ba + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
+            1717.16681523593 * x.[50] * x.[33] // Bab + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            -1717.16681523593 * x.[13] * x.[6] * x.[33] // Ba + b + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            44.0299183393827 * x.[50] * x.[55] // Bab + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
+            -44.0299183393827 * x.[13] * x.[6] * x.[55] // Ba + b + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
+            1717.16681523593 * x.[29] * x.[55] // ABa + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            -1717.16681523593 * x.[3] * x.[13] * x.[55] // A + Ba + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            44.0299183393827 * x.[29] * x.[33] // ABa + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
+            -44.0299183393827 * x.[3] * x.[13] * x.[33] // A + Ba + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
+            1717.16681523593 * x.[45] * x.[55] // BBa + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            -1717.16681523593 * x.[4] * x.[13] * x.[55] // B + Ba + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            44.0299183393827 * x.[45] * x.[33] // BBa + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
+            -44.0299183393827 * x.[4] * x.[13] * x.[33] // B + Ba + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
             1.0 * x.[50] // Bab | ligation: Ba + b <-> Bab
             -1.0 * x.[13] * x.[6] // Ba + b | ligation: Ba + b <-> Bab
             1.0 * x.[49] // Baa | ligation: Ba + a <-> Baa
@@ -1206,22 +1094,18 @@ module ModelData =
     // 14 - Bb
     let d14 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            -4404.73200206935 * x.[5] * x.[14] * x.[58] // a + Bb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            112.941846206906 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            -112.941846206906 * x.[5] * x.[14] * x.[32] // a + Bb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            4404.73200206935 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            -4404.73200206935 * x.[14] * x.[4] * x.[58] // Bb + B + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            112.941846206906 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            -112.941846206906 * x.[14] * x.[4] * x.[32] // Bb + B + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            4404.73200206935 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            -4404.73200206935 * x.[6] * x.[14] * x.[58] // b + Bb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            112.941846206906 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
-            -112.941846206906 * x.[6] * x.[14] * x.[32] // b + Bb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
-            -4404.73200206935 * x.[14] * x.[32] // Bb + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            4404.73200206935 * x.[4] * x.[6] * x.[32] // B + b + AaB | catalytic ligation: B + b + AaB <-> Bb + AaB
-            -112.941846206906 * x.[14] * x.[58] // Bb + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
-            112.941846206906 * x.[4] * x.[6] * x.[58] // B + b + aAb | catalytic ligation: B + b + aAb <-> Bb + aAb
+            1717.16681523593 * x.[30] * x.[55] // ABb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            -1717.16681523593 * x.[3] * x.[14] * x.[55] // A + Bb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            44.0299183393827 * x.[30] * x.[33] // ABb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
+            -44.0299183393827 * x.[3] * x.[14] * x.[33] // A + Bb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
+            1717.16681523593 * x.[54] * x.[33] // Bbb + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            -1717.16681523593 * x.[14] * x.[6] * x.[33] // Bb + b + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            44.0299183393827 * x.[54] * x.[55] // Bbb + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
+            -44.0299183393827 * x.[14] * x.[6] * x.[55] // Bb + b + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
+            1717.16681523593 * x.[46] * x.[55] // BBb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            -1717.16681523593 * x.[4] * x.[14] * x.[55] // B + Bb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            44.0299183393827 * x.[46] * x.[33] // BBb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
+            -44.0299183393827 * x.[4] * x.[14] * x.[33] // B + Bb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
             1.0 * x.[54] // Bbb | ligation: Bb + b <-> Bbb
             -1.0 * x.[14] * x.[6] // Bb + b | ligation: Bb + b <-> Bbb
             1.0 * x.[53] // Bba | ligation: Bb + a <-> Bba
@@ -1247,22 +1131,10 @@ module ModelData =
     // 15 - aA
     let d15 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            -4404.73200206935 * x.[15] * x.[5] * x.[32] // aA + a + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            112.941846206906 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            -112.941846206906 * x.[15] * x.[5] * x.[58] // aA + a + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            4404.73200206935 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            -4404.73200206935 * x.[3] * x.[15] * x.[32] // A + aA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            112.941846206906 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
-            -112.941846206906 * x.[3] * x.[15] * x.[58] // A + aA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
-            -4404.73200206935 * x.[15] * x.[58] // aA + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            4404.73200206935 * x.[5] * x.[3] * x.[58] // a + A + aAb | catalytic ligation: a + A + aAb <-> aA + aAb
-            -112.941846206906 * x.[15] * x.[32] // aA + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            112.941846206906 * x.[5] * x.[3] * x.[32] // a + A + AaB | catalytic ligation: a + A + AaB <-> aA + AaB
-            4404.73200206935 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            -4404.73200206935 * x.[15] * x.[6] * x.[32] // aA + b + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            112.941846206906 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            -112.941846206906 * x.[15] * x.[6] * x.[58] // aA + b + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
+            1717.16681523593 * x.[56] * x.[55] // aAB + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            -1717.16681523593 * x.[15] * x.[4] * x.[55] // aA + B + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            44.0299183393827 * x.[56] * x.[33] // aAB + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
+            -44.0299183393827 * x.[15] * x.[4] * x.[33] // aA + B + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
             1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
             -1.0 * x.[4] * x.[15] // B + aA | ligation: B + aA <-> BaA
             1.0 * x.[79] // baA | ligation: b + aA <-> baA
@@ -1288,18 +1160,10 @@ module ModelData =
     // 16 - aB
     let d16 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -4404.73200206935 * x.[3] * x.[16] * x.[32] // A + aB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            112.941846206906 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            -112.941846206906 * x.[3] * x.[16] * x.[58] // A + aB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            -4404.73200206935 * x.[16] * x.[58] // aB + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            4404.73200206935 * x.[5] * x.[4] * x.[58] // a + B + aAb | catalytic ligation: a + B + aAb <-> aB + aAb
-            -112.941846206906 * x.[16] * x.[32] // aB + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            112.941846206906 * x.[5] * x.[4] * x.[32] // a + B + AaB | catalytic ligation: a + B + AaB <-> aB + AaB
-            4404.73200206935 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            -4404.73200206935 * x.[16] * x.[6] * x.[32] // aB + b + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            112.941846206906 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
-            -112.941846206906 * x.[16] * x.[6] * x.[58] // aB + b + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
+            1717.16681523593 * x.[60] * x.[55] // aBB + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            -1717.16681523593 * x.[16] * x.[4] * x.[55] // aB + B + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            44.0299183393827 * x.[60] * x.[33] // aBB + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
+            -44.0299183393827 * x.[16] * x.[4] * x.[33] // aB + B + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
             1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
             -1.0 * x.[4] * x.[16] // B + aB | ligation: B + aB <-> BaB
             1.0 * x.[80] // baB | ligation: b + aB <-> baB
@@ -1325,18 +1189,10 @@ module ModelData =
     // 17 - aa
     let d17 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[63] * x.[58] // aaA + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            -4404.73200206935 * x.[17] * x.[3] * x.[58] // aa + A + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            112.941846206906 * x.[63] * x.[32] // aaA + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
-            -112.941846206906 * x.[17] * x.[3] * x.[32] // aa + A + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
-            4404.73200206935 * x.[33] * x.[32] // Aaa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            -4404.73200206935 * x.[3] * x.[17] * x.[32] // A + aa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            112.941846206906 * x.[33] * x.[58] // Aaa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
-            -112.941846206906 * x.[3] * x.[17] * x.[58] // A + aa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
-            4404.73200206935 * x.[64] * x.[58] // aaB + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            -4404.73200206935 * x.[17] * x.[4] * x.[58] // aa + B + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            112.941846206906 * x.[64] * x.[32] // aaB + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
-            -112.941846206906 * x.[17] * x.[4] * x.[32] // aa + B + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
+            1717.16681523593 * x.[66] * x.[33] // aab + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            -1717.16681523593 * x.[17] * x.[6] * x.[33] // aa + b + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            44.0299183393827 * x.[66] * x.[55] // aab + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
+            -44.0299183393827 * x.[17] * x.[6] * x.[55] // aa + b + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
             1.0 * x.[49] // Baa | ligation: B + aa <-> Baa
             -1.0 * x.[4] * x.[17] // B + aa | ligation: B + aa <-> Baa
             1.0 * x.[81] // baa | ligation: b + aa <-> baa
@@ -1362,14 +1218,14 @@ module ModelData =
     // 18 - ab
     let d18 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[34] * x.[32] // Aab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            -4404.73200206935 * x.[3] * x.[18] * x.[32] // A + ab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            112.941846206906 * x.[34] * x.[58] // Aab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
-            -112.941846206906 * x.[3] * x.[18] * x.[58] // A + ab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
-            4404.73200206935 * x.[68] * x.[58] // abB + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            -4404.73200206935 * x.[18] * x.[4] * x.[58] // ab + B + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            112.941846206906 * x.[68] * x.[32] // abB + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
-            -112.941846206906 * x.[18] * x.[4] * x.[32] // ab + B + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
+            -1717.16681523593 * x.[18] * x.[33] // ab + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            1717.16681523593 * x.[5] * x.[6] * x.[33] // a + b + Aaa | catalytic ligation: a + b + Aaa <-> ab + Aaa
+            -44.0299183393827 * x.[18] * x.[55] // ab + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
+            44.0299183393827 * x.[5] * x.[6] * x.[55] // a + b + aAA | catalytic ligation: a + b + aAA <-> ab + aAA
+            1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            -1717.16681523593 * x.[18] * x.[6] * x.[33] // ab + b + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
+            -44.0299183393827 * x.[18] * x.[6] * x.[55] // ab + b + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
             1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
             -1.0 * x.[4] * x.[18] // B + ab | ligation: B + ab <-> Bab
             1.0 * x.[82] // bab | ligation: b + ab <-> bab
@@ -1395,22 +1251,18 @@ module ModelData =
     // 19 - bA
     let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[73] * x.[32] // bAa + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            -4404.73200206935 * x.[19] * x.[5] * x.[32] // bA + a + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            112.941846206906 * x.[73] * x.[58] // bAa + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
-            -112.941846206906 * x.[19] * x.[5] * x.[58] // bA + a + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
-            4404.73200206935 * x.[74] * x.[32] // bAb + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            -4404.73200206935 * x.[19] * x.[6] * x.[32] // bA + b + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            112.941846206906 * x.[74] * x.[58] // bAb + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
-            -112.941846206906 * x.[19] * x.[6] * x.[58] // bA + b + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
-            4404.73200206935 * x.[35] * x.[32] // AbA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            -4404.73200206935 * x.[3] * x.[19] * x.[32] // A + bA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            112.941846206906 * x.[35] * x.[58] // AbA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
-            -112.941846206906 * x.[3] * x.[19] * x.[58] // A + bA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
-            4404.73200206935 * x.[51] * x.[32] // BbA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            -4404.73200206935 * x.[4] * x.[19] * x.[32] // B + bA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            112.941846206906 * x.[51] * x.[58] // BbA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
-            -112.941846206906 * x.[4] * x.[19] * x.[58] // B + bA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
+            1717.16681523593 * x.[72] * x.[55] // bAB + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            -1717.16681523593 * x.[19] * x.[4] * x.[55] // bA + B + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            44.0299183393827 * x.[72] * x.[33] // bAB + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
+            -44.0299183393827 * x.[19] * x.[4] * x.[33] // bA + B + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
+            1717.16681523593 * x.[67] * x.[33] // abA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            -1717.16681523593 * x.[5] * x.[19] * x.[33] // a + bA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            44.0299183393827 * x.[67] * x.[55] // abA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
+            -44.0299183393827 * x.[5] * x.[19] * x.[55] // a + bA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
+            1717.16681523593 * x.[83] * x.[33] // bbA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            -1717.16681523593 * x.[6] * x.[19] * x.[33] // b + bA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            44.0299183393827 * x.[83] * x.[55] // bbA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
+            -44.0299183393827 * x.[6] * x.[19] * x.[55] // b + bA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
             1.0 * x.[72] // bAB | ligation: bA + B <-> bAB
             -1.0 * x.[19] * x.[4] // bA + B | ligation: bA + B <-> bAB
             1.0 * x.[71] // bAA | ligation: bA + A <-> bAA
@@ -1436,22 +1288,18 @@ module ModelData =
     // 20 - bB
     let d20 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            -4404.73200206935 * x.[3] * x.[20] * x.[32] // A + bB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            112.941846206906 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            -112.941846206906 * x.[3] * x.[20] * x.[58] // A + bB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            4404.73200206935 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            -4404.73200206935 * x.[20] * x.[6] * x.[32] // bB + b + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            112.941846206906 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            -112.941846206906 * x.[20] * x.[6] * x.[58] // bB + b + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            4404.73200206935 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            -4404.73200206935 * x.[4] * x.[20] * x.[32] // B + bB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            112.941846206906 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
-            -112.941846206906 * x.[4] * x.[20] * x.[58] // B + bB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
-            -4404.73200206935 * x.[20] * x.[58] // bB + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            4404.73200206935 * x.[6] * x.[4] * x.[58] // b + B + aAb | catalytic ligation: b + B + aAb <-> bB + aAb
-            -112.941846206906 * x.[20] * x.[32] // bB + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
-            112.941846206906 * x.[6] * x.[4] * x.[32] // b + B + AaB | catalytic ligation: b + B + AaB <-> bB + AaB
+            1717.16681523593 * x.[68] * x.[33] // abB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            -1717.16681523593 * x.[5] * x.[20] * x.[33] // a + bB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            44.0299183393827 * x.[68] * x.[55] // abB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
+            -44.0299183393827 * x.[5] * x.[20] * x.[55] // a + bB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
+            1717.16681523593 * x.[76] * x.[55] // bBB + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            -1717.16681523593 * x.[20] * x.[4] * x.[55] // bB + B + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            44.0299183393827 * x.[76] * x.[33] // bBB + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
+            -44.0299183393827 * x.[20] * x.[4] * x.[33] // bB + B + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
+            1717.16681523593 * x.[84] * x.[33] // bbB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            -1717.16681523593 * x.[6] * x.[20] * x.[33] // b + bB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            44.0299183393827 * x.[84] * x.[55] // bbB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
+            -44.0299183393827 * x.[6] * x.[20] * x.[55] // b + bB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
             1.0 * x.[76] // bBB | ligation: bB + B <-> bBB
             -1.0 * x.[20] * x.[4] // bB + B | ligation: bB + B <-> bBB
             1.0 * x.[75] // bBA | ligation: bB + A <-> bBA
@@ -1477,22 +1325,18 @@ module ModelData =
     // 21 - ba
     let d21 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[79] * x.[58] // baA + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            -4404.73200206935 * x.[21] * x.[3] * x.[58] // ba + A + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            112.941846206906 * x.[79] * x.[32] // baA + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
-            -112.941846206906 * x.[21] * x.[3] * x.[32] // ba + A + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
-            4404.73200206935 * x.[80] * x.[58] // baB + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            -4404.73200206935 * x.[21] * x.[4] * x.[58] // ba + B + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            112.941846206906 * x.[80] * x.[32] // baB + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
-            -112.941846206906 * x.[21] * x.[4] * x.[32] // ba + B + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
-            4404.73200206935 * x.[37] * x.[32] // Aba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            -4404.73200206935 * x.[3] * x.[21] * x.[32] // A + ba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            112.941846206906 * x.[37] * x.[58] // Aba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
-            -112.941846206906 * x.[3] * x.[21] * x.[58] // A + ba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
-            4404.73200206935 * x.[53] * x.[32] // Bba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            -4404.73200206935 * x.[4] * x.[21] * x.[32] // B + ba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            112.941846206906 * x.[53] * x.[58] // Bba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
-            -112.941846206906 * x.[4] * x.[21] * x.[58] // B + ba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
+            1717.16681523593 * x.[82] * x.[33] // bab + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            -1717.16681523593 * x.[21] * x.[6] * x.[33] // ba + b + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            44.0299183393827 * x.[82] * x.[55] // bab + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
+            -44.0299183393827 * x.[21] * x.[6] * x.[55] // ba + b + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
+            1717.16681523593 * x.[69] * x.[33] // aba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            -1717.16681523593 * x.[5] * x.[21] * x.[33] // a + ba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            44.0299183393827 * x.[69] * x.[55] // aba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
+            -44.0299183393827 * x.[5] * x.[21] * x.[55] // a + ba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
+            1717.16681523593 * x.[85] * x.[33] // bba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            -1717.16681523593 * x.[6] * x.[21] * x.[33] // b + ba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            44.0299183393827 * x.[85] * x.[55] // bba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
+            -44.0299183393827 * x.[6] * x.[21] * x.[55] // b + ba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
             1.0 * x.[80] // baB | ligation: ba + B <-> baB
             -1.0 * x.[21] * x.[4] // ba + B | ligation: ba + B <-> baB
             1.0 * x.[79] // baA | ligation: ba + A <-> baA
@@ -1518,18 +1362,22 @@ module ModelData =
     // 22 - bb
     let d22 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[84] * x.[58] // bbB + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            -4404.73200206935 * x.[22] * x.[4] * x.[58] // bb + B + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            112.941846206906 * x.[84] * x.[32] // bbB + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
-            -112.941846206906 * x.[22] * x.[4] * x.[32] // bb + B + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
-            4404.73200206935 * x.[54] * x.[32] // Bbb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            -4404.73200206935 * x.[4] * x.[22] * x.[32] // B + bb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            112.941846206906 * x.[54] * x.[58] // Bbb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
-            -112.941846206906 * x.[4] * x.[22] * x.[58] // B + bb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
-            4404.73200206935 * x.[38] * x.[32] // Abb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            -4404.73200206935 * x.[3] * x.[22] * x.[32] // A + bb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            112.941846206907 * x.[38] * x.[58] // Abb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
-            -112.941846206907 * x.[3] * x.[22] * x.[58] // A + bb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
+            1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            -1717.16681523593 * x.[5] * x.[22] * x.[33] // a + bb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            -44.0299183393827 * x.[5] * x.[22] * x.[55] // a + bb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            -1717.16681523593 * x.[22] * x.[6] * x.[33] // bb + b + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            -44.0299183393827 * x.[22] * x.[6] * x.[55] // bb + b + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            -1717.16681523593 * x.[6] * x.[22] * x.[33] // b + bb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
+            -44.0299183393827 * x.[6] * x.[22] * x.[55] // b + bb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
+            -1717.16681523593 * x.[22] * x.[33] // bb + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            1717.16681523593 * x.[6] * x.[6] * x.[33] // b + b + Aaa | catalytic ligation: b + b + Aaa <-> bb + Aaa
+            -44.0299183393827 * x.[22] * x.[55] // bb + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
+            44.0299183393827 * x.[6] * x.[6] * x.[55] // b + b + aAA | catalytic ligation: b + b + aAA <-> bb + aAA
             1.0 * x.[84] // bbB | ligation: bb + B <-> bbB
             -1.0 * x.[22] * x.[4] // bb + B | ligation: bb + B <-> bbB
             1.0 * x.[83] // bbA | ligation: bb + A <-> bbA
@@ -1566,6 +1414,10 @@ module ModelData =
     // 24 - AAB
     let d24 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[24] * x.[55] // AAB + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            1717.16681523593 * x.[7] * x.[4] * x.[55] // AA + B + aAA | catalytic ligation: AA + B + aAA <-> AAB + aAA
+            -44.0299183393827 * x.[24] * x.[33] // AAB + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
+            44.0299183393827 * x.[7] * x.[4] * x.[33] // AA + B + Aaa | catalytic ligation: AA + B + Aaa <-> AAB + Aaa
             -1.0 * x.[24] // AAB | ligation: AA + B <-> AAB
             1.0 * x.[7] * x.[4] // AA + B | ligation: AA + B <-> AAB
             -1.0 * x.[24] // AAB | ligation: A + AB <-> AAB
@@ -1577,10 +1429,6 @@ module ModelData =
     // 25 - AAa
     let d25 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[25] * x.[32] // AAa + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            4404.73200206935 * x.[7] * x.[5] * x.[32] // AA + a + AaB | catalytic ligation: AA + a + AaB <-> AAa + AaB
-            -112.941846206906 * x.[25] * x.[58] // AAa + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
-            112.941846206906 * x.[7] * x.[5] * x.[58] // AA + a + aAb | catalytic ligation: AA + a + aAb <-> AAa + aAb
             -1.0 * x.[25] // AAa | ligation: AA + a <-> AAa
             1.0 * x.[7] * x.[5] // AA + a | ligation: AA + a <-> AAa
             -1.0 * x.[25] // AAa | ligation: A + Aa <-> AAa
@@ -1592,10 +1440,6 @@ module ModelData =
     // 26 - AAb
     let d26 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[26] * x.[32] // AAb + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            4404.73200206935 * x.[7] * x.[6] * x.[32] // AA + b + AaB | catalytic ligation: AA + b + AaB <-> AAb + AaB
-            -112.941846206906 * x.[26] * x.[58] // AAb + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
-            112.941846206906 * x.[7] * x.[6] * x.[58] // AA + b + aAb | catalytic ligation: AA + b + aAb <-> AAb + aAb
             -1.0 * x.[26] // AAb | ligation: AA + b <-> AAb
             1.0 * x.[7] * x.[6] // AA + b | ligation: AA + b <-> AAb
             -1.0 * x.[26] // AAb | ligation: A + Ab <-> AAb
@@ -1607,6 +1451,10 @@ module ModelData =
     // 27 - ABA
     let d27 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[27] * x.[55] // ABA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            1717.16681523593 * x.[3] * x.[11] * x.[55] // A + BA + aAA | catalytic ligation: A + BA + aAA <-> ABA + aAA
+            -44.0299183393827 * x.[27] * x.[33] // ABA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
+            44.0299183393827 * x.[3] * x.[11] * x.[33] // A + BA + Aaa | catalytic ligation: A + BA + Aaa <-> ABA + Aaa
             -1.0 * x.[27] // ABA | ligation: AB + A <-> ABA
             1.0 * x.[8] * x.[3] // AB + A | ligation: AB + A <-> ABA
             -1.0 * x.[27] // ABA | ligation: A + BA <-> ABA
@@ -1618,6 +1466,14 @@ module ModelData =
     // 28 - ABB
     let d28 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            1717.16681523593 * x.[3] * x.[12] * x.[55] // A + BB + aAA | catalytic ligation: A + BB + aAA <-> ABB + aAA
+            -44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            44.0299183393827 * x.[3] * x.[12] * x.[33] // A + BB + Aaa | catalytic ligation: A + BB + Aaa <-> ABB + Aaa
+            -1717.16681523593 * x.[28] * x.[55] // ABB + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            1717.16681523593 * x.[8] * x.[4] * x.[55] // AB + B + aAA | catalytic ligation: AB + B + aAA <-> ABB + aAA
+            -44.0299183393827 * x.[28] * x.[33] // ABB + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
+            44.0299183393827 * x.[8] * x.[4] * x.[33] // AB + B + Aaa | catalytic ligation: AB + B + Aaa <-> ABB + Aaa
             -1.0 * x.[28] // ABB | ligation: AB + B <-> ABB
             1.0 * x.[8] * x.[4] // AB + B | ligation: AB + B <-> ABB
             -1.0 * x.[28] // ABB | ligation: A + BB <-> ABB
@@ -1629,6 +1485,10 @@ module ModelData =
     // 29 - ABa
     let d29 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[29] * x.[55] // ABa + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            1717.16681523593 * x.[3] * x.[13] * x.[55] // A + Ba + aAA | catalytic ligation: A + Ba + aAA <-> ABa + aAA
+            -44.0299183393827 * x.[29] * x.[33] // ABa + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
+            44.0299183393827 * x.[3] * x.[13] * x.[33] // A + Ba + Aaa | catalytic ligation: A + Ba + Aaa <-> ABa + Aaa
             -1.0 * x.[29] // ABa | ligation: AB + a <-> ABa
             1.0 * x.[8] * x.[5] // AB + a | ligation: AB + a <-> ABa
             -1.0 * x.[29] // ABa | ligation: A + Ba <-> ABa
@@ -1640,10 +1500,10 @@ module ModelData =
     // 30 - ABb
     let d30 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[30] * x.[32] // ABb + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            4404.73200206935 * x.[8] * x.[6] * x.[32] // AB + b + AaB | catalytic ligation: AB + b + AaB <-> ABb + AaB
-            -112.941846206906 * x.[30] * x.[58] // ABb + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
-            112.941846206906 * x.[8] * x.[6] * x.[58] // AB + b + aAb | catalytic ligation: AB + b + aAb <-> ABb + aAb
+            -1717.16681523593 * x.[30] * x.[55] // ABb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            1717.16681523593 * x.[3] * x.[14] * x.[55] // A + Bb + aAA | catalytic ligation: A + Bb + aAA <-> ABb + aAA
+            -44.0299183393827 * x.[30] * x.[33] // ABb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
+            44.0299183393827 * x.[3] * x.[14] * x.[33] // A + Bb + Aaa | catalytic ligation: A + Bb + Aaa <-> ABb + Aaa
             -1.0 * x.[30] // ABb | ligation: AB + b <-> ABb
             1.0 * x.[8] * x.[6] // AB + b | ligation: AB + b <-> ABb
             -1.0 * x.[30] // ABb | ligation: A + Bb <-> ABb
@@ -1655,14 +1515,6 @@ module ModelData =
     // 31 - AaA
     let d31 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            4404.73200206935 * x.[9] * x.[3] * x.[58] // Aa + A + aAb | catalytic ligation: Aa + A + aAb <-> AaA + aAb
-            -112.941846206906 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            112.941846206906 * x.[9] * x.[3] * x.[32] // Aa + A + AaB | catalytic ligation: Aa + A + AaB <-> AaA + AaB
-            -4404.73200206935 * x.[31] * x.[32] // AaA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            4404.73200206935 * x.[3] * x.[15] * x.[32] // A + aA + AaB | catalytic ligation: A + aA + AaB <-> AaA + AaB
-            -112.941846206906 * x.[31] * x.[58] // AaA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
-            112.941846206906 * x.[3] * x.[15] * x.[58] // A + aA + aAb | catalytic ligation: A + aA + aAb <-> AaA + aAb
             -1.0 * x.[31] // AaA | ligation: Aa + A <-> AaA
             1.0 * x.[9] * x.[3] // Aa + A | ligation: Aa + A <-> AaA
             -1.0 * x.[31] // AaA | ligation: A + aA <-> AaA
@@ -1674,22 +1526,6 @@ module ModelData =
     // 32 - AaB
     let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -4404.73200206935 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -4404.73200206935 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            4404.73200206935 * x.[3] * x.[16] * x.[32] // A + aB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            4404.73200206935 * x.[3] * x.[16] * x.[32] // A + aB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -4404.73200206935 * x.[3] * x.[16] * x.[32] // A + aB + AaB | catalytic ligation: A + aB + AaB <-> AaB + AaB
-            -112.941846206906 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            112.941846206906 * x.[3] * x.[16] * x.[58] // A + aB + aAb | catalytic ligation: A + aB + aAb <-> AaB + aAb
-            -4404.73200206935 * x.[32] * x.[58] // AaB + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            4404.73200206935 * x.[9] * x.[4] * x.[58] // Aa + B + aAb | catalytic ligation: Aa + B + aAb <-> AaB + aAb
-            112.941846206906 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            -112.941846206906 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            -112.941846206906 * x.[32] * x.[32] // AaB + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            112.941846206906 * x.[9] * x.[4] * x.[32] // Aa + B + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            112.941846206906 * x.[9] * x.[4] * x.[32] // Aa + B + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
-            -112.941846206906 * x.[9] * x.[4] * x.[32] // Aa + B + AaB | catalytic ligation: Aa + B + AaB <-> AaB + AaB
             -1.0 * x.[32] // AaB | ligation: Aa + B <-> AaB
             1.0 * x.[9] * x.[4] // Aa + B | ligation: Aa + B <-> AaB
             -1.0 * x.[32] // AaB | ligation: A + aB <-> AaB
@@ -1701,10 +1537,6 @@ module ModelData =
     // 33 - Aaa
     let d33 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[33] * x.[32] // Aaa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            4404.73200206935 * x.[3] * x.[17] * x.[32] // A + aa + AaB | catalytic ligation: A + aa + AaB <-> Aaa + AaB
-            -112.941846206906 * x.[33] * x.[58] // Aaa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
-            112.941846206906 * x.[3] * x.[17] * x.[58] // A + aa + aAb | catalytic ligation: A + aa + aAb <-> Aaa + aAb
             -1.0 * x.[33] // Aaa | ligation: Aa + a <-> Aaa
             1.0 * x.[9] * x.[5] // Aa + a | ligation: Aa + a <-> Aaa
             -1.0 * x.[33] // Aaa | ligation: A + aa <-> Aaa
@@ -1716,10 +1548,10 @@ module ModelData =
     // 34 - Aab
     let d34 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[34] * x.[32] // Aab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            4404.73200206935 * x.[3] * x.[18] * x.[32] // A + ab + AaB | catalytic ligation: A + ab + AaB <-> Aab + AaB
-            -112.941846206906 * x.[34] * x.[58] // Aab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
-            112.941846206906 * x.[3] * x.[18] * x.[58] // A + ab + aAb | catalytic ligation: A + ab + aAb <-> Aab + aAb
+            -1717.16681523593 * x.[34] * x.[33] // Aab + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            1717.16681523593 * x.[9] * x.[6] * x.[33] // Aa + b + Aaa | catalytic ligation: Aa + b + Aaa <-> Aab + Aaa
+            -44.0299183393827 * x.[34] * x.[55] // Aab + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
+            44.0299183393827 * x.[9] * x.[6] * x.[55] // Aa + b + aAA | catalytic ligation: Aa + b + aAA <-> Aab + aAA
             -1.0 * x.[34] // Aab | ligation: Aa + b <-> Aab
             1.0 * x.[9] * x.[6] // Aa + b | ligation: Aa + b <-> Aab
             -1.0 * x.[34] // Aab | ligation: A + ab <-> Aab
@@ -1731,10 +1563,6 @@ module ModelData =
     // 35 - AbA
     let d35 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[35] * x.[32] // AbA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            4404.73200206935 * x.[3] * x.[19] * x.[32] // A + bA + AaB | catalytic ligation: A + bA + AaB <-> AbA + AaB
-            -112.941846206906 * x.[35] * x.[58] // AbA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
-            112.941846206906 * x.[3] * x.[19] * x.[58] // A + bA + aAb | catalytic ligation: A + bA + aAb <-> AbA + aAb
             -1.0 * x.[35] // AbA | ligation: Ab + A <-> AbA
             1.0 * x.[10] * x.[3] // Ab + A | ligation: Ab + A <-> AbA
             -1.0 * x.[35] // AbA | ligation: A + bA <-> AbA
@@ -1746,14 +1574,6 @@ module ModelData =
     // 36 - AbB
     let d36 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            4404.73200206935 * x.[3] * x.[20] * x.[32] // A + bB + AaB | catalytic ligation: A + bB + AaB <-> AbB + AaB
-            -112.941846206906 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            112.941846206906 * x.[3] * x.[20] * x.[58] // A + bB + aAb | catalytic ligation: A + bB + aAb <-> AbB + aAb
-            -4404.73200206935 * x.[36] * x.[58] // AbB + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            4404.73200206935 * x.[10] * x.[4] * x.[58] // Ab + B + aAb | catalytic ligation: Ab + B + aAb <-> AbB + aAb
-            -112.941846206906 * x.[36] * x.[32] // AbB + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
-            112.941846206906 * x.[10] * x.[4] * x.[32] // Ab + B + AaB | catalytic ligation: Ab + B + AaB <-> AbB + AaB
             -1.0 * x.[36] // AbB | ligation: Ab + B <-> AbB
             1.0 * x.[10] * x.[4] // Ab + B | ligation: Ab + B <-> AbB
             -1.0 * x.[36] // AbB | ligation: A + bB <-> AbB
@@ -1765,10 +1585,6 @@ module ModelData =
     // 37 - Aba
     let d37 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[37] * x.[32] // Aba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            4404.73200206935 * x.[3] * x.[21] * x.[32] // A + ba + AaB | catalytic ligation: A + ba + AaB <-> Aba + AaB
-            -112.941846206906 * x.[37] * x.[58] // Aba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
-            112.941846206906 * x.[3] * x.[21] * x.[58] // A + ba + aAb | catalytic ligation: A + ba + aAb <-> Aba + aAb
             -1.0 * x.[37] // Aba | ligation: Ab + a <-> Aba
             1.0 * x.[10] * x.[5] // Ab + a | ligation: Ab + a <-> Aba
             -1.0 * x.[37] // Aba | ligation: A + ba <-> Aba
@@ -1780,10 +1596,10 @@ module ModelData =
     // 38 - Abb
     let d38 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[38] * x.[32] // Abb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            4404.73200206935 * x.[3] * x.[22] * x.[32] // A + bb + AaB | catalytic ligation: A + bb + AaB <-> Abb + AaB
-            -112.941846206907 * x.[38] * x.[58] // Abb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
-            112.941846206907 * x.[3] * x.[22] * x.[58] // A + bb + aAb | catalytic ligation: A + bb + aAb <-> Abb + aAb
+            -1717.16681523593 * x.[38] * x.[33] // Abb + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            1717.16681523593 * x.[10] * x.[6] * x.[33] // Ab + b + Aaa | catalytic ligation: Ab + b + Aaa <-> Abb + Aaa
+            -44.0299183393827 * x.[38] * x.[55] // Abb + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
+            44.0299183393827 * x.[10] * x.[6] * x.[55] // Ab + b + aAA | catalytic ligation: Ab + b + aAA <-> Abb + aAA
             -1.0 * x.[38] // Abb | ligation: Ab + b <-> Abb
             1.0 * x.[10] * x.[6] // Ab + b | ligation: Ab + b <-> Abb
             -1.0 * x.[38] // Abb | ligation: A + bb <-> Abb
@@ -1806,6 +1622,10 @@ module ModelData =
     // 40 - BAB
     let d40 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[40] * x.[55] // BAB + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            1717.16681523593 * x.[11] * x.[4] * x.[55] // BA + B + aAA | catalytic ligation: BA + B + aAA <-> BAB + aAA
+            -44.0299183393827 * x.[40] * x.[33] // BAB + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
+            44.0299183393827 * x.[11] * x.[4] * x.[33] // BA + B + Aaa | catalytic ligation: BA + B + Aaa <-> BAB + Aaa
             -1.0 * x.[40] // BAB | ligation: BA + B <-> BAB
             1.0 * x.[11] * x.[4] // BA + B | ligation: BA + B <-> BAB
             -1.0 * x.[40] // BAB | ligation: B + AB <-> BAB
@@ -1817,10 +1637,6 @@ module ModelData =
     // 41 - BAa
     let d41 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[41] * x.[32] // BAa + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            4404.73200206935 * x.[11] * x.[5] * x.[32] // BA + a + AaB | catalytic ligation: BA + a + AaB <-> BAa + AaB
-            -112.941846206906 * x.[41] * x.[58] // BAa + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
-            112.941846206906 * x.[11] * x.[5] * x.[58] // BA + a + aAb | catalytic ligation: BA + a + aAb <-> BAa + aAb
             -1.0 * x.[41] // BAa | ligation: BA + a <-> BAa
             1.0 * x.[11] * x.[5] // BA + a | ligation: BA + a <-> BAa
             -1.0 * x.[41] // BAa | ligation: B + Aa <-> BAa
@@ -1832,10 +1648,6 @@ module ModelData =
     // 42 - BAb
     let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[42] * x.[32] // BAb + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            4404.73200206935 * x.[11] * x.[6] * x.[32] // BA + b + AaB | catalytic ligation: BA + b + AaB <-> BAb + AaB
-            -112.941846206906 * x.[42] * x.[58] // BAb + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
-            112.941846206906 * x.[11] * x.[6] * x.[58] // BA + b + aAb | catalytic ligation: BA + b + aAb <-> BAb + aAb
             -1.0 * x.[42] // BAb | ligation: BA + b <-> BAb
             1.0 * x.[11] * x.[6] // BA + b | ligation: BA + b <-> BAb
             -1.0 * x.[42] // BAb | ligation: B + Ab <-> BAb
@@ -1847,6 +1659,10 @@ module ModelData =
     // 43 - BBA
     let d43 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[43] * x.[55] // BBA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            1717.16681523593 * x.[4] * x.[11] * x.[55] // B + BA + aAA | catalytic ligation: B + BA + aAA <-> BBA + aAA
+            -44.0299183393827 * x.[43] * x.[33] // BBA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
+            44.0299183393827 * x.[4] * x.[11] * x.[33] // B + BA + Aaa | catalytic ligation: B + BA + Aaa <-> BBA + Aaa
             -1.0 * x.[43] // BBA | ligation: BB + A <-> BBA
             1.0 * x.[12] * x.[3] // BB + A | ligation: BB + A <-> BBA
             -1.0 * x.[43] // BBA | ligation: B + BA <-> BBA
@@ -1858,6 +1674,14 @@ module ModelData =
     // 44 - BBB
     let d44 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            1717.16681523593 * x.[12] * x.[4] * x.[55] // BB + B + aAA | catalytic ligation: BB + B + aAA <-> BBB + aAA
+            -44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            44.0299183393827 * x.[12] * x.[4] * x.[33] // BB + B + Aaa | catalytic ligation: BB + B + Aaa <-> BBB + Aaa
+            -1717.16681523593 * x.[44] * x.[55] // BBB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            1717.16681523593 * x.[4] * x.[12] * x.[55] // B + BB + aAA | catalytic ligation: B + BB + aAA <-> BBB + aAA
+            -44.0299183393827 * x.[44] * x.[33] // BBB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
+            44.0299183393827 * x.[4] * x.[12] * x.[33] // B + BB + Aaa | catalytic ligation: B + BB + Aaa <-> BBB + Aaa
             -1.0 * x.[44] // BBB | ligation: BB + B <-> BBB
             1.0 * x.[12] * x.[4] // BB + B | ligation: BB + B <-> BBB
             -1.0 * x.[44] // BBB | ligation: B + BB <-> BBB
@@ -1869,6 +1693,10 @@ module ModelData =
     // 45 - BBa
     let d45 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[45] * x.[55] // BBa + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            1717.16681523593 * x.[4] * x.[13] * x.[55] // B + Ba + aAA | catalytic ligation: B + Ba + aAA <-> BBa + aAA
+            -44.0299183393827 * x.[45] * x.[33] // BBa + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
+            44.0299183393827 * x.[4] * x.[13] * x.[33] // B + Ba + Aaa | catalytic ligation: B + Ba + Aaa <-> BBa + Aaa
             -1.0 * x.[45] // BBa | ligation: BB + a <-> BBa
             1.0 * x.[12] * x.[5] // BB + a | ligation: BB + a <-> BBa
             -1.0 * x.[45] // BBa | ligation: B + Ba <-> BBa
@@ -1880,10 +1708,10 @@ module ModelData =
     // 46 - BBb
     let d46 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[46] * x.[32] // BBb + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            4404.73200206935 * x.[12] * x.[6] * x.[32] // BB + b + AaB | catalytic ligation: BB + b + AaB <-> BBb + AaB
-            -112.941846206906 * x.[46] * x.[58] // BBb + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
-            112.941846206906 * x.[12] * x.[6] * x.[58] // BB + b + aAb | catalytic ligation: BB + b + aAb <-> BBb + aAb
+            -1717.16681523593 * x.[46] * x.[55] // BBb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            1717.16681523593 * x.[4] * x.[14] * x.[55] // B + Bb + aAA | catalytic ligation: B + Bb + aAA <-> BBb + aAA
+            -44.0299183393827 * x.[46] * x.[33] // BBb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
+            44.0299183393827 * x.[4] * x.[14] * x.[33] // B + Bb + Aaa | catalytic ligation: B + Bb + Aaa <-> BBb + Aaa
             -1.0 * x.[46] // BBb | ligation: BB + b <-> BBb
             1.0 * x.[12] * x.[6] // BB + b | ligation: BB + b <-> BBb
             -1.0 * x.[46] // BBb | ligation: B + Bb <-> BBb
@@ -1895,10 +1723,6 @@ module ModelData =
     // 47 - BaA
     let d47 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[47] * x.[58] // BaA + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            4404.73200206935 * x.[13] * x.[3] * x.[58] // Ba + A + aAb | catalytic ligation: Ba + A + aAb <-> BaA + aAb
-            -112.941846206906 * x.[47] * x.[32] // BaA + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
-            112.941846206906 * x.[13] * x.[3] * x.[32] // Ba + A + AaB | catalytic ligation: Ba + A + AaB <-> BaA + AaB
             -1.0 * x.[47] // BaA | ligation: Ba + A <-> BaA
             1.0 * x.[13] * x.[3] // Ba + A | ligation: Ba + A <-> BaA
             -1.0 * x.[47] // BaA | ligation: B + aA <-> BaA
@@ -1910,10 +1734,6 @@ module ModelData =
     // 48 - BaB
     let d48 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[48] * x.[58] // BaB + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            4404.73200206935 * x.[13] * x.[4] * x.[58] // Ba + B + aAb | catalytic ligation: Ba + B + aAb <-> BaB + aAb
-            -112.941846206906 * x.[48] * x.[32] // BaB + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
-            112.941846206906 * x.[13] * x.[4] * x.[32] // Ba + B + AaB | catalytic ligation: Ba + B + AaB <-> BaB + AaB
             -1.0 * x.[48] // BaB | ligation: Ba + B <-> BaB
             1.0 * x.[13] * x.[4] // Ba + B | ligation: Ba + B <-> BaB
             -1.0 * x.[48] // BaB | ligation: B + aB <-> BaB
@@ -1936,6 +1756,10 @@ module ModelData =
     // 50 - Bab
     let d50 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[50] * x.[33] // Bab + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            1717.16681523593 * x.[13] * x.[6] * x.[33] // Ba + b + Aaa | catalytic ligation: Ba + b + Aaa <-> Bab + Aaa
+            -44.0299183393827 * x.[50] * x.[55] // Bab + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
+            44.0299183393827 * x.[13] * x.[6] * x.[55] // Ba + b + aAA | catalytic ligation: Ba + b + aAA <-> Bab + aAA
             -1.0 * x.[50] // Bab | ligation: Ba + b <-> Bab
             1.0 * x.[13] * x.[6] // Ba + b | ligation: Ba + b <-> Bab
             -1.0 * x.[50] // Bab | ligation: B + ab <-> Bab
@@ -1947,10 +1771,6 @@ module ModelData =
     // 51 - BbA
     let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[51] * x.[32] // BbA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            4404.73200206935 * x.[4] * x.[19] * x.[32] // B + bA + AaB | catalytic ligation: B + bA + AaB <-> BbA + AaB
-            -112.941846206906 * x.[51] * x.[58] // BbA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
-            112.941846206906 * x.[4] * x.[19] * x.[58] // B + bA + aAb | catalytic ligation: B + bA + aAb <-> BbA + aAb
             -1.0 * x.[51] // BbA | ligation: Bb + A <-> BbA
             1.0 * x.[14] * x.[3] // Bb + A | ligation: Bb + A <-> BbA
             -1.0 * x.[51] // BbA | ligation: B + bA <-> BbA
@@ -1962,14 +1782,6 @@ module ModelData =
     // 52 - BbB
     let d52 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            4404.73200206935 * x.[14] * x.[4] * x.[58] // Bb + B + aAb | catalytic ligation: Bb + B + aAb <-> BbB + aAb
-            -112.941846206906 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            112.941846206906 * x.[14] * x.[4] * x.[32] // Bb + B + AaB | catalytic ligation: Bb + B + AaB <-> BbB + AaB
-            -4404.73200206935 * x.[52] * x.[32] // BbB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            4404.73200206935 * x.[4] * x.[20] * x.[32] // B + bB + AaB | catalytic ligation: B + bB + AaB <-> BbB + AaB
-            -112.941846206906 * x.[52] * x.[58] // BbB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
-            112.941846206906 * x.[4] * x.[20] * x.[58] // B + bB + aAb | catalytic ligation: B + bB + aAb <-> BbB + aAb
             -1.0 * x.[52] // BbB | ligation: Bb + B <-> BbB
             1.0 * x.[14] * x.[4] // Bb + B | ligation: Bb + B <-> BbB
             -1.0 * x.[52] // BbB | ligation: B + bB <-> BbB
@@ -1981,10 +1793,6 @@ module ModelData =
     // 53 - Bba
     let d53 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[53] * x.[32] // Bba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            4404.73200206935 * x.[4] * x.[21] * x.[32] // B + ba + AaB | catalytic ligation: B + ba + AaB <-> Bba + AaB
-            -112.941846206906 * x.[53] * x.[58] // Bba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
-            112.941846206906 * x.[4] * x.[21] * x.[58] // B + ba + aAb | catalytic ligation: B + ba + aAb <-> Bba + aAb
             -1.0 * x.[53] // Bba | ligation: Bb + a <-> Bba
             1.0 * x.[14] * x.[5] // Bb + a | ligation: Bb + a <-> Bba
             -1.0 * x.[53] // Bba | ligation: B + ba <-> Bba
@@ -1996,10 +1804,10 @@ module ModelData =
     // 54 - Bbb
     let d54 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[54] * x.[32] // Bbb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            4404.73200206935 * x.[4] * x.[22] * x.[32] // B + bb + AaB | catalytic ligation: B + bb + AaB <-> Bbb + AaB
-            -112.941846206906 * x.[54] * x.[58] // Bbb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
-            112.941846206906 * x.[4] * x.[22] * x.[58] // B + bb + aAb | catalytic ligation: B + bb + aAb <-> Bbb + aAb
+            -1717.16681523593 * x.[54] * x.[33] // Bbb + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            1717.16681523593 * x.[14] * x.[6] * x.[33] // Bb + b + Aaa | catalytic ligation: Bb + b + Aaa <-> Bbb + Aaa
+            -44.0299183393827 * x.[54] * x.[55] // Bbb + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
+            44.0299183393827 * x.[14] * x.[6] * x.[55] // Bb + b + aAA | catalytic ligation: Bb + b + aAA <-> Bbb + aAA
             -1.0 * x.[54] // Bbb | ligation: Bb + b <-> Bbb
             1.0 * x.[14] * x.[6] // Bb + b | ligation: Bb + b <-> Bbb
             -1.0 * x.[54] // Bbb | ligation: B + bb <-> Bbb
@@ -2011,10 +1819,6 @@ module ModelData =
     // 55 - aAA
     let d55 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[55] * x.[58] // aAA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            4404.73200206935 * x.[5] * x.[7] * x.[58] // a + AA + aAb | catalytic ligation: a + AA + aAb <-> aAA + aAb
-            -112.941846206906 * x.[55] * x.[32] // aAA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
-            112.941846206906 * x.[5] * x.[7] * x.[32] // a + AA + AaB | catalytic ligation: a + AA + AaB <-> aAA + AaB
             -1.0 * x.[55] // aAA | ligation: aA + A <-> aAA
             1.0 * x.[15] * x.[3] // aA + A | ligation: aA + A <-> aAA
             -1.0 * x.[55] // aAA | ligation: a + AA <-> aAA
@@ -2026,10 +1830,10 @@ module ModelData =
     // 56 - aAB
     let d56 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[56] * x.[58] // aAB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            4404.73200206935 * x.[5] * x.[8] * x.[58] // a + AB + aAb | catalytic ligation: a + AB + aAb <-> aAB + aAb
-            -112.941846206906 * x.[56] * x.[32] // aAB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
-            112.941846206906 * x.[5] * x.[8] * x.[32] // a + AB + AaB | catalytic ligation: a + AB + AaB <-> aAB + AaB
+            -1717.16681523593 * x.[56] * x.[55] // aAB + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            1717.16681523593 * x.[15] * x.[4] * x.[55] // aA + B + aAA | catalytic ligation: aA + B + aAA <-> aAB + aAA
+            -44.0299183393827 * x.[56] * x.[33] // aAB + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
+            44.0299183393827 * x.[15] * x.[4] * x.[33] // aA + B + Aaa | catalytic ligation: aA + B + Aaa <-> aAB + Aaa
             -1.0 * x.[56] // aAB | ligation: aA + B <-> aAB
             1.0 * x.[15] * x.[4] // aA + B | ligation: aA + B <-> aAB
             -1.0 * x.[56] // aAB | ligation: a + AB <-> aAB
@@ -2041,14 +1845,6 @@ module ModelData =
     // 57 - aAa
     let d57 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            4404.73200206935 * x.[15] * x.[5] * x.[32] // aA + a + AaB | catalytic ligation: aA + a + AaB <-> aAa + AaB
-            -112.941846206906 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            112.941846206906 * x.[15] * x.[5] * x.[58] // aA + a + aAb | catalytic ligation: aA + a + aAb <-> aAa + aAb
-            -4404.73200206935 * x.[57] * x.[58] // aAa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            4404.73200206935 * x.[5] * x.[9] * x.[58] // a + Aa + aAb | catalytic ligation: a + Aa + aAb <-> aAa + aAb
-            -112.941846206906 * x.[57] * x.[32] // aAa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
-            112.941846206906 * x.[5] * x.[9] * x.[32] // a + Aa + AaB | catalytic ligation: a + Aa + AaB <-> aAa + AaB
             -1.0 * x.[57] // aAa | ligation: aA + a <-> aAa
             1.0 * x.[15] * x.[5] // aA + a | ligation: aA + a <-> aAa
             -1.0 * x.[57] // aAa | ligation: a + Aa <-> aAa
@@ -2060,22 +1856,6 @@ module ModelData =
     // 58 - aAb
     let d58 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            4404.73200206935 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -4404.73200206935 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -4404.73200206935 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            4404.73200206935 * x.[5] * x.[10] * x.[58] // a + Ab + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            4404.73200206935 * x.[5] * x.[10] * x.[58] // a + Ab + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -4404.73200206935 * x.[5] * x.[10] * x.[58] // a + Ab + aAb | catalytic ligation: a + Ab + aAb <-> aAb + aAb
-            -112.941846206906 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            112.941846206906 * x.[5] * x.[10] * x.[32] // a + Ab + AaB | catalytic ligation: a + Ab + AaB <-> aAb + AaB
-            -4404.73200206935 * x.[58] * x.[32] // aAb + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            4404.73200206935 * x.[15] * x.[6] * x.[32] // aA + b + AaB | catalytic ligation: aA + b + AaB <-> aAb + AaB
-            112.941846206906 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            -112.941846206906 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            -112.941846206906 * x.[58] * x.[58] // aAb + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            112.941846206906 * x.[15] * x.[6] * x.[58] // aA + b + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            112.941846206906 * x.[15] * x.[6] * x.[58] // aA + b + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
-            -112.941846206906 * x.[15] * x.[6] * x.[58] // aA + b + aAb | catalytic ligation: aA + b + aAb <-> aAb + aAb
             -1.0 * x.[58] // aAb | ligation: aA + b <-> aAb
             1.0 * x.[15] * x.[6] // aA + b | ligation: aA + b <-> aAb
             -1.0 * x.[58] // aAb | ligation: a + Ab <-> aAb
@@ -2087,10 +1867,6 @@ module ModelData =
     // 59 - aBA
     let d59 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[59] * x.[58] // aBA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            4404.73200206935 * x.[5] * x.[11] * x.[58] // a + BA + aAb | catalytic ligation: a + BA + aAb <-> aBA + aAb
-            -112.941846206906 * x.[59] * x.[32] // aBA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
-            112.941846206906 * x.[5] * x.[11] * x.[32] // a + BA + AaB | catalytic ligation: a + BA + AaB <-> aBA + AaB
             -1.0 * x.[59] // aBA | ligation: aB + A <-> aBA
             1.0 * x.[16] * x.[3] // aB + A | ligation: aB + A <-> aBA
             -1.0 * x.[59] // aBA | ligation: a + BA <-> aBA
@@ -2102,10 +1878,10 @@ module ModelData =
     // 60 - aBB
     let d60 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[60] * x.[58] // aBB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            4404.73200206935 * x.[5] * x.[12] * x.[58] // a + BB + aAb | catalytic ligation: a + BB + aAb <-> aBB + aAb
-            -112.941846206907 * x.[60] * x.[32] // aBB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
-            112.941846206907 * x.[5] * x.[12] * x.[32] // a + BB + AaB | catalytic ligation: a + BB + AaB <-> aBB + AaB
+            -1717.16681523593 * x.[60] * x.[55] // aBB + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            1717.16681523593 * x.[16] * x.[4] * x.[55] // aB + B + aAA | catalytic ligation: aB + B + aAA <-> aBB + aAA
+            -44.0299183393827 * x.[60] * x.[33] // aBB + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
+            44.0299183393827 * x.[16] * x.[4] * x.[33] // aB + B + Aaa | catalytic ligation: aB + B + Aaa <-> aBB + Aaa
             -1.0 * x.[60] // aBB | ligation: aB + B <-> aBB
             1.0 * x.[16] * x.[4] // aB + B | ligation: aB + B <-> aBB
             -1.0 * x.[60] // aBB | ligation: a + BB <-> aBB
@@ -2117,10 +1893,6 @@ module ModelData =
     // 61 - aBa
     let d61 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[61] * x.[58] // aBa + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            4404.73200206935 * x.[5] * x.[13] * x.[58] // a + Ba + aAb | catalytic ligation: a + Ba + aAb <-> aBa + aAb
-            -112.941846206906 * x.[61] * x.[32] // aBa + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
-            112.941846206906 * x.[5] * x.[13] * x.[32] // a + Ba + AaB | catalytic ligation: a + Ba + AaB <-> aBa + AaB
             -1.0 * x.[61] // aBa | ligation: aB + a <-> aBa
             1.0 * x.[16] * x.[5] // aB + a | ligation: aB + a <-> aBa
             -1.0 * x.[61] // aBa | ligation: a + Ba <-> aBa
@@ -2132,14 +1904,6 @@ module ModelData =
     // 62 - aBb
     let d62 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            4404.73200206935 * x.[5] * x.[14] * x.[58] // a + Bb + aAb | catalytic ligation: a + Bb + aAb <-> aBb + aAb
-            -112.941846206906 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            112.941846206906 * x.[5] * x.[14] * x.[32] // a + Bb + AaB | catalytic ligation: a + Bb + AaB <-> aBb + AaB
-            -4404.73200206935 * x.[62] * x.[32] // aBb + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            4404.73200206935 * x.[16] * x.[6] * x.[32] // aB + b + AaB | catalytic ligation: aB + b + AaB <-> aBb + AaB
-            -112.941846206906 * x.[62] * x.[58] // aBb + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
-            112.941846206906 * x.[16] * x.[6] * x.[58] // aB + b + aAb | catalytic ligation: aB + b + aAb <-> aBb + aAb
             -1.0 * x.[62] // aBb | ligation: aB + b <-> aBb
             1.0 * x.[16] * x.[6] // aB + b | ligation: aB + b <-> aBb
             -1.0 * x.[62] // aBb | ligation: a + Bb <-> aBb
@@ -2151,10 +1915,6 @@ module ModelData =
     // 63 - aaA
     let d63 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[63] * x.[58] // aaA + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            4404.73200206935 * x.[17] * x.[3] * x.[58] // aa + A + aAb | catalytic ligation: aa + A + aAb <-> aaA + aAb
-            -112.941846206906 * x.[63] * x.[32] // aaA + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
-            112.941846206906 * x.[17] * x.[3] * x.[32] // aa + A + AaB | catalytic ligation: aa + A + AaB <-> aaA + AaB
             -1.0 * x.[63] // aaA | ligation: aa + A <-> aaA
             1.0 * x.[17] * x.[3] // aa + A | ligation: aa + A <-> aaA
             -1.0 * x.[63] // aaA | ligation: a + aA <-> aaA
@@ -2166,10 +1926,6 @@ module ModelData =
     // 64 - aaB
     let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[64] * x.[58] // aaB + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            4404.73200206935 * x.[17] * x.[4] * x.[58] // aa + B + aAb | catalytic ligation: aa + B + aAb <-> aaB + aAb
-            -112.941846206906 * x.[64] * x.[32] // aaB + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
-            112.941846206906 * x.[17] * x.[4] * x.[32] // aa + B + AaB | catalytic ligation: aa + B + AaB <-> aaB + AaB
             -1.0 * x.[64] // aaB | ligation: aa + B <-> aaB
             1.0 * x.[17] * x.[4] // aa + B | ligation: aa + B <-> aaB
             -1.0 * x.[64] // aaB | ligation: a + aB <-> aaB
@@ -2192,6 +1948,10 @@ module ModelData =
     // 66 - aab
     let d66 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[66] * x.[33] // aab + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            1717.16681523593 * x.[17] * x.[6] * x.[33] // aa + b + Aaa | catalytic ligation: aa + b + Aaa <-> aab + Aaa
+            -44.0299183393827 * x.[66] * x.[55] // aab + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
+            44.0299183393827 * x.[17] * x.[6] * x.[55] // aa + b + aAA | catalytic ligation: aa + b + aAA <-> aab + aAA
             -1.0 * x.[66] // aab | ligation: aa + b <-> aab
             1.0 * x.[17] * x.[6] // aa + b | ligation: aa + b <-> aab
             -1.0 * x.[66] // aab | ligation: a + ab <-> aab
@@ -2203,6 +1963,10 @@ module ModelData =
     // 67 - abA
     let d67 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[67] * x.[33] // abA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            1717.16681523593 * x.[5] * x.[19] * x.[33] // a + bA + Aaa | catalytic ligation: a + bA + Aaa <-> abA + Aaa
+            -44.0299183393827 * x.[67] * x.[55] // abA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
+            44.0299183393827 * x.[5] * x.[19] * x.[55] // a + bA + aAA | catalytic ligation: a + bA + aAA <-> abA + aAA
             -1.0 * x.[67] // abA | ligation: ab + A <-> abA
             1.0 * x.[18] * x.[3] // ab + A | ligation: ab + A <-> abA
             -1.0 * x.[67] // abA | ligation: a + bA <-> abA
@@ -2214,10 +1978,10 @@ module ModelData =
     // 68 - abB
     let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[68] * x.[58] // abB + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            4404.73200206935 * x.[18] * x.[4] * x.[58] // ab + B + aAb | catalytic ligation: ab + B + aAb <-> abB + aAb
-            -112.941846206906 * x.[68] * x.[32] // abB + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
-            112.941846206906 * x.[18] * x.[4] * x.[32] // ab + B + AaB | catalytic ligation: ab + B + AaB <-> abB + AaB
+            -1717.16681523593 * x.[68] * x.[33] // abB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            1717.16681523593 * x.[5] * x.[20] * x.[33] // a + bB + Aaa | catalytic ligation: a + bB + Aaa <-> abB + Aaa
+            -44.0299183393827 * x.[68] * x.[55] // abB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
+            44.0299183393827 * x.[5] * x.[20] * x.[55] // a + bB + aAA | catalytic ligation: a + bB + aAA <-> abB + aAA
             -1.0 * x.[68] // abB | ligation: ab + B <-> abB
             1.0 * x.[18] * x.[4] // ab + B | ligation: ab + B <-> abB
             -1.0 * x.[68] // abB | ligation: a + bB <-> abB
@@ -2229,6 +1993,10 @@ module ModelData =
     // 69 - aba
     let d69 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[69] * x.[33] // aba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            1717.16681523593 * x.[5] * x.[21] * x.[33] // a + ba + Aaa | catalytic ligation: a + ba + Aaa <-> aba + Aaa
+            -44.0299183393827 * x.[69] * x.[55] // aba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
+            44.0299183393827 * x.[5] * x.[21] * x.[55] // a + ba + aAA | catalytic ligation: a + ba + aAA <-> aba + aAA
             -1.0 * x.[69] // aba | ligation: ab + a <-> aba
             1.0 * x.[18] * x.[5] // ab + a | ligation: ab + a <-> aba
             -1.0 * x.[69] // aba | ligation: a + ba <-> aba
@@ -2240,6 +2008,14 @@ module ModelData =
     // 70 - abb
     let d70 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            1717.16681523593 * x.[5] * x.[22] * x.[33] // a + bb + Aaa | catalytic ligation: a + bb + Aaa <-> abb + Aaa
+            -44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            44.0299183393827 * x.[5] * x.[22] * x.[55] // a + bb + aAA | catalytic ligation: a + bb + aAA <-> abb + aAA
+            -1717.16681523593 * x.[70] * x.[33] // abb + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            1717.16681523593 * x.[18] * x.[6] * x.[33] // ab + b + Aaa | catalytic ligation: ab + b + Aaa <-> abb + Aaa
+            -44.0299183393827 * x.[70] * x.[55] // abb + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
+            44.0299183393827 * x.[18] * x.[6] * x.[55] // ab + b + aAA | catalytic ligation: ab + b + aAA <-> abb + aAA
             -1.0 * x.[70] // abb | ligation: ab + b <-> abb
             1.0 * x.[18] * x.[6] // ab + b | ligation: ab + b <-> abb
             -1.0 * x.[70] // abb | ligation: a + bb <-> abb
@@ -2262,6 +2038,10 @@ module ModelData =
     // 72 - bAB
     let d72 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[72] * x.[55] // bAB + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            1717.16681523593 * x.[19] * x.[4] * x.[55] // bA + B + aAA | catalytic ligation: bA + B + aAA <-> bAB + aAA
+            -44.0299183393827 * x.[72] * x.[33] // bAB + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
+            44.0299183393827 * x.[19] * x.[4] * x.[33] // bA + B + Aaa | catalytic ligation: bA + B + Aaa <-> bAB + Aaa
             -1.0 * x.[72] // bAB | ligation: bA + B <-> bAB
             1.0 * x.[19] * x.[4] // bA + B | ligation: bA + B <-> bAB
             -1.0 * x.[72] // bAB | ligation: b + AB <-> bAB
@@ -2273,10 +2053,6 @@ module ModelData =
     // 73 - bAa
     let d73 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[73] * x.[32] // bAa + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            4404.73200206935 * x.[19] * x.[5] * x.[32] // bA + a + AaB | catalytic ligation: bA + a + AaB <-> bAa + AaB
-            -112.941846206906 * x.[73] * x.[58] // bAa + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
-            112.941846206906 * x.[19] * x.[5] * x.[58] // bA + a + aAb | catalytic ligation: bA + a + aAb <-> bAa + aAb
             -1.0 * x.[73] // bAa | ligation: bA + a <-> bAa
             1.0 * x.[19] * x.[5] // bA + a | ligation: bA + a <-> bAa
             -1.0 * x.[73] // bAa | ligation: b + Aa <-> bAa
@@ -2288,10 +2064,6 @@ module ModelData =
     // 74 - bAb
     let d74 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[74] * x.[32] // bAb + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            4404.73200206935 * x.[19] * x.[6] * x.[32] // bA + b + AaB | catalytic ligation: bA + b + AaB <-> bAb + AaB
-            -112.941846206906 * x.[74] * x.[58] // bAb + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
-            112.941846206906 * x.[19] * x.[6] * x.[58] // bA + b + aAb | catalytic ligation: bA + b + aAb <-> bAb + aAb
             -1.0 * x.[74] // bAb | ligation: bA + b <-> bAb
             1.0 * x.[19] * x.[6] // bA + b | ligation: bA + b <-> bAb
             -1.0 * x.[74] // bAb | ligation: b + Ab <-> bAb
@@ -2303,10 +2075,6 @@ module ModelData =
     // 75 - bBA
     let d75 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[75] * x.[58] // bBA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            4404.73200206935 * x.[6] * x.[11] * x.[58] // b + BA + aAb | catalytic ligation: b + BA + aAb <-> bBA + aAb
-            -112.941846206906 * x.[75] * x.[32] // bBA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
-            112.941846206906 * x.[6] * x.[11] * x.[32] // b + BA + AaB | catalytic ligation: b + BA + AaB <-> bBA + AaB
             -1.0 * x.[75] // bBA | ligation: bB + A <-> bBA
             1.0 * x.[20] * x.[3] // bB + A | ligation: bB + A <-> bBA
             -1.0 * x.[75] // bBA | ligation: b + BA <-> bBA
@@ -2318,10 +2086,10 @@ module ModelData =
     // 76 - bBB
     let d76 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[76] * x.[58] // bBB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            4404.73200206935 * x.[6] * x.[12] * x.[58] // b + BB + aAb | catalytic ligation: b + BB + aAb <-> bBB + aAb
-            -112.941846206906 * x.[76] * x.[32] // bBB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
-            112.941846206906 * x.[6] * x.[12] * x.[32] // b + BB + AaB | catalytic ligation: b + BB + AaB <-> bBB + AaB
+            -1717.16681523593 * x.[76] * x.[55] // bBB + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            1717.16681523593 * x.[20] * x.[4] * x.[55] // bB + B + aAA | catalytic ligation: bB + B + aAA <-> bBB + aAA
+            -44.0299183393827 * x.[76] * x.[33] // bBB + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
+            44.0299183393827 * x.[20] * x.[4] * x.[33] // bB + B + Aaa | catalytic ligation: bB + B + Aaa <-> bBB + Aaa
             -1.0 * x.[76] // bBB | ligation: bB + B <-> bBB
             1.0 * x.[20] * x.[4] // bB + B | ligation: bB + B <-> bBB
             -1.0 * x.[76] // bBB | ligation: b + BB <-> bBB
@@ -2333,10 +2101,6 @@ module ModelData =
     // 77 - bBa
     let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[77] * x.[58] // bBa + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            4404.73200206935 * x.[6] * x.[13] * x.[58] // b + Ba + aAb | catalytic ligation: b + Ba + aAb <-> bBa + aAb
-            -112.941846206906 * x.[77] * x.[32] // bBa + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
-            112.941846206906 * x.[6] * x.[13] * x.[32] // b + Ba + AaB | catalytic ligation: b + Ba + AaB <-> bBa + AaB
             -1.0 * x.[77] // bBa | ligation: bB + a <-> bBa
             1.0 * x.[20] * x.[5] // bB + a | ligation: bB + a <-> bBa
             -1.0 * x.[77] // bBa | ligation: b + Ba <-> bBa
@@ -2348,14 +2112,6 @@ module ModelData =
     // 78 - bBb
     let d78 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            4404.73200206935 * x.[20] * x.[6] * x.[32] // bB + b + AaB | catalytic ligation: bB + b + AaB <-> bBb + AaB
-            -112.941846206906 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            112.941846206906 * x.[20] * x.[6] * x.[58] // bB + b + aAb | catalytic ligation: bB + b + aAb <-> bBb + aAb
-            -4404.73200206935 * x.[78] * x.[58] // bBb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            4404.73200206935 * x.[6] * x.[14] * x.[58] // b + Bb + aAb | catalytic ligation: b + Bb + aAb <-> bBb + aAb
-            -112.941846206906 * x.[78] * x.[32] // bBb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
-            112.941846206906 * x.[6] * x.[14] * x.[32] // b + Bb + AaB | catalytic ligation: b + Bb + AaB <-> bBb + AaB
             -1.0 * x.[78] // bBb | ligation: bB + b <-> bBb
             1.0 * x.[20] * x.[6] // bB + b | ligation: bB + b <-> bBb
             -1.0 * x.[78] // bBb | ligation: b + Bb <-> bBb
@@ -2367,10 +2123,6 @@ module ModelData =
     // 79 - baA
     let d79 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[79] * x.[58] // baA + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            4404.73200206935 * x.[21] * x.[3] * x.[58] // ba + A + aAb | catalytic ligation: ba + A + aAb <-> baA + aAb
-            -112.941846206906 * x.[79] * x.[32] // baA + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
-            112.941846206906 * x.[21] * x.[3] * x.[32] // ba + A + AaB | catalytic ligation: ba + A + AaB <-> baA + AaB
             -1.0 * x.[79] // baA | ligation: ba + A <-> baA
             1.0 * x.[21] * x.[3] // ba + A | ligation: ba + A <-> baA
             -1.0 * x.[79] // baA | ligation: b + aA <-> baA
@@ -2382,10 +2134,6 @@ module ModelData =
     // 80 - baB
     let d80 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[80] * x.[58] // baB + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            4404.73200206935 * x.[21] * x.[4] * x.[58] // ba + B + aAb | catalytic ligation: ba + B + aAb <-> baB + aAb
-            -112.941846206906 * x.[80] * x.[32] // baB + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
-            112.941846206906 * x.[21] * x.[4] * x.[32] // ba + B + AaB | catalytic ligation: ba + B + AaB <-> baB + AaB
             -1.0 * x.[80] // baB | ligation: ba + B <-> baB
             1.0 * x.[21] * x.[4] // ba + B | ligation: ba + B <-> baB
             -1.0 * x.[80] // baB | ligation: b + aB <-> baB
@@ -2408,6 +2156,10 @@ module ModelData =
     // 82 - bab
     let d82 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[82] * x.[33] // bab + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            1717.16681523593 * x.[21] * x.[6] * x.[33] // ba + b + Aaa | catalytic ligation: ba + b + Aaa <-> bab + Aaa
+            -44.0299183393827 * x.[82] * x.[55] // bab + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
+            44.0299183393827 * x.[21] * x.[6] * x.[55] // ba + b + aAA | catalytic ligation: ba + b + aAA <-> bab + aAA
             -1.0 * x.[82] // bab | ligation: ba + b <-> bab
             1.0 * x.[21] * x.[6] // ba + b | ligation: ba + b <-> bab
             -1.0 * x.[82] // bab | ligation: b + ab <-> bab
@@ -2419,6 +2171,10 @@ module ModelData =
     // 83 - bbA
     let d83 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[83] * x.[33] // bbA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            1717.16681523593 * x.[6] * x.[19] * x.[33] // b + bA + Aaa | catalytic ligation: b + bA + Aaa <-> bbA + Aaa
+            -44.0299183393827 * x.[83] * x.[55] // bbA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
+            44.0299183393827 * x.[6] * x.[19] * x.[55] // b + bA + aAA | catalytic ligation: b + bA + aAA <-> bbA + aAA
             -1.0 * x.[83] // bbA | ligation: bb + A <-> bbA
             1.0 * x.[22] * x.[3] // bb + A | ligation: bb + A <-> bbA
             -1.0 * x.[83] // bbA | ligation: b + bA <-> bbA
@@ -2430,10 +2186,10 @@ module ModelData =
     // 84 - bbB
     let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
-            -4404.73200206935 * x.[84] * x.[58] // bbB + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            4404.73200206935 * x.[22] * x.[4] * x.[58] // bb + B + aAb | catalytic ligation: bb + B + aAb <-> bbB + aAb
-            -112.941846206906 * x.[84] * x.[32] // bbB + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
-            112.941846206906 * x.[22] * x.[4] * x.[32] // bb + B + AaB | catalytic ligation: bb + B + AaB <-> bbB + AaB
+            -1717.16681523593 * x.[84] * x.[33] // bbB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            1717.16681523593 * x.[6] * x.[20] * x.[33] // b + bB + Aaa | catalytic ligation: b + bB + Aaa <-> bbB + Aaa
+            -44.0299183393827 * x.[84] * x.[55] // bbB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
+            44.0299183393827 * x.[6] * x.[20] * x.[55] // b + bB + aAA | catalytic ligation: b + bB + aAA <-> bbB + aAA
             -1.0 * x.[84] // bbB | ligation: bb + B <-> bbB
             1.0 * x.[22] * x.[4] // bb + B | ligation: bb + B <-> bbB
             -1.0 * x.[84] // bbB | ligation: b + bB <-> bbB
@@ -2445,6 +2201,10 @@ module ModelData =
     // 85 - bba
     let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[85] * x.[33] // bba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            1717.16681523593 * x.[6] * x.[21] * x.[33] // b + ba + Aaa | catalytic ligation: b + ba + Aaa <-> bba + Aaa
+            -44.0299183393827 * x.[85] * x.[55] // bba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
+            44.0299183393827 * x.[6] * x.[21] * x.[55] // b + ba + aAA | catalytic ligation: b + ba + aAA <-> bba + aAA
             -1.0 * x.[85] // bba | ligation: bb + a <-> bba
             1.0 * x.[22] * x.[5] // bb + a | ligation: bb + a <-> bba
             -1.0 * x.[85] // bba | ligation: b + ba <-> bba
@@ -2456,6 +2216,14 @@ module ModelData =
     // 86 - bbb
     let d86 (x : array<double>) xSum xSumN xSumSquaredN = 
         [|
+            -1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            1717.16681523593 * x.[22] * x.[6] * x.[33] // bb + b + Aaa | catalytic ligation: bb + b + Aaa <-> bbb + Aaa
+            -44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            44.0299183393827 * x.[22] * x.[6] * x.[55] // bb + b + aAA | catalytic ligation: bb + b + aAA <-> bbb + aAA
+            -1717.16681523593 * x.[86] * x.[33] // bbb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            1717.16681523593 * x.[6] * x.[22] * x.[33] // b + bb + Aaa | catalytic ligation: b + bb + Aaa <-> bbb + Aaa
+            -44.0299183393827 * x.[86] * x.[55] // bbb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
+            44.0299183393827 * x.[6] * x.[22] * x.[55] // b + bb + aAA | catalytic ligation: b + bb + aAA <-> bbb + aAA
             -1.0 * x.[86] // bbb | ligation: bb + b <-> bbb
             1.0 * x.[22] * x.[6] // bb + b | ligation: bb + b <-> bbb
             -1.0 * x.[86] // bbb | ligation: b + bb <-> bbb
@@ -2750,11 +2518,11 @@ module ModelData =
                                             {
                                                 fileStructureVersion = 4.0000m
                                                 versionNumber = "5.0.3"
-                                                modelDataId = ("f40d9be2-ce30-4981-9c1e-7b2ed1138425" |> Guid |> ModelDataId)
+                                                modelDataId = ("33321819-19ba-4cee-83d1-27dea698bd1d" |> Guid |> ModelDataId)
                                                 numberOfSubstances = 87
                                                 numberOfAminoAcids = NumberOfAminoAcids.TwoAminoAcids
                                                 maxPeptideLength = MaxPeptideLength.ThreeMax
-                                                seedValue = 1118393691
+                                                seedValue = 152097045
                                                 clmDefaultValueId = ClmDefaultValueId 4002000020L
                                             }
 
@@ -2856,7 +2624,7 @@ module ModelData =
                                         allReactions =
                                             [
                                                 (LigationName, 144L)
-                                                (CatalyticLigationName, 108L)
+                                                (CatalyticLigationName, 72L)
                                             ]
                                     }
 

@@ -113,6 +113,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 getReactionData = fun _ -> p.aminoAcids
+                inverse = fun (SynthesisReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticSynthesisReaction
@@ -234,6 +235,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 getReactionData = fun _ -> p.aminoAcids
+                inverse = fun (DestructionReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticDestructionReaction
@@ -465,15 +467,11 @@ module ReactionRateModels =
                 catalyst = c
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
                 getMatchingReactionMult = fun x -> x
+                inverse = fun r -> r.peptideBond
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
-
-                simReactionCreator =
-                    fun e ->
-                        ((p.peptideBondData.findSameBond e) @ (p.peptideBondData.findSameBond s.peptideBond))
-                        |> List.distinct
-
+                simReactionCreator = fun e -> p.peptideBondData.findSameBond e
                 getBaseRates = p.catLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.catLigModel.getRates rnd t
                 simParams = p.catLigSimParam
@@ -591,6 +589,7 @@ module ReactionRateModels =
                 reaction = s
                 catalyst = c
                 getReactionData = fun _ -> p.aminoAcids
+                inverse = fun (RacemizationReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticRacemizationReaction

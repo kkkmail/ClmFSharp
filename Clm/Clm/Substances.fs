@@ -357,6 +357,11 @@ module Substances =
             | L a -> R a
             | R a -> L a
 
+        member aminoAcid.aminoAcid =
+            match aminoAcid with
+            | L a -> a
+            | R a -> a
+
         static member getAminoAcids n =
             (AminoAcid.getAminoAcids n |> List.map (fun a -> L a))
             @

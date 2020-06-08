@@ -83,45 +83,39 @@ module ReactionRateFunctions =
             reaction : 'R
             catalyst : 'C
 
-            // Gets the list of reaction data "objects" to choose from.
-            // For e.g. catalytic synthesis this is a list of all amino acids.
-            //
-            // For catalytic ligation this may depend on the model.
-            // The most standard model returns list of all peptide bonds of the same symmetry.
-            // If input reaction's peptide bond is (A, B) and we have 3 amino acids (A, B, C) then
-            // the model will return [ (A, A); (A, B), (A, C); (B, A); (B, B); (B, C); (C, A); (C, B), (C, C) ]
+            /// Gets the list of reaction data "objects" to choose from.
+            /// For e.g. catalytic synthesis this is a list of all amino acids.
+            ///
+            /// For catalytic ligation this may depend on the model.
+            /// The most standard model returns list of all peptide bonds of the same symmetry.
+            /// If input reaction's peptide bond is (A, B) and we have 3 amino acids (A, B, C) then
+            /// the model will return [ (A, A); (A, B), (A, C); (B, A); (B, B); (B, C); (C, A); (C, B), (C, C) ]
             getReactionData : 'R -> list<'A>
 
-//            // Reactions that match given reaction by some parameters controlled by the model.
-//            // This is mostly for catalytic ligation where a model may require that catalyst is applied to the
-//            // same peptide bond. The most standard model returns all ligation reaction with the same peptide bond.
-//            // E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
-//            // reactions which bind A and b in that order excluding the input reaction.
-//            //
-//            // All other reactions (e.g. catalytic synthesis) should return empty list.
-//            getMatchingReactions : 'R -> list<'R>
-//
-//            // Creates a reaction that matches input reaction 'R but replaces a relevant portion with 'A.
-//            // This only affects ligation reaction.
-//            // E.g. if 'R = <P1>A + b<P2> and 'A = C + d then create reaction <P1>C + d<P2>
-//            matchingReactionCreator : 'R -> 'A -> 'R
+            /// Produces the underlying data for a given reaction.
+            inverse : 'R -> 'A
 
-            // Adjusts rate multiplier for matching reactions.
+            /// Adjusts rate multiplier for matching reactions.
             getMatchingReactionMult : double -> double
 
             getCatEnantiomer : 'C -> 'C
             catReactionCreator : ('R * 'C) -> 'RC
 
-            // Creates reactions, which are similar to a given input.
-            // For synthesis this is just the reaction itself.
-            // For ligation, the most standard model returns all ligation reaction with the same peptide bond.
-            // E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
-            // reactions which bind A and b in that order.
+            /// Creates reactions, which are similar to a given input.
+            /// For synthesis this is just the reaction itself.
+            /// For ligation, the most standard model returns all ligation reaction with the same peptide bond.
+            /// E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
+            /// reactions which bind A and b in that order.
             simReactionCreator : 'A -> list<'R>
 
             getCatReactEnantiomer : 'RC -> 'RC
-            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
+
+            /// Get rates of base (not catalyzed) reaction.
+            getBaseRates : 'R -> RateData
+
+            /// Get rates of underlying catalyzed reaction.
+            getBaseCatRates : 'RC -> RateData
+
             simParams : CatRatesSimilarityParam
             eeParams : CatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
@@ -185,16 +179,21 @@ module ReactionRateFunctions =
             match i.simParams.catRatesSimGeneration with
             | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
             | FixedValue d ->
-                /// Here we need to ensure that number of successes is NOT random but fixed.
-                let isDefined j =
-                    match d.value.distributionParams.threshold with
-                    | Some t -> (double j) < t * (double aa.Length)
-                    | None -> true
+                /// TODO kk:20200607
+                /// Here we need to ensure that number of successes is NOT random but fixed
+                /// and that we always include the reactions with the same "data".
+                /// This probably should change and be controlled by distributions (as most of the things here), but not today.
+                let isDefined j x =
+                    let b = (i.inverse (i.reaction)) = x
+                    match b, d.value.distributionParams.threshold with
+                    | true, _ -> true
+                    | false, Some t -> (double j) < t * (double aa.Length)
+                    | false, None -> true
 
                 aa
                 |> List.map(fun a -> i.rnd.nextDouble(), a)
                 |> List.sortBy (fun (r, _) -> r)
-                |> List.mapi (fun j (_, a) -> a, isDefined j)
+                |> List.mapi (fun j (_, a) -> a, isDefined j a)
 
         a
 
@@ -238,7 +237,7 @@ module ReactionRateFunctions =
 
         b
 
-    let calculateSimRates<'A, 'R, 'C, 'RC when 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
+    let calculateSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
         let br = i.getBaseRates i.reaction // (bf, bb)

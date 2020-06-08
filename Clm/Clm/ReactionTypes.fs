@@ -68,13 +68,18 @@ module ReactionTypes =
             output : list<Substance * int>
         }
 
-        member this.getName n a =
+        member this.getName n a d =
             let g (l : list<Substance * int>) =
                 l
                 |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
                 |> String.concat " + "
 
-            n + ": " + (g this.input) + a + (g this.output)
+            let b =
+                match d with
+                | Some v -> " " + v
+                | None -> ""
+
+            n + b + ": " + (g this.input) + a + (g this.output)
 
         member this.normalized() =
             let normalize d =
@@ -191,6 +196,14 @@ module ReactionTypes =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticSynthesisReaction
 
+        member r.baseReaction =
+            let (CatalyticSynthesisReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticSynthesisReaction (a, b)) = r
+            b
+
 
     type CatalyticDestructionReaction =
         | CatalyticDestructionReaction of (DestructionReaction * DestrCatalyst)
@@ -211,6 +224,15 @@ module ReactionTypes =
         member r.withEnantiomerCatalyst =
             let (CatalyticDestructionReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticDestructionReaction
+
+
+        member r.baseReaction =
+            let (CatalyticDestructionReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticDestructionReaction (a, b)) = r
+            b
 
 
     /// A directed pair of amino acids forming peptide bond.
@@ -354,6 +376,14 @@ module ReactionTypes =
             let (CatalyticLigationReaction (l, c)) = r
             (l.enantiomer, c.enantiomer) |> CatalyticLigationReaction
 
+        member r.baseReaction =
+            let (CatalyticLigationReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticLigationReaction (a, b)) = r
+            b
+
         member r.withEnantiomerCatalyst =
             let (CatalyticLigationReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticLigationReaction
@@ -459,6 +489,14 @@ module ReactionTypes =
             let (CatalyticRacemizationReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticRacemizationReaction
 
+        member r.baseReaction =
+            let (CatalyticRacemizationReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticRacemizationReaction (a, b)) = r
+            b
+
 
     let inline getName i = ((^T) : (member name : 'T) (i))
     let inline getInfo i = ((^T) : (member info : 'T) (i))
@@ -526,3 +564,19 @@ module ReactionTypes =
             | SedimentationAll r -> SedimentationAll r // There are no enantiomers here.
             | Racemization r -> r.enantiomer |> Racemization
             | CatalyticRacemization r -> r.enantiomer |> CatalyticRacemization
+
+        member r.addInfo =
+            match r with
+            | FoodCreation r -> None
+            | WasteRemoval r -> None
+            | WasteRecycling r -> None
+            | Synthesis r -> None
+            | Destruction r -> None
+            | CatalyticSynthesis r -> None
+            | CatalyticDestruction r -> None
+            | Ligation r -> r.peptideBond.ToString() |> Some
+            | CatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
+            | SedimentationDirect r -> None
+            | SedimentationAll r -> None
+            | Racemization r -> None
+            | CatalyticRacemization r -> None

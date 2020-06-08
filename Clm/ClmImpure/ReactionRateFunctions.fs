@@ -199,7 +199,7 @@ module ReactionRateFunctions =
         a
 
     let getSimRates i aa getEeParams rateMult =
-        printfn "getSimRates: aa = %A\n\n" aa
+        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseData i aa
@@ -208,8 +208,9 @@ module ReactionRateFunctions =
         x
         |> List.filter (fun (_, b, _) -> b)
         |> List.sortBy (fun (a, _, _) -> a.ToString())
-        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A\n" (a.ToString()) r)
+        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
         |> ignore
+        printfn "\n"
 
         let a =
             x
@@ -244,14 +245,14 @@ module ReactionRateFunctions =
         let cr = r |> i.getBaseCatRates // (f, b)
         let aa = i.getReactionData i.reaction
 
-        printfn "calculateSimRates: r = %A\n\n" r
+        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
             let rateMult = getRateMult br cr cre
-            printfn "calculateSimRates: br = %A, cr = %A, cre = %A, rateMult = %A" br cr cre rateMult
+            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getEeParams = getEeParams i cr cre
             getSimRates i aa getEeParams rateMult
         |> ignore

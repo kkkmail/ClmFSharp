@@ -39,7 +39,7 @@ module ReactionRates =
             backwardRate : ReactionRate option
         }
 
-        override r.ToString() = sprintf "{ forwardRate: %A; backwardRate: %A }" r.forwardRate r.backwardRate
+        override r.ToString() = sprintf "{ f: %A; b: %A }" r.forwardRate r.backwardRate
 
 
     let bind f xOpt =

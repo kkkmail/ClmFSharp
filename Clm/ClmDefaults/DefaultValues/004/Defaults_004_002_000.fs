@@ -39,7 +39,12 @@ module Defaults_004_002_000 =
         ]
 
         // Remove once no longer needed.
-        |> List.map (fun (a, b) -> 1000.0 * a, b)
+//        // For N = 3
+//        |> List.map (fun (a, b) -> 1000.0 * a, b)
+
+        // For N = 2
+        |> List.map (fun (a, b) -> 2500.0 * a, b)
+
 
         |> List.map (fun (a, b) -> Some a, b)
         |> withRowNumber

@@ -468,7 +468,12 @@ module ReactionRateModels =
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = (fun e -> p.peptideBondData.findSameBond e)
+
+                simReactionCreator =
+                    fun e ->
+                        ((p.peptideBondData.findSameBond e) @ (p.peptideBondData.findSameBond s.peptideBond))
+                        |> List.distinct
+
                 getBaseRates = p.catLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.catLigModel.getRates rnd t
                 simParams = p.catLigSimParam

@@ -108,7 +108,7 @@ module CalculationData =
             let ligationPairs =
                 List.allPairs allLigChains allLigChains
                 |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
-                |> List.filter (fun (a, _) -> a.Head.isL)
+                //|> List.filter (fun (a, _) -> a.Head.isL)
                 |> List.distinct
                 |> List.sort
                 |> List.map LigationReaction

@@ -179,7 +179,7 @@ module ReactionRateFunctions =
             match i.simParams.catRatesSimGeneration with
             | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
             | FixedValue d ->
-                /// TODO kk:20200607
+                /// TODO kk:20200607 - Follow the description below.
                 /// Here we need to ensure that number of successes is NOT random but fixed
                 /// and that we always include the reactions with the same "data".
                 /// This probably should change and be controlled by distributions (as most of the things here), but not today.
@@ -198,42 +198,42 @@ module ReactionRateFunctions =
         a
 
     let getSimRates i aa getEeParams rateMult =
-        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+//        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseData i aa
             |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
 
-        x
-        |> List.filter (fun (_, b, _) -> b)
-        |> List.sortBy (fun (a, _, _) -> a.ToString())
-        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
-        |> ignore
-        printfn "\n"
+//        x
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
 
         let a =
             x
             |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
             |> List.concat
 
-        a
-        |> List.filter (fun (_, b, _) -> b)
-        |> List.sortBy (fun (a, _, _) -> a.ToString())
-        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
-        |> ignore
-        printfn "\n"
+//        a
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
 
         let b =
             a
             |> List.filter (fun (e, _, _) -> e <> i.reaction)
             |> List.map (fun (e, b, m) -> e, calculateSimCatRates i e i.catalyst (getEeParams m b))
 
-        b
-        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
-        |> List.sortBy (fun (a, _) -> a.ToString())
-        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
-        |> ignore
-        printfn "\n"
+//        b
+//        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+//        |> List.sortBy (fun (a, _) -> a.ToString())
+//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> ignore
+//        printfn "\n"
 
         b
 
@@ -244,14 +244,14 @@ module ReactionRateFunctions =
         let cr = r |> i.getBaseCatRates // (f, b)
         let aa = i.getReactionData i.reaction
 
-        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
+//        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
             let rateMult = getRateMult br cr cre
-            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+//            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getEeParams = getEeParams i cr cre
             getSimRates i aa getEeParams rateMult
         |> ignore
@@ -274,7 +274,6 @@ module ReactionRateFunctions =
         | None ->
             i.aminoAcids
             |> List.map (fun a -> i.reagents.[a])
-            //|> List.choose id
             |> List.concat
             |> List.map (fun e -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent SedDirRatesEeParam.defaultValue)
             |> ignore
@@ -302,8 +301,6 @@ module ReactionRateFunctions =
 
             i.aminoAcids
             |> List.map (fun a -> i.reagents.[a], i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
-            //|> List.map (fun (e, b) -> e |> Option.bind (fun x -> Some (x, b)))
-            //|> List.choose id
             |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
             |> List.concat
             |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))

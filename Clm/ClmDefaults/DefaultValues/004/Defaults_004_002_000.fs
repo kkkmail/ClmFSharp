@@ -9,6 +9,7 @@ open ClmSys.ContGenPrimitives
 module Defaults_004_002_000 =
     let sdSim = 0.1
 
+    /// Max 19 rows.
     let nSim =
         [
             0.0000
@@ -25,6 +26,7 @@ module Defaults_004_002_000 =
         |> withRowNumber
 
 
+    /// Max 49 rows.
     let mScMult =
         [
             (0.0,                 0.0)
@@ -35,24 +37,8 @@ module Defaults_004_002_000 =
             (0.000_000_020, 100_000.0)
             (0.000_000_050, 100_000.0)
             (0.000_000_100, 100_000.0)
-            (0.000_000_200, 100_000.0)
-            (0.000_000_500, 100_000.0)
-            (0.000_001_000, 100_000.0)
-//            (0.000_002_000, 100_000.0)
-//            (0.000_005_000, 100_000.0)
-//            (0.000_010_000, 100_000.0)
-//            (0.000_020_000, 100_000.0)
-//            (0.000_050_000, 100_000.0)
         ]
-
-//        // Remove once no longer needed.
-//        // For N = 3
-//        |> List.map (fun (a, b) -> 1000.0 * a, b)
-//
-//        // For N = 2
-//        |> List.map (fun (a, b) -> 2500.0 * a, b)
-
-      |> withRowNumber
+        |> withRowNumber
 
 
     let getDefaultValue ((n, similarity), (m, (scarcity, multiplier))) =

@@ -185,6 +185,7 @@ module ReactionRateFunctions =
                 /// This probably should change and be controlled by distributions (as most of the things here), but not today.
                 let isDefined j x =
                     let b = (i.inverse (i.reaction)) = x
+
                     match b, d.value.distributionParams.threshold with
                     | true, _ -> true
                     | false, Some t -> (double j) < t * (double aa.Length)

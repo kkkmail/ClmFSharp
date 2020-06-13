@@ -7,14 +7,8 @@ open ClmSys.MessagingPrimitives
 
 module MsgProcessorProxy =
 
-    type TryRemoveReceivedMessageResult =
-        | RemovedSucessfully
-        | RemovedWithError of ClmError
-        | FailedToRemove of ClmError
-
-
     type MessageProcessorResult<'T> =
-        | ProcessedSucessfully of 'T
+        | ProcessedSuccessfully of 'T
         | ProcessedWithError of ('T * ClmError)
         | ProcessedWithFailedToRemove of ('T * ClmError)
         | FailedToProcess of ClmError
@@ -25,10 +19,11 @@ module MsgProcessorProxy =
     type MessageProcessorProxy =
         {
             start : unit -> UnitResult
-            tryPeekReceivedMessage : unit -> Message option
-            tryRemoveReceivedMessage : MessageId -> TryRemoveReceivedMessageResult
+            tryPeekReceivedMessage : unit -> ClmResult<Message option>
+            tryRemoveReceivedMessage : MessageId -> UnitResult
             sendMessage : MessageInfo -> UnitResult
-            transmitMessages : unit -> UnitResult
+            tryReceiveMessages : unit -> UnitResult
+            trySendMessages : unit -> UnitResult
             removeExpiredMessages : unit -> UnitResult
         }
 
@@ -57,12 +52,12 @@ module MsgProcessorProxy =
             | () :: t ->
                 //printfn "onGetMessages: Calling proxy.tryProcessMessage..."
                 match proxy.tryProcessMessage acc proxy.onProcessMessage with
-                | ProcessedSucessfully (g, u) ->
+                | ProcessedSuccessfully (g, u) ->
                     match u with
                     | Ok() -> doFold t (g, r)
                     | Error e ->
                         printfn "onGetMessages: Got error: %A" e
-                        doFold t (g, (addError ProcessedSucessfullyWithInnerErr e, r) ||> combineUnitResults)
+                        doFold t (g, (addError ProcessedSuccessfullyWithInnerErr e, r) ||> combineUnitResults)
                 | ProcessedWithError ((g, u), e) -> g, [ addError ProcessedWithErr e; u; r ] |> foldUnitResults
                 | ProcessedWithFailedToRemove((g, u), e) -> g, [ addError ProcessedWithFailedToRemoveErr e; u; r ] |> foldUnitResults
                 | FailedToProcess e -> acc, addError FailedToProcessErr e

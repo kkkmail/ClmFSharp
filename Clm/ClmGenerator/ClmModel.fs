@@ -42,8 +42,6 @@ module ClmModel =
             |> SubstInfo.create
 
         let rateProvider = ReactionRateProvider (rrp, si)
-
-
         let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType
 
         let modelInfo =
@@ -76,7 +74,7 @@ module ClmModel =
 
         let substToString s = si.allNamesMap.[s]
         let reactToString r = allReacMap.[r]
-        let lstToString (l : list<Substance * int>) = 
+        let lstToString (l : list<Substance * int>) =
             l
             |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + (substToString s))
             |> String.concat " + "
@@ -150,11 +148,11 @@ module ClmModel =
                 |> List.choose id
                 |> List.map (fun (s, i) -> "                    " + (toMult i) + (x s) + " // " + (substToString s))
 
-            let gg (v : list<string>) = 
+            let gg (v : list<string>) =
                 let a = v |> String.concat Nl
                 "                [|" + Nl + a + Nl + "                |]" + Nl + "                |> Array.sum" + Nl
 
-            let gg1 ((a : AminoAcid), l, r) = 
+            let gg1 ((a : AminoAcid), l, r) =
                 "            // " + a.name + Nl + "            (" + Nl + (gg l) + "                ," + Nl + (gg r) + "            )" + Nl
 
             let y =
@@ -232,7 +230,7 @@ module ClmModel =
 
 
             let getReaction s =
-                match reactions.TryFind s with 
+                match reactions.TryFind s with
                 | Some r -> r |> List.rev |> List.map (fun (_, e) -> e) |> String.concat String.Empty
                 | None -> String.Empty
 
@@ -242,7 +240,7 @@ module ClmModel =
                 | Some (ReactionRate _) ->
                     match s with
                     | Simple h ->
-                        match h with 
+                        match h with
                         | Abundant -> String.Empty
                         | Food -> String.Empty
                         | Waste -> Nl + shift + "            " + coeffSedAllName + " * (2.0 * " + xSumName + " * " + xSumNameN + " - " + xSumSquaredNameN + ")"
@@ -266,8 +264,8 @@ module ClmModel =
                 let shift, g =
                     match xPar with
                     | "" -> "    ", d
-                    | _ -> 
-                        let d1 s = 
+                    | _ ->
+                        let d1 s =
                             (d s) + " (" + xName + " : array<double>) " + xSumName + " " + xSumNameN + " " + xSumSquaredNameN
                         String.Empty, d1
 
@@ -311,21 +309,21 @@ module ClmModel =
             let sumCodeN = "        let " + xSumNameN + " = " + Nl + "            [|" + Nl + sc + Nl + "            |]" + Nl + "            |> Array.sum" + Nl + Nl
             let sumSquaredCodeN = "        let " + xSumSquaredNameN + " = " + Nl + "            [|" + Nl + sc2 + Nl + "            |]" + Nl + "            |> Array.sum" + Nl
             let shift = "                    "
-            let modelDataParamsCode = "    let modelDataParamsWithExtraData =" + Nl + (modelDataParamsWithExtraData.toFSharpCode shift) + Nl
+            let modelDataParamsCode = "    let modelDataParamsWithExtraData =" + Nl + (modelDataParamsWithExtraData.toFSharpCode shift)
 
 
             let updateOuterCode =
                 match modelParams.updateFuncType with
                 | UseArray -> []
                 | UseVariables -> []
-                | UseFunctions -> 
+                | UseFunctions ->
                     dInitCode xName
 
 
-            let updateInnerCode = 
+            let updateInnerCode =
                 match modelParams.updateFuncType with
                 | UseArray ->
-                    [ "        [|" ] 
+                    [ "        [|" ]
                     @
                     a
                     @
@@ -353,7 +351,7 @@ module ClmModel =
             let updateCode =
                 updateOuterCode
                 @
-                [ 
+                [
                     Nl
                     "    let update (xRaw : array<double>) : array<double> = "
                     "        // printfn \"update::Starting...\""
@@ -377,12 +375,13 @@ module ClmModel =
 
             [
                 "namespace Clm.Model" + Nl
+                "open System"
                 "open Clm.Substances"
                 "open Clm.Distributions"
                 "open Clm.ModelParams"
                 "open Clm.ReactionTypes"
                 "open Clm.ReactionRates"
-                "open ClmSys.GeneralData" + Nl
+                "open ClmSys.ContGenPrimitives" + Nl
                 "module ModelData = "
                 paramCode + Nl
                 totalSubstCode + Nl

@@ -240,13 +240,13 @@ module GeneralData =
         | h :: t -> h :: removeFirst pred t
 
 
-    let getExeName exeName =
-        // TODO kk:20190208 - This is a fucked up NET way to get what's needed. Refactor when time permits.
+    /// Gets the full file name located in the folder where the assembly normally resides on disk or the install directory.
+    let getFileName fileName =
         // See:
         //     https://stackoverflow.com/questions/278761/is-there-a-net-framework-method-for-converting-file-uris-to-paths-with-drive-le
         //     https://stackoverflow.com/questions/837488/how-can-i-get-the-applications-path-in-a-net-console-application
         let x = Uri(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase)).LocalPath
-        x + @"\" + exeName
+        x + @"\" + fileName
 
 
     type Queue<'A> =
@@ -441,6 +441,9 @@ module GeneralData =
     let withReply (r : AsyncReplyChannel<'T>) (s, result) =
         r.Reply result
         s
+
+
+    let withoutReply (s, result) = s
 
 
     // !!! kk:20200322 - DO NOT DELETE !!!

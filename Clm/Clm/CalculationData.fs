@@ -69,7 +69,7 @@ module CalculationData =
             synthCatalysts : list<SynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             ligCatalysts : list<LigCatalyst>
-            ligationPairs : list<list<ChiralAminoAcid> * list<ChiralAminoAcid>>
+            ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
 
             sedDirReagents : Map<AminoAcid, list<SedDirReagent>>
@@ -104,6 +104,15 @@ module CalculationData =
                 reagents
                 |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
 
+
+            let ligationPairs =
+                List.allPairs allLigChains allLigChains
+                |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
+                //|> List.filter (fun (a, _) -> a.Head.isL)
+                |> List.distinct
+                |> List.sort
+                |> List.map LigationReaction
+
             {
                 infoParam = p
                 aminoAcids = aminoAcids
@@ -112,14 +121,7 @@ module CalculationData =
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
-
-                ligationPairs =
-                    List.allPairs allLigChains allLigChains
-                    |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
-                    |> List.map (fun (a, b) -> orderPairs (a, b))
-                    |> List.filter (fun (a, _) -> a.Head.isL)
-                    |> List.distinct
-
+                ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 
                 sedDirReagents =
@@ -129,7 +131,7 @@ module CalculationData =
 
                 sedDirAgents =
                     allChains
-                    |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirAgentInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.sedDirAgentInfo.maxSedDirAgentLength.length) 
+                    |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirAgentInfo.minSedDirAgentLength.length && a.Length <= p.sedDirInfo.sedDirAgentInfo.maxSedDirAgentLength.length)
                     |> List.map (fun e -> SedDirAgent e)
 
                 allChains = allChains
@@ -144,7 +146,7 @@ module CalculationData =
 
         member si.synthesisReactions = si.chiralAminoAcids |> List.map SynthesisReaction
         member si.destructionReactions = si.chiralAminoAcids |> List.map DestructionReaction
-        member si.ligationReactions = si.ligationPairs |> List.map LigationReaction
+        member si.ligationReactions = si.ligationPairs
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
         member si.catSynthInfo t =
@@ -388,6 +390,18 @@ module CalculationData =
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
+//            let p =
+//                peptides
+//                |> List.map (fun e -> e.aminoAcids)
+//                |> List.filter (fun e -> e.Length <= (maxPeptideLength.length - 1))
+//
+//            let ligReactions =
+//                List.allPairs (chiralAminoAcids |> List.map (fun e -> [e])) p
+//                |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
+//                |> List.map LigationReaction
+//
+//            let peptideBondMap = PeptideBondMap.create ligReactions
+
             let allSubst =
                 Substance.allSimple
                 @
@@ -416,6 +430,11 @@ module CalculationData =
                         getTotalSubst = this.modelBinaryData.calculationData.getTotalSubst
                         getDerivative = this.modelBinaryData.calculationData.getDerivative
                     }
+
+//                mapParams =
+//                    {
+//                        peptideBondMap = peptideBondMap
+//                    }
             }
 
 

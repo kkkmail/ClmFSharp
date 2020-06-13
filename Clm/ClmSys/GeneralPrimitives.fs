@@ -42,6 +42,12 @@ module GeneralPrimitives =
         member this.value = let (ConnectionString v) = this in v
 
 
+    type SqliteConnectionString =
+        | SqliteConnectionString of string
+
+        member this.value = let (SqliteConnectionString v) = this in v
+
+
     type ResultDataId =
         | ResultDataId of Guid
 

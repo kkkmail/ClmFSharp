@@ -30,7 +30,7 @@ module Substances =
         | TwentyFourAminoAcids
         | TwentyFiveAminoAcids
         | TwentySixAminoAcids
-        | TwentySevemnAminoAcids
+        | TwentySevenAminoAcids
         | TwentyEightAminoAcids
         | TwentyNineAminoAcids
         | ThirtyAminoAcids
@@ -66,7 +66,7 @@ module Substances =
             | TwentyFourAminoAcids -> 24
             | TwentyFiveAminoAcids -> 25
             | TwentySixAminoAcids -> 26
-            | TwentySevemnAminoAcids -> 27
+            | TwentySevenAminoAcids -> 27
             | TwentyEightAminoAcids -> 28
             | TwentyNineAminoAcids -> 29
             | ThirtyAminoAcids -> 30
@@ -102,7 +102,7 @@ module Substances =
                 TwentyFourAminoAcids
                 TwentyFiveAminoAcids
                 TwentySixAminoAcids
-                TwentySevemnAminoAcids
+                TwentySevenAminoAcids
                 TwentyEightAminoAcids
                 TwentyNineAminoAcids
                 ThirtyAminoAcids
@@ -324,7 +324,7 @@ module Substances =
 
         static member toString (a : AminoAcid) = a.name
 
-        static member toString (i : int) = 
+        static member toString (i : int) =
             match AminoAcid.all |> List.tryFind(fun a -> a.number = i) with
             | Some a -> AminoAcid.toString a
             | None -> sprintf "Invalid amino acid index %A" i
@@ -335,13 +335,15 @@ module Substances =
             AminoAcid.all
             |> List.take n.length
 
+        override a.ToString() = a.name
+
 
     type ChiralAminoAcid =
         | L of AminoAcid
         | R of AminoAcid
 
-        member __.length = 1
-        member __.atoms = 1
+        member _.length = 1
+        member _.atoms = 1
 
         member aminoAcid.isL =
             match aminoAcid with
@@ -355,7 +357,12 @@ module Substances =
             | L a -> R a
             | R a -> L a
 
-        static member getAminoAcids n = 
+        member aminoAcid.aminoAcid =
+            match aminoAcid with
+            | L a -> a
+            | R a -> a
+
+        static member getAminoAcids n =
             (AminoAcid.getAminoAcids n |> List.map (fun a -> L a))
             @
             (AminoAcid.getAminoAcids n |> List.map (fun a -> R a))
@@ -374,6 +381,16 @@ module Substances =
             match aminoAcid with
             | L _ -> L a
             | R _ -> R a
+
+        override aminoAcid.ToString() = aminoAcid.name
+
+
+    /// Type to describe a symmetry of a directed amino acid pair, e.g. Ab -> LR
+    type BindingSymmetry =
+        | LL
+        | LR
+        | RL
+        | RR
 
 
     type Peptide =
@@ -398,6 +415,8 @@ module Substances =
             |> List.map (fun a -> a.name)
             |> String.concat ""
 
+        override peptide.ToString() = peptide.name
+
         member peptide.noOfLR =
             let counts =
                 peptide.aminoAcids
@@ -405,7 +424,7 @@ module Substances =
                 |> Map.ofList
 
             let count v =
-                match counts.TryFind v with 
+                match counts.TryFind v with
                 | Some c -> c
                 | None -> 0
 
@@ -422,10 +441,10 @@ module Substances =
                 //printfn "makePeptide::acc = %A" acc
                 match l with
                 | [] -> acc
-                | h :: t -> 
-                    match acc with 
+                | h :: t ->
+                    match acc with
                     | [] -> makePeptide (h |> List.map (fun e -> [e])) t
-                    | _ -> 
+                    | _ ->
                         //let pairs = (List.allPairs h acc)
                         //printfn "makePeptide::pairs = %A" pairs
                         //let x = pairs |> List.map (fun e -> e)
@@ -450,7 +469,7 @@ module Substances =
         | Sum of SumSubst
 
         member substance.enantiomer =
-            match substance with 
+            match substance with
             | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
@@ -462,6 +481,8 @@ module Substances =
             | Chiral c -> c.name
             | PeptideChain p -> p.name
             | Sum s -> s.name
+
+        override substance.ToString() = substance.name
 
         member substance.noOfAminoAcid a =
             match substance with
@@ -515,7 +536,7 @@ module Substances =
         static member chiralL a = a |> L |> Chiral
 
         static member fromList (a : list<ChiralAminoAcid>) =
-            match a.Length with 
+            match a.Length with
             | 1 -> Chiral a.Head
             | _ -> Peptide a |> PeptideChain
 
@@ -524,11 +545,10 @@ module Substances =
     type SubstanceMap = Map<Substance, int>
 
 
-    /// TODO 20181029 Check.
     let orderPairs (a : list<ChiralAminoAcid>, b : list<ChiralAminoAcid>) =
         if a.Length < b.Length
         then (a, b)
-        else 
+        else
             if a.Length > b.Length
             then (b, a)
             else

@@ -13,7 +13,7 @@ module MessagingClientErrors =
 
 
     type OnGetMessagesError =
-        | ProcessedSucessfullyWithInnerErr
+        | ProcessedSuccessfullyWithInnerErr
         | ProcessedWithErr
         | ProcessedWithFailedToRemoveErr
         | FailedToProcessErr
@@ -21,7 +21,8 @@ module MessagingClientErrors =
 
 
     type SendMessageError =
-        | SendMessageFaileErr
+        | SendMessageFailedErr
+        | CannotDeleteMessageErr of MessageId
 
 
     type TryReceiveSingleMessageError =

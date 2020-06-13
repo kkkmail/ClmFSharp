@@ -13,7 +13,6 @@ module SolverRunner =
     type SolverRunnerProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            transmitMessages : UnitResult -> UnitResult
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult

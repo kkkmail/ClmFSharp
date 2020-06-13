@@ -21,7 +21,7 @@ module FileSystemTypes =
 
     let serializationFormat = BinaryZippedFormat
     let serializationErrFormat = XmlFormat
-    let fileStorageFolder = DefaultFileStorageFolder
+    let private fileStorageFolder = DefaultFileStorageFolder
 
 
     type TableName =
@@ -29,7 +29,6 @@ module FileSystemTypes =
 
 
     let messageTblName = TableName "Message"
-    let messageWithTypeTblName = TableName "MessageWithType"
     let modelDataTblName = TableName "ModelData"
     let resultDataTblName = TableName "ResultData"
     let chartInfoTblName = TableName "ChartInfo"
@@ -181,16 +180,6 @@ module FileSystemTypes =
     let tryDeleteMessageFs serviceName (MessageId messageId) = tryDeleteData<Message, Guid> serviceName messageTblName messageId
     let getMessageIdsFs serviceName () = getObjectIds<MessageId> serviceName messageTblName (fun e -> e |> Guid.Parse |> MessageId)
     let loadMessageAllFs serviceName () = loadObjects<Message, Guid> serviceName messageTblName Guid.Parse
-
-    let saveMessageWithTypeFs serviceName (m : MessageWithType) = saveData<MessageWithType, Guid> serviceName messageWithTypeTblName m.message.messageDataInfo.messageId.value m
-    let loadMessageWithTypeFs serviceName (MessageId messageId) = loadData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
-
-    let tryDeleteMessageWithTypeFs serviceName (MessageId messageId) =
-        //printfn "tryDeleteMessageWithTypeFs: trying to delete message with messageId = %A" messageId
-        tryDeleteData<MessageWithType, Guid> serviceName messageWithTypeTblName messageId
-
-    let getMessageWithTypeIdsFs serviceName () = getObjectIds<MessageId> serviceName messageWithTypeTblName (fun e -> e |> Guid.Parse |> MessageId)
-    let loadMessageWithTypeAllFs serviceName () = loadObjects<MessageWithType, Guid> serviceName messageWithTypeTblName Guid.Parse
 
     let saveModelDataFs serviceName (m : ModelData) = saveData<ModelData, Guid> serviceName modelDataTblName m.modelDataId.value m
     let loadModelDataFs serviceName (ModelDataId modelDataId) = loadData<ModelData, Guid> serviceName modelDataTblName modelDataId

@@ -15,6 +15,7 @@ open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
+open Clm.ChartData
 
 module ServiceInfo =
 
@@ -63,11 +64,88 @@ module ServiceInfo =
             | UnregisterWorkerNodePrtMsg _ -> SmallSize
 
 
+    type EarlyExitData = ChartData
+
+
+    type EarlyExitRule =
+        | ProgressExceeds of decimal
+        | MaxWeightedAverageAbsEeExceeds of float
+        | MaxLastEeExceeds of float
+        | MaxAverageEeExceeds of float
+
+        member r.isValid (d : EarlyExitData) =
+            match r with
+            | ProgressExceeds p -> p > d.progress
+            | MaxWeightedAverageAbsEeExceeds e -> e > d.maxWeightedAverageAbsEe
+            | MaxLastEeExceeds e -> e > d.maxLastEe
+            | MaxAverageEeExceeds e -> e > d.maxAverageEe
+
+
+    type EarlyExitCheckFrequency =
+        | EarlyExitCheckFrequency of TimeSpan
+
+        member this.value = let (EarlyExitCheckFrequency v) = this in v
+        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
+
+
+    type EarlyExitStrategy =
+        | AllOfAny of list<list<EarlyExitRule>> // Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+
+        member e.exitEarly d =
+            match e with
+            |AllOfAny v ->
+                match v with
+                | [] -> false // If outer list is empty, then early exit strategy cannot work.
+                | _ ->
+                    v
+                    |> List.map (fun a -> a |> List.fold (fun acc b -> acc || (b.isValid d)) false)
+                    |> List.fold (fun acc r -> acc && r) true
+
+
+        static member defaultProgress = 0.02M
+        static member defaultMinEe = 0.15
+
+        static member getDefaultValue p e =
+            [
+                [
+                    ProgressExceeds p
+                ]
+                [
+                    MaxWeightedAverageAbsEeExceeds e
+                    MaxLastEeExceeds e
+                    MaxAverageEeExceeds e
+                ]
+            ]
+            |> AllOfAny
+
+            static member defaultValue = EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
+
+
+    type EarlyExitInfo =
+        {
+            frequency : EarlyExitCheckFrequency
+            earlyExitStrategy : EarlyExitStrategy
+        }
+
+        static member getDefaultValue f p e =
+            {
+                frequency = f
+                earlyExitStrategy = EarlyExitStrategy.getDefaultValue p e
+            }
+
+        static member defaultValue =
+            {
+                frequency = EarlyExitCheckFrequency.defaultValue
+                earlyExitStrategy = EarlyExitStrategy.defaultValue
+            }
+
+
     type WorkerNodeRunModelData =
         {
             runningProcessData : RunningProcessData
             modelData : ModelData
             minUsefulEe : MinUsefulEe
+            earlyExitOpt : EarlyExitInfo option
         }
 
 
@@ -205,28 +283,7 @@ module ServiceInfo =
         member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
 
-    type MessageResultInfo =
-        | NoMessage
-        | SmallMessage of Message
-        | MediumMessage of Message
-        | LargeMessage of Message
-
-
-    type MessageResult = ClmResult<MessageResultInfo>
-
-
-    type MessageWithType =
-        {
-            message : Message
-            messageType : MessageType
-        }
-
-
     type MessagingConfigParam =
-        | DummyConfig
-
-
-    type MessagingClientConfigParam =
         | DummyConfig
 
 
@@ -252,7 +309,7 @@ module ServiceInfo =
                             |> Some)
 
 
-        member q.toMessageInfoOpt getModelData minUsefulEe =
+        member q.toMessageInfoOpt getModelData minUsefulEe eeo =
             match q.toRunningProcessDataOpt() with
             | Some d ->
                 match getModelData q.info.modelDataId with
@@ -265,6 +322,7 @@ module ServiceInfo =
                                 runningProcessData = d
                                 minUsefulEe = minUsefulEe
                                 modelData = m
+                                earlyExitOpt = eeo
                             }
                             |> RunModelWrkMsg
                     }.getMessageInfo()

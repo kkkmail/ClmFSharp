@@ -216,6 +216,32 @@ module DefaultValuesExt =
             |> CatLigRndParam
             |> CatalyticLigationRateParam
 
+
+        static member defaultCatLigSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
+            {
+                catLigParam = ReactionRateProviderParams.defaultCatLigRndParamImpl (m, threshold, mult) catRateGenType
+
+                catLigSimParam =
+                    {
+                        catRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                    }
+            }
+
+        static member defaultCatLigSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultCatLigSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> CatLigSimParam
+            |> CatalyticLigationRateParam
+
+
         static member defaultSedDirRndParamImpl (threshold, mult) =
             {
                 sedDirRatesEeParam =

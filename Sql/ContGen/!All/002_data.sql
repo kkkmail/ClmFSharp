@@ -59,3 +59,22 @@ left outer join WorkerNode on valTbl.workerNodeId = WorkerNode.workerNodeId
 where WorkerNode.workerNodeId is null
 go
 
+;with 
+	valTbl as
+	(
+		select * 
+		from 
+		( values
+			  (0, 'GuaranteedDelivery')
+			, (1, 'NonGuaranteedDelivery')
+
+		) as a (deliveryTypeId, deliveryTypeName)
+	)
+insert into DeliveryType
+select valTbl.*
+from valTbl
+left outer join DeliveryType on valTbl.deliveryTypeId = DeliveryType.deliveryTypeId
+where DeliveryType.deliveryTypeId is null
+go
+
+

@@ -52,7 +52,7 @@ module ContGenPrimitives =
         | ClmDefaultValueId of int64
 
         member df.value = let (ClmDefaultValueId v) = df in v
-        override df.ToString() = df.value.ToString().PadLeft(9, '0')
+        override df.ToString() = df.value.ToString().PadLeft(9, '0') + "L"
 
 
     type ClmTaskStatus =

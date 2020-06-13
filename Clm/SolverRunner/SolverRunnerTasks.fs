@@ -121,12 +121,33 @@ module SolverRunnerTasks =
             }
 
 
-    let getNSolveParam (d : RunSolverData) r s e =
+    let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) =
+        let checkCancellation =
+            match w.earlyExitOpt with
+            | None -> d.checkCancellation
+            | Some c ->
+                let mutable lastCheck = DateTime.Now
+
+                let check r =
+                    let fromLastCheck = DateTime.Now - lastCheck
+
+                    if fromLastCheck > c.frequency.value
+                    then
+                        lastCheck <- DateTime.Now
+
+                        match d.chartDataUpdater.getContent() |> c.earlyExitStrategy.exitEarly with
+                        | true -> Some CancelWithResults
+                        | false -> d.checkCancellation r
+
+                    else d.checkCancellation r
+
+                check
+
         {
             modelDataId = d.modelDataId.value
-            runQueueId = r
-            tStart = s
-            tEnd = e
+            runQueueId = w.runningProcessData.runQueueId
+            tStart = 0.0
+            tEnd = (double w.runningProcessData.commandLineParams.tEnd)
             derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
             initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
@@ -134,7 +155,7 @@ module SolverRunnerTasks =
             getEeData = (fun () -> d.chartDataUpdater.getContent().toEeData()) |> Some
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
-            checkCancellation = d.checkCancellation
+            checkCancellation = checkCancellation
             checkFreq = d.checkFreq
         }
 
@@ -260,6 +281,7 @@ module SolverRunnerTasks =
                 )
 
         member _.runSolver() = messageLoop.Post RunSolver
+
         member _.notifyOfResults t =
             printfn "SolverRunner.notifyOfResults was called."
             NotifyOfResults t |> messageLoop.Post
@@ -270,15 +292,14 @@ module SolverRunnerTasks =
     /// Uncomment printfn below in case of severe issues.
     /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
     let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
-        let logIfFailed result =
+        let logIfFailed errMessage result =
             match result with
             | Ok() -> ignore()
-            | Error e -> SolverRunnerCriticalError.fromErrMessage (e.ToString()) |> proxy.logCrit |> ignore
+            | Error e -> SolverRunnerCriticalError.fromErrMessage (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
 
-        let updateFinalProgress = proxy.updateProgress >> proxy.transmitMessages >> logIfFailed
+        let updateFinalProgress errMessage = proxy.updateProgress >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
-        let nSolveParam = getNSolveParam runSolverData w.runningProcessData.runQueueId
-        let data = nSolveParam 0.0 (double w.runningProcessData.commandLineParams.tEnd)
+        let data = getNSolveParam runSolverData w
         let getResultAndChartData() = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
 
         let notifyOfResults t =
@@ -316,25 +337,25 @@ module SolverRunnerTasks =
                 let result = notifyOfResults RegularChartGeneration
 
                 printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-                let completedResult = None |> Completed |> getProgress |> proxy.updateProgress |> proxy.transmitMessages
-                combineUnitResults result completedResult |> logIfFailed
+                let completedResult = None |> Completed |> getProgress |> proxy.updateProgress
+                combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             with
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
             | ComputationAbortedException (_, r) ->
-                printfn "runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+                printfn "getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
 
                 match r with
                 | CancelWithResults -> (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
                 | AbortCalculation -> getProgress Cancelled
-                |> updateFinalProgress
-            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> updateFinalProgress
+                |> updateFinalProgress "getSolverRunner - ComputationAborted failed"
+            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred")
 
         {
             runSolver = runSolver
             notifyOfResults = notifyOfResults
-            logIfFailed = logIfFailed
+            logIfFailed = logIfFailed "getSolverRunner - SolverRunner"
         }
         |> SolverRunner

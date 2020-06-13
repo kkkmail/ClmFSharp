@@ -52,7 +52,7 @@ module ReactionRateFunctions =
         x.primary
 
 
-    let getRatesImpl<'R> 
+    let getRatesImpl<'R>
         (rateDictionary : Dictionary<'R, RateData>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
@@ -78,17 +78,44 @@ module ReactionRateFunctions =
     //    | None -> (None, None)
 
 
-    type CatRatesSimInfo<'A, 'R, 'C, 'RC> =
+    type CatRatesSimInfo<'A, 'R, 'C, 'RC when 'R : equality> =
         {
             reaction : 'R
             catalyst : 'C
-            aminoAcids : list<'A>
+
+            /// Gets the list of reaction data "objects" to choose from.
+            /// For e.g. catalytic synthesis this is a list of all amino acids.
+            ///
+            /// For catalytic ligation this may depend on the model.
+            /// The most standard model returns list of all peptide bonds of the same symmetry.
+            /// If input reaction's peptide bond is (A, B) and we have 3 amino acids (A, B, C) then
+            /// the model will return [ (A, A); (A, B), (A, C); (B, A); (B, B); (B, C); (C, A); (C, B), (C, C) ]
+            getReactionData : 'R -> list<'A>
+
+            /// Produces the underlying data for a given reaction.
+            inverse : 'R -> 'A
+
+            /// Adjusts rate multiplier for matching reactions.
+            getMatchingReactionMult : double -> double
+
             getCatEnantiomer : 'C -> 'C
             catReactionCreator : ('R * 'C) -> 'RC
-            simReactionCreator : 'A -> 'R
+
+            /// Creates reactions, which are similar to a given input.
+            /// For synthesis this is just the reaction itself.
+            /// For ligation, the most standard model returns all ligation reaction with the same peptide bond.
+            /// E.g. if a bond is <P1>A + b<P2> -> <P1>Ab<P2> then the most standard model will return all ligation
+            /// reactions which bind A and b in that order.
+            simReactionCreator : 'A -> list<'R>
+
             getCatReactEnantiomer : 'RC -> 'RC
-            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            getBaseCatRates : 'RC -> RateData // Get rates of underlying catalyzed reaction.
+
+            /// Get rates of base (not catalyzed) reaction.
+            getBaseRates : 'R -> RateData
+
+            /// Get rates of underlying catalyzed reaction.
+            getBaseCatRates : 'RC -> RateData
+
             simParams : CatRatesSimilarityParam
             eeParams : CatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
@@ -109,65 +136,126 @@ module ReactionRateFunctions =
             }
 
 
-    let calculateSimRates<'R, 'C, 'RC> (i : CatRatesSimInfo<AminoAcid, 'R, 'C, 'RC>) =
+    let calculateSimCatRates i s c e =
+        let reaction = (s, c) |> i.catReactionCreator
+        let related = i.toCatRatesInfo s c e |> calculateCatRates
+//        printfn "calculateSimCatRates: related = %A" related
+        updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+
+
+    let getEeParams i cr cre rateMult d =
+        match d with
+        | true ->
+            {
+                rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
+                eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+            }
+        | false -> CatRatesEeParam.defaultValue
+
+
+    let getRateMult br cr cre =
+        match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
+        | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
+            match br.forwardRate with
+            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
+        | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
+            match br.backwardRate with
+            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
+        | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
+
+
+    let getSimNoRates i creator aa r =
+        aa
+        |> List.map (fun a -> creator a)
+        |> List.concat
+        |> List.map (fun e -> e, calculateSimCatRates i e i.catalyst CatRatesEeParam.defaultValue)
+
+
+    let chooseData i aa =
+        let a =
+            match i.simParams.catRatesSimGeneration with
+            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+            | FixedValue d ->
+                /// TODO kk:20200607 - Follow the description below.
+                /// Here we need to ensure that number of successes is NOT random but fixed
+                /// and that we always include the reactions with the same "data".
+                /// This probably should change and be controlled by distributions (as most of the things here), but not today.
+                let isDefined j x =
+                    let b = (i.inverse (i.reaction)) = x
+
+                    match b, d.value.distributionParams.threshold with
+                    | true, _ -> true
+                    | false, Some t -> (double j) < t * (double aa.Length)
+                    | false, None -> true
+
+                aa
+                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.sortBy (fun (r, _) -> r)
+                |> List.mapi (fun j (_, a) -> a, isDefined j a)
+
+        a
+
+    let getSimRates i aa getEeParams rateMult =
+//        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+
+        let x =
+            chooseData i aa
+            |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
+
+//        x
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let a =
+            x
+            |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+            |> List.concat
+
+//        a
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let b =
+            a
+            |> List.filter (fun (e, _, _) -> e <> i.reaction)
+            |> List.map (fun (e, b, m) -> e, calculateSimCatRates i e i.catalyst (getEeParams m b))
+
+//        b
+//        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+//        |> List.sortBy (fun (a, _) -> a.ToString())
+//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> ignore
+//        printfn "\n"
+
+        b
+
+    let calculateSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
         let br = i.getBaseRates i.reaction // (bf, bb)
         let cr = r |> i.getBaseCatRates // (f, b)
+        let aa = i.getReactionData i.reaction
 
-        let calculateCatRates s c e =
-            let reaction = (s, c) |> i.catReactionCreator
-            let related = i.toCatRatesInfo s c e |> calculateCatRates
-            updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+//        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
 
         match (cr.forwardRate, cr.backwardRate) with
-        | None, None ->
-            i.aminoAcids
-            |> List.map (fun a -> i.simReactionCreator a)
-            |> List.map (fun e -> calculateCatRates e i.catalyst CatRatesEeParam.defaultValue)
-            |> ignore
+        | None, None -> getSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
-
-            let rateMult =
-                match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
-                | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
-                    match br.forwardRate with
-                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
-                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
-                | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
-                    match br.backwardRate with
-                    | Some (ReactionRate c) -> (a + b) / 2.0 / c
-                    | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
-                | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
-
-            let getEeParams d =
-                match d with
-                | true ->
-                    {
-                        rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                        eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-                    }
-                | false -> CatRatesEeParam.defaultValue
-
-            match i.simParams.catRatesSimGeneration with
-            | DistributionBased simBaseDistribution ->
-                i.aminoAcids
-                |> List.map (fun a -> i.simReactionCreator a, simBaseDistribution.isDefined i.rnd)
-            | FixedValue d ->
-                // Here we need to ensure that number of successes is NOT random but fixed.
-                let isDefined j =
-                    match d.value.distributionParams.threshold with
-                    | Some t -> (double j) < t * (double i.aminoAcids.Length)
-                    | None -> true
-
-                i.aminoAcids
-                |> List.map(fun a -> i.rnd.nextDouble(), a)
-                |> List.sortBy (fun (r, _) -> r)
-                |> List.mapi (fun j (_, a) -> i.simReactionCreator a, isDefined j)
-            |> List.map (fun (e, b) -> calculateCatRates e i.catalyst (getEeParams b))
-            |> ignore
+            let rateMult = getRateMult br cr cre
+//            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            let getEeParams = getEeParams i cr cre
+            getSimRates i aa getEeParams rateMult
+        |> ignore
 
         cr
 
@@ -187,7 +275,6 @@ module ReactionRateFunctions =
         | None ->
             i.aminoAcids
             |> List.map (fun a -> i.reagents.[a])
-            //|> List.choose id
             |> List.concat
             |> List.map (fun e -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent SedDirRatesEeParam.defaultValue)
             |> ignore
@@ -215,8 +302,6 @@ module ReactionRateFunctions =
 
             i.aminoAcids
             |> List.map (fun a -> i.reagents.[a], i.simParams.sedDirSimBaseDistribution.isDefined i.sedDirRatesInfo.rnd)
-            //|> List.map (fun (e, b) -> e |> Option.bind (fun x -> Some (x, b)))
-            //|> List.choose id
             |> List.map (fun (e, b) -> e |> List.map (fun a -> (a, b)))
             |> List.concat
             |> List.map (fun (e, b) -> calculateSedDirRates e i.sedDirRatesInfo.sedDirAgent (getEeParams b))

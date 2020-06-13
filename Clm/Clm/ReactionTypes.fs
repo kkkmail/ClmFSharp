@@ -4,6 +4,8 @@ open Substances
 
 module ReactionTypes =
 
+    let toSubstName a = a |> List.fold (fun acc r -> acc + r.ToString()) ""
+
     type ReactionName =
         | FoodCreationName
         | WasteRemovalName
@@ -20,7 +22,7 @@ module ReactionTypes =
         | CatalyticRacemizationName
 
         member this.name =
-            match this with 
+            match this with
             | FoodCreationName -> "food"
             | WasteRemovalName -> "waste"
             | WasteRecyclingName -> "recycling"
@@ -66,17 +68,22 @@ module ReactionTypes =
             output : list<Substance * int>
         }
 
-        member this.getName n a =
+        member this.getName n a d =
             let g (l : list<Substance * int>) =
                 l
                 |> List.map (fun (s, n) -> (if n = 1 then "" else n.ToString() + " ") + s.name)
                 |> String.concat " + "
 
-            n + ": " + (g this.input) + a + (g this.output)
+            let b =
+                match d with
+                | Some v -> " " + v
+                | None -> ""
+
+            n + b + ": " + (g this.input) + a + (g this.output)
 
         member this.normalized() =
             let normalize d =
-                d 
+                d
                 |> List.map (fun (s, i) -> [ for _ in 0..(i-1) -> s ])
                 |> List.concat
                 |> List.sort
@@ -189,6 +196,14 @@ module ReactionTypes =
             let (CatalyticSynthesisReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticSynthesisReaction
 
+        member r.baseReaction =
+            let (CatalyticSynthesisReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticSynthesisReaction (a, b)) = r
+            b
+
 
     type CatalyticDestructionReaction =
         | CatalyticDestructionReaction of (DestructionReaction * DestrCatalyst)
@@ -211,8 +226,40 @@ module ReactionTypes =
             (a, c.enantiomer) |> CatalyticDestructionReaction
 
 
+        member r.baseReaction =
+            let (CatalyticDestructionReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticDestructionReaction (a, b)) = r
+            b
+
+
+    /// A directed pair of amino acids forming peptide bond.
+    /// leftAminoAcid is the amino acid on the left side of the bond and
+    /// rightAminoAcid is on the right side of the bond.
+    /// Any of these amino acids can be L or R.
+    type PeptideBond =
+        {
+            leftAminoAcid : ChiralAminoAcid
+            rightAminoAcid : ChiralAminoAcid
+        }
+
+        member r.enantiomer = { leftAminoAcid = r.leftAminoAcid.enantiomer; rightAminoAcid = r.rightAminoAcid.enantiomer }
+        override r.ToString() = "(" + r.leftAminoAcid.name + " + " + r.rightAminoAcid.name + ")"
+
+        member r.bingingSymmetry =
+            match r.leftAminoAcid, r.rightAminoAcid with
+            | L _, L _ -> LL
+            | L _, R _ -> LR
+            | R _, L _ -> RL
+            | R _, R _ -> RR
+
+
     type LigationReaction =
         | LigationReaction of (list<ChiralAminoAcid> * list<ChiralAminoAcid>)
+
+        member this.value = let (LigationReaction v) = this in v
 
         member r.info =
             let (LigationReaction (a, b)) = r
@@ -222,10 +269,88 @@ module ReactionTypes =
                 output = [ (Substance.fromList (a @ b), 1) ]
             }
 
+        member r.peptideBond =
+            let (LigationReaction (a, b)) = r
+            { leftAminoAcid = a |> List.rev |> List.head; rightAminoAcid = b |> List.head }
+
+        member r.bingingSymmetry = r.peptideBond.bingingSymmetry
+
         member r.enantiomer =
             let (LigationReaction (a, b)) = r
             (a |> List.map (fun e -> e.enantiomer), b |> List.map (fun e -> e.enantiomer)) |> LigationReaction
 
+        override r.ToString() =
+            let (LigationReaction (a, b)) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            sprintf "LigationReaction: %s + %s <-> %s" sa sb (sa + sb)
+
+
+    type PeptideBondData =
+        {
+            ligationReactionMap : Map<PeptideBond, List<LigationReaction>>
+            peptideBondMap : Map<BindingSymmetry, List<PeptideBond>>
+        }
+
+        /// Finds all ligation reactions with the same peptide bond INCLUDING input bond.
+        member m.findSameBond (x : PeptideBond) =
+            m.ligationReactionMap
+            |> Map.tryFind x
+            |> Option.defaultValue List.empty
+
+        member m.findSameBondSymmetry (x : PeptideBond) =
+            m.peptideBondMap
+            |> Map.tryFind x.bingingSymmetry
+            |> Option.defaultValue List.empty
+
+//        /// Finds all ligation reactions with the same peptide bond EXCEPT input reaction.
+//        /// Enantiomers are excluded as well.
+//        member m.findSameX (x : LigationReaction) =
+//            let xe = x.enantiomer
+//            m.findSame x |> List.filter (fun e -> e <> x && e <> xe)
+
+//        /// Finds all ligation reactions, which have the same peptide bond symmetry as a given peptide bond
+//        /// E.g. aB + C -> aBC.
+//        member m.findSimilar (x : PeptideBond) =
+//            m.ligationReactionMap
+//            |> Map.tryFind x.bingingSymmetry
+//            |> Option.defaultValue Map.empty
+//            |> Map.toList
+//            |> List.map snd
+//            |> List.map (fun e -> e |> Set.toList)
+//            |> List.concat
+//            |> List.distinct
+//            |> List.sortBy (fun e -> e.info)
+//
+//        /// Finds all ligation reactions, which have the same peptide bond symmetry as given ligation reaction (e.g. aB + C -> aBC).
+//        /// But NOT the same bond. E.g. if incoming reaction is aB + C -> aBC, then peptide bond (of this reaction) is BC,
+//        /// bond symmetry is LL and this function returns all ligation reactions, which have bond symmetry type LL but not bond BC.
+//        /// E.g.: aB + D -> aBD, AC + E -> ACE, A + De -> ADe, etc..., but NOT B + C -> BC, B + Ce -> BCe, etc...
+//        /// Enantiomers are excluded as well.
+//        member m.findSimilarX (x : LigationReaction) =
+//            let xp = x.peptideBond
+//            let xpe = x.peptideBond.enantiomer
+//            m.findSimilar x |> List.filter(fun e -> e.peptideBond <> xp && e.peptideBond <> xpe)
+
+        static member create (p : List<LigationReaction>) =
+            let a =
+                p
+                |> List.groupBy (fun e -> e.peptideBond)
+                |> List.map (fun (a, b) -> a, b |> List.sortBy (fun e -> e.info))
+                |> Map.ofList
+
+            let b =
+                p
+                |> List.map (fun e -> e.peptideBond)
+                |> List.distinct
+                |> List.groupBy (fun e -> e.bingingSymmetry)
+                |> List.map (fun (a, b) -> a, b |> List.sort)
+                |> Map.ofList
+
+            {
+                ligationReactionMap = a
+                peptideBondMap = b
+            }
 
     type LigCatalyst =
         | LigCatalyst of Peptide
@@ -251,9 +376,24 @@ module ReactionTypes =
             let (CatalyticLigationReaction (l, c)) = r
             (l.enantiomer, c.enantiomer) |> CatalyticLigationReaction
 
+        member r.baseReaction =
+            let (CatalyticLigationReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticLigationReaction (a, b)) = r
+            b
+
         member r.withEnantiomerCatalyst =
             let (CatalyticLigationReaction (a, c)) = r
             (a, c.enantiomer) |> CatalyticLigationReaction
+
+        override r.ToString() =
+            let (CatalyticLigationReaction (LigationReaction (a, b), LigCatalyst (Peptide c))) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            let sc = toSubstName c
+            sprintf "CatalyticLigationReaction: %s + %s + %s <-> %s + %s" sa sb sc (sa + sb) sc
 
 
     /// A resolving agent, which forms insoluble diasteriomeric salt with one of the enantiomer of some amino acid (or, in general, peptide as well).
@@ -321,7 +461,7 @@ module ReactionTypes =
                 output = [ (Chiral a.enantiomer, 1) ]
             }
 
-        member r.enantiomer = 
+        member r.enantiomer =
             let (RacemizationReaction a) = r
             a.enantiomer |> RacemizationReaction
 
@@ -348,6 +488,14 @@ module ReactionTypes =
         member r.enantiomer =
             let (CatalyticRacemizationReaction (a, c)) = r
             (a.enantiomer, c.enantiomer) |> CatalyticRacemizationReaction
+
+        member r.baseReaction =
+            let (CatalyticRacemizationReaction (a, b)) = r
+            a
+
+        member r.catalyst =
+            let (CatalyticRacemizationReaction (a, b)) = r
+            b
 
 
     let inline getName i = ((^T) : (member name : 'T) (i))
@@ -416,3 +564,19 @@ module ReactionTypes =
             | SedimentationAll r -> SedimentationAll r // There are no enantiomers here.
             | Racemization r -> r.enantiomer |> Racemization
             | CatalyticRacemization r -> r.enantiomer |> CatalyticRacemization
+
+        member r.addInfo =
+            match r with
+            | FoodCreation r -> None
+            | WasteRemoval r -> None
+            | WasteRecycling r -> None
+            | Synthesis r -> None
+            | Destruction r -> None
+            | CatalyticSynthesis r -> None
+            | CatalyticDestruction r -> None
+            | Ligation r -> r.peptideBond.ToString() |> Some
+            | CatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
+            | SedimentationDirect r -> None
+            | SedimentationAll r -> None
+            | Racemization r -> None
+            | CatalyticRacemization r -> None

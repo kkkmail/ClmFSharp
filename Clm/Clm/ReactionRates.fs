@@ -14,10 +14,10 @@ module ReactionRates =
         | RandomChoice
 
 
-    /// Specifies how to apply similarity
+    /// Specifies how to apply similarity.
     /// DistrBased uses distribution threshold to determine if an amino acid should / should not be included.
     /// This results in some spread in the number of amino acids.
-    /// FixedVal - fixes the number of amin of acids, but the choice of them is still random.
+    /// FixedVal - fixes the number of amino acids, but the choice of them is still random.
     type CatRatesSimGenType =
         | DistrBased
         | FixedVal
@@ -38,6 +38,8 @@ module ReactionRates =
             forwardRate : ReactionRate option
             backwardRate : ReactionRate option
         }
+
+        override r.ToString() = sprintf "{ f: %A; b: %A }" r.forwardRate r.backwardRate
 
 
     let bind f xOpt =
@@ -113,17 +115,19 @@ module ReactionRates =
         }
 
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
-    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state) =>
-    /// If sf and sb are forward and backward rates of not catalyzed reaction, then
-    /// total forward and backward multiplers due to racemic mixture of catalysts must be equal:
+    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state).
+    /// Therefore, if sf and sb are forward and backward rates of not catalyzed reaction, then
+    /// total forward and backward multipliers due to racemic mixture of catalysts must be equal:
+    ///
     /// kf + kfe = kb + kbe, where
-    ///     kf -  is forward  multipler for a catalyst C
-    ///     kfe - is forward  multipler for a catalyst E(C) - enantiomer of C
-    ///     kb -  is backward multipler for a catalyst C
-    ///     kbe - is backward multipler for a catalyst E(C)
+    ///     kf -  is forward  multiplier for a catalyst C
+    ///     kfe - is forward  multiplier for a catalyst E(C) - enantiomer of C
+    ///     kb -  is backward multiplier for a catalyst C
+    ///     kbe - is backward multiplier for a catalyst E(C)
+    ///
     /// Setting eeParams.eeBackwardDistribution = None imposes more stringent constraint that
     /// forward and backward rate multipliers must be the same for each catalyst independently from
-    /// its enantiomer.
+    /// its enantiomer. This seems to be more correct.
     let calculateCatRates<'R, 'C, 'RC> (i : CatRatesInfo<'R, 'C, 'RC>) =
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
 
@@ -384,8 +388,16 @@ module ReactionRates =
         }
 
 
+    type CatalyticLigationSimilarParam =
+        {
+            catLigSimParam : CatRatesSimilarityParam
+            catLigParam : CatalyticLigationRandomParam
+        }
+
+
     type CatalyticLigationParam =
         | CatLigRndParam of CatalyticLigationRandomParam
+        | CatLigSimParam of CatalyticLigationSimilarParam
 
 
     type RacemizationRandomParam =
@@ -468,7 +480,7 @@ module ReactionRates =
 
         /// TODO kk:20190317 - The dependencies MUST be incorporated at lower level so that to make it compiler's job to check them.
         /// Otherwise, if dependency is forgotten, it becomes hard to trace that bug.
-        /// Essentially it must be IMPOSSIBLE to write a code with the dependency and don't "declare" it upfront. Currently it is possible.
+        /// Essentially it must be made IMPOSSIBLE to write a code with the dependency and don't "declare" it upfront. Currently it is possible.
         member rm.dependsOn =
             match rm with
             | FoodCreationRateParam _ -> []
@@ -488,6 +500,7 @@ module ReactionRates =
             | CatalyticLigationRateParam v ->
                 match v with
                 | CatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
+                | CatLigSimParam m -> [ m.catLigParam |> CatLigRndParam |> CatalyticLigationRateParam ]
             | SedimentationDirectRateParam v ->
                 match v with
                 | SedDirRndParam _ -> []

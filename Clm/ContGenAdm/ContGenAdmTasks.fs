@@ -58,8 +58,8 @@ module ContGenAdmTasks =
                         let proxy = GenerateModelProxy.create clmConnectionString
 
                         match generateModel proxy t with
-                        | Ok modelDataId ->
-                            match generateModelCode proxy.generateModelCodeProxy modelDataId t with
+                        | Ok model ->
+                            match generateModelCode model t with
                             | Ok _ -> Ok()
                             | Error e -> logError e
                         | Error e -> logError e

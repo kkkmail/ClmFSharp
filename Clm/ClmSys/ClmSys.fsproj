@@ -104,18 +104,19 @@
       <HintPath>..\packages\Argu.6.0.0\lib\netstandard2.0\Argu.dll</HintPath>
     </Reference>
     <Reference Include="Fake.Windows.Registry">
-      <HintPath>..\packages\Fake.Windows.Registry.5.19.0\lib\net462\Fake.Windows.Registry.dll</HintPath>
+      <HintPath>..\packages\Fake.Windows.Registry.5.20.0\lib\net472\Fake.Windows.Registry.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.7.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FsPickler">
-      <HintPath>..\packages\FsPickler.5.2.2\lib\net45\FsPickler.dll</HintPath>
+      <HintPath>..\packages\FsPickler.5.3.2\lib\net45\FsPickler.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="netstandard" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>

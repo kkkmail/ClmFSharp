@@ -73,7 +73,7 @@ module Logging =
     //        let logData = new LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = level, LocationInfo = location, Message = message, TimeStamp = logDate, LoggerName = "Logger", Identity = user.Name, UserName = user.Name, ExceptionString = ex.ToString())
     //        let logEvent = new LoggingEvent(logData)
     //        log4netLogger.Log(logEvent)
-    //    | None -> 
+    //    | None ->
     //        let logData = new LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = level, LocationInfo = location, Message = message, TimeStamp = logDate, LoggerName = "Logger", Identity = user.Name, UserName = user.Name)
     //        let logEvent = new LoggingEvent(logData)
     //        log4netLogger.Log(logEvent)

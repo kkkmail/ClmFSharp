@@ -5,6 +5,10 @@ open MessagingPrimitives
 
 module MessagingData =
 
+    [<Literal>]
+    let MsgDatabase = "MsgClient.db"
+
+
     type MessagingServiceAccessInfo =
         {
             messagingServiceAddress : MessagingServiceAddress

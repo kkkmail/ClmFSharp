@@ -28,6 +28,7 @@ open ServiceProxy.SolverRunner
 open ClmSys.Rop
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
+open ClmSys.MessagingData
 
 module ServiceImplementation =
 
@@ -441,7 +442,6 @@ module ServiceImplementation =
         member w.solverRunnerProxy =
             {
                 updateProgress = w.updateProgress
-                transmitMessages = fun u -> i.messageProcessorProxy.transmitMessages() |> combineUnitResults u
                 saveResult = w.saveResult
                 saveCharts = w.saveCharts
                 logCrit = i.workerNodeProxy.logCrit
@@ -473,7 +473,7 @@ module ServiceImplementation =
             logger.logInfoString "createServiceImpl: Registering..."
             match w.register >-> w.start |> evaluate with
             | Ok() ->
-                let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
+                let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
                 do h.start()
                 Ok w
             | Error e -> Error e
@@ -492,16 +492,27 @@ module ServiceImplementation =
             let toError e = e |> WorkerNodeServiceErr |> Error
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
 
+            let msgDbLocation = getFileName MsgDatabase
+            let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
+            logger.logInfoString (sprintf "%s: Using local database: '%s'." className msgDbLocation)
+
             let w =
                 let messagingClientAccessInfo = i.messagingClientAccessInfo
                 let h = MsgResponseHandler messagingClientAccessInfo
                 logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
 
+                let j =
+                    {
+                        messagingClientName = workerNodeServiceName.value.messagingClientName
+                        storageType = connStrSqlite |> SqliteConnectionString |> SqliteDatabase
+                    }
+
                 let messagingClientData =
                     {
                         msgAccessInfo = messagingClientAccessInfo
                         messagingService = h
-                        msgClientProxy = MessagingClientProxy.create { messagingClientName = workerNodeServiceName.value.messagingClientName }
+                        msgClientProxy = MessagingClientProxy.create j messagingClientAccessInfo.msgClientId
+                        expirationTime = MessagingClientData.defaultExpirationTime
                     }
 
                 let messagingClient = MessagingClient messagingClientData

@@ -1,7 +1,6 @@
 ﻿namespace ServiceProxy
 
 open MessagingServiceInfo.ServiceInfo
-open NoSql.FileSystemTypes
 open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open DbData.MsgSvcDatabaseTypes
@@ -10,30 +9,50 @@ open ClmSys.GeneralPrimitives
 
 module MsgServiceProxy =
 
+    type MessagingClientStorageType =
+        | MsSqlDatabase of ConnectionString
+        | SqliteDatabase of SqliteConnectionString
+
+
     type MessagingClientProxyInfo =
         {
             messagingClientName : MessagingClientName
+            storageType : MessagingClientStorageType
         }
 
 
     /// Provides IO proxy for messaging client.
-    /// Currently it is assumed that messaging client does NOT have SQL server at its disposal.
-    /// This proxy encapsulates that.
+    /// Currently it is assumed that messaging client may NOT have SQL server at its disposal.
     type MessagingClientProxy =
         {
-            loadMessages : unit -> ListResult<MessageWithType>
-            saveMessage : MessageWithType -> UnitResult
+            tryPickIncomingMessage : unit -> ClmResult<Message option>
+            tryPickOutgoingMessage : unit -> ClmResult<Message option>
+            saveMessage : Message -> UnitResult
             tryDeleteMessage : MessageId -> UnitResult
+            deleteExpiredMessages : TimeSpan -> UnitResult
         }
 
-        static member create (i : MessagingClientProxyInfo) =
+        static member create (i : MessagingClientProxyInfo) (c : MessagingClientId) =
             let name = i.messagingClientName
 
-            {
-                loadMessages = loadMessageWithTypeAllFs name
-                saveMessage = saveMessageWithTypeFs name
-                tryDeleteMessage = tryDeleteMessageWithTypeFs name
-            }
+            match i.storageType with
+            | MsSqlDatabase connectionString ->
+
+                {
+                    tryPickIncomingMessage = fun () -> tryPickIncomingMessage connectionString c
+                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessage connectionString c
+                    saveMessage = fun m -> saveMessage connectionString m
+                    tryDeleteMessage = deleteMessage connectionString
+                    deleteExpiredMessages = deleteExpiredMessages connectionString
+                }
+            | SqliteDatabase connectionString ->
+                {
+                    tryPickIncomingMessage = fun () -> tryPickIncomingMessageSqlite connectionString c
+                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessageSqlite connectionString c
+                    saveMessage = fun m -> saveMessageSqlite connectionString m
+                    tryDeleteMessage = deleteMessageSqlite connectionString
+                    deleteExpiredMessages = deleteExpiredMessagesSqlite connectionString
+                }
 
 
     /// Provides IO proxy for messaging service.
@@ -47,7 +66,7 @@ module MsgServiceProxy =
 
         static member create (connectionString : ConnectionString) =
             {
-                tryPickMessage = tryPickMessage connectionString
+                tryPickMessage = tryPickIncomingMessage connectionString
                 saveMessage = saveMessage connectionString
                 deleteMessage = deleteMessage connectionString
                 deleteExpiredMessages = deleteExpiredMessages connectionString

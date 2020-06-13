@@ -32,7 +32,7 @@ module ModelRunner =
 
 
     let runModel (proxy : RunModelProxy) (q : RunQueue) =
-        match q.toMessageInfoOpt proxy.loadModelData proxy.minUsefulEe with
+        match q.toMessageInfoOpt proxy.loadModelData proxy.minUsefulEe proxy.earlyExitInfo with
         | Ok (Some m) -> proxy.sendRunModelMessage m
         | Ok None -> q.runQueueId |> MissingWorkerNodeErr |> toError RunModelErr
         | Error e -> (addError RunModelErr) (UnableToLoadModelDataErr (q.runQueueId, q.info.modelDataId )) e
@@ -119,7 +119,7 @@ module ModelRunner =
         | Ok None -> toError (TryRequestResultsError.TryLoadRunQueueErr q)
         | Error e -> addError (TryRequestResultsError.TryLoadRunQueueErr q) e
 
-    /// Tries to run all available work items (run queue) on all availalble work nodes until one or the other is exhausted.
+    /// Tries to run all available work items (run queue) on all available work nodes until one or the other is exhausted.
     let tryRunAllModels (proxy : TryRunAllModelsProxy) =
         let rec doWork() =
             match proxy.tryRunFirstModel() with
@@ -283,7 +283,19 @@ module ModelRunner =
             connectionString : ConnectionString
             minUsefulEe : MinUsefulEe
             resultLocation : string
+            earlyExitInfoOpt : EarlyExitInfo option
         }
+
+
+    type RunModelProxy
+        with
+        static member create (d : RunnerData) s =
+            {
+                minUsefulEe = d.minUsefulEe
+                sendRunModelMessage = s
+                loadModelData = loadModelData d.connectionString
+                earlyExitInfo = d.earlyExitInfoOpt
+            }
 
 
     type RunnerDataWithProxy =
@@ -310,7 +322,7 @@ module ModelRunner =
 
 
     type Runner (i : RunnerDataWithProxy) =
-        let runModelProxy = RunModelProxy.create i.runnerData.connectionString i.runnerData.minUsefulEe i.messageProcessorProxy.sendMessage
+        let runModelProxy = RunModelProxy.create i.runnerData i.messageProcessorProxy.sendMessage
         let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.connectionString runModelProxy
         let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
         let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage

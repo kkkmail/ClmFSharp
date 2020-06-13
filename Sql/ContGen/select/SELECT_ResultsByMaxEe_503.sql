@@ -100,6 +100,8 @@ f as
 		isnull(cast(dbo.getCatSynthScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
 		isnull(cast(dbo.getCatDestrSim(a.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
 		isnull(cast(dbo.getCatDestrScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity,
+		isnull(cast(dbo.getLigFwd(a.defaultSetIndex) as nvarchar(20)), '') as ligFwd,
+		isnull(cast(dbo.getLigBkw(a.defaultSetIndex) as nvarchar(20)), '') as ligBkw,
 		isnull(cast(dbo.getCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catLigScarcity,
 		isnull(cast(dbo.getCatLigMult(a.defaultSetIndex) as nvarchar(20)), '') as catLigMult,
 		isnull(cast(dbo.getCatLigSim(a.defaultSetIndex) as nvarchar(20)), '') as catLigSim,

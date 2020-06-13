@@ -114,4 +114,4 @@ f as
 select 
 	* 
 from f
-order by defaultSetIndex
+order by numberOfAminoAcids, defaultSetIndex

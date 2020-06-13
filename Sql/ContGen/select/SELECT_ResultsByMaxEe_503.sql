@@ -17,7 +17,7 @@ a as
 	select
 		d.clmDefaultValueId as defaultSetIndex,
 		t.numberOfAminoAcids,
-		--sum(case when t.clmTaskStatusId = 0 then t.remainingRepetitions else 0 end) as remainingRepetitions
+		t.maxPeptideLength,
 		sum(
 			case
 				when q.RunQueueStatusId = 0 then 1.0 
@@ -29,13 +29,14 @@ a as
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
 		inner join ModelData m on m.clmTaskId = t.clmTaskId
 		inner join RunQueue q on q.modelDataId = m.modelDataId
-	group by d.clmDefaultValueId, t.numberOfAminoAcids
+	group by d.clmDefaultValueId, t.numberOfAminoAcids, t.maxPeptideLength
 ),
 b as
 (
 	select
 		d.clmDefaultValueId as defaultSetIndex,
 		t.numberOfAminoAcids,
+		t.maxPeptideLength,
 		r.modelDataId,
 		case 
 			when r.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or r.maxLastEe > @maxLastEe then 1 
@@ -55,36 +56,40 @@ c as
 	select distinct
 		defaultSetIndex,
 		numberOfAminoAcids,
+		maxPeptideLength,
 		modelDataId,
 		max(isSymmetryBroken) as isSymmetryBroken,
 		avg(runTime) as runTime
 	from b
-	group by defaultSetIndex, numberOfAminoAcids, modelDataId
+	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength, modelDataId
 ),
 d as
 (
 	select
 		defaultSetIndex,
 		numberOfAminoAcids,
+		maxPeptideLength,
 		count(*) as modelCount,
 		avg(runTime) as runTime
 	from c
-	group by defaultSetIndex, numberOfAminoAcids
+	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
 ),
 e as
 (
 	select
 		defaultSetIndex,
 		numberOfAminoAcids,
+		maxPeptideLength,
 		count(*) as symmBrokenCount
 	from c
 	where isSymmetryBroken = 1
-	group by defaultSetIndex, numberOfAminoAcids
+	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
 ),
 f as
 (
 	select
 		a.numberOfAminoAcids,
+		a.maxPeptideLength,
 		a.defaultSetIndex,
 		isnull(d.modelCount, 0) as modelCount,
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,

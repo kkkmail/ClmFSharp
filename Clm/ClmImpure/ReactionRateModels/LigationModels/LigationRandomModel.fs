@@ -4,7 +4,7 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModels.ReactionRateModelsBase
+open ClmImpure.ReactionRateModels.ReactionRateModelBase
 
 module LigationRandomModel =
 

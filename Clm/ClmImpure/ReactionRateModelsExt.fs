@@ -5,9 +5,7 @@ open Clm.ReactionRatesExt
 open Clm.CalculationData
 open Clm.ReactionTypes
 open ClmImpure.ReactionRateModels
-open ClmImpure.ReactionRateModels.FoodCreationModel
 open ClmImpure.ReactionRateModels.WasteRecyclingModel
-open ClmImpure.ReactionRateModels.WasteRemovalModel
 open ClmImpure.ReactionRateModels.SugarSynthesisModel
 open ClmImpure.ReactionRateModels.DestructionModel
 open ClmImpure.ReactionRateModels.LigationModel
@@ -21,79 +19,6 @@ open ClmImpure.ReactionRateModels.SedimentationDirectModel
 open ClmImpure.ReactionRateModels.SedimentationAllModel
 
 module ReactionRateModelsExt =
-
-    let tryGetModel getter (p : list<ReactionRateModelWithUsage>) = p |> List.tryPick getter
-
-
-    let tryCreateModel picker creator (p, m) =
-        match tryPickParam picker p with
-        | Some (u, d), q ->
-            let models =
-                {
-                    model = creator d
-                    usage = u
-                } :: m
-            (q, models)
-        | None, _ -> (p, m)
-
-
-    let tryCreateModelWithBase picker creator baseGetter baseCreator (p, m) =
-        let create b d u =
-            {
-                model = creator b d
-                usage = u
-            }
-
-        match tryPickParam picker p with
-        | Some (u, d), q ->
-            match tryGetModel baseGetter m with
-            | Some b -> q, (create b d u) :: m
-            | None ->
-                let (q1, m1) = baseCreator (q, m)
-
-                match tryGetModel baseGetter m1 with
-                | Some b -> q1, (create b d u) :: m1
-                | None -> (q1, m1)
-        | None, _ -> (p, m)
-
-
-    type FoodCreationModel
-        with
-
-        static member modelGetter (p : ReactionRateModelWithUsage) =
-            match p.model with
-            | FoodCreationRateModel d -> Some d
-            | _ -> None
-
-        static member tryCreate (p, m) =
-            tryCreateModel FoodCreationParam.paramGetter (fun d -> d |> FoodCreationModel |> FoodCreationRateModel) (p, m)
-
-
-    type WasteRemovalModel
-        with
-
-        static member modelGetter (p : ReactionRateModelWithUsage) =
-            match p.model with
-            | WasteRemovalRateModel d -> Some d
-            | _ -> None
-
-
-        static member tryCreate (p, m) =
-            tryCreateModel WasteRemovalParam.paramGetter (fun d -> d |> WasteRemovalModel |> WasteRemovalRateModel) (p, m)
-
-
-    type WasteRecyclingModel
-        with
-
-        static member modelGetter (p : ReactionRateModelWithUsage) =
-            match p.model with
-            | WasteRecyclingRateModel d -> Some d
-            | _ -> None
-
-
-        static member tryCreate (p, m) =
-            tryCreateModel WasteRecyclingParam.paramGetter (fun d -> d |> WasteRecyclingModel |> WasteRecyclingRateModel) (p, m)
-
 
     type SedimentationDirectRandomModel
         with

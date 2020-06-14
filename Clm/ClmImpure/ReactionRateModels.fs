@@ -43,11 +43,14 @@ module ReactionRateModels =
             | WasteRemovalRateModel m -> m.getAllRates() |> WasteRemovalRates
             | WasteRecyclingRateModel m -> m.getAllRates() |> WasteRecyclingRates
             | SynthesisRateModel m -> m.getAllRates() |> SynthesisRates
+            | SugarSynthesisRateModel m -> m.getAllRates() |> SugarSynthesisRates
             | DestructionRateModel m -> m.getAllRates() |> DestructionRates
             | CatalyticSynthesisRateModel m -> m.getAllRates() |> CatalyticSynthesisRates
+            | EnCatalyticSynthesisRateModel m -> m.getAllRates() |> EnCatalyticSynthesisRates
             | CatalyticDestructionRateModel m -> m.getAllRates() |> CatalyticDestructionRates
             | LigationRateModel m -> m.getAllRates() |> LigationRates
             | CatalyticLigationRateModel m -> m.getAllRates() |> CatalyticLigationRates
+            | EnCatalyticLigationRateModel m -> m.getAllRates() |> EnCatalyticLigationRates
             | SedimentationDirectRateModel m -> m.getAllRates() |> SedimentationDirectRates
             | SedimentationAllRateModel m -> m.getAllRates() |> SedimentationAllRates
             | RacemizationRateModel m -> m.getAllRates() |> RacemizationRates

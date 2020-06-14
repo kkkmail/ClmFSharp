@@ -5,7 +5,7 @@ open Clm.ReactionRates
 
 open ClmImpure.ReactionRateFunctions
 
-module ReactionRateModelsBase =
+module ReactionRateModelBase =
 
     [<AbstractClass>]
     type RateModel<'P, 'R when 'R : equality> (p : 'P) =

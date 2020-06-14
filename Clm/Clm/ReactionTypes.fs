@@ -11,6 +11,7 @@ module ReactionTypes =
         | WasteRemovalName
         | WasteRecyclingName
         | SynthesisName
+        | SugarSynthesisName
         | DestructionName
         | CatalyticSynthesisName
         | CatalyticDestructionName
@@ -27,6 +28,7 @@ module ReactionTypes =
             | WasteRemovalName -> "waste"
             | WasteRecyclingName -> "recycling"
             | SynthesisName -> "synthesis"
+            | SugarSynthesisName -> "sugar synthesis"
             | DestructionName -> "destruction"
             | CatalyticSynthesisName -> "catalytic synthesis"
             | CatalyticDestructionName -> "catalytic destruction"
@@ -43,6 +45,7 @@ module ReactionTypes =
                 WasteRemovalName
                 WasteRecyclingName
                 SynthesisName
+                SugarSynthesisName
                 DestructionName
                 CatalyticSynthesisName
                 CatalyticDestructionName
@@ -145,6 +148,39 @@ module ReactionTypes =
             a.enantiomer |> SynthesisReaction
 
 
+    type SugCatalyst =
+        | SugCatalyst of Peptide
+
+        member c.enantiomer =
+            let (SugCatalyst a) = c
+            a.enantiomer |> SugCatalyst
+
+
+    type SugarSynthesisReaction =
+        | SugarSynthesisReaction of ChiralSugar * SugCatalyst
+
+        member r.info =
+            let (SugarSynthesisReaction (a, (SugCatalyst c))) = r
+            let p = c |> PeptideChain
+
+            {
+                input = [ (Simple Food, 1); (p, 1) ]
+                output = [ (ChiralSug a, 1); (p, 1) ]
+            }
+
+        member r.enantiomer =
+            let (SugarSynthesisReaction (a, c)) = r
+            (a.enantiomer, c.enantiomer) |> SugarSynthesisReaction
+
+        member r.withEnantiomerCatalyst =
+            let (SugarSynthesisReaction (a, c)) = r
+            (a, c.enantiomer) |> SugarSynthesisReaction
+
+        member r.catalyst =
+            let (SugarSynthesisReaction (_, b)) = r
+            b
+
+
     type DestructionReaction =
         | DestructionReaction of ChiralAminoAcid
 
@@ -168,14 +204,6 @@ module ReactionTypes =
             a.enantiomer |> SynthCatalyst
 
 
-    type DestrCatalyst =
-        | DestrCatalyst of Peptide
-
-        member c.enantiomer =
-            let (DestrCatalyst a) = c
-            a.enantiomer |> DestrCatalyst
-
-
     type CatalyticSynthesisReaction =
         | CatalyticSynthesisReaction of (SynthesisReaction * SynthCatalyst)
 
@@ -197,12 +225,62 @@ module ReactionTypes =
             (a, c.enantiomer) |> CatalyticSynthesisReaction
 
         member r.baseReaction =
-            let (CatalyticSynthesisReaction (a, b)) = r
+            let (CatalyticSynthesisReaction (a, _)) = r
             a
 
         member r.catalyst =
-            let (CatalyticSynthesisReaction (a, b)) = r
+            let (CatalyticSynthesisReaction (_, b)) = r
             b
+
+
+    /// Catalyst, which works in synthesis reaction with energy consumption.
+    type EnSynthCatalyst =
+        | EnSynthCatalyst of Peptide
+
+        member c.enantiomer =
+            let (EnSynthCatalyst a) = c
+            a.enantiomer |> EnSynthCatalyst
+
+
+    type EnCatalyticSynthesisReaction =
+        | EnCatalyticSynthesisReaction of (SynthesisReaction * EnSynthCatalyst * ChiralSugar)
+
+        member r.info =
+            let (EnCatalyticSynthesisReaction (a, (EnSynthCatalyst c), s)) = r
+            let p = c |> PeptideChain
+
+            {
+                input = a.info.input @ [ (p, 1); (ChiralSug s, 1) ]
+                output = a.info.output @ [ (p, 1); (Simple Waste, 1) ]
+            }
+
+        member r.enantiomer =
+            let (EnCatalyticSynthesisReaction (a, c, s)) = r
+            (a.enantiomer, c.enantiomer, s.enantiomer) |> EnCatalyticSynthesisReaction
+
+        member r.withEnantiomerCatalyst =
+            let (EnCatalyticSynthesisReaction (a, c, s)) = r
+            (a, c.enantiomer, s) |> EnCatalyticSynthesisReaction
+
+        member r.baseReaction =
+            let (EnCatalyticSynthesisReaction (a, _, _)) = r
+            a
+
+        member r.catalyst =
+            let (EnCatalyticSynthesisReaction (_, b, _)) = r
+            b
+
+        member r.sugar =
+            let (EnCatalyticSynthesisReaction (_, _, c)) = r
+            c
+
+
+    type DestrCatalyst =
+        | DestrCatalyst of Peptide
+
+        member c.enantiomer =
+            let (DestrCatalyst a) = c
+            a.enantiomer |> DestrCatalyst
 
 
     type CatalyticDestructionReaction =
@@ -507,6 +585,7 @@ module ReactionTypes =
         | WasteRemoval of WasteRemovalReaction
         | WasteRecycling of WasteRecyclingReaction
         | Synthesis of SynthesisReaction
+        | SugarSynthesis of SugarSynthesisReaction
         | Destruction of DestructionReaction
         | CatalyticSynthesis of CatalyticSynthesisReaction
         | CatalyticDestruction of CatalyticDestructionReaction
@@ -523,6 +602,7 @@ module ReactionTypes =
             | WasteRemoval _ -> WasteRemovalName
             | WasteRecycling _ -> WasteRecyclingName
             | Synthesis _ -> SynthesisName
+            | SugarSynthesis _ -> SugarSynthesisName
             | Destruction _ -> DestructionName
             | CatalyticSynthesis _ -> CatalyticSynthesisName
             | CatalyticDestruction _ -> CatalyticDestructionName
@@ -539,6 +619,7 @@ module ReactionTypes =
             | WasteRemoval r -> r.info
             | WasteRecycling r -> r.info
             | Synthesis r -> r.info
+            | SugarSynthesis r -> r.info
             | Destruction r -> r.info
             | CatalyticSynthesis r -> r.info
             | CatalyticDestruction r -> r.info
@@ -555,6 +636,7 @@ module ReactionTypes =
             | WasteRemoval r -> r.enantiomer |> WasteRemoval
             | WasteRecycling r -> r.enantiomer |> WasteRecycling
             | Synthesis r -> r.enantiomer |> Synthesis
+            | SugarSynthesis r -> r.enantiomer |> SugarSynthesis
             | Destruction r -> r.enantiomer |> Destruction
             | CatalyticSynthesis r -> r.enantiomer |> CatalyticSynthesis
             | CatalyticDestruction r -> r.enantiomer |> CatalyticDestruction
@@ -567,16 +649,17 @@ module ReactionTypes =
 
         member r.addInfo =
             match r with
-            | FoodCreation r -> None
-            | WasteRemoval r -> None
-            | WasteRecycling r -> None
-            | Synthesis r -> None
-            | Destruction r -> None
-            | CatalyticSynthesis r -> None
-            | CatalyticDestruction r -> None
+            | FoodCreation _ -> None
+            | WasteRemoval _ -> None
+            | WasteRecycling _ -> None
+            | Synthesis _ -> None
+            | SugarSynthesis _ -> None
+            | Destruction _ -> None
+            | CatalyticSynthesis _ -> None
+            | CatalyticDestruction _ -> None
             | Ligation r -> r.peptideBond.ToString() |> Some
             | CatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
-            | SedimentationDirect r -> None
-            | SedimentationAll r -> None
-            | Racemization r -> None
-            | CatalyticRacemization r -> None
+            | SedimentationDirect _ -> None
+            | SedimentationAll _ -> None
+            | Racemization _ -> None
+            | CatalyticRacemization _ -> None

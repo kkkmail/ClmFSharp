@@ -13,7 +13,7 @@ open ClmImpure.ReactionRateModelsExt
 module RateProvider =
 
     type ReactionRateProvider (p: ReactionRateProviderParams, si : SubstInfo) =
-        let allModels = 
+        let allModels =
             let x = ReactionRateModel.createAll (p.allParams()) si
             x
 
@@ -25,11 +25,14 @@ module RateProvider =
             | WasteRemoval r -> tryPick WasteRemovalModel.modelGetter |> bind (fun m -> m.getRates r)
             | WasteRecycling r -> tryPick WasteRecyclingModel.modelGetter |> bind (fun m -> m.getRates r)
             | Synthesis r -> tryPick SynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd r)
+            | SugarSynthesis r -> tryPick SugarSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | Destruction r -> tryPick DestructionModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | CatalyticSynthesis r -> tryPick CatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
+            | EnCatalyticSynthesis r -> tryPick EnCatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
             | CatalyticDestruction r -> tryPick CatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
             | Ligation r -> tryPick LigationModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | CatalyticLigation r -> tryPick CatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
+            | EnCatalyticLigation r -> tryPick EnCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
             | SedimentationDirect r -> tryPick SedimentationDirectModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
             | SedimentationAll r -> tryPick SedimentationAllModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | Racemization r -> tryPick RacemizationModel.modelGetter|> bind (fun m -> m.getRates rnd r)
@@ -41,11 +44,14 @@ module RateProvider =
             | WasteRemovalName -> tryPick WasteRemovalModel.modelGetter |> Option.bind(fun e -> WasteRemovalRateModel e |> Some)
             | WasteRecyclingName -> tryPick WasteRecyclingModel.modelGetter |> Option.bind(fun e -> WasteRecyclingRateModel e |> Some)
             | SynthesisName -> tryPick SynthesisModel.modelGetter |> Option.bind(fun e -> SynthesisRateModel e |> Some)
+            | SugarSynthesisName -> tryPick SugarSynthesisModel.modelGetter |> Option.bind(fun e -> SugarSynthesisRateModel e |> Some)
             | DestructionName -> tryPick DestructionModel.modelGetter |> Option.bind(fun e -> DestructionRateModel e |> Some)
             | CatalyticSynthesisName -> tryPick CatalyticSynthesisModel.modelGetter |> Option.bind(fun e -> CatalyticSynthesisRateModel e |> Some)
+            | EnCatalyticSynthesisName -> tryPick EnCatalyticSynthesisModel.modelGetter |> Option.bind(fun e -> EnCatalyticSynthesisRateModel e |> Some)
             | CatalyticDestructionName -> tryPick CatalyticDestructionModel.modelGetter |> Option.bind(fun e -> CatalyticDestructionRateModel e |> Some)
             | LigationName -> tryPick LigationModel.modelGetter |> Option.bind(fun e -> LigationRateModel e |> Some)
             | CatalyticLigationName -> tryPick CatalyticLigationModel.modelGetter |> Option.bind(fun e -> CatalyticLigationRateModel e |> Some)
+            | EnCatalyticLigationName -> tryPick EnCatalyticLigationModel.modelGetter |> Option.bind(fun e -> EnCatalyticLigationRateModel e |> Some)
             | SedimentationDirectName -> tryPick SedimentationDirectModel.modelGetter |> Option.bind(fun e -> SedimentationDirectRateModel e |> Some)
             | SedimentationAllName -> tryPick SedimentationAllModel.modelGetter |> Option.bind(fun e -> SedimentationAllRateModel e |> Some)
             | RacemizationName -> tryPick RacemizationModel.modelGetter |> Option.bind(fun e -> RacemizationRateModel e |> Some)

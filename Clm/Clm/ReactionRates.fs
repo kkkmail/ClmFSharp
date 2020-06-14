@@ -214,6 +214,18 @@ module ReactionRates =
         | SynthRndParam of SynthesisRandomParam
 
 
+    type SugarSynthesisRandomParam =
+        {
+            sugarSynthesisDistribution : Distribution
+            forwardScale : double option
+            backwardScale : double option
+        }
+
+
+    type SugarSynthesisParam =
+        | SugarSynthRndParam of SugarSynthesisRandomParam
+
+
     type CatalyticSynthesisRandomParam =
         {
             synthesisParam : SynthesisParam

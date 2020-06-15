@@ -447,11 +447,14 @@ module ReactionRates =
         | WasteRemovalRates of list<ReactionRateData<WasteRemovalReaction>>
         | WasteRecyclingRates of list<ReactionRateData<WasteRecyclingReaction>>
         | SynthesisRates of list<ReactionRateData<SynthesisReaction>>
+        | SugarSynthesisRates of list<ReactionRateData<SugarSynthesisReaction>>
         | DestructionRates of list<ReactionRateData<DestructionReaction>>
         | CatalyticSynthesisRates of list<ReactionRateData<CatalyticSynthesisReaction>>
+        | EnCatalyticSynthesisRates of list<ReactionRateData<EnCatalyticSynthesisReaction>>
         | CatalyticDestructionRates of list<ReactionRateData<CatalyticDestructionReaction>>
         | LigationRates of list<ReactionRateData<LigationReaction>>
-        | CatalyticLigationRates of list<ReactionRateData<CatalyticLigationReaction >>
+        | CatalyticLigationRates of list<ReactionRateData<CatalyticLigationReaction>>
+        | EnCatalyticLigationRates of list<ReactionRateData<EnCatalyticLigationReaction>>
         | SedimentationDirectRates of list<ReactionRateData<SedimentationDirectReaction>>
         | SedimentationAllRates of list<ReactionRateData<SedimentationAllReaction>>
         | RacemizationRates of list<ReactionRateData<RacemizationReaction>>
@@ -463,11 +466,14 @@ module ReactionRates =
             | WasteRemovalRates r -> r |> List.map (fun e -> e.reaction |> WasteRemoval, e.rateData)
             | WasteRecyclingRates r -> r |> List.map (fun e -> e.reaction |> WasteRecycling, e.rateData)
             | SynthesisRates r -> r |> List.map (fun e -> e.reaction |> Synthesis, e.rateData)
+            | SugarSynthesisRates r -> r |> List.map (fun e -> e.reaction |> SugarSynthesis, e.rateData)
             | DestructionRates r -> r |> List.map (fun e -> e.reaction |> Destruction, e.rateData)
             | CatalyticSynthesisRates r -> r |> List.map (fun e -> e.reaction |> CatalyticSynthesis, e.rateData)
+            | EnCatalyticSynthesisRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticSynthesis, e.rateData)
             | CatalyticDestructionRates r -> r |> List.map (fun e -> e.reaction |> CatalyticDestruction, e.rateData)
             | LigationRates r -> r |> List.map (fun e -> e.reaction |> Ligation, e.rateData)
             | CatalyticLigationRates r -> r |> List.map (fun e -> e.reaction |> CatalyticLigation, e.rateData)
+            | EnCatalyticLigationRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticLigation, e.rateData)
             | SedimentationDirectRates r -> r |> List.map (fun e -> e.reaction |> SedimentationDirect, e.rateData)
             | SedimentationAllRates r -> r |> List.map (fun e -> e.reaction |> SedimentationAll, e.rateData)
             | RacemizationRates r -> r |> List.map (fun e -> e.reaction |> Racemization, e.rateData)
@@ -479,11 +485,14 @@ module ReactionRates =
         | WasteRemovalRateParam of WasteRemovalParam
         | WasteRecyclingRateParam of WasteRecyclingParam
         | SynthesisRateParam of SynthesisParam
+        | SugarSynthesisRateParam of SugarSynthesisParam
         | DestructionRateParam of DestructionParam
         | CatalyticSynthesisRateParam of CatalyticSynthesisParam
+        | EnCatalyticSynthesisRateParam of EnCatalyticSynthesisParam
         | CatalyticDestructionRateParam of CatalyticDestructionParam
         | LigationRateParam of LigationParam
         | CatalyticLigationRateParam of CatalyticLigationParam
+        | EnCatalyticLigationRateParam of EnCatalyticLigationParam
         | SedimentationDirectRateParam of SedimentationDirectParam
         | SedimentationAllRateParam of SedimentationAllParam
         | RacemizationRateParam of RacemizationParam
@@ -499,11 +508,16 @@ module ReactionRates =
             | WasteRemovalRateParam _ -> []
             | WasteRecyclingRateParam _ -> []
             | SynthesisRateParam _ -> []
+            | SugarSynthesisRateParam _ -> []
             | DestructionRateParam _ -> []
             | CatalyticSynthesisRateParam v ->
                 match v with
                 | CatSynthRndParam m -> [ m.synthesisParam |> SynthesisRateParam ]
                 | CatSynthSimParam m -> [ m.catSynthParam |> CatSynthRndParam |> CatalyticSynthesisRateParam ]
+            | EnCatalyticSynthesisRateParam v ->
+                match v with
+                | EnCatSynthRndParam m -> [ m.synthesisParam |> SynthesisRateParam ]
+                | EnCatSynthSimParam m -> [ m.catSynthParam |> EnCatSynthRndParam |> EnCatalyticSynthesisRateParam ]
             | CatalyticDestructionRateParam v ->
                 match v with
                 | CatDestrRndParam m -> [ m.destructionParam |> DestructionRateParam ]
@@ -513,6 +527,10 @@ module ReactionRates =
                 match v with
                 | CatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
                 | CatLigSimParam m -> [ m.catLigParam |> CatLigRndParam |> CatalyticLigationRateParam ]
+            | EnCatalyticLigationRateParam v ->
+                match v with
+                | EnCatLigRndParam m -> [ m.ligationParam |> LigationRateParam ]
+                | EnCatLigSimParam m -> [ m.catLigParam |> CatLigRndParam |> CatalyticLigationRateParam ]
             | SedimentationDirectRateParam v ->
                 match v with
                 | SedDirRndParam _ -> []
@@ -565,11 +583,14 @@ module ReactionRates =
         member p.tryFindWasteRemovalParam() = p.rateParams |> List.tryPick (fun e -> match e with | WasteRemovalRateParam m -> Some m | _ -> None)
         member p.tryFindWasteRecyclingParam() = p.rateParams |> List.tryPick (fun e -> match e with | WasteRecyclingRateParam m -> Some m | _ -> None)
         member p.tryFindSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | SynthesisRateParam m -> Some m | _ -> None)
+        member p.tryFindSugarSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | SugarSynthesisRateParam m -> Some m | _ -> None)
         member p.tryFindDestructionParam() = p.rateParams |> List.tryPick (fun e -> match e with | DestructionRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateParam m -> Some m | _ -> None)
+        member p.tryFindEnCatalyticSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticSynthesisRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticDestructionParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticDestructionRateParam m -> Some m | _ -> None)
         member p.tryFindLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | LigationRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticLigationRateParam m -> Some m | _ -> None)
+        member p.tryFindEnCatalyticLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticLigationRateParam m -> Some m | _ -> None)
         member p.tryFindSedimentationDirectParam() = p.rateParams |> List.tryPick (fun e -> match e with | SedimentationDirectRateParam m -> Some m | _ -> None)
         member p.tryFindSedimentationAllParam() = p.rateParams |> List.tryPick (fun e -> match e with | SedimentationAllRateParam m -> Some m | _ -> None)
         member p.tryFindRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | RacemizationRateParam m -> Some m | _ -> None)

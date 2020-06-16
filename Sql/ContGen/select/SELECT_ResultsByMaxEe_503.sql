@@ -37,19 +37,20 @@ b as
 		d.clmDefaultValueId as defaultSetIndex,
 		t.numberOfAminoAcids,
 		t.maxPeptideLength,
-		r.modelDataId,
+		m.modelDataId,
 		case 
+			when q.errorMessage like 'The run queue was cancelled at: %' then 1
 			when r.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or r.maxLastEe > @maxLastEe then 1 
 			else 0 
 		end as isSymmetryBroken,
 		cast(datediff(minute, isnull(q.startedOn, m.createdOn), r.createdOn) as float) / 1440.0 as runTime
 	from
-		ClmDefaultValue d 
-		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
-		inner join ModelData m on t.clmTaskId = m.clmTaskId
-		inner join ResultData r on m.modelDataId = r.modelDataId
-		inner join RunQueue q on r.resultDataId = q.runQueueId
-	where r.maxEe <= 1 and q.runQueueStatusId = 3
+		RunQueue q
+		inner join ModelData m on q.modelDataId = m.modelDataId
+		inner join ClmTask t on m.clmTaskId = t.clmTaskId
+		inner join ClmDefaultValue d on t.clmDefaultValueId = d.clmDefaultValueId
+		left outer join ResultData r on m.modelDataId = r.modelDataId
+	where isnull(r.maxEe, 0) <= 1 and q.runQueueStatusId = 3
 ),
 c as
 (

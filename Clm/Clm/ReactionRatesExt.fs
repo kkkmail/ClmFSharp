@@ -1,6 +1,7 @@
 ﻿namespace Clm
 
 open ReactionRates
+open ReactionRateParams
 
 module ReactionRatesExt =
 
@@ -64,6 +65,15 @@ module ReactionRatesExt =
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
             | SynthesisRateParam (SynthRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type SugarSynthesisRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | SugarSynthesisRateParam (SugarSynthRndParam d) -> Some (p.usage, d)
             | _ -> None
 
 

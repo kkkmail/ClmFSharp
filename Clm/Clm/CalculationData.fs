@@ -2,7 +2,7 @@
 
 open Clm.Substances
 open Clm.Distributions
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
 open Clm.Reactions
 open Clm.ModelParams
 open Clm.ReactionTypes

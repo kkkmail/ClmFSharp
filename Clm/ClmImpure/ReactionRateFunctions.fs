@@ -3,9 +3,10 @@
 open System.Collections.Generic
 open FSharp.Collections
 
-open Clm.Substances
 open Clm.Distributions
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
+open Clm.ReactionRateParams
 open Clm.ReactionTypes
 
 

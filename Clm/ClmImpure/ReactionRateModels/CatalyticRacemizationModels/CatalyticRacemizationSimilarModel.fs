@@ -2,7 +2,8 @@
 
 open Clm.Substances
 open Clm.ReactionTypes
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
+open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.CatalyticRacemizationRandomModel
 

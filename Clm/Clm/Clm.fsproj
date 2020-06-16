@@ -69,6 +69,8 @@
     <Compile Include="Distributions.fs" />
     <Compile Include="Substances.fs" />
     <Compile Include="ReactionTypes.fs" />
+    <Compile Include="ReactionRatesBase.fs" />
+    <Compile Include="ReactionRateParams.fs" />
     <Compile Include="ReactionRates.fs" />
     <Compile Include="Reactions.fs" />
     <Compile Include="ModelParams.fs" />

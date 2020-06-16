@@ -1,7 +1,7 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
 open System.Collections.Generic
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
 
 open ClmImpure.ReactionRateFunctions
 

@@ -1,6 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
-open Clm.ReactionRates
+open Clm.ReactionRateParams
 open ClmImpure.ReactionRateModels.LigationRandomModel
 
 module LigationModel =

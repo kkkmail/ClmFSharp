@@ -1,6 +1,7 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open Clm.ReactionRates
+open Clm.ReactionRateParams
 open ClmImpure.ReactionRateModels
 open ClmImpure.ReactionRateModels.CatalyticDestructionRandomModel
 open ClmImpure.ReactionRateModels.CatalyticDestructionSimilarModel

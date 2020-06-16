@@ -4,15 +4,15 @@ open FSharp.Collections
 
 open Clm.Substances
 open Clm.ReactionTypes
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
+open Clm.ReactionRateParams
 open Clm.CalculationData
 
 open ClmImpure.ReactionRateModels
 open ClmImpure.ReactionRateModelsExt
-open Clm.ReactionRates
 open Clm.ReactionRatesExt
 open Clm.CalculationData
-open Clm.ReactionTypes
 open ClmImpure.ReactionRateModels
 open ClmImpure.ReactionRateModels.FoodCreationModel
 open ClmImpure.ReactionRateModelExtensions.FoodCreationModelExt
@@ -34,10 +34,14 @@ open ClmImpure.ReactionRateModels.CatalyticDestructionModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticDestructionModelExt
 open ClmImpure.ReactionRateModels.CatalyticLigationModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticLigationModelExt
+open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
+open ClmImpure.ReactionRateModelExtensions.EnCatalyticLigationModelExt
 open ClmImpure.ReactionRateModels.CatalyticRacemizationModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticRacemizationModelExt
 open ClmImpure.ReactionRateModels.CatalyticSynthesisModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticSynthesisModelExt
+open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
+open ClmImpure.ReactionRateModelExtensions.EnCatalyticSynthesisModelExt
 open ClmImpure.ReactionRateModels.SedimentationDirectModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationDirectModelExt
 open ClmImpure.ReactionRateModels.SedimentationAllModel

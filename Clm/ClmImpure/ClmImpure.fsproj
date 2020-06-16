@@ -106,6 +106,7 @@
     <Compile Include="ReactionRateModelExtensions\WasteRecyclingModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisModelExt.fs" />
+    <Compile Include="ReactionRateModelExtensions\SugarSynthesisModels\SugarSynthesisRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SugarSynthesisModels\SugarSynthesisModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\CatalyticSynthesisModels\CatalyticSynthesisRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\CatalyticSynthesisModels\CatalyticSynthesisSimilarModelExt.fs" />

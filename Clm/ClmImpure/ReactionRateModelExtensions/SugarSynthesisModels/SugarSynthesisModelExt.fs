@@ -1,7 +1,9 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModels.SynthesisRandomModel
 open ClmImpure.ReactionRateModels.SugarSynthesisModel
+open ClmImpure.ReactionRateModelExtensions.SynthesisRandomModelExt
 
 module SugarSynthesisModelExt =
 

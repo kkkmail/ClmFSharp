@@ -102,7 +102,7 @@ module ServiceInfo =
                     |> List.fold (fun acc r -> acc && r) true
 
 
-        static member defaultProgress = 0.02M
+        static member defaultProgress = 0.05M
         static member defaultMinEe = 0.15
 
         static member getDefaultValue p e =

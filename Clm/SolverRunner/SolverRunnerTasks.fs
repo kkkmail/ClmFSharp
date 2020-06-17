@@ -122,12 +122,12 @@ module SolverRunnerTasks =
 
 
     let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) =
+        let mutable lastCheck = DateTime.Now
+
         let checkCancellation =
             match w.earlyExitOpt with
             | None -> d.checkCancellation
             | Some c ->
-                let mutable lastCheck = DateTime.Now
-
                 let check r =
                     let fromLastCheck = DateTime.Now - lastCheck
 

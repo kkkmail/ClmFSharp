@@ -122,12 +122,12 @@ module SolverRunnerTasks =
 
 
     let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) =
+        let mutable lastCheck = DateTime.Now
+
         let checkCancellation =
             match w.earlyExitOpt with
             | None -> d.checkCancellation
             | Some c ->
-                let mutable lastCheck = DateTime.Now
-
                 let check r =
                     let fromLastCheck = DateTime.Now - lastCheck
 
@@ -348,7 +348,9 @@ module SolverRunnerTasks =
                 printfn "getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
 
                 match r with
-                | CancelWithResults -> (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
+                | CancelWithResults ->
+                    notifyOfResults ForceChartGeneration |> ignore
+                    (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
                 | AbortCalculation -> getProgress Cancelled
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed"
             | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred")

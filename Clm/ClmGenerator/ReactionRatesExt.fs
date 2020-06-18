@@ -1,7 +1,23 @@
 ﻿namespace Clm.Generator
 
-open ClmImpure.ReactionRateModels
 open ClmImpure.RateProvider
+open ClmImpure.ReactionRateModelsAll
+open ClmImpure.ReactionRateModels.FoodCreationModel
+open ClmImpure.ReactionRateModels.WasteRecyclingModel
+open ClmImpure.ReactionRateModels.WasteRemovalModel
+open ClmImpure.ReactionRateModels.SynthesisModel
+open ClmImpure.ReactionRateModels.SugarSynthesisModel
+open ClmImpure.ReactionRateModels.DestructionModel
+open ClmImpure.ReactionRateModels.LigationModel
+open ClmImpure.ReactionRateModels.RacemizationModel
+open ClmImpure.ReactionRateModels.CatalyticDestructionModel
+open ClmImpure.ReactionRateModels.CatalyticLigationModel
+open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
+open ClmImpure.ReactionRateModels.CatalyticRacemizationModel
+open ClmImpure.ReactionRateModels.CatalyticSynthesisModel
+open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
+open ClmImpure.ReactionRateModels.SedimentationDirectModel
+open ClmImpure.ReactionRateModels.SedimentationAllModel
 
 module ReactionRatesExt =
 
@@ -31,7 +47,7 @@ module ReactionRatesExt =
         with
         member model.primaryDistribution =
             match model with
-            | SugarSynthRndModel m -> Some m.inputParams.synthesisDistribution
+            | SugarSynthRndModel m -> Some m.inputParams.sugarSynthesisDistribution
 
 
     type DestructionModel
@@ -49,6 +65,16 @@ module ReactionRatesExt =
                 m.inputParams.catSynthRndParam.catSynthRndEeParams.rateMultiplierDistr.value
             | CatSynthSimModel m ->
                 m.inputParams.catSynthModel.inputParams.catSynthRndParam.catSynthRndEeParams.rateMultiplierDistr.value
+
+
+    type EnCatalyticSynthesisModel
+        with
+        member model.primaryDistribution =
+            match model with
+            | EnCatSynthRndModel m ->
+                m.inputParams.enCatSynthRndParam.enCatSynthRndEeParams.rateMultiplierDistr.value
+            | EnCatSynthSimModel m ->
+                m.inputParams.enCatSynthModel.inputParams.enCatSynthRndParam.enCatSynthRndEeParams.rateMultiplierDistr.value
 
 
     type CatalyticDestructionModel
@@ -76,6 +102,16 @@ module ReactionRatesExt =
                 m.inputParams.catLigationParam.catLigRndEeParams.rateMultiplierDistr.value
             | CatLigSimModel m ->
                 m.inputParams.catLigModel.inputParams.catLigationParam.catLigRndEeParams.rateMultiplierDistr.value
+
+
+    type EnCatalyticLigationModel
+        with
+        member model.primaryDistribution =
+            match model with
+            | EnCatLigRndModel m ->
+                m.inputParams.enCatLigationParam.enCatLigRndEeParams.rateMultiplierDistr.value
+            | EnCatLigSimModel m ->
+                m.inputParams.enCatLigModel.inputParams.enCatLigationParam.enCatLigRndEeParams.rateMultiplierDistr.value
 
 
     type SedimentationDirectModel
@@ -118,11 +154,14 @@ module ReactionRatesExt =
             | WasteRemovalRateModel m -> m.primaryDistribution
             | WasteRecyclingRateModel m -> m.primaryDistribution
             | SynthesisRateModel m -> m.primaryDistribution
+            | SugarSynthesisRateModel m -> m.primaryDistribution
             | DestructionRateModel m -> m.primaryDistribution
             | CatalyticSynthesisRateModel m -> m.primaryDistribution
+            | EnCatalyticSynthesisRateModel m -> m.primaryDistribution
             | CatalyticDestructionRateModel m -> m.primaryDistribution
             | LigationRateModel m -> m.primaryDistribution
             | CatalyticLigationRateModel m -> m.primaryDistribution
+            | EnCatalyticLigationRateModel m -> m.primaryDistribution
             | SedimentationDirectRateModel m -> m.primaryDistribution
             | SedimentationAllRateModel m -> m.primaryDistribution
             | RacemizationRateModel m -> m.primaryDistribution

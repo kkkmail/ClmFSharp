@@ -65,10 +65,14 @@ module CalculationData =
             infoParam : SubstInfoParam
             aminoAcids : list<AminoAcid>
             chiralAminoAcids : list<ChiralAminoAcid>
+            chiralSugars : list<ChiralSugar>
             peptides : list<Peptide>
             synthCatalysts : list<SynthCatalyst>
+            sugSynthCatalysts : list<SugCatalyst>
+            enSynthCatalysts : list<EnSynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             ligCatalysts : list<LigCatalyst>
+            enLigCatalysts : list<EnLigCatalyst>
             ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
 
@@ -117,10 +121,14 @@ module CalculationData =
                 infoParam = p
                 aminoAcids = aminoAcids
                 chiralAminoAcids = chiralAminoAcids
+                chiralSugars = [ Ls Z; Rs Z ]
                 peptides = peptides
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
+                sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
+                enSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnSynthCatalyst p)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
+                enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
                 ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
 

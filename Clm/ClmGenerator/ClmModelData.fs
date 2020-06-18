@@ -93,8 +93,10 @@ module ClmModelData =
         {
             substInfo : SubstInfo
             catSynthPairs : list<SynthesisReaction * SynthCatalyst>
+            enCatSynthPairs : list<SynthesisReaction * EnSynthCatalyst * ChiralSugar>
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
+            enCatLigPairs : list<LigationReaction * EnLigCatalyst * ChiralSugar>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
         }
@@ -113,14 +115,14 @@ module ClmModelData =
             | WasteRemovalName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
             | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
             | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) data.substInfo.chiralAminoAcids
-            | SugarSynthesisName -> createReactions (fun a -> SugarSynthesisReaction a |> SugarSynthesis) data.substInfo.chiralAminoAcids
+            | SugarSynthesisName -> createReactions (fun a -> SugarSynthesisReaction a |> SugarSynthesis) data.substInfo.chiralSugars
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
-            | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.catSynthPairs
+            | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.enCatSynthPairs
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | LigationName -> createReactions (fun x -> x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
-            | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.catLigPairs
+            | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.enCatLigPairs
             | SedimentationDirectName -> createReactions (fun (c, r) -> SedimentationDirectReaction ([ c ] |> SedDirReagent, r) |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
@@ -181,8 +183,10 @@ module ClmModelData =
                     {
                         substInfo = si
                         catSynthPairs = generatePairs (si.catSynthInfo st)
+                        enCatSynthPairs = generatePairs (si.enCatSynthInfo st)
                         catDestrPairs = generatePairs (si.catDestrInfo st)
                         catLigPairs = generatePairs (si.catLigInfo st)
+                        enCatLigPairs = generatePairs (si.enCatLigInfo st)
                         catRacemPairs = generatePairs (si.catRacemInfo st)
                         sedDirPairs = generatePairs (si.sedDirInfo st)
                     }

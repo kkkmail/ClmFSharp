@@ -62,6 +62,16 @@ module ReactionRatesBase =
         }
 
 
+    type RateGeneratorInfo<'A, 'B, 'C> =
+        {
+            a : array<'A>
+            b : array<'B>
+            c : array<'C>
+            reactionName : ReactionName
+            successNumberType : SuccessNumberType
+        }
+
+
     type RelatedReactions<'R> =
         {
             primary : RateData

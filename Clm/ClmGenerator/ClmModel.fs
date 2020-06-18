@@ -8,6 +8,7 @@ open Clm.Distributions
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ModelParams
 open ClmSys.GeneralData

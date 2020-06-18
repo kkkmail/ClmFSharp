@@ -2,7 +2,7 @@
 
 open Clm.ReactionRateParams
 open Clm.ReactionRatesExt
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.LigationModel
 open ClmImpure.ReactionRateModels.CatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.CatalyticLigationModel

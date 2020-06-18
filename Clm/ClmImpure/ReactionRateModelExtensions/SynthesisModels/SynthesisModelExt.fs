@@ -1,6 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.SynthesisModel
 open ClmImpure.ReactionRateModels.SynthesisRandomModel
 open ClmImpure.ReactionRateModelExtensions.SynthesisRandomModelExt

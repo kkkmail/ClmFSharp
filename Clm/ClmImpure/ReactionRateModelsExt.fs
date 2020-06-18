@@ -1,10 +1,8 @@
 ﻿namespace ClmImpure
 
 open Clm.ReactionRates
-open Clm.ReactionRatesExt
 open Clm.CalculationData
-open Clm.ReactionTypes
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.FoodCreationModel
 open ClmImpure.ReactionRateModelExtensions.FoodCreationModelExt
 open ClmImpure.ReactionRateModels.WasteRecyclingModel

@@ -198,5 +198,5 @@ module ReactionRatesBase =
         }
 
     let calculateEnCatRates<'R, 'C, 'S, 'RCS> (i : EnCatRatesInfo<'R, 'C, 'S, 'RCS>) : RelatedReactions<'RCS> =
-        0
+        failwith "EN is not implemented yet."
 

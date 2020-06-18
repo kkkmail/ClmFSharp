@@ -1,9 +1,8 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ReactionRateParams
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.EnCatalyticSynthesisSimilarModel
 open ClmImpure.ReactionRateModels.EnCatalyticSynthesisRandomModel
 open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
@@ -27,5 +26,6 @@ module EnCatalyticSynthesisSimilarModelExt =
 
 
         static member tryCreate a (p, m) =
-            let creator b (d : EnCatalyticSynthesisSimilarParam) = { enCatSynthModel = b; aminoAcids = a; enCatSynthSimParam = d.enCatSynthSimParam } |> CatalyticSynthesisSimilarModel |> CatSynthSimModel |> CatalyticSynthesisRateModel
+            let creator b (d : EnCatalyticSynthesisSimilarParam) =
+                { enCatSynthModel = b; aminoAcids = a; enCatSynthSimParam = d.enCatSynthSimParam } |> EnCatalyticSynthesisSimilarModel |> EnCatSynthSimModel |> EnCatalyticSynthesisRateModel
             tryCreateModelWithBase EnCatalyticSynthesisSimilarModel.paramGetter creator EnCatalyticSynthesisRandomModel.modelGetter EnCatalyticSynthesisRandomModel.tryCreate (p, m)

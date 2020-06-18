@@ -137,3 +137,21 @@ module ReactionRatesExt =
             match p.modelParam with
             | CatalyticRacemizationRateParam (CatRacemRndParam d) -> Some (p.usage, d)
             | _ -> None
+
+
+    type EnCatalyticSynthesisRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | EnCatalyticSynthesisRateParam (EnCatSynthRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type EnCatalyticLigationRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | EnCatalyticLigationRateParam (EnCatLigRndParam d) -> Some (p.usage, d)
+            | _ -> None

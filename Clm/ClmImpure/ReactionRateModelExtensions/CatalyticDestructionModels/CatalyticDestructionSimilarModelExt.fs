@@ -2,7 +2,7 @@
 
 open Clm.ReactionRates
 open Clm.ReactionRateParams
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.CatalyticDestructionRandomModel
 open ClmImpure.ReactionRateModels.CatalyticDestructionSimilarModel
 open ClmImpure.ReactionRateModels.CatalyticDestructionModel

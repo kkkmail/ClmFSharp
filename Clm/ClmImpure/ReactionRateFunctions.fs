@@ -343,4 +343,4 @@ module ReactionRateFunctions =
 
 
     let calculateEnSimRates<'A, 'R, 'C, 'S, 'RCS when 'A : equality and 'R : equality> (i : EnCatRatesSimInfo<'A, 'R, 'C, 'S, 'RCS>) : RateData =
-        0
+        failwith "EN is not implemented yet."

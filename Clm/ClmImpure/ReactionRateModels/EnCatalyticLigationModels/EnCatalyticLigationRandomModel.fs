@@ -2,34 +2,37 @@
 
 open Clm.Substances
 open Clm.ReactionTypes
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
+open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.ReactionRateModelBase
 open ClmImpure.ReactionRateModels.LigationModel
 
-module CatalyticLigationRandomModel =
+module EnCatalyticLigationRandomModel =
 
-    type CatalyticLigationRandomParamWithModel =
+    type EnCatalyticLigationRandomParamWithModel =
         {
-            catLigationParam : CatalyticLigationRandomParam
+            enCatLigationParam : EnCatalyticLigationRandomParam
             ligationModel : LigationModel
         }
 
 
-    type CatalyticLigationRandomModel (p : CatalyticLigationRandomParamWithModel) =
-        inherit RateModel<CatalyticLigationRandomParamWithModel, CatalyticLigationReaction>(p)
+    type EnCatalyticLigationRandomModel (p : EnCatalyticLigationRandomParamWithModel) =
+        inherit RateModel<EnCatalyticLigationRandomParamWithModel, EnCatalyticLigationReaction>(p)
 
-        let calculateCatSynthRates rnd t (CatalyticLigationReaction (s, c)) =
+        let calculateCatSynthRates rnd t (EnCatalyticLigationReaction (s, c, u)) =
             {
                 reaction = s
                 catalyst = c
+                energySource = u
                 getCatEnantiomer = getEnantiomer
-                catReactionCreator = CatalyticLigationReaction
+                getEnergySourceEnantiomer = getEnantiomer
+                enCatReactionCreator = EnCatalyticLigationReaction
                 getBaseRates = p.ligationModel.getRates rnd
-                eeParams = p.catLigationParam.catLigRndEeParams
+                eeParams = p.enCatLigationParam.enCatLigRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateCatRates
+            |> calculateEnCatRates
 
         member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r

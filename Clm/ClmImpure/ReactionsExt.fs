@@ -2,8 +2,8 @@
 
 open Clm.Reactions
 open Clm.ReactionTypes
-open Clm.ReactionRates
-open ReactionRateModels
+open Clm.ReactionRatesBase
+open ReactionRateModelsAll
 open RateProvider
 
 module ReactionsExt =
@@ -43,7 +43,7 @@ module ReactionsExt =
                     x0
                     |> List.filter (fun e -> hasData e.rateData)
 
-                let x2 = 
+                let x2 =
                     x1
                     |> List.map (fun e -> AnyReaction.tryCreateReactionFromRateData (e.reaction |> creator) e.rateData)
 
@@ -62,11 +62,14 @@ module ReactionsExt =
             | WasteRemovalRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> WasteRemoval))
             | WasteRecyclingRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> WasteRecycling))
             | SynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Synthesis))
+            | SugarSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SugarSynthesis))
             | DestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Destruction))
             | CatalyticSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticSynthesis))
+            | EnCatalyticSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticSynthesis))
             | CatalyticDestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticDestruction))
             | LigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Ligation))
             | CatalyticLigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticLigation))
+            | EnCatalyticLigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticLigation))
             | SedimentationDirectRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationDirect))
             | SedimentationAllRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationAll))
             | RacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Racemization))

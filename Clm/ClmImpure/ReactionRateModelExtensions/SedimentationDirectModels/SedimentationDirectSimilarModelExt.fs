@@ -2,7 +2,7 @@
 
 open Clm.ReactionRates
 open Clm.ReactionRateParams
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.SedimentationDirectRandomModel
 open ClmImpure.ReactionRateModels.SedimentationDirectSimilarModel
 open ClmImpure.ReactionRateModels.SedimentationDirectModel

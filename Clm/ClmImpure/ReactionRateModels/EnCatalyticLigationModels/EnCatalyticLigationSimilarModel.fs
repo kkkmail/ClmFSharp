@@ -2,43 +2,46 @@
 
 open Clm.Substances
 open Clm.ReactionTypes
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
+open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModels.CatalyticLigationRandomModel
+open ClmImpure.ReactionRateModels.EnCatalyticLigationRandomModel
 
-module CatalyticLigationSimilarModel =
+module EnCatalyticLigationSimilarModel =
 
-    type CatalyticLigationSimilarParamWithModel =
+    type EnCatalyticLigationSimilarParamWithModel =
         {
-            catLigModel : CatalyticLigationRandomModel
+            enCatLigModel : EnCatalyticLigationRandomModel
             peptideBondData : PeptideBondData
-            catLigSimParam : CatRatesSimilarityParam
+            enCatLigSimParam : CatRatesSimilarityParam
         }
 
 
-    type CatalyticLigationSimilarModel (p : CatalyticLigationSimilarParamWithModel) =
-        let calculateSimRatesImpl rnd t (CatalyticLigationReaction (s, c)) =
+    type EnCatalyticLigationSimilarModel (p : EnCatalyticLigationSimilarParamWithModel) =
+        let calculateSimRatesImpl rnd t (EnCatalyticLigationReaction (s, c, u)) =
             let (LigationReaction a) = s
             {
                 reaction = s
                 catalyst = c
+                energySource = u
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
                 getMatchingReactionMult = fun x -> x
                 inverse = fun r -> r.peptideBond
                 getCatEnantiomer = getEnantiomer
-                catReactionCreator = CatalyticLigationReaction
+                getEnergySourceEnantiomer = getEnantiomer
+                enCatReactionCreator = EnCatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = fun e -> p.peptideBondData.findSameBond e
-                getBaseRates = p.catLigModel.inputParams.ligationModel.getRates rnd
-                getBaseCatRates = p.catLigModel.getRates rnd t
-                simParams = p.catLigSimParam
-                eeParams = p.catLigModel.inputParams.catLigationParam.catLigRndEeParams
-                rateDictionary = p.catLigModel.rateDictionary
+                getBaseRates = p.enCatLigModel.inputParams.ligationModel.getRates rnd
+                getBaseCatRates = p.enCatLigModel.getRates rnd t
+                simParams = p.enCatLigSimParam
+                eeParams = p.enCatLigModel.inputParams.enCatLigationParam.enCatLigRndEeParams
+                rateDictionary = p.enCatLigModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateSimRates
+            |> calculateEnSimRates
 
         member _.getRates rnd t r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
-        member _.getAllRates() = getAllRatesImpl p.catLigModel.rateDictionary
+        member _.getAllRates() = getAllRatesImpl p.enCatLigModel.rateDictionary

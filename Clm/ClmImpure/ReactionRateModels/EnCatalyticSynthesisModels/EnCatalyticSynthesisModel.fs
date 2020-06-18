@@ -1,7 +1,7 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
-open ClmImpure.ReactionRateModels.CatalyticSynthesisRandomModel
-open ClmImpure.ReactionRateModels.CatalyticSynthesisSimilarModel
+open ClmImpure.ReactionRateModels.EnCatalyticSynthesisRandomModel
+open ClmImpure.ReactionRateModels.EnCatalyticSynthesisSimilarModel
 
 module EnCatalyticSynthesisModel =
 

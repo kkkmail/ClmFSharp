@@ -2,7 +2,7 @@
 
 open Clm.ReactionRateParams
 open Clm.ReactionRatesExt
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.WasteRemovalModel
 open ClmImpure.ReactionRateModelExtensions.ReactionRateModelExtBase
 

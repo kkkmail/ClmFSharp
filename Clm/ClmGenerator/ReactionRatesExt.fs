@@ -27,6 +27,13 @@ module ReactionRatesExt =
             | SynthRndModel m -> Some m.inputParams.synthesisDistribution
 
 
+    type SugarSynthesisModel
+        with
+        member model.primaryDistribution =
+            match model with
+            | SugarSynthRndModel m -> Some m.inputParams.synthesisDistribution
+
+
     type DestructionModel
         with
         member model.primaryDistribution =

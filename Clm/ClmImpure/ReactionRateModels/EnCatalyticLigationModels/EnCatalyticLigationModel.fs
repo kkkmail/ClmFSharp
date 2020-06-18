@@ -1,35 +1,35 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
-open ClmImpure.ReactionRateModels.CatalyticLigationRandomModel
-open ClmImpure.ReactionRateModels.CatalyticLigationSimilarModel
+open ClmImpure.ReactionRateModels.EnCatalyticLigationRandomModel
+open ClmImpure.ReactionRateModels.EnCatalyticLigationSimilarModel
 
-module CatalyticLigationModel =
+module EnCatalyticLigationModel =
 
-    type CatalyticLigationParamWithModel =
-        | CatLigRndParamWithModel of CatalyticLigationRandomParamWithModel
-        | CatLigSimParamWithModel of CatalyticLigationSimilarParamWithModel
+    type EnCatalyticLigationParamWithModel =
+        | EnCatLigRndParamWithModel of EnCatalyticLigationRandomParamWithModel
+        | EnCatLigSimParamWithModel of EnCatalyticLigationSimilarParamWithModel
 
 
-    type CatalyticLigationModel =
-        | CatLigRndModel of CatalyticLigationRandomModel
-        | CatLigSimModel of CatalyticLigationSimilarModel
+    type EnCatalyticLigationModel =
+        | EnCatLigRndModel of EnCatalyticLigationRandomModel
+        | EnCatLigSimModel of EnCatalyticLigationSimilarModel
 
         member model.getRates rnd t r =
             match model with
-            | CatLigRndModel m -> m.getRates rnd t r
-            | CatLigSimModel m -> m.getRates rnd t r
+            | EnCatLigRndModel m -> m.getRates rnd t r
+            | EnCatLigSimModel m -> m.getRates rnd t r
 
         member model.inputParams =
             match model with
-            | CatLigRndModel m -> m.inputParams |> CatLigRndParamWithModel
-            | CatLigSimModel m -> m.inputParams |> CatLigSimParamWithModel
+            | EnCatLigRndModel m -> m.inputParams |> EnCatLigRndParamWithModel
+            | EnCatLigSimModel m -> m.inputParams |> EnCatLigSimParamWithModel
 
         member model.getAllRates() =
             match model with
-            | CatLigRndModel m -> m.getAllRates()
-            | CatLigSimModel m -> m.getAllRates()
+            | EnCatLigRndModel m -> m.getAllRates()
+            | EnCatLigSimModel m -> m.getAllRates()
 
         static member create p =
             match p with
-            | CatLigRndParamWithModel q -> CatalyticLigationRandomModel q |> CatLigRndModel
-            | CatLigSimParamWithModel q -> CatalyticLigationSimilarModel q |> CatLigSimModel
+            | EnCatLigRndParamWithModel q -> EnCatalyticLigationRandomModel q |> EnCatLigRndModel
+            | EnCatLigSimParamWithModel q -> EnCatalyticLigationSimilarModel q |> EnCatLigSimModel

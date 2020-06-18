@@ -13,7 +13,7 @@ open ClmImpure.ReactionRateModels
 open ClmImpure.ReactionRateModelsExt
 open Clm.ReactionRatesExt
 open Clm.CalculationData
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.FoodCreationModel
 open ClmImpure.ReactionRateModelExtensions.FoodCreationModelExt
 open ClmImpure.ReactionRateModels.WasteRecyclingModel

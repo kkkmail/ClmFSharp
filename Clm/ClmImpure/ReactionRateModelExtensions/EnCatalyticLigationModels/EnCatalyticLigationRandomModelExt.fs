@@ -1,10 +1,8 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open Clm.ReactionRatesBase
-open Clm.ReactionRates
 open Clm.ReactionRateParams
 open Clm.ReactionRatesExt
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.LigationModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
@@ -18,7 +16,7 @@ module EnCatalyticLigationRandomModelExt =
 
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
-            | EnCatalyticLigationRateModel (CatLigRndModel d) -> Some d
+            | EnCatalyticLigationRateModel (EnCatLigRndModel d) -> Some d
             | _ -> None
 
         static member tryCreate (p, m) =

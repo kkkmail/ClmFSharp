@@ -2,7 +2,7 @@
 
 open Clm.ReactionRateParams
 open Clm.ReactionRatesExt
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.RacemizationRandomModel
 open ClmImpure.ReactionRateModels.RacemizationModel
 open ClmImpure.ReactionRateModelExtensions.ReactionRateModelExtBase

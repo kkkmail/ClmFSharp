@@ -2,7 +2,7 @@
 
 open Clm.ReactionTypes
 open Clm.CalculationData
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.CatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.CatalyticLigationSimilarModel
 open ClmImpure.ReactionRateModels.CatalyticLigationModel

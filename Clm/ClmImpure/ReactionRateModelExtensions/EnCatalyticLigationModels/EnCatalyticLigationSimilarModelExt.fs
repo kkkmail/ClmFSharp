@@ -1,9 +1,8 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ReactionRateParams
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.EnCatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationSimilarModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
@@ -17,12 +16,12 @@ module EnCatalyticLigationSimilarModelExt =
 
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
-            | EnCatalyticLigationRateParam (CatLigSimParam d) -> Some (p.usage, d)
+            | EnCatalyticLigationRateParam (EnCatLigSimParam d) -> Some (p.usage, d)
             | _ -> None
 
         static member modelGetter (p : ReactionRateModelWithUsage) =
             match p.model with
-            | EnCatalyticLigationRateModel (CatLigSimModel d) -> Some d
+            | EnCatalyticLigationRateModel (EnCatLigSimModel d) -> Some d
             | _ -> None
 
 
@@ -31,7 +30,7 @@ module EnCatalyticLigationSimilarModelExt =
                 {
                     enCatLigModel = b
                     peptideBondData = a
-                    enCatLigSimParam = d.catLigSimParam
+                    enCatLigSimParam = d.enCatLigSimParam
                 }
                 |> EnCatalyticLigationSimilarModel |> EnCatLigSimModel |> EnCatalyticLigationRateModel
 

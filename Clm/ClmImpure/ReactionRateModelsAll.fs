@@ -15,8 +15,10 @@ open ClmImpure.ReactionRateModels.CatalyticRacemizationModel
 open ClmImpure.ReactionRateModels.CatalyticSynthesisModel
 open ClmImpure.ReactionRateModels.SedimentationDirectModel
 open ClmImpure.ReactionRateModels.SedimentationAllModel
+open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
+open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
 
-module ReactionRateModels =
+module ReactionRateModelsAll =
 
     type ReactionRateModel =
         | FoodCreationRateModel of FoodCreationModel

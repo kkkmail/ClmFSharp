@@ -3,7 +3,6 @@
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRatesBase
-open Clm.ReactionRates
 open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.ReactionRateModelBase

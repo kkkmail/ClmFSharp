@@ -1,6 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.SedimentationAllModel
 open ClmImpure.ReactionRateModels.SedimentationAllRandomModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationAllRandomModelExt

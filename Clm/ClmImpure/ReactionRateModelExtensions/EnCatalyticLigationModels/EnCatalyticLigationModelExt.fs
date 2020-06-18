@@ -1,11 +1,8 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open Clm.ReactionTypes
-open Clm.ReactionRatesBase
-open Clm.ReactionRates
-open Clm.ReactionRateParams
 open Clm.CalculationData
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.EnCatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationSimilarModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel

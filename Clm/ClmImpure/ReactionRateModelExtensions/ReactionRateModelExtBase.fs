@@ -1,7 +1,7 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open Clm.ReactionRates
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 
 module ReactionRateModelExtBase =
 

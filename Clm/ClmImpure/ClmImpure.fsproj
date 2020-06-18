@@ -103,7 +103,7 @@
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\EnCatalyticLigationRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\EnCatalyticLigationSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\EnCatalyticLigationModel.fs" />
-    <Compile Include="ReactionRateModels.fs" />
+    <Compile Include="ReactionRateModelsAll.fs" />
     <Compile Include="ReactionRateModelExtensions\ReactionRateModelExtBase.fs" />
     <Compile Include="ReactionRateModelExtensions\FoodCreationModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\WasteRemovalModelExt.fs" />

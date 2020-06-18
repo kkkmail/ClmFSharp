@@ -1,7 +1,7 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open Clm.CalculationData
-open ClmImpure.ReactionRateModels
+open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.SedimentationDirectRandomModel
 open ClmImpure.ReactionRateModels.SedimentationDirectSimilarModel
 open ClmImpure.ReactionRateModels.SedimentationDirectModel

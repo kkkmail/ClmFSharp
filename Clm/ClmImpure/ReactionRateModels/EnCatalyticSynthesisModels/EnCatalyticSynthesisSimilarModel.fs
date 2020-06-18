@@ -23,11 +23,13 @@ module EnCatalyticSynthesisSimilarModel =
             {
                 reaction = s
                 catalyst = c
+                energySource = u
                 getReactionData = fun _ -> p.aminoAcids
                 inverse = fun (SynthesisReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
-                catReactionCreator = EnCatalyticSynthesisReaction
+                getEnergySourceEnantiomer = getEnantiomer
+                enCatReactionCreator = EnCatalyticSynthesisReaction
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
                 getBaseRates = p.enCatSynthModel.inputParams.synthesisModel.getRates rnd
@@ -38,7 +40,7 @@ module EnCatalyticSynthesisSimilarModel =
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateSimRates
+            |> calculateEnSimRates
 
         member _.getRates rnd t r = calculateSimRatesImpl rnd t r
         member _.inputParams = p

@@ -316,3 +316,31 @@ module ReactionRateFunctions =
         |> Seq.map (|KeyValue|)
         |> List.ofSeq
         |> List.map (fun (r, d) -> { reaction = r; rateData = d })
+
+
+    /// Similar to CatRatesSimInfo but for the reactions with energy consumption.
+    type EnCatRatesSimInfo<'A, 'R, 'C, 'S, 'RCS when 'R : equality> =
+        {
+            reaction : 'R
+            catalyst : 'C
+            energySource : 'S
+            getReactionData : 'R -> list<'A>
+            inverse : 'R -> 'A
+            getMatchingReactionMult : double -> double
+            getCatEnantiomer : 'C -> 'C
+            getEnergySourceEnantiomer : 'S -> 'S
+            enCatReactionCreator : ('R * 'C * 'S) -> 'RCS
+            simReactionCreator : 'A -> list<'R>
+            getCatReactEnantiomer : 'RCS -> 'RCS
+            getBaseRates : 'R -> RateData
+            getBaseCatRates : 'RCS -> RateData
+            simParams : CatRatesSimilarityParam
+            eeParams : CatRatesEeParam
+            rateDictionary : Dictionary<'RCS, RateData>
+            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
+
+
+    let calculateEnSimRates<'A, 'R, 'C, 'S, 'RCS when 'A : equality and 'R : equality> (i : EnCatRatesSimInfo<'A, 'R, 'C, 'S, 'RCS>) : RateData =
+        0

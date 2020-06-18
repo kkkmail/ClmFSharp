@@ -112,6 +112,7 @@ module ReactionRatesBase =
             rnd : RandomValueGetter
         }
 
+
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
     /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state).
     /// Therefore, if sf and sb are forward and backward rates of not catalyzed reaction, then
@@ -180,3 +181,22 @@ module ReactionRatesBase =
             getForwardEeDistr : EeDistributionGetter
             getBackwardEeDistr : EeDistributionGetter
         }
+
+
+    type EnCatRatesInfo<'R, 'C, 'S, 'RCS> =
+        {
+            reaction : 'R
+            catalyst : 'C
+            energySource : 'S
+            getCatEnantiomer : 'C -> 'C
+            getEnergySourceEnantiomer : 'S -> 'S
+            enCatReactionCreator : ('R * 'C * 'S) -> 'RCS
+            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
+            eeParams : CatRatesEeParam
+            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
+
+    let calculateEnCatRates<'R, 'C, 'S, 'RCS> (i : EnCatRatesInfo<'R, 'C, 'S, 'RCS>) : RelatedReactions<'RCS> =
+        0
+

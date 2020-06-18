@@ -24,13 +24,15 @@ module EnCatalyticSynthesisRandomModel =
             {
                 reaction = s
                 catalyst = c
+                energySource = u
                 getCatEnantiomer = getEnantiomer
-                catReactionCreator = EnCatalyticSynthesisReaction
+                getEnergySourceEnantiomer = getEnantiomer
+                enCatReactionCreator = EnCatalyticSynthesisReaction
                 getBaseRates = p.synthesisModel.getRates rnd
                 eeParams = p.enCatSynthRndParam.enCatSynthRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateCatRates
+            |> calculateEnCatRates
 
         member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateEnCatSynthRates rnd t) r

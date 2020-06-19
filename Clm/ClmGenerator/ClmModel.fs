@@ -381,7 +381,9 @@ module ClmModel =
                 "open Clm.Distributions"
                 "open Clm.ModelParams"
                 "open Clm.ReactionTypes"
+                "open Clm.ReactionRatesBase"
                 "open Clm.ReactionRates"
+                "open Clm.ReactionRateParams"
                 "open ClmSys.ContGenPrimitives" + Nl
                 "module ModelData = "
                 paramCode + Nl

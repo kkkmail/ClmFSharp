@@ -157,10 +157,27 @@ module CalculationData =
         member si.ligationReactions = si.ligationPairs
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
+        member si.sugSynthInfo t =
+            {
+                a = si.chiralSugars |> Array.ofList
+                b = si.sugSynthCatalysts |> Array.ofList
+                reactionName = ReactionName.CatalyticSynthesisName
+                successNumberType = t
+            }
+
         member si.catSynthInfo t =
             {
                 a = si.synthesisReactions |> Array.ofList
                 b = si.synthCatalysts |> Array.ofList
+                reactionName = ReactionName.CatalyticSynthesisName
+                successNumberType = t
+            }
+
+        member si.enCatSynthInfo t =
+            {
+                a = si.synthesisReactions |> Array.ofList
+                b = si.enSynthCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.CatalyticSynthesisName
                 successNumberType = t
             }
@@ -177,6 +194,15 @@ module CalculationData =
             {
                 a = si.ligationReactions |> Array.ofList
                 b = si.ligCatalysts |> Array.ofList
+                reactionName = ReactionName.CatalyticLigationName
+                successNumberType = t
+            }
+
+        member si.enCatLigInfo t =
+            {
+                a = si.ligationReactions |> Array.ofList
+                b = si.enLigCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.CatalyticLigationName
                 successNumberType = t
             }

@@ -5,10 +5,12 @@ open Clm.Substances
 open Clm.Distributions
 open Clm.ModelParams
 open Clm.ReactionTypes
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
+open Clm.ReactionRateParams
 open ClmSys.ContGenPrimitives
 
-module ModelData = 
+module ModelData =
     let seedValue = 1006348014
     let numberOfAminoAcids = NumberOfAminoAcids.ThreeAminoAcids
     let maxPeptideLength = MaxPeptideLength.ThreeMax
@@ -28,7 +30,7 @@ module ModelData =
     let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
 
 
-    let getTotalSubst (x : array<double>) = 
+    let getTotalSubst (x : array<double>) =
         [|
             x.[0] // abundant
             x.[1] // food
@@ -295,7 +297,7 @@ module ModelData =
         |> Array.sum
 
 
-    let getTotals (x : array<double>) = 
+    let getTotals (x : array<double>) =
         [|
             // A
             (
@@ -951,28 +953,28 @@ module ModelData =
 
 
     // 0 - abundant
-    let d0 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d0 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
         |]
         |> Array.sum
 
 
     // 1 - food
-    let d1 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d1 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
         |]
         |> Array.sum
 
 
     // 2 - waste
-    let d2 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d2 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
         |]
         |> Array.sum
 
 
     // 3 - A
-    let d3 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d3 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[59] * x.[54] // ACC + ABa | catalytic ligation (A + C): A + CC + ABa <-> ACC + ABa
             -100.072235236232 * x.[3] * x.[23] * x.[54] // A + CC + ABa | catalytic ligation (A + C): A + CC + ABa <-> ACC + ABa
@@ -1427,7 +1429,7 @@ module ModelData =
 
 
     // 4 - B
-    let d4 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d4 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[124] * x.[54] // CBB + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
             -100.072235236232 * x.[22] * x.[4] * x.[54] // CB + B + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
@@ -1910,7 +1912,7 @@ module ModelData =
 
 
     // 5 - C
-    let d5 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d5 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[131] * x.[54] // CCC + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
             -100.072235236232 * x.[23] * x.[5] * x.[54] // CC + C + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
@@ -2505,7 +2507,7 @@ module ModelData =
 
 
     // 6 - a
-    let d6 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d6 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[188] * x.[177] // acc + abA | catalytic ligation (a + c): a + cc + abA <-> acc + abA
             -100.072235236232 * x.[6] * x.[44] * x.[177] // a + cc + abA | catalytic ligation (a + c): a + cc + abA <-> acc + abA
@@ -2960,7 +2962,7 @@ module ModelData =
 
 
     // 7 - b
-    let d7 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d7 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[253] * x.[177] // cbb + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
             -100.072235236232 * x.[43] * x.[7] * x.[177] // cb + b + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
@@ -3443,7 +3445,7 @@ module ModelData =
 
 
     // 8 - c
-    let d8 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d8 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[260] * x.[177] // ccc + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
             -100.072235236232 * x.[44] * x.[8] * x.[177] // cc + c + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
@@ -4038,7 +4040,7 @@ module ModelData =
 
 
     // 9 - AA
-    let d9 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d9 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[47] * x.[54] // AAC + ABa | catalytic ligation (A + C): AA + C + ABa <-> AAC + ABa
             -100.072235236232 * x.[9] * x.[5] * x.[54] // AA + C + ABa | catalytic ligation (A + C): AA + C + ABa <-> AAC + ABa
@@ -4111,7 +4113,7 @@ module ModelData =
 
 
     // 10 - AB
-    let d10 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d10 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[52] * x.[54] // ABB + ABa | catalytic ligation (B + B): AB + B + ABa <-> ABB + ABa
             -100.072235236232 * x.[10] * x.[4] * x.[54] // AB + B + ABa | catalytic ligation (B + B): AB + B + ABa <-> ABB + ABa
@@ -4184,7 +4186,7 @@ module ModelData =
 
 
     // 11 - AC
-    let d11 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d11 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[59] * x.[54] // ACC + ABa | catalytic ligation (C + C): AC + C + ABa <-> ACC + ABa
             -100.072235236232 * x.[11] * x.[5] * x.[54] // AC + C + ABa | catalytic ligation (C + C): AC + C + ABa <-> ACC + ABa
@@ -4253,7 +4255,7 @@ module ModelData =
 
 
     // 12 - Aa
-    let d12 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d12 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[68] * x.[177] // Aac + abA | catalytic ligation (a + c): Aa + c + abA <-> Aac + abA
             -100.072235236232 * x.[12] * x.[8] * x.[177] // Aa + c + abA | catalytic ligation (a + c): Aa + c + abA <-> Aac + abA
@@ -4330,7 +4332,7 @@ module ModelData =
 
 
     // 13 - Ab
-    let d13 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d13 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[73] * x.[177] // Abb + abA | catalytic ligation (b + b): Ab + b + abA <-> Abb + abA
             -100.072235236232 * x.[13] * x.[7] * x.[177] // Ab + b + abA | catalytic ligation (b + b): Ab + b + abA <-> Abb + abA
@@ -4403,7 +4405,7 @@ module ModelData =
 
 
     // 14 - Ac
-    let d14 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d14 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[80] * x.[177] // Acc + abA | catalytic ligation (c + c): Ac + c + abA <-> Acc + abA
             -100.072235236232 * x.[14] * x.[8] * x.[177] // Ac + c + abA | catalytic ligation (c + c): Ac + c + abA <-> Acc + abA
@@ -4480,7 +4482,7 @@ module ModelData =
 
 
     // 15 - BA
-    let d15 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d15 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[87] * x.[54] // BBA + ABa | catalytic ligation (B + B): B + BA + ABa <-> BBA + ABa
             -100.072235236232 * x.[4] * x.[15] * x.[54] // B + BA + ABa | catalytic ligation (B + B): B + BA + ABa <-> BBA + ABa
@@ -4561,7 +4563,7 @@ module ModelData =
 
 
     // 16 - BB
-    let d16 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d16 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[88] * x.[54] // BBB + ABa | catalytic ligation (B + B): BB + B + ABa <-> BBB + ABa
             -100.072235236232 * x.[16] * x.[4] * x.[54] // BB + B + ABa | catalytic ligation (B + B): BB + B + ABa <-> BBB + ABa
@@ -4642,7 +4644,7 @@ module ModelData =
 
 
     // 17 - BC
-    let d17 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d17 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[89] * x.[54] // BBC + ABa | catalytic ligation (B + B): B + BC + ABa <-> BBC + ABa
             -100.072235236232 * x.[4] * x.[17] * x.[54] // B + BC + ABa | catalytic ligation (B + B): B + BC + ABa <-> BBC + ABa
@@ -4715,7 +4717,7 @@ module ModelData =
 
 
     // 18 - Ba
-    let d18 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d18 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[90] * x.[54] // BBa + ABa | catalytic ligation (B + B): B + Ba + ABa <-> BBa + ABa
             -100.072235236232 * x.[4] * x.[18] * x.[54] // B + Ba + ABa | catalytic ligation (B + B): B + Ba + ABa <-> BBa + ABa
@@ -4800,7 +4802,7 @@ module ModelData =
 
 
     // 19 - Bb
-    let d19 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d19 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[109] * x.[177] // Bbb + abA | catalytic ligation (b + b): Bb + b + abA <-> Bbb + abA
             -100.072235236232 * x.[19] * x.[7] * x.[177] // Bb + b + abA | catalytic ligation (b + b): Bb + b + abA <-> Bbb + abA
@@ -4885,7 +4887,7 @@ module ModelData =
 
 
     // 20 - Bc
-    let d20 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d20 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[92] * x.[54] // BBc + ABa | catalytic ligation (B + B): B + Bc + ABa <-> BBc + ABa
             -100.072235236232 * x.[4] * x.[20] * x.[54] // B + Bc + ABa | catalytic ligation (B + B): B + Bc + ABa <-> BBc + ABa
@@ -4966,7 +4968,7 @@ module ModelData =
 
 
     // 21 - CA
-    let d21 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d21 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[129] * x.[54] // CCA + ABa | catalytic ligation (C + C): C + CA + ABa <-> CCA + ABa
             -100.072235236232 * x.[5] * x.[21] * x.[54] // C + CA + ABa | catalytic ligation (C + C): C + CA + ABa <-> CCA + ABa
@@ -5067,7 +5069,7 @@ module ModelData =
 
 
     // 22 - CB
-    let d22 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d22 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[124] * x.[54] // CBB + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
             -100.072235236232 * x.[22] * x.[4] * x.[54] // CB + B + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
@@ -5164,7 +5166,7 @@ module ModelData =
 
 
     // 23 - CC
-    let d23 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d23 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[131] * x.[54] // CCC + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
             -100.072235236232 * x.[23] * x.[5] * x.[54] // CC + C + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
@@ -5261,7 +5263,7 @@ module ModelData =
 
 
     // 24 - Ca
-    let d24 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d24 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[132] * x.[54] // CCa + ABa | catalytic ligation (C + C): C + Ca + ABa <-> CCa + ABa
             -100.072235236232 * x.[5] * x.[24] * x.[54] // C + Ca + ABa | catalytic ligation (C + C): C + Ca + ABa <-> CCa + ABa
@@ -5366,7 +5368,7 @@ module ModelData =
 
 
     // 25 - Cb
-    let d25 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d25 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[145] * x.[177] // Cbb + abA | catalytic ligation (b + b): Cb + b + abA <-> Cbb + abA
             -100.072235236232 * x.[25] * x.[7] * x.[177] // Cb + b + abA | catalytic ligation (b + b): Cb + b + abA <-> Cbb + abA
@@ -5463,7 +5465,7 @@ module ModelData =
 
 
     // 26 - Cc
-    let d26 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d26 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[152] * x.[177] // Ccc + abA | catalytic ligation (c + c): Cc + c + abA <-> Ccc + abA
             -100.072235236232 * x.[26] * x.[8] * x.[177] // Cc + c + abA | catalytic ligation (c + c): Cc + c + abA <-> Ccc + abA
@@ -5568,7 +5570,7 @@ module ModelData =
 
 
     // 27 - aA
-    let d27 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d27 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[155] * x.[54] // aAC + ABa | catalytic ligation (A + C): aA + C + ABa <-> aAC + ABa
             -100.072235236232 * x.[27] * x.[5] * x.[54] // aA + C + ABa | catalytic ligation (A + C): aA + C + ABa <-> aAC + ABa
@@ -5645,7 +5647,7 @@ module ModelData =
 
 
     // 28 - aB
-    let d28 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d28 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[160] * x.[54] // aBB + ABa | catalytic ligation (B + B): aB + B + ABa <-> aBB + ABa
             -100.072235236232 * x.[28] * x.[4] * x.[54] // aB + B + ABa | catalytic ligation (B + B): aB + B + ABa <-> aBB + ABa
@@ -5718,7 +5720,7 @@ module ModelData =
 
 
     // 29 - aC
-    let d29 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d29 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[167] * x.[54] // aCC + ABa | catalytic ligation (C + C): aC + C + ABa <-> aCC + ABa
             -100.072235236232 * x.[29] * x.[5] * x.[54] // aC + C + ABa | catalytic ligation (C + C): aC + C + ABa <-> aCC + ABa
@@ -5795,7 +5797,7 @@ module ModelData =
 
 
     // 30 - aa
-    let d30 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d30 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[176] * x.[177] // aac + abA | catalytic ligation (a + c): aa + c + abA <-> aac + abA
             -100.072235236232 * x.[30] * x.[8] * x.[177] // aa + c + abA | catalytic ligation (a + c): aa + c + abA <-> aac + abA
@@ -5868,7 +5870,7 @@ module ModelData =
 
 
     // 31 - ab
-    let d31 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d31 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[181] * x.[177] // abb + abA | catalytic ligation (b + b): ab + b + abA <-> abb + abA
             -100.072235236232 * x.[31] * x.[7] * x.[177] // ab + b + abA | catalytic ligation (b + b): ab + b + abA <-> abb + abA
@@ -5941,7 +5943,7 @@ module ModelData =
 
 
     // 32 - ac
-    let d32 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d32 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[188] * x.[177] // acc + abA | catalytic ligation (c + c): ac + c + abA <-> acc + abA
             -100.072235236232 * x.[32] * x.[8] * x.[177] // ac + c + abA | catalytic ligation (c + c): ac + c + abA <-> acc + abA
@@ -6010,7 +6012,7 @@ module ModelData =
 
 
     // 33 - bA
-    let d33 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d33 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[213] * x.[177] // bbA + abA | catalytic ligation (b + b): b + bA + abA <-> bbA + abA
             -100.072235236232 * x.[7] * x.[33] * x.[177] // b + bA + abA | catalytic ligation (b + b): b + bA + abA <-> bbA + abA
@@ -6095,7 +6097,7 @@ module ModelData =
 
 
     // 34 - bB
-    let d34 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d34 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[196] * x.[54] // bBB + ABa | catalytic ligation (B + B): bB + B + ABa <-> bBB + ABa
             -100.072235236232 * x.[34] * x.[4] * x.[54] // bB + B + ABa | catalytic ligation (B + B): bB + B + ABa <-> bBB + ABa
@@ -6180,7 +6182,7 @@ module ModelData =
 
 
     // 35 - bC
-    let d35 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d35 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[215] * x.[177] // bbC + abA | catalytic ligation (b + b): b + bC + abA <-> bbC + abA
             -100.072235236232 * x.[7] * x.[35] * x.[177] // b + bC + abA | catalytic ligation (b + b): b + bC + abA <-> bbC + abA
@@ -6261,7 +6263,7 @@ module ModelData =
 
 
     // 36 - ba
-    let d36 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d36 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[216] * x.[177] // bba + abA | catalytic ligation (b + b): b + ba + abA <-> bba + abA
             -100.072235236232 * x.[7] * x.[36] * x.[177] // b + ba + abA | catalytic ligation (b + b): b + ba + abA <-> bba + abA
@@ -6342,7 +6344,7 @@ module ModelData =
 
 
     // 37 - bb
-    let d37 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d37 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[217] * x.[177] // bbb + abA | catalytic ligation (b + b): bb + b + abA <-> bbb + abA
             -100.072235236232 * x.[37] * x.[7] * x.[177] // bb + b + abA | catalytic ligation (b + b): bb + b + abA <-> bbb + abA
@@ -6423,7 +6425,7 @@ module ModelData =
 
 
     // 38 - bc
-    let d38 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d38 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[218] * x.[177] // bbc + abA | catalytic ligation (b + b): b + bc + abA <-> bbc + abA
             -100.072235236232 * x.[7] * x.[38] * x.[177] // b + bc + abA | catalytic ligation (b + b): b + bc + abA <-> bbc + abA
@@ -6496,7 +6498,7 @@ module ModelData =
 
 
     // 39 - cA
-    let d39 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d39 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[255] * x.[177] // ccA + abA | catalytic ligation (c + c): c + cA + abA <-> ccA + abA
             -100.072235236232 * x.[8] * x.[39] * x.[177] // c + cA + abA | catalytic ligation (c + c): c + cA + abA <-> ccA + abA
@@ -6601,7 +6603,7 @@ module ModelData =
 
 
     // 40 - cB
-    let d40 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d40 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[232] * x.[54] // cBB + ABa | catalytic ligation (B + B): cB + B + ABa <-> cBB + ABa
             -100.072235236232 * x.[40] * x.[4] * x.[54] // cB + B + ABa | catalytic ligation (B + B): cB + B + ABa <-> cBB + ABa
@@ -6698,7 +6700,7 @@ module ModelData =
 
 
     // 41 - cC
-    let d41 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d41 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[239] * x.[54] // cCC + ABa | catalytic ligation (C + C): cC + C + ABa <-> cCC + ABa
             -100.072235236232 * x.[41] * x.[5] * x.[54] // cC + C + ABa | catalytic ligation (C + C): cC + C + ABa <-> cCC + ABa
@@ -6803,7 +6805,7 @@ module ModelData =
 
 
     // 42 - ca
-    let d42 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d42 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[258] * x.[177] // cca + abA | catalytic ligation (c + c): c + ca + abA <-> cca + abA
             -100.072235236232 * x.[8] * x.[42] * x.[177] // c + ca + abA | catalytic ligation (c + c): c + ca + abA <-> cca + abA
@@ -6904,7 +6906,7 @@ module ModelData =
 
 
     // 43 - cb
-    let d43 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d43 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[253] * x.[177] // cbb + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
             -100.072235236232 * x.[43] * x.[7] * x.[177] // cb + b + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
@@ -7001,7 +7003,7 @@ module ModelData =
 
 
     // 44 - cc
-    let d44 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d44 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[260] * x.[177] // ccc + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
             -100.072235236232 * x.[44] * x.[8] * x.[177] // cc + c + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
@@ -7098,7 +7100,7 @@ module ModelData =
 
 
     // 45 - AAA
-    let d45 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d45 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[45] // AAA | ligation (A + A): AA + A <-> AAA
             1.0 * x.[9] * x.[3] // AA + A | ligation (A + A): AA + A <-> AAA
@@ -7109,7 +7111,7 @@ module ModelData =
 
 
     // 46 - AAB
-    let d46 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d46 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[46] * x.[54] // AAB + ABa | catalytic ligation (A + B): AA + B + ABa <-> AAB + ABa
             100.072235236232 * x.[9] * x.[4] * x.[54] // AA + B + ABa | catalytic ligation (A + B): AA + B + ABa <-> AAB + ABa
@@ -7124,7 +7126,7 @@ module ModelData =
 
 
     // 47 - AAC
-    let d47 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d47 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[47] * x.[54] // AAC + ABa | catalytic ligation (A + C): AA + C + ABa <-> AAC + ABa
             100.072235236232 * x.[9] * x.[5] * x.[54] // AA + C + ABa | catalytic ligation (A + C): AA + C + ABa <-> AAC + ABa
@@ -7139,7 +7141,7 @@ module ModelData =
 
 
     // 48 - AAa
-    let d48 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d48 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[48] * x.[229] // AAa + cAb | catalytic ligation (A + a): AA + a + cAb <-> AAa + cAb
             8215.52199168822 * x.[9] * x.[6] * x.[229] // AA + a + cAb | catalytic ligation (A + a): AA + a + cAb <-> AAa + cAb
@@ -7154,7 +7156,7 @@ module ModelData =
 
 
     // 49 - AAb
-    let d49 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d49 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[49] * x.[84] // AAb + BAa | catalytic ligation (A + b): AA + b + BAa <-> AAb + BAa
             9567.23738559824 * x.[9] * x.[7] * x.[84] // AA + b + BAa | catalytic ligation (A + b): AA + b + BAa <-> AAb + BAa
@@ -7169,7 +7171,7 @@ module ModelData =
 
 
     // 50 - AAc
-    let d50 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d50 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[50] * x.[232] // AAc + cBB | catalytic ligation (A + c): AA + c + cBB <-> AAc + cBB
             20.6331517701192 * x.[9] * x.[8] * x.[232] // AA + c + cBB | catalytic ligation (A + c): AA + c + cBB <-> AAc + cBB
@@ -7192,7 +7194,7 @@ module ModelData =
 
 
     // 51 - ABA
-    let d51 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d51 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[51] * x.[54] // ABA + ABa | catalytic ligation (A + B): A + BA + ABa <-> ABA + ABa
             100.072235236232 * x.[3] * x.[15] * x.[54] // A + BA + ABa | catalytic ligation (A + B): A + BA + ABa <-> ABA + ABa
@@ -7207,7 +7209,7 @@ module ModelData =
 
 
     // 52 - ABB
-    let d52 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d52 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[52] * x.[54] // ABB + ABa | catalytic ligation (B + B): AB + B + ABa <-> ABB + ABa
             100.072235236232 * x.[10] * x.[4] * x.[54] // AB + B + ABa | catalytic ligation (B + B): AB + B + ABa <-> ABB + ABa
@@ -7226,7 +7228,7 @@ module ModelData =
 
 
     // 53 - ABC
-    let d53 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d53 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[53] * x.[54] // ABC + ABa | catalytic ligation (A + B): A + BC + ABa <-> ABC + ABa
             100.072235236232 * x.[3] * x.[17] * x.[54] // A + BC + ABa | catalytic ligation (A + B): A + BC + ABa <-> ABC + ABa
@@ -7241,7 +7243,7 @@ module ModelData =
 
 
     // 54 - ABa
-    let d54 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d54 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[54] * x.[54] // ABa + ABa | catalytic ligation (A + B): A + Ba + ABa <-> ABa + ABa
             -100.072235236232 * x.[54] * x.[54] // ABa + ABa | catalytic ligation (A + B): A + Ba + ABa <-> ABa + ABa
@@ -7264,7 +7266,7 @@ module ModelData =
 
 
     // 55 - ABb
-    let d55 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d55 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[55] * x.[54] // ABb + ABa | catalytic ligation (A + B): A + Bb + ABa <-> ABb + ABa
             100.072235236232 * x.[3] * x.[19] * x.[54] // A + Bb + ABa | catalytic ligation (A + B): A + Bb + ABa <-> ABb + ABa
@@ -7287,7 +7289,7 @@ module ModelData =
 
 
     // 56 - ABc
-    let d56 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d56 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[56] * x.[54] // ABc + ABa | catalytic ligation (A + B): A + Bc + ABa <-> ABc + ABa
             100.072235236232 * x.[3] * x.[20] * x.[54] // A + Bc + ABa | catalytic ligation (A + B): A + Bc + ABa <-> ABc + ABa
@@ -7310,7 +7312,7 @@ module ModelData =
 
 
     // 57 - ACA
-    let d57 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d57 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[57] * x.[54] // ACA + ABa | catalytic ligation (A + C): A + CA + ABa <-> ACA + ABa
             100.072235236232 * x.[3] * x.[21] * x.[54] // A + CA + ABa | catalytic ligation (A + C): A + CA + ABa <-> ACA + ABa
@@ -7325,7 +7327,7 @@ module ModelData =
 
 
     // 58 - ACB
-    let d58 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d58 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[58] * x.[54] // ACB + ABa | catalytic ligation (A + C): A + CB + ABa <-> ACB + ABa
             100.072235236232 * x.[3] * x.[22] * x.[54] // A + CB + ABa | catalytic ligation (A + C): A + CB + ABa <-> ACB + ABa
@@ -7340,7 +7342,7 @@ module ModelData =
 
 
     // 59 - ACC
-    let d59 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d59 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[59] * x.[54] // ACC + ABa | catalytic ligation (C + C): AC + C + ABa <-> ACC + ABa
             100.072235236232 * x.[11] * x.[5] * x.[54] // AC + C + ABa | catalytic ligation (C + C): AC + C + ABa <-> ACC + ABa
@@ -7359,7 +7361,7 @@ module ModelData =
 
 
     // 60 - ACa
-    let d60 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d60 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[60] * x.[54] // ACa + ABa | catalytic ligation (A + C): A + Ca + ABa <-> ACa + ABa
             100.072235236232 * x.[3] * x.[24] * x.[54] // A + Ca + ABa | catalytic ligation (A + C): A + Ca + ABa <-> ACa + ABa
@@ -7378,7 +7380,7 @@ module ModelData =
 
 
     // 61 - ACb
-    let d61 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d61 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[61] * x.[54] // ACb + ABa | catalytic ligation (A + C): A + Cb + ABa <-> ACb + ABa
             100.072235236232 * x.[3] * x.[25] * x.[54] // A + Cb + ABa | catalytic ligation (A + C): A + Cb + ABa <-> ACb + ABa
@@ -7393,7 +7395,7 @@ module ModelData =
 
 
     // 62 - ACc
-    let d62 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d62 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[62] * x.[54] // ACc + ABa | catalytic ligation (A + C): A + Cc + ABa <-> ACc + ABa
             100.072235236232 * x.[3] * x.[26] * x.[54] // A + Cc + ABa | catalytic ligation (A + C): A + Cc + ABa <-> ACc + ABa
@@ -7420,7 +7422,7 @@ module ModelData =
 
 
     // 63 - AaA
-    let d63 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d63 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[63] * x.[136] // AaA + CaB | catalytic ligation (a + A): Aa + A + CaB <-> AaA + CaB
             8215.52199168822 * x.[12] * x.[3] * x.[136] // Aa + A + CaB | catalytic ligation (a + A): Aa + A + CaB <-> AaA + CaB
@@ -7439,7 +7441,7 @@ module ModelData =
 
 
     // 64 - AaB
-    let d64 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d64 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[64] * x.[207] // AaB + baA | catalytic ligation (a + B): Aa + B + baA <-> AaB + baA
             9567.23738559824 * x.[12] * x.[4] * x.[207] // Aa + B + baA | catalytic ligation (a + B): Aa + B + baA <-> AaB + baA
@@ -7458,7 +7460,7 @@ module ModelData =
 
 
     // 65 - AaC
-    let d65 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d65 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[65] * x.[145] // AaC + Cbb | catalytic ligation (a + C): Aa + C + Cbb <-> AaC + Cbb
             20.6331517701192 * x.[12] * x.[5] * x.[145] // Aa + C + Cbb | catalytic ligation (a + C): Aa + C + Cbb <-> AaC + Cbb
@@ -7485,7 +7487,7 @@ module ModelData =
 
 
     // 66 - Aaa
-    let d66 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d66 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[66] * x.[229] // Aaa + cAb | catalytic ligation (A + a): A + aa + cAb <-> Aaa + cAb
             8215.52199168822 * x.[3] * x.[30] * x.[229] // A + aa + cAb | catalytic ligation (A + a): A + aa + cAb <-> Aaa + cAb
@@ -7500,7 +7502,7 @@ module ModelData =
 
 
     // 67 - Aab
-    let d67 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d67 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[67] * x.[177] // Aab + abA | catalytic ligation (a + b): Aa + b + abA <-> Aab + abA
             100.072235236232 * x.[12] * x.[7] * x.[177] // Aa + b + abA | catalytic ligation (a + b): Aa + b + abA <-> Aab + abA
@@ -7519,7 +7521,7 @@ module ModelData =
 
 
     // 68 - Aac
-    let d68 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d68 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[68] * x.[177] // Aac + abA | catalytic ligation (a + c): Aa + c + abA <-> Aac + abA
             100.072235236232 * x.[12] * x.[8] * x.[177] // Aa + c + abA | catalytic ligation (a + c): Aa + c + abA <-> Aac + abA
@@ -7538,7 +7540,7 @@ module ModelData =
 
 
     // 69 - AbA
-    let d69 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d69 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[69] * x.[207] // AbA + baA | catalytic ligation (b + A): Ab + A + baA <-> AbA + baA
             9567.23738559824 * x.[13] * x.[3] * x.[207] // Ab + A + baA | catalytic ligation (b + A): Ab + A + baA <-> AbA + baA
@@ -7557,7 +7559,7 @@ module ModelData =
 
 
     // 70 - AbB
-    let d70 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d70 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[70] * x.[145] // AbB + Cbb | catalytic ligation (b + B): Ab + B + Cbb <-> AbB + Cbb
             20.6331517701192 * x.[13] * x.[4] * x.[145] // Ab + B + Cbb | catalytic ligation (b + B): Ab + B + Cbb <-> AbB + Cbb
@@ -7580,7 +7582,7 @@ module ModelData =
 
 
     // 71 - AbC
-    let d71 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d71 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[71] * x.[145] // AbC + Cbb | catalytic ligation (b + C): Ab + C + Cbb <-> AbC + Cbb
             20.6331517701192 * x.[13] * x.[5] * x.[145] // Ab + C + Cbb | catalytic ligation (b + C): Ab + C + Cbb <-> AbC + Cbb
@@ -7603,7 +7605,7 @@ module ModelData =
 
 
     // 72 - Aba
-    let d72 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d72 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[72] * x.[84] // Aba + BAa | catalytic ligation (A + b): A + ba + BAa <-> Aba + BAa
             9567.23738559824 * x.[3] * x.[36] * x.[84] // A + ba + BAa | catalytic ligation (A + b): A + ba + BAa <-> Aba + BAa
@@ -7618,7 +7620,7 @@ module ModelData =
 
 
     // 73 - Abb
-    let d73 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d73 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[73] * x.[177] // Abb + abA | catalytic ligation (b + b): Ab + b + abA <-> Abb + abA
             100.072235236232 * x.[13] * x.[7] * x.[177] // Ab + b + abA | catalytic ligation (b + b): Ab + b + abA <-> Abb + abA
@@ -7637,7 +7639,7 @@ module ModelData =
 
 
     // 74 - Abc
-    let d74 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d74 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[74] * x.[84] // Abc + BAa | catalytic ligation (A + b): A + bc + BAa <-> Abc + BAa
             9567.23738559824 * x.[3] * x.[38] * x.[84] // A + bc + BAa | catalytic ligation (A + b): A + bc + BAa <-> Abc + BAa
@@ -7652,7 +7654,7 @@ module ModelData =
 
 
     // 75 - AcA
-    let d75 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d75 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[75] * x.[232] // AcA + cBB | catalytic ligation (A + c): A + cA + cBB <-> AcA + cBB
             20.6331517701192 * x.[3] * x.[39] * x.[232] // A + cA + cBB | catalytic ligation (A + c): A + cA + cBB <-> AcA + cBB
@@ -7679,7 +7681,7 @@ module ModelData =
 
 
     // 76 - AcB
-    let d76 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d76 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[76] * x.[232] // AcB + cBB | catalytic ligation (A + c): A + cB + cBB <-> AcB + cBB
             20.6331517701192 * x.[3] * x.[40] * x.[232] // A + cB + cBB | catalytic ligation (A + c): A + cB + cBB <-> AcB + cBB
@@ -7702,7 +7704,7 @@ module ModelData =
 
 
     // 77 - AcC
-    let d77 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d77 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[77] * x.[232] // AcC + cBB | catalytic ligation (A + c): A + cC + cBB <-> AcC + cBB
             20.6331517701192 * x.[3] * x.[41] * x.[232] // A + cC + cBB | catalytic ligation (A + c): A + cC + cBB <-> AcC + cBB
@@ -7737,7 +7739,7 @@ module ModelData =
 
 
     // 78 - Aca
-    let d78 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d78 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[78] * x.[232] // Aca + cBB | catalytic ligation (A + c): A + ca + cBB <-> Aca + cBB
             20.6331517701192 * x.[3] * x.[42] * x.[232] // A + ca + cBB | catalytic ligation (A + c): A + ca + cBB <-> Aca + cBB
@@ -7760,7 +7762,7 @@ module ModelData =
 
 
     // 79 - Acb
-    let d79 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d79 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[79] * x.[232] // Acb + cBB | catalytic ligation (A + c): A + cb + cBB <-> Acb + cBB
             20.6331517701192 * x.[3] * x.[43] * x.[232] // A + cb + cBB | catalytic ligation (A + c): A + cb + cBB <-> Acb + cBB
@@ -7783,7 +7785,7 @@ module ModelData =
 
 
     // 80 - Acc
-    let d80 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d80 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[80] * x.[177] // Acc + abA | catalytic ligation (c + c): Ac + c + abA <-> Acc + abA
             100.072235236232 * x.[14] * x.[8] * x.[177] // Ac + c + abA | catalytic ligation (c + c): Ac + c + abA <-> Acc + abA
@@ -7810,7 +7812,7 @@ module ModelData =
 
 
     // 81 - BAA
-    let d81 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d81 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[81] // BAA | ligation (A + A): BA + A <-> BAA
             1.0 * x.[15] * x.[3] // BA + A | ligation (A + A): BA + A <-> BAA
@@ -7821,7 +7823,7 @@ module ModelData =
 
 
     // 82 - BAB
-    let d82 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d82 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[82] * x.[54] // BAB + ABa | catalytic ligation (A + B): BA + B + ABa <-> BAB + ABa
             100.072235236232 * x.[15] * x.[4] * x.[54] // BA + B + ABa | catalytic ligation (A + B): BA + B + ABa <-> BAB + ABa
@@ -7836,7 +7838,7 @@ module ModelData =
 
 
     // 83 - BAC
-    let d83 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d83 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[83] * x.[54] // BAC + ABa | catalytic ligation (A + C): BA + C + ABa <-> BAC + ABa
             100.072235236232 * x.[15] * x.[5] * x.[54] // BA + C + ABa | catalytic ligation (A + C): BA + C + ABa <-> BAC + ABa
@@ -7851,7 +7853,7 @@ module ModelData =
 
 
     // 84 - BAa
-    let d84 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d84 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[84] * x.[229] // BAa + cAb | catalytic ligation (A + a): BA + a + cAb <-> BAa + cAb
             8215.52199168822 * x.[15] * x.[6] * x.[229] // BA + a + cAb | catalytic ligation (A + a): BA + a + cAb <-> BAa + cAb
@@ -7866,7 +7868,7 @@ module ModelData =
 
 
     // 85 - BAb
-    let d85 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d85 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[85] * x.[84] // BAb + BAa | catalytic ligation (A + b): BA + b + BAa <-> BAb + BAa
             9567.23738559824 * x.[15] * x.[7] * x.[84] // BA + b + BAa | catalytic ligation (A + b): BA + b + BAa <-> BAb + BAa
@@ -7881,7 +7883,7 @@ module ModelData =
 
 
     // 86 - BAc
-    let d86 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d86 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[86] * x.[232] // BAc + cBB | catalytic ligation (A + c): BA + c + cBB <-> BAc + cBB
             20.6331517701192 * x.[15] * x.[8] * x.[232] // BA + c + cBB | catalytic ligation (A + c): BA + c + cBB <-> BAc + cBB
@@ -7904,7 +7906,7 @@ module ModelData =
 
 
     // 87 - BBA
-    let d87 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d87 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[87] * x.[54] // BBA + ABa | catalytic ligation (B + B): B + BA + ABa <-> BBA + ABa
             100.072235236232 * x.[4] * x.[15] * x.[54] // B + BA + ABa | catalytic ligation (B + B): B + BA + ABa <-> BBA + ABa
@@ -7919,7 +7921,7 @@ module ModelData =
 
 
     // 88 - BBB
-    let d88 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d88 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[88] * x.[54] // BBB + ABa | catalytic ligation (B + B): BB + B + ABa <-> BBB + ABa
             100.072235236232 * x.[16] * x.[4] * x.[54] // BB + B + ABa | catalytic ligation (B + B): BB + B + ABa <-> BBB + ABa
@@ -7938,7 +7940,7 @@ module ModelData =
 
 
     // 89 - BBC
-    let d89 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d89 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[89] * x.[54] // BBC + ABa | catalytic ligation (B + B): B + BC + ABa <-> BBC + ABa
             100.072235236232 * x.[4] * x.[17] * x.[54] // B + BC + ABa | catalytic ligation (B + B): B + BC + ABa <-> BBC + ABa
@@ -7953,7 +7955,7 @@ module ModelData =
 
 
     // 90 - BBa
-    let d90 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d90 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[90] * x.[54] // BBa + ABa | catalytic ligation (B + B): B + Ba + ABa <-> BBa + ABa
             100.072235236232 * x.[4] * x.[18] * x.[54] // B + Ba + ABa | catalytic ligation (B + B): B + Ba + ABa <-> BBa + ABa
@@ -7972,7 +7974,7 @@ module ModelData =
 
 
     // 91 - BBb
-    let d91 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d91 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[91] * x.[54] // BBb + ABa | catalytic ligation (B + B): B + Bb + ABa <-> BBb + ABa
             100.072235236232 * x.[4] * x.[19] * x.[54] // B + Bb + ABa | catalytic ligation (B + B): B + Bb + ABa <-> BBb + ABa
@@ -7995,7 +7997,7 @@ module ModelData =
 
 
     // 92 - BBc
-    let d92 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d92 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[92] * x.[54] // BBc + ABa | catalytic ligation (B + B): B + Bc + ABa <-> BBc + ABa
             100.072235236232 * x.[4] * x.[20] * x.[54] // B + Bc + ABa | catalytic ligation (B + B): B + Bc + ABa <-> BBc + ABa
@@ -8018,7 +8020,7 @@ module ModelData =
 
 
     // 93 - BCA
-    let d93 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d93 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[93] // BCA | ligation (C + A): BC + A <-> BCA
             1.0 * x.[17] * x.[3] // BC + A | ligation (C + A): BC + A <-> BCA
@@ -8029,7 +8031,7 @@ module ModelData =
 
 
     // 94 - BCB
-    let d94 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d94 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[94] // BCB | ligation (C + B): BC + B <-> BCB
             1.0 * x.[17] * x.[4] // BC + B | ligation (C + B): BC + B <-> BCB
@@ -8040,7 +8042,7 @@ module ModelData =
 
 
     // 95 - BCC
-    let d95 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d95 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[95] * x.[54] // BCC + ABa | catalytic ligation (C + C): BC + C + ABa <-> BCC + ABa
             100.072235236232 * x.[17] * x.[5] * x.[54] // BC + C + ABa | catalytic ligation (C + C): BC + C + ABa <-> BCC + ABa
@@ -8055,7 +8057,7 @@ module ModelData =
 
 
     // 96 - BCa
-    let d96 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d96 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -4100.67355029197 * x.[96] * x.[152] // BCa + Ccc | catalytic ligation (C + a): BC + a + Ccc <-> BCa + Ccc
             4100.67355029197 * x.[17] * x.[6] * x.[152] // BC + a + Ccc | catalytic ligation (C + a): BC + a + Ccc <-> BCa + Ccc
@@ -8070,7 +8072,7 @@ module ModelData =
 
 
     // 97 - BCb
-    let d97 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d97 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[97] // BCb | ligation (C + b): BC + b <-> BCb
             1.0 * x.[17] * x.[7] // BC + b | ligation (C + b): BC + b <-> BCb
@@ -8081,7 +8083,7 @@ module ModelData =
 
 
     // 98 - BCc
-    let d98 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d98 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[98] * x.[84] // BCc + BAa | catalytic ligation (C + c): BC + c + BAa <-> BCc + BAa
             9567.23738559824 * x.[17] * x.[8] * x.[84] // BC + c + BAa | catalytic ligation (C + c): BC + c + BAa <-> BCc + BAa
@@ -8104,7 +8106,7 @@ module ModelData =
 
 
     // 99 - BaA
-    let d99 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d99 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[99] * x.[84] // BaA + BAa | catalytic ligation (B + a): B + aA + BAa <-> BaA + BAa
             9567.23738559824 * x.[4] * x.[27] * x.[84] // B + aA + BAa | catalytic ligation (B + a): B + aA + BAa <-> BaA + BAa
@@ -8123,7 +8125,7 @@ module ModelData =
 
 
     // 100 - BaB
-    let d100 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d100 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[100] * x.[84] // BaB + BAa | catalytic ligation (B + a): B + aB + BAa <-> BaB + BAa
             9567.23738559824 * x.[4] * x.[28] * x.[84] // B + aB + BAa | catalytic ligation (B + a): B + aB + BAa <-> BaB + BAa
@@ -8142,7 +8144,7 @@ module ModelData =
 
 
     // 101 - BaC
-    let d101 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d101 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[101] * x.[145] // BaC + Cbb | catalytic ligation (a + C): Ba + C + Cbb <-> BaC + Cbb
             20.6331517701192 * x.[18] * x.[5] * x.[145] // Ba + C + Cbb | catalytic ligation (a + C): Ba + C + Cbb <-> BaC + Cbb
@@ -8169,7 +8171,7 @@ module ModelData =
 
 
     // 102 - Baa
-    let d102 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d102 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[102] * x.[84] // Baa + BAa | catalytic ligation (B + a): B + aa + BAa <-> Baa + BAa
             9567.23738559824 * x.[4] * x.[30] * x.[84] // B + aa + BAa | catalytic ligation (B + a): B + aa + BAa <-> Baa + BAa
@@ -8184,7 +8186,7 @@ module ModelData =
 
 
     // 103 - Bab
-    let d103 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d103 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[103] * x.[177] // Bab + abA | catalytic ligation (a + b): Ba + b + abA <-> Bab + abA
             100.072235236232 * x.[18] * x.[7] * x.[177] // Ba + b + abA | catalytic ligation (a + b): Ba + b + abA <-> Bab + abA
@@ -8203,7 +8205,7 @@ module ModelData =
 
 
     // 104 - Bac
-    let d104 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d104 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[104] * x.[177] // Bac + abA | catalytic ligation (a + c): Ba + c + abA <-> Bac + abA
             100.072235236232 * x.[18] * x.[8] * x.[177] // Ba + c + abA | catalytic ligation (a + c): Ba + c + abA <-> Bac + abA
@@ -8222,7 +8224,7 @@ module ModelData =
 
 
     // 105 - BbA
-    let d105 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d105 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[105] * x.[232] // BbA + cBB | catalytic ligation (B + b): B + bA + cBB <-> BbA + cBB
             20.6331517701192 * x.[4] * x.[33] * x.[232] // B + bA + cBB | catalytic ligation (B + b): B + bA + cBB <-> BbA + cBB
@@ -8245,7 +8247,7 @@ module ModelData =
 
 
     // 106 - BbB
-    let d106 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d106 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[106] * x.[145] // BbB + Cbb | catalytic ligation (b + B): Bb + B + Cbb <-> BbB + Cbb
             20.6331517701192 * x.[19] * x.[4] * x.[145] // Bb + B + Cbb | catalytic ligation (b + B): Bb + B + Cbb <-> BbB + Cbb
@@ -8272,7 +8274,7 @@ module ModelData =
 
 
     // 107 - BbC
-    let d107 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d107 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[107] * x.[145] // BbC + Cbb | catalytic ligation (b + C): Bb + C + Cbb <-> BbC + Cbb
             20.6331517701192 * x.[19] * x.[5] * x.[145] // Bb + C + Cbb | catalytic ligation (b + C): Bb + C + Cbb <-> BbC + Cbb
@@ -8299,7 +8301,7 @@ module ModelData =
 
 
     // 108 - Bba
-    let d108 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d108 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[108] * x.[232] // Bba + cBB | catalytic ligation (B + b): B + ba + cBB <-> Bba + cBB
             20.6331517701192 * x.[4] * x.[36] * x.[232] // B + ba + cBB | catalytic ligation (B + b): B + ba + cBB <-> Bba + cBB
@@ -8318,7 +8320,7 @@ module ModelData =
 
 
     // 109 - Bbb
-    let d109 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d109 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[109] * x.[177] // Bbb + abA | catalytic ligation (b + b): Bb + b + abA <-> Bbb + abA
             100.072235236232 * x.[19] * x.[7] * x.[177] // Bb + b + abA | catalytic ligation (b + b): Bb + b + abA <-> Bbb + abA
@@ -8341,7 +8343,7 @@ module ModelData =
 
 
     // 110 - Bbc
-    let d110 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d110 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[110] * x.[232] // Bbc + cBB | catalytic ligation (B + b): B + bc + cBB <-> Bbc + cBB
             20.6331517701192 * x.[4] * x.[38] * x.[232] // B + bc + cBB | catalytic ligation (B + b): B + bc + cBB <-> Bbc + cBB
@@ -8360,7 +8362,7 @@ module ModelData =
 
 
     // 111 - BcA
-    let d111 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d111 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[111] * x.[232] // BcA + cBB | catalytic ligation (B + c): B + cA + cBB <-> BcA + cBB
             20.6331517701192 * x.[4] * x.[39] * x.[232] // B + cA + cBB | catalytic ligation (B + c): B + cA + cBB <-> BcA + cBB
@@ -8383,7 +8385,7 @@ module ModelData =
 
 
     // 112 - BcB
-    let d112 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d112 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[112] * x.[232] // BcB + cBB | catalytic ligation (B + c): B + cB + cBB <-> BcB + cBB
             20.6331517701192 * x.[4] * x.[40] * x.[232] // B + cB + cBB | catalytic ligation (B + c): B + cB + cBB <-> BcB + cBB
@@ -8402,7 +8404,7 @@ module ModelData =
 
 
     // 113 - BcC
-    let d113 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d113 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[113] * x.[232] // BcC + cBB | catalytic ligation (B + c): B + cC + cBB <-> BcC + cBB
             20.6331517701192 * x.[4] * x.[41] * x.[232] // B + cC + cBB | catalytic ligation (B + c): B + cC + cBB <-> BcC + cBB
@@ -8433,7 +8435,7 @@ module ModelData =
 
 
     // 114 - Bca
-    let d114 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d114 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[114] * x.[232] // Bca + cBB | catalytic ligation (B + c): B + ca + cBB <-> Bca + cBB
             20.6331517701192 * x.[4] * x.[42] * x.[232] // B + ca + cBB | catalytic ligation (B + c): B + ca + cBB <-> Bca + cBB
@@ -8452,7 +8454,7 @@ module ModelData =
 
 
     // 115 - Bcb
-    let d115 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d115 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[115] * x.[232] // Bcb + cBB | catalytic ligation (B + c): B + cb + cBB <-> Bcb + cBB
             20.6331517701192 * x.[4] * x.[43] * x.[232] // B + cb + cBB | catalytic ligation (B + c): B + cb + cBB <-> Bcb + cBB
@@ -8471,7 +8473,7 @@ module ModelData =
 
 
     // 116 - Bcc
-    let d116 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d116 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[116] * x.[177] // Bcc + abA | catalytic ligation (c + c): Bc + c + abA <-> Bcc + abA
             100.072235236232 * x.[20] * x.[8] * x.[177] // Bc + c + abA | catalytic ligation (c + c): Bc + c + abA <-> Bcc + abA
@@ -8494,7 +8496,7 @@ module ModelData =
 
 
     // 117 - CAA
-    let d117 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d117 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[117] // CAA | ligation (A + A): CA + A <-> CAA
             1.0 * x.[21] * x.[3] // CA + A | ligation (A + A): CA + A <-> CAA
@@ -8505,7 +8507,7 @@ module ModelData =
 
 
     // 118 - CAB
-    let d118 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d118 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[118] * x.[54] // CAB + ABa | catalytic ligation (A + B): CA + B + ABa <-> CAB + ABa
             100.072235236232 * x.[21] * x.[4] * x.[54] // CA + B + ABa | catalytic ligation (A + B): CA + B + ABa <-> CAB + ABa
@@ -8520,7 +8522,7 @@ module ModelData =
 
 
     // 119 - CAC
-    let d119 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d119 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[119] * x.[54] // CAC + ABa | catalytic ligation (A + C): CA + C + ABa <-> CAC + ABa
             100.072235236232 * x.[21] * x.[5] * x.[54] // CA + C + ABa | catalytic ligation (A + C): CA + C + ABa <-> CAC + ABa
@@ -8535,7 +8537,7 @@ module ModelData =
 
 
     // 120 - CAa
-    let d120 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d120 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[120] * x.[229] // CAa + cAb | catalytic ligation (A + a): CA + a + cAb <-> CAa + cAb
             8215.52199168822 * x.[21] * x.[6] * x.[229] // CA + a + cAb | catalytic ligation (A + a): CA + a + cAb <-> CAa + cAb
@@ -8550,7 +8552,7 @@ module ModelData =
 
 
     // 121 - CAb
-    let d121 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d121 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[121] * x.[84] // CAb + BAa | catalytic ligation (A + b): CA + b + BAa <-> CAb + BAa
             9567.23738559824 * x.[21] * x.[7] * x.[84] // CA + b + BAa | catalytic ligation (A + b): CA + b + BAa <-> CAb + BAa
@@ -8565,7 +8567,7 @@ module ModelData =
 
 
     // 122 - CAc
-    let d122 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d122 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[122] * x.[232] // CAc + cBB | catalytic ligation (A + c): CA + c + cBB <-> CAc + cBB
             20.6331517701192 * x.[21] * x.[8] * x.[232] // CA + c + cBB | catalytic ligation (A + c): CA + c + cBB <-> CAc + cBB
@@ -8588,7 +8590,7 @@ module ModelData =
 
 
     // 123 - CBA
-    let d123 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d123 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[123] // CBA | ligation (B + A): CB + A <-> CBA
             1.0 * x.[22] * x.[3] // CB + A | ligation (B + A): CB + A <-> CBA
@@ -8599,7 +8601,7 @@ module ModelData =
 
 
     // 124 - CBB
-    let d124 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d124 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[124] * x.[54] // CBB + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
             100.072235236232 * x.[22] * x.[4] * x.[54] // CB + B + ABa | catalytic ligation (B + B): CB + B + ABa <-> CBB + ABa
@@ -8614,7 +8616,7 @@ module ModelData =
 
 
     // 125 - CBC
-    let d125 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d125 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[125] // CBC | ligation (B + C): CB + C <-> CBC
             1.0 * x.[22] * x.[5] // CB + C | ligation (B + C): CB + C <-> CBC
@@ -8625,7 +8627,7 @@ module ModelData =
 
 
     // 126 - CBa
-    let d126 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d126 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[126] * x.[84] // CBa + BAa | catalytic ligation (B + a): CB + a + BAa <-> CBa + BAa
             9567.23738559824 * x.[22] * x.[6] * x.[84] // CB + a + BAa | catalytic ligation (B + a): CB + a + BAa <-> CBa + BAa
@@ -8640,7 +8642,7 @@ module ModelData =
 
 
     // 127 - CBb
-    let d127 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d127 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[127] * x.[232] // CBb + cBB | catalytic ligation (B + b): CB + b + cBB <-> CBb + cBB
             20.6331517701192 * x.[22] * x.[7] * x.[232] // CB + b + cBB | catalytic ligation (B + b): CB + b + cBB <-> CBb + cBB
@@ -8659,7 +8661,7 @@ module ModelData =
 
 
     // 128 - CBc
-    let d128 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d128 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[128] * x.[232] // CBc + cBB | catalytic ligation (B + c): CB + c + cBB <-> CBc + cBB
             20.6331517701192 * x.[22] * x.[8] * x.[232] // CB + c + cBB | catalytic ligation (B + c): CB + c + cBB <-> CBc + cBB
@@ -8678,7 +8680,7 @@ module ModelData =
 
 
     // 129 - CCA
-    let d129 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d129 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[129] * x.[54] // CCA + ABa | catalytic ligation (C + C): C + CA + ABa <-> CCA + ABa
             100.072235236232 * x.[5] * x.[21] * x.[54] // C + CA + ABa | catalytic ligation (C + C): C + CA + ABa <-> CCA + ABa
@@ -8693,7 +8695,7 @@ module ModelData =
 
 
     // 130 - CCB
-    let d130 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d130 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[130] * x.[54] // CCB + ABa | catalytic ligation (C + C): C + CB + ABa <-> CCB + ABa
             100.072235236232 * x.[5] * x.[22] * x.[54] // C + CB + ABa | catalytic ligation (C + C): C + CB + ABa <-> CCB + ABa
@@ -8708,7 +8710,7 @@ module ModelData =
 
 
     // 131 - CCC
-    let d131 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d131 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[131] * x.[54] // CCC + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
             100.072235236232 * x.[23] * x.[5] * x.[54] // CC + C + ABa | catalytic ligation (C + C): CC + C + ABa <-> CCC + ABa
@@ -8727,7 +8729,7 @@ module ModelData =
 
 
     // 132 - CCa
-    let d132 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d132 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[132] * x.[54] // CCa + ABa | catalytic ligation (C + C): C + Ca + ABa <-> CCa + ABa
             100.072235236232 * x.[5] * x.[24] * x.[54] // C + Ca + ABa | catalytic ligation (C + C): C + Ca + ABa <-> CCa + ABa
@@ -8746,7 +8748,7 @@ module ModelData =
 
 
     // 133 - CCb
-    let d133 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d133 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[133] * x.[54] // CCb + ABa | catalytic ligation (C + C): C + Cb + ABa <-> CCb + ABa
             100.072235236232 * x.[5] * x.[25] * x.[54] // C + Cb + ABa | catalytic ligation (C + C): C + Cb + ABa <-> CCb + ABa
@@ -8761,7 +8763,7 @@ module ModelData =
 
 
     // 134 - CCc
-    let d134 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d134 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[134] * x.[54] // CCc + ABa | catalytic ligation (C + C): C + Cc + ABa <-> CCc + ABa
             100.072235236232 * x.[5] * x.[26] * x.[54] // C + Cc + ABa | catalytic ligation (C + C): C + Cc + ABa <-> CCc + ABa
@@ -8788,7 +8790,7 @@ module ModelData =
 
 
     // 135 - CaA
-    let d135 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d135 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[135] * x.[136] // CaA + CaB | catalytic ligation (a + A): Ca + A + CaB <-> CaA + CaB
             8215.52199168822 * x.[24] * x.[3] * x.[136] // Ca + A + CaB | catalytic ligation (a + A): Ca + A + CaB <-> CaA + CaB
@@ -8807,7 +8809,7 @@ module ModelData =
 
 
     // 136 - CaB
-    let d136 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d136 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[136] * x.[207] // CaB + baA | catalytic ligation (a + B): Ca + B + baA <-> CaB + baA
             9567.23738559824 * x.[24] * x.[4] * x.[207] // Ca + B + baA | catalytic ligation (a + B): Ca + B + baA <-> CaB + baA
@@ -8826,7 +8828,7 @@ module ModelData =
 
 
     // 137 - CaC
-    let d137 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d137 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[137] * x.[145] // CaC + Cbb | catalytic ligation (a + C): Ca + C + Cbb <-> CaC + Cbb
             20.6331517701192 * x.[24] * x.[5] * x.[145] // Ca + C + Cbb | catalytic ligation (a + C): Ca + C + Cbb <-> CaC + Cbb
@@ -8853,7 +8855,7 @@ module ModelData =
 
 
     // 138 - Caa
-    let d138 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d138 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -4100.67355029197 * x.[138] * x.[152] // Caa + Ccc | catalytic ligation (C + a): C + aa + Ccc <-> Caa + Ccc
             4100.67355029197 * x.[5] * x.[30] * x.[152] // C + aa + Ccc | catalytic ligation (C + a): C + aa + Ccc <-> Caa + Ccc
@@ -8868,7 +8870,7 @@ module ModelData =
 
 
     // 139 - Cab
-    let d139 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d139 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[139] * x.[177] // Cab + abA | catalytic ligation (a + b): Ca + b + abA <-> Cab + abA
             100.072235236232 * x.[24] * x.[7] * x.[177] // Ca + b + abA | catalytic ligation (a + b): Ca + b + abA <-> Cab + abA
@@ -8887,7 +8889,7 @@ module ModelData =
 
 
     // 140 - Cac
-    let d140 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d140 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[140] * x.[177] // Cac + abA | catalytic ligation (a + c): Ca + c + abA <-> Cac + abA
             100.072235236232 * x.[24] * x.[8] * x.[177] // Ca + c + abA | catalytic ligation (a + c): Ca + c + abA <-> Cac + abA
@@ -8906,7 +8908,7 @@ module ModelData =
 
 
     // 141 - CbA
-    let d141 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d141 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[141] * x.[207] // CbA + baA | catalytic ligation (b + A): Cb + A + baA <-> CbA + baA
             9567.23738559824 * x.[25] * x.[3] * x.[207] // Cb + A + baA | catalytic ligation (b + A): Cb + A + baA <-> CbA + baA
@@ -8921,7 +8923,7 @@ module ModelData =
 
 
     // 142 - CbB
-    let d142 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d142 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[142] * x.[145] // CbB + Cbb | catalytic ligation (b + B): Cb + B + Cbb <-> CbB + Cbb
             20.6331517701192 * x.[25] * x.[4] * x.[145] // Cb + B + Cbb | catalytic ligation (b + B): Cb + B + Cbb <-> CbB + Cbb
@@ -8940,7 +8942,7 @@ module ModelData =
 
 
     // 143 - CbC
-    let d143 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d143 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[143] * x.[145] // CbC + Cbb | catalytic ligation (b + C): Cb + C + Cbb <-> CbC + Cbb
             20.6331517701192 * x.[25] * x.[5] * x.[145] // Cb + C + Cbb | catalytic ligation (b + C): Cb + C + Cbb <-> CbC + Cbb
@@ -8959,7 +8961,7 @@ module ModelData =
 
 
     // 144 - Cba
-    let d144 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d144 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[144] // Cba | ligation (b + a): Cb + a <-> Cba
             1.0 * x.[25] * x.[6] // Cb + a | ligation (b + a): Cb + a <-> Cba
@@ -8970,7 +8972,7 @@ module ModelData =
 
 
     // 145 - Cbb
-    let d145 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d145 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[145] * x.[177] // Cbb + abA | catalytic ligation (b + b): Cb + b + abA <-> Cbb + abA
             100.072235236232 * x.[25] * x.[7] * x.[177] // Cb + b + abA | catalytic ligation (b + b): Cb + b + abA <-> Cbb + abA
@@ -8985,7 +8987,7 @@ module ModelData =
 
 
     // 146 - Cbc
-    let d146 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d146 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[146] // Cbc | ligation (b + c): Cb + c <-> Cbc
             1.0 * x.[25] * x.[8] // Cb + c | ligation (b + c): Cb + c <-> Cbc
@@ -8996,7 +8998,7 @@ module ModelData =
 
 
     // 147 - CcA
-    let d147 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d147 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[147] * x.[84] // CcA + BAa | catalytic ligation (C + c): C + cA + BAa <-> CcA + BAa
             9567.23738559824 * x.[5] * x.[39] * x.[84] // C + cA + BAa | catalytic ligation (C + c): C + cA + BAa <-> CcA + BAa
@@ -9023,7 +9025,7 @@ module ModelData =
 
 
     // 148 - CcB
-    let d148 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d148 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[148] * x.[84] // CcB + BAa | catalytic ligation (C + c): C + cB + BAa <-> CcB + BAa
             9567.23738559824 * x.[5] * x.[40] * x.[84] // C + cB + BAa | catalytic ligation (C + c): C + cB + BAa <-> CcB + BAa
@@ -9046,7 +9048,7 @@ module ModelData =
 
 
     // 149 - CcC
-    let d149 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d149 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[149] * x.[207] // CcC + baA | catalytic ligation (c + C): Cc + C + baA <-> CcC + baA
             9567.23738559824 * x.[26] * x.[5] * x.[207] // Cc + C + baA | catalytic ligation (c + C): Cc + C + baA <-> CcC + baA
@@ -9081,7 +9083,7 @@ module ModelData =
 
 
     // 150 - Cca
-    let d150 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d150 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[150] * x.[84] // Cca + BAa | catalytic ligation (C + c): C + ca + BAa <-> Cca + BAa
             9567.23738559824 * x.[5] * x.[42] * x.[84] // C + ca + BAa | catalytic ligation (C + c): C + ca + BAa <-> Cca + BAa
@@ -9104,7 +9106,7 @@ module ModelData =
 
 
     // 151 - Ccb
-    let d151 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d151 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[151] * x.[84] // Ccb + BAa | catalytic ligation (C + c): C + cb + BAa <-> Ccb + BAa
             9567.23738559824 * x.[5] * x.[43] * x.[84] // C + cb + BAa | catalytic ligation (C + c): C + cb + BAa <-> Ccb + BAa
@@ -9127,7 +9129,7 @@ module ModelData =
 
 
     // 152 - Ccc
-    let d152 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d152 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[152] * x.[177] // Ccc + abA | catalytic ligation (c + c): Cc + c + abA <-> Ccc + abA
             100.072235236232 * x.[26] * x.[8] * x.[177] // Cc + c + abA | catalytic ligation (c + c): Cc + c + abA <-> Ccc + abA
@@ -9158,7 +9160,7 @@ module ModelData =
 
 
     // 153 - aAA
-    let d153 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d153 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[153] * x.[136] // aAA + CaB | catalytic ligation (a + A): a + AA + CaB <-> aAA + CaB
             8215.52199168822 * x.[6] * x.[9] * x.[136] // a + AA + CaB | catalytic ligation (a + A): a + AA + CaB <-> aAA + CaB
@@ -9173,7 +9175,7 @@ module ModelData =
 
 
     // 154 - aAB
-    let d154 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d154 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[154] * x.[54] // aAB + ABa | catalytic ligation (A + B): aA + B + ABa <-> aAB + ABa
             100.072235236232 * x.[27] * x.[4] * x.[54] // aA + B + ABa | catalytic ligation (A + B): aA + B + ABa <-> aAB + ABa
@@ -9192,7 +9194,7 @@ module ModelData =
 
 
     // 155 - aAC
-    let d155 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d155 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[155] * x.[54] // aAC + ABa | catalytic ligation (A + C): aA + C + ABa <-> aAC + ABa
             100.072235236232 * x.[27] * x.[5] * x.[54] // aA + C + ABa | catalytic ligation (A + C): aA + C + ABa <-> aAC + ABa
@@ -9211,7 +9213,7 @@ module ModelData =
 
 
     // 156 - aAa
-    let d156 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d156 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[156] * x.[229] // aAa + cAb | catalytic ligation (A + a): aA + a + cAb <-> aAa + cAb
             8215.52199168822 * x.[27] * x.[6] * x.[229] // aA + a + cAb | catalytic ligation (A + a): aA + a + cAb <-> aAa + cAb
@@ -9230,7 +9232,7 @@ module ModelData =
 
 
     // 157 - aAb
-    let d157 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d157 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[157] * x.[84] // aAb + BAa | catalytic ligation (A + b): aA + b + BAa <-> aAb + BAa
             9567.23738559824 * x.[27] * x.[7] * x.[84] // aA + b + BAa | catalytic ligation (A + b): aA + b + BAa <-> aAb + BAa
@@ -9249,7 +9251,7 @@ module ModelData =
 
 
     // 158 - aAc
-    let d158 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d158 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[158] * x.[232] // aAc + cBB | catalytic ligation (A + c): aA + c + cBB <-> aAc + cBB
             20.6331517701192 * x.[27] * x.[8] * x.[232] // aA + c + cBB | catalytic ligation (A + c): aA + c + cBB <-> aAc + cBB
@@ -9276,7 +9278,7 @@ module ModelData =
 
 
     // 159 - aBA
-    let d159 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d159 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[159] * x.[207] // aBA + baA | catalytic ligation (a + B): a + BA + baA <-> aBA + baA
             9567.23738559824 * x.[6] * x.[15] * x.[207] // a + BA + baA | catalytic ligation (a + B): a + BA + baA <-> aBA + baA
@@ -9291,7 +9293,7 @@ module ModelData =
 
 
     // 160 - aBB
-    let d160 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d160 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[160] * x.[54] // aBB + ABa | catalytic ligation (B + B): aB + B + ABa <-> aBB + ABa
             100.072235236232 * x.[28] * x.[4] * x.[54] // aB + B + ABa | catalytic ligation (B + B): aB + B + ABa <-> aBB + ABa
@@ -9310,7 +9312,7 @@ module ModelData =
 
 
     // 161 - aBC
-    let d161 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d161 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[161] * x.[207] // aBC + baA | catalytic ligation (a + B): a + BC + baA <-> aBC + baA
             9567.23738559824 * x.[6] * x.[17] * x.[207] // a + BC + baA | catalytic ligation (a + B): a + BC + baA <-> aBC + baA
@@ -9325,7 +9327,7 @@ module ModelData =
 
 
     // 162 - aBa
-    let d162 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d162 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[162] * x.[84] // aBa + BAa | catalytic ligation (B + a): aB + a + BAa <-> aBa + BAa
             9567.23738559824 * x.[28] * x.[6] * x.[84] // aB + a + BAa | catalytic ligation (B + a): aB + a + BAa <-> aBa + BAa
@@ -9344,7 +9346,7 @@ module ModelData =
 
 
     // 163 - aBb
-    let d163 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d163 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[163] * x.[232] // aBb + cBB | catalytic ligation (B + b): aB + b + cBB <-> aBb + cBB
             20.6331517701192 * x.[28] * x.[7] * x.[232] // aB + b + cBB | catalytic ligation (B + b): aB + b + cBB <-> aBb + cBB
@@ -9367,7 +9369,7 @@ module ModelData =
 
 
     // 164 - aBc
-    let d164 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d164 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[164] * x.[232] // aBc + cBB | catalytic ligation (B + c): aB + c + cBB <-> aBc + cBB
             20.6331517701192 * x.[28] * x.[8] * x.[232] // aB + c + cBB | catalytic ligation (B + c): aB + c + cBB <-> aBc + cBB
@@ -9390,7 +9392,7 @@ module ModelData =
 
 
     // 165 - aCA
-    let d165 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d165 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[165] * x.[145] // aCA + Cbb | catalytic ligation (a + C): a + CA + Cbb <-> aCA + Cbb
             20.6331517701192 * x.[6] * x.[21] * x.[145] // a + CA + Cbb | catalytic ligation (a + C): a + CA + Cbb <-> aCA + Cbb
@@ -9413,7 +9415,7 @@ module ModelData =
 
 
     // 166 - aCB
-    let d166 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d166 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[166] * x.[145] // aCB + Cbb | catalytic ligation (a + C): a + CB + Cbb <-> aCB + Cbb
             20.6331517701192 * x.[6] * x.[22] * x.[145] // a + CB + Cbb | catalytic ligation (a + C): a + CB + Cbb <-> aCB + Cbb
@@ -9436,7 +9438,7 @@ module ModelData =
 
 
     // 167 - aCC
-    let d167 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d167 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[167] * x.[54] // aCC + ABa | catalytic ligation (C + C): aC + C + ABa <-> aCC + ABa
             100.072235236232 * x.[29] * x.[5] * x.[54] // aC + C + ABa | catalytic ligation (C + C): aC + C + ABa <-> aCC + ABa
@@ -9463,7 +9465,7 @@ module ModelData =
 
 
     // 168 - aCa
-    let d168 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d168 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[168] * x.[145] // aCa + Cbb | catalytic ligation (a + C): a + Ca + Cbb <-> aCa + Cbb
             20.6331517701192 * x.[6] * x.[24] * x.[145] // a + Ca + Cbb | catalytic ligation (a + C): a + Ca + Cbb <-> aCa + Cbb
@@ -9490,7 +9492,7 @@ module ModelData =
 
 
     // 169 - aCb
-    let d169 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d169 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[169] * x.[145] // aCb + Cbb | catalytic ligation (a + C): a + Cb + Cbb <-> aCb + Cbb
             20.6331517701192 * x.[6] * x.[25] * x.[145] // a + Cb + Cbb | catalytic ligation (a + C): a + Cb + Cbb <-> aCb + Cbb
@@ -9513,7 +9515,7 @@ module ModelData =
 
 
     // 170 - aCc
-    let d170 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d170 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[170] * x.[145] // aCc + Cbb | catalytic ligation (a + C): a + Cc + Cbb <-> aCc + Cbb
             20.6331517701192 * x.[6] * x.[26] * x.[145] // a + Cc + Cbb | catalytic ligation (a + C): a + Cc + Cbb <-> aCc + Cbb
@@ -9548,7 +9550,7 @@ module ModelData =
 
 
     // 171 - aaA
-    let d171 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d171 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[171] * x.[136] // aaA + CaB | catalytic ligation (a + A): aa + A + CaB <-> aaA + CaB
             8215.52199168822 * x.[30] * x.[3] * x.[136] // aa + A + CaB | catalytic ligation (a + A): aa + A + CaB <-> aaA + CaB
@@ -9563,7 +9565,7 @@ module ModelData =
 
 
     // 172 - aaB
-    let d172 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d172 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[172] * x.[207] // aaB + baA | catalytic ligation (a + B): aa + B + baA <-> aaB + baA
             9567.23738559824 * x.[30] * x.[4] * x.[207] // aa + B + baA | catalytic ligation (a + B): aa + B + baA <-> aaB + baA
@@ -9578,7 +9580,7 @@ module ModelData =
 
 
     // 173 - aaC
-    let d173 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d173 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[173] * x.[145] // aaC + Cbb | catalytic ligation (a + C): aa + C + Cbb <-> aaC + Cbb
             20.6331517701192 * x.[30] * x.[5] * x.[145] // aa + C + Cbb | catalytic ligation (a + C): aa + C + Cbb <-> aaC + Cbb
@@ -9601,7 +9603,7 @@ module ModelData =
 
 
     // 174 - aaa
-    let d174 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d174 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[174] // aaa | ligation (a + a): aa + a <-> aaa
             1.0 * x.[30] * x.[6] // aa + a | ligation (a + a): aa + a <-> aaa
@@ -9612,7 +9614,7 @@ module ModelData =
 
 
     // 175 - aab
-    let d175 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d175 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[175] * x.[177] // aab + abA | catalytic ligation (a + b): aa + b + abA <-> aab + abA
             100.072235236232 * x.[30] * x.[7] * x.[177] // aa + b + abA | catalytic ligation (a + b): aa + b + abA <-> aab + abA
@@ -9627,7 +9629,7 @@ module ModelData =
 
 
     // 176 - aac
-    let d176 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d176 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[176] * x.[177] // aac + abA | catalytic ligation (a + c): aa + c + abA <-> aac + abA
             100.072235236232 * x.[30] * x.[8] * x.[177] // aa + c + abA | catalytic ligation (a + c): aa + c + abA <-> aac + abA
@@ -9642,7 +9644,7 @@ module ModelData =
 
 
     // 177 - abA
-    let d177 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d177 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             100.072235236232 * x.[177] * x.[177] // abA + abA | catalytic ligation (a + b): a + bA + abA <-> abA + abA
             -100.072235236232 * x.[177] * x.[177] // abA + abA | catalytic ligation (a + b): a + bA + abA <-> abA + abA
@@ -9665,7 +9667,7 @@ module ModelData =
 
 
     // 178 - abB
-    let d178 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d178 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[178] * x.[177] // abB + abA | catalytic ligation (a + b): a + bB + abA <-> abB + abA
             100.072235236232 * x.[6] * x.[34] * x.[177] // a + bB + abA | catalytic ligation (a + b): a + bB + abA <-> abB + abA
@@ -9688,7 +9690,7 @@ module ModelData =
 
 
     // 179 - abC
-    let d179 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d179 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[179] * x.[177] // abC + abA | catalytic ligation (a + b): a + bC + abA <-> abC + abA
             100.072235236232 * x.[6] * x.[35] * x.[177] // a + bC + abA | catalytic ligation (a + b): a + bC + abA <-> abC + abA
@@ -9711,7 +9713,7 @@ module ModelData =
 
 
     // 180 - aba
-    let d180 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d180 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[180] * x.[177] // aba + abA | catalytic ligation (a + b): a + ba + abA <-> aba + abA
             100.072235236232 * x.[6] * x.[36] * x.[177] // a + ba + abA | catalytic ligation (a + b): a + ba + abA <-> aba + abA
@@ -9726,7 +9728,7 @@ module ModelData =
 
 
     // 181 - abb
-    let d181 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d181 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[181] * x.[177] // abb + abA | catalytic ligation (b + b): ab + b + abA <-> abb + abA
             100.072235236232 * x.[31] * x.[7] * x.[177] // ab + b + abA | catalytic ligation (b + b): ab + b + abA <-> abb + abA
@@ -9745,7 +9747,7 @@ module ModelData =
 
 
     // 182 - abc
-    let d182 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d182 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[182] * x.[177] // abc + abA | catalytic ligation (a + b): a + bc + abA <-> abc + abA
             100.072235236232 * x.[6] * x.[38] * x.[177] // a + bc + abA | catalytic ligation (a + b): a + bc + abA <-> abc + abA
@@ -9760,7 +9762,7 @@ module ModelData =
 
 
     // 183 - acA
-    let d183 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d183 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[183] * x.[177] // acA + abA | catalytic ligation (a + c): a + cA + abA <-> acA + abA
             100.072235236232 * x.[6] * x.[39] * x.[177] // a + cA + abA | catalytic ligation (a + c): a + cA + abA <-> acA + abA
@@ -9779,7 +9781,7 @@ module ModelData =
 
 
     // 184 - acB
-    let d184 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d184 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[184] * x.[177] // acB + abA | catalytic ligation (a + c): a + cB + abA <-> acB + abA
             100.072235236232 * x.[6] * x.[40] * x.[177] // a + cB + abA | catalytic ligation (a + c): a + cB + abA <-> acB + abA
@@ -9794,7 +9796,7 @@ module ModelData =
 
 
     // 185 - acC
-    let d185 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d185 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[185] * x.[177] // acC + abA | catalytic ligation (a + c): a + cC + abA <-> acC + abA
             100.072235236232 * x.[6] * x.[41] * x.[177] // a + cC + abA | catalytic ligation (a + c): a + cC + abA <-> acC + abA
@@ -9821,7 +9823,7 @@ module ModelData =
 
 
     // 186 - aca
-    let d186 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d186 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[186] * x.[177] // aca + abA | catalytic ligation (a + c): a + ca + abA <-> aca + abA
             100.072235236232 * x.[6] * x.[42] * x.[177] // a + ca + abA | catalytic ligation (a + c): a + ca + abA <-> aca + abA
@@ -9836,7 +9838,7 @@ module ModelData =
 
 
     // 187 - acb
-    let d187 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d187 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[187] * x.[177] // acb + abA | catalytic ligation (a + c): a + cb + abA <-> acb + abA
             100.072235236232 * x.[6] * x.[43] * x.[177] // a + cb + abA | catalytic ligation (a + c): a + cb + abA <-> acb + abA
@@ -9851,7 +9853,7 @@ module ModelData =
 
 
     // 188 - acc
-    let d188 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d188 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[188] * x.[177] // acc + abA | catalytic ligation (c + c): ac + c + abA <-> acc + abA
             100.072235236232 * x.[32] * x.[8] * x.[177] // ac + c + abA | catalytic ligation (c + c): ac + c + abA <-> acc + abA
@@ -9870,7 +9872,7 @@ module ModelData =
 
 
     // 189 - bAA
-    let d189 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d189 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[189] * x.[207] // bAA + baA | catalytic ligation (b + A): b + AA + baA <-> bAA + baA
             9567.23738559824 * x.[7] * x.[9] * x.[207] // b + AA + baA | catalytic ligation (b + A): b + AA + baA <-> bAA + baA
@@ -9885,7 +9887,7 @@ module ModelData =
 
 
     // 190 - bAB
-    let d190 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d190 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[190] * x.[54] // bAB + ABa | catalytic ligation (A + B): bA + B + ABa <-> bAB + ABa
             100.072235236232 * x.[33] * x.[4] * x.[54] // bA + B + ABa | catalytic ligation (A + B): bA + B + ABa <-> bAB + ABa
@@ -9904,7 +9906,7 @@ module ModelData =
 
 
     // 191 - bAC
-    let d191 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d191 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[191] * x.[54] // bAC + ABa | catalytic ligation (A + C): bA + C + ABa <-> bAC + ABa
             100.072235236232 * x.[33] * x.[5] * x.[54] // bA + C + ABa | catalytic ligation (A + C): bA + C + ABa <-> bAC + ABa
@@ -9923,7 +9925,7 @@ module ModelData =
 
 
     // 192 - bAa
-    let d192 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d192 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[192] * x.[207] // bAa + baA | catalytic ligation (b + A): b + Aa + baA <-> bAa + baA
             9567.23738559824 * x.[7] * x.[12] * x.[207] // b + Aa + baA | catalytic ligation (b + A): b + Aa + baA <-> bAa + baA
@@ -9942,7 +9944,7 @@ module ModelData =
 
 
     // 193 - bAb
-    let d193 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d193 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[193] * x.[207] // bAb + baA | catalytic ligation (b + A): b + Ab + baA <-> bAb + baA
             9567.23738559824 * x.[7] * x.[13] * x.[207] // b + Ab + baA | catalytic ligation (b + A): b + Ab + baA <-> bAb + baA
@@ -9961,7 +9963,7 @@ module ModelData =
 
 
     // 194 - bAc
-    let d194 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d194 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[194] * x.[232] // bAc + cBB | catalytic ligation (A + c): bA + c + cBB <-> bAc + cBB
             20.6331517701192 * x.[33] * x.[8] * x.[232] // bA + c + cBB | catalytic ligation (A + c): bA + c + cBB <-> bAc + cBB
@@ -9988,7 +9990,7 @@ module ModelData =
 
 
     // 195 - bBA
-    let d195 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d195 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[195] * x.[145] // bBA + Cbb | catalytic ligation (b + B): b + BA + Cbb <-> bBA + Cbb
             20.6331517701192 * x.[7] * x.[15] * x.[145] // b + BA + Cbb | catalytic ligation (b + B): b + BA + Cbb <-> bBA + Cbb
@@ -10007,7 +10009,7 @@ module ModelData =
 
 
     // 196 - bBB
-    let d196 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d196 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[196] * x.[54] // bBB + ABa | catalytic ligation (B + B): bB + B + ABa <-> bBB + ABa
             100.072235236232 * x.[34] * x.[4] * x.[54] // bB + B + ABa | catalytic ligation (B + B): bB + B + ABa <-> bBB + ABa
@@ -10030,7 +10032,7 @@ module ModelData =
 
 
     // 197 - bBC
-    let d197 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d197 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[197] * x.[145] // bBC + Cbb | catalytic ligation (b + B): b + BC + Cbb <-> bBC + Cbb
             20.6331517701192 * x.[7] * x.[17] * x.[145] // b + BC + Cbb | catalytic ligation (b + B): b + BC + Cbb <-> bBC + Cbb
@@ -10049,7 +10051,7 @@ module ModelData =
 
 
     // 198 - bBa
-    let d198 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d198 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[198] * x.[145] // bBa + Cbb | catalytic ligation (b + B): b + Ba + Cbb <-> bBa + Cbb
             20.6331517701192 * x.[7] * x.[18] * x.[145] // b + Ba + Cbb | catalytic ligation (b + B): b + Ba + Cbb <-> bBa + Cbb
@@ -10072,7 +10074,7 @@ module ModelData =
 
 
     // 199 - bBb
-    let d199 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d199 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[199] * x.[232] // bBb + cBB | catalytic ligation (B + b): bB + b + cBB <-> bBb + cBB
             20.6331517701192 * x.[34] * x.[7] * x.[232] // bB + b + cBB | catalytic ligation (B + b): bB + b + cBB <-> bBb + cBB
@@ -10099,7 +10101,7 @@ module ModelData =
 
 
     // 200 - bBc
-    let d200 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d200 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[200] * x.[232] // bBc + cBB | catalytic ligation (B + c): bB + c + cBB <-> bBc + cBB
             20.6331517701192 * x.[34] * x.[8] * x.[232] // bB + c + cBB | catalytic ligation (B + c): bB + c + cBB <-> bBc + cBB
@@ -10126,7 +10128,7 @@ module ModelData =
 
 
     // 201 - bCA
-    let d201 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d201 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[201] * x.[145] // bCA + Cbb | catalytic ligation (b + C): b + CA + Cbb <-> bCA + Cbb
             20.6331517701192 * x.[7] * x.[21] * x.[145] // b + CA + Cbb | catalytic ligation (b + C): b + CA + Cbb <-> bCA + Cbb
@@ -10145,7 +10147,7 @@ module ModelData =
 
 
     // 202 - bCB
-    let d202 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d202 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[202] * x.[145] // bCB + Cbb | catalytic ligation (b + C): b + CB + Cbb <-> bCB + Cbb
             20.6331517701192 * x.[7] * x.[22] * x.[145] // b + CB + Cbb | catalytic ligation (b + C): b + CB + Cbb <-> bCB + Cbb
@@ -10164,7 +10166,7 @@ module ModelData =
 
 
     // 203 - bCC
-    let d203 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d203 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[203] * x.[54] // bCC + ABa | catalytic ligation (C + C): bC + C + ABa <-> bCC + ABa
             100.072235236232 * x.[35] * x.[5] * x.[54] // bC + C + ABa | catalytic ligation (C + C): bC + C + ABa <-> bCC + ABa
@@ -10187,7 +10189,7 @@ module ModelData =
 
 
     // 204 - bCa
-    let d204 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d204 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[204] * x.[145] // bCa + Cbb | catalytic ligation (b + C): b + Ca + Cbb <-> bCa + Cbb
             20.6331517701192 * x.[7] * x.[24] * x.[145] // b + Ca + Cbb | catalytic ligation (b + C): b + Ca + Cbb <-> bCa + Cbb
@@ -10210,7 +10212,7 @@ module ModelData =
 
 
     // 205 - bCb
-    let d205 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d205 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[205] * x.[145] // bCb + Cbb | catalytic ligation (b + C): b + Cb + Cbb <-> bCb + Cbb
             20.6331517701192 * x.[7] * x.[25] * x.[145] // b + Cb + Cbb | catalytic ligation (b + C): b + Cb + Cbb <-> bCb + Cbb
@@ -10229,7 +10231,7 @@ module ModelData =
 
 
     // 206 - bCc
-    let d206 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d206 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[206] * x.[145] // bCc + Cbb | catalytic ligation (b + C): b + Cc + Cbb <-> bCc + Cbb
             20.6331517701192 * x.[7] * x.[26] * x.[145] // b + Cc + Cbb | catalytic ligation (b + C): b + Cc + Cbb <-> bCc + Cbb
@@ -10260,7 +10262,7 @@ module ModelData =
 
 
     // 207 - baA
-    let d207 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d207 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[207] * x.[136] // baA + CaB | catalytic ligation (a + A): ba + A + CaB <-> baA + CaB
             8215.52199168822 * x.[36] * x.[3] * x.[136] // ba + A + CaB | catalytic ligation (a + A): ba + A + CaB <-> baA + CaB
@@ -10275,7 +10277,7 @@ module ModelData =
 
 
     // 208 - baB
-    let d208 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d208 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[208] * x.[207] // baB + baA | catalytic ligation (a + B): ba + B + baA <-> baB + baA
             9567.23738559824 * x.[36] * x.[4] * x.[207] // ba + B + baA | catalytic ligation (a + B): ba + B + baA <-> baB + baA
@@ -10290,7 +10292,7 @@ module ModelData =
 
 
     // 209 - baC
-    let d209 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d209 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[209] * x.[145] // baC + Cbb | catalytic ligation (a + C): ba + C + Cbb <-> baC + Cbb
             20.6331517701192 * x.[36] * x.[5] * x.[145] // ba + C + Cbb | catalytic ligation (a + C): ba + C + Cbb <-> baC + Cbb
@@ -10313,7 +10315,7 @@ module ModelData =
 
 
     // 210 - baa
-    let d210 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d210 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[210] // baa | ligation (a + a): ba + a <-> baa
             1.0 * x.[36] * x.[6] // ba + a | ligation (a + a): ba + a <-> baa
@@ -10324,7 +10326,7 @@ module ModelData =
 
 
     // 211 - bab
-    let d211 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d211 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[211] * x.[177] // bab + abA | catalytic ligation (a + b): ba + b + abA <-> bab + abA
             100.072235236232 * x.[36] * x.[7] * x.[177] // ba + b + abA | catalytic ligation (a + b): ba + b + abA <-> bab + abA
@@ -10339,7 +10341,7 @@ module ModelData =
 
 
     // 212 - bac
-    let d212 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d212 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[212] * x.[177] // bac + abA | catalytic ligation (a + c): ba + c + abA <-> bac + abA
             100.072235236232 * x.[36] * x.[8] * x.[177] // ba + c + abA | catalytic ligation (a + c): ba + c + abA <-> bac + abA
@@ -10354,7 +10356,7 @@ module ModelData =
 
 
     // 213 - bbA
-    let d213 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d213 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[213] * x.[177] // bbA + abA | catalytic ligation (b + b): b + bA + abA <-> bbA + abA
             100.072235236232 * x.[7] * x.[33] * x.[177] // b + bA + abA | catalytic ligation (b + b): b + bA + abA <-> bbA + abA
@@ -10373,7 +10375,7 @@ module ModelData =
 
 
     // 214 - bbB
-    let d214 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d214 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[214] * x.[177] // bbB + abA | catalytic ligation (b + b): b + bB + abA <-> bbB + abA
             100.072235236232 * x.[7] * x.[34] * x.[177] // b + bB + abA | catalytic ligation (b + b): b + bB + abA <-> bbB + abA
@@ -10396,7 +10398,7 @@ module ModelData =
 
 
     // 215 - bbC
-    let d215 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d215 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[215] * x.[177] // bbC + abA | catalytic ligation (b + b): b + bC + abA <-> bbC + abA
             100.072235236232 * x.[7] * x.[35] * x.[177] // b + bC + abA | catalytic ligation (b + b): b + bC + abA <-> bbC + abA
@@ -10419,7 +10421,7 @@ module ModelData =
 
 
     // 216 - bba
-    let d216 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d216 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[216] * x.[177] // bba + abA | catalytic ligation (b + b): b + ba + abA <-> bba + abA
             100.072235236232 * x.[7] * x.[36] * x.[177] // b + ba + abA | catalytic ligation (b + b): b + ba + abA <-> bba + abA
@@ -10434,7 +10436,7 @@ module ModelData =
 
 
     // 217 - bbb
-    let d217 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d217 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[217] * x.[177] // bbb + abA | catalytic ligation (b + b): bb + b + abA <-> bbb + abA
             100.072235236232 * x.[37] * x.[7] * x.[177] // bb + b + abA | catalytic ligation (b + b): bb + b + abA <-> bbb + abA
@@ -10453,7 +10455,7 @@ module ModelData =
 
 
     // 218 - bbc
-    let d218 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d218 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[218] * x.[177] // bbc + abA | catalytic ligation (b + b): b + bc + abA <-> bbc + abA
             100.072235236232 * x.[7] * x.[38] * x.[177] // b + bc + abA | catalytic ligation (b + b): b + bc + abA <-> bbc + abA
@@ -10468,7 +10470,7 @@ module ModelData =
 
 
     // 219 - bcA
-    let d219 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d219 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -4100.67355029197 * x.[219] * x.[239] // bcA + cCC | catalytic ligation (c + A): bc + A + cCC <-> bcA + cCC
             4100.67355029197 * x.[38] * x.[3] * x.[239] // bc + A + cCC | catalytic ligation (c + A): bc + A + cCC <-> bcA + cCC
@@ -10483,7 +10485,7 @@ module ModelData =
 
 
     // 220 - bcB
-    let d220 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d220 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[220] // bcB | ligation (c + B): bc + B <-> bcB
             1.0 * x.[38] * x.[4] // bc + B | ligation (c + B): bc + B <-> bcB
@@ -10494,7 +10496,7 @@ module ModelData =
 
 
     // 221 - bcC
-    let d221 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d221 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[221] * x.[207] // bcC + baA | catalytic ligation (c + C): bc + C + baA <-> bcC + baA
             9567.23738559824 * x.[38] * x.[5] * x.[207] // bc + C + baA | catalytic ligation (c + C): bc + C + baA <-> bcC + baA
@@ -10517,7 +10519,7 @@ module ModelData =
 
 
     // 222 - bca
-    let d222 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d222 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[222] // bca | ligation (c + a): bc + a <-> bca
             1.0 * x.[38] * x.[6] // bc + a | ligation (c + a): bc + a <-> bca
@@ -10528,7 +10530,7 @@ module ModelData =
 
 
     // 223 - bcb
-    let d223 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d223 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[223] // bcb | ligation (c + b): bc + b <-> bcb
             1.0 * x.[38] * x.[7] // bc + b | ligation (c + b): bc + b <-> bcb
@@ -10539,7 +10541,7 @@ module ModelData =
 
 
     // 224 - bcc
-    let d224 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d224 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[224] * x.[177] // bcc + abA | catalytic ligation (c + c): bc + c + abA <-> bcc + abA
             100.072235236232 * x.[38] * x.[8] * x.[177] // bc + c + abA | catalytic ligation (c + c): bc + c + abA <-> bcc + abA
@@ -10554,7 +10556,7 @@ module ModelData =
 
 
     // 225 - cAA
-    let d225 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d225 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -4100.67355029197 * x.[225] * x.[239] // cAA + cCC | catalytic ligation (c + A): c + AA + cCC <-> cAA + cCC
             4100.67355029197 * x.[8] * x.[9] * x.[239] // c + AA + cCC | catalytic ligation (c + A): c + AA + cCC <-> cAA + cCC
@@ -10569,7 +10571,7 @@ module ModelData =
 
 
     // 226 - cAB
-    let d226 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d226 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[226] * x.[54] // cAB + ABa | catalytic ligation (A + B): cA + B + ABa <-> cAB + ABa
             100.072235236232 * x.[39] * x.[4] * x.[54] // cA + B + ABa | catalytic ligation (A + B): cA + B + ABa <-> cAB + ABa
@@ -10588,7 +10590,7 @@ module ModelData =
 
 
     // 227 - cAC
-    let d227 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d227 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[227] * x.[54] // cAC + ABa | catalytic ligation (A + C): cA + C + ABa <-> cAC + ABa
             100.072235236232 * x.[39] * x.[5] * x.[54] // cA + C + ABa | catalytic ligation (A + C): cA + C + ABa <-> cAC + ABa
@@ -10607,7 +10609,7 @@ module ModelData =
 
 
     // 228 - cAa
-    let d228 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d228 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[228] * x.[229] // cAa + cAb | catalytic ligation (A + a): cA + a + cAb <-> cAa + cAb
             8215.52199168822 * x.[39] * x.[6] * x.[229] // cA + a + cAb | catalytic ligation (A + a): cA + a + cAb <-> cAa + cAb
@@ -10626,7 +10628,7 @@ module ModelData =
 
 
     // 229 - cAb
-    let d229 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d229 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[229] * x.[84] // cAb + BAa | catalytic ligation (A + b): cA + b + BAa <-> cAb + BAa
             9567.23738559824 * x.[39] * x.[7] * x.[84] // cA + b + BAa | catalytic ligation (A + b): cA + b + BAa <-> cAb + BAa
@@ -10645,7 +10647,7 @@ module ModelData =
 
 
     // 230 - cAc
-    let d230 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d230 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[230] * x.[232] // cAc + cBB | catalytic ligation (A + c): cA + c + cBB <-> cAc + cBB
             20.6331517701192 * x.[39] * x.[8] * x.[232] // cA + c + cBB | catalytic ligation (A + c): cA + c + cBB <-> cAc + cBB
@@ -10672,7 +10674,7 @@ module ModelData =
 
 
     // 231 - cBA
-    let d231 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d231 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[231] // cBA | ligation (B + A): cB + A <-> cBA
             1.0 * x.[40] * x.[3] // cB + A | ligation (B + A): cB + A <-> cBA
@@ -10683,7 +10685,7 @@ module ModelData =
 
 
     // 232 - cBB
-    let d232 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d232 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[232] * x.[54] // cBB + ABa | catalytic ligation (B + B): cB + B + ABa <-> cBB + ABa
             100.072235236232 * x.[40] * x.[4] * x.[54] // cB + B + ABa | catalytic ligation (B + B): cB + B + ABa <-> cBB + ABa
@@ -10698,7 +10700,7 @@ module ModelData =
 
 
     // 233 - cBC
-    let d233 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d233 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[233] // cBC | ligation (B + C): cB + C <-> cBC
             1.0 * x.[40] * x.[5] // cB + C | ligation (B + C): cB + C <-> cBC
@@ -10709,7 +10711,7 @@ module ModelData =
 
 
     // 234 - cBa
-    let d234 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d234 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[234] * x.[84] // cBa + BAa | catalytic ligation (B + a): cB + a + BAa <-> cBa + BAa
             9567.23738559824 * x.[40] * x.[6] * x.[84] // cB + a + BAa | catalytic ligation (B + a): cB + a + BAa <-> cBa + BAa
@@ -10724,7 +10726,7 @@ module ModelData =
 
 
     // 235 - cBb
-    let d235 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d235 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[235] * x.[232] // cBb + cBB | catalytic ligation (B + b): cB + b + cBB <-> cBb + cBB
             20.6331517701192 * x.[40] * x.[7] * x.[232] // cB + b + cBB | catalytic ligation (B + b): cB + b + cBB <-> cBb + cBB
@@ -10743,7 +10745,7 @@ module ModelData =
 
 
     // 236 - cBc
-    let d236 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d236 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[236] * x.[232] // cBc + cBB | catalytic ligation (B + c): cB + c + cBB <-> cBc + cBB
             20.6331517701192 * x.[40] * x.[8] * x.[232] // cB + c + cBB | catalytic ligation (B + c): cB + c + cBB <-> cBc + cBB
@@ -10762,7 +10764,7 @@ module ModelData =
 
 
     // 237 - cCA
-    let d237 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d237 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[237] * x.[207] // cCA + baA | catalytic ligation (c + C): c + CA + baA <-> cCA + baA
             9567.23738559824 * x.[8] * x.[21] * x.[207] // c + CA + baA | catalytic ligation (c + C): c + CA + baA <-> cCA + baA
@@ -10785,7 +10787,7 @@ module ModelData =
 
 
     // 238 - cCB
-    let d238 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d238 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[238] * x.[207] // cCB + baA | catalytic ligation (c + C): c + CB + baA <-> cCB + baA
             9567.23738559824 * x.[8] * x.[22] * x.[207] // c + CB + baA | catalytic ligation (c + C): c + CB + baA <-> cCB + baA
@@ -10808,7 +10810,7 @@ module ModelData =
 
 
     // 239 - cCC
-    let d239 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d239 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[239] * x.[54] // cCC + ABa | catalytic ligation (C + C): cC + C + ABa <-> cCC + ABa
             100.072235236232 * x.[41] * x.[5] * x.[54] // cC + C + ABa | catalytic ligation (C + C): cC + C + ABa <-> cCC + ABa
@@ -10839,7 +10841,7 @@ module ModelData =
 
 
     // 240 - cCa
-    let d240 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d240 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[240] * x.[207] // cCa + baA | catalytic ligation (c + C): c + Ca + baA <-> cCa + baA
             9567.23738559824 * x.[8] * x.[24] * x.[207] // c + Ca + baA | catalytic ligation (c + C): c + Ca + baA <-> cCa + baA
@@ -10866,7 +10868,7 @@ module ModelData =
 
 
     // 241 - cCb
-    let d241 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d241 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[241] * x.[207] // cCb + baA | catalytic ligation (c + C): c + Cb + baA <-> cCb + baA
             9567.23738559824 * x.[8] * x.[25] * x.[207] // c + Cb + baA | catalytic ligation (c + C): c + Cb + baA <-> cCb + baA
@@ -10889,7 +10891,7 @@ module ModelData =
 
 
     // 242 - cCc
-    let d242 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d242 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[242] * x.[84] // cCc + BAa | catalytic ligation (C + c): cC + c + BAa <-> cCc + BAa
             9567.23738559824 * x.[41] * x.[8] * x.[84] // cC + c + BAa | catalytic ligation (C + c): cC + c + BAa <-> cCc + BAa
@@ -10924,7 +10926,7 @@ module ModelData =
 
 
     // 243 - caA
-    let d243 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d243 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -8215.52199168822 * x.[243] * x.[136] // caA + CaB | catalytic ligation (a + A): ca + A + CaB <-> caA + CaB
             8215.52199168822 * x.[42] * x.[3] * x.[136] // ca + A + CaB | catalytic ligation (a + A): ca + A + CaB <-> caA + CaB
@@ -10939,7 +10941,7 @@ module ModelData =
 
 
     // 244 - caB
-    let d244 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d244 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[244] * x.[207] // caB + baA | catalytic ligation (a + B): ca + B + baA <-> caB + baA
             9567.23738559824 * x.[42] * x.[4] * x.[207] // ca + B + baA | catalytic ligation (a + B): ca + B + baA <-> caB + baA
@@ -10954,7 +10956,7 @@ module ModelData =
 
 
     // 245 - caC
-    let d245 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d245 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[245] * x.[145] // caC + Cbb | catalytic ligation (a + C): ca + C + Cbb <-> caC + Cbb
             20.6331517701192 * x.[42] * x.[5] * x.[145] // ca + C + Cbb | catalytic ligation (a + C): ca + C + Cbb <-> caC + Cbb
@@ -10977,7 +10979,7 @@ module ModelData =
 
 
     // 246 - caa
-    let d246 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d246 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[246] // caa | ligation (a + a): ca + a <-> caa
             1.0 * x.[42] * x.[6] // ca + a | ligation (a + a): ca + a <-> caa
@@ -10988,7 +10990,7 @@ module ModelData =
 
 
     // 247 - cab
-    let d247 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d247 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[247] * x.[177] // cab + abA | catalytic ligation (a + b): ca + b + abA <-> cab + abA
             100.072235236232 * x.[42] * x.[7] * x.[177] // ca + b + abA | catalytic ligation (a + b): ca + b + abA <-> cab + abA
@@ -11003,7 +11005,7 @@ module ModelData =
 
 
     // 248 - cac
-    let d248 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d248 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[248] * x.[177] // cac + abA | catalytic ligation (a + c): ca + c + abA <-> cac + abA
             100.072235236232 * x.[42] * x.[8] * x.[177] // ca + c + abA | catalytic ligation (a + c): ca + c + abA <-> cac + abA
@@ -11018,7 +11020,7 @@ module ModelData =
 
 
     // 249 - cbA
-    let d249 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d249 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -9567.23738559824 * x.[249] * x.[207] // cbA + baA | catalytic ligation (b + A): cb + A + baA <-> cbA + baA
             9567.23738559824 * x.[43] * x.[3] * x.[207] // cb + A + baA | catalytic ligation (b + A): cb + A + baA <-> cbA + baA
@@ -11033,7 +11035,7 @@ module ModelData =
 
 
     // 250 - cbB
-    let d250 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d250 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[250] * x.[145] // cbB + Cbb | catalytic ligation (b + B): cb + B + Cbb <-> cbB + Cbb
             20.6331517701192 * x.[43] * x.[4] * x.[145] // cb + B + Cbb | catalytic ligation (b + B): cb + B + Cbb <-> cbB + Cbb
@@ -11052,7 +11054,7 @@ module ModelData =
 
 
     // 251 - cbC
-    let d251 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d251 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -20.6331517701192 * x.[251] * x.[145] // cbC + Cbb | catalytic ligation (b + C): cb + C + Cbb <-> cbC + Cbb
             20.6331517701192 * x.[43] * x.[5] * x.[145] // cb + C + Cbb | catalytic ligation (b + C): cb + C + Cbb <-> cbC + Cbb
@@ -11071,7 +11073,7 @@ module ModelData =
 
 
     // 252 - cba
-    let d252 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d252 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[252] // cba | ligation (b + a): cb + a <-> cba
             1.0 * x.[43] * x.[6] // cb + a | ligation (b + a): cb + a <-> cba
@@ -11082,7 +11084,7 @@ module ModelData =
 
 
     // 253 - cbb
-    let d253 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d253 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[253] * x.[177] // cbb + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
             100.072235236232 * x.[43] * x.[7] * x.[177] // cb + b + abA | catalytic ligation (b + b): cb + b + abA <-> cbb + abA
@@ -11097,7 +11099,7 @@ module ModelData =
 
 
     // 254 - cbc
-    let d254 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d254 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -1.0 * x.[254] // cbc | ligation (b + c): cb + c <-> cbc
             1.0 * x.[43] * x.[8] // cb + c | ligation (b + c): cb + c <-> cbc
@@ -11108,7 +11110,7 @@ module ModelData =
 
 
     // 255 - ccA
-    let d255 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d255 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[255] * x.[177] // ccA + abA | catalytic ligation (c + c): c + cA + abA <-> ccA + abA
             100.072235236232 * x.[8] * x.[39] * x.[177] // c + cA + abA | catalytic ligation (c + c): c + cA + abA <-> ccA + abA
@@ -11127,7 +11129,7 @@ module ModelData =
 
 
     // 256 - ccB
-    let d256 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d256 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[256] * x.[177] // ccB + abA | catalytic ligation (c + c): c + cB + abA <-> ccB + abA
             100.072235236232 * x.[8] * x.[40] * x.[177] // c + cB + abA | catalytic ligation (c + c): c + cB + abA <-> ccB + abA
@@ -11142,7 +11144,7 @@ module ModelData =
 
 
     // 257 - ccC
-    let d257 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d257 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[257] * x.[177] // ccC + abA | catalytic ligation (c + c): c + cC + abA <-> ccC + abA
             100.072235236232 * x.[8] * x.[41] * x.[177] // c + cC + abA | catalytic ligation (c + c): c + cC + abA <-> ccC + abA
@@ -11169,7 +11171,7 @@ module ModelData =
 
 
     // 258 - cca
-    let d258 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d258 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[258] * x.[177] // cca + abA | catalytic ligation (c + c): c + ca + abA <-> cca + abA
             100.072235236232 * x.[8] * x.[42] * x.[177] // c + ca + abA | catalytic ligation (c + c): c + ca + abA <-> cca + abA
@@ -11184,7 +11186,7 @@ module ModelData =
 
 
     // 259 - ccb
-    let d259 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d259 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[259] * x.[177] // ccb + abA | catalytic ligation (c + c): c + cb + abA <-> ccb + abA
             100.072235236232 * x.[8] * x.[43] * x.[177] // c + cb + abA | catalytic ligation (c + c): c + cb + abA <-> ccb + abA
@@ -11199,7 +11201,7 @@ module ModelData =
 
 
     // 260 - ccc
-    let d260 (x : array<double>) xSum xSumN xSumSquaredN = 
+    let d260 (x : array<double>) xSum xSumN xSumSquaredN =
         [|
             -100.072235236232 * x.[260] * x.[177] // ccc + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
             100.072235236232 * x.[44] * x.[8] * x.[177] // cc + c + abA | catalytic ligation (c + c): cc + c + abA <-> ccc + abA
@@ -11218,13 +11220,13 @@ module ModelData =
 
 
 
-    let update (xRaw : array<double>) : array<double> = 
+    let update (xRaw : array<double>) : array<double> =
         // printfn "update::Starting..."
         let x = xRaw |> Array.map (fun e -> max e 0.0)
         let xSum = (x |> Array.sum) - (x.[1] + x.[2] + x.[0])
 
 
-        let xSumN = 
+        let xSumN =
             [|
                 1.0 * x.[3] // A
                 1.0 * x.[4] // B
@@ -11488,7 +11490,7 @@ module ModelData =
             |> Array.sum
 
 
-        let xSumSquaredN = 
+        let xSumSquaredN =
             [|
                 1.0 * x.[3] * x.[3] // A
                 1.0 * x.[4] * x.[4] // B
@@ -12017,9 +12019,9 @@ module ModelData =
 
     let modelDataParamsWithExtraData =
                     {
-                        regularParams = 
+                        regularParams =
                             {
-                                modelDataParams = 
+                                modelDataParams =
                                     {
                                         modelInfo =
                                             {
@@ -12036,7 +12038,7 @@ module ModelData =
                                         allParams =
                                             [|
                                                 {
-                                                    modelParam = 
+                                                    modelParam =
                                                         {
                                                             ligationDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                             forwardScale = Some 1.0
@@ -12048,9 +12050,9 @@ module ModelData =
                                                 }
 
                                                 {
-                                                    modelParam = 
+                                                    modelParam =
                                                         {
-                                                            ligationParam = 
+                                                            ligationParam =
                                                                 {
                                                                     ligationDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                                     forwardScale = Some 1.0
@@ -12058,7 +12060,7 @@ module ModelData =
                                                                 }
                                                                 |> LigRndParam
 
-                                                            catLigRndEeParams = 
+                                                            catLigRndEeParams =
                                                                 {
                                                                     rateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.0002; scale = Some 2000.0; shift = None } } |> Distribution |> RateMultDistr
                                                                     eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
@@ -12071,11 +12073,11 @@ module ModelData =
                                                 }
 
                                                 {
-                                                    modelParam = 
+                                                    modelParam =
                                                         {
-                                                            catLigParam = 
+                                                            catLigParam =
                                                                 {
-                                                                    ligationParam = 
+                                                                    ligationParam =
                                                                         {
                                                                             ligationDistribution = { distributionType = Delta; distributionParams = { threshold = None; scale = None; shift = Some 1.0 } } |> Distribution
                                                                             forwardScale = Some 1.0
@@ -12083,7 +12085,7 @@ module ModelData =
                                                                         }
                                                                         |> LigRndParam
 
-                                                                    catLigRndEeParams = 
+                                                                    catLigRndEeParams =
                                                                         {
                                                                             rateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.0002; scale = Some 2000.0; shift = None } } |> Distribution |> RateMultDistr
                                                                             eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
@@ -12091,7 +12093,7 @@ module ModelData =
                                                                         }
                                                                 }
 
-                                                            catLigSimParam = 
+                                                            catLigSimParam =
                                                                 {
                                                                     catRatesSimGeneration = { distributionType = Uniform; distributionParams = { threshold = Some 0.3; scale = None; shift = Some 1.0 } } |> Distribution |> FixedValue
                                                                     getRateMultiplierDistr = DeltaRateMultDistrGetter
@@ -12108,7 +12110,7 @@ module ModelData =
                                             |]
                                     }
 
-                                allSubstData = 
+                                allSubstData =
                                     {
                                         allSubst = allSubst
                                         allInd = allInd
@@ -12137,7 +12139,7 @@ module ModelData =
 
                             }
 
-                        funcParams = 
+                        funcParams =
                             {
                                 getTotals = getTotals
                                 getTotalSubst = getTotalSubst

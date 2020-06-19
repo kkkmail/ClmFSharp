@@ -5,6 +5,7 @@ open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open Clm.Distributions
 open ClmSys.ContGenPrimitives
+open Clm.ReactionRatesBase
 
 module Defaults_004_002_000 =
     let sdSim = 0.1

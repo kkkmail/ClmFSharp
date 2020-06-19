@@ -2,6 +2,8 @@
 
 open Clm.Distributions
 open Clm.ReactionRates
+open Clm.ReactionRatesBase
+open Clm.ReactionRateParams
 
 module DefaultValuesExt =
 

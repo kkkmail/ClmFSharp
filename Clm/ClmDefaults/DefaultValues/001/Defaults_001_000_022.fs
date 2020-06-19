@@ -5,6 +5,7 @@ open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open Clm.Distributions
 open ClmSys.ContGenPrimitives
+open Clm.ReactionRatesBase
 
 module Defaults_001_000_022 =
 

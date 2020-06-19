@@ -1,6 +1,5 @@
 ﻿namespace Clm.Generator
 
-open System
 open FSharp.Collections
 
 open ClmSys.VersionInfo
@@ -201,12 +200,13 @@ module ClmModelData =
         /// Note that currently all generators share the same success number type.
         static member create rnd rateProvider (si : SubstInfo) st =
             let generatePairs x = generatePairs rnd x rateProvider
+            let generateTriples x = generateTriples rnd x rateProvider
 
             {
                 commonData =
                     {
                         substInfo = si
-                        sugSynth = 0
+                        sugSynth = generatePairs (si.sugSynthInfo st)
                         catSynthPairs = generatePairs (si.catSynthInfo st)
                         enCatSynth = generateTriples (si.enCatSynthInfo st)
                         catDestrPairs = generatePairs (si.catDestrInfo st)

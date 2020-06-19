@@ -23,17 +23,17 @@ module VersionInfo =
     /// It is loosely the same as the version number.
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     [<Literal>]
-    let ClmBaseName = "clm503"
+    let ClmBaseName = "clm504"
 
 
     [<Literal>]
-    let MsgSvcBaseName = "msg503"
+    let MsgSvcBaseName = "msg504"
 
 
     /// Default port on which messaging communication is performed.
     /// TODO kk:20200412 - There seems to be some conflict between how to use default service port and registry key where to store the information.
     //let DefaultServicePort = 5000 + messagingDataVersion.value
-    let DefaultServicePort = 5030
+    let DefaultServicePort = 5040
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

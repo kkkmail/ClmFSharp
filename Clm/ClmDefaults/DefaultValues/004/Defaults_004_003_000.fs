@@ -1,5 +1,6 @@
 ﻿namespace ClmDefaults
 
+open Clm.ReactionRateParams
 open Clm.ReactionRates
 open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
@@ -7,7 +8,7 @@ open Clm.Distributions
 open ClmSys.ContGenPrimitives
 open Clm.ReactionRatesBase
 
-module Defaults_004_002_000 =
+module Defaults_004_003_000 =
     let sdSim = 0.1
 
     /// Max 19 rows.
@@ -43,7 +44,7 @@ module Defaults_004_002_000 =
 
 
     let getDefaultValue ((n, similarity), (m, (scarcity, multiplier))) =
-        let clmDefaultValueId = (4_002_000_000L + 20L * m + n) |> ClmDefaultValueId
+        let clmDefaultValueId = (4_003_000_000L + 20L * m + n) |> ClmDefaultValueId
         printfn "clmDefaultValueId = %A, similarity = %A, scarcity = %A, multiplier = %A" clmDefaultValueId similarity scarcity multiplier
 
         let description = None
@@ -75,18 +76,22 @@ module Defaults_004_002_000 =
             let catLigParam =
                 ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
             //===========================================================
+            let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl (Some 0.001, Some 0.001)
+            //===========================================================
             let rates =
                 [
-                    wasteRecyclingParam
+//                    wasteRecyclingParam
+//
+//                    synthParam |> SynthesisRateParam
+//                    catSynthParam
+//
+//                    destrParam |> DestructionRateParam
+//                    catDestrParam
+//
+//                    ligParam |> LigationRateParam
+//                    if (scarcity > 0.0M) then catLigParam
 
-                    synthParam |> SynthesisRateParam
-                    catSynthParam
-
-                    destrParam |> DestructionRateParam
-                    catDestrParam
-
-                    ligParam |> LigationRateParam
-                    if (scarcity > 0.0M) then catLigParam
+                    sugParam |> SugarSynthesisRateParam
                 ]
             //===========================================================
 
@@ -105,4 +110,4 @@ module Defaults_004_002_000 =
         (List.allPairs nSim mScMult)
         |> List.filter (fun ((_, similarity), (_, (scarcity, _))) -> (scarcity = 0.0M && similarity = 0.0M) || scarcity > 0.0M)
         |> List.map getDefaultValue
-        |> updateDescription "Cat lig with similarity playground."
+        |> updateDescription "Cat lig with similarity + all sugars playground."

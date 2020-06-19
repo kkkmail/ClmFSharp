@@ -89,4 +89,7 @@ module Defaults_004_000_000 =
             description = description
         }
 
-    let defaultValues = (List.allPairs nsd mcl) |> List.map getDefaultValue
+    let defaultValues =
+        (List.allPairs nsd mcl)
+        |> List.map getDefaultValue
+        |> updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 20 (both scarcity param = 100, vary both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased, w = 0.1, vary cat ligation."

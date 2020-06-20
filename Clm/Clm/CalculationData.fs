@@ -231,6 +231,7 @@ module CalculationData =
     type LevelOne = double * int
     type LevelTwo = double * int * int
     type LevelThree = double * int * int * int
+    type LevelFour = double * int * int * int * int
 
 
     type SubstUpdateInfo =
@@ -238,6 +239,7 @@ module CalculationData =
         | OneSubst of Substance
         | TwoSubst of Substance * Substance
         | ThreeSubst of Substance * Substance * Substance
+        | FourSubst of Substance * Substance * Substance * Substance
 
         static member create i =
             match i with
@@ -251,7 +253,10 @@ module CalculationData =
                     | h3 :: t3 ->
                         match t3 with
                         | [] -> (h1, h2, h3) |> ThreeSubst
-                        | _ -> failwith (sprintf "SubstUpdateInfo: invalid input: %A" i)
+                        | h4 :: t4 ->
+                            match t4 with
+                            | [] -> (h1, h2, h3, h4) |> FourSubst
+                            | _ -> failwith (sprintf "SubstUpdateInfo: invalid input: %A" i)
 
 
     type ModelIndices =
@@ -260,6 +265,7 @@ module CalculationData =
             level1 : array<LevelOne>
             level2 : array<LevelTwo>
             level3 : array<LevelThree>
+            level4 : array<LevelFour>
         }
 
         static member defaultValue =
@@ -268,6 +274,7 @@ module CalculationData =
                 level1 = [||]
                 level2 = [||]
                 level3 = [||]
+                level4 = [||]
             }
 
         static member create (m : Map<Substance, int>) (i : list<double * SubstUpdateInfo>) =
@@ -291,11 +298,17 @@ module CalculationData =
                 |> List.map (fun (v, e) -> match e with | ThreeSubst (s1, s2, s3) -> Some (v, m.[s1], m.[s2], m.[s3]) | _ -> None)
                 |> List.choose id
 
+            let l4 =
+                i
+                |> List.map (fun (v, e) -> match e with | FourSubst (s1, s2, s3, s4) -> Some (v, m.[s1], m.[s2], m.[s3], m.[s4]) | _ -> None)
+                |> List.choose id
+
             {
                 level0 = l0 |> Array.ofList
                 level1 = l1 |> Array.ofList
                 level2 = l2 |> Array.ofList
                 level3 = l3 |> Array.ofList
+                level4 = l4 |> Array.ofList
             }
 
 
@@ -313,20 +326,23 @@ module CalculationData =
         |> Array.map (fun (l, r) -> calculateTotalSubst l x, calculateTotalSubst r x)
 
 
-    let calculateDerivativeValue (indicies : ModelIndices) (x: double[]) =
+    let calculateDerivativeValue (indices : ModelIndices) (x: double[]) =
         let mutable sum = 0.0
 
-        for coeff in indicies.level0 do
+        for coeff in indices.level0 do
             sum <- sum + coeff
 
-        for (coeff, j1) in indicies.level1 do
+        for (coeff, j1) in indices.level1 do
             sum <- sum + coeff * x.[j1]
 
-        for (coeff, j1, j2) in indicies.level2 do
+        for (coeff, j1, j2) in indices.level2 do
             sum <- sum + coeff * x.[j1] * x.[j2]
 
-        for (coeff, j1, j2, j3) in indicies.level3 do
+        for (coeff, j1, j2, j3) in indices.level3 do
             sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3]
+
+        for (coeff, j1, j2, j3, j4) in indices.level4 do
+            sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3] * x.[j4]
 
         sum
 

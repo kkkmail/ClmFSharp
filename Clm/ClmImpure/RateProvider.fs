@@ -81,9 +81,7 @@ module RateProvider =
             | WasteRemovalName -> tryPick WasteRemovalModel.modelGetter |> Option.bind(fun e -> WasteRemovalRateModel e |> Some)
             | WasteRecyclingName -> tryPick WasteRecyclingModel.modelGetter |> Option.bind(fun e -> WasteRecyclingRateModel e |> Some)
             | SynthesisName -> tryPick SynthesisModel.modelGetter |> Option.bind(fun e -> SynthesisRateModel e |> Some)
-            | SugarSynthesisName ->
-                let a = tryPick SugarSynthesisModel.modelGetter
-                a |> Option.bind(fun e -> SugarSynthesisRateModel e |> Some)
+            | SugarSynthesisName -> tryPick SugarSynthesisModel.modelGetter |> Option.bind(fun e -> SugarSynthesisRateModel e |> Some)
             | DestructionName -> tryPick DestructionModel.modelGetter |> Option.bind(fun e -> DestructionRateModel e |> Some)
             | CatalyticSynthesisName -> tryPick CatalyticSynthesisModel.modelGetter |> Option.bind(fun e -> CatalyticSynthesisRateModel e |> Some)
             | EnCatalyticSynthesisName -> tryPick EnCatalyticSynthesisModel.modelGetter |> Option.bind(fun e -> EnCatalyticSynthesisRateModel e |> Some)

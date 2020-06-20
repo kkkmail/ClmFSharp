@@ -501,6 +501,9 @@ module Substances =
 
         override sugar.ToString() = sugar.name
 
+        static member all =
+            [ Ls Z; Rs Z ]
+
 
     type Substance =
         | Simple of AchiralSubst

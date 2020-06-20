@@ -98,6 +98,9 @@ module CalculationData =
                     (chiralAminoAcids |> List.map (fun a -> Chiral a))
                     @
                     (peptides |> List.map (fun p -> PeptideChain p))
+                    @
+                    (ChiralSugar.all |> List.map ChiralSug)
+
 
             let reagents =
                 allChains

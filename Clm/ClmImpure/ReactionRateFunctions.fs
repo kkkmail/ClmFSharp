@@ -149,7 +149,7 @@ module ReactionRateFunctions =
         | true ->
             {
                 rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                eeDistribution = i.simParams.getEeDistr.getDistr cr.forwardRate cre.forwardRate
             }
         | false -> CatRatesEeParam.defaultValue
 
@@ -296,7 +296,7 @@ module ReactionRateFunctions =
                 | true ->
                     {
                         sedDirRateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                        eeDistribution = i.simParams.getEeDistr.getDistr cr.forwardRate cre.forwardRate
                     }
                 | false -> SedDirRatesEeParam.defaultValue
 
@@ -334,7 +334,7 @@ module ReactionRateFunctions =
             getBaseRates : 'R -> RateData
             getBaseCatRates : 'RCS -> RateData
             simParams : CatRatesSimilarityParam
-            eeParams : CatRatesEeParam
+            eeParams : EnCatRatesEeParam
             rateDictionary : Dictionary<'RCS, RateData>
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter

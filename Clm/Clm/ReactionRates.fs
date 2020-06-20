@@ -16,7 +16,7 @@ module ReactionRates =
                 match i.rateGenerationType with
                 | RandomChoice -> i.eeParams.sedDirRateMultiplierDistr.nextDouble i.rnd
 
-            match k, i.eeParams.eeForwardDistribution with
+            match k, i.eeParams.eeDistribution with
             | Some k0, Some df ->
                 let s0 = i.getBaseRates reaction
                 let fEe = df.nextDouble i.rnd

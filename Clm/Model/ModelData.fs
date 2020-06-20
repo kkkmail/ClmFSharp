@@ -12063,7 +12063,7 @@ module ModelData =
                                                             catLigRndEeParams =
                                                                 {
                                                                     rateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.0002; scale = Some 2000.0; shift = None } } |> Distribution |> RateMultDistr
-                                                                    eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
+                                                                    eeDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
                                                                 }
                                                         }
                                                         |> CatLigRndParam
@@ -12087,7 +12087,7 @@ module ModelData =
                                                                     catLigRndEeParams =
                                                                         {
                                                                             rateMultiplierDistr = { distributionType = Triangular; distributionParams = { threshold = Some 0.0002; scale = Some 2000.0; shift = None } } |> Distribution |> RateMultDistr
-                                                                            eeForwardDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
+                                                                            eeDistribution = { distributionType = BiDelta; distributionParams = { threshold = None; scale = Some 0.95; shift = None } } |> Distribution |> EeDistribution |> Some
                                                                         }
                                                                 }
 
@@ -12095,7 +12095,7 @@ module ModelData =
                                                                 {
                                                                     catRatesSimGeneration = { distributionType = Uniform; distributionParams = { threshold = Some 0.3; scale = None; shift = Some 1.0 } } |> Distribution |> FixedValue
                                                                     getRateMultiplierDistr = DeltaRateMultDistrGetter
-                                                                    getForwardEeDistr = DeltaEeDistributionGetter
+                                                                    getEeDistr = DeltaEeDistributionGetter
                                                                 }
 
                                                         }

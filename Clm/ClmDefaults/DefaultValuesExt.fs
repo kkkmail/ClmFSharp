@@ -104,7 +104,7 @@ module DefaultValuesExt =
                 catSynthRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeDistribution = defaultEeDistribution |> Some
                     }
             }
 
@@ -126,7 +126,7 @@ module DefaultValuesExt =
                             | DistrBased -> DistributionBased
                             | FixedVal -> FixedValue
 
-                        getForwardEeDistr = defaultEeDistributionGetter
+                        getEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
             }
@@ -143,7 +143,7 @@ module DefaultValuesExt =
                 catDestrRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeDistribution = defaultEeDistribution |> Some
                     }
             }
 
@@ -165,7 +165,7 @@ module DefaultValuesExt =
                             | DistrBased -> DistributionBased
                             | FixedVal -> FixedValue
 
-                        getForwardEeDistr = defaultEeDistributionGetter
+                        getEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
             }
@@ -206,7 +206,7 @@ module DefaultValuesExt =
                 catLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeDistribution = defaultEeDistribution |> Some
                     }
             }
 
@@ -229,7 +229,7 @@ module DefaultValuesExt =
                             | DistrBased -> DistributionBased
                             | FixedVal -> FixedValue
 
-                        getForwardEeDistr = defaultEeDistributionGetter
+                        getEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
             }
@@ -245,7 +245,7 @@ module DefaultValuesExt =
                 sedDirRatesEeParam =
                     {
                         sedDirRateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeDistribution = defaultEeDistribution |> Some
                     }
                 sedDirDistribution = Distribution.createTriangular { threshold = threshold; scale = None; shift = None }
                 forwardScale = Some mult
@@ -263,7 +263,7 @@ module DefaultValuesExt =
                     {
                         sedDirSimBaseDistribution = Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
                         getRateMultiplierDistr = deltaRateMultDistrGetter
-                        getForwardEeDistr = defaultEeDistributionGetter
+                        getEeDistr = defaultEeDistributionGetter
                     }
             }
 
@@ -300,7 +300,7 @@ module DefaultValuesExt =
                 catRacemRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        eeForwardDistribution = defaultEeDistribution |> Some
+                        eeDistribution = defaultEeDistribution |> Some
                     }
             }
 
@@ -322,7 +322,7 @@ module DefaultValuesExt =
                             | DistrBased -> DistributionBased
                             | FixedVal -> FixedValue
 
-                        getForwardEeDistr = defaultEeDistributionGetter
+                        getEeDistr = defaultEeDistributionGetter
                         getRateMultiplierDistr = deltaRateMultDistrGetter
                     }
             }

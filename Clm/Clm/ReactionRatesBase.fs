@@ -98,13 +98,13 @@ module ReactionRatesBase =
     type CatRatesEeParam =
         {
             rateMultiplierDistr : RateMultiplierDistribution
-            eeForwardDistribution : EeDistribution option
+            eeDistribution : EeDistribution option
         }
 
         static member defaultValue =
             {
                 rateMultiplierDistr = NoneRateMult
-                eeForwardDistribution = None
+                eeDistribution = None
             }
 
 
@@ -122,19 +122,6 @@ module ReactionRatesBase =
 
 
     /// Thermodynamic considerations require that the equilibrium does not change in the presence of catalyst.
-    /// That requires a racemic mixture of both chiral catalysts (because only a racemic mixture is in the equilibrium state).
-    /// Therefore, if sf and sb are forward and backward rates of not catalyzed reaction, then
-    /// total forward and backward multipliers due to racemic mixture of catalysts must be equal:
-    ///
-    /// kf + kfe = kb + kbe, where
-    ///     kf -  is forward  multiplier for a catalyst C
-    ///     kfe - is forward  multiplier for a catalyst E(C) - enantiomer of C
-    ///     kb -  is backward multiplier for a catalyst C
-    ///     kbe - is backward multiplier for a catalyst E(C)
-    ///
-    /// Setting eeParams.eeBackwardDistribution = None imposes more stringent constraint that
-    /// forward and backward rate multipliers must be the same for each catalyst independently from
-    /// its enantiomer. This seems to be more correct.
     let calculateCatRates<'R, 'C, 'RC> (i : CatRatesInfo<'R, 'C, 'RC>) =
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
 
@@ -143,7 +130,7 @@ module ReactionRatesBase =
                 match i.rateGenerationType with
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
 
-            match k, i.eeParams.eeForwardDistribution with
+            match k, i.eeParams.eeDistribution with
             | Some k0, Some df ->
                 let s0 = i.getBaseRates i.reaction
                 let fEe = df.nextDouble i.rnd
@@ -179,8 +166,23 @@ module ReactionRatesBase =
         {
             catRatesSimGeneration : CatRatesSimGeneration
             getRateMultiplierDistr : RateMultiplierDistributionGetter
-            getForwardEeDistr : EeDistributionGetter
+            getEeDistr : EeDistributionGetter
         }
+
+
+    type EnCatRatesEeParam =
+        {
+            rateMultiplierDistr : RateMultiplierDistribution
+            eeForwardDistribution : EeDistribution option
+            eeBackwardDistribution : EeDistribution option
+        }
+
+        static member defaultValue =
+            {
+                rateMultiplierDistr = NoneRateMult
+                eeForwardDistribution = None
+                eeBackwardDistribution = None
+            }
 
 
     type EnCatRatesInfo<'R, 'C, 'S, 'RCS> =
@@ -192,11 +194,88 @@ module ReactionRatesBase =
             getEnergySourceEnantiomer : 'S -> 'S
             enCatReactionCreator : ('R * 'C * 'S) -> 'RCS
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            eeParams : CatRatesEeParam
+            eeParams : EnCatRatesEeParam
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
         }
 
+    /// These reactions explicitly consume energy by utilizing "energy source" molecule, which is destroyed.
+    /// Subsequently, thermodynamic equilibrium is changed as a result of such reaction.
+    /// The following is meaning of coefficients:
+    ///     kf -  is forward  multiplier for a catalyst C
+    ///     kfe - is forward  multiplier for a catalyst E(C) - enantiomer of C
+    ///     kb -  is backward multiplier for a catalyst C
+    ///     kbe - is backward multiplier for a catalyst E(C)
+    ///     etc.
+    ///
+    /// All 8 combinations are as follows:
+    /// kf, kb: T = (R, C, U), E(T) = (E(R), E(C), E(U))
+    /// kfe, kbe: T = (R, E(C), U), E(T) = (E(R), C, E(U))
+    /// kfu, kbu: T = (R, C, E(U)), E(T) = (E(R), E(C), EU)
+    /// kfeu, kbeu: T = (R, E(C), E(U)), E(T) = (E(R), C, U)
     let calculateEnCatRates<'R, 'C, 'S, 'RCS> (i : EnCatRatesInfo<'R, 'C, 'S, 'RCS>) : RelatedReactions<'RCS> =
-        failwith "EN is not implemented yet."
+        let re = (i.reaction, i.getCatEnantiomer i.catalyst, i.energySource) |> i.enCatReactionCreator
+        let ru = (i.reaction, i.catalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+        let reu = (i.reaction, i.getCatEnantiomer i.catalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
 
+        let (rf, rb, rfe, rbe), (rfu, rbu, rfeu, rbeu) =
+            let k =
+                match i.rateGenerationType with
+                | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
+
+            match k, i.eeParams.eeForwardDistribution with
+            | Some k0, Some df ->
+                let s0 = i.getBaseRates i.reaction
+
+                let f = df.nextDouble i.rnd
+                let fe = df.nextDouble i.rnd
+                let fu = df.nextDouble i.rnd
+                let feu = df.nextDouble i.rnd
+
+                let b, be, bu, beu =
+                    match i.eeParams.eeBackwardDistribution with
+                    | Some d -> d.nextDouble i.rnd, d.nextDouble i.rnd, d.nextDouble i.rnd, d.nextDouble i.rnd
+                    | None -> f, fe, fu, feu
+
+                let kf = k0 * (1.0 + f)
+                let kfe = k0 * (1.0 + fe)
+                let kfu = k0 * (1.0 + fu)
+                let kfeu = k0 * (1.0 + feu)
+
+                let kb = k0 * (1.0 + b)
+                let kbe = k0 * (1.0 + be)
+                let kbu = k0 * (1.0 + bu)
+                let kbeu = k0 * (1.0 + beu)
+
+                let (rf, rfe) =
+                    match s0.forwardRate with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rb, rbe) =
+                    match s0.backwardRate with
+                    | Some (ReactionRate sb) -> (kb * sb |> ReactionRate |> Some, kbe * sb |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rfu, rfeu) =
+                    match s0.forwardRate with
+                    | Some (ReactionRate sf) -> (kfu * sf |> ReactionRate |> Some, kfeu * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                let (rbu, rbeu) =
+                    match s0.backwardRate with
+                    | Some (ReactionRate sb) -> (kbu * sb |> ReactionRate |> Some, kbeu * sb |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rb, rfe, rbe), (rfu, rbu, rfeu, rbeu)
+            | _ -> (None, None, None, None), (None, None, None, None)
+
+        {
+            primary = { forwardRate = rf; backwardRate = rb }
+            similar =
+                [
+                    { reaction = re; rateData = { forwardRate = rfe; backwardRate = rbe } }
+                    { reaction = ru; rateData = { forwardRate = rfu; backwardRate = rbu } }
+                    { reaction = reu; rateData = { forwardRate = rfeu; backwardRate = rbeu } }
+                ]
+        }

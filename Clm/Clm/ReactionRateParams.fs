@@ -72,7 +72,7 @@ module ReactionRateParams =
     type EnCatalyticSynthesisRandomParam =
         {
             synthesisParam : SynthesisParam
-            enCatSynthRndEeParams : CatRatesEeParam
+            enCatSynthRndEeParams : EnCatRatesEeParam
         }
 
 
@@ -122,13 +122,13 @@ module ReactionRateParams =
     type SedDirRatesEeParam =
         {
             sedDirRateMultiplierDistr : RateMultiplierDistribution
-            eeForwardDistribution : EeDistribution option
+            eeDistribution : EeDistribution option
         }
 
         static member defaultValue =
             {
                 sedDirRateMultiplierDistr = NoneRateMult
-                eeForwardDistribution = None
+                eeDistribution = None
             }
 
 
@@ -155,7 +155,7 @@ module ReactionRateParams =
         {
             sedDirSimBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
-            getForwardEeDistr : EeDistributionGetter
+            getEeDistr : EeDistributionGetter
         }
 
 
@@ -227,7 +227,7 @@ module ReactionRateParams =
     type EnCatalyticLigationRandomParam =
         {
             ligationParam : LigationParam
-            enCatLigRndEeParams : CatRatesEeParam
+            enCatLigRndEeParams : EnCatRatesEeParam
         }
 
 

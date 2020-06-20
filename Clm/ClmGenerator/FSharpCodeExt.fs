@@ -162,7 +162,17 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
+            shift + "    eeDistribution = " + (toEeDistrOpt p.eeDistribution) + Nl +
+            shift + "}" + Nl
+
+
+    type EnCatRatesEeParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
             shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
+            shift + "    eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
             shift + "}" + Nl
 
 
@@ -247,7 +257,7 @@ module FSharpCodeExt =
             shift + "{" + Nl +
             shift + "    catRatesSimGeneration = " + p.catRatesSimGeneration.toFSharpCode + Nl +
             shift + "    getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
-            shift + "    getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
+            shift + "    getEeDistr = " + p.getEeDistr.toFSharpCode + Nl +
             shift + "}" + Nl
 
 
@@ -362,7 +372,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    sedDirRateMultiplierDistr = " + p.sedDirRateMultiplierDistr.toFSharpCode + Nl +
-            shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
+            shift + "    eeDistribution = " + (toEeDistrOpt p.eeDistribution) + Nl +
             shift + "}" + Nl
 
 
@@ -385,7 +395,7 @@ module FSharpCodeExt =
             shift + "{" + Nl +
             shift + "    sedDirSimBaseDistribution = " + p.sedDirSimBaseDistribution.toFSharpCode + Nl +
             shift + "    getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
-            shift + "    getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
+            shift + "    getEeDistr = " + p.getEeDistr.toFSharpCode + Nl +
             shift + "}" + Nl
 
 

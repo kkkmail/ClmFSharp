@@ -80,22 +80,26 @@ module Defaults_004_003_000 =
 
             let catLigParam =
                 ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
+
+            let enCatLigParam =
+                ReactionRateProviderParams.defaultEnCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
             //===========================================================
             let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl (Some 10.0, Some 0.001, Some 0.001)
             //===========================================================
             let rates =
                 [
-//                    wasteRecyclingParam
+                    wasteRecyclingParam
 //
                     synthParam |> SynthesisRateParam
 //                    catSynthParam
                     enCatSynthParam
 //
-//                    destrParam |> DestructionRateParam
-//                    catDestrParam
+                    destrParam |> DestructionRateParam
+                    catDestrParam
 //
-//                    ligParam |> LigationRateParam
+                    ligParam |> LigationRateParam
 //                    if (scarcity > 0.0M) then catLigParam
+                    if (scarcity > 0.0M) then enCatLigParam
 
                     sugParam |> SugarSynthesisRateParam
                 ]

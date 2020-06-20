@@ -464,7 +464,8 @@ module Substances =
     type Sugar =
         | Z
 
-        member sugar.name = sugar.ToString()
+        member sugar.name = "Z"
+        override sugar.ToString() = sugar.name
 
     type ChiralSugar =
         | Ls of Sugar

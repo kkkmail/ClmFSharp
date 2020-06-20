@@ -1,5 +1,6 @@
 ﻿namespace Analytics
 
+open Clm.Substances
 open Microsoft.FSharp.Core
 
 open Clm.Substances
@@ -55,10 +56,12 @@ module Visualization =
         let getEnantiomericExcessImpl () =
             let fileName = getFileName PlotEnantiomericExcess
 
-            let name (i : int) =
-                let l = AminoAcid.toString i
+            let ldName (l : string) =
                 let d = l.ToLower()
                 "(" + l + " - " + d + ") / (" + l + " + " + d + ")"
+
+            let name (i : int) = AminoAcid.toString i |> ldName
+//            let sName () = Z.name |> ldName
 
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].enantiomericExcess.[i])
 

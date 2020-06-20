@@ -15,6 +15,7 @@ module ChartData =
             foodData : double option
             wasteData : double option
             levelData : array<double>
+//            sugarData : double option
         }
 
 
@@ -40,6 +41,7 @@ module ChartData =
             aminoAcidsData : array<double>
             enantiomericExcess : array<double>
             totalSubst : TotalSubstData
+//            sugarData : double * double
         }
 
         static member create (i : BinaryInfo) t x =

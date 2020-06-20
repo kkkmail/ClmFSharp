@@ -427,18 +427,6 @@ module CalculationData =
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
 
-//            let p =
-//                peptides
-//                |> List.map (fun e -> e.aminoAcids)
-//                |> List.filter (fun e -> e.Length <= (maxPeptideLength.length - 1))
-//
-//            let ligReactions =
-//                List.allPairs (chiralAminoAcids |> List.map (fun e -> [e])) p
-//                |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
-//                |> List.map LigationReaction
-//
-//            let peptideBondMap = PeptideBondMap.create ligReactions
-
             let allSubst =
                 Substance.allSimple
                 @
@@ -467,11 +455,6 @@ module CalculationData =
                         getTotalSubst = this.modelBinaryData.calculationData.getTotalSubst
                         getDerivative = this.modelBinaryData.calculationData.getDerivative
                     }
-
-//                mapParams =
-//                    {
-//                        peptideBondMap = peptideBondMap
-//                    }
             }
 
 

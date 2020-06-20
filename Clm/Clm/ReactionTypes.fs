@@ -52,9 +52,11 @@ module ReactionTypes =
                 SugarSynthesisName
                 DestructionName
                 CatalyticSynthesisName
+                EnCatalyticSynthesisName
                 CatalyticDestructionName
                 LigationName
                 CatalyticLigationName
+                EnCatalyticLigationName
                 SedimentationDirectName
                 SedimentationAllName
                 RacemizationName

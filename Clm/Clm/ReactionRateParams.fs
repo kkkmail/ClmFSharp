@@ -79,7 +79,7 @@ module ReactionRateParams =
     type EnCatalyticSynthesisSimilarParam =
         {
             enCatSynthParam : EnCatalyticSynthesisRandomParam
-            enCatSynthSimParam : CatRatesSimilarityParam
+            enCatSynthSimParam : EnCatRatesSimilarityParam
         }
 
 
@@ -233,7 +233,7 @@ module ReactionRateParams =
 
     type EnCatalyticLigationSimilarParam =
         {
-            enCatLigSimParam : CatRatesSimilarityParam
+            enCatLigSimParam : EnCatRatesSimilarityParam
             enCatLigParam : EnCatalyticLigationRandomParam
         }
 

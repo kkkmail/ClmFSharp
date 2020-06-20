@@ -188,7 +188,7 @@ module ReactionRatesBase =
     type EnCatRatesInfo<'R, 'C, 'S, 'RCS> =
         {
             reaction : 'R
-            catalyst : 'C
+            enCatalyst : 'C
             energySource : 'S
             getCatEnantiomer : 'C -> 'C
             getEnergySourceEnantiomer : 'S -> 'S
@@ -279,3 +279,13 @@ module ReactionRatesBase =
                     { reaction = reu; rateData = { forwardRate = rfeu; backwardRate = rbeu } }
                 ]
         }
+
+
+    type EnCatRatesSimilarityParam =
+        {
+            enCatRatesSimGeneration : CatRatesSimGeneration
+            getRateMultiplierDistr : RateMultiplierDistributionGetter
+            getForwardEeDistr : EeDistributionGetter
+            getBackwardEeDistr : EeDistributionGetter
+        }
+

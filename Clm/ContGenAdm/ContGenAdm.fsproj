@@ -55,7 +55,7 @@
     <Prefer32Bit>true</Prefer32Bit>
     <PlatformTarget>x64</PlatformTarget>
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
-    <StartArguments>add -i 4002000020 -n 3 -m 3 -y 10 -t 1000 -r 1 -g</StartArguments>
+    <StartArguments>add -i 4003000000 -n 20 -m 3 -y 10 -t 250000 -r 1 -g</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>

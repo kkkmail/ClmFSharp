@@ -1,9 +1,9 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
 open ClmImpure.ReactionRateModelsAll
-open ClmImpure.ReactionRateModels.SynthesisRandomModel
+open ClmImpure.ReactionRateModels.SugarSynthesisRandomModel
 open ClmImpure.ReactionRateModels.SugarSynthesisModel
-open ClmImpure.ReactionRateModelExtensions.SynthesisRandomModelExt
+open ClmImpure.ReactionRateModelExtensions.SugarSynthesisRandomModelExt
 
 module SugarSynthesisModelExt =
 
@@ -16,4 +16,4 @@ module SugarSynthesisModelExt =
             | _ -> None
 
 
-        static member tryCreate (p, m) = (p, m) |> SynthesisRandomModel.tryCreate
+        static member tryCreate (p, m) = (p, m) |> SugarSynthesisRandomModel.tryCreate

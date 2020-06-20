@@ -99,14 +99,12 @@ module ReactionRatesBase =
         {
             rateMultiplierDistr : RateMultiplierDistribution
             eeForwardDistribution : EeDistribution option
-            eeBackwardDistribution : EeDistribution option
         }
 
         static member defaultValue =
             {
                 rateMultiplierDistr = NoneRateMult
                 eeForwardDistribution = None
-                eeBackwardDistribution = None
             }
 
 
@@ -150,15 +148,8 @@ module ReactionRatesBase =
                 let s0 = i.getBaseRates i.reaction
                 let fEe = df.nextDouble i.rnd
 
-                let bEe =
-                    match i.eeParams.eeBackwardDistribution with
-                    | Some d -> d.nextDouble i.rnd
-                    | None -> fEe
-
                 let kf = k0 * (1.0 + fEe)
                 let kfe = k0 * (1.0 - fEe)
-                let kb = k0 * (1.0 + bEe)
-                let kbe = k0 * (1.0 - bEe)
 
                 let (rf, rfe) =
                     match s0.forwardRate with
@@ -167,7 +158,7 @@ module ReactionRatesBase =
 
                 let (rb, rbe) =
                     match s0.backwardRate with
-                    | Some (ReactionRate sb) -> (kb * sb |> ReactionRate |> Some, kbe * sb |> ReactionRate |> Some)
+                    | Some (ReactionRate sb) -> (kf * sb |> ReactionRate |> Some, kfe * sb |> ReactionRate |> Some)
                     | None -> (None, None)
 
                 (rf, rb, rfe, rbe)
@@ -189,7 +180,6 @@ module ReactionRatesBase =
             catRatesSimGeneration : CatRatesSimGeneration
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getForwardEeDistr : EeDistributionGetter
-            getBackwardEeDistr : EeDistributionGetter
         }
 
 

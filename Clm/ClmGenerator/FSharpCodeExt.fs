@@ -163,7 +163,6 @@ module FSharpCodeExt =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
             shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
-            shift + "    eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
             shift + "}" + Nl
 
 
@@ -249,7 +248,6 @@ module FSharpCodeExt =
             shift + "    catRatesSimGeneration = " + p.catRatesSimGeneration.toFSharpCode + Nl +
             shift + "    getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
             shift + "    getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
-            shift + "    getBackwardEeDistr = " + p.getBackwardEeDistr.toFSharpCode + Nl +
             shift + "}" + Nl
 
 

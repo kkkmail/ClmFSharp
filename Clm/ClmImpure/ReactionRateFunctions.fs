@@ -150,7 +150,6 @@ module ReactionRateFunctions =
             {
                 rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
                 eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
             }
         | false -> CatRatesEeParam.defaultValue
 

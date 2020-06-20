@@ -24,7 +24,7 @@ module ModelParams =
     let DefaultFileStorageFolder = DefaultRootFolder + @"FileStorage"
 
     [<Literal>]
-    let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelData.fs"
+    let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelCode.fs"
 
 
     let toModelName (n : Guid) = n.ToString()

@@ -13,7 +13,7 @@ module EnCatalyticLigationSimilarModel =
         {
             enCatLigModel : EnCatalyticLigationRandomModel
             peptideBondData : PeptideBondData
-            enCatLigSimParam : CatRatesSimilarityParam
+            enCatLigSimParam : EnCatRatesSimilarityParam
         }
 
 
@@ -22,7 +22,7 @@ module EnCatalyticLigationSimilarModel =
             let (LigationReaction a) = s
             {
                 reaction = s
-                catalyst = c
+                enCatalyst = c
                 energySource = u
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
                 getMatchingReactionMult = fun x -> x
@@ -34,7 +34,7 @@ module EnCatalyticLigationSimilarModel =
                 simReactionCreator = fun e -> p.peptideBondData.findSameBond e
                 getBaseRates = p.enCatLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.enCatLigModel.getRates rnd t
-                simParams = p.enCatLigSimParam
+                enSimParams = p.enCatLigSimParam
                 eeParams = p.enCatLigModel.inputParams.enCatLigationParam.enCatLigRndEeParams
                 rateDictionary = p.enCatLigModel.rateDictionary
                 rateGenerationType = t

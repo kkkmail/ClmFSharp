@@ -23,7 +23,7 @@ module EnCatalyticLigationRandomModel =
         let calculateCatSynthRates rnd t (EnCatalyticLigationReaction (s, c, u)) =
             {
                 reaction = s
-                catalyst = c
+                enCatalyst = c
                 energySource = u
                 getCatEnantiomer = getEnantiomer
                 getEnergySourceEnantiomer = getEnantiomer

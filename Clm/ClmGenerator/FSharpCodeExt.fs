@@ -290,6 +290,18 @@ module FSharpCodeExt =
             | CatSynthSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatSynthSimParam" + Nl)
 
 
+    type EnCatRatesSimilarityParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    enCatRatesSimGeneration = " + p.enCatRatesSimGeneration.toFSharpCode + Nl +
+            shift + "    getRateMultiplierDistr = " + p.getRateMultiplierDistr.toFSharpCode + Nl +
+            shift + "    getForwardEeDistr = " + p.getForwardEeDistr.toFSharpCode + Nl +
+            shift + "    getBackwardEeDistr = " + p.getBackwardEeDistr.toFSharpCode + Nl +
+            shift + "}" + Nl
+
+
     type EnCatalyticSynthesisRandomParam
         with
 

@@ -447,5 +447,26 @@ module ReactionRateFunctions =
         b
 
 
-    let calculateEnSimRates<'A, 'R, 'C, 'S, 'RCS when 'A : equality and 'R : equality> (i : EnCatRatesSimInfo<'A, 'R, 'C, 'S, 'RCS>) : RateData =
-        failwith "EN is not implemented yet."
+    let calculateEnSimRates i =
+        let r = (i.reaction, i.enCatalyst, i.energySource) |> i.enCatReactionCreator
+        let re = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.energySource) |> i.enCatReactionCreator
+        let ru = (i.reaction, i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+        let reu = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+
+        let br = i.getBaseRates i.reaction // (bf, bb)
+        let cr = r |> i.getBaseCatRates // (f, b)
+        let aa = i.getReactionData i.reaction
+
+//        printfn "calculateEnSimRates: r = %s\n\n" (r.ToString())
+
+        match (cr.forwardRate, cr.backwardRate) with
+        | None, None -> getEnSimNoRates i i.simReactionCreator aa i.reaction
+        | _ ->
+            let cre = re |> i.getBaseCatRates
+            let rateMult = getRateMult br cr cre
+//            printfn "calculateEnSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            let getEnEeParams = getEnEeParams i cr cre
+            getEnSimRates i aa getEnEeParams rateMult
+        |> ignore
+
+        cr

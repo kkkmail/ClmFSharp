@@ -13,7 +13,7 @@ module EnCatalyticSynthesisSimilarModel =
         {
             enCatSynthModel : EnCatalyticSynthesisRandomModel
             aminoAcids : list<AminoAcid>
-            enCatSynthSimParam : CatRatesSimilarityParam
+            enCatSynthSimParam : EnCatRatesSimilarityParam
         }
 
 
@@ -22,7 +22,7 @@ module EnCatalyticSynthesisSimilarModel =
             let (SynthesisReaction a) = s
             {
                 reaction = s
-                catalyst = c
+                enCatalyst = c
                 energySource = u
                 getReactionData = fun _ -> p.aminoAcids
                 inverse = fun (SynthesisReaction r) -> r.aminoAcid
@@ -34,7 +34,7 @@ module EnCatalyticSynthesisSimilarModel =
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
                 getBaseRates = p.enCatSynthModel.inputParams.synthesisModel.getRates rnd
                 getBaseCatRates = p.enCatSynthModel.getRates rnd t
-                simParams = p.enCatSynthSimParam
+                enSimParams = p.enCatSynthSimParam
                 eeParams = p.enCatSynthModel.inputParams.enCatSynthRndParam.enCatSynthRndEeParams
                 rateDictionary = p.enCatSynthModel.rateDictionary
                 rateGenerationType = t

@@ -214,9 +214,9 @@ module ReactionRatesBase =
     /// kfu, kbu: T = (R, C, E(U)), E(T) = (E(R), E(C), EU)
     /// kfeu, kbeu: T = (R, E(C), E(U)), E(T) = (E(R), C, U)
     let calculateEnCatRates<'R, 'C, 'S, 'RCS> (i : EnCatRatesInfo<'R, 'C, 'S, 'RCS>) : RelatedReactions<'RCS> =
-        let re = (i.reaction, i.getCatEnantiomer i.catalyst, i.energySource) |> i.enCatReactionCreator
-        let ru = (i.reaction, i.catalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
-        let reu = (i.reaction, i.getCatEnantiomer i.catalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+        let re = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.energySource) |> i.enCatReactionCreator
+        let ru = (i.reaction, i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+        let reu = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
 
         let (rf, rb, rfe, rbe), (rfu, rbu, rfeu, rbeu) =
             let k =

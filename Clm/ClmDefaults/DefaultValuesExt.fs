@@ -71,9 +71,9 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultSynthRndParamImpl (forward, backward)
             |> SynthesisRateParam
 
-        static member defaultSugarSynthRndParamImpl (forward, backward) =
+        static member defaultSugarSynthRndParamImpl (forward, backward, threshold) =
             {
-                sugarSynthesisDistribution = Distribution.createDelta { threshold = None; scale = None; shift = Some 1.0 }
+                sugarSynthesisDistribution = Distribution.createDelta { threshold = threshold; scale = None; shift = Some 1.0 }
                 forwardScale = forward
                 backwardScale = backward
             }

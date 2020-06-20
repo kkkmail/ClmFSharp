@@ -161,7 +161,7 @@ module CalculationData =
             {
                 a = si.chiralSugars |> Array.ofList
                 b = si.sugSynthCatalysts |> Array.ofList
-                reactionName = ReactionName.CatalyticSynthesisName
+                reactionName = ReactionName.SugarSynthesisName
                 successNumberType = t
             }
 
@@ -178,7 +178,7 @@ module CalculationData =
                 a = si.synthesisReactions |> Array.ofList
                 b = si.enSynthCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
-                reactionName = ReactionName.CatalyticSynthesisName
+                reactionName = ReactionName.EnCatalyticSynthesisName
                 successNumberType = t
             }
 
@@ -203,7 +203,7 @@ module CalculationData =
                 a = si.ligationReactions |> Array.ofList
                 b = si.enLigCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
-                reactionName = ReactionName.CatalyticLigationName
+                reactionName = ReactionName.EnCatalyticLigationName
                 successNumberType = t
             }
 

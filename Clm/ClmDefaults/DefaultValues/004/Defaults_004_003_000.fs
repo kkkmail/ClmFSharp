@@ -76,7 +76,7 @@ module Defaults_004_003_000 =
             let catLigParam =
                 ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
             //===========================================================
-            let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl (Some 0.001, Some 0.001)
+            let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl (Some 10.0, Some 0.001, Some 0.001)
             //===========================================================
             let rates =
                 [

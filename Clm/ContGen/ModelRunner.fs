@@ -184,18 +184,19 @@ module ModelRunner =
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 
-    let saveResult (proxy : SaveResultProxy) r =
-        //printfn "saveResult: r= %A" r
+    let saveResult (proxy : SaveResultProxy) (r : ResultDataWithId) =
+        printfn "saveResult: resultDataId = %A" r.resultDataId
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
-    let saveCharts (proxy : SaveChartsProxy) c =
-        //printfn "saveCharts: c.resultDataId = %A" c.resultDataId
+    let saveCharts (proxy : SaveChartsProxy) (c : ChartInfo) =
+        printfn "saveCharts: c.resultDataId = %A" c.resultDataId
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
-        //printfn "processMessage: messageId = %A" m.messageDataInfo.messageId
+        printfn "processMessage: messageId = %A, message = %A" m.messageDataInfo.messageId m
+
         match m.messageData with
         | PartitionerMsg x ->
             match x with

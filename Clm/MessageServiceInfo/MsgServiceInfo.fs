@@ -80,19 +80,22 @@ module ServiceInfo =
 
         member r.isValid (d : EarlyExitData) =
             match r with
-            | ProgressExceeds p -> p > d.progress |> bindBool (sprintf "progress %A > %A" p d.progress)
+            | ProgressExceeds p -> d.progress > p |> bindBool (sprintf "progress: %A > %A" d.progress p)
             | MaxWeightedAverageAbsEeExceeds e ->
-                e > d.maxWeightedAverageAbsEe |> bindBool (sprintf "maxWeightedAverageAbsEe %A > %A" e d.maxWeightedAverageAbsEe)
-            | MaxLastEeExceeds e -> e > d.maxLastEe |> bindBool (sprintf "maxLastEe %A > %A" e d.maxLastEe)
-            | MaxAverageEeExceeds e -> e > d.maxAverageEe |> bindBool (sprintf "maxAverageEe %A > %A" e d.maxAverageEe)
-
+                d.maxWeightedAverageAbsEe > e |> bindBool (sprintf "maxWeightedAverageAbsEe: %A > %A" d.maxWeightedAverageAbsEe e)
+            | MaxLastEeExceeds e -> d.maxLastEe > e |> bindBool (sprintf "maxLastEe: %A > %A" d.maxLastEe e)
+            | MaxAverageEeExceeds e -> d.maxAverageEe > e |> bindBool (sprintf "maxAverageEe: %A > %A" d.maxAverageEe e)
 
 
     type EarlyExitCheckFrequency =
         | EarlyExitCheckFrequency of TimeSpan
 
         member this.value = let (EarlyExitCheckFrequency v) = this in v
-        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
+
+//        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
+
+        /// Uncomment temporarily for debugging purposes.
+        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
 
 
     type EarlyExitStrategy =

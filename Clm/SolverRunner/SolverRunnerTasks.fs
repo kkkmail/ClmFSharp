@@ -346,15 +346,15 @@ module SolverRunnerTasks =
 
                 match r with
                 | CancelWithResults s ->
-                    notifyOfResults ForceChartGeneration |> ignore
+                    notifyOfResults ForceChartGeneration |> logIfFailed "Unable to send results and charts."
                     ((getResultAndChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
                 | AbortCalculation s -> getProgress (Cancelled s)
-                |> updateFinalProgress "getSolverRunner - ComputationAborted failed"
-            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred")
+                |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
+            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
         {
             runSolver = runSolver
             notifyOfResults = notifyOfResults
-            logIfFailed = logIfFailed "getSolverRunner - SolverRunner"
+            logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
         }
         |> SolverRunner

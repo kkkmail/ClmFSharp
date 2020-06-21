@@ -60,6 +60,19 @@ module CalculationData =
         }
 
 
+    let createAllSubst chiralAminoAcids  peptides =
+        Substance.allSimple
+        @
+        (chiralAminoAcids |> List.map (fun a -> Chiral a))
+        @
+        (peptides |> List.map (fun p -> PeptideChain p))
+        @
+        (ChiralSugar.all |> List.map ChiralSug)
+
+
+    let createAllInd allSubst = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+
+
     type SubstInfo =
         {
             infoParam : SubstInfoParam
@@ -91,31 +104,18 @@ module CalculationData =
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
             let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
             let aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
-
-            let allSubst =
-                    Substance.allSimple
-                    @
-                    (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                    @
-                    (peptides |> List.map (fun p -> PeptideChain p))
-                    @
-                    (ChiralSugar.all |> List.map ChiralSug)
-
+            let allSubst = createAllSubst chiralAminoAcids peptides
 
             let reagents =
                 allChains
                 |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
                 |> List.map (fun e -> SedDirReagent e)
 
-            let simReagents a =
-                reagents
-                |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
-
+            let simReagents a = reagents |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
 
             let ligationPairs =
                 List.allPairs allLigChains allLigChains
                 |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
-                //|> List.filter (fun (a, _) -> a.Head.isL)
                 |> List.distinct
                 |> List.sort
                 |> List.map LigationReaction
@@ -124,7 +124,7 @@ module CalculationData =
                 infoParam = p
                 aminoAcids = aminoAcids
                 chiralAminoAcids = chiralAminoAcids
-                chiralSugars = [ Ls Z; Rs Z ]
+                chiralSugars = ChiralSugar.all
                 peptides = peptides
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
                 sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
@@ -134,11 +134,7 @@ module CalculationData =
                 enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
                 ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
-
-                sedDirReagents =
-                    aminoAcids
-                    |> List.map (fun a -> (a, simReagents a))
-                    |> Map.ofList
+                sedDirReagents = aminoAcids |> List.map (fun a -> (a, simReagents a)) |> Map.ofList
 
                 sedDirAgents =
                     allChains
@@ -147,12 +143,8 @@ module CalculationData =
 
                 allChains = allChains
                 allSubst = allSubst
-                allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
-
-                allNamesMap =
-                    allSubst
-                    |> List.map (fun s -> s, s.name)
-                    |> Map.ofList
+                allInd = createAllInd allSubst
+                allNamesMap = allSubst |> List.map (fun s -> s, s.name) |> Map.ofList
             }
 
         member si.synthesisReactions = si.chiralAminoAcids |> List.map SynthesisReaction
@@ -442,15 +434,8 @@ module CalculationData =
             let maxPeptideLength = this.modelDataParams.modelInfo.maxPeptideLength
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-
-            let allSubst =
-                Substance.allSimple
-                @
-                (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                @
-                (peptides |> List.map (fun p -> PeptideChain p))
-
-            let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+            let allSubst = createAllSubst chiralAminoAcids peptides
+            let allInd = createAllInd allSubst
 
             {
                 regularParams =

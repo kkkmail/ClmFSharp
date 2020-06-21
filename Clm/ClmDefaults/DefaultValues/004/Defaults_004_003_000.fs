@@ -55,7 +55,8 @@ module Defaults_004_003_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
+//            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
+            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.000_010)
             let catSynthRndParam = (synthParam, (Some 0.000_100), 100_000.0)
 
             let catSynthParam =
@@ -76,7 +77,8 @@ module Defaults_004_003_000 =
             let catDestrParam =
                 ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some sdSim) catRateGenType
             //===========================================================
-            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.001)
+//            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.001)
+            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.003)
 
             let catLigParam =
                 ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
@@ -84,7 +86,7 @@ module Defaults_004_003_000 =
             let enCatLigParam =
                 ReactionRateProviderParams.defaultEnCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
             //===========================================================
-            let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl (Some 10.0, Some 0.001, Some 0.001)
+            let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl ((Some 100.0, Some 0.001), Some 0.001)
             //===========================================================
             let rates =
                 [

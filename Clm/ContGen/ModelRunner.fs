@@ -154,8 +154,12 @@ module ModelRunner =
             | InProgress _ ->{ q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
             | Completed v ->
                 match v with
-                | None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
-                | Some d -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
+                | None, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+                | Some d, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
+                | None, Some s -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "Message: %s" s |> ErrorMessage |> Some }, Ok()
+                | Some d, Some s ->
+                    let m = sprintf "The run queue was cancelled at: %.2f%% progress. Message: %s" (d * 100.0m) s
+                    { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = m |> ErrorMessage |> Some }, Ok()
             | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
             | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
             | AllCoresBusy w ->

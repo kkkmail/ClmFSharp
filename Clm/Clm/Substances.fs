@@ -561,12 +561,28 @@ module Substances =
             | ChiralSug s -> s.atoms
             | Sum _ -> 0
 
+        member substance.hasAminoAcids =
+            match substance with
+            | Simple _ -> false
+            | Chiral _ -> true
+            | PeptideChain _ -> true
+            | ChiralSug _ -> false
+            | Sum _ -> false
+
+        member substance.hasSugar =
+            match substance with
+            | Simple _ -> false
+            | Chiral _ -> false
+            | PeptideChain _ -> false
+            | ChiralSug _ -> true
+            | Sum _ -> false
+
         member substance.length =
             match substance with
             | Simple _ -> 0
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
-            | ChiralSug s -> s.atoms
+            | ChiralSug _ -> 0
             | Sum _ -> 0
 
         member substance.aminoAcids =

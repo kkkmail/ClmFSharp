@@ -78,7 +78,7 @@ module Defaults_004_003_000 =
                 ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some sdSim) catRateGenType
             //===========================================================
 //            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.001)
-            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.003)
+            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.005)
 
             let catLigParam =
                 ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType

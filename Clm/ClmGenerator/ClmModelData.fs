@@ -76,15 +76,8 @@ module ClmModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-
-    let allSubst =
-        Substance.allSimple
-        @
-        (chiralAminoAcids |> List.map (fun a -> Chiral a))
-        @
-        (peptides |> List.map (fun p -> PeptideChain p))
-
-    let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+    let allSubst = createAllSubst chiralAminoAcids peptides
+    let allInd = createAllInd allSubst
 "
 
 

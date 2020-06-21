@@ -48,8 +48,6 @@ module SolverRunnerTasks =
             getInitValues : double -> double[]
             y0 : double
             useAbundant : bool
-            onCompleted : decimal option -> UnitResult
-            onFailed : (ErrorMessage -> UnitResult)
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> UnitResult) option
@@ -88,7 +86,7 @@ module SolverRunnerTasks =
                     tEnd = commandLineParams.tEnd
                 }
 
-            let chartDataUpdater = new AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
+            let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
             let updateChart = fun t x -> ChartSliceData.create binaryInfo t x |> chartDataUpdater.addContent
 
             {
@@ -97,8 +95,6 @@ module SolverRunnerTasks =
                 getInitValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData commandLineParams.useAbundant)
                 y0 = double commandLineParams.y0
                 useAbundant = commandLineParams.useAbundant
-                onCompleted = fun e -> notify n r.runQueueId (Completed e)
-                onFailed = fun e -> notify n r.runQueueId (Failed e)
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = updateChart
@@ -136,8 +132,8 @@ module SolverRunnerTasks =
                         lastCheck <- DateTime.Now
 
                         match d.chartDataUpdater.getContent() |> c.earlyExitStrategy.exitEarly with
-                        | true -> Some CancelWithResults
-                        | false -> d.checkCancellation r
+                        | true, e -> Some (CancelWithResults e)
+                        | false, _ -> d.checkCancellation r
 
                     else d.checkCancellation r
 
@@ -233,7 +229,8 @@ module SolverRunnerTasks =
         //
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
-        raise(ComputationAbortedException (w.runningProcessData.runQueueId, cancel |> Option.defaultValue AbortCalculation))
+        let m = sprintf "testCancellation - Aborted at counter = %i." counter |> Some
+        raise(ComputationAbortedException (w.runningProcessData.runQueueId, cancel |> Option.defaultValue (AbortCalculation m)))
 
 
     type SolverProxy =
@@ -337,7 +334,7 @@ module SolverRunnerTasks =
                 let result = notifyOfResults RegularChartGeneration
 
                 printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
-                let completedResult = None |> Completed |> getProgress |> proxy.updateProgress
+                let completedResult = (None, None) |> Completed |> getProgress |> proxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
             with
@@ -348,10 +345,10 @@ module SolverRunnerTasks =
                 printfn "getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
 
                 match r with
-                | CancelWithResults ->
+                | CancelWithResults s ->
                     notifyOfResults ForceChartGeneration |> ignore
-                    (getResultAndChartData() |> snd).progress |> Some |> Completed |> getProgress
-                | AbortCalculation -> getProgress Cancelled
+                    ((getResultAndChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
+                | AbortCalculation s -> getProgress (Cancelled s)
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed"
             | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred")
 

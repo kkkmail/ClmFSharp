@@ -8,6 +8,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ReactionRateParams
+open Clm.CalculationData
 open ClmSys.ContGenPrimitives
 
 module ModelData =
@@ -19,15 +20,8 @@ module ModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-
-    let allSubst =
-        Substance.allSimple
-        @
-        (chiralAminoAcids |> List.map (fun a -> Chiral a))
-        @
-        (peptides |> List.map (fun p -> PeptideChain p))
-
-    let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+    let allSubst = createAllSubst chiralAminoAcids peptides
+    let allInd = createAllInd allSubst
 
 
     let getTotalSubst (x : array<double>) =

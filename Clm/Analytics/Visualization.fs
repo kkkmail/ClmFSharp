@@ -44,11 +44,23 @@ module Visualization =
 
 
         let getAminoAcidsImpl () =
-            let name (i : int) = (AminoAcid.toString i) + " + " + (AminoAcid.toString i).ToLower()
+            let getName (s : string) = s.ToUpper() + " + " + s.ToLower()
+            let name (i : int) = getName (AminoAcid.toString i)
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].aminoAcidsData.[i])
             let fileName = getFileName PlotAminoAcids
+            let zName = getName Z.name
 
-            Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
+            let sugarData =
+                match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].sugarData) |> List.choose id with
+                | [] -> None
+                | x -> Some x
+
+            let charts =
+                (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i) |> Some))
+                @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarData ]
+                |> List.choose id
+
+            Chart.Combine (charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> getChart fileName description
 
@@ -61,11 +73,20 @@ module Visualization =
                 "(" + l + " - " + d + ") / (" + l + " + " + d + ")"
 
             let name (i : int) = AminoAcid.toString i |> ldName
-//            let sName () = Z.name |> ldName
-
             let getFuncData i = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].enantiomericExcess.[i])
+            let zName = Z.name |> ldName
 
-            Chart.Combine (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i)))
+            let sugarEe =
+                match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].sugarEe) |> List.choose id with
+                | [] -> None
+                | x -> Some x
+
+            let charts =
+                (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i) |> Some))
+                @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarEe ]
+                |> List.choose id
+
+            Chart.Combine (charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
             |> getChart fileName description
 
@@ -85,12 +106,18 @@ module Visualization =
                 | [] -> None
                 | x -> Some x
 
+            let sugarData =
+                match tIdx |> List.map (fun t -> Option.bind (fun d -> Some (allChartData.[t].t, d)) allChartData.[t].sugarData) |> List.choose id with
+                | [] -> None
+                | x -> Some x
+
             let levelData level = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.levelData.[level])
 
             let charts =
                 [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
+                @ [ Option.bind (fun d -> Chart.Line(d, Name = Z.name) |> Some) sugarData ]
                 @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Line(levelData level, Name = (level + 1).ToString()) |> Some ]
                 |> List.choose id
 

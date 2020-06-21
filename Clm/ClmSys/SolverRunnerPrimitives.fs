@@ -12,5 +12,5 @@ module SolverRunnerPrimitives =
 
 
     type CancellationType =
-        | CancelWithResults
-        | AbortCalculation
+        | CancelWithResults of string option
+        | AbortCalculation of string option

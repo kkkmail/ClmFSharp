@@ -66,6 +66,11 @@ module ServiceInfo =
 
     type EarlyExitData = ChartData
 
+    let bindBool s b =
+        match b with
+        | true -> b, Some s
+        | false -> b, None
+
 
     type EarlyExitRule =
         | ProgressExceeds of decimal
@@ -75,17 +80,22 @@ module ServiceInfo =
 
         member r.isValid (d : EarlyExitData) =
             match r with
-            | ProgressExceeds p -> p > d.progress
-            | MaxWeightedAverageAbsEeExceeds e -> e > d.maxWeightedAverageAbsEe
-            | MaxLastEeExceeds e -> e > d.maxLastEe
-            | MaxAverageEeExceeds e -> e > d.maxAverageEe
+            | ProgressExceeds p -> d.progress > p |> bindBool (sprintf "progress: %A > %A" d.progress p)
+            | MaxWeightedAverageAbsEeExceeds e ->
+                d.maxWeightedAverageAbsEe > e |> bindBool (sprintf "maxWeightedAverageAbsEe: %A > %A" d.maxWeightedAverageAbsEe e)
+            | MaxLastEeExceeds e -> d.maxLastEe > e |> bindBool (sprintf "maxLastEe: %A > %A" d.maxLastEe e)
+            | MaxAverageEeExceeds e -> d.maxAverageEe > e |> bindBool (sprintf "maxAverageEe: %A > %A" d.maxAverageEe e)
 
 
     type EarlyExitCheckFrequency =
         | EarlyExitCheckFrequency of TimeSpan
 
         member this.value = let (EarlyExitCheckFrequency v) = this in v
+
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
+
+//        /// Uncomment temporarily for debugging purposes.
+//        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
 
 
     type EarlyExitStrategy =
@@ -95,12 +105,28 @@ module ServiceInfo =
             match e with
             |AllOfAny v ->
                 match v with
-                | [] -> false // If outer list is empty, then early exit strategy cannot work.
+                | [] -> false, None // If outer list is empty, then early exit strategy cannot work.
                 | _ ->
-                    v
-                    |> List.map (fun a -> a |> List.fold (fun acc b -> acc || (b.isValid d)) false)
-                    |> List.fold (fun acc r -> acc && r) true
+                    let g m1 m2 =
+                        match m1, m2 with
+                        | Some m1, Some m2 -> m1 + ", " + m2 |> Some
+                        | Some m1, None -> Some m1
+                        | None, Some m2 -> Some m2
+                        | None, None -> None
 
+                    let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
+
+                    let foldInner (a : list<EarlyExitRule>) =
+                        a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
+
+                    let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
+
+                    let r =
+                        v
+                        |> List.map foldInner
+                        |> List.fold combineAnd (true, None)
+
+                    r
 
         static member defaultProgress = 0.05M
         static member defaultMinEe = 0.15

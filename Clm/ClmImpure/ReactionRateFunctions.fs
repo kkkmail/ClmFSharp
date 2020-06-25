@@ -3,9 +3,10 @@
 open System.Collections.Generic
 open FSharp.Collections
 
-open Clm.Substances
 open Clm.Distributions
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
+open Clm.ReactionRateParams
 open Clm.ReactionTypes
 
 
@@ -148,8 +149,7 @@ module ReactionRateFunctions =
         | true ->
             {
                 rateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                eeBackwardDistribution = i.simParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+                eeDistribution = i.simParams.getEeDistr.getDistr cr.forwardRate cre.forwardRate
             }
         | false -> CatRatesEeParam.defaultValue
 
@@ -296,7 +296,7 @@ module ReactionRateFunctions =
                 | true ->
                     {
                         sedDirRateMultiplierDistr = i.simParams.getRateMultiplierDistr.getDistr None rateMult
-                        eeForwardDistribution = i.simParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                        eeDistribution = i.simParams.getEeDistr.getDistr cr.forwardRate cre.forwardRate
                     }
                 | false -> SedDirRatesEeParam.defaultValue
 
@@ -315,3 +315,158 @@ module ReactionRateFunctions =
         |> Seq.map (|KeyValue|)
         |> List.ofSeq
         |> List.map (fun (r, d) -> { reaction = r; rateData = d })
+
+
+    /// Similar to CatRatesSimInfo but for the reactions with energy consumption.
+    type EnCatRatesSimInfo<'A, 'R, 'C, 'S, 'RCS when 'R : equality> =
+        {
+            reaction : 'R
+            enCatalyst : 'C
+            energySource : 'S
+            getReactionData : 'R -> list<'A>
+            inverse : 'R -> 'A
+            getMatchingReactionMult : double -> double
+            getCatEnantiomer : 'C -> 'C
+            getEnergySourceEnantiomer : 'S -> 'S
+            enCatReactionCreator : ('R * 'C * 'S) -> 'RCS
+            simReactionCreator : 'A -> list<'R>
+            getCatReactEnantiomer : 'RCS -> 'RCS
+            getBaseRates : 'R -> RateData
+            getBaseCatRates : 'RCS -> RateData
+            enSimParams : EnCatRatesSimilarityParam
+            eeParams : EnCatRatesEeParam
+            rateDictionary : Dictionary<'RCS, RateData>
+            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
+
+        member i.toEnCatRatesInfo r c e =
+            {
+                reaction = r
+                enCatalyst = c
+                energySource = i.energySource
+                getCatEnantiomer = i.getCatEnantiomer
+                getEnergySourceEnantiomer = i.getEnergySourceEnantiomer
+                enCatReactionCreator = i.enCatReactionCreator
+                getBaseRates = i.getBaseRates
+                eeParams = e
+                rateGenerationType = i.rateGenerationType
+                rnd = i.rnd
+            }
+
+
+    let calculateSimEnCatRates i s c e =
+        let reaction = (s, c, i.energySource) |> i.enCatReactionCreator
+        let related = i.toEnCatRatesInfo s c e |> calculateEnCatRates
+//        printfn "calculateSimEnCatRates: related = %A" related
+        updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+
+
+    let getEnEeParams i cr cre rateMult d =
+        match d with
+        | true ->
+            {
+                rateMultiplierDistr = i.enSimParams.getRateMultiplierDistr.getDistr None rateMult
+                eeForwardDistribution = i.enSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                eeBackwardDistribution = i.enSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+            }
+        | false -> EnCatRatesEeParam.defaultValue
+
+
+    let getEnSimNoRates i creator aa r =
+        aa
+        |> List.map (fun a -> creator a)
+        |> List.concat
+        |> List.map (fun e -> e, calculateSimEnCatRates i e i.enCatalyst EnCatRatesEeParam.defaultValue)
+
+
+    /// Note that it is nearly identical to chooseData above.
+    /// We keep them separately as it is likely that this function will be changed.
+    let chooseEnData i aa =
+        let a =
+            match i.enSimParams.enCatRatesSimGeneration with
+            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+            | FixedValue d ->
+                /// TODO kk:20200607 - Follow the description below.
+                /// Here we need to ensure that number of successes is NOT random but fixed
+                /// and that we always include the reactions with the same "data".
+                /// This probably should change and be controlled by distributions (as most of the things here), but not today.
+                let isDefined j x =
+                    let b = (i.inverse (i.reaction)) = x
+
+                    match b, d.value.distributionParams.threshold with
+                    | true, _ -> true
+                    | false, Some t -> (double j) < t * (double aa.Length)
+                    | false, None -> true
+
+                aa
+                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.sortBy (fun (r, _) -> r)
+                |> List.mapi (fun j (_, a) -> a, isDefined j a)
+
+        a
+
+    let getEnSimRates i aa getEeParams rateMult =
+//        printfn "getEnSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+
+        let x =
+            chooseEnData i aa
+            |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
+
+//        x
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let a =
+            x
+            |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+            |> List.concat
+
+//        a
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let b =
+            a
+            |> List.filter (fun (e, _, _) -> e <> i.reaction)
+            |> List.map (fun (e, b, m) -> e, calculateSimEnCatRates i e i.enCatalyst (getEeParams m b))
+
+//        b
+//        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+//        |> List.sortBy (fun (a, _) -> a.ToString())
+//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> ignore
+//        printfn "\n"
+
+        b
+
+
+    let calculateEnSimRates i =
+        let r = (i.reaction, i.enCatalyst, i.energySource) |> i.enCatReactionCreator
+        let re = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.energySource) |> i.enCatReactionCreator
+        let ru = (i.reaction, i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+        let reu = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+
+        let br = i.getBaseRates i.reaction // (bf, bb)
+        let cr = r |> i.getBaseCatRates // (f, b)
+        let aa = i.getReactionData i.reaction
+
+//        printfn "calculateEnSimRates: r = %s\n\n" (r.ToString())
+
+        match (cr.forwardRate, cr.backwardRate) with
+        | None, None -> getEnSimNoRates i i.simReactionCreator aa i.reaction
+        | _ ->
+            let cre = re |> i.getBaseCatRates
+            let rateMult = getRateMult br cr cre
+//            printfn "calculateEnSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            let getEnEeParams = getEnEeParams i cr cre
+            getEnSimRates i aa getEnEeParams rateMult
+        |> ignore
+
+        cr

@@ -2,7 +2,7 @@
 
 open Clm.Distributions
 open Clm.ReactionTypes
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
 
 module Reactions =
 

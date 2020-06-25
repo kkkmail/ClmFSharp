@@ -88,7 +88,9 @@ module ServiceImplementation =
         }
 
 
-    let onSaveResult (proxy : SendMessageProxy) r =
+    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
+        printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
+
         {
             partitionerRecipient = proxy.partitionerId
             deliveryType = GuaranteedDelivery
@@ -98,9 +100,11 @@ module ServiceImplementation =
         |> bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
-    let onSaveCharts (proxy : SendMessageProxy) r =
+    let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
         match r with
         | GeneratedCharts c ->
+            printfn "onSaveCharts: Sending charts with resultDataId = %A." c.resultDataId
+
             {
                 partitionerRecipient = proxy.partitionerId
                 deliveryType = GuaranteedDelivery
@@ -108,7 +112,9 @@ module ServiceImplementation =
             }.getMessageInfo()
             |> proxy.sendMessage
             |> bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
-        | NotGeneratedCharts -> Ok()
+        | NotGeneratedCharts ->
+            printfn "onSaveCharts: No charts."
+            Ok()
 
 
     let onRegister (proxy : OnRegisterProxy) s =
@@ -141,7 +147,7 @@ module ServiceImplementation =
         | InProgress _ -> (NonGuaranteedDelivery, false)
         | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
-        | Cancelled -> (GuaranteedDelivery, true)
+        | Cancelled _ -> (GuaranteedDelivery, true)
         | AllCoresBusy _ -> (GuaranteedDelivery, true)
 
 

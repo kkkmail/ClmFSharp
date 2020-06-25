@@ -511,6 +511,19 @@ create function dbo.getCatLigMult(@clmDefaultValueId bigint)
 returns float
 as
 begin
+	declare @retVal float
+	set @retVal = isnull(dbo.getCatLigMultSim(@clmDefaultValueId), dbo.getCatLigMultRnd(@clmDefaultValueId))
+	return @retval
+end
+go
+
+drop function if exists dbo.getCatLigMultRnd
+go
+
+create function dbo.getCatLigMultRnd(@clmDefaultValueId bigint)
+returns float
+as
+begin
 	--declare @clmDefaultValueId bigint
 	--set @clmDefaultValueId = 4000000000
 
@@ -605,10 +618,124 @@ begin
 end
 go
 
+drop function if exists dbo.getCatLigMultSim
+go
+
+create function dbo.getCatLigMultSim(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	--declare @clmDefaultValueId bigint
+	--set @clmDefaultValueId = 4002000022
+
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select 
+			 b.[key] as yKey
+			,c.*
+		from openjson(@json) a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
+	(
+		select b.* 
+		from t1
+		cross apply openjson(t1.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t3 as
+	(
+		select b.* 
+		from t2
+		cross apply openjson(t2.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'catLigParam'
+	)
+	,t4 as
+	(
+		select a.* 
+		from t3
+		cross apply openjson(t3.[value]) as a
+		where a.[key] = 'catLigRndEeParams'
+	)
+	,t5 as
+	(
+		select a.*
+		from t4
+		cross apply openjson(t4.[value]) as a
+		where a.[key] = 'rateMultiplierDistr'
+	)
+	,t6 as
+	(
+		select a.* 
+		from t5
+		cross apply openjson(t5.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	,t7 as
+	(
+		select b.*
+		from t6
+		cross apply openjson(t6.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t8 as
+	(
+		select b.* 
+		from t7
+		cross apply openjson(t7.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'distributionParams'
+	)
+	,t9 as
+	(
+		select a.* 
+		from t8
+		cross apply openjson(t8.[value]) as a
+		where a.[key] = 'scale'
+	)
+	,t10 as
+	(
+		select a.* 
+		from t9
+		cross apply openjson(t9.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	select @retval = cast(a.[value] as float)
+	from t10
+	cross apply openjson(t10.[value]) as a
+
+	--print ('@retval = ' + isnull(cast(@retval as nvarchar(20)), '<null>'))
+	--select * from t10
+
+	return @retval
+end
+go
+
 drop function if exists dbo.getCatLigScarcity
 go
 
 create function dbo.getCatLigScarcity(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	declare @retVal float
+	set @retVal = isnull(dbo.getCatLigScarcitySim(@clmDefaultValueId), dbo.getCatLigScarcityRnd(@clmDefaultValueId))
+	return @retval
+end
+go
+
+drop function if exists dbo.getCatLigScarcityRnd
+go
+
+create function dbo.getCatLigScarcityRnd(@clmDefaultValueId bigint)
 returns float
 as
 begin
@@ -705,6 +832,193 @@ begin
 end
 go
 
+drop function if exists dbo.getCatLigScarcitySim
+go
+
+create function dbo.getCatLigScarcitySim(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	--declare @clmDefaultValueId bigint
+	--set @clmDefaultValueId = 4002000022
+
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select 
+			 b.[key] as yKey
+			,c.*
+		from openjson(@json) a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
+	(
+		select b.* 
+		from t1
+		cross apply openjson(t1.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t3 as
+	(
+		select b.* 
+		from t2
+		cross apply openjson(t2.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'catLigParam'
+	)
+	,t4 as
+	(
+		select a.* 
+		from t3
+		cross apply openjson(t3.[value]) as a
+		where a.[key] = 'catLigRndEeParams'
+	)
+	,t5 as
+	(
+		select a.*
+		from t4
+		cross apply openjson(t4.[value]) as a
+		where a.[key] = 'rateMultiplierDistr'
+	)
+	,t6 as
+	(
+		select a.* 
+		from t5
+		cross apply openjson(t5.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	,t7 as
+	(
+		select b.*
+		from t6
+		cross apply openjson(t6.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t8 as
+	(
+		select b.* 
+		from t7
+		cross apply openjson(t7.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'distributionParams'
+	)
+	,t9 as
+	(
+		select a.* 
+		from t8
+		cross apply openjson(t8.[value]) as a
+		where a.[key] = 'threshold'
+	)
+	,t10 as
+	(
+		select a.* 
+		from t9
+		cross apply openjson(t9.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	select @retval = cast(a.[value] as float) * 1.0E06
+	from t10
+	cross apply openjson(t10.[value]) as a
+
+	--print ('@retval = ' + isnull(cast(@retval as nvarchar(20)), '<null>'))
+	--select * from t10
+
+	return @retval
+end
+go
+
+drop function if exists dbo.getCatLigSim
+go
+
+create function dbo.getCatLigSim(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	--declare @clmDefaultValueId bigint
+	--set @clmDefaultValueId = 4002000022
+
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select 
+			 b.[key] as yKey
+			,c.*
+		from openjson(@json) a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
+	(
+		select b.* 
+		from t1
+		cross apply openjson(t1.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t3 as
+	(
+		select b.* 
+		from t2
+		cross apply openjson(t2.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'catLigSimParam'
+	)
+	,t4 as
+	(
+		select a.* 
+		from t3
+		cross apply openjson(t3.[value]) as a
+		where a.[key] = 'catRatesSimGeneration'
+	)
+	,t5 as
+	(
+		select a.*
+		from t4
+		cross apply openjson(t4.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	,t6 as
+	(
+		select d.*
+		from t5
+		cross apply openjson(t5.[value]) as a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		cross apply openjson(c.[value]) as d
+		where b.[key] = 'Fields' and d.[key] = 'distributionParams'
+	)
+	,t7 as
+	(
+		select a.*
+		from t6
+		cross apply openjson(t6.[value]) as a
+		where a.[key] = 'threshold'
+	)
+	,t8 as
+	(
+		select a.* 
+		from t7
+		cross apply openjson(t7.[value]) as a
+		where a.[key] = 'Fields'
+	)
+	select @retval = cast(a.[value] as float)
+	from t8
+	cross apply openjson(t8.[value]) as a
+
+	--select * from t7
+
+	return @retval
+end
+go
 drop function if exists dbo.getCatSynthScarcity
 go
 
@@ -893,11 +1207,141 @@ begin
 	return (@clmDefaultValueId / 1000000000)
 end
 go
+drop function if exists dbo.getLigBkw
+go
+
+create function dbo.getLigBkw(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	--declare @clmDefaultValueId bigint
+	--set @clmDefaultValueId = 4002000022
+
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select 
+			 b.[key] as yKey
+			,c.*
+		from openjson(@json) a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
+	(
+		select b.*
+		from t1
+		cross apply openjson(t1.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t3 as
+	(
+		select a.* 
+		from t2
+		cross apply openjson(t2.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'ligationDistribution'
+	)
+	,t4 as
+	(
+		select a.* 
+		from t3
+		cross apply openjson(t3.[value]) as a
+		where a.[key] = 'backwardScale'
+	)
+	,t5 as
+	(
+		select a.*
+		from t4
+		cross apply openjson(t4.[value]) as a
+		where a.[key] = 'Fields'
+	)
+
+	select @retval = cast(a.[value] as float)
+	from t5
+	cross apply openjson(t5.[value]) as a
+
+	--print ('@retval = ' + isnull(cast(@retval as nvarchar(20)), '<null>'))
+	--select * from t5
+
+	return @retval
+end
+go
+
+drop function if exists dbo.getLigFwd
+go
+
+create function dbo.getLigFwd(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	--declare @clmDefaultValueId bigint
+	--set @clmDefaultValueId = 4002000022
+
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select 
+			 b.[key] as yKey
+			,c.*
+		from openjson(@json) a
+		cross apply openjson(a.[value]) as b
+		cross apply openjson(b.[value]) as c
+		where a.[key] = 'rateParams' and c.[key] = 'Fields'
+	)
+	,t2 as
+	(
+		select b.*
+		from t1
+		cross apply openjson(t1.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'Fields'
+	)
+	,t3 as
+	(
+		select a.* 
+		from t2
+		cross apply openjson(t2.[value]) as a
+		cross apply openjson(a.[value]) as b
+		where b.[key] = 'ligationDistribution'
+	)
+	,t4 as
+	(
+		select a.* 
+		from t3
+		cross apply openjson(t3.[value]) as a
+		where a.[key] = 'forwardScale'
+	)
+	,t5 as
+	(
+		select a.*
+		from t4
+		cross apply openjson(t4.[value]) as a
+		where a.[key] = 'Fields'
+	)
+
+	select @retval = cast(a.[value] as float)
+	from t5
+	cross apply openjson(t5.[value]) as a
+
+	--print ('@retval = ' + isnull(cast(@retval as nvarchar(20)), '<null>'))
+	--select * from t5
+
+	return @retval
+end
+go
+
 drop function if exists dbo.getWasteRecyclingRate
 go
 
 create function dbo.getWasteRecyclingRate(@clmDefaultValueId bigint)
-returns decimal(18, 10)
+returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
@@ -919,7 +1363,7 @@ begin
 	cross apply openjson(a.[value]) as b
 	where b.[key] = 'wasteRecyclingRate'
 
-	return cast(@retVal as decimal(18, 10))
+	return @retVal
 end
 go
 drop function if exists dbo.JSONHierarchy

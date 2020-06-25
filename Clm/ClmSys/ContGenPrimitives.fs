@@ -101,9 +101,9 @@ module ContGenPrimitives =
     type TaskProgress =
         | NotStarted
         | InProgress of decimal
-        | Completed of decimal option
+        | Completed of (decimal option * string option)
         | Failed of ErrorMessage
-        | Cancelled
+        | Cancelled of string option
         | AllCoresBusy of WorkerNodeId
 
         static member notStartedValue = 0m
@@ -119,12 +119,12 @@ module ContGenPrimitives =
             match progress with
             | NotStarted -> 0m
             | InProgress d -> max 0m (min d 1m)
-            | Completed v ->
+            | Completed (v, _) ->
                 match v with
                 | None -> 1.0m
                 | Some d -> max 0m (min d 1m)
             | Failed _ -> TaskProgress.failedValue
-            | Cancelled -> TaskProgress.failedValue
+            | Cancelled _ -> TaskProgress.failedValue
             | AllCoresBusy _ -> TaskProgress.notStartedValue
 
 

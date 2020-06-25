@@ -2,7 +2,7 @@
 
 open Clm.Substances
 open Clm.Distributions
-open Clm.ReactionRates
+open Clm.ReactionRatesBase
 open Clm.Reactions
 open Clm.ModelParams
 open Clm.ReactionTypes
@@ -60,15 +60,32 @@ module CalculationData =
         }
 
 
+    let createAllSubst chiralAminoAcids  peptides =
+        Substance.allSimple
+        @
+        (chiralAminoAcids |> List.map (fun a -> Chiral a))
+        @
+        (peptides |> List.map (fun p -> PeptideChain p))
+        @
+        (ChiralSugar.all |> List.map ChiralSug)
+
+
+    let createAllInd allSubst = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+
+
     type SubstInfo =
         {
             infoParam : SubstInfoParam
             aminoAcids : list<AminoAcid>
             chiralAminoAcids : list<ChiralAminoAcid>
+            chiralSugars : list<ChiralSugar>
             peptides : list<Peptide>
             synthCatalysts : list<SynthCatalyst>
+            sugSynthCatalysts : list<SugCatalyst>
+            enSynthCatalysts : list<EnSynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             ligCatalysts : list<LigCatalyst>
+            enLigCatalysts : list<EnLigCatalyst>
             ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
 
@@ -87,28 +104,18 @@ module CalculationData =
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
             let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
             let aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
-
-            let allSubst =
-                    Substance.allSimple
-                    @
-                    (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                    @
-                    (peptides |> List.map (fun p -> PeptideChain p))
+            let allSubst = createAllSubst chiralAminoAcids peptides
 
             let reagents =
                 allChains
                 |> List.filter(fun a -> a.Length >= p.sedDirInfo.sedDirReagentInfo.minSedDirChainLength.length && a.Length <= p.sedDirInfo.sedDirReagentInfo.maxSedDirChainLength.length)
                 |> List.map (fun e -> SedDirReagent e)
 
-            let simReagents a =
-                reagents
-                |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
-
+            let simReagents a = reagents |> List.filter (fun e -> (e.startsWith (L a)) || e.startsWith (R a))
 
             let ligationPairs =
                 List.allPairs allLigChains allLigChains
                 |> List.filter (fun (a, b) -> a.Length + b.Length <= p.maxPeptideLength.length)
-                //|> List.filter (fun (a, _) -> a.Head.isL)
                 |> List.distinct
                 |> List.sort
                 |> List.map LigationReaction
@@ -117,17 +124,17 @@ module CalculationData =
                 infoParam = p
                 aminoAcids = aminoAcids
                 chiralAminoAcids = chiralAminoAcids
+                chiralSugars = ChiralSugar.all
                 peptides = peptides
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
+                sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
+                enSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnSynthCatalyst p)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
+                enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
                 ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
-
-                sedDirReagents =
-                    aminoAcids
-                    |> List.map (fun a -> (a, simReagents a))
-                    |> Map.ofList
+                sedDirReagents = aminoAcids |> List.map (fun a -> (a, simReagents a)) |> Map.ofList
 
                 sedDirAgents =
                     allChains
@@ -136,12 +143,8 @@ module CalculationData =
 
                 allChains = allChains
                 allSubst = allSubst
-                allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
-
-                allNamesMap =
-                    allSubst
-                    |> List.map (fun s -> s, s.name)
-                    |> Map.ofList
+                allInd = createAllInd allSubst
+                allNamesMap = allSubst |> List.map (fun s -> s, s.name) |> Map.ofList
             }
 
         member si.synthesisReactions = si.chiralAminoAcids |> List.map SynthesisReaction
@@ -149,11 +152,28 @@ module CalculationData =
         member si.ligationReactions = si.ligationPairs
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
+        member si.sugSynthInfo t =
+            {
+                a = si.chiralSugars |> Array.ofList
+                b = si.sugSynthCatalysts |> Array.ofList
+                reactionName = ReactionName.SugarSynthesisName
+                successNumberType = t
+            }
+
         member si.catSynthInfo t =
             {
                 a = si.synthesisReactions |> Array.ofList
                 b = si.synthCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticSynthesisName
+                successNumberType = t
+            }
+
+        member si.enCatSynthInfo t =
+            {
+                a = si.synthesisReactions |> Array.ofList
+                b = si.enSynthCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
+                reactionName = ReactionName.EnCatalyticSynthesisName
                 successNumberType = t
             }
 
@@ -170,6 +190,15 @@ module CalculationData =
                 a = si.ligationReactions |> Array.ofList
                 b = si.ligCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticLigationName
+                successNumberType = t
+            }
+
+        member si.enCatLigInfo t =
+            {
+                a = si.ligationReactions |> Array.ofList
+                b = si.enLigCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
+                reactionName = ReactionName.EnCatalyticLigationName
                 successNumberType = t
             }
 
@@ -194,6 +223,7 @@ module CalculationData =
     type LevelOne = double * int
     type LevelTwo = double * int * int
     type LevelThree = double * int * int * int
+    type LevelFour = double * int * int * int * int
 
 
     type SubstUpdateInfo =
@@ -201,6 +231,7 @@ module CalculationData =
         | OneSubst of Substance
         | TwoSubst of Substance * Substance
         | ThreeSubst of Substance * Substance * Substance
+        | FourSubst of Substance * Substance * Substance * Substance
 
         static member create i =
             match i with
@@ -214,7 +245,10 @@ module CalculationData =
                     | h3 :: t3 ->
                         match t3 with
                         | [] -> (h1, h2, h3) |> ThreeSubst
-                        | _ -> failwith (sprintf "SubstUpdateInfo: invalid input: %A" i)
+                        | h4 :: t4 ->
+                            match t4 with
+                            | [] -> (h1, h2, h3, h4) |> FourSubst
+                            | _ -> failwith (sprintf "SubstUpdateInfo: invalid input: %A" i)
 
 
     type ModelIndices =
@@ -223,6 +257,7 @@ module CalculationData =
             level1 : array<LevelOne>
             level2 : array<LevelTwo>
             level3 : array<LevelThree>
+            level4 : array<LevelFour>
         }
 
         static member defaultValue =
@@ -231,6 +266,7 @@ module CalculationData =
                 level1 = [||]
                 level2 = [||]
                 level3 = [||]
+                level4 = [||]
             }
 
         static member create (m : Map<Substance, int>) (i : list<double * SubstUpdateInfo>) =
@@ -254,11 +290,17 @@ module CalculationData =
                 |> List.map (fun (v, e) -> match e with | ThreeSubst (s1, s2, s3) -> Some (v, m.[s1], m.[s2], m.[s3]) | _ -> None)
                 |> List.choose id
 
+            let l4 =
+                i
+                |> List.map (fun (v, e) -> match e with | FourSubst (s1, s2, s3, s4) -> Some (v, m.[s1], m.[s2], m.[s3], m.[s4]) | _ -> None)
+                |> List.choose id
+
             {
                 level0 = l0 |> Array.ofList
                 level1 = l1 |> Array.ofList
                 level2 = l2 |> Array.ofList
                 level3 = l3 |> Array.ofList
+                level4 = l4 |> Array.ofList
             }
 
 
@@ -276,20 +318,23 @@ module CalculationData =
         |> Array.map (fun (l, r) -> calculateTotalSubst l x, calculateTotalSubst r x)
 
 
-    let calculateDerivativeValue (indicies : ModelIndices) (x: double[]) =
+    let calculateDerivativeValue (indices : ModelIndices) (x: double[]) =
         let mutable sum = 0.0
 
-        for coeff in indicies.level0 do
+        for coeff in indices.level0 do
             sum <- sum + coeff
 
-        for (coeff, j1) in indicies.level1 do
+        for (coeff, j1) in indices.level1 do
             sum <- sum + coeff * x.[j1]
 
-        for (coeff, j1, j2) in indicies.level2 do
+        for (coeff, j1, j2) in indices.level2 do
             sum <- sum + coeff * x.[j1] * x.[j2]
 
-        for (coeff, j1, j2, j3) in indicies.level3 do
+        for (coeff, j1, j2, j3) in indices.level3 do
             sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3]
+
+        for (coeff, j1, j2, j3, j4) in indices.level4 do
+            sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3] * x.[j4]
 
         sum
 
@@ -389,27 +434,8 @@ module CalculationData =
             let maxPeptideLength = this.modelDataParams.modelInfo.maxPeptideLength
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-
-//            let p =
-//                peptides
-//                |> List.map (fun e -> e.aminoAcids)
-//                |> List.filter (fun e -> e.Length <= (maxPeptideLength.length - 1))
-//
-//            let ligReactions =
-//                List.allPairs (chiralAminoAcids |> List.map (fun e -> [e])) p
-//                |> List.filter (fun (a, b) -> a.Length + b.Length <= maxPeptideLength.length)
-//                |> List.map LigationReaction
-//
-//            let peptideBondMap = PeptideBondMap.create ligReactions
-
-            let allSubst =
-                Substance.allSimple
-                @
-                (chiralAminoAcids |> List.map (fun a -> Chiral a))
-                @
-                (peptides |> List.map (fun p -> PeptideChain p))
-
-            let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+            let allSubst = createAllSubst chiralAminoAcids peptides
+            let allInd = createAllInd allSubst
 
             {
                 regularParams =
@@ -430,11 +456,6 @@ module CalculationData =
                         getTotalSubst = this.modelBinaryData.calculationData.getTotalSubst
                         getDerivative = this.modelBinaryData.calculationData.getDerivative
                     }
-
-//                mapParams =
-//                    {
-//                        peptideBondMap = peptideBondMap
-//                    }
             }
 
 

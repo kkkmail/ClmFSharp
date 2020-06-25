@@ -154,10 +154,17 @@ module ModelRunner =
             | InProgress _ ->{ q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
             | Completed v ->
                 match v with
-                | None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
-                | Some d -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
+                | None, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
+                | Some d, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
+                | None, Some s -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "Message: %s" s |> ErrorMessage |> Some }, Ok()
+                | Some d, Some s ->
+                    let m = sprintf "The run queue was cancelled at: %.2f%% progress. Message: %s" (d * 100.0m) s
+                    { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = m |> ErrorMessage |> Some }, Ok()
             | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
-            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
+            | Cancelled v ->
+                match v with
+                | Some s -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = (sprintf "The run queue was aborted. Message %s" s) |> ErrorMessage |> Some }, Ok()
+                | None -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
             | AllCoresBusy w ->
                 let e = sprintf "Node %A is busy" w |> ErrorMessage |> Some
                 { q1 with runQueueStatus = NotStartedRunQueue; workerNodeIdOpt = None; progress = NotStarted; errorMessageOpt = e }, proxy.upsertWorkerNodeErr w
@@ -180,18 +187,19 @@ module ModelRunner =
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 
-    let saveResult (proxy : SaveResultProxy) r =
-        //printfn "saveResult: r= %A" r
+    let saveResult (proxy : SaveResultProxy) (r : ResultDataWithId) =
+        printfn "saveResult: resultDataId = %A" r.resultDataId
         proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
 
 
-    let saveCharts (proxy : SaveChartsProxy) c =
-        //printfn "saveCharts: c.resultDataId = %A" c.resultDataId
+    let saveCharts (proxy : SaveChartsProxy) (c : ChartInfo) =
+        printfn "saveCharts: c.resultDataId = %A" c.resultDataId
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
-        //printfn "processMessage: messageId = %A" m.messageDataInfo.messageId
+        printfn "processMessage: messageId = %A, message = %A" m.messageDataInfo.messageId m
+
         match m.messageData with
         | PartitionerMsg x ->
             match x with

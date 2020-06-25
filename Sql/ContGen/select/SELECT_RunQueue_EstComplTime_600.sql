@@ -1,4 +1,4 @@
-use clm5001
+use clm600
 go
 
 declare @now datetime
@@ -10,6 +10,8 @@ set @now = getdate()
 		runQueueOrder
 		,d.clmDefaultValueId
 		,progress
+		,runQueueStatusId
+		,errorMessage
 		,case when startedOn is not null and progress > 0 then dateadd(second, datediff(second, startedOn, @now) / progress, startedOn) else null end as estCompl
 		,cast(case when startedOn is not null and progress > 0 then datediff(second, startedOn, @now) / progress / (3600 * 24) else null end as money) as totalRunTime
 		,runQueueId
@@ -26,6 +28,6 @@ set @now = getdate()
 select * from w
 where
 	estCompl is not null
-	and estCompl < dateadd(day, 1, @now)
-	--and clmDefaultValueId > 2000000000
-order by estCompl
+	--and estCompl < dateadd(day, 1, @now)
+	--and totalRunTime > 0.5
+order by estCompl desc

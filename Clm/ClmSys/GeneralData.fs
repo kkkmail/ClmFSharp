@@ -202,7 +202,7 @@ module GeneralData =
             | InProgress p -> estimateEndTime p started
             | Completed _ -> Some DateTime.Now
             | Failed _ -> None
-            | Cancelled -> None
+            | Cancelled _ -> None
             | AllCoresBusy _ -> None
 
 

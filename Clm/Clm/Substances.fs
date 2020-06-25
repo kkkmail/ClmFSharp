@@ -278,13 +278,13 @@ module Substances =
             | A23 -> "W"
             | A24 -> "X"
             | A25 -> "Y"
-            | A26 -> "Z"
-            | A27 -> "A1"
-            | A28 -> "B1"
-            | A29 -> "C1"
-            | A30 -> "D1"
-            | A31 -> "E1"
-            | A32 -> "F1"
+            | A26 -> "A1"
+            | A27 -> "B1"
+            | A28 -> "C1"
+            | A29 -> "D1"
+            | A30 -> "E1"
+            | A31 -> "F1"
+            | A32 -> "G1"
 
         member aminoAcid.number =
             match aminoAcid with
@@ -359,8 +359,7 @@ module Substances =
 
         member aminoAcid.aminoAcid =
             match aminoAcid with
-            | L a -> a
-            | R a -> a
+            | L a | R a -> a
 
         static member getAminoAcids n =
             (AminoAcid.getAminoAcids n |> List.map (fun a -> L a))
@@ -462,10 +461,56 @@ module Substances =
             |> List.concat
 
 
+    type Sugar =
+        | Z
+
+        member sugar.name = "Z"
+        override sugar.ToString() = sugar.name
+
+    type ChiralSugar =
+        | Ls of Sugar
+        | Rs of Sugar
+
+        member _.length = 1
+        member _.atoms = 1
+
+        member sugar.isL =
+            match sugar with
+            | Ls _ -> true
+            | Rs _ -> false
+
+        member sugar.isR = sugar.isL |> not
+
+        member sugar.enantiomer =
+            match sugar with
+            | Ls s -> Rs s
+            | Rs s -> Ls s
+
+        member sugar.sugar =
+            match sugar with
+            | Ls s | Rs s -> s
+
+        member sugar.name =
+            match sugar with
+            | Ls a -> a.name
+            | Rs a -> a.name.ToLower()
+
+        member sugar.noOfLR =
+            match sugar with
+            | Ls _ -> (1, 0)
+            | Rs _ -> (0, 1)
+
+        override sugar.ToString() = sugar.name
+
+        static member all =
+            [ Ls Z; Rs Z ]
+
+
     type Substance =
         | Simple of AchiralSubst
         | Chiral of ChiralAminoAcid
         | PeptideChain of Peptide
+        | ChiralSug of ChiralSugar
         | Sum of SumSubst
 
         member substance.enantiomer =
@@ -473,12 +518,14 @@ module Substances =
             | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
+            | ChiralSug s -> s.enantiomer |> ChiralSug
             | Sum s -> s |> Sum
 
         member substance.name =
             match substance with
             | Simple f -> f.name
             | Chiral c -> c.name
+            | ChiralSug s -> s.name
             | PeptideChain p -> p.name
             | Sum s -> s.name
 
@@ -495,6 +542,7 @@ module Substances =
                 match (p |> List.sumBy (fun b -> if a = b then 1 else 0)) with
                 | 0 -> None
                 | n -> Some n
+            | ChiralSug _ -> None
             | Sum _ -> None
 
         member substance.isSimple =
@@ -502,6 +550,7 @@ module Substances =
             | Simple _ -> true
             | Chiral _ -> false
             | PeptideChain _ -> false
+            | ChiralSug _ -> false
             | Sum _ -> false
 
         member substance.atoms =
@@ -509,13 +558,31 @@ module Substances =
             | Simple f -> f.atoms
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
+            | ChiralSug s -> s.atoms
             | Sum _ -> 0
+
+        member substance.hasAminoAcids =
+            match substance with
+            | Simple _ -> false
+            | Chiral _ -> true
+            | PeptideChain _ -> true
+            | ChiralSug _ -> false
+            | Sum _ -> false
+
+        member substance.hasSugar =
+            match substance with
+            | Simple _ -> false
+            | Chiral _ -> false
+            | PeptideChain _ -> false
+            | ChiralSug _ -> true
+            | Sum _ -> false
 
         member substance.length =
             match substance with
             | Simple _ -> 0
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
+            | ChiralSug _ -> 0
             | Sum _ -> 0
 
         member substance.aminoAcids =
@@ -523,6 +590,7 @@ module Substances =
             | Simple _ -> []
             | Chiral c -> [ c ]
             | PeptideChain p -> p.aminoAcids
+            | ChiralSug _ -> []
             | Sum _ -> []
 
         static member food = AchiralSubst.Food |> Simple
@@ -533,7 +601,7 @@ module Substances =
             AchiralSubst.all
             |> List.map (fun e -> e |> Simple)
 
-        static member chiralL a = a |> L |> Chiral
+        static member chiralL (a : AminoAcid) = a |> L |> Chiral
 
         static member fromList (a : list<ChiralAminoAcid>) =
             match a.Length with

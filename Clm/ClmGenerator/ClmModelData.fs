@@ -1,6 +1,5 @@
 ﻿namespace Clm.Generator
 
-open System
 open FSharp.Collections
 
 open ClmSys.VersionInfo
@@ -8,6 +7,7 @@ open ClmSys.ContGenPrimitives
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
+open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ModelParams
 open Clm.CalculationData
@@ -76,24 +76,20 @@ module ClmModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-
-    let allSubst =
-        Substance.allSimple
-        @
-        (chiralAminoAcids |> List.map (fun a -> Chiral a))
-        @
-        (peptides |> List.map (fun p -> PeptideChain p))
-
-    let allInd = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+    let allSubst = createAllSubst chiralAminoAcids peptides
+    let allInd = createAllInd allSubst
 "
 
 
     type RateGenerationCommonData =
         {
             substInfo : SubstInfo
+            sugSynth : list<ChiralSugar * SugCatalyst>
             catSynthPairs : list<SynthesisReaction * SynthCatalyst>
+            enCatSynth : list<SynthesisReaction * EnSynthCatalyst * ChiralSugar>
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
+            enCatLig : list<LigationReaction * EnLigCatalyst * ChiralSugar>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
         }
@@ -112,11 +108,14 @@ module ClmModelData =
             | WasteRemovalName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRemovalReaction |> WasteRemoval) ] |> List.choose id |> List.concat
             | WasteRecyclingName -> [ AnyReaction.tryCreateReaction rnd rateProvider t (WasteRecyclingReaction |> WasteRecycling) ] |> List.choose id |> List.concat
             | SynthesisName -> createReactions (fun a -> SynthesisReaction a |> Synthesis) data.substInfo.chiralAminoAcids
+            | SugarSynthesisName -> createReactions (fun a -> SugarSynthesisReaction a |> SugarSynthesis) data.sugSynth
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
+            | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.enCatSynth
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | LigationName -> createReactions (fun x -> x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
+            | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.enCatLig
             | SedimentationDirectName -> createReactions (fun (c, r) -> SedimentationDirectReaction ([ c ] |> SedDirReagent, r) |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
@@ -126,7 +125,7 @@ module ClmModelData =
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
-        printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'A> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
+        printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
         let sng =
             rnd
@@ -143,6 +142,26 @@ module ClmModelData =
         | None -> []
 
 
+    let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
+        // ??? must adjust for 8X ??? reduction due to grouping???
+        let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
+        printfn "generateTriples: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A, typedefof<'C> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>)
+
+        let sng =
+            rnd
+            |>
+            match i.successNumberType with
+            | RandomValueBased -> RandomValueGetterBased
+            | ThresholdBased -> ThresholdValueBased
+
+        match rateProvider.tryGetPrimaryDistribution i.reactionName with
+        | Some d ->
+            let sn = d.successNumber sng noOfTries
+            printfn "generateTriples: successNumberType = %A, sn = %A" i.successNumberType sn
+            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length], i.c.[d.nextN rnd i.c.Length]) ]
+        | None -> []
+
+
     type RandomChoiceModelData =
         {
             commonData : RateGenerationCommonData
@@ -150,17 +169,22 @@ module ClmModelData =
 
         member data.noOfRawReactions n =
             let si = data.commonData.substInfo
+            let sugLen = int64 ChiralSugar.all.Length
 
             match n with
             | FoodCreationName -> 1L
             | WasteRemovalName -> 1L
             | WasteRecyclingName -> 1L
             | SynthesisName -> int64 si.chiralAminoAcids.Length
+            | SugarSynthesisName -> sugLen
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
+            | EnCatalyticSynthesisName ->
+                (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
+            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
@@ -171,14 +195,18 @@ module ClmModelData =
         /// Note that currently all generators share the same success number type.
         static member create rnd rateProvider (si : SubstInfo) st =
             let generatePairs x = generatePairs rnd x rateProvider
+            let generateTriples x = generateTriples rnd x rateProvider
 
             {
                 commonData =
                     {
                         substInfo = si
+                        sugSynth = generatePairs (si.sugSynthInfo st)
                         catSynthPairs = generatePairs (si.catSynthInfo st)
+                        enCatSynth = generateTriples (si.enCatSynthInfo st)
                         catDestrPairs = generatePairs (si.catDestrInfo st)
                         catLigPairs = generatePairs (si.catLigInfo st)
+                        enCatLig = generateTriples (si.enCatLigInfo st)
                         catRacemPairs = generatePairs (si.catRacemInfo st)
                         sedDirPairs = generatePairs (si.sedDirInfo st)
                     }

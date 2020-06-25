@@ -5,6 +5,7 @@ open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open Clm.Distributions
 open ClmSys.ContGenPrimitives
+open Clm.ReactionRatesBase
 
 module Defaults_004_002_000 =
     let sdSim = 0.1
@@ -104,3 +105,4 @@ module Defaults_004_002_000 =
         (List.allPairs nSim mScMult)
         |> List.filter (fun ((_, similarity), (_, (scarcity, _))) -> (scarcity = 0.0M && similarity = 0.0M) || scarcity > 0.0M)
         |> List.map getDefaultValue
+        |> updateDescription "Cat lig with similarity playground."

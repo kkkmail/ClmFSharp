@@ -40,6 +40,8 @@ module ChartData =
             aminoAcidsData : array<double>
             enantiomericExcess : array<double>
             totalSubst : TotalSubstData
+            sugarData : double option
+            sugarEe : double option
         }
 
         static member create (i : BinaryInfo) t x =
@@ -57,6 +59,13 @@ module ChartData =
             let getEe li di =
                 let (l, d) = getCorrectLD li di
                 if (l + d) > 0.0 then (l - d) / (l + d) else 0.0
+
+            let getZ f = i.allSubstData.allInd.TryFind (f Z |> ChiralSug) |> Option.bind (fun i -> x.[i] |> Some)
+
+            let (z, eeZ) =
+                    match getZ Ls, getZ Rs with
+                    | Some l, Some d -> getTotal l d |> Some, getEe l d |> Some
+                    | _ -> None, None
 
             {
                 t = t
@@ -82,6 +91,9 @@ module ChartData =
                         wasteData = Option.bind (fun i -> x.[i] |> Some) wasteIdx
                         levelData = [| for level in 1..i.maxPeptideLength.length -> levelData level |]
                     }
+
+                sugarData = z
+                sugarEe = eeZ
             }
 
 

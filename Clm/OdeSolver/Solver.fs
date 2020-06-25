@@ -81,7 +81,6 @@ module Solver =
     /// F# wrapper around Alglib ODE solver.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
-        let start = DateTime.Now
         let mutable progressCount = 0
         let mutable outputCount = 0
         let mutable lastCheck = DateTime.Now
@@ -140,12 +139,12 @@ module Solver =
         let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
         let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
         do alglib.odesolversolve(s, d, null)
-        let mutable (m, xtbl, ytbl, rep) = alglib.odesolverresults(s)
+        let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
 
         {
             startTime = p.startTime
             endTime = p.endTime
-            xEnd = ytbl.[nt - 1, *]
+            xEnd = yTbl.[nt - 1, *]
         }
 
 

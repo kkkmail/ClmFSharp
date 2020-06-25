@@ -5,6 +5,7 @@ open Clm.ModelParams
 open ClmDefaults.DefaultValuesExt
 open Clm.Distributions
 open ClmSys.ContGenPrimitives
+open Clm.ReactionRatesBase
 
 module Defaults_004_001_000 =
 
@@ -80,4 +81,7 @@ module Defaults_004_001_000 =
             description = description
         }
 
-    let defaultValues = (List.allPairs nsd mcl) |> List.map getDefaultValue
+    let defaultValues =
+        (List.allPairs nsd mcl)
+        |> List.map getDefaultValue
+        |> updateDescription "Catalytic synthesis / forward only + catalytic destruction / forward only for n = 5, m = 5 (vary both scarcity param and both sim param) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased, w = 0.1."

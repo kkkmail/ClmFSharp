@@ -147,7 +147,7 @@ module ServiceImplementation =
         | InProgress _ -> (NonGuaranteedDelivery, false)
         | Completed _ -> (GuaranteedDelivery, true)
         | Failed _ -> (GuaranteedDelivery, true)
-        | Cancelled -> (GuaranteedDelivery, true)
+        | Cancelled _ -> (GuaranteedDelivery, true)
         | AllCoresBusy _ -> (GuaranteedDelivery, true)
 
 

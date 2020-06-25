@@ -161,7 +161,10 @@ module ModelRunner =
                     let m = sprintf "The run queue was cancelled at: %.2f%% progress. Message: %s" (d * 100.0m) s
                     { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = m |> ErrorMessage |> Some }, Ok()
             | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
-            | Cancelled -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
+            | Cancelled v ->
+                match v with
+                | Some s -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = (sprintf "The run queue was aborted. Message %s" s) |> ErrorMessage |> Some }, Ok()
+                | None -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
             | AllCoresBusy w ->
                 let e = sprintf "Node %A is busy" w |> ErrorMessage |> Some
                 { q1 with runQueueStatus = NotStartedRunQueue; workerNodeIdOpt = None; progress = NotStarted; errorMessageOpt = e }, proxy.upsertWorkerNodeErr w

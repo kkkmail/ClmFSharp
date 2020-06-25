@@ -8,15 +8,71 @@ open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open System
 open ClmSys.WorkerNodeData
-open MessagingServiceInfo.ServiceInfo
-open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.ContGenPrimitives
+open FSharp.Configuration
 
 module SvcCommandLine =
+
+    type Settings = AppSettings<"app.config">
+    
+    type WorkerNodeSettings =
+        {
+            svcAddress : WorkerNodeServiceAddress
+            svcPort : WorkerNodeServicePort
+            name : WorkerNodeName
+            noOfCores : int
+            msgSvcAddress : MessagingServiceAddress
+            msgSvcPort : MessagingServicePort
+            msgCliId : MessagingClientId
+            partitioner : PartitionerId
+            isInactive : bool
+        }
+        
+        member w.isValid =
+            w.svcPort.value.value > 0
+            && w.svcAddress.value.value <> EmptyString
+            && w.name.value <> EmptyString
+            && w.noOfCores >= 0
+            && w.msgSvcAddress.value.value <> EmptyString
+            && w.msgSvcPort.value.value > 0
+            && w.msgCliId.value <> Guid.Empty
+            && w.partitioner.value.value <> Guid.Empty
+            
+        member w.trySaveSettings() =
+            match w.isValid with
+            | true ->
+                Settings.WrkSvcAddress <- w.svcAddress.value.value
+                Settings.WrkSvcPort <- w.svcPort.value.value
+                Settings.WrkName <- w.name.value
+                Settings.WrkNoOfCores <- w.noOfCores
+                Settings.WrkMsgSvcAddress <- w.msgSvcAddress.value.value
+                Settings.WrkMsgSvcPort <- w.msgSvcPort.value.value
+                Settings.WrkMsgCliId <- w.msgCliId.value
+                Settings.WrkPartitioner <- w.partitioner.value.value
+                Settings.WrkInactive <- w.isInactive
+                
+                Ok()
+            | false ->
+                Ok()
+            
+            
+    
+    let loadSettings() =
+        {
+            svcAddress = Settings.WrkSvcAddress |> ServiceAddress |> WorkerNodeServiceAddress
+            svcPort =  Settings.WrkSvcPort |> ServicePort |> WorkerNodeServicePort
+            name  = Settings.WrkName |> WorkerNodeName
+            noOfCores  = Settings.WrkNoOfCores
+            msgSvcAddress  = Settings.WrkMsgSvcAddress |> ServiceAddress |> MessagingServiceAddress
+            msgSvcPort  = Settings.WrkMsgSvcPort |> ServicePort |> MessagingServicePort
+            msgCliId  = Settings.WrkMsgCliId |> MessagingClientId
+            partitioner  = Settings.WrkPartitioner |> MessagingClientId |> PartitionerId
+            isInactive  = Settings.WrkInactive
+        }
+        
 
     [<CliPrefix(CliPrefix.Dash)>]
     type WorkerNodeServiceRunArgs =
@@ -25,7 +81,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-n")>] WrkName of string
         | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
 
-        | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
+//        | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
         | [<Unique>] [<AltCommandLine("-version")>] WrkVersion of string
 
         | [<Unique>] [<AltCommandLine("-msgAddress")>] WrkMsgSvcAddress of string
@@ -44,8 +100,8 @@ module SvcCommandLine =
                 | WrkName _ -> "worker node name."
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
-                | WrkSaveSettings -> "saves settings to the Registry."
-                | WrkVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
+//                | WrkSaveSettings -> "saves settings to the Registry."
+                | WrkVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
 
                 | WrkMsgSvcAddress _ -> "messaging server ip address / name."
                 | WrkMsgSvcPort _ -> "messaging server port."
@@ -94,7 +150,7 @@ module SvcCommandLine =
     let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkName p -> Some p | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
 
-    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
+//    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
     let tryGetVersion p = p |> List.tryPick (fun e -> match e with | WrkVersion p -> p |> VersionNumber |> Some | _ -> None)
 
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)

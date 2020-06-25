@@ -20,6 +20,10 @@ module ServiceTasks =
         }
 
 
-    let getParams (p : ParseResults<WorkerNodeServiceRunArgs>) = getServiceAccessInfo (p.GetAllResults())
+    let getParams (p : ParseResults<WorkerNodeServiceRunArgs>) =
+        match getServiceAccessInfo (p.GetAllResults()) with
+        | Ok r -> r
+        | Error e -> failwith (sprintf "Critical error: %A" e)
+        
     let getSaveSettings (p : ParseResults<WorkerNodeServiceRunArgs>) () = p.GetAllResults() |> saveSettings
     type WorkerNodeServiceTask = ServiceTask<WorkerNodeWindowsService, WorkerNodeServiceInfo, WorkerNodeServiceRunArgs>

@@ -34,7 +34,12 @@ module WorkerNodeErrors =
 
     type OnRequestResultError =
         | CannotFindRunQueueErr of RunQueueId
-
+        
+        
+    type WrkSettingsError =
+        | InvalidSettings of string
+        | WrkSettingExn of exn
+        
 
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
@@ -44,6 +49,7 @@ module WorkerNodeErrors =
         | OnProcessMessageErr of OnProcessMessageError
         | OnGetMessagesErr of OnGetMessagesError
         | OnRequestResultErr of OnRequestResultError
+        | WrkSettingsErr of WrkSettingsError
 
 
     type WorkerNodeWcfError =

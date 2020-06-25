@@ -51,6 +51,8 @@ module Defaults_004_004_000 =
     let data =
             [
                 DefaultDataParam.defaultValue
+                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
+                { DefaultDataParam.defaultValue with enCatLigScarcity = 0.000_000_002 }
             ]
             |> withRowNumber
 
@@ -98,7 +100,7 @@ module Defaults_004_004_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
+            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.000_000_001)
 
             let enCatSynthRndParam = (synthParam, (Some e.enCatSynthScarcity), e.enCatSynthMultiplier)
 
@@ -148,6 +150,8 @@ module Defaults_004_004_000 =
         }
 
     let defaultValues =
+        printfn "\n"
+        
         data
         |> List.map getDefaultValue
         |> updateDescription "Cat lig with similarity + all sugars playground."

@@ -119,6 +119,8 @@ module Defaults_004_003_000 =
         }
 
     let defaultValues =
+        printfn "\n"
+        
         (List.allPairs nSim mScMult)
         |> List.filter (fun ((_, similarity), (_, (scarcity, _))) -> (scarcity = 0.0M && similarity = 0.0M) || scarcity > 0.0M)
         |> List.map getDefaultValue

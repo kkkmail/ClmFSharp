@@ -169,20 +169,22 @@ module ClmModelData =
 
         member data.noOfRawReactions n =
             let si = data.commonData.substInfo
+            let sugLen = int64 ChiralSugar.all.Length
 
             match n with
             | FoodCreationName -> 1L
             | WasteRemovalName -> 1L
             | WasteRecyclingName -> 1L
             | SynthesisName -> int64 si.chiralAminoAcids.Length
-            | SugarSynthesisName -> 2L
+            | SugarSynthesisName -> sugLen
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
-            | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * 2L
+            | EnCatalyticSynthesisName ->
+                (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
-            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * 2L
+            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length

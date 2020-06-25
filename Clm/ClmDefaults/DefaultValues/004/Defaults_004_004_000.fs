@@ -53,6 +53,7 @@ module Defaults_004_004_000 =
                 DefaultDataParam.defaultValue
                 { DefaultDataParam.defaultValue with sugarForward = 10.0 }
                 { DefaultDataParam.defaultValue with enCatLigScarcity = 0.000_000_002 }
+                { DefaultDataParam.defaultValue with sugarForward = 10.0; enCatLigScarcity = 0.000_000_002 }
             ]
             |> withRowNumber
 

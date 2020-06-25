@@ -92,10 +92,10 @@ module ServiceInfo =
 
         member this.value = let (EarlyExitCheckFrequency v) = this in v
 
-//        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
+        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
 
-        /// Uncomment temporarily for debugging purposes.
-        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
+//        /// Uncomment temporarily for debugging purposes.
+//        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
 
 
     type EarlyExitStrategy =

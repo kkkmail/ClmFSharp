@@ -2,7 +2,7 @@
 
 open Argu
 open ClmSys.VersionInfo
-open ClmSys.Registry
+//open ClmSys.Registry
 open ClmSys.GeneralData
 open ClmSys.Logging
 open System
@@ -11,6 +11,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
+open WorkerNodeServiceInfo.ServiceInfo
 
 module AdmCommandLine =
 
@@ -62,7 +63,7 @@ module AdmCommandLine =
 
     let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkAdmSvcAddress s -> s |> ServiceAddress |> WorkerNodeServiceAddress |> Some | _ -> None)
     let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | WrkAdmSvcPort p -> p |> ServicePort |> WorkerNodeServicePort |> Some | _ -> None)
-    let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkAdmName p -> Some p | _ -> None)
+    let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkAdmName p -> p |> WorkerNodeName |> Some | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkAdmNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkAdmSaveSettings -> Some () | _ -> None)
@@ -76,131 +77,103 @@ module AdmCommandLine =
     let tryGetInactive p = p |> List.tryPick (fun e -> match e with | WrkAdmInactive p -> Some p | _ -> None)
 
 
-    let getVersion = getVersionImpl tryGetVersion
-    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
-    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
-    let getPartitioner = getPartitionerImpl tryGetPartitioner
-
-
-    let getNoOfCores logger version name p =
-        let n =
-            match tryGetNoOfCores p with
-            | Some n -> n
-            | None ->
-                match tryGetNumberOfCores version name with
-                | Ok x -> x
-                | Error e -> Environment.ProcessorCount / 2
+    let getNoOfCores (w: WorkerNodeSettings) p =
+        let n = tryGetNoOfCores p |> Option.defaultValue w.noOfCores
         max 0 (min n Environment.ProcessorCount)
 
 
-    let getServiceAddress logger version name p =
-        match tryGetServiceAddress p with
-        | Some a -> a
-        | None ->
-            match tryGetWorkerNodeServiceAddress version name with
-            | Ok a -> a
-            | Error e -> WorkerNodeServiceAddress.defaultValue
+    let getVersion = getVersionImpl tryGetVersion
+    let getMsgServerAddress (w: WorkerNodeSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
+    let getMsgServerPort (w: WorkerNodeSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
+    let getPartitioner (w: WorkerNodeSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitioner
+    let getServiceAddress (w: WorkerNodeSettings) p = tryGetServiceAddress p |> Option.defaultValue w.workerNodeSvcAddress
+    let getServicePort (w: WorkerNodeSettings) p = tryGetServicePort p |> Option.defaultValue w.workerNodeSvcPort
+    let getWorkerNodeId (w: WorkerNodeSettings) p = tryGetClientId p |> Option.defaultValue w.workerNodeId
+    let getNodeName (w: WorkerNodeSettings) p = tryGetNodeName p |> Option.defaultValue w.workerNodeName
+    let getInactive (w: WorkerNodeSettings) p = tryGetInactive p |> Option.defaultValue w.isInactive
 
-
-    let getServicePort logger version name p =
-        match tryGetServicePort p with
-        | Some a -> a
-        | None ->
-            match tryGetWorkerNodeServicePort version name with
-            | Ok a -> a
-            | Error e -> WorkerNodeServicePort.defaultValue
-
-
-    let getClientId logger version name p =
-        match tryGetClientId p with
-        | Some a -> a
-        | None ->
-            match tryGetMessagingClientId version name with
-            | Ok a -> a |> WorkerNodeId
-            | Error e -> Guid.NewGuid() |> MessagingClientId |> WorkerNodeId
-
-
-    let tryGetNodeNameImpl logger version name p =
-        match tryGetNodeName p with
-        | Some a -> Some a
-        | None ->
-            match tryGetWorkerNodeName version name with
-            | Ok a -> Some a
-            | Error e -> None
-        |> Option.bind (fun e -> e |> WorkerNodeName |> Some)
-
-
-    let getInactive logger version name p =
-        match tryGetInactive p with
-        | Some a -> a
-        | None ->
-            match tryGetWrkInactive version name with
-            | Ok a -> a
-            | Error e -> false
-
-
-    let getServiceAccessInfoImpl b p =
-        let name = workerNodeServiceRegistryName
-
-        let version = getVersion p
-        let address = getServiceAddress logger version name p
-        let port = getServicePort logger version name p
-        let noOfCores = getNoOfCores logger version name p
-
-        let msgAddress = getMsgServiceAddress logger version name p
-        let msgPort = getMsgServicePort logger version name p
-        let partitioner = getPartitioner logger version name p
-        let clientId = getClientId logger version name p
-        let inactive = getInactive logger version name p
-
-        match tryGetNodeNameImpl logger version name p with
-        | Some nodeName ->
-            let saveSettings() =
-                trySetWorkerNodeServiceAddress versionNumberValue name address|> ignore
-                trySetWorkerNodeServicePort versionNumberValue name port |> ignore
-                trySetWorkerNodeName versionNumberValue name nodeName |> ignore
-                trySetNumberOfCores versionNumberValue name noOfCores |> ignore
-
-                trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
-                trySetMessagingServicePort versionNumberValue name msgPort |> ignore
-                trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
-                trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
-                trySetWrkInactive versionNumberValue name inactive |> ignore
-
-            match tryGetSaveSettings p, b with
-            | Some _, _ -> saveSettings()
-            | _, true -> saveSettings()
-            | _ -> ignore()
-
+    let loadSettings p =
+        let w = loadWorkerNodeSettings()
+        
+        let w1 =
             {
-                workerNodeInfo =
-                    {
-                        workerNodeId = clientId
-                        workerNodeName = nodeName
-                        partitionerId = partitioner
-                        noOfCores = noOfCores
-                        nodePriority = WorkerNodePriority.defaultValue
-                        isInactive = inactive
-                        lastErrorDateOpt = None
-                    }
-
-                workerNodeServiceAccessInfo =
-                    {
-                        workerNodeServiceAddress = address
-                        workerNodeServicePort = port
-                        workerNodeServiceName = workerNodeServiceName
-                    }
-
-                messagingServiceAccessInfo =
-                    {
-                        messagingServiceAddress = msgAddress
-                        messagingServicePort = msgPort
-                        messagingServiceName = messagingServiceName
-                    }
+                workerNodeSvcAddress = getServiceAddress w p
+                workerNodeSvcPort = getServicePort w p
+                workerNodeName = getNodeName w p
+                noOfCores = getNoOfCores w p
+                msgSvcAddress = getMsgServerAddress w p
+                msgSvcPort = getMsgServerPort w p
+                workerNodeId = getWorkerNodeId w p
+                partitioner = getPartitioner w p
+                isInactive = getInactive w p              
             }
-            |> Some
-        | None -> None
+            
+        w1
+
+    
+
+    let getServiceAccessInfoImpl (b : bool) (p : list<WorkerNodeAdmArgs>) = failwith ""
+//        let name = workerNodeServiceRegistryName
+//
+//        let version = getVersion p
+//        let address = getServiceAddress logger version name p
+//        let port = getServicePort logger version name p
+//        let noOfCores = getNoOfCores logger version name p
+//
+//        let msgAddress = getMsgServiceAddress logger version name p
+//        let msgPort = getMsgServicePort logger version name p
+//        let partitioner = getPartitioner logger version name p
+//        let clientId = getClientId logger version name p
+//        let inactive = getInactive logger version name p
+//
+//        match tryGetNodeNameImpl logger version name p with
+//        | Some nodeName ->
+//            let saveSettings() =
+//                trySetWorkerNodeServiceAddress versionNumberValue name address|> ignore
+//                trySetWorkerNodeServicePort versionNumberValue name port |> ignore
+//                trySetWorkerNodeName versionNumberValue name nodeName |> ignore
+//                trySetNumberOfCores versionNumberValue name noOfCores |> ignore
+//
+//                trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
+//                trySetMessagingServicePort versionNumberValue name msgPort |> ignore
+//                trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
+//                trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
+//                trySetWrkInactive versionNumberValue name inactive |> ignore
+//
+//            match tryGetSaveSettings p, b with
+//            | Some _, _ -> saveSettings()
+//            | _, true -> saveSettings()
+//            | _ -> ignore()
+//
+//            {
+//                workerNodeInfo =
+//                    {
+//                        workerNodeId = clientId
+//                        workerNodeName = nodeName
+//                        partitionerId = partitioner
+//                        noOfCores = noOfCores
+//                        nodePriority = WorkerNodePriority.defaultValue
+//                        isInactive = inactive
+//                        lastErrorDateOpt = None
+//                    }
+//
+//                workerNodeServiceAccessInfo =
+//                    {
+//                        workerNodeServiceAddress = address
+//                        workerNodeServicePort = port
+//                        workerNodeServiceName = workerNodeServiceName
+//                    }
+//
+//                messagingServiceAccessInfo =
+//                    {
+//                        messagingServiceAddress = msgAddress
+//                        messagingServicePort = msgPort
+//                        messagingServiceName = messagingServiceName
+//                    }
+//            }
+//            |> Some
+//        | None -> None
 
 
-    let getServiceAccessInfo = getServiceAccessInfoImpl false
+    let getServiceAccessInfo p = getServiceAccessInfoImpl false p
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore

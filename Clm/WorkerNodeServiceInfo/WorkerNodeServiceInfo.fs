@@ -12,6 +12,10 @@ open ClmSys.WorkerNodeData
 open System.ServiceModel
 open ClmSys.Wcf
 open ClmSys.WorkerNodeErrors
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.WorkerNodePrimitives
+open ClmSys.PartitionerData
 
 module ServiceInfo =
 
@@ -193,3 +197,100 @@ module ServiceInfo =
     
     
     type WorkerNodeAppSettings = AppSettings<WorkerNodeAppConfigFile>    
+
+
+    let loadWorkerNodeSettings() =
+        {
+            workerNodeSvcAddress =
+                match WorkerNodeAppSettings.WorkerNodeSvcAddress with
+                | EmptyString -> WorkerNodeServiceAddress.defaultValue
+                | s -> s |> ServiceAddress |> WorkerNodeServiceAddress
+            workerNodeSvcPort =
+                match WorkerNodeAppSettings.WorkerNodeSvcPort with
+                | n when n > 0 -> n |> ServicePort |> WorkerNodeServicePort
+                | _ -> WorkerNodeServicePort.defaultValue
+            workerNodeName  = WorkerNodeAppSettings.WorkerNodeName |> WorkerNodeName
+            noOfCores = WorkerNodeAppSettings.NoOfCores
+            msgSvcAddress =
+                match WorkerNodeAppSettings.MsgSvcAddress with
+                | EmptyString -> MessagingServiceAddress.defaultValue
+                | s -> s |> ServiceAddress |> MessagingServiceAddress
+            msgSvcPort =
+                match WorkerNodeAppSettings.MsgSvcPort with
+                | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                | _ -> MessagingServicePort.defaultValue
+            workerNodeId = WorkerNodeAppSettings.WorkerNodeId |> MessagingClientId |> WorkerNodeId
+            partitioner =
+                match WorkerNodeAppSettings.PartitionerId with
+                | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                | _ -> defaultPartitionerId
+            isInactive = WorkerNodeAppSettings.IsInactive
+        }
+        
+        
+    type WorkerNodeSettings
+        with            
+        member w.trySaveSettings() =
+            match w.isValid() with
+            | Ok() ->
+                try
+                    WorkerNodeAppSettings.WorkerNodeSvcAddress <- w.workerNodeSvcAddress.value.value
+                    WorkerNodeAppSettings.WorkerNodeSvcPort <- w.workerNodeSvcPort.value.value
+                    WorkerNodeAppSettings.WorkerNodeName <- w.workerNodeName.value
+                    WorkerNodeAppSettings.WorkerNodeId <- w.workerNodeId.value.value
+                    WorkerNodeAppSettings.NoOfCores <- w.noOfCores
+                    WorkerNodeAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
+                    WorkerNodeAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
+                    WorkerNodeAppSettings.PartitionerId <- w.partitioner.value.value
+                    WorkerNodeAppSettings.IsInactive <- w.isInactive
+                    
+                    Ok()
+                with
+                | e -> e |> WrkSettingExn |> WrkSettingsErr |> WorkerNodeErr |> Error
+            | Error e -> Error e
+
+        
+    let getWorkerNodeServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
+        let w = loadSettings()
+        printfn "getServiceAccessInfoImpl: w1 = %A" w    
+            
+        let g() =
+            {
+                workerNodeInfo =
+                    {
+                        workerNodeId = w.workerNodeId
+                        workerNodeName = w.workerNodeName
+                        partitionerId = w.partitioner
+                        noOfCores = w.noOfCores
+                        nodePriority = WorkerNodePriority.defaultValue
+                        isInactive = w.isInactive
+                        lastErrorDateOpt = None
+                    }
+
+                workerNodeServiceAccessInfo =
+                    {
+                        workerNodeServiceAddress = w.workerNodeSvcAddress
+                        workerNodeServicePort = w.workerNodeSvcPort
+                        workerNodeServiceName = workerNodeServiceName
+                    }
+
+                messagingServiceAccessInfo =
+                    {
+                        messagingServiceAddress = w.msgSvcAddress
+                        messagingServicePort = w.msgSvcPort
+                        messagingServiceName = messagingServiceName
+                    }
+            }            
+
+        let r =           
+            match tryGetSaveSettings(), b with
+            | Some(), _ -> w.trySaveSettings()
+            | _, true -> w.trySaveSettings()
+            | _ -> w.isValid()
+            
+        printfn "getServiceAccessInfoImpl: r = %A" r    
+
+        match r with
+        | Ok() -> g() |> Ok
+        | Error e -> Error e
+        

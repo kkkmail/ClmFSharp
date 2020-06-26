@@ -78,6 +78,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="AccidentalFish.FSharp.Validation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\AccidentalFish.FSharp.Validation.0.10.1\lib\netstandard2.0\AccidentalFish.FSharp.Validation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Argu">
       <HintPath>..\packages\Argu.6.0.0\lib\netstandard2.0\Argu.dll</HintPath>
     </Reference>

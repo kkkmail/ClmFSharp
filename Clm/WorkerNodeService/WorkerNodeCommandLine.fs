@@ -1,9 +1,9 @@
 ﻿namespace WorkerNodeService
 
 open Argu
+//open AccidentalFish.FSharp.Validation
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-//open ClmSys.Registry
 open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open System
@@ -83,7 +83,11 @@ module SvcCommandLine =
             
     
     let loadSettings() =
-        let isEmpty s d = if s <> EmptyString then s else d
+        let isEmpty f s d = if s <> EmptyString then f s else d
+        let x = WorkerNodeServiceAddress.defaultValue
+        let b = WorkerNodeServicePort.defaultValue
+        let c = MessagingServicePort.defaultValue
+        let d = MessagingServiceAddress.defaultValue
         
         {
             svcAddress = Settings.WrkSvcAddress |> ServiceAddress |> WorkerNodeServiceAddress

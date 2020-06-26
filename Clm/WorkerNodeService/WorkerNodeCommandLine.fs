@@ -83,6 +83,8 @@ module SvcCommandLine =
             
     
     let loadSettings() =
+        let isEmpty s d = if s <> EmptyString then s else d
+        
         {
             svcAddress = Settings.WrkSvcAddress |> ServiceAddress |> WorkerNodeServiceAddress
             svcPort =  Settings.WrkSvcPort |> ServicePort |> WorkerNodeServicePort
@@ -212,6 +214,8 @@ module SvcCommandLine =
                 isInactive = getInactive w p              
             }
             
+        printfn "getServiceAccessInfoImpl: w1 = %A" w1    
+            
         let g() =
             {
                 workerNodeInfo =
@@ -245,6 +249,8 @@ module SvcCommandLine =
             | Some _, _ -> w1.trySaveSettings()
             | _, true -> w1.trySaveSettings()
             | _ -> w1.isValid()
+            
+        printfn "getServiceAccessInfoImpl: r = %A" r    
 
         match r with
         | Ok() -> g() |> Ok

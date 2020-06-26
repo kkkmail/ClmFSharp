@@ -17,8 +17,14 @@ open ClmSys
 
 module WindowsService =
 
-    let mutable serviceData : ContGenServiceData = getContGenServiceData logger []
-    let private modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(fun () -> ModelRunner.create serviceData.modelRunnerData)
+    let mutable serviceData = getContGenServiceData logger []
+    
+    let tryCreateModelRunner() =
+        match serviceData with
+        | Ok data -> ModelRunner.create data.modelRunnerData
+        | Error e -> Error e
+    
+    let private modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(tryCreateModelRunner)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
@@ -33,13 +39,13 @@ module WindowsService =
             member _.tryRequestResults b = tryReply tryRequestResults toRequestResultsError b
 
 
-    let startContGenWcfServiceRun (logger : Logger) (i : ContGenServiceData) : ContGenWcfSvcShutDownInfo option =
+    let startContGenWcfServiceRun (logger : Logger) (j : ClmResult<ContGenServiceData>) : ContGenWcfSvcShutDownInfo option =
         try
             printfn "startContGenWcfServiceRun: Creating WCF ContGen Service..."
-            serviceData <- i
+            serviceData <- j
 
-            match modelRunner.Value with
-            | Ok r ->
+            match modelRunner.Value, j  with
+            | Ok r, Ok i ->
                 r.start()
 
                 let binding = getBinding()
@@ -53,8 +59,14 @@ module WindowsService =
                     contGenServiceHost = serviceHost
                 }
                 |> Some
-            | Error e ->
+            | Error e, Ok _ ->
                 printfn "startContGenWcfServiceRun: Error - %A." e
+                None
+            | Ok _, Error e ->
+                printfn "startContGenWcfServiceRun: Error - %A." e
+                None
+            | Error e1, Error e2 ->
+                printfn "startContGenWcfServiceRun: Errors - %A, %A." e1 e2
                 None
         with
         | e ->

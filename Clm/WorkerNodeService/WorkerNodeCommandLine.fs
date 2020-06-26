@@ -18,7 +18,7 @@ open ClmSys.PartitionerData
 
 module SvcCommandLine =
 
-    type Settings = AppSettings<"app.config">
+    type WorkerNodeAppSettings = AppSettings<"app.config">
     
     
     type WorkerNodeSettings
@@ -27,15 +27,15 @@ module SvcCommandLine =
             match w.isValid() with
             | Ok() ->
                 try
-                    Settings.WrkSvcAddress <- w.svcAddress.value.value
-                    Settings.WrkSvcPort <- w.svcPort.value.value
-                    Settings.WrkName <- w.name.value
-                    Settings.WrkNoOfCores <- w.noOfCores
-                    Settings.WrkMsgSvcAddress <- w.msgSvcAddress.value.value
-                    Settings.WrkMsgSvcPort <- w.msgSvcPort.value.value
-                    Settings.WrkMsgCliId <- w.msgCliId.value.value
-                    Settings.WrkPartitioner <- w.partitioner.value.value
-                    Settings.WrkInactive <- w.isInactive
+                    WorkerNodeAppSettings.WorkerNodeSvcAddress <- w.workerNodeSvcAddress.value.value
+                    WorkerNodeAppSettings.WorkerNodeSvcPort <- w.workerNodeSvcPort.value.value
+                    WorkerNodeAppSettings.WorkerNodeName <- w.workerNodeName.value
+                    WorkerNodeAppSettings.WorkerNodeId <- w.workerNodeId.value.value
+                    WorkerNodeAppSettings.NoOfCores <- w.noOfCores
+                    WorkerNodeAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
+                    WorkerNodeAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
+                    WorkerNodeAppSettings.PartitionerId <- w.partitioner.value.value
+                    WorkerNodeAppSettings.IsInactive <- w.isInactive
                     
                     Ok()
                 with
@@ -45,30 +45,30 @@ module SvcCommandLine =
     
     let loadSettings() =
         {
-            svcAddress =
-                match Settings.WrkSvcAddress with
+            workerNodeSvcAddress =
+                match WorkerNodeAppSettings.WorkerNodeSvcAddress with
                 | EmptyString -> WorkerNodeServiceAddress.defaultValue
                 | s -> s |> ServiceAddress |> WorkerNodeServiceAddress
-            svcPort =
-                match Settings.WrkSvcPort with
+            workerNodeSvcPort =
+                match WorkerNodeAppSettings.WorkerNodeSvcPort with
                 | n when n > 0 -> n |> ServicePort |> WorkerNodeServicePort
                 | _ -> WorkerNodeServicePort.defaultValue
-            name  = Settings.WrkName |> WorkerNodeName
-            noOfCores = Settings.WrkNoOfCores
+            workerNodeName  = WorkerNodeAppSettings.WorkerNodeName |> WorkerNodeName
+            noOfCores = WorkerNodeAppSettings.NoOfCores
             msgSvcAddress =
-                match Settings.WrkMsgSvcAddress with
+                match WorkerNodeAppSettings.MsgSvcAddress with
                 | EmptyString -> MessagingServiceAddress.defaultValue
                 | s -> s |> ServiceAddress |> MessagingServiceAddress
             msgSvcPort =
-                match Settings.WrkMsgSvcPort with
+                match WorkerNodeAppSettings.MsgSvcPort with
                 | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
                 | _ -> MessagingServicePort.defaultValue
-            msgCliId = Settings.WrkMsgCliId |> MessagingClientId |> WorkerNodeId
+            workerNodeId = WorkerNodeAppSettings.WorkerNodeId |> MessagingClientId |> WorkerNodeId
             partitioner =
-                match Settings.WrkPartitioner with
+                match WorkerNodeAppSettings.PartitionerId with
                 | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
                 | _ -> defaultPartitionerId
-            isInactive = Settings.WrkInactive
+            isInactive = WorkerNodeAppSettings.IsInactive
         }
         
 
@@ -165,10 +165,10 @@ module SvcCommandLine =
     let getMsgServerAddress (w: WorkerNodeSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
     let getMsgServerPort (w: WorkerNodeSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
     let getPartitioner (w: WorkerNodeSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitioner
-    let getServiceAddress (w: WorkerNodeSettings) p = tryGetServiceAddress p |> Option.defaultValue w.svcAddress
-    let getServicePort (w: WorkerNodeSettings) p = tryGetServicePort p |> Option.defaultValue w.svcPort
-    let getClientId (w: WorkerNodeSettings) p = tryGetClientId p |> Option.defaultValue w.msgCliId
-    let getNodeName (w: WorkerNodeSettings) p = tryGetNodeName p |> Option.defaultValue w.name
+    let getServiceAddress (w: WorkerNodeSettings) p = tryGetServiceAddress p |> Option.defaultValue w.workerNodeSvcAddress
+    let getServicePort (w: WorkerNodeSettings) p = tryGetServicePort p |> Option.defaultValue w.workerNodeSvcPort
+    let getWorkerNodeId (w: WorkerNodeSettings) p = tryGetClientId p |> Option.defaultValue w.workerNodeId
+    let getNodeName (w: WorkerNodeSettings) p = tryGetNodeName p |> Option.defaultValue w.workerNodeName
     let getInactive (w: WorkerNodeSettings) p = tryGetInactive p |> Option.defaultValue w.isInactive
 
 
@@ -177,13 +177,13 @@ module SvcCommandLine =
         
         let w1 =
             {
-                svcAddress = getServiceAddress w p
-                svcPort = getServicePort w p
-                name = getNodeName w p
+                workerNodeSvcAddress = getServiceAddress w p
+                workerNodeSvcPort = getServicePort w p
+                workerNodeName = getNodeName w p
                 noOfCores = getNoOfCores w p
                 msgSvcAddress = getMsgServerAddress w p
                 msgSvcPort = getMsgServerPort w p
-                msgCliId = getClientId w p
+                workerNodeId = getWorkerNodeId w p
                 partitioner = getPartitioner w p
                 isInactive = getInactive w p              
             }
@@ -194,8 +194,8 @@ module SvcCommandLine =
             {
                 workerNodeInfo =
                     {
-                        workerNodeId = w1.msgCliId
-                        workerNodeName = w1.name
+                        workerNodeId = w1.workerNodeId
+                        workerNodeName = w1.workerNodeName
                         partitionerId = w1.partitioner
                         noOfCores = w1.noOfCores
                         nodePriority = WorkerNodePriority.defaultValue
@@ -205,8 +205,8 @@ module SvcCommandLine =
 
                 workerNodeServiceAccessInfo =
                     {
-                        workerNodeServiceAddress = w1.svcAddress
-                        workerNodeServicePort = w1.svcPort
+                        workerNodeServiceAddress = w1.workerNodeSvcAddress
+                        workerNodeServicePort = w1.workerNodeSvcPort
                         workerNodeServiceName = workerNodeServiceName
                     }
 

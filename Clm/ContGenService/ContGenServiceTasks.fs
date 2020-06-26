@@ -1,6 +1,7 @@
 ﻿namespace ContGenService
 
 open Argu
+open ClmSys.ClmErrors
 open ClmSys.ServiceInstaller
 open ClmSys.Logging
 open ContGenService.SvcCommandLine
@@ -21,4 +22,4 @@ module ContGenServiceTasks =
 
     let getParams logger (p : ParseResults<ContGenRunArgs>) = getContGenServiceData logger (p.GetAllResults())
     let getSaveSettings (p : ParseResults<ContGenRunArgs>) () = p.GetAllResults() |> saveSettings
-    type ContGenServiceTask = ServiceTask<ContGenWindowsService, ContGenServiceData, ContGenRunArgs>
+    type ContGenServiceTask = ServiceTask<ContGenWindowsService, ClmResult<ContGenServiceData>, ContGenRunArgs>

@@ -492,3 +492,13 @@ module GeneralData =
     //        ex.Data.["filename"] <- filename
     //        ex.Data.["arguments"] <- args
     //        FailedToStart ex |> Error
+
+    
+    let combine (b, (s: string)) (x, e) =
+        let r =
+            match b, x with
+            | false, false -> s + ", " + e
+            | true, false -> e
+            | false, true -> s
+            | true, true -> EmptyString
+        b && x, r

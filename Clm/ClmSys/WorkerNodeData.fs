@@ -1,10 +1,13 @@
 ﻿namespace ClmSys
 
 open System
-open GeneralData
-open MessagingData
-open WorkerNodePrimitives
-open PartitionerPrimitives
+open ClmSys.GeneralData
+open ClmSys.MessagingData
+open ClmSys.WorkerNodePrimitives
+open ClmSys.PartitionerPrimitives
+open ClmSys.MessagingPrimitives
+open ClmSys.WorkerNodeErrors
+open ClmSys.ClmErrors
 
 module WorkerNodeData =
 
@@ -46,3 +49,35 @@ module WorkerNodeData =
                 msgSvcAccessInfo = this.messagingServiceAccessInfo
             }
 
+    
+    type WorkerNodeSettings =
+        {
+            svcAddress : WorkerNodeServiceAddress
+            svcPort : WorkerNodeServicePort
+            name : WorkerNodeName
+            noOfCores : int
+            msgSvcAddress : MessagingServiceAddress
+            msgSvcPort : MessagingServicePort
+            msgCliId : WorkerNodeId
+            partitioner : PartitionerId
+            isInactive : bool
+        }
+        
+        member w.isValid() =
+            let r =               
+                [
+                    w.svcPort.value.value > 0, sprintf "%A is invalid" w.svcPort
+                    w.svcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.svcAddress
+                    w.name.value <> EmptyString, sprintf "%A is invalid" w.name
+                    w.noOfCores >= 0, sprintf "noOfCores: %A is invalid" w.noOfCores
+                    w.msgSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.msgSvcAddress
+                    w.msgSvcPort.value.value > 0, sprintf "%A is invalid" w.msgSvcPort
+                    w.msgCliId.value.value <> Guid.Empty, sprintf "%A is invalid" w.msgCliId
+                    w.partitioner.value.value <> Guid.Empty, sprintf "%A is invalid" w.partitioner
+                ]
+                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+                
+            match r with
+            | true, _ -> Ok()
+            | false, s -> s |> InvalidSettings |> WrkSettingsErr |> WorkerNodeErr |> Error
+            

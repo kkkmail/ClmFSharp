@@ -1,67 +1,28 @@
 ﻿namespace WorkerNodeService
 
+open System
+open FSharp.Configuration
 open Argu
-//open AccidentalFish.FSharp.Validation
+
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.Logging
 open ClmSys.ServiceInstaller
-open System
 open ClmSys.WorkerNodeData
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
-open FSharp.Configuration
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
+open ClmSys.PartitionerData
 
 module SvcCommandLine =
 
     type Settings = AppSettings<"app.config">
     
     
-    type WorkerNodeSettings =
-        {
-            svcAddress : WorkerNodeServiceAddress
-            svcPort : WorkerNodeServicePort
-            name : WorkerNodeName
-            noOfCores : int
-            msgSvcAddress : MessagingServiceAddress
-            msgSvcPort : MessagingServicePort
-            msgCliId : WorkerNodeId
-            partitioner : PartitionerId
-            isInactive : bool
-        }
-        
-        member w.isValid() =
-            let combine (b, (s: string)) (x, e) =
-                let r =
-                    match b, x with
-                    | false, false -> s + ", " + e
-                    | true, false -> e
-                    | false, true -> s
-                    | true, true -> EmptyString
-                b && x, r
-              
-            let r =               
-                [
-                    w.svcPort.value.value > 0, sprintf "%A is invalid" w.svcPort
-                    w.svcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.svcAddress
-                    w.name.value <> EmptyString, sprintf "%A is invalid" w.name
-                    w.noOfCores >= 0, sprintf "noOfCores: %A is invalid" w.noOfCores
-                    w.msgSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.msgSvcAddress
-                    w.msgSvcPort.value.value > 0, sprintf "%A is invalid" w.msgSvcPort
-                    w.msgCliId.value.value <> Guid.Empty, sprintf "%A is invalid" w.msgCliId
-                    w.partitioner.value.value <> Guid.Empty, sprintf "%A is invalid" w.partitioner
-                ]
-                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
-                
-            match r with
-            | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> WrkSettingsErr |> WorkerNodeErr |> Error
-                
-            
+    type WorkerNodeSettings
+        with            
         member w.trySaveSettings() =
             match w.isValid() with
             | Ok() ->
@@ -83,22 +44,31 @@ module SvcCommandLine =
             
     
     let loadSettings() =
-        let isEmpty f s d = if s <> EmptyString then f s else d
-        let x = WorkerNodeServiceAddress.defaultValue
-        let b = WorkerNodeServicePort.defaultValue
-        let c = MessagingServicePort.defaultValue
-        let d = MessagingServiceAddress.defaultValue
-        
         {
-            svcAddress = Settings.WrkSvcAddress |> ServiceAddress |> WorkerNodeServiceAddress
-            svcPort =  Settings.WrkSvcPort |> ServicePort |> WorkerNodeServicePort
+            svcAddress =
+                match Settings.WrkSvcAddress with
+                | EmptyString -> WorkerNodeServiceAddress.defaultValue
+                | s -> s |> ServiceAddress |> WorkerNodeServiceAddress
+            svcPort =
+                match Settings.WrkSvcPort with
+                | n when n > 0 -> n |> ServicePort |> WorkerNodeServicePort
+                | _ -> WorkerNodeServicePort.defaultValue
             name  = Settings.WrkName |> WorkerNodeName
-            noOfCores  = Settings.WrkNoOfCores
-            msgSvcAddress  = Settings.WrkMsgSvcAddress |> ServiceAddress |> MessagingServiceAddress
-            msgSvcPort  = Settings.WrkMsgSvcPort |> ServicePort |> MessagingServicePort
-            msgCliId  = Settings.WrkMsgCliId |> MessagingClientId |> WorkerNodeId
-            partitioner  = Settings.WrkPartitioner |> MessagingClientId |> PartitionerId
-            isInactive  = Settings.WrkInactive
+            noOfCores = Settings.WrkNoOfCores
+            msgSvcAddress =
+                match Settings.WrkMsgSvcAddress with
+                | EmptyString -> MessagingServiceAddress.defaultValue
+                | s -> s |> ServiceAddress |> MessagingServiceAddress
+            msgSvcPort =
+                match Settings.WrkMsgSvcPort with
+                | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                | _ -> MessagingServicePort.defaultValue
+            msgCliId = Settings.WrkMsgCliId |> MessagingClientId |> WorkerNodeId
+            partitioner =
+                match Settings.WrkPartitioner with
+                | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                | _ -> defaultPartitionerId
+            isInactive = Settings.WrkInactive
         }
         
 

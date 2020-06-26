@@ -20,6 +20,7 @@ open ClmSys.MessagingData
 open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
+open ClmSys.ClmErrors
 
 module SvcCommandLine =
 
@@ -49,7 +50,7 @@ module SvcCommandLine =
                 | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
                 | SaveSettings -> "saves settings to the Registry."
-                | ContGenVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
+                | ContGenVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."

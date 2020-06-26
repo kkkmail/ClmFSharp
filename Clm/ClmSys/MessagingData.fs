@@ -2,6 +2,8 @@
 
 open GeneralData
 open MessagingPrimitives
+open ClmSys.ClmErrors
+open ClmSys.MessagingServiceErrors
 
 module MessagingData =
 
@@ -26,3 +28,22 @@ module MessagingData =
             msgClientId : MessagingClientId
             msgSvcAccessInfo : MessagingServiceAccessInfo
         }
+        
+        
+    type MsgSettings =
+        {
+            msgSvcAddress : MessagingServiceAddress
+            msgSvcPort : MessagingServicePort
+        }
+        
+        member w.isValid() =
+            let r =               
+                [
+                    w.msgSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.msgSvcAddress
+                    w.msgSvcPort.value.value > 0, sprintf "%A is invalid" w.msgSvcPort
+                ]
+                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+                
+            match r with
+            | true, _ -> Ok()
+            | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error

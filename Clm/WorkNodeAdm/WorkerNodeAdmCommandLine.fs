@@ -3,7 +3,6 @@
 open Argu
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
-open ClmSys.Registry
 open ClmSys.Logging
 open System
 open ClmSys.WorkerNodeData

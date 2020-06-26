@@ -14,6 +14,7 @@ open ContGenPrimitives
 open ClmErrors
 open WorkerNodePrimitives
 
+/// DO NOT DELETE.
 module Registry =
 
     type RegistryKeyName =

@@ -193,8 +193,7 @@ module SvcCommandLine =
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
         let w = loadSettings p
-        
-        printfn "getContGenServiceData: w1 = %A" w         
+        printfn "getContGenServiceData: w = %A" w         
         
         let i =
             {

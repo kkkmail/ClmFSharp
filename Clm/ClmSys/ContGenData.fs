@@ -33,7 +33,8 @@ module ContGenData =
         {
             contGenServiceHost : ServiceHost
         }
-        
+
+            
     type ContGenSettings =
         {
             contGenSvcAddress : ContGenServiceAddress

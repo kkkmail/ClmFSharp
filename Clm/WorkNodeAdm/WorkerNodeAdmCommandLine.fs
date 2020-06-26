@@ -2,6 +2,7 @@
 
 open Argu
 open ClmSys.VersionInfo
+open ClmSys.Registry
 open ClmSys.GeneralData
 open ClmSys.Logging
 open System

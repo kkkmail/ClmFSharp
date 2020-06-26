@@ -1,8 +1,9 @@
 ﻿namespace WorkerNodeServiceInfo
 
-open ClmSys.GeneralData
-open System.Threading
 open System
+open System.Threading
+open FSharp.Configuration
+open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
@@ -185,3 +186,10 @@ module ServiceInfo =
             member _.ping() = pingImpl()
 
         new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)
+
+
+    [<Literal>]
+    let WorkerNodeAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\WorkerNodeService\app.config"
+    
+    
+    type WorkerNodeAppSettings = AppSettings<WorkerNodeAppConfigFile>    

@@ -15,10 +15,11 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
 open ClmSys.PartitionerData
+open WorkerNodeServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
-    type WorkerNodeAppSettings = AppSettings<"app.config">
+//    type WorkerNodeAppSettings = AppSettings<"app.config">
     
     
     type WorkerNodeSettings

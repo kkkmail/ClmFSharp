@@ -92,6 +92,7 @@ module AdmCommandLine =
     let getNodeName (w: WorkerNodeSettings) p = tryGetNodeName p |> Option.defaultValue w.workerNodeName
     let getInactive (w: WorkerNodeSettings) p = tryGetInactive p |> Option.defaultValue w.isInactive
 
+    
     let loadSettings p =
         let w = loadWorkerNodeSettings()
         
@@ -111,69 +112,11 @@ module AdmCommandLine =
         w1
 
     
-
-    let getServiceAccessInfoImpl (b : bool) (p : list<WorkerNodeAdmArgs>) = failwith ""
-//        let name = workerNodeServiceRegistryName
-//
-//        let version = getVersion p
-//        let address = getServiceAddress logger version name p
-//        let port = getServicePort logger version name p
-//        let noOfCores = getNoOfCores logger version name p
-//
-//        let msgAddress = getMsgServiceAddress logger version name p
-//        let msgPort = getMsgServicePort logger version name p
-//        let partitioner = getPartitioner logger version name p
-//        let clientId = getClientId logger version name p
-//        let inactive = getInactive logger version name p
-//
-//        match tryGetNodeNameImpl logger version name p with
-//        | Some nodeName ->
-//            let saveSettings() =
-//                trySetWorkerNodeServiceAddress versionNumberValue name address|> ignore
-//                trySetWorkerNodeServicePort versionNumberValue name port |> ignore
-//                trySetWorkerNodeName versionNumberValue name nodeName |> ignore
-//                trySetNumberOfCores versionNumberValue name noOfCores |> ignore
-//
-//                trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
-//                trySetMessagingServicePort versionNumberValue name msgPort |> ignore
-//                trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
-//                trySetMessagingClientId versionNumberValue name clientId.messagingClientId |> ignore
-//                trySetWrkInactive versionNumberValue name inactive |> ignore
-//
-//            match tryGetSaveSettings p, b with
-//            | Some _, _ -> saveSettings()
-//            | _, true -> saveSettings()
-//            | _ -> ignore()
-//
-//            {
-//                workerNodeInfo =
-//                    {
-//                        workerNodeId = clientId
-//                        workerNodeName = nodeName
-//                        partitionerId = partitioner
-//                        noOfCores = noOfCores
-//                        nodePriority = WorkerNodePriority.defaultValue
-//                        isInactive = inactive
-//                        lastErrorDateOpt = None
-//                    }
-//
-//                workerNodeServiceAccessInfo =
-//                    {
-//                        workerNodeServiceAddress = address
-//                        workerNodeServicePort = port
-//                        workerNodeServiceName = workerNodeServiceName
-//                    }
-//
-//                messagingServiceAccessInfo =
-//                    {
-//                        messagingServiceAddress = msgAddress
-//                        messagingServicePort = msgPort
-//                        messagingServiceName = messagingServiceName
-//                    }
-//            }
-//            |> Some
-//        | None -> None
-
+    let getServiceAccessInfoImpl b p =
+        let load() = loadSettings p
+        let trySave() = tryGetSaveSettings p
+        getWorkerNodeServiceAccessInfo (load, trySave) b
+    
 
     let getServiceAccessInfo p = getServiceAccessInfoImpl false p
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore

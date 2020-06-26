@@ -11,7 +11,7 @@ module WorkerNodeAdmTasks =
     let monitor p =
         let d = 30_000
         match getServiceAccessInfo p with
-        | Some i ->
+        | Ok i ->
             let service = new WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo)
 
             while true do
@@ -21,7 +21,7 @@ module WorkerNodeAdmTasks =
                 | e -> printfn "Exception: %A\n" e.Message
 
                 Thread.Sleep(d)
-        | None -> printfn "Nothing to do!"
+        | Error e -> printfn "Error occurred: %A" e
 
         CompletedSuccessfully
 

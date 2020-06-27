@@ -2,14 +2,16 @@
 
 open System
 open Argu
+open FSharp.Configuration
 open ClmSys.VersionInfo
-open ClmSys.Registry
 open ClmSys.MessagingData
 open Messaging.ServiceResponse
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 
 module MsgCliCommandLine =
+    
+    type 
 
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingClientRunArgs =
@@ -38,32 +40,13 @@ module MsgCliCommandLine =
                 | MsgRcpId _ -> "id of message recipient."
 
 
-    let tryGetServerAddress p =
-         p |> List.tryPick (fun e -> match e with | MsgCliSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-
-
-    let tryGetServerPort p =
-        p |> List.tryPick (fun e -> match e with | MsgCliSvcPort p -> p |> ServicePort |> Some | _ -> None)
-
-
-    let tryGetSaveSettings p =
-        p |> List.tryPick (fun e -> match e with | MsgCliSaveSettings -> Some () | _ -> None)
-
-
-    let tryGetVersion p =
-        p |> List.tryPick (fun e -> match e with | MsgCliVersion p -> p |> VersionNumber |> Some | _ -> None)
-
-
-    let tryGetClientId p =
-        p |> List.tryPick (fun e -> match e with | MsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
-
-
-    let tryGetClientName p =
-        p |> List.tryPick (fun e -> match e with | MsgCliName p -> p |> MessagingClientName |> Some | _ -> None)
-
-
-    let tryGetRecipientId p =
-        p |> List.tryPick (fun e -> match e with | MsgRcpId p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | MsgCliSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | MsgCliSvcPort p -> p |> ServicePort |> Some | _ -> None)
+    let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgCliSaveSettings -> Some () | _ -> None)
+    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgCliVersion p -> p |> VersionNumber |> Some | _ -> None)
+    let tryGetClientId p = p |> List.tryPick (fun e -> match e with | MsgCliId p -> p |> MessagingClientId |> Some | _ -> None)
+    let tryGetClientName p = p |> List.tryPick (fun e -> match e with | MsgCliName p -> p |> MessagingClientName |> Some | _ -> None)
+    let tryGetRecipientId p = p |> List.tryPick (fun e -> match e with | MsgRcpId p -> p |> MessagingClientId |> Some | _ -> None)
 
 
     let tryGetClientServiceAccessInfo p no =

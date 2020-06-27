@@ -76,6 +76,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="MessagingTestClientCommandLine.fs" />
     <Compile Include="MessagingTestClientTask.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />

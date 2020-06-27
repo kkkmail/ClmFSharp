@@ -386,61 +386,61 @@ module ServiceInfo =
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])
-    
-    
+
+
     [<Literal>]
     let MsgAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\MessageService\app.config"
-    
-    
+
+
     type MsgAppSettings = AppSettings<MsgAppConfigFile>
-    
-    
+
+
     type MsgSettings
-        with            
+        with
         member w.trySaveSettings() =
             match w.isValid() with
             | Ok() ->
                 try
                     MsgAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
                     MsgAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
-                    
+
                     Ok()
                 with
                 | e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
-            | Error e -> Error e    
+            | Error e -> Error e
 
-    
+
     let loadMsgServiceSettings() =
         {
             msgSvcAddress =
                 match MsgAppSettings.MsgSvcAddress with
                 | EmptyString -> MessagingServiceAddress.defaultValue
                 | s -> s |> ServiceAddress |> MessagingServiceAddress
+
             msgSvcPort =
                 match MsgAppSettings.MsgSvcPort with
                 | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
                 | _ -> MessagingServicePort.defaultValue
         }
-    
-    
+
+
     let getMsgServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
         let (w : MsgSettings) = loadSettings()
         printfn "getServiceAccessInfoImpl: w = %A" w
-        
+
         let r =
             match tryGetSaveSettings(), b with
             | Some _, _ -> w.trySaveSettings()
             | _, true -> w.trySaveSettings()
             | _ -> Ok()
-            
-        match r with            
+
+        match r with
         | Ok() -> printfn "Successfully saved settings."
         | Error e -> printfn "Error occurred trying to save settings: %A." e
-            
+
 
         {
             messagingServiceAddress = w.msgSvcAddress
             messagingServicePort = w.msgSvcPort
             messagingServiceName = messagingServiceName
         }
-        

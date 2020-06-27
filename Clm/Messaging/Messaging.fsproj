@@ -69,7 +69,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="MsgServiceResponse.fs" />
-    <Compile Include="MsgCliCommandLine.fs" />
     <Compile Include="MsgClient.fs" />
     <Compile Include="MsgService.fs" />
     <Content Include="packages.config" />

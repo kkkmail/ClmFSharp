@@ -389,7 +389,7 @@ module ServiceInfo =
 
 
     [<Literal>]
-    let MsgAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\MessageService\app.config"
+    let MsgAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\MessagingService\app.config"
 
 
     type MsgAppSettings = AppSettings<MsgAppConfigFile>

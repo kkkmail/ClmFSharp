@@ -43,7 +43,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingTestClient", "Mess
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Messaging", "Messaging\Messaging.fsproj", "{FAFB8E2D-719C-4E49-9ECC-FEBC10ACD5F1}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingService", "MessageService\MessagingService.fsproj", "{FC9C81B4-B256-4892-83EA-26B870D24FF6}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingService", "MessagingService\MessagingService.fsproj", "{FC9C81B4-B256-4892-83EA-26B870D24FF6}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkerNodeService", "WorkerNodeService\WorkerNodeService.fsproj", "{C43CB3B5-AE9C-46D5-ABDA-1B85B24AE34C}"
 EndProject

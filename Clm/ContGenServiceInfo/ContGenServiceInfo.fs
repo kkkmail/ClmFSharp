@@ -1,15 +1,22 @@
 ﻿namespace ContGenServiceInfo
 
 open System
-open ClmSys.GeneralData
+open System.ServiceModel
 open System.Threading
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
+open FSharp.Configuration
+
+open ClmSys.GeneralData
 open Clm.ModelParams
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
-open System.ServiceModel
+open ClmSys.ContGenErrors
+open ClmSys.ContGenData
+open ClmSys.PartitionerData
 
 module ServiceInfo =
 
@@ -102,3 +109,71 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryRequestResults")>]
         abstract tryRequestResults : q:byte[] -> byte[]
+
+    
+    [<Literal>]
+    let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
+
+    
+    type ContGenAppSettings = AppSettings<ContGenAppConfigFile>
+    
+    
+    type ContGenSettings
+        with            
+        member w.trySaveSettings() =
+            match w.isValid() with
+            | Ok() ->
+                try
+                    ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcAddress.value.value
+                    ContGenAppSettings.ContGenSvcPort <- w.contGenSvcPort.value.value
+                    ContGenAppSettings.MinUsefulEe <- w.minUsefulEe.value
+                    ContGenAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
+                    ContGenAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
+                    ContGenAppSettings.PartitionerId <- w.partitionerId.value.value
+                    
+                    Ok()
+                with
+                | e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
+            | Error e -> Error e    
+
+    
+    let loadContGenSettings() =
+        let w =
+            {
+                contGenSvcAddress =
+                    match ContGenAppSettings.ContGenSvcAddress with
+                    | EmptyString -> ContGenServiceAddress.defaultValue
+                    | s -> s |> ServiceAddress |> ContGenServiceAddress
+                contGenSvcPort =
+                    match ContGenAppSettings.ContGenSvcPort with
+                    | n when n > 0 -> n |> ServicePort |> ContGenServicePort
+                    | _ -> ContGenServicePort.defaultValue
+                minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+                msgSvcAddress =
+                    match ContGenAppSettings.MsgSvcAddress with
+                    | EmptyString -> MessagingServiceAddress.defaultValue
+                    | s -> s |> ServiceAddress |> MessagingServiceAddress
+                msgSvcPort =
+                    match ContGenAppSettings.MsgSvcPort with
+                    | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                    | _ -> MessagingServicePort.defaultValue
+                partitionerId =
+                    match ContGenAppSettings.PartitionerId with
+                    | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                    | _ -> defaultPartitionerId
+            }
+        w
+
+
+    let saveContGenSettings loadSettings tryGetSaveSettings =
+        let (w : ContGenSettings) = loadSettings()
+        
+        let r =
+            match tryGetSaveSettings() with
+            | Some() -> w.trySaveSettings()
+            | None -> Ok()
+            
+        match r with            
+        | Ok() -> printfn "Successfully saved settings."
+        | Error e -> printfn "Error occurred trying to save settings: %A." e
+        

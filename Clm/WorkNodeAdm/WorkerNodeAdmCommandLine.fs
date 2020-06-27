@@ -1,10 +1,6 @@
 ﻿namespace WorkerNodeAdm
 
 open Argu
-open ClmSys.VersionInfo
-//open ClmSys.Registry
-open ClmSys.GeneralData
-open ClmSys.Logging
 open System
 open ClmSys.WorkerNodeData
 open ClmSys.GeneralPrimitives
@@ -29,7 +25,6 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-c")>] WrkAdmNoOfCores of int
 
         | [<Unique>] [<AltCommandLine("-save")>] WrkAdmSaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] WrkAdmVersion of string
 
         | [<Unique>] [<AltCommandLine("-msgAddress")>] WrkAdmMsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] WrkAdmMsgSvcPort of int
@@ -51,7 +46,6 @@ module AdmCommandLine =
                 | WrkAdmNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
                 | WrkAdmSaveSettings -> "saves settings to the Registry."
-                | WrkAdmVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
 
                 | WrkAdmMsgSvcAddress _ -> "messaging server ip address / name."
                 | WrkAdmMsgSvcPort _ -> "messaging server port."
@@ -67,7 +61,6 @@ module AdmCommandLine =
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkAdmNoOfCores p -> Some p | _ -> None)
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkAdmSaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | WrkAdmVersion p -> p |> VersionNumber |> Some | _ -> None)
 
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkAdmMsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | WrkAdmMsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
@@ -82,7 +75,6 @@ module AdmCommandLine =
         max 0 (min n Environment.ProcessorCount)
 
 
-    let getVersion = getVersionImpl tryGetVersion
     let getMsgServerAddress (w: WorkerNodeSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
     let getMsgServerPort (w: WorkerNodeSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
     let getPartitioner (w: WorkerNodeSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitioner
@@ -108,11 +100,13 @@ module AdmCommandLine =
                 partitioner = getPartitioner w p
                 isInactive = getInactive w p              
             }
-            
+          
+        printfn "loadSettings: w1 = %A" w1    
         w1
 
     
     let getServiceAccessInfoImpl b p =
+        WorkerNodeAppSettings.SelectExecutableFile("")
         let load() = loadSettings p
         let trySave() = tryGetSaveSettings p
         getWorkerNodeServiceAccessInfo (load, trySave) b

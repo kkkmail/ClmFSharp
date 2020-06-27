@@ -1,7 +1,6 @@
 ﻿namespace ContGenService
 
 open Argu
-open FSharp.Configuration
 open ClmSys.GeneralData
 open ClmSys.ServiceInstaller
 open System
@@ -20,34 +19,10 @@ open ClmSys.MessagingData
 open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
-open ClmSys.ClmErrors
-open ClmSys.ContGenErrors
-open ClmSys.PartitionerData
+open ContGenServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
-    type ContGenAppSettings = AppSettings<"app.config">
-    
-    
-    type ContGenSettings
-        with            
-        member w.trySaveSettings() =
-            match w.isValid() with
-            | Ok() ->
-                try
-                    ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcAddress.value.value
-                    ContGenAppSettings.ContGenSvcPort <- w.contGenSvcPort.value.value
-                    ContGenAppSettings.MinUsefulEe <- w.minUsefulEe.value
-                    ContGenAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
-                    ContGenAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
-                    ContGenAppSettings.PartitionerId <- w.partitionerId.value.value
-                    
-                    Ok()
-                with
-                | e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
-            | Error e -> Error e    
-
-    
     type ContGenServiceData =
         {
             modelRunnerData : ModelRunnerDataWithProxy
@@ -139,30 +114,7 @@ module SvcCommandLine =
 
     
     let loadSettings p =
-        let w =
-            {
-                contGenSvcAddress =
-                    match ContGenAppSettings.ContGenSvcAddress with
-                    | EmptyString -> ContGenServiceAddress.defaultValue
-                    | s -> s |> ServiceAddress |> ContGenServiceAddress
-                contGenSvcPort =
-                    match ContGenAppSettings.ContGenSvcPort with
-                    | n when n > 0 -> n |> ServicePort |> ContGenServicePort
-                    | _ -> ContGenServicePort.defaultValue
-                minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
-                msgSvcAddress =
-                    match ContGenAppSettings.MsgSvcAddress with
-                    | EmptyString -> MessagingServiceAddress.defaultValue
-                    | s -> s |> ServiceAddress |> MessagingServiceAddress
-                msgSvcPort =
-                    match ContGenAppSettings.MsgSvcPort with
-                    | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                    | _ -> MessagingServicePort.defaultValue
-                partitionerId =
-                    match ContGenAppSettings.PartitionerId with
-                    | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-                    | _ -> defaultPartitionerId
-            }
+        let w = loadContGenSettings()
 
         let w1 =
             {
@@ -178,16 +130,9 @@ module SvcCommandLine =
 
 
     let saveSettings p =
-        let w = loadSettings p
-        
-        let r =
-            match tryGetSaveSettings p with
-            | Some() -> w.trySaveSettings()
-            | None -> Ok()
-            
-        match r with            
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn "Error occurred trying to save settings: %A." e
+        let load() = loadSettings p
+        let tryGet() = tryGetSaveSettings p
+        saveContGenSettings load tryGet
         
 
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.

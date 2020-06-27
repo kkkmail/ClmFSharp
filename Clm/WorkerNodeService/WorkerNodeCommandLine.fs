@@ -3,16 +3,12 @@
 open System
 open Argu
 
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open ClmSys.ServiceInstaller
 open ClmSys.WorkerNodeData
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.WorkerNodeErrors
-open ClmSys.ClmErrors
 open WorkerNodeServiceInfo.ServiceInfo
 
 module SvcCommandLine =
@@ -25,7 +21,6 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-c")>] WrkNoOfCores of int
 
         | [<Unique>] [<AltCommandLine("-save")>] WrkSaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] WrkVersion of string
 
         | [<Unique>] [<AltCommandLine("-msgAddress")>] WrkMsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] WrkMsgSvcPort of int
@@ -44,7 +39,6 @@ module SvcCommandLine =
                 | WrkNoOfCores _ -> "number of processor cores used by current node. If nothing specified, then half of available logical cores are used."
 
                 | WrkSaveSettings -> "saves settings to the Registry."
-                | WrkVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
 
                 | WrkMsgSvcAddress _ -> "messaging server ip address / name."
                 | WrkMsgSvcPort _ -> "messaging server port."
@@ -93,7 +87,6 @@ module SvcCommandLine =
     let tryGetNodeName p = p |> List.tryPick (fun e -> match e with | WrkName p -> p |> WorkerNodeName |> Some | _ -> None)
     let tryGetNoOfCores p = p |> List.tryPick (fun e -> match e with | WrkNoOfCores p -> Some p | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkSaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | WrkVersion p -> p |> VersionNumber |> Some | _ -> None)
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | WrkMsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | WrkPartitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
@@ -106,7 +99,6 @@ module SvcCommandLine =
         max 0 (min n Environment.ProcessorCount)
 
 
-    let getVersion = getVersionImpl tryGetVersion
     let getMsgServerAddress (w: WorkerNodeSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
     let getMsgServerPort (w: WorkerNodeSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
     let getPartitioner (w: WorkerNodeSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitioner
@@ -132,6 +124,7 @@ module SvcCommandLine =
                 isInactive = getInactive w p              
             }
             
+        printfn "loadSettings: w1 = %A" w1    
         w1
 
     

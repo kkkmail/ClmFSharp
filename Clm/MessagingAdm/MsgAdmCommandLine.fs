@@ -34,7 +34,7 @@ module AdmCommandLine =
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
                 | MsgSaveSettings -> "saves settings to the Registry."
-                | MsgVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
+                | MsgVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
 
 
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)

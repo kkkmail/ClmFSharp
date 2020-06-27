@@ -8,7 +8,7 @@ open System
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.Logging
-open ClmSys.Registry
+//open ClmSys.Registry
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.VersionInfo
 open ClmSys.ContGenData
@@ -19,6 +19,15 @@ module AdmCommandLine =
 
     [<Literal>]
     let ContGenAdmAppName = "ContGenAdm.exe"
+    
+    
+    type ContGenAdmSettings =
+        {
+            contGenSettings : ContGenSettings
+            
+            numberOfAminoAcids : NumberOfAminoAcids
+            generateModelCode : bool
+        }
 
 
     [<CliPrefix(CliPrefix.Dash)>]
@@ -171,20 +180,37 @@ module AdmCommandLine =
     let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
-    let getContGenServiceAddress = getContGenServiceAddressImpl tryGetContGenServiceAddress
-    let getContGenServicePort = getContGenServicePortImpl tryGetContGenServicePort
+    let getServiceAddress (w: ContGenSettings) p = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcAddress
+    let getServicePort (w: ContGenSettings) p = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcPort
     //let getPartitioner = getPartitionerImpl tryGetPartitioner
+    
+    
+    let loadSettings p =
+        let w = loadContGenSettings()
+
+        let w1 =
+            {
+                contGenSvcAddress = getServiceAddress w p
+                contGenSvcPort = getServicePort w p
+                minUsefulEe = geMinUsefulEe w p
+                msgSvcAddress = getMsgServerAddress w p
+                msgSvcPort = getMsgServerPort w p
+                partitionerId = getPartitionerId w p
+            }
+            
+        w1
 
 
     let getContGenServiceAccessInfo p =
-        let name = contGenServiceRegistryName
-        let version = versionNumberValue
-        let contGenAddress = getContGenServiceAddress logger version name p
-        let contGenPort = getContGenServicePort logger version name p
+        let w = loadSettings p
+//        let name = contGenServiceRegistryName
+//        let version = versionNumberValue
+//        let contGenAddress = getContGenServiceAddress logger version name p
+//        let contGenPort = getContGenServicePort logger version name p
 
         {
-            contGenServiceAddress = contGenAddress
-            contGenServicePort = contGenPort
+            contGenServiceAddress = w.contGenSvcAddress
+            contGenServicePort = w.contGenSvcPort
             contGenServiceName = contGenServiceName
         }
 
@@ -196,6 +222,7 @@ module AdmCommandLine =
     let getResultNotificationTypeOpt p =
         p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
 
+    
     let private reportResult (logger : Logger) name r =
         match r with
         | Ok() ->
@@ -206,6 +233,7 @@ module AdmCommandLine =
             logger.logError e
             Error e
 
+    
     let tryCancelRunQueueImpl (logger : Logger) p =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
         | Some q, Some c ->

@@ -4,6 +4,7 @@ open Argu
 open System
 open ClmSys.WorkerNodeData
 open ClmSys.GeneralPrimitives
+open ClmSys.GeneralData
 open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
@@ -86,6 +87,7 @@ module AdmCommandLine =
 
     
     let loadSettings p =
+        WorkerNodeAppSettings.SelectExecutableFile(getFileName workerNodeServiceProgramName)
         let w = loadWorkerNodeSettings()
         
         let w1 =
@@ -106,7 +108,6 @@ module AdmCommandLine =
 
     
     let getServiceAccessInfoImpl b p =
-        WorkerNodeAppSettings.SelectExecutableFile("")
         let load() = loadSettings p
         let trySave() = tryGetSaveSettings p
         getWorkerNodeServiceAccessInfo (load, trySave) b

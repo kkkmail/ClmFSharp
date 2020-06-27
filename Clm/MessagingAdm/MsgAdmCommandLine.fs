@@ -4,10 +4,9 @@ open Argu
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.VersionInfo
-open ClmSys.Registry
-open ClmSys.Logging
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
+open MessagingServiceInfo.ServiceInfo
 
 module AdmCommandLine =
 
@@ -44,32 +43,27 @@ module AdmCommandLine =
 
 
     let getVersion = getVersionImpl tryGetVersion
-    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
-    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
+    let getMsgServiceAddress (w: MsgSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
+    let getMsgServicePort (w: MsgSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
 
+    
+    let loadSettings p =
+        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
+        let w = loadMsgServiceSettings()
+        
+        let w1 =
+            {
+                msgSvcAddress = getMsgServiceAddress w p
+                msgSvcPort = getMsgServicePort w p
+            }
+            
+        w1
+        
 
     let getServiceAccessInfoImpl b p =
-        let name = messagingAdmRegistryName
-
-        let version = getVersion p
-        let address = getMsgServiceAddress logger version name p
-        let port = getMsgServicePort logger version name p
-        printfn "address: %A, port: %A" address port
-
-        let saveSettings() =
-            trySetMessagingServiceAddress versionNumberValue name address |> ignore
-            trySetMessagingServicePort versionNumberValue name port |> ignore
-
-        match tryGetSaveSettings p, b with
-        | Some _, _ -> saveSettings()
-        | _, true -> saveSettings()
-        | _ -> ignore()
-
-        {
-            messagingServiceAddress = address
-            messagingServicePort = port
-            messagingServiceName = messagingServiceName
-        }
+        let load() = loadSettings p
+        let tryGetSave() = tryGetSaveSettings p
+        getMsgServiceAccessInfo (load, tryGetSave) b
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

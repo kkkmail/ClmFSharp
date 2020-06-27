@@ -1,37 +1,16 @@
 ﻿namespace MessagingService
 
 open Argu
-open FSharp.Configuration
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.MessagingData
-open ClmSys.Logging
 open ClmSys.ServiceInstaller
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
-open ClmSys.ClmErrors
-open ClmSys.MessagingServiceErrors
+open MessagingServiceInfo.ServiceInfo
 
 module SvcCommandLine =
     
-    type MsgAppSettings = AppSettings<"app.config">
-    
-    
-    type MsgSettings
-        with            
-        member w.trySaveSettings() =
-            match w.isValid() with
-            | Ok() ->
-                try
-                    MsgAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
-                    MsgAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
-                    
-                    Ok()
-                with
-                | e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
-            | Error e -> Error e    
-    
-
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-address")>] MsgSvcAddress of string
@@ -95,18 +74,8 @@ module SvcCommandLine =
 
     
     let loadSettings p =
-        let w =
-            {
-                msgSvcAddress =
-                    match MsgAppSettings.MsgSvcAddress with
-                    | EmptyString -> MessagingServiceAddress.defaultValue
-                    | s -> s |> ServiceAddress |> MessagingServiceAddress
-                msgSvcPort =
-                    match MsgAppSettings.MsgSvcPort with
-                    | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                    | _ -> MessagingServicePort.defaultValue
-            }
-
+        let w = loadMsgServiceSettings()
+        
         let w1 =
             {
                 msgSvcAddress = getMsgServiceAddress w p
@@ -116,27 +85,10 @@ module SvcCommandLine =
         w1
     
     
-
-    let getServiceAccessInfoImpl b p : MessagingServiceAccessInfo =
-        let w = loadSettings p
-        printfn "getServiceAccessInfoImpl: w = %A" w
-        
-        let r =
-            match tryGetSaveSettings p, b with
-            | Some _, _ -> w.trySaveSettings()
-            | _, true -> w.trySaveSettings()
-            | _ -> Ok()
-            
-        match r with            
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn "Error occurred trying to save settings: %A." e
-            
-
-        {
-            messagingServiceAddress = w.msgSvcAddress
-            messagingServicePort = w.msgSvcPort
-            messagingServiceName = messagingServiceName
-        }
+    let getServiceAccessInfoImpl b p =
+        let load() = loadSettings p
+        let tryGetSave() = tryGetSaveSettings p
+        getMsgServiceAccessInfo (load, tryGetSave) b
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false

@@ -112,7 +112,7 @@ module SvcCommandLine =
     let getServiceAddress (w: ContGenSettings) p = tryGetServerAddress p |> Option.defaultValue w.contGenSvcAddress
     let getServicePort (w: ContGenSettings) p = tryGetServerPort p |> Option.defaultValue w.contGenSvcPort
 
-    
+
     let loadSettings p =
         let w = loadContGenSettings()
 
@@ -125,7 +125,7 @@ module SvcCommandLine =
                 msgSvcPort = getMsgServerPort w p
                 partitionerId = getPartitionerId w p
             }
-            
+
         w1
 
 
@@ -133,13 +133,13 @@ module SvcCommandLine =
         let load() = loadSettings p
         let tryGet() = tryGetSaveSettings p
         saveContGenSettings load tryGet
-        
+
 
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
         let w = loadSettings p
-        printfn "getContGenServiceData: w = %A" w         
-        
+        printfn "getContGenServiceData: w = %A" w
+
         let i =
             {
                 msgClientId = w.partitionerId.messagingClientId
@@ -156,7 +156,7 @@ module SvcCommandLine =
             let i =
                 {
                     messagingClientName = contGenServiceName.value.messagingClientName
-                    storageType = clmConnectionString |> MsSqlDatabase
+                    storageType = getClmConnectionString |> MsSqlDatabase
                 }
 
             let messagingClientData =
@@ -176,7 +176,7 @@ module SvcCommandLine =
                     {
                         runnerData =
                             {
-                                connectionString = clmConnectionString
+                                getConnectionString = getClmConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
                                 earlyExitInfoOpt = Some EarlyExitInfo.defaultValue

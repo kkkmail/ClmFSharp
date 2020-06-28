@@ -21,7 +21,7 @@ module ServiceImplementation =
     let private createMessagingService logger (i : MessagingServiceAccessInfo) : MessagingService =
         let d : MessagingServiceData =
             {
-                messagingServiceProxy = MessagingServiceProxy.create msgSvcConnectionString
+                messagingServiceProxy = MessagingServiceProxy.create getMsgSvcConnectionString
                 expirationTime = MessagingServiceData.defaultExpirationTime
             }
 

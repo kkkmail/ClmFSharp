@@ -110,16 +110,16 @@ module ServiceInfo =
         [<OperationContract(Name = "tryRequestResults")>]
         abstract tryRequestResults : q:byte[] -> byte[]
 
-    
+
     [<Literal>]
     let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
 
-    
+
     type ContGenAppSettings = AppSettings<ContGenAppConfigFile>
-    
-    
+
+
     type ContGenSettings
-        with            
+        with
         member w.trySaveSettings() =
             match w.isValid() with
             | Ok() ->
@@ -130,13 +130,13 @@ module ServiceInfo =
                     ContGenAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
                     ContGenAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
                     ContGenAppSettings.PartitionerId <- w.partitionerId.value.value
-                    
+
                     Ok()
                 with
                 | e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
-            | Error e -> Error e    
+            | Error e -> Error e
 
-    
+
     let loadContGenSettings() =
         let w =
             {
@@ -167,13 +167,12 @@ module ServiceInfo =
 
     let saveContGenSettings loadSettings tryGetSaveSettings =
         let (w : ContGenSettings) = loadSettings()
-        
+
         let r =
             match tryGetSaveSettings() with
             | Some() -> w.trySaveSettings()
             | None -> Ok()
-            
-        match r with            
+
+        match r with
         | Ok() -> printfn "Successfully saved settings."
         | Error e -> printfn "Error occurred trying to save settings: %A." e
-        

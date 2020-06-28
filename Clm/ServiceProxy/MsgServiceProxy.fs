@@ -10,7 +10,7 @@ open ClmSys.GeneralPrimitives
 module MsgServiceProxy =
 
     type MessagingClientStorageType =
-        | MsSqlDatabase of ConnectionString
+        | MsSqlDatabase of (unit -> ConnectionString)
         | SqliteDatabase of SqliteConnectionString
 
 
@@ -36,14 +36,14 @@ module MsgServiceProxy =
             let name = i.messagingClientName
 
             match i.storageType with
-            | MsSqlDatabase connectionString ->
+            | MsSqlDatabase g ->
 
                 {
-                    tryPickIncomingMessage = fun () -> tryPickIncomingMessage connectionString c
-                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessage connectionString c
-                    saveMessage = fun m -> saveMessage connectionString m
-                    tryDeleteMessage = deleteMessage connectionString
-                    deleteExpiredMessages = deleteExpiredMessages connectionString
+                    tryPickIncomingMessage = fun () -> tryPickIncomingMessage g c
+                    tryPickOutgoingMessage = fun () -> tryPickOutgoingMessage g c
+                    saveMessage = fun m -> saveMessage g m
+                    tryDeleteMessage = deleteMessage g
+                    deleteExpiredMessages = deleteExpiredMessages g
                 }
             | SqliteDatabase connectionString ->
                 {
@@ -64,10 +64,10 @@ module MsgServiceProxy =
             deleteExpiredMessages : TimeSpan -> UnitResult
         }
 
-        static member create (connectionString : ConnectionString) =
+        static member create (g : unit -> ConnectionString) =
             {
-                tryPickMessage = tryPickIncomingMessage connectionString
-                saveMessage = saveMessage connectionString
-                deleteMessage = deleteMessage connectionString
-                deleteExpiredMessages = deleteExpiredMessages connectionString
+                tryPickMessage = tryPickIncomingMessage g
+                saveMessage = saveMessage g
+                deleteMessage = deleteMessage g
+                deleteExpiredMessages = deleteExpiredMessages g
             }

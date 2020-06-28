@@ -18,13 +18,13 @@ open ClmSys
 module WindowsService =
 
     let mutable serviceData = getContGenServiceData logger []
-    
+
     let tryCreateModelRunner() =
         match serviceData with
         | Ok data -> ModelRunner.create data.modelRunnerData
         | Error e -> Error e
-    
-    let private modelRunner : Lazy<ClmResult<ModelRunner>> = new Lazy<ClmResult<ModelRunner>>(tryCreateModelRunner)
+
+    let private modelRunner = new Lazy<ClmResult<ModelRunner>>(tryCreateModelRunner)
 
 
     [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]

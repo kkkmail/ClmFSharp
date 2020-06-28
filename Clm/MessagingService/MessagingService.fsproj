@@ -76,6 +76,9 @@
     <Compile Include="MsgProgram.fs" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="db.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AccidentalFish.FSharp.Validation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">

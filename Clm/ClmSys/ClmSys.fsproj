@@ -93,7 +93,6 @@
     <Compile Include="ContGenAdmData.fs" />
     <Compile Include="Fake.fs" />
     <Compile Include="Retry.fs" />
-    <Compile Include="Registry.fs" />
     <Compile Include="TimerEvents.fs" />
     <Compile Include="ServiceInstaller.fs" />
     <Compile Include="Wcf.fs" />

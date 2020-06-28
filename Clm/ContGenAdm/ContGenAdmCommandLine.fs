@@ -192,9 +192,6 @@ module AdmCommandLine =
     let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
-    let getServiceAddress (w: ContGenSettings) p = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcAddress
-    let getServicePort (w: ContGenSettings) p = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcPort
-    let getPartitionerId (w: ContGenSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitionerId
 
 
     let loadSettings p =
@@ -202,27 +199,28 @@ module AdmCommandLine =
 
         let w1 =
             {
-                contGenSvcAddress = getServiceAddress w p
-                contGenSvcPort = getServicePort w p
-                minUsefulEe = w.minUsefulEe // geMinUsefulEe w p
-                msgSvcAddress = w.msgSvcAddress // getMsgServerAddress w p
-                msgSvcPort = w.msgSvcPort // getMsgServerPort w p
-                partitionerId = getPartitionerId w p
-                lastAllowedNodeErr = w.lastAllowedNodeErr
+                contGenSvcInfo =
+                    {
+                        contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
+                        contGenServicePort = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
+                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
+                    }
+
+                messagingSvcInfo = w.messagingSvcInfo
+
+                contGenInfo =
+                    {
+                        minUsefulEe = w.contGenInfo.minUsefulEe
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                    }
             }
 
         printfn "loadSettings: w1 = %A" w1
         w1
 
 
-    let getContGenServiceAccessInfo p =
-        let w = loadSettings p
-
-        {
-            contGenServiceAddress = w.contGenSvcAddress
-            contGenServicePort = w.contGenSvcPort
-            contGenServiceName = contGenServiceName
-        }
+    let getContGenServiceAccessInfo p = (loadSettings p).contGenSvcInfo
 
 
     let getCancellationTypeOpt p =

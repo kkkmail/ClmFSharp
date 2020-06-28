@@ -411,6 +411,8 @@ module ServiceInfo =
 
 
     let loadMsgServiceSettings() =
+        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
+
         {
             msgSvcAddress =
                 match MsgAppSettings.MsgSvcAddress with

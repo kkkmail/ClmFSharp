@@ -8,9 +8,9 @@ open GeneralPrimitives
 open GeneralData
 open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
-open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
+open ClmSys.MessagingData
 
 module ContGenData =
 
@@ -36,26 +36,32 @@ module ContGenData =
     let defaultLastAllowedNodeErr = LastAllowedNodeErr 60<minute>
 
 
-    type ContGenSettings =
+    type ContGenInfo =
         {
-            contGenSvcAddress : ContGenServiceAddress
-            contGenSvcPort : ContGenServicePort
             minUsefulEe : MinUsefulEe
-            msgSvcAddress : MessagingServiceAddress
-            msgSvcPort : MessagingServicePort
             partitionerId : PartitionerId
             lastAllowedNodeErr : LastAllowedNodeErr
+        }
+
+
+    type ContGenSettings =
+        {
+            contGenInfo : ContGenInfo
+            contGenSvcInfo : ContGenServiceAccessInfo
+            messagingSvcInfo : MessagingServiceAccessInfo
         }
 
         member w.isValid() =
             let r =
                 [
-                    w.contGenSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcAddress
-                    w.contGenSvcPort.value.value > 0, sprintf "%A is invalid" w.contGenSvcPort
-                    w.msgSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.msgSvcAddress
-                    w.msgSvcPort.value.value > 0, sprintf "%A is invalid" w.msgSvcPort
-                    w.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.partitionerId
-                    w.lastAllowedNodeErr.value > 0<minute>, sprintf "%A is invalid" w.lastAllowedNodeErr
+                    w.contGenSvcInfo.contGenServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcInfo.contGenServiceAddress
+                    w.contGenSvcInfo.contGenServicePort.value.value > 0, sprintf "%A is invalid" w.contGenSvcInfo.contGenServicePort
+
+                    w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+                    w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+
+                    w.contGenInfo.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.contGenInfo.partitionerId
+                    w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, sprintf "%A is invalid" w.contGenInfo.lastAllowedNodeErr
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 

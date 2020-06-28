@@ -102,29 +102,31 @@ module SvcCommandLine =
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
 
 
-    let geMinUsefulEe (w: ContGenSettings) p = tryGeMinUsefulEe p |> Option.defaultValue w.minUsefulEe
-
-
-    let getVersion = getVersionImpl tryGetVersion
-    let getMsgServerAddress (w: ContGenSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
-    let getMsgServerPort (w: ContGenSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
-    let getPartitionerId (w: ContGenSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitionerId
-    let getServiceAddress (w: ContGenSettings) p = tryGetServerAddress p |> Option.defaultValue w.contGenSvcAddress
-    let getServicePort (w: ContGenSettings) p = tryGetServerPort p |> Option.defaultValue w.contGenSvcPort
-
-
     let loadSettings p =
         let w = loadContGenSettings()
 
         let w1 =
             {
-                contGenSvcAddress = getServiceAddress w p
-                contGenSvcPort = getServicePort w p
-                minUsefulEe = geMinUsefulEe w p
-                msgSvcAddress = getMsgServerAddress w p
-                msgSvcPort = getMsgServerPort w p
-                partitionerId = getPartitionerId w p
-                lastAllowedNodeErr = w.lastAllowedNodeErr
+                contGenSvcInfo =
+                    {
+                        contGenServiceAddress = tryGetServerAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
+                        contGenServicePort = tryGetServerPort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
+                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
+                    }
+
+                messagingSvcInfo =
+                    {
+                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
+                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
+                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+                    }
+
+                contGenInfo =
+                    {
+                        minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue w.contGenInfo.minUsefulEe
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                    }
             }
 
         w1
@@ -143,14 +145,8 @@ module SvcCommandLine =
 
         let i =
             {
-                msgClientId = w.partitionerId.messagingClientId
-
-                msgSvcAccessInfo =
-                    {
-                        messagingServiceAddress = w.msgSvcAddress
-                        messagingServicePort = w.msgSvcPort
-                        messagingServiceName = messagingServiceName
-                    }
+                msgClientId = w.contGenInfo.partitionerId.messagingClientId
+                msgSvcAccessInfo = w.messagingSvcInfo
             }
 
         let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
@@ -181,7 +177,7 @@ module SvcCommandLine =
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
                                 earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
-                                lastAllowedNodeErr = w.lastAllowedNodeErr
+                                lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                             }
 
                         runnerProxy =
@@ -194,12 +190,7 @@ module SvcCommandLine =
                         logger = logger
                     }
 
-                contGenServiceAccessInfo =
-                    {
-                        contGenServiceAddress = w.contGenSvcAddress
-                        contGenServicePort = w.contGenSvcPort
-                        contGenServiceName = contGenServiceName
-                    }
+                contGenServiceAccessInfo = w.contGenSvcInfo
             }
 
         match w.isValid() with

@@ -124,13 +124,15 @@ module ServiceInfo =
             match w.isValid() with
             | Ok() ->
                 try
-                    ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcAddress.value.value
-                    ContGenAppSettings.ContGenSvcPort <- w.contGenSvcPort.value.value
-                    ContGenAppSettings.MinUsefulEe <- w.minUsefulEe.value
-                    ContGenAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
-                    ContGenAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
-                    ContGenAppSettings.PartitionerId <- w.partitionerId.value.value
-                    ContGenAppSettings.LastAllowedNodeErrInMinutes <- w.lastAllowedNodeErr.value / 1<minute>
+                    ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcInfo.contGenServiceAddress.value.value
+                    ContGenAppSettings.ContGenSvcPort <- w.contGenSvcInfo.contGenServicePort.value.value
+
+                    ContGenAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
+                    ContGenAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
+
+                    ContGenAppSettings.MinUsefulEe <- w.contGenInfo.minUsefulEe.value
+                    ContGenAppSettings.PartitionerId <- w.contGenInfo.partitionerId.value.value
+                    ContGenAppSettings.LastAllowedNodeErrInMinutes <- w.contGenInfo.lastAllowedNodeErr.value / 1<minute>
 
                     Ok()
                 with
@@ -143,37 +145,50 @@ module ServiceInfo =
 
         let w =
             {
-                contGenSvcAddress =
-                    match ContGenAppSettings.ContGenSvcAddress with
-                    | EmptyString -> ContGenServiceAddress.defaultValue
-                    | s -> s |> ServiceAddress |> ContGenServiceAddress
+                contGenSvcInfo =
+                    {
+                        contGenServiceAddress =
+                            match ContGenAppSettings.ContGenSvcAddress with
+                            | EmptyString -> ContGenServiceAddress.defaultValue
+                            | s -> s |> ServiceAddress |> ContGenServiceAddress
 
-                contGenSvcPort =
-                    match ContGenAppSettings.ContGenSvcPort with
-                    | n when n > 0 -> n |> ServicePort |> ContGenServicePort
-                    | _ -> ContGenServicePort.defaultValue
+                        contGenServicePort =
+                            match ContGenAppSettings.ContGenSvcPort with
+                            | n when n > 0 -> n |> ServicePort |> ContGenServicePort
+                            | _ -> ContGenServicePort.defaultValue
 
-                minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+                        contGenServiceName = contGenServiceName
+                    }
 
-                msgSvcAddress =
-                    match ContGenAppSettings.MsgSvcAddress with
-                    | EmptyString -> MessagingServiceAddress.defaultValue
-                    | s -> s |> ServiceAddress |> MessagingServiceAddress
+                messagingSvcInfo =
+                    {
+                        messagingServiceAddress =
+                            match ContGenAppSettings.MsgSvcAddress with
+                            | EmptyString -> MessagingServiceAddress.defaultValue
+                            | s -> s |> ServiceAddress |> MessagingServiceAddress
 
-                msgSvcPort =
-                    match ContGenAppSettings.MsgSvcPort with
-                    | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                    | _ -> MessagingServicePort.defaultValue
+                        messagingServicePort =
+                            match ContGenAppSettings.MsgSvcPort with
+                            | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                            | _ -> MessagingServicePort.defaultValue
 
-                partitionerId =
-                    match ContGenAppSettings.PartitionerId with
-                    | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-                    | _ -> defaultPartitionerId
+                        messagingServiceName = messagingServiceName
+                    }
 
-                lastAllowedNodeErr =
-                    match ContGenAppSettings.LastAllowedNodeErrInMinutes with
-                    | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
-                    | _ -> defaultLastAllowedNodeErr
+                contGenInfo =
+                    {
+                        minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+
+                        partitionerId =
+                            match ContGenAppSettings.PartitionerId with
+                            | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                            | _ -> defaultPartitionerId
+
+                        lastAllowedNodeErr =
+                            match ContGenAppSettings.LastAllowedNodeErrInMinutes with
+                            | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
+                            | _ -> defaultLastAllowedNodeErr
+                    }
             }
         w
 

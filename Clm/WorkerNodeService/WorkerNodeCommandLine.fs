@@ -12,7 +12,7 @@ open ClmSys.WorkerNodePrimitives
 open WorkerNodeServiceInfo.ServiceInfo
 
 module SvcCommandLine =
-    
+
     [<CliPrefix(CliPrefix.Dash)>]
     type WorkerNodeServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-address")>] WrkSvcAddress of string
@@ -94,45 +94,50 @@ module SvcCommandLine =
     let tryGetInactive p = p |> List.tryPick (fun e -> match e with | WrkInactive p -> Some p | _ -> None)
 
 
-    let getNoOfCores (w: WorkerNodeSettings) p =
-        let n = tryGetNoOfCores p |> Option.defaultValue w.noOfCores
-        max 0 (min n Environment.ProcessorCount)
-
-
-    let getMsgServerAddress (w: WorkerNodeSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
-    let getMsgServerPort (w: WorkerNodeSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
-    let getPartitioner (w: WorkerNodeSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitioner
-    let getServiceAddress (w: WorkerNodeSettings) p = tryGetServiceAddress p |> Option.defaultValue w.workerNodeSvcAddress
-    let getServicePort (w: WorkerNodeSettings) p = tryGetServicePort p |> Option.defaultValue w.workerNodeSvcPort
-    let getWorkerNodeId (w: WorkerNodeSettings) p = tryGetClientId p |> Option.defaultValue w.workerNodeId
-    let getNodeName (w: WorkerNodeSettings) p = tryGetNodeName p |> Option.defaultValue w.workerNodeName
-    let getInactive (w: WorkerNodeSettings) p = tryGetInactive p |> Option.defaultValue w.isInactive
-
     let loadSettings p =
         let w = loadWorkerNodeSettings()
-        
+
         let w1 =
             {
-                workerNodeSvcAddress = getServiceAddress w p
-                workerNodeSvcPort = getServicePort w p
-                workerNodeName = getNodeName w p
-                noOfCores = getNoOfCores w p
-                msgSvcAddress = getMsgServerAddress w p
-                msgSvcPort = getMsgServerPort w p
-                workerNodeId = getWorkerNodeId w p
-                partitioner = getPartitioner w p
-                isInactive = getInactive w p              
+                workerNodeInfo =
+                    {
+                        workerNodeId = tryGetClientId p |> Option.defaultValue w.workerNodeInfo.workerNodeId
+                        workerNodeName = tryGetNodeName p |> Option.defaultValue w.workerNodeInfo.workerNodeName
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
+                        noOfCores = 0
+
+                        nodePriority =
+                            let n = tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
+                            max 0 (min n Environment.ProcessorCount) |> WorkerNodePriority
+
+                        isInactive = tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
+                        lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
+                    }
+
+                workerNodeSvcInfo =
+                    {
+                        workerNodeServiceAddress = tryGetServiceAddress p |> Option.defaultValue w.workerNodeSvcInfo.workerNodeServiceAddress
+                        workerNodeServicePort = tryGetServicePort p |> Option.defaultValue w.workerNodeSvcInfo.workerNodeServicePort
+                        workerNodeServiceName = w.workerNodeSvcInfo.workerNodeServiceName
+                    }
+
+                messagingSvcInfo =
+                    {
+                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
+                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
+                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+                    }
             }
-            
-        printfn "loadSettings: w1 = %A" w1    
+
+        printfn "loadSettings: w1 = %A" w1
         w1
 
-    
+
     let getServiceAccessInfoImpl b p =
         let load() = loadSettings p
         let trySave() = tryGetSaveSettings p
         getWorkerNodeServiceAccessInfo (load, trySave) b
 
-    
+
     let getServiceAccessInfo = getServiceAccessInfoImpl false
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore

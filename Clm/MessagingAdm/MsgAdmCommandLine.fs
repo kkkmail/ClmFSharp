@@ -46,19 +46,18 @@ module AdmCommandLine =
     let getMsgServiceAddress (w: MsgSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
     let getMsgServicePort (w: MsgSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
 
-    
+
     let loadSettings p =
-        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
         let w = loadMsgServiceSettings()
-        
+
         let w1 =
             {
                 msgSvcAddress = getMsgServiceAddress w p
                 msgSvcPort = getMsgServicePort w p
             }
-            
+
         w1
-        
+
 
     let getServiceAccessInfoImpl b p =
         let load() = loadSettings p

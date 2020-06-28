@@ -213,6 +213,7 @@ module AdmCommandLine =
                         minUsefulEe = w.contGenInfo.minUsefulEe
                         partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
                         lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
                     }
             }
 

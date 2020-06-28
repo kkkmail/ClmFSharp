@@ -98,9 +98,6 @@ module ServiceInfo =
 
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
 
-//        /// Uncomment temporarily for debugging purposes.
-//        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
-
 
     type EarlyExitStrategy =
         | AllOfAny of list<list<EarlyExitRule>> // Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.

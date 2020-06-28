@@ -3,10 +3,10 @@
 open System
 open System.ServiceModel
 open System.Threading
-open ClmSys.MessagingPrimitives
-open ClmSys.PartitionerPrimitives
 open FSharp.Configuration
 
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralData
 open Clm.ModelParams
 open ClmSys.GeneralPrimitives
@@ -145,6 +145,26 @@ module ServiceInfo =
 
         let w =
             {
+                contGenInfo =
+                    {
+                        minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+
+                        partitionerId =
+                            match ContGenAppSettings.PartitionerId with
+                            | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                            | _ -> defaultPartitionerId
+
+                        lastAllowedNodeErr =
+                            match ContGenAppSettings.LastAllowedNodeErrInMinutes with
+                            | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
+                            | _ -> LastAllowedNodeErr.defaultValue
+
+                        earlyExitCheckFreq =
+                            match ContGenAppSettings.EarlyExitCheckFrequencyInMinutes with
+                            | p when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
+                            | _ -> EarlyExitCheckFreq.defaultValue
+                    }
+
                 contGenSvcInfo =
                     {
                         contGenServiceAddress =
@@ -173,21 +193,6 @@ module ServiceInfo =
                             | _ -> MessagingServicePort.defaultValue
 
                         messagingServiceName = messagingServiceName
-                    }
-
-                contGenInfo =
-                    {
-                        minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
-
-                        partitionerId =
-                            match ContGenAppSettings.PartitionerId with
-                            | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-                            | _ -> defaultPartitionerId
-
-                        lastAllowedNodeErr =
-                            match ContGenAppSettings.LastAllowedNodeErrInMinutes with
-                            | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
-                            | _ -> defaultLastAllowedNodeErr
                     }
             }
         w

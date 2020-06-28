@@ -107,6 +107,15 @@ module SvcCommandLine =
 
         let w1 =
             {
+
+                contGenInfo =
+                    {
+                        minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue w.contGenInfo.minUsefulEe
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
+                    }
+
                 contGenSvcInfo =
                     {
                         contGenServiceAddress = tryGetServerAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
@@ -119,13 +128,6 @@ module SvcCommandLine =
                         messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
                         messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
                         messagingServiceName = w.messagingSvcInfo.messagingServiceName
-                    }
-
-                contGenInfo =
-                    {
-                        minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue w.contGenInfo.minUsefulEe
-                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
-                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                     }
             }
 
@@ -176,7 +178,11 @@ module SvcCommandLine =
                                 getConnectionString = getClmConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
-                                earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+
+                                earlyExitInfoOpt =
+                                    Some { EarlyExitInfo.defaultValue with
+                                            frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
+
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                             }
 

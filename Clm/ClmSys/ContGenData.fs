@@ -32,15 +32,12 @@ module ContGenData =
         }
 
 
-    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
-    let defaultLastAllowedNodeErr = LastAllowedNodeErr 60<minute>
-
-
     type ContGenInfo =
         {
             minUsefulEe : MinUsefulEe
             partitionerId : PartitionerId
             lastAllowedNodeErr : LastAllowedNodeErr
+            earlyExitCheckFreq : EarlyExitCheckFreq
         }
 
 

@@ -5,7 +5,6 @@ open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
-open ClmSys.MessagingPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
 

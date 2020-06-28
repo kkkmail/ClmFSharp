@@ -1,8 +1,6 @@
 ﻿namespace MessagingService
 
 open Argu
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.ServiceInstaller
 open ClmSys.GeneralPrimitives
@@ -10,13 +8,12 @@ open ClmSys.MessagingPrimitives
 open MessagingServiceInfo.ServiceInfo
 
 module SvcCommandLine =
-    
+
     [<CliPrefix(CliPrefix.Dash)>]
     type MessagingServiceRunArgs =
         | [<Unique>] [<AltCommandLine("-address")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] MsgSvcPort of int
         | [<Unique>] [<AltCommandLine("-save")>] MsgSaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] MsgVersion of string
 
     with
         interface IArgParserTemplate with
@@ -25,7 +22,6 @@ module SvcCommandLine =
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
                 | MsgSaveSettings -> "saves settings to the Registry."
-                | MsgVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
 
 
     type MsgSvcArgs = SvcArguments<MessagingServiceRunArgs>
@@ -65,32 +61,35 @@ module SvcCommandLine =
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | MsgVersion p -> p |> VersionNumber |> Some | _ -> None)
 
 
-    let getVersion = getVersionImpl tryGetVersion
-    let getMsgServiceAddress (w: MsgSettings) p = tryGetMsgServiceAddress p |> Option.defaultValue w.msgSvcAddress
-    let getMsgServicePort (w: MsgSettings) p = tryGetMsgServicePort p |> Option.defaultValue w.msgSvcPort
-
-    
     let loadSettings p =
         let w = loadMsgServiceSettings()
-        
+
         let w1 =
             {
-                msgSvcAddress = getMsgServiceAddress w p
-                msgSvcPort = getMsgServicePort w p
+                messagingInfo =
+                    {
+                        expirationTime = w.messagingInfo.expirationTime
+                    }
+
+                messagingSvcInfo =
+                    {
+                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
+                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
+                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+                    }
             }
-            
+
         w1
-    
-    
+
+
     let getServiceAccessInfoImpl b p =
         let load() = loadSettings p
         let tryGetSave() = tryGetSaveSettings p
-        getMsgServiceAccessInfo (load, tryGetSave) b
+        getMsgServiceInfo (load, tryGetSave) b
 
 
     let getServiceAccessInfo = getServiceAccessInfoImpl false
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore
-    
+

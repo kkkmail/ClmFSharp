@@ -401,8 +401,9 @@ module ServiceInfo =
             match w.isValid() with
             | Ok() ->
                 try
-                    MsgAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
-                    MsgAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
+                    MsgAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
+                    MsgAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
+                    MsgAppSettings.ExpirationTimeInMinutes <- int w.messagingInfo.expirationTime.TotalMinutes
 
                     Ok()
                 with
@@ -414,19 +415,29 @@ module ServiceInfo =
         MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
 
         {
-            msgSvcAddress =
-                match MsgAppSettings.MsgSvcAddress with
-                | EmptyString -> MessagingServiceAddress.defaultValue
-                | s -> s |> ServiceAddress |> MessagingServiceAddress
+            messagingInfo =
+                {
+                    expirationTime = TimeSpan.FromMinutes(float MsgAppSettings.ExpirationTimeInMinutes)
+                }
 
-            msgSvcPort =
-                match MsgAppSettings.MsgSvcPort with
-                | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                | _ -> MessagingServicePort.defaultValue
+            messagingSvcInfo =
+                {
+                    messagingServiceAddress =
+                        match MsgAppSettings.MsgSvcAddress with
+                        | EmptyString -> MessagingServiceAddress.defaultValue
+                        | s -> s |> ServiceAddress |> MessagingServiceAddress
+
+                    messagingServicePort =
+                        match MsgAppSettings.MsgSvcPort with
+                        | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                        | _ -> MessagingServicePort.defaultValue
+
+                    messagingServiceName = messagingServiceName
+                }
         }
 
 
-    let getMsgServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
+    let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
         let (w : MsgSettings) = loadSettings()
         printfn "getServiceAccessInfoImpl: w = %A" w
 
@@ -440,9 +451,4 @@ module ServiceInfo =
         | Ok() -> printfn "Successfully saved settings."
         | Error e -> printfn "Error occurred trying to save settings: %A." e
 
-
-        {
-            messagingServiceAddress = w.msgSvcAddress
-            messagingServicePort = w.msgSvcPort
-            messagingServiceName = messagingServiceName
-        }
+        w

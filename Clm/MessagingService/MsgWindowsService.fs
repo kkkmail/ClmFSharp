@@ -14,12 +14,12 @@ open ClmSys.MessagingPrimitives
 
 module MsgWindowsService =
 
-    let startMsgWcfServiceRun (logger : Logger) (i : MessagingServiceAccessInfo) : MsgWcfSvcShutDownInfo option =
+    let startMsgWcfServiceRun (logger : Logger) (i : MessagingServiceInfo) : MsgWcfSvcShutDownInfo option =
         try
             printfn "startMsgWcfServiceRun: Creating WCF Messaging Service..."
             serviceAccessInfo <- i
             let binding = getBinding()
-            let baseAddress = new Uri(i.wcfServiceUrl)
+            let baseAddress = new Uri(i.messagingSvcInfo.wcfServiceUrl)
 
             let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
 

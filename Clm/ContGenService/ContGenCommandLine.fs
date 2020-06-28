@@ -36,7 +36,6 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
         | [<Unique>] [<AltCommandLine("-save")>] SaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] ContGenVersion of string
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
@@ -49,7 +48,6 @@ module SvcCommandLine =
                 | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
                 | SaveSettings -> "saves settings to the Registry."
-                | ContGenVersion _ -> "tries to load data from specified version instead of current version. If -save is specified, then saves data into current version."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
@@ -93,11 +91,9 @@ module SvcCommandLine =
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
 
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
-
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | ContGenVersion p -> p |> VersionNumber |> Some | _ -> None)
-
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
 

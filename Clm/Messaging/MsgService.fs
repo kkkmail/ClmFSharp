@@ -4,7 +4,6 @@ open System
 open ClmSys.TimerEvents
 open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
-open ServiceProxy.MsgProcessorProxy
 open ServiceProxy.MsgServiceProxy
 open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives

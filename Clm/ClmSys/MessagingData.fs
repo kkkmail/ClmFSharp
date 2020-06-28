@@ -1,7 +1,10 @@
 ﻿namespace ClmSys
 
+open System
 open GeneralData
 open MessagingPrimitives
+open ClmSys.ClmErrors
+open ClmSys.MessagingServiceErrors
 
 module MessagingData =
 
@@ -26,3 +29,31 @@ module MessagingData =
             msgClientId : MessagingClientId
             msgSvcAccessInfo : MessagingServiceAccessInfo
         }
+
+    type MessagingInfo =
+        {
+            expirationTime : TimeSpan
+        }
+
+
+    type MsgSettings =
+        {
+            messagingInfo : MessagingInfo
+            messagingSvcInfo : MessagingServiceAccessInfo
+        }
+
+        member w.isValid() =
+            let r =
+                [
+                    w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+                    w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+                ]
+                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+
+            match r with
+            | true, _ -> Ok()
+            | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error
+
+
+    /// Currently they are the same but this may change.
+    type MessagingServiceInfo = MsgSettings

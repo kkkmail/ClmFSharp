@@ -5,7 +5,6 @@ open Clm.Substances
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 
-
 module ChartData =
 
     type TotalSubstData =

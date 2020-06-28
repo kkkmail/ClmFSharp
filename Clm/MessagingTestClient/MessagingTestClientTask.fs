@@ -5,7 +5,7 @@ open System.Threading
 open ClmSys.GeneralPrimitives
 open MessagingServiceInfo.ServiceInfo
 open Messaging.Client
-open Messaging.MsgCliCommandLine
+open MessagingTestClient.MessagingTestClientCommandLine
 open Messaging.ServiceResponse
 open ClmSys.MessagingData
 open ServiceProxy.MsgServiceProxy
@@ -78,7 +78,7 @@ module MessagingTestClientTask =
             | RunTestClientTask (i, h, r) -> runTestClient i h r
 
         static member tryCreateRunTestClientTask (p : list<MessagingClientRunArgs>) =
-            match tryGetClientServiceAccessInfo p None, tryCreateMsgResponseHandler p None, tryGetRecipientId p with
+            match loadSettings p, tryCreateMsgResponseHandler p, tryGetRecipientId p with
             | Some i, Some h, Some r -> RunTestClientTask (i, h, r) |> Some
             | _ -> None
 

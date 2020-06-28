@@ -40,19 +40,19 @@ module WindowsService =
             member _.ping b = tryReply ping toPingError b
 
 
-    let startWrkNodeWcfServiceRun (logger : Logger) (i : WorkerNodeServiceInfo) : WrkNodeWcfSvcShutDownInfo option =
+    let startWrkNodeWcfServiceRun (logger : Logger) (j : ClmResult<WorkerNodeServiceInfo>) : WrkNodeWcfSvcShutDownInfo option =
         try
             printfn "startWrkNodeWcfServiceRun: Creating WCF Worker Node Service..."
-            serviceAccessInfo <- i
+            serviceAccessInfo <- j
 
-            match workerNodeRunner.Value with
-            | Ok r ->
+            match workerNodeRunner.Value, j with
+            | Ok r, Ok i ->
                 match r.start() with
                 | Ok() ->
                     let binding = getBinding()
                     let baseAddress = new Uri(i.workerNodeServiceAccessInfo.wcfServiceUrl)
                     let serviceHost = new ServiceHost(typeof<WorkerNodeWcfService>, baseAddress)
-                    let d = serviceHost.AddServiceEndpoint(typeof<IWorkerNodeWcfService>, binding, baseAddress)
+                    let _ = serviceHost.AddServiceEndpoint(typeof<IWorkerNodeWcfService>, binding, baseAddress)
                     do serviceHost.Open()
                     printfn "startWrkNodeWcfServiceRun: Completed."
 
@@ -63,8 +63,14 @@ module WindowsService =
                 | Error e ->
                     printfn "startWrkNodeWcfServiceRun: Error - %A." e
                     None
-            | Error e ->
+            | Error e, Ok _ ->
                 printfn "startWrkNodeWcfServiceRun: Error - %A." e
+                None
+            | Ok _, Error e ->
+                printfn "startWrkNodeWcfServiceRun: Error - %A." e
+                None
+            | Error e1, Error e2 ->
+                printfn "startWrkNodeWcfServiceRun: Errors - %A, %A." e1 e2
                 None
         with
         | e ->

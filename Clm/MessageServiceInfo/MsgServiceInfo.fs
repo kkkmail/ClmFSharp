@@ -2,6 +2,8 @@
 
 open System
 open System.ServiceModel
+open ClmSys.MessagingData
+open FSharp.Configuration
 
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.VersionInfo
@@ -16,6 +18,8 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
+open ClmSys.MessagingServiceErrors
+open ClmSys.GeneralData
 
 module ServiceInfo =
 
@@ -93,9 +97,6 @@ module ServiceInfo =
         member this.value = let (EarlyExitCheckFrequency v) = this in v
 
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
-
-//        /// Uncomment temporarily for debugging purposes.
-//        static member defaultValue = TimeSpan.FromMinutes(1.0) |> EarlyExitCheckFrequency
 
 
     type EarlyExitStrategy =
@@ -382,3 +383,69 @@ module ServiceInfo =
 
 
     type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])
+
+
+    [<Literal>]
+    let MsgAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\MessagingService\app.config"
+
+
+    type MsgAppSettings = AppSettings<MsgAppConfigFile>
+
+
+    type MsgSettings
+        with
+        member w.trySaveSettings() =
+            match w.isValid() with
+            | Ok() ->
+                try
+                    MsgAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
+                    MsgAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
+                    MsgAppSettings.ExpirationTimeInMinutes <- int w.messagingInfo.expirationTime.TotalMinutes
+
+                    Ok()
+                with
+                | e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
+            | Error e -> Error e
+
+
+    let loadMsgServiceSettings() =
+        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
+
+        {
+            messagingInfo =
+                {
+                    expirationTime = TimeSpan.FromMinutes(float MsgAppSettings.ExpirationTimeInMinutes)
+                }
+
+            messagingSvcInfo =
+                {
+                    messagingServiceAddress =
+                        match MsgAppSettings.MsgSvcAddress with
+                        | EmptyString -> MessagingServiceAddress.defaultValue
+                        | s -> s |> ServiceAddress |> MessagingServiceAddress
+
+                    messagingServicePort =
+                        match MsgAppSettings.MsgSvcPort with
+                        | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
+                        | _ -> MessagingServicePort.defaultValue
+
+                    messagingServiceName = messagingServiceName
+                }
+        }
+
+
+    let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
+        let (w : MsgSettings) = loadSettings()
+        printfn "getServiceAccessInfoImpl: w = %A" w
+
+        let r =
+            match tryGetSaveSettings(), b with
+            | Some _, _ -> w.trySaveSettings()
+            | _, true -> w.trySaveSettings()
+            | _ -> Ok()
+
+        match r with
+        | Ok() -> printfn "Successfully saved settings."
+        | Error e -> printfn "Error occurred trying to save settings: %A." e
+
+        w

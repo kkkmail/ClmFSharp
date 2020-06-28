@@ -6,7 +6,6 @@ open GeneralErrors
 open MessagingPrimitives
 open MessagingCommonErrors
 
-
 module MessagingServiceErrors =
 
     type MessageCreateError =
@@ -50,6 +49,11 @@ module MessagingServiceErrors =
         | TryDeleteMsgWcfErr of WcfError
         | CannotFindClientErr of Guid
         | UnableToDeleteMessageErr of (MessagingClientId * MessageId)
+        
+        
+    type MsgSettingsError =
+        | InvalidSettings of string
+        | MsgSettingExn of exn
 
 
     type MessagingServiceError =
@@ -59,3 +63,4 @@ module MessagingServiceErrors =
         | MessageUpsertErr of MessageUpsertError
         | TryPeekMessageErr of TryPeekMessageError
         | TryDeleteFromServerErr of TryDeleteFromServerError
+        | MsgSettingsErr of MsgSettingsError

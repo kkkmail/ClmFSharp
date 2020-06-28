@@ -40,7 +40,7 @@ module Defaults_004_004_000 =
 
                 enCatLigScarcity = 0.000_000_001
                 enCatLigMultiplier = 100_000.0
-                enCatLigSimilarity = 0.0010
+                enCatLigSimilarity = 0.001_0
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
@@ -54,6 +54,13 @@ module Defaults_004_004_000 =
                 { DefaultDataParam.defaultValue with sugarForward = 10.0 }
                 { DefaultDataParam.defaultValue with enCatLigScarcity = 0.000_000_002 }
                 { DefaultDataParam.defaultValue with sugarForward = 10.0; enCatLigScarcity = 0.000_000_002 }
+
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.002 }
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5 }
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; sugarForward = 500.0 }
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; sugarForward = 500.0 }
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; enCatLigSimilarity = 0.002_0 }
+                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; enCatLigSimilarity = 0.002_0 }
             ]
             |> withRowNumber
 
@@ -152,7 +159,7 @@ module Defaults_004_004_000 =
 
     let defaultValues =
         printfn "\n"
-        
+
         data
         |> List.map getDefaultValue
         |> updateDescription "Cat lig with similarity + all sugars playground."

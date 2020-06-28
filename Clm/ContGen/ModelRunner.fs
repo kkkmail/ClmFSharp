@@ -231,10 +231,10 @@ module ModelRunner =
 
     type TryRunFirstModelProxy
         with
-        static member create c rmp =
+        static member create c rmp m =
             {
                 tryLoadFirstRunQueue = fun () -> tryLoadFirstRunQueue c
-                tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c
+                tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c m
                 runModel = runModel rmp
                 upsertRunQueue = upsertRunQueue c
             }
@@ -261,9 +261,9 @@ module ModelRunner =
 
     type TryRunAllModelsProxy
         with
-        static member create c r =
+        static member create c r m =
             {
-                tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r)
+                tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r m)
             }
 
 
@@ -288,10 +288,11 @@ module ModelRunner =
 
     type RunnerData =
         {
-            connectionString : ConnectionString
+            getConnectionString : unit -> ConnectionString
             minUsefulEe : MinUsefulEe
             resultLocation : string
             earlyExitInfoOpt : EarlyExitInfo option
+            lastAllowedNodeErr : LastAllowedNodeErr
         }
 
 
@@ -301,7 +302,7 @@ module ModelRunner =
             {
                 minUsefulEe = d.minUsefulEe
                 sendRunModelMessage = s
-                loadModelData = loadModelData d.connectionString
+                loadModelData = loadModelData d.getConnectionString
                 earlyExitInfo = d.earlyExitInfoOpt
             }
 
@@ -331,10 +332,10 @@ module ModelRunner =
 
     type Runner (i : RunnerDataWithProxy) =
         let runModelProxy = RunModelProxy.create i.runnerData i.messageProcessorProxy.sendMessage
-        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.connectionString runModelProxy
-        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
-        let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.connectionString i.messageProcessorProxy.sendMessage
-        let proxy = onGetMessagesProxy i.runnerData.connectionString i.runnerData.resultLocation i.messageProcessorProxy
+        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.getConnectionString runModelProxy i.runnerData.lastAllowedNodeErr
+        let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
+        let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
+        let proxy = onGetMessagesProxy i.runnerData.getConnectionString i.runnerData.resultLocation i.messageProcessorProxy
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -411,7 +412,7 @@ module ModelRunner =
                 let runner = new Runner(data)
 
                 {
-                    modelGenerator = createModelGenerator d.logger d.runnerData.connectionString
+                    modelGenerator = createModelGenerator d.logger d.runnerData.getConnectionString
                     modelRunner = createModelRunner d.logger runner
                     tryCancelRunQueue = runner.tryCancelRunQueue
                     tryRequestResults = runner.tryRequestResults

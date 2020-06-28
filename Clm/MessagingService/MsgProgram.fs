@@ -1,4 +1,4 @@
-﻿namespace MessagingServer
+﻿namespace MessagingService
 
 open System.ServiceProcess
 open Argu

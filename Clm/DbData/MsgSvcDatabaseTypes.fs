@@ -49,7 +49,7 @@ module MsgSvcDatabaseTypes =
     let serializationFormat = BinaryZippedFormat
 
 
-    type MsgSvcDB = SqlProgrammabilityProvider<MsgSvcSqlProviderName, ConfigFile = AppConfigFile>
+    type MsgSvcDB = SqlProgrammabilityProvider<MsgSvcSqlProviderName, ConfigFile = MsgAppConfigFile>
     type MessageTable = MsgSvcDB.dbo.Tables.Message
     type MessageTableRow = MessageTable.Row
 
@@ -137,9 +137,9 @@ module MsgSvcDatabaseTypes =
         | None -> Ok None
 
 
-    let tryPickIncomingMessage connectionString (MessagingClientId i) =
+    let tryPickIncomingMessage c (MessagingClientId i) =
         let g () =
-            use conn = getOpenConn connectionString
+            use conn = getOpenConn c
             let t = new MessageTable()
             use d = new TryPickRecipientMessageData(conn)
             d.Execute(i, messagingDataVersion.value) |> t.Load
@@ -148,9 +148,9 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let tryPickOutgoingMessage connectionString (MessagingClientId i) =
+    let tryPickOutgoingMessage c (MessagingClientId i) =
         let g () =
-            use conn = getOpenConn connectionString
+            use conn = getOpenConn c
             let t = new MessageTable()
             use d = new TryPickSenderMessageData(conn)
             d.Execute(i, messagingDataVersion.value) |> t.Load
@@ -171,10 +171,13 @@ module MsgSvcDatabaseTypes =
     ///                    values (source.messageId, source.senderId, source.recipientId, source.dataVersion, source.deliveryTypeId, source.messageData, source.createdOn)
     ///                when matched then
     ///                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
-    let saveMessage (ConnectionString connectionString) (m : Message) =
+    let saveMessage c (m : Message) =
         let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+
             use cmd = new SqlCommandProvider<"
                 declare @messageIdValue uniqueidentifier
                 set @messageIdValue = @messageId
@@ -199,10 +202,13 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let deleteMessage (ConnectionString connectionString) (messageId : MessageId) =
+    let deleteMessage c (messageId : MessageId) =
         let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+
             use cmd = new SqlCommandProvider<"delete from dbo.Message where messageId = @messageId", MsgSvcConnectionStringValue>(connectionString)
 
             match cmd.Execute(messageId = messageId.value) with
@@ -212,8 +218,11 @@ module MsgSvcDatabaseTypes =
         tryDbFun g
 
 
-    let deleteExpiredMessages (ConnectionString connectionString) (expirationTime : TimeSpan) =
+    let deleteExpiredMessages c (expirationTime : TimeSpan) =
         let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+
             use cmd = new SqlCommandProvider<"
                 delete from dbo.Message
                 where

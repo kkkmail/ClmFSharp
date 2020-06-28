@@ -19,7 +19,7 @@ module ContGenAdmTasks =
         Ok()
 
 
-    let loadClmDefaultValue = loadClmDefaultValue clmConnectionString
+    let loadClmDefaultValue = loadClmDefaultValue getClmConnectionString
 
 
     let addClmTask (p :list<AddClmTaskArgs>) =
@@ -50,12 +50,12 @@ module ContGenAdmTasks =
                         createdOn = DateTime.Now
                     }
 
-                match addClmTask clmConnectionString t with
+                match addClmTask getClmConnectionString t with
                 | Ok() ->
                     match getGenerateModelCode p with
                     | true ->
                         printfn "Genetrating model..."
-                        let proxy = GenerateModelProxy.create clmConnectionString
+                        let proxy = GenerateModelProxy.create getClmConnectionString
 
                         match generateModel proxy t with
                         | Ok model ->
@@ -79,7 +79,7 @@ module ContGenAdmTasks =
             | Some i -> i * 1_000
             | None -> 30_000
 
-        let modelMonitor = ModelMonitor.create clmConnectionString
+        let modelMonitor = ModelMonitor.create getClmConnectionString
 
         while true do
             try

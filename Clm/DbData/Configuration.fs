@@ -1,4 +1,6 @@
 ﻿namespace DbData
+
+open System
 open System.Data.SQLite
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
@@ -7,6 +9,10 @@ open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.Retry
 open ClmSys.ClmErrors
+open ClmSys.GeneralData
+open ContGenServiceInfo.ServiceInfo
+open MessagingServiceInfo.ServiceInfo
+
 
 module Configuration =
 
@@ -17,14 +23,29 @@ module Configuration =
 
 
     [<Literal>]
-    let AppConfigFile : string = __SOURCE_DIRECTORY__ + "\.\App.config"
+    let ContGenAppConfigFile : string = __SOURCE_DIRECTORY__ + "\..\ContGenService\App.config"
+
+
+    [<Literal>]
+    let MsgAppConfigFile : string = __SOURCE_DIRECTORY__ + "\..\MessagingService\App.config"
 
 
     [<Literal>]
     let ClmConnectionStringValue = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
 
 
-    let clmConnectionString = ConnectionString ClmConnectionStringValue
+    let private getClmConnectionStringImpl() =
+        ContGenAppSettings.SelectExecutableFile(getFileName contGenServiceProgramName)
+
+        match ContGenAppSettings.ConnectionStrings.Clm with
+        | EmptyString -> ClmConnectionStringValue
+        | s -> s
+        |> ConnectionString
+
+
+    let private clmConnectionString = new Lazy<ConnectionString>(getClmConnectionStringImpl)
+    let getClmConnectionString() = clmConnectionString.Value
+
 
     [<Literal>]
     let ClmCommandTimeout = 7200
@@ -42,15 +63,20 @@ module Configuration =
     let MsgSvcConnectionStringValue = "Server=localhost;Database=" + MsgSvcDbName + ";Integrated Security=SSPI"
 
 
-    let msgSvcConnectionString = ConnectionString MsgSvcConnectionStringValue
+    let private getMsgSvcConnectionStringImpl() =
+        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
+
+        match MsgAppSettings.ConnectionStrings.MsgSvc with
+        | EmptyString -> MsgSvcConnectionStringValue
+        | s -> s
+        |> ConnectionString
+
+
+    let private msgSvcConnectionString = new Lazy<ConnectionString>(getMsgSvcConnectionStringImpl)
+    let getMsgSvcConnectionString() = msgSvcConnectionString.Value
 
     [<Literal>]
     let MsgSvcSqlProviderName : string = "name=MsgSvc"
-
-
-    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
-    [<Literal>]
-    let lastAllowedNodeErrInMinutes = "60"
 
 
     let buildConnectionString (key : string) : string =
@@ -66,8 +92,8 @@ module Configuration =
         | _ -> ignore ()
 
 
-    let getOpenConn (ConnectionString connectionString) =
-        let conn = new SqlConnection(connectionString)
+    let getOpenConn (c : unit -> ConnectionString) =
+        let conn = new SqlConnection(c().value)
         openConnIfClosed conn
         conn
 

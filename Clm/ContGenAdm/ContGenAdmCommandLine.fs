@@ -8,9 +8,10 @@ open System
 open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.Logging
-open ClmSys.Registry
+open ClmSys.GeneralData
+open ClmSys.MessagingPrimitives
+open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.VersionInfo
 open ClmSys.ContGenData
 open ContGen.ContGenServiceResponse
 open ContGenServiceInfo.ServiceInfo
@@ -19,6 +20,26 @@ module AdmCommandLine =
 
     [<Literal>]
     let ContGenAdmAppName = "ContGenAdm.exe"
+
+
+    type RunData =
+        {
+            y0 : double
+            tEnd : double
+        }
+
+
+    type ContGenAdmSettings =
+        {
+            contGenSettings : ContGenSettings
+
+            defaultValueId : ClmDefaultValueId
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+            runData : list<RunData>
+            numberOfRepetitions : int
+            generateModelCode : bool
+        }
 
 
     [<CliPrefix(CliPrefix.Dash)>]
@@ -79,7 +100,7 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToModify of Guid
         | [<Unique>] [<AltCommandLine("-c")>] CancelOrAbort of bool
         | [<Unique>] [<AltCommandLine("-r")>] ReportResults of bool
-//        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
+        | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
 
@@ -90,7 +111,7 @@ module AdmCommandLine =
                 | RunQueueIdToModify _ -> "RunQueueId to modify."
                 | CancelOrAbort _ -> "if false then requests to cancel with results, if true then requests to abort calculations."
                 | ReportResults _ -> "if false then requests results without charts, if true the requests results with charts."
-                //| Partitioner _ -> "messaging client id of a partitioner service."
+                | Partitioner _ -> "messaging client id of a partitioner service."
                 | SvcAddress _ -> "ContGen service ip address / name."
                 | SvcPort _ -> "ContGen service port."
 
@@ -167,26 +188,40 @@ module AdmCommandLine =
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
-    //let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+    let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
     let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
-    let getContGenServiceAddress = getContGenServiceAddressImpl tryGetContGenServiceAddress
-    let getContGenServicePort = getContGenServicePortImpl tryGetContGenServicePort
-    //let getPartitioner = getPartitionerImpl tryGetPartitioner
 
 
-    let getContGenServiceAccessInfo p =
-        let name = contGenServiceRegistryName
-        let version = versionNumberValue
-        let contGenAddress = getContGenServiceAddress logger version name p
-        let contGenPort = getContGenServicePort logger version name p
+    let loadSettings p =
+        let w = loadContGenSettings()
 
-        {
-            contGenServiceAddress = contGenAddress
-            contGenServicePort = contGenPort
-            contGenServiceName = contGenServiceName
-        }
+        let w1 =
+            {
+                contGenSvcInfo =
+                    {
+                        contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
+                        contGenServicePort = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
+                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
+                    }
+
+                messagingSvcInfo = w.messagingSvcInfo
+
+                contGenInfo =
+                    {
+                        minUsefulEe = w.contGenInfo.minUsefulEe
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
+                    }
+            }
+
+        printfn "loadSettings: w1 = %A" w1
+        w1
+
+
+    let getContGenServiceAccessInfo p = (loadSettings p).contGenSvcInfo
 
 
     let getCancellationTypeOpt p =
@@ -195,6 +230,7 @@ module AdmCommandLine =
 
     let getResultNotificationTypeOpt p =
         p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
+
 
     let private reportResult (logger : Logger) name r =
         match r with
@@ -205,6 +241,7 @@ module AdmCommandLine =
             printfn "%s: Error %A" name e
             logger.logError e
             Error e
+
 
     let tryCancelRunQueueImpl (logger : Logger) p =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with

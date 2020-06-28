@@ -134,3 +134,19 @@ module ContGenPrimitives =
         member this.value = let (ContGenAdmId v) = this in v
         member this.messagingClientId = let (ContGenAdmId v) = this in v
         static member newId() = Guid.NewGuid() |> MessagingClientId |> ContGenAdmId
+
+
+    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
+    type LastAllowedNodeErr =
+        | LastAllowedNodeErr of int<minute>
+
+        member this.value = let (LastAllowedNodeErr v) = this in v
+        static member defaultValue = LastAllowedNodeErr 60<minute>
+
+
+    /// Number of minutes between checks for early exit.
+    type EarlyExitCheckFreq =
+        | EarlyExitCheckFreq of int<minute>
+
+        member this.value = let (EarlyExitCheckFreq v) = this in v
+        static member defaultValue = EarlyExitCheckFreq 60<minute>

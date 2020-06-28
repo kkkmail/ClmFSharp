@@ -10,7 +10,7 @@ let main argv =
         let parser = ArgumentParser.Create<MsgAdmRunArgs>(programName = MsgAdmAppName)
         let results = (parser.Parse argv).GetAllResults()
         let i = getServiceAccessInfo results
-        let service = new MsgResponseHandler(i)
+        let service = MsgResponseHandler(i.messagingSvcInfo)
         let task = MsgAdmTask.createTask service results
         task.run()
 

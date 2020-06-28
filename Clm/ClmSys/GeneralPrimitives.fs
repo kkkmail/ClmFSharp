@@ -5,6 +5,17 @@ open ClmSys.VersionInfo
 
 module GeneralPrimitives =
 
+    [<Measure>] type millisecond
+    [<Measure>] type second
+    [<Measure>] type minute
+    [<Measure>] type hour
+
+
+    let millisecondsPerSecond = 1_000<millisecond/second>
+    let secondsPerMinute = 60<second/minute>
+    let minutesPerHour = 60<minute/hour>
+
+
     let DefaultContGenServicePort = DefaultServicePort
     let DefaultContGenServiceAddress = "localhost"
 

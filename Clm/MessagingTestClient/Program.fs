@@ -1,7 +1,7 @@
 ﻿namespace MessagingServer
 
 open Argu
-open Messaging.MsgCliCommandLine
+open MessagingTestClient.MessagingTestClientCommandLine
 open MessagingTestClient.MessagingTestClientTask
 open ClmSys.ExitErrorCodes
 

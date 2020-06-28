@@ -5,7 +5,6 @@ open ClmSys.GeneralData
 open ClmSys.ServiceInstaller
 open System
 open ClmSys.VersionInfo
-open ClmSys.Registry
 open ClmSys.Logging
 open Messaging.ServiceResponse
 open MessagingServiceInfo.ServiceInfo
@@ -20,6 +19,7 @@ open ClmSys.MessagingData
 open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
+open ContGenServiceInfo.ServiceInfo
 
 module SvcCommandLine =
 
@@ -36,7 +36,6 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
         | [<Unique>] [<AltCommandLine("-ee")>] MinimumUsefulEe of double
         | [<Unique>] [<AltCommandLine("-save")>] SaveSettings
-        | [<Unique>] [<AltCommandLine("-version")>] ContGenVersion of string
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-msgAddress")>] MsgSvcAddress of string
         | [<Unique>] [<AltCommandLine("-msgPort")>] MsgSvcPort of int
@@ -49,7 +48,6 @@ module SvcCommandLine =
                 | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
                 | SaveSettings -> "saves settings to the Registry."
-                | ContGenVersion _ -> "tries to load data from specfied version instead of current version. If -save is specified, then saves data into current version."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
@@ -93,86 +91,67 @@ module SvcCommandLine =
     let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
 
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
-
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
-    let tryGetVersion p = p |> List.tryPick (fun e -> match e with | ContGenVersion p -> p |> VersionNumber |> Some | _ -> None)
-
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
+
     let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
     let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
 
 
-    let geMinUsefulEe logger version name p =
-        match tryGeMinUsefulEe p with
-        | Some e -> e
-        | None ->
-            match tryGetContGenMinUsefulEe version name with
-            | Ok e -> e
-            | Error _ -> MinUsefulEe DefaultMinEe
+    let loadSettings p =
+        let w = loadContGenSettings()
 
+        let w1 =
+            {
 
-    let getVersion = getVersionImpl tryGetVersion
-    let getMsgServiceAddress = getMsgServiceAddressImpl tryGetMsgServiceAddress
-    let getMsgServicePort = getMsgServicePortImpl tryGetMsgServicePort
-    let getPartitioner = getPartitionerImpl tryGetPartitioner
-    let getServerAddress = getContGenServiceAddressImpl tryGetServerAddress
-    let getServerPort = getContGenServicePortImpl tryGetServerPort
+                contGenInfo =
+                    {
+                        minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue w.contGenInfo.minUsefulEe
+                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
+                    }
+
+                contGenSvcInfo =
+                    {
+                        contGenServiceAddress = tryGetServerAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
+                        contGenServicePort = tryGetServerPort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
+                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
+                    }
+
+                messagingSvcInfo =
+                    {
+                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
+                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
+                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+                    }
+            }
+
+        w1
 
 
     let saveSettings p =
-        let name = contGenServiceRegistryName
-        let version = getVersion p
-
-        let ee = geMinUsefulEe logger version name p
-        let msgAddress = getMsgServiceAddress logger version name p
-        let msgPort = getMsgServicePort logger version name p
-
-        let partitioner = getPartitioner logger version name p
-        let usePartitioner = true
-
-        let address = getServerAddress logger version name p
-        let port = getServerPort logger version name p
-
-        let saveSettings() =
-            trySetMessagingServiceAddress versionNumberValue name msgAddress |> ignore
-            trySetMessagingServicePort versionNumberValue name msgPort |> ignore
-            trySetPartitionerMessagingClientId versionNumberValue name partitioner |> ignore
-            trySetUsePartitioner versionNumberValue name usePartitioner |> ignore
-            trySetContGenMinUsefulEe versionNumberValue name ee |> ignore
-            trySetContGenServiceAddress versionNumberValue name address |> ignore
-            trySetContGenServicePort versionNumberValue name port |> ignore
-
-        match tryGetSaveSettings p with
-        | Some() -> saveSettings()
-        | None -> ignore()
+        let load() = loadSettings p
+        let tryGet() = tryGetSaveSettings p
+        saveContGenSettings load tryGet
 
 
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
-        let name = contGenServiceRegistryName
-        let version = getVersion p
-
-        let msgAddress = getMsgServiceAddress logger version name p
-        let msgPort = getMsgServicePort logger version name p
-        let partitioner = getPartitioner logger version name p
+        let w = loadSettings p
+        printfn "getContGenServiceData: w = %A" w
 
         let i =
             {
-                msgClientId = partitioner.messagingClientId
-
-                msgSvcAccessInfo =
-                    {
-                        messagingServiceAddress = msgAddress
-                        messagingServicePort = msgPort
-                        messagingServiceName = messagingServiceName
-                    }
+                msgClientId = w.contGenInfo.partitionerId.messagingClientId
+                msgSvcAccessInfo = w.messagingSvcInfo
             }
 
         let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
             let i =
                 {
                     messagingClientName = contGenServiceName.value.messagingClientName
-                    storageType = clmConnectionString |> MsSqlDatabase
+                    storageType = getClmConnectionString |> MsSqlDatabase
                 }
 
             let messagingClientData =
@@ -192,10 +171,15 @@ module SvcCommandLine =
                     {
                         runnerData =
                             {
-                                connectionString = clmConnectionString
+                                getConnectionString = getClmConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
-                                earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+
+                                earlyExitInfoOpt =
+                                    Some { EarlyExitInfo.defaultValue with
+                                            frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
+
+                                lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                             }
 
                         runnerProxy =
@@ -208,12 +192,9 @@ module SvcCommandLine =
                         logger = logger
                     }
 
-                contGenServiceAccessInfo =
-                    {
-                        contGenServiceAddress = getServerAddress logger version name p
-                        contGenServicePort = getServerPort logger version name p
-                        contGenServiceName = contGenServiceName
-                    }
+                contGenServiceAccessInfo = w.contGenSvcInfo
             }
 
-        data
+        match w.isValid() with
+        | Ok() -> Ok data
+        | Error e -> Error e

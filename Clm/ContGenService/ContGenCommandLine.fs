@@ -124,6 +124,7 @@ module SvcCommandLine =
                 msgSvcAddress = getMsgServerAddress w p
                 msgSvcPort = getMsgServerPort w p
                 partitionerId = getPartitionerId w p
+                lastAllowedNodeErr = w.lastAllowedNodeErr
             }
 
         w1
@@ -180,6 +181,7 @@ module SvcCommandLine =
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
                                 earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+                                lastAllowedNodeErr = w.lastAllowedNodeErr
                             }
 
                         runnerProxy =

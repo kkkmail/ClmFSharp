@@ -20,19 +20,19 @@ module AdmCommandLine =
 
     [<Literal>]
     let ContGenAdmAppName = "ContGenAdm.exe"
-    
-    
+
+
     type RunData =
         {
             y0 : double
             tEnd : double
         }
-    
-    
+
+
     type ContGenAdmSettings =
         {
             contGenSettings : ContGenSettings
-            
+
             defaultValueId : ClmDefaultValueId
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
@@ -195,8 +195,8 @@ module AdmCommandLine =
     let getServiceAddress (w: ContGenSettings) p = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcAddress
     let getServicePort (w: ContGenSettings) p = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcPort
     let getPartitionerId (w: ContGenSettings) p = tryGetPartitioner p |> Option.defaultValue w.partitionerId
-    
-    
+
+
     let loadSettings p =
         let w = loadContGenSettings()
 
@@ -208,16 +208,16 @@ module AdmCommandLine =
                 msgSvcAddress = w.msgSvcAddress // getMsgServerAddress w p
                 msgSvcPort = w.msgSvcPort // getMsgServerPort w p
                 partitionerId = getPartitionerId w p
+                lastAllowedNodeErr = w.lastAllowedNodeErr
             }
-            
-        printfn "loadSettings: w1 = %A" w1            
+
+        printfn "loadSettings: w1 = %A" w1
         w1
 
 
     let getContGenServiceAccessInfo p =
-        ContGenAppSettings.SelectExecutableFile(getFileName contGenServiceProgramName)
         let w = loadSettings p
-        
+
         {
             contGenServiceAddress = w.contGenSvcAddress
             contGenServicePort = w.contGenSvcPort
@@ -232,7 +232,7 @@ module AdmCommandLine =
     let getResultNotificationTypeOpt p =
         p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
 
-    
+
     let private reportResult (logger : Logger) name r =
         match r with
         | Ok() ->
@@ -243,7 +243,7 @@ module AdmCommandLine =
             logger.logError e
             Error e
 
-    
+
     let tryCancelRunQueueImpl (logger : Logger) p =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
         | Some q, Some c ->

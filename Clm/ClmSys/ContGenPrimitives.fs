@@ -134,3 +134,9 @@ module ContGenPrimitives =
         member this.value = let (ContGenAdmId v) = this in v
         member this.messagingClientId = let (ContGenAdmId v) = this in v
         static member newId() = Guid.NewGuid() |> MessagingClientId |> ContGenAdmId
+
+
+    type LastAllowedNodeErr =
+        | LastAllowedNodeErr of int<minute>
+
+        member this.value = let (LastAllowedNodeErr v) = this in v

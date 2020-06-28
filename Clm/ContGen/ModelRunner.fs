@@ -231,10 +231,10 @@ module ModelRunner =
 
     type TryRunFirstModelProxy
         with
-        static member create c rmp =
+        static member create c rmp m =
             {
                 tryLoadFirstRunQueue = fun () -> tryLoadFirstRunQueue c
-                tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c
+                tryGetAvailableWorkerNode = fun () -> tryGetAvailableWorkerNode c m
                 runModel = runModel rmp
                 upsertRunQueue = upsertRunQueue c
             }
@@ -261,9 +261,9 @@ module ModelRunner =
 
     type TryRunAllModelsProxy
         with
-        static member create c r =
+        static member create c r m =
             {
-                tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r)
+                tryRunFirstModel = fun () -> tryRunFirstModel (TryRunFirstModelProxy.create c r m)
             }
 
 
@@ -292,6 +292,7 @@ module ModelRunner =
             minUsefulEe : MinUsefulEe
             resultLocation : string
             earlyExitInfoOpt : EarlyExitInfo option
+            lastAllowedNodeErr : LastAllowedNodeErr
         }
 
 
@@ -331,7 +332,7 @@ module ModelRunner =
 
     type Runner (i : RunnerDataWithProxy) =
         let runModelProxy = RunModelProxy.create i.runnerData i.messageProcessorProxy.sendMessage
-        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.getConnectionString runModelProxy
+        let tryRunAllModelsProxy = TryRunAllModelsProxy.create i.runnerData.getConnectionString runModelProxy i.runnerData.lastAllowedNodeErr
         let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
         let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
         let proxy = onGetMessagesProxy i.runnerData.getConnectionString i.runnerData.resultLocation i.messageProcessorProxy

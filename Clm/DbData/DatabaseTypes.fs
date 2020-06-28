@@ -1038,7 +1038,7 @@ module DatabaseTypes =
                     when numberOfCores <= 0 then 1
                     else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
                 end as money) as workLoad
-            ,case when lastErrorOn is null or dateadd(minute, " + lastAllowedNodeErrInMinutes + @", lastErrorOn) < getdate() then 0 else 1 end as noErr
+            ,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
         from WorkerNode w
         where isInactive = 0
         )
@@ -1052,11 +1052,11 @@ module DatabaseTypes =
     type AvailableWorkerNodeTableData = SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
 
 
-    let tryGetAvailableWorkerNode c =
+    let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
         let g() =
             use conn = getOpenConn c
             use cmd = new SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
-            let table = cmd.Execute()
+            let table = cmd.Execute (m / 1<minute>)
 
             match table.Rows |> Seq.tryHead with
             | None -> Ok None

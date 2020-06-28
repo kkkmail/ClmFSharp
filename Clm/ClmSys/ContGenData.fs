@@ -1,18 +1,15 @@
 ﻿namespace ClmSys
 
-open GeneralData
-open ContGenPrimitives
+open System
 open System.ServiceModel
 
-open System
-open ClmSys.GeneralData
-open ClmSys.MessagingData
-open ClmSys.WorkerNodePrimitives
+open ClmSys
+open GeneralPrimitives
+open GeneralData
+open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.MessagingPrimitives
-open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
-open ClmSys.ContGenPrimitives
 open ClmSys.ContGenErrors
 
 module ContGenData =
@@ -34,7 +31,11 @@ module ContGenData =
             contGenServiceHost : ServiceHost
         }
 
-            
+
+    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
+    let defaultLastAllowedNodeErr = LastAllowedNodeErr 60<minute>
+
+
     type ContGenSettings =
         {
             contGenSvcAddress : ContGenServiceAddress
@@ -43,19 +44,21 @@ module ContGenData =
             msgSvcAddress : MessagingServiceAddress
             msgSvcPort : MessagingServicePort
             partitionerId : PartitionerId
+            lastAllowedNodeErr : LastAllowedNodeErr
         }
-        
+
         member w.isValid() =
-            let r =               
+            let r =
                 [
                     w.contGenSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcAddress
                     w.contGenSvcPort.value.value > 0, sprintf "%A is invalid" w.contGenSvcPort
                     w.msgSvcAddress.value.value <> EmptyString, sprintf "%A is invalid" w.msgSvcAddress
                     w.msgSvcPort.value.value > 0, sprintf "%A is invalid" w.msgSvcPort
                     w.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.partitionerId
+                    w.lastAllowedNodeErr.value > 0<minute>, sprintf "%A is invalid" w.lastAllowedNodeErr
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
-                
+
             match r with
             | true, _ -> Ok()
             | false, s -> s |> InvalidSettings |> ContGenSettingsErr |> ContGenServiceErr |> Error

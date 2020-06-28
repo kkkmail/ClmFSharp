@@ -1,7 +1,6 @@
 ﻿namespace DbData
 
 open System
-open FSharp.Configuration
 open System.Data.SQLite
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
@@ -78,11 +77,6 @@ module Configuration =
 
     [<Literal>]
     let MsgSvcSqlProviderName : string = "name=MsgSvc"
-
-
-    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
-    [<Literal>]
-    let lastAllowedNodeErrInMinutes = "60"
 
 
     let buildConnectionString (key : string) : string =

@@ -130,6 +130,7 @@ module ServiceInfo =
                     ContGenAppSettings.MsgSvcAddress <- w.msgSvcAddress.value.value
                     ContGenAppSettings.MsgSvcPort <- w.msgSvcPort.value.value
                     ContGenAppSettings.PartitionerId <- w.partitionerId.value.value
+                    ContGenAppSettings.LastAllowedNodeErrInMinutes <- w.lastAllowedNodeErr.value / 1<minute>
 
                     Ok()
                 with
@@ -138,29 +139,41 @@ module ServiceInfo =
 
 
     let loadContGenSettings() =
+        ContGenAppSettings.SelectExecutableFile(getFileName contGenServiceProgramName)
+
         let w =
             {
                 contGenSvcAddress =
                     match ContGenAppSettings.ContGenSvcAddress with
                     | EmptyString -> ContGenServiceAddress.defaultValue
                     | s -> s |> ServiceAddress |> ContGenServiceAddress
+
                 contGenSvcPort =
                     match ContGenAppSettings.ContGenSvcPort with
                     | n when n > 0 -> n |> ServicePort |> ContGenServicePort
                     | _ -> ContGenServicePort.defaultValue
+
                 minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+
                 msgSvcAddress =
                     match ContGenAppSettings.MsgSvcAddress with
                     | EmptyString -> MessagingServiceAddress.defaultValue
                     | s -> s |> ServiceAddress |> MessagingServiceAddress
+
                 msgSvcPort =
                     match ContGenAppSettings.MsgSvcPort with
                     | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
                     | _ -> MessagingServicePort.defaultValue
+
                 partitionerId =
                     match ContGenAppSettings.PartitionerId with
                     | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
                     | _ -> defaultPartitionerId
+
+                lastAllowedNodeErr =
+                    match ContGenAppSettings.LastAllowedNodeErrInMinutes with
+                    | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
+                    | _ -> defaultLastAllowedNodeErr
             }
         w
 

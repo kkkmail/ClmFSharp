@@ -104,11 +104,15 @@ module SvcCommandLine =
                         workerNodeId = tryGetClientId p |> Option.defaultValue w.workerNodeInfo.workerNodeId
                         workerNodeName = tryGetNodeName p |> Option.defaultValue w.workerNodeInfo.workerNodeName
                         partitionerId = tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
-                        noOfCores = 0
+
+                        noOfCores =
+                            let n = tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
+                            max 0 (min n Environment.ProcessorCount)
 
                         nodePriority =
-                            let n = tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-                            max 0 (min n Environment.ProcessorCount) |> WorkerNodePriority
+                            match w.workerNodeInfo.nodePriority.value with
+                            | x when x <= 0 -> WorkerNodePriority.defaultValue
+                            | _ -> w.workerNodeInfo.nodePriority
 
                         isInactive = tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
                         lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt

@@ -20,7 +20,7 @@ module Distributions =
         else getS r
 
 
-    let getGausssian (r : unit -> double) mean stdDev =
+    let getGaussian (r : unit -> double) mean stdDev =
         let (s, u) = getS r
         let mul = -2.0 * (log s) / s |> sqrt
         mean + stdDev * u * mul
@@ -38,7 +38,7 @@ module Distributions =
     let biDelta v = if v < 0.5 then -1.0 else 1.0
 
     /// Generates values on (-1, 1).
-    let uniform v = 2.0 * (v - 1.0)
+    let uniform v = 2.0 * (v - 0.5)
 
     /// Generates values on (0, 3) with mean 1.
     let triangular v = 3.0 * (1.0 - sqrt(1.0 - v))
@@ -116,7 +116,7 @@ module Distributions =
                 shift = None
             }
 
-        static member create threshold scale shift = 
+        static member create threshold scale shift =
             {
                 threshold = threshold
                 scale = scale
@@ -226,7 +226,7 @@ module Distributions =
                         | RandomValueGetterBased rnd ->
                             let stdDev = 0.0
                             let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
-                            getGausssian rnd.nextDouble m s
+                            getGaussian rnd.nextDouble m s
                         | ThresholdValueBased _ -> double m
                 printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
                 min (max 0L (int64 sn)) noOfTries |> int
@@ -271,13 +271,13 @@ module Distributions =
             | Some s -> Distribution.createSymmetricTriangular { threshold = None; scale = Some s; shift = Some m } |> EeDistribution
             | None -> EeDistribution.createCenteredDelta mean
 
-        static member getDeltaEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
-            match rate, rateEnant with 
+        static member getDeltaEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) =
+            match rate, rateEnant with
             | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCenteredDelta |> Some
             | _ -> None
 
-        static member getCenteredEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) = 
-            match rate, rateEnant with 
+        static member getCenteredEeDistrOpt (rate : ReactionRate option) (rateEnant : ReactionRate option) =
+            match rate, rateEnant with
             | Some (ReactionRate r), Some (ReactionRate re) -> (r - re) / (r + re) |> EeDistribution.createCentered |> Some
             | _ -> None
 

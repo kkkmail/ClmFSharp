@@ -50,4 +50,5 @@ module AllDefaults_001 =
         updateDescription "Catalytic synthesis / forward only for n = 20 (catSynthScarcity = 200, vary catSynthSim) with catRateGenType = ByEnantiomerPairs FixedVal, successNumberType = ThresholdBased."
             (Defaults_001_000_026.ns |> List.map Defaults_001_000_026.getDefaultValue)
 
-
+        @
+        Defaults_001_001_022.defaultValues

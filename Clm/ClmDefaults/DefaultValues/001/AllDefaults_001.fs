@@ -51,4 +51,6 @@ module AllDefaults_001 =
             (Defaults_001_000_026.ns |> List.map Defaults_001_000_026.getDefaultValue)
 
         @
+        Defaults_001_001_018.defaultValues
+        @
         Defaults_001_001_022.defaultValues

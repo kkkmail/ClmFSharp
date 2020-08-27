@@ -119,6 +119,25 @@ module ReactionRateParams =
         | CatDestrSimParam of CatalyticDestructionSimilarParam
 
 
+    type EnCatalyticDestructionRandomParam =
+        {
+            destructionParam : DestructionParam
+            enCatDestrRndEeParams : EnCatRatesEeParam
+        }
+
+
+    type EnCatalyticDestructionSimilarParam =
+        {
+            enCatDestrParam : EnCatalyticDestructionRandomParam
+            enCatDestrSimParam : EnCatRatesSimilarityParam
+        }
+
+
+    type EnCatalyticDestructionParam =
+        | EnCatDestrRndParam of EnCatalyticDestructionRandomParam
+        | EnCatDestrSimParam of EnCatalyticDestructionSimilarParam
+
+
     type SedDirRatesEeParam =
         {
             sedDirRateMultiplierDistr : RateMultiplierDistribution
@@ -271,3 +290,22 @@ module ReactionRateParams =
     type CatalyticRacemizationParam =
         | CatRacemRndParam of CatalyticRacemizationRandomParam
         | CatRacemSimParam of CatalyticRacemizationSimilarParam
+
+
+    type EnCatalyticRacemizationRandomParam =
+        {
+            racemizationParam : RacemizationParam
+            enCatRacemRndEeParams : EnCatRatesEeParam
+        }
+
+
+    type EnCatalyticRacemizationSimilarParam =
+        {
+            enCatRacemParam : EnCatalyticRacemizationRandomParam
+            enCatRacemSimParam : EnCatRatesSimilarityParam
+        }
+
+
+    type EnCatalyticRacemizationParam =
+        | EnCatRacemRndParam of EnCatalyticRacemizationRandomParam
+        | EnCatRacemSimParam of EnCatalyticRacemizationSimilarParam

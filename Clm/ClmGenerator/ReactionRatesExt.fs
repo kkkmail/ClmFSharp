@@ -159,6 +159,7 @@ module ReactionRatesExt =
             | CatalyticSynthesisRateModel m -> m.primaryDistribution
             | EnCatalyticSynthesisRateModel m -> m.primaryDistribution
             | CatalyticDestructionRateModel m -> m.primaryDistribution
+            | EnCatalyticDestructionRateModel m -> m.primaryDistribution
             | LigationRateModel m -> m.primaryDistribution
             | CatalyticLigationRateModel m -> m.primaryDistribution
             | EnCatalyticLigationRateModel m -> m.primaryDistribution
@@ -166,6 +167,7 @@ module ReactionRatesExt =
             | SedimentationAllRateModel m -> m.primaryDistribution
             | RacemizationRateModel m -> m.primaryDistribution
             | CatalyticRacemizationRateModel m -> m.primaryDistribution
+            | EnCatalyticRacemizationRateModel m -> m.primaryDistribution
 
 
     type ReactionRateProvider

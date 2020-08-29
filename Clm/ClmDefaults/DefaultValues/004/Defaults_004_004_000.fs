@@ -8,13 +8,15 @@ open ClmSys.ContGenPrimitives
 open Clm.ReactionRatesBase
 
 module Defaults_004_004_000 =
-    let sdSim = 0.1
-
     type DefaultDataParam =
         {
             enCatSynthSimilarity : double
             enCatSynthScarcity : double
             enCatSynthMultiplier : double
+
+            enCatDestrSimilarity : double
+            enCatDestrScarcity : double
+            enCatDestrMultiplier : double
 
             ligForward : float
             ligBackward : float
@@ -33,6 +35,10 @@ module Defaults_004_004_000 =
                 enCatSynthScarcity = 0.000_100
                 enCatSynthMultiplier = 100_000.0
                 enCatSynthSimilarity = 0.1
+
+                enCatDestrScarcity = 0.000_100
+                enCatDestrMultiplier = 100_000.0
+                enCatDestrSimilarity = 0.1
 
                 ligForward = 0.001
                 ligBackward = 0.003
@@ -85,10 +91,10 @@ module Defaults_004_004_000 =
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
 
-            let catDestrRndParam = (destrParam, (Some 0.000_100), 100_000.0)
+            let enCatSynthRndParam = (destrParam, (Some e.enCatDestrScarcity), e.enCatDestrMultiplier)
 
-            let catDestrParam =
-                ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some sdSim) catRateGenType
+            let enCatDestrParam =
+                ReactionRateProviderParams.defaultEnCatDestrSimParam enCatSynthRndParam (Some e.enCatDestrSimilarity) catRateGenType
             //===========================================================
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (e.ligForward, e.ligBackward)
 
@@ -105,7 +111,7 @@ module Defaults_004_004_000 =
                     enCatSynthParam
 
                     destrParam |> DestructionRateParam
-                    catDestrParam
+                    enCatDestrParam
 
                     ligParam |> LigationRateParam
                     if (e.enCatLigScarcity > 0.0) then enCatLigParam

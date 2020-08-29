@@ -171,8 +171,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
-            shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
-            shift + "    eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
+            shift + "    enEeDistribution = " + (toEeDistrOpt p.enEeDistribution) + Nl +
             shift + "}" + Nl
 
 

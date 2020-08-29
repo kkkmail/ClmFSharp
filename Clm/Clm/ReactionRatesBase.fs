@@ -173,15 +173,13 @@ module ReactionRatesBase =
     type EnCatRatesEeParam =
         {
             rateMultiplierDistr : RateMultiplierDistribution
-            eeForwardDistribution : EeDistribution option
-            eeBackwardDistribution : EeDistribution option
+            enEeDistribution : EeDistribution option
         }
 
         static member defaultValue =
             {
                 rateMultiplierDistr = NoneRateMult
-                eeForwardDistribution = None
-                eeBackwardDistribution = None
+                enEeDistribution = None
             }
 
 
@@ -200,7 +198,8 @@ module ReactionRatesBase =
         }
 
     /// These reactions explicitly consume energy by utilizing "energy source" molecule, which is destroyed.
-    /// Subsequently, thermodynamic equilibrium is changed as a result of such reaction.
+    /// Subsequently, thermodynamic equilibrium IS changed as a result of such reaction and we assume that
+    /// the catalyst then catalyzes only forward reaction.
     /// The following is meaning of coefficients:
     ///     kf -  is forward  multiplier for a catalyst C
     ///     kfe - is forward  multiplier for a catalyst E(C) - enantiomer of C
@@ -223,29 +222,26 @@ module ReactionRatesBase =
                 match i.rateGenerationType with
                 | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
 
-            match k, i.eeParams.eeForwardDistribution with
+            match k, i.eeParams.enEeDistribution with
             | Some k0, Some df ->
                 let s0 = i.getBaseRates i.reaction
 
+                // Forward ee.
                 let f = df.nextDouble i.rnd
                 let fe = df.nextDouble i.rnd
                 let fu = df.nextDouble i.rnd
                 let feu = df.nextDouble i.rnd
-
-                let b, be, bu, beu =
-                    match i.eeParams.eeBackwardDistribution with
-                    | Some d -> d.nextDouble i.rnd, d.nextDouble i.rnd, d.nextDouble i.rnd, d.nextDouble i.rnd
-                    | None -> f, fe, fu, feu
 
                 let kf = k0 * (1.0 + f)
                 let kfe = k0 * (1.0 + fe)
                 let kfu = k0 * (1.0 + fu)
                 let kfeu = k0 * (1.0 + feu)
 
-                let kb = k0 * (1.0 + b)
-                let kbe = k0 * (1.0 + be)
-                let kbu = k0 * (1.0 + bu)
-                let kbeu = k0 * (1.0 + beu)
+                // Backward rates are unaffected. if that changes then plug in the logic here.
+                let kb = 1.0
+                let kbe = 1.0
+                let kbu = 1.0
+                let kbeu = 1.0
 
                 let (rf, rfe) =
                     match s0.forwardRate with
@@ -288,4 +284,3 @@ module ReactionRatesBase =
             getForwardEeDistr : EeDistributionGetter
             getBackwardEeDistr : EeDistributionGetter
         }
-

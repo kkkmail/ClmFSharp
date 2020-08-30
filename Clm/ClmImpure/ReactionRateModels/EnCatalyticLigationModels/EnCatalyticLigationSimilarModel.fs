@@ -19,7 +19,6 @@ module EnCatalyticLigationSimilarModel =
 
     type EnCatalyticLigationSimilarModel (p : EnCatalyticLigationSimilarParamWithModel) =
         let calculateSimRatesImpl rnd t (EnCatalyticLigationReaction (s, c, u)) =
-            let (LigationReaction a) = s
             {
                 reaction = s
                 enCatalyst = c

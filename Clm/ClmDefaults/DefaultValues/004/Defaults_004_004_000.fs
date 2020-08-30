@@ -41,7 +41,7 @@ module Defaults_004_004_000 =
                 enCatDestrSimilarity = 0.1
 
                 ligForward = 0.001
-                ligBackward = 0.003
+                ligBackward = 0.010
 
                 enCatLigScarcity = 0.000_000_001
                 enCatLigMultiplier = 100_000.0
@@ -82,7 +82,8 @@ module Defaults_004_004_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.000_000_001)
+//            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.000_000_001)
+            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
 
             let enCatSynthRndParam = (synthParam, (Some e.enCatSynthScarcity), e.enCatSynthMultiplier)
 

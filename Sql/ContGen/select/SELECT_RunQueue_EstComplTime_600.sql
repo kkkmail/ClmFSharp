@@ -28,6 +28,7 @@ set @now = getdate()
 select * from w
 where
 	estCompl is not null
+	and clmDefaultValueId >= 4004000000
 	--and estCompl < dateadd(day, 1, @now)
 	--and totalRunTime > 0.5
 order by estCompl desc

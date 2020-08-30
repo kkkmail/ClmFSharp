@@ -88,9 +88,11 @@ module ClmModelData =
             catSynthPairs : list<SynthesisReaction * SynthCatalyst>
             enCatSynth : list<SynthesisReaction * EnSynthCatalyst * ChiralSugar>
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
+            enCatDestr : list<DestructionReaction * EnDestrCatalyst * ChiralSugar>
             catLigPairs : list<LigationReaction * LigCatalyst>
             enCatLig : list<LigationReaction * EnLigCatalyst * ChiralSugar>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
+            enCatRacem : list<RacemizationReaction * EnRacemCatalyst * ChiralSugar>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
         }
 
@@ -113,12 +115,14 @@ module ClmModelData =
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
             | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.enCatSynth
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
+            | EnCatalyticDestructionName -> createReactions (fun x -> EnCatalyticDestructionReaction x |> EnCatalyticDestruction) data.enCatDestr
             | LigationName -> createReactions (fun x -> x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
             | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.enCatLig
             | SedimentationDirectName -> createReactions (fun (c, r) -> SedimentationDirectReaction ([ c ] |> SedDirReagent, r) |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
+            | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
 
 
@@ -182,6 +186,8 @@ module ClmModelData =
             | EnCatalyticSynthesisName ->
                 (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
+            | EnCatalyticDestructionName ->
+                (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length) * sugLen * 2L
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
             | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
@@ -189,6 +195,8 @@ module ClmModelData =
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
+            | EnCatalyticRacemizationName ->
+                (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length) * sugLen * 2L
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
@@ -205,9 +213,11 @@ module ClmModelData =
                         catSynthPairs = generatePairs (si.catSynthInfo st)
                         enCatSynth = generateTriples (si.enCatSynthInfo st)
                         catDestrPairs = generatePairs (si.catDestrInfo st)
+                        enCatDestr = generateTriples (si.enCatDestrInfo st)
                         catLigPairs = generatePairs (si.catLigInfo st)
                         enCatLig = generateTriples (si.enCatLigInfo st)
                         catRacemPairs = generatePairs (si.catRacemInfo st)
+                        enCatRacem = generateTriples (si.enCatRacemInfo st)
                         sedDirPairs = generatePairs (si.sedDirInfo st)
                     }
             }

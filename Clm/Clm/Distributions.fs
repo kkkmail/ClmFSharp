@@ -145,7 +145,7 @@ module Distributions =
                 | Some s -> s
                 | None -> Random().Next()
 
-            let rnd = new Random(seed)
+            let rnd = Random(seed)
 
             {
                 seed = seed

@@ -367,8 +367,7 @@ module ReactionRateFunctions =
         | true ->
             {
                 rateMultiplierDistr = i.enSimParams.getRateMultiplierDistr.getDistr None rateMult
-                eeForwardDistribution = i.enSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                eeBackwardDistribution = i.enSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+                enEeDistribution = i.enSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
             }
         | false -> EnCatRatesEeParam.defaultValue
 

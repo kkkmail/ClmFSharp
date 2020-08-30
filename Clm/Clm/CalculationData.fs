@@ -84,10 +84,12 @@ module CalculationData =
             sugSynthCatalysts : list<SugCatalyst>
             enSynthCatalysts : list<EnSynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
+            enDestrCatalysts : list<EnDestrCatalyst>
             ligCatalysts : list<LigCatalyst>
             enLigCatalysts : list<EnLigCatalyst>
             ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
+            enRacemCatalysts : list<EnRacemCatalyst>
 
             sedDirReagents : Map<AminoAcid, list<SedDirReagent>>
             sedDirAgents : list<SedDirAgent>
@@ -130,10 +132,12 @@ module CalculationData =
                 sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
                 enSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnSynthCatalyst p)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
+                enDestrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnDestrCatalyst p)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
                 enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
                 ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
+                enRacemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnRacemCatalyst p)
                 sedDirReagents = aminoAcids |> List.map (fun a -> (a, simReagents a)) |> Map.ofList
 
                 sedDirAgents =
@@ -185,6 +189,15 @@ module CalculationData =
                 successNumberType = t
             }
 
+        member si.enCatDestrInfo t =
+            {
+                a = si.destructionReactions |> Array.ofList
+                b = si.enDestrCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
+                reactionName = ReactionName.EnCatalyticDestructionName
+                successNumberType = t
+            }
+
         member si.catLigInfo t =
             {
                 a = si.ligationReactions |> Array.ofList
@@ -207,6 +220,15 @@ module CalculationData =
                 a = si.racemizationReactions |> Array.ofList
                 b = si.racemCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticRacemizationName
+                successNumberType = t
+            }
+
+        member si.enCatRacemInfo t =
+            {
+                a = si.racemizationReactions |> Array.ofList
+                b = si.enRacemCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
+                reactionName = ReactionName.EnCatalyticRacemizationName
                 successNumberType = t
             }
 

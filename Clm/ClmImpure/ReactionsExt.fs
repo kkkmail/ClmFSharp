@@ -67,6 +67,7 @@ module ReactionsExt =
             | CatalyticSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticSynthesis))
             | EnCatalyticSynthesisRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticSynthesis))
             | CatalyticDestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticDestruction))
+            | EnCatalyticDestructionRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticDestruction))
             | LigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Ligation))
             | CatalyticLigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticLigation))
             | EnCatalyticLigationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticLigation))
@@ -74,3 +75,4 @@ module ReactionsExt =
             | SedimentationAllRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> SedimentationAll))
             | RacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Racemization))
             | CatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticRacemization))
+            | EnCatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticRacemization))

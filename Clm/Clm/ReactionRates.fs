@@ -48,6 +48,7 @@ module ReactionRates =
         | CatalyticSynthesisRates of list<ReactionRateData<CatalyticSynthesisReaction>>
         | EnCatalyticSynthesisRates of list<ReactionRateData<EnCatalyticSynthesisReaction>>
         | CatalyticDestructionRates of list<ReactionRateData<CatalyticDestructionReaction>>
+        | EnCatalyticDestructionRates of list<ReactionRateData<EnCatalyticDestructionReaction>>
         | LigationRates of list<ReactionRateData<LigationReaction>>
         | CatalyticLigationRates of list<ReactionRateData<CatalyticLigationReaction>>
         | EnCatalyticLigationRates of list<ReactionRateData<EnCatalyticLigationReaction>>
@@ -55,6 +56,7 @@ module ReactionRates =
         | SedimentationAllRates of list<ReactionRateData<SedimentationAllReaction>>
         | RacemizationRates of list<ReactionRateData<RacemizationReaction>>
         | CatalyticRacemizationRates of list<ReactionRateData<CatalyticRacemizationReaction>>
+        | EnCatalyticRacemizationRates of list<ReactionRateData<EnCatalyticRacemizationReaction>>
 
         member ard.toReactionRates() =
             match ard with
@@ -67,6 +69,7 @@ module ReactionRates =
             | CatalyticSynthesisRates r -> r |> List.map (fun e -> e.reaction |> CatalyticSynthesis, e.rateData)
             | EnCatalyticSynthesisRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticSynthesis, e.rateData)
             | CatalyticDestructionRates r -> r |> List.map (fun e -> e.reaction |> CatalyticDestruction, e.rateData)
+            | EnCatalyticDestructionRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticDestruction, e.rateData)
             | LigationRates r -> r |> List.map (fun e -> e.reaction |> Ligation, e.rateData)
             | CatalyticLigationRates r -> r |> List.map (fun e -> e.reaction |> CatalyticLigation, e.rateData)
             | EnCatalyticLigationRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticLigation, e.rateData)
@@ -74,6 +77,7 @@ module ReactionRates =
             | SedimentationAllRates r -> r |> List.map (fun e -> e.reaction |> SedimentationAll, e.rateData)
             | RacemizationRates r -> r |> List.map (fun e -> e.reaction |> Racemization, e.rateData)
             | CatalyticRacemizationRates r -> r |> List.map (fun e -> e.reaction |> CatalyticRacemization, e.rateData)
+            | EnCatalyticRacemizationRates r -> r |> List.map (fun e -> e.reaction |> EnCatalyticRacemization, e.rateData)
 
 
     type ReactionRateModelParam =
@@ -86,6 +90,7 @@ module ReactionRates =
         | CatalyticSynthesisRateParam of CatalyticSynthesisParam
         | EnCatalyticSynthesisRateParam of EnCatalyticSynthesisParam
         | CatalyticDestructionRateParam of CatalyticDestructionParam
+        | EnCatalyticDestructionRateParam of EnCatalyticDestructionParam
         | LigationRateParam of LigationParam
         | CatalyticLigationRateParam of CatalyticLigationParam
         | EnCatalyticLigationRateParam of EnCatalyticLigationParam
@@ -93,6 +98,7 @@ module ReactionRates =
         | SedimentationAllRateParam of SedimentationAllParam
         | RacemizationRateParam of RacemizationParam
         | CatalyticRacemizationRateParam of CatalyticRacemizationParam
+        | EnCatalyticRacemizationRateParam of EnCatalyticRacemizationParam
 
 
         /// TODO kk:20190317 - The dependencies MUST be incorporated at lower level so that to make it compiler's job to check them.
@@ -118,6 +124,10 @@ module ReactionRates =
                 match v with
                 | CatDestrRndParam m -> [ m.destructionParam |> DestructionRateParam ]
                 | CatDestrSimParam m -> [ m.catDestrParam |> CatDestrRndParam |> CatalyticDestructionRateParam ]
+            | EnCatalyticDestructionRateParam v ->
+                match v with
+                | EnCatDestrRndParam m -> [ m.destructionParam |> DestructionRateParam ]
+                | EnCatDestrSimParam m -> [ m.enCatDestrParam |> EnCatDestrRndParam |> EnCatalyticDestructionRateParam ]
             | LigationRateParam _ -> []
             | CatalyticLigationRateParam v ->
                 match v with
@@ -137,6 +147,10 @@ module ReactionRates =
                 match v with
                 | CatRacemRndParam m -> [ m.racemizationParam |> RacemizationRateParam ]
                 | CatRacemSimParam m -> [ m.catRacemParam |> CatRacemRndParam |> CatalyticRacemizationRateParam ]
+            | EnCatalyticRacemizationRateParam v ->
+                match v with
+                | EnCatRacemRndParam m -> [ m.racemizationParam |> RacemizationRateParam ]
+                | EnCatRacemSimParam m -> [ m.enCatRacemParam |> EnCatRacemRndParam |> EnCatalyticRacemizationRateParam ]
 
 
     type ReactionRateModelParamUsage =
@@ -184,6 +198,7 @@ module ReactionRates =
         member p.tryFindCatalyticSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticSynthesisRateParam m -> Some m | _ -> None)
         member p.tryFindEnCatalyticSynthesisParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticSynthesisRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticDestructionParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticDestructionRateParam m -> Some m | _ -> None)
+        member p.tryFindEnCatalyticDestructionParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticDestructionRateParam m -> Some m | _ -> None)
         member p.tryFindLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | LigationRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticLigationRateParam m -> Some m | _ -> None)
         member p.tryFindEnCatalyticLigationParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticLigationRateParam m -> Some m | _ -> None)
@@ -191,6 +206,7 @@ module ReactionRates =
         member p.tryFindSedimentationAllParam() = p.rateParams |> List.tryPick (fun e -> match e with | SedimentationAllRateParam m -> Some m | _ -> None)
         member p.tryFindRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | RacemizationRateParam m -> Some m | _ -> None)
         member p.tryFindCatalyticRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | CatalyticRacemizationRateParam m -> Some m | _ -> None)
+        member p.tryFindEnCatalyticRacemizationParam() = p.rateParams |> List.tryPick (fun e -> match e with | EnCatalyticRacemizationRateParam m -> Some m | _ -> None)
 
         member p.allParams() =
             let prim = p.rateParams |> Set.ofList

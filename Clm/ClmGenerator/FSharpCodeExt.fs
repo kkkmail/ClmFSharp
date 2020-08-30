@@ -171,8 +171,7 @@ module FSharpCodeExt =
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
-            shift + "    eeForwardDistribution = " + (toEeDistrOpt p.eeForwardDistribution) + Nl +
-            shift + "    eeBackwardDistribution = " + (toEeDistrOpt p.eeBackwardDistribution) + Nl +
+            shift + "    enEeDistribution = " + (toEeDistrOpt p.enEeDistribution) + Nl +
             shift + "}" + Nl
 
 
@@ -378,6 +377,34 @@ module FSharpCodeExt =
             | CatDestrSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatDestrSimParam" + Nl)
 
 
+    type EnCatalyticDestructionRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    destructionParam = " + Nl + (p.destructionParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    enCatDestrRndEeParams = " + Nl + (p.enCatDestrRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
+            shift + "}" + Nl
+
+
+    type EnCatalyticDestructionSimilarParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    enCatDestrParam = " + Nl + (p.enCatDestrParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    enCatDestrSimParam = " + Nl + (p.enCatDestrSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "}" + Nl
+
+
+    type EnCatalyticDestructionParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | EnCatDestrRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "EnCatDestrRndParam" + Nl)
+            | EnCatDestrSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "EnCatDestrSimParam" + Nl)
+
+
     type SedDirRatesEeParam
         with
 
@@ -569,6 +596,34 @@ module FSharpCodeExt =
             | CatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "CatRacemSimParam" + Nl)
 
 
+    type EnCatalyticRacemizationRandomParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    racemizationParam = " + Nl + (p.racemizationParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    enCatRacemRndEeParams = " + Nl + (p.enCatRacemRndEeParams.toFSharpCode (increaseShiftTwice shift)) +
+            shift + "}" + Nl
+
+
+    type EnCatalyticRacemizationSimilarParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    enCatRacemParam = " + Nl + (p.enCatRacemParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    enCatRacemSimParam = " + Nl + (p.enCatRacemSimParam.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "}" + Nl
+
+
+    type EnCatalyticRacemizationParam
+        with
+
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | EnCatRacemRndParam q -> (q.toFSharpCode shift) + (shift + "|> " + "EnCatRacemRndParam" + Nl)
+            | EnCatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "EnCatRacemSimParam" + Nl)
+
+
     type ReactionRateModelParam
         with
 
@@ -580,9 +635,10 @@ module FSharpCodeExt =
             | SynthesisRateParam m -> (m.toFSharpCode shift) + shift + "|> SynthesisRateParam" + Nl
             | SugarSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "|> SugarSynthesisRateParam" + Nl
             | DestructionRateParam m -> (m.toFSharpCode shift) + shift + "|> DestructionRateParam" + Nl
+            | CatalyticDestructionRateParam m -> (m.toFSharpCode shift) + shift + "|> CatalyticDestructionRateParam" + Nl
+            | EnCatalyticDestructionRateParam m -> (m.toFSharpCode shift) + shift + "|> EnCatalyticDestructionRateParam" + Nl
             | CatalyticSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "|> CatalyticSynthesisRateParam" + Nl
             | EnCatalyticSynthesisRateParam m -> (m.toFSharpCode shift) + shift + "|> EnCatalyticSynthesisRateParam" + Nl
-            | CatalyticDestructionRateParam m -> (m.toFSharpCode shift) + shift + "|> CatalyticDestructionRateParam" + Nl
             | LigationRateParam m -> (m.toFSharpCode shift) + shift + "|> LigationRateParam" + Nl
             | CatalyticLigationRateParam m -> (m.toFSharpCode shift) + shift + "|> CatalyticLigationRateParam" + Nl
             | EnCatalyticLigationRateParam m -> (m.toFSharpCode shift) + shift + "|> EnCatalyticLigationRateParam" + Nl
@@ -590,6 +646,7 @@ module FSharpCodeExt =
             | SedimentationAllRateParam m -> (m.toFSharpCode shift) + shift + "|> SedimentationAllRateParam" + Nl
             | RacemizationRateParam m -> (m.toFSharpCode shift) + shift + "|> RacemizationRateParam" + Nl
             | CatalyticRacemizationRateParam m -> (m.toFSharpCode shift) + shift + "|> CatalyticRacemizationRateParam" + Nl
+            | EnCatalyticRacemizationRateParam m -> (m.toFSharpCode shift) + shift + "|> EnCatalyticRacemizationRateParam" + Nl
 
 
     type ReactionRateModelParamWithUsage

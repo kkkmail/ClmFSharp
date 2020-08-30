@@ -11,9 +11,11 @@ open ClmImpure.ReactionRateModels.DestructionModel
 open ClmImpure.ReactionRateModels.LigationModel
 open ClmImpure.ReactionRateModels.RacemizationModel
 open ClmImpure.ReactionRateModels.CatalyticDestructionModel
+open ClmImpure.ReactionRateModels.EnCatalyticDestructionModel
 open ClmImpure.ReactionRateModels.CatalyticLigationModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
 open ClmImpure.ReactionRateModels.CatalyticRacemizationModel
+open ClmImpure.ReactionRateModels.EnCatalyticRacemizationModel
 open ClmImpure.ReactionRateModels.CatalyticSynthesisModel
 open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
 open ClmImpure.ReactionRateModels.SedimentationDirectModel
@@ -87,6 +89,16 @@ module ReactionRatesExt =
                 m.inputParams.catDestrModel.inputParams.catDestrRndParam.catDestrRndEeParams.rateMultiplierDistr.value
 
 
+    type EnCatalyticDestructionModel
+        with
+        member model.primaryDistribution =
+            match model with
+            | EnCatDestrRndModel m ->
+                m.inputParams.enCatDestrRndParam.enCatDestrRndEeParams.rateMultiplierDistr.value
+            | EnCatDestrSimModel m ->
+                m.inputParams.enCatDestrModel.inputParams.enCatDestrRndParam.enCatDestrRndEeParams.rateMultiplierDistr.value
+
+
     type LigationModel
         with
         member model.primaryDistribution =
@@ -146,6 +158,16 @@ module ReactionRatesExt =
                 m.inputParams.catRacemModel.inputParams.catRacemRndParam.catRacemRndEeParams.rateMultiplierDistr.value
 
 
+    type EnCatalyticRacemizationModel
+        with
+        member model.primaryDistribution =
+            match model with
+            | EnCatRacemRndModel m ->
+                m.inputParams.enCatRacemRndParam.enCatRacemRndEeParams.rateMultiplierDistr.value
+            | EnCatRacemSimModel m ->
+                m.inputParams.enCatRacemModel.inputParams.enCatRacemRndParam.enCatRacemRndEeParams.rateMultiplierDistr.value
+
+
     type ReactionRateModel
         with
         member model.primaryDistribution =
@@ -159,6 +181,7 @@ module ReactionRatesExt =
             | CatalyticSynthesisRateModel m -> m.primaryDistribution
             | EnCatalyticSynthesisRateModel m -> m.primaryDistribution
             | CatalyticDestructionRateModel m -> m.primaryDistribution
+            | EnCatalyticDestructionRateModel m -> m.primaryDistribution
             | LigationRateModel m -> m.primaryDistribution
             | CatalyticLigationRateModel m -> m.primaryDistribution
             | EnCatalyticLigationRateModel m -> m.primaryDistribution
@@ -166,6 +189,7 @@ module ReactionRatesExt =
             | SedimentationAllRateModel m -> m.primaryDistribution
             | RacemizationRateModel m -> m.primaryDistribution
             | CatalyticRacemizationRateModel m -> m.primaryDistribution
+            | EnCatalyticRacemizationRateModel m -> m.primaryDistribution
 
 
     type ReactionRateProvider

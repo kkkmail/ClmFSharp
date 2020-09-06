@@ -1,6 +1,5 @@
 ﻿namespace NoSql
 
-open Newtonsoft.Json
 open System
 open ClmSys.GeneralData
 open ClmSys.GeneralErrors

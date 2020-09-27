@@ -15,7 +15,7 @@ module Wcf =
 
 
     let getBinding() =
-        let binding = new NetTcpBinding()
+        let binding = NetTcpBinding()
         binding.MaxReceivedMessageSize <- (int64 Int32.MaxValue)
         binding.MaxBufferSize <- Int32.MaxValue
         binding.OpenTimeout <- connectionTimeOut
@@ -29,7 +29,7 @@ module Wcf =
     let tryGetWcfService<'T> url =
         try
             let binding = getBinding()
-            let address = new EndpointAddress(url)
+            let address = EndpointAddress(url)
             let channelFactory = new ChannelFactory<'T>(binding, address)
             let service = channelFactory.CreateChannel()
             Ok (service, fun () -> channelFactory.Close())

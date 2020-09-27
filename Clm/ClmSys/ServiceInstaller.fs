@@ -117,7 +117,7 @@ module ServiceInstaller =
             | Some v ->
                 i.logger.logInfoString (sprintf "Performing cleanup for %s ..." i.serviceName.value)
                 i.cleanup i.logger v
-            | None -> i.logger.logInfoString (sprintf "NOT performing cleanup for %s beause the service was not created..." i.serviceName.value)
+            | None -> i.logger.logInfoString (sprintf "NOT performing cleanup for %s because the service was not created..." i.serviceName.value)
 
             waitHandle.Set() |> ignore
 

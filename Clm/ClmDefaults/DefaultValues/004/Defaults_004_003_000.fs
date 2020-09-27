@@ -55,13 +55,7 @@ module Defaults_004_003_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-//            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, None)
             let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.000_001)
-            let catSynthRndParam = (synthParam, (Some 0.000_100), 100_000.0)
-
-            let catSynthParam =
-                ReactionRateProviderParams.defaultCatSynthSimParam catSynthRndParam (Some sdSim) catRateGenType
-
             let enCatSynthRndParam = (synthParam, (Some 0.000_100), 100_000.0)
 
             let enCatSynthParam =
@@ -71,17 +65,10 @@ module Defaults_004_003_000 =
 
             let catDestrRndParam = (destrParam, (Some 0.000_100), 100_000.0)
 
-//            // For n = 2 - 3. Remove once no longer needed.
-//            let catDestrRndParam = (destrParam, (Some 0.30), 100_000.0)
-
             let catDestrParam =
                 ReactionRateProviderParams.defaultCatDestrSimParam catDestrRndParam (Some sdSim) catRateGenType
             //===========================================================
-//            let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.001)
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (0.001, 0.005)
-
-            let catLigParam =
-                ReactionRateProviderParams.defaultCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
 
             let enCatLigParam =
                 ReactionRateProviderParams.defaultEnCatLigSimParam (ligParam, Some (double scarcity), (double multiplier)) (Some (double similarity)) catRateGenType
@@ -91,16 +78,14 @@ module Defaults_004_003_000 =
             let rates =
                 [
                     wasteRecyclingParam
-//
+
                     synthParam |> SynthesisRateParam
-//                    catSynthParam
                     enCatSynthParam
-//
+
                     destrParam |> DestructionRateParam
                     catDestrParam
-//
+
                     ligParam |> LigationRateParam
-//                    if (scarcity > 0.0M) then catLigParam
                     if (scarcity > 0.0M) then enCatLigParam
 
                     sugParam |> SugarSynthesisRateParam
@@ -120,7 +105,7 @@ module Defaults_004_003_000 =
 
     let defaultValues =
         printfn "\n"
-        
+
         (List.allPairs nSim mScMult)
         |> List.filter (fun ((_, similarity), (_, (scarcity, _))) -> (scarcity = 0.0M && similarity = 0.0M) || scarcity > 0.0M)
         |> List.map getDefaultValue

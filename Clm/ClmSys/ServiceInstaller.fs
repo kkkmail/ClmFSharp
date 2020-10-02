@@ -62,7 +62,7 @@ module ServiceInstaller =
         try
             l.logInfoString (sprintf "Attempting to install service %s ..." serviceName)
             let i = getInstaller<'T> ()
-            let d = new System.Collections.Hashtable()
+            let d = System.Collections.Hashtable()
             i.Install(d)
             i.Commit(d)
             l.logInfoString "... services installed successfully.\n"
@@ -75,7 +75,7 @@ module ServiceInstaller =
         try
             l.logInfoString (sprintf "Attempting to uninstall service %s ..." serviceName)
             let i = getInstaller<'T> ()
-            let d = new System.Collections.Hashtable()
+            let d = System.Collections.Hashtable()
             i.Uninstall(d)
             l.logInfoString "... services uninstalled successfully.\n"
             true

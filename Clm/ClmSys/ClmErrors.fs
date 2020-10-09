@@ -15,16 +15,17 @@ module ClmErrors =
     /// All errors known in the system.
     type ClmError =
         | AggregateErr of ClmError * List<ClmError>
-        | UnhandledExn of string * exn
+        | WcfErr of WcfError
+        | MessagingServiceErr of MessagingServiceError
+        | MessagingClientErr of MessagingClientError
         | ClmEventHandlerErr of ClmEventHandlerError
+
+        | UnhandledExn of string * exn
         | ServiceInstallerErr of ServiceInstallerError
         | RegistryErr of RegistryError
         | FileErr of FileError
         | SerializationErr of SerializationError
-        | WcfErr of WcfError
         | DbErr of DbError
-        | MessagingServiceErr of MessagingServiceError
-        | MessagingClientErr of MessagingClientError
         | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
         | WorkerNodeServiceErr of WorkerNodeServiceError

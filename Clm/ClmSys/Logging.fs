@@ -84,8 +84,8 @@ module Logging =
             let! (message : LogMessage) = inbox.Receive()
             printfn "logAgent - logging message: %A" message
             //writeLog message.Level message.LogInfo.Message message.Exception message.LogInfo.Date message.LogInfo.StackTrace
-            let logData = new LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = message.Level, Message = message.LogInfo.Message, TimeStampUtc = message.LogInfo.Date, LoggerName = logName)
-            let logEvent = new LoggingEvent(logData)
+            let logData = LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = message.Level, Message = message.LogInfo.Message, TimeStampUtc = message.LogInfo.Date, LoggerName = logName)
+            let logEvent = LoggingEvent(logData)
             log4netLogger.Logger.Log logEvent
             return! logLoop()
         }

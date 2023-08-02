@@ -19,7 +19,7 @@ module MsgWindowsService =
             printfn "startMsgWcfServiceRun: Creating WCF Messaging Service..."
             serviceAccessInfo <- i
             let binding = getBinding()
-            let baseAddress = new Uri(i.messagingSvcInfo.wcfServiceUrl)
+            let baseAddress = Uri(i.messagingSvcInfo.wcfServiceUrl)
 
             let serviceHost = new ServiceHost(typeof<MessagingWcfService>, baseAddress)
 

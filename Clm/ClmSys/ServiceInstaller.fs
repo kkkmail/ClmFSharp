@@ -62,7 +62,7 @@ module ServiceInstaller =
         try
             l.logInfoString (sprintf "Attempting to install service %s ..." serviceName)
             let i = getInstaller<'T> ()
-            let d = new System.Collections.Hashtable()
+            let d = System.Collections.Hashtable()
             i.Install(d)
             i.Commit(d)
             l.logInfoString "... services installed successfully.\n"
@@ -75,7 +75,7 @@ module ServiceInstaller =
         try
             l.logInfoString (sprintf "Attempting to uninstall service %s ..." serviceName)
             let i = getInstaller<'T> ()
-            let d = new System.Collections.Hashtable()
+            let d = System.Collections.Hashtable()
             i.Uninstall(d)
             l.logInfoString "... services uninstalled successfully.\n"
             true
@@ -117,7 +117,7 @@ module ServiceInstaller =
             | Some v ->
                 i.logger.logInfoString (sprintf "Performing cleanup for %s ..." i.serviceName.value)
                 i.cleanup i.logger v
-            | None -> i.logger.logInfoString (sprintf "NOT performing cleanup for %s beause the service was not created..." i.serviceName.value)
+            | None -> i.logger.logInfoString (sprintf "NOT performing cleanup for %s because the service was not created..." i.serviceName.value)
 
             waitHandle.Set() |> ignore
 

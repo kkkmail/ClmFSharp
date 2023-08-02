@@ -32,7 +32,7 @@ module WindowsService =
 
         let configure c = workerNodeRunner.Value |> Rop.bind (fun e -> e.configure c)
         let monitor (_ : WorkerNodeMonitorParam) = workerNodeRunner.Value |> Rop.bind (fun e -> e.getState() |> Ok)
-        let ping () = workerNodeRunner.Value |> Rop.bind (fun e -> Ok())
+        let ping () = workerNodeRunner.Value |> Rop.bind (fun _ -> Ok())
 
         interface IWorkerNodeWcfService with
             member _.configure b = tryReply configure toConfigureError b
@@ -50,7 +50,7 @@ module WindowsService =
                 match r.start() with
                 | Ok() ->
                     let binding = getBinding()
-                    let baseAddress = new Uri(i.workerNodeServiceAccessInfo.wcfServiceUrl)
+                    let baseAddress = Uri(i.workerNodeServiceAccessInfo.wcfServiceUrl)
                     let serviceHost = new ServiceHost(typeof<WorkerNodeWcfService>, baseAddress)
                     let _ = serviceHost.AddServiceEndpoint(typeof<IWorkerNodeWcfService>, binding, baseAddress)
                     do serviceHost.Open()
